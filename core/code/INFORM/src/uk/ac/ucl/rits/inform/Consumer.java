@@ -8,8 +8,6 @@
 
 package uk.ac.ucl.rits.inform;
 
-//import /*uk.ac.ucl.rits.inform.*/ Engine;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,7 +21,6 @@ import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 import ca.uhn.hl7v2.validation.ValidationContext;
-
 
 
 public class Consumer {
@@ -104,6 +101,16 @@ public class Consumer {
           }
     
 
+    }
+
+
+    // Args - initial UNID (1 onwards) and optional final UNID
+    // If both present, get records between initial and final (both ends included)
+    // If just initial present, get all records after and including this UNID.
+    public void query_IDS() {
+
+
+        // for each record: engine.processMessage()
     }
 
 

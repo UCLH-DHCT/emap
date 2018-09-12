@@ -10,12 +10,17 @@ do
 		  CP=$i:$CP;
 done
 
-rm uk/ac/ucl/rits/inform/*.class
+CP="src/uk/ac/ucl/rits/inform/":$CP;
+
+echo "Removing old class files"
+rm src/uk/ac/ucl/rits/inform/*.class
 
 #java -cp $CP ca.uhn.hl7v2.examples.CreateAMessage
-javac -classpath $CP -d . Consumer.java
+#javac -classpath $CP -d . Consumer.java
+javac -classpath $CP ./src/uk/ac/ucl/rits/inform/*.java
 
 OPTIONS="-f AllMessages.txt"
 #OPTIONS = "-h"
 
-java -cp $CP uk.ac.ucl.rits.inform.Consumer $OPTIONS
+java -cp "src:$CP" uk.ac.ucl.rits.inform.Consumer $OPTIONS
+#java -cp $CP Consumer $OPTIONS
