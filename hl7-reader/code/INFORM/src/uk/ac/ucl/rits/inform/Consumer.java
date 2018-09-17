@@ -17,7 +17,9 @@ import java.io.InputStream;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.parser.Parser;
+//import ca.uhn.hl7v2.parser.Parser;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 import ca.uhn.hl7v2.validation.ValidationContext;
@@ -133,11 +135,18 @@ public class Consumer {
         c.context = new DefaultHapiContext();
         ValidationContext vc = ValidationContextFactory.noValidation();
         c.context.setValidationContext(vc);
-        c.p = c.context.getGenericParser();
+
+        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        c.context.setModelClassFactory(mcf);
+        c.p = c.context.getPipeParser(); //getGenericParser();
+
+
+
 
         c.engine = new Engine(c.context, c.p);
 
-        // Not very elegant.
+        // Not very elegant. There must be a standard way of doing this
         // Also want a utility to tell us last unid processed (maybe stored as json)
         // which we may (or may not) take notice of.
         if (arglen >= 4) {
@@ -174,7 +183,7 @@ public class Consumer {
     private /*static*/ DefaultHapiContext context;
 
     // Move elsewhere:
-    private /*static*/ Parser p;
+    private /*static*/ PipeParser p;
 
     private /*static*/ Engine engine;
 
