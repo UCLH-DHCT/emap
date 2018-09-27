@@ -10,7 +10,7 @@ do
 		  CP=$i:$CP;
 done
 
-CP="src/uk/ac/ucl/rits/inform/":$CP;
+#CP="src/uk/ac/ucl/rits/inform/":$CP;
 
 echo "Removing old class files"
 rm src/uk/ac/ucl/rits/inform/*.class
@@ -20,6 +20,7 @@ rm src/uk/ac/ucl/rits/inform/*.class
 javac -classpath $CP ./src/uk/ac/ucl/rits/inform/*.java
 
 OPTIONS="-f AllMessages.txt"
+#OPTIONS="-f Messages-Batch2.txt"
 #OPTIONS = "-h"
 
 java -cp "src:$CP" uk.ac.ucl.rits.inform.Consumer $OPTIONS
