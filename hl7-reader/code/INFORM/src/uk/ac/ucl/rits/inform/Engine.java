@@ -3,6 +3,10 @@
 // Given an HL7 message, take appropriate action based on what that message is.
 //
 // Matthew Gillman, UCL, 29th August 2018
+//
+// https://postgresapp.com/documentation/cli-tools.html
+// sudo mkdir -p /etc/paths.d &&
+// echo /Applications/Postgres.app/Contents/Versions/latest/bin | sudo tee /etc/paths.d/postgresapp
 
 package uk.ac.ucl.rits.inform;
 
@@ -179,7 +183,7 @@ public class Engine {
     // in addition."
     //
     // NB v2.2 of standard only goes up to PID-27 but Atos UCLH doc has upto PID 30 (death)
-
+    // (for A28 and A31) also A34, A01, A02, A03, A13, A08, 
     private void process_ADT_01_et_al(Message msg) throws HL7Exception {
 
         // Want data for:
