@@ -62,8 +62,10 @@ CREATE TABLE PERSON (
 
 DROP TABLE IF EXISTS PATIENT_VISIT;
 
+-- We have patientID as secondary key.
 CREATE TABLE PATIENT_VISIT (
 	UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
+	patient_ID_list	varchar(300) NOT NULL, -- Required. 300 is a guess. List of 1+ identifiers containing ID number, assigning authority, etc
 	set_ID	int,	-- Set ID - PV-1. Optional
 	patient_class	char(1), -- Required. PV1-2. E emergency, I inpatient, ...
 
