@@ -17,10 +17,11 @@
 DROP TABLE IF EXISTS PERSON;
 
 CREATE TABLE PERSON (
-	UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
-	set_ID	int, -- Optional. starts at 1 for first occurrence of segment, 2 for 2nd, etc
+	-----UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
+	hospital_number char(8), 
+	--set_ID	int, -- Optional. starts at 1 for first occurrence of segment, 2 for 2nd, etc
 	-- patient_ID	, -- Withdrawn in 2.7
-	patient_ID_list	varchar(300) NOT NULL, -- Required. 300 is a guess. List of 1+ identifiers containing ID number, assigning authority, etc
+	-----patient_ID_list	varchar(300) NOT NULL, -- Required. 300 is a guess. List of 1+ identifiers containing ID number, assigning authority, etc
 	-- alternate_patient_ID	, -- Withdrawn
 	patient_name	varchar(200) NOT NULL, -- Required. 200 is a guess XPN Family name ^ Given Name ^ 2nd etc names ^ suffix ^ prefix ^ ...^ name type code
 	-- Mother's maiden name	, -- Optional. 
