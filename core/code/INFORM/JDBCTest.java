@@ -28,7 +28,7 @@ public class JDBCTest {
 		Connection conn;
 		Statement st;
 		ResultSet rs;
-		
+		/*
 		try {
 			conn = DriverManager.getConnection(url);
 			st = conn.createStatement();
@@ -45,6 +45,7 @@ public class JDBCTest {
 		catch (SQLException e) {
 			e.printStackTrace();
 		}
+		*/
 
 		//////////////////////////////////////////
 		// OK now try reading from the dummy IDS.
@@ -99,14 +100,15 @@ public class JDBCTest {
 				location = new String(rs.getString(7));
 				admit_date = new String(rs.getString(8));
 				discharge_date = new String(rs.getString(9));
-				msg_type = new String(rs.getString(10));
-				msg_version = new String(rs.getString(11));
+				msg_type = new String(rs.getString(10)); // e.g. "ADT^A28"
+				msg_version = new String(rs.getString(11)); // e.g. "2.2" (HL7 version)
 				msg_date_time = new String(rs.getString(12));
 
 				// Now insert this record into the UDS PERSON table.
 				// This really needs more logic i.e. do we want to use a UNID as PK?
+				//
 				// Really we should check to see if this patient is already in the UDS; if
-				// so, update their record.
+				// so, update their record (based on message type)
 				// But this is just a first attempt.
 				uds_insert.append("INSERT INTO PERSON ("); // patient_ID_list,set_ID,
 				uds_insert.append("hospital_number, patient_name, birth_date_time, sex, patient_address, ");
@@ -128,11 +130,15 @@ public class JDBCTest {
 				uds_insert.append("'").append(msg_date_time/*"NULL"*/).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
 				uds_insert.append(");");
 		
-				// Now we write the PERSON data to the UDS.
+				// Now we write the PERSON data to the UDS (clears uds_insert)
 				write_update_to_database(uds_insert, uds_st);
 		
 				// Prepare the statement to insert data into the PATIENT_VISIT table
-
+				uds_insert.append("INSERT INTO PATIENT_VISIT (");
+				uds_insert.append("hospital_number, patient_class, assigned_location, hospital_service, ");
+				uds_insert.append("readmission_indicator, admit_datetime, discharge_date_time, last_updated");
+				uds_insert.append(") VALUES (");
+				
 
 			}
 			uds_st.close();
@@ -166,11 +172,12 @@ public class JDBCTest {
 		int ret = 0;
 		try {
 			ret = s.executeUpdate(b.toString());
-			String res = new String("return value was " + ret);
-			System.out.println(res);
+			//String res = new String("return value was " + ret);
+			//System.out.println(res);
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
+			// should we add a rollback here?
 		}
 
 		// Reset StringBuilder
@@ -182,9 +189,10 @@ public class JDBCTest {
 
 	///////////////////////////////////////////
 	//
-	// convert_timestamp();
+	// convert_timestamp()
 	//
 	// ARGS: String hl7: an HL7 format timestamp e.g. "20181003141807.7618"
+	//
 	// Returns: Postgres-format timestamp e.g. "2018-10-03 14:18:07.7618"
 	// NB some HL7 timestamps won't have the decimal part. And some will only
 	// be accurate to the day (so no hhmmss information)
@@ -196,7 +204,7 @@ public class JDBCTest {
 
 		// First make sure this is not already in Postgres format (sanity check):
 		String[] test = hl7.split("-");
-		if (test.length >= 3) return hl7;
+		if (test.length >= 3) return hl7; // Assumes year, month and day all present!
 
 		// HL7 timestamp format is YYYYMMDDHHMMSS[.S[S[S[S]]]] (with +/- offset if required)
 		String[] bigparts = hl7.split("\\."); // We have to escape the period character.

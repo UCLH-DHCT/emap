@@ -66,41 +66,45 @@ DROP TABLE IF EXISTS PATIENT_VISIT;
 -- We have patientID as secondary key.
 CREATE TABLE PATIENT_VISIT (
 	UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
-	patient_ID_list	varchar(300) NOT NULL, -- Required. 300 is a guess. List of 1+ identifiers containing ID number, assigning authority, etc
-	set_ID	int,	-- Set ID - PV-1. Optional
-	patient_class	char(1), -- Required. PV1-2. E emergency, I inpatient, ...
+	hospital_number char(8), --patient_ID_list	varchar(300) NOT NULL, -- Required. 300 is a guess. List of 1+ identifiers containing ID number, assigning authority, etc
+	---set_ID	int,	-- Set ID - PV-1. Optional
+	patient_class char(1) NOT NULL, -- Required. PV1-2. Atos: S,I,P,O
 
 	-- This field contains the patient's initial assigned location or the location to which the patient is being moved.
 	assigned_location	varchar(200), -- Optional. PV1-3. <Point of Care (HD)> ^ <Room (HD)> ^ <Bed (HD)> ^ <Facility (HD)> ^ ....
 	
-	admission_type	char(1), -- Optional. PV1-4. e.g. A accident, E emergency, N newborn (i.e. birth), etc.
+	--admission_type	char(1), -- Optional. PV1-4. e.g. A accident, E emergency, N newborn (i.e. birth), etc.
 	-- preadmit_number	, -- Optional PV1-5
-	prior_location	varchar(200),	-- Opt. PV1-6
-	attending_doctor	varchar(200),	-- opt.
-	referring_doctor	varchar(200),	 -- opt
+	-----prior_location	varchar(200),	-- Opt. PV1-6
+	-----attending_doctor	varchar(200),	-- opt.
+	-----referring_doctor	varchar(200),	 -- opt
 
 	-- The treatment or type of surgery that the patient is scheduled to receive
 	-- e.g. MED Medical Service, SUR Surgical Service. It is a required field with trigger events A01 (admit/visit notification),
 	-- A02 (transfer a patient), A14 (pending admit), A15 (pending transfer). 
 	hospital_service	char(3),	 -- opt. 
 	
-	temp_location	varchar(200),	-- opt.
-	preadmit_test_indicator	varchar(200), -- opt
+	----temp_location	varchar(200),	-- opt.
+	--preadmit_test_indicator	varchar(200), -- opt
 	readmission_indicator	char(1),	 -- opt We suggest using "R" for readmission or else null.
 	-- some skipped over...
-	visit_number	int, -- opt PV1-19 This field contains the unique number assigned to each patient visit.
-	discharge_disposition	varchar(200),	 -- opt PV1-36 e.g. discharged to home
-	discharged_to_location	varchar(200), -- opt PV1-37 <Discharge to Location (CWE)> ^ <Effective Date (DTM)>
+
+	-- Ashish: PV1-19 is optional and "Carecast does not populate it for most of the messages"
+	--visit_number	int, -- opt PV1-19 This field contains the unique number assigned to each patient visit. Our PK instead?
+	
+	--discharge_disposition	varchar(200),	 -- opt PV1-36 e.g. discharged to home
+	--discharged_to_location	varchar(200), -- opt PV1-37 <Discharge to Location (CWE)> ^ <Effective Date (DTM)>
 	-- bed_status	,	 -- withdrawn. PV1-40
 
 	-- This field indicates the point of care, room, bed, healthcare facility ID, and bed status to which the patient may be moved.
-	pending_location	varchar(200), 	-- Opt. PV1-42
+	---pending_location	varchar(200), 	-- Opt. PV1-42
 	
 	-- prior_temp_location	,
 	admit_datetime	timestamp, -- Opt. PV1-44. DTM
 	discharge_date_time	timestamp, -- Opt. PV1-45. DTM
-	alternate_vist_id	int, -- opt, PV1-50
-	visit_indicator	char(1)	-- opt, PV1-51. A Account level (default), V Visit level
+	----alternate_vist_id	int, -- opt, PV1-50
+	----visit_indicator	char(1)	-- opt, PV1-51. A Account level (default), V Visit level
 	--- Service Episode Description
 	--- Service Episode Identifier
+	last_updated timestamp -- HL& MessageDateTime
 );
