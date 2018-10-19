@@ -2,6 +2,15 @@
 	export CLASSPATH=.:postgresql-42.2.5.jar
 	javac JDBCTest.java
 	java JDBCTest
+
+
+	psql INFORM_SCRATCH
+	select p.hospital_number, p.patient_name, pv.assigned_location 
+	from person p, patient_visit pv 
+	where p.hospital_number = pv.hospital_number;
+
+	Typical location is T11S^B11S^T11S-32
+
 */
 
 
@@ -23,8 +32,8 @@ public class JDBCTest {
 
 		System.out.println("Trying to connect");
 
-		String url = /*jdbc:postgresql:INFORM_SCRATCH";*/ 
-				"jdbc:postgresql://localhost/INFORM_SCRATCH";
+		////String url = /*jdbc:postgresql:INFORM_SCRATCH";*/ 
+				////"jdbc:postgresql://localhost/INFORM_SCRATCH";
 		Connection conn;
 		Statement st;
 		ResultSet rs;
@@ -100,9 +109,15 @@ public class JDBCTest {
 				location = new String(rs.getString(7));
 				admit_date = new String(rs.getString(8));
 				discharge_date = new String(rs.getString(9));
+				
 				msg_type = new String(rs.getString(10)); // e.g. "ADT^A28"
 				msg_version = new String(rs.getString(11)); // e.g. "2.2" (HL7 version)
 				msg_date_time = new String(rs.getString(12));
+
+				// Deal with any missing timestamps (especially discharge_date)
+				//if (discharge_date == null || discharge_date.equals("")) discharge_date = "NULL";
+				//if (admit_date == null || admit_date.equals("")) admit_date = "NULL"; // shouldn't be needed
+				//if (msg_date_time == null || msg_date_time.equals("")) msg_date_time = "NULL"; // shouldn't be needed
 
 				// Now insert this record into the UDS PERSON table.
 				// This really needs more logic i.e. do we want to use a UNID as PK?
@@ -138,7 +153,18 @@ public class JDBCTest {
 				uds_insert.append("hospital_number, patient_class, assigned_location, hospital_service, ");
 				uds_insert.append("readmission_indicator, admit_datetime, discharge_date_time, last_updated");
 				uds_insert.append(") VALUES (");
-				
+				uds_insert.append(hospital_number).append(", ");
+				uds_insert.append("'").append(patient_class).append("'").append(", ");
+				uds_insert.append("'").append(location).append("'").append(", ");
+				uds_insert.append("NULL").append(", "); // service
+				uds_insert.append("NULL").append(", "); // readmission_indicator
+				uds_insert.append("'").append(convert_timestamp(admit_date)).append("'").append(", ");
+				uds_insert/*.append("'")*/.append(convert_timestamp(discharge_date))/*.append("'")*/.append(", ");
+				uds_insert.append("'").append(msg_date_time).append("'"); // already converted
+				uds_insert.append(");");
+
+				// Now we write the PATIENT_VISIT data to the UDS (clears uds_insert)
+				write_update_to_database(uds_insert, uds_st);
 
 			}
 			uds_st.close();
@@ -179,9 +205,10 @@ public class JDBCTest {
 			e.printStackTrace();
 			// should we add a rollback here?
 		}
-
-		// Reset StringBuilder
-		b.delete(0, b.length());
+		finally {
+			// Reset StringBuilder
+			b.delete(0, b.length());
+		}
 
 		return ret;
 	}
@@ -201,6 +228,10 @@ public class JDBCTest {
 	private static String convert_timestamp (String hl7) {
 
 		System.out.println(hl7);
+
+		// If it's NULL return NULL
+		//if (hl7.equals("NULL")) return "NULL";
+		if (hl7 == null || hl7.equals("")) return "NULL";
 
 		// First make sure this is not already in Postgres format (sanity check):
 		String[] test = hl7.split("-");
