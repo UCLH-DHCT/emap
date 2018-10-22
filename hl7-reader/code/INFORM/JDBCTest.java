@@ -29,13 +29,13 @@ import java.io.File;
 
 public class JDBCTest {
 
-	private static long /*int*/ last_unid = 0; // Last UNID from IDS read and processed successfully.
+	private static long last_unid = 0; // Last UNID from IDS read and processed successfully.
 
 	private static String filename = "UNID.json"; 
 
 	public static void main(String[] args) {
 
-		/*
+		/* // Timestamp conversion tests
 		convert_timestamp("20181003141807.7618");
 		convert_timestamp("20181003141807");
 		convert_timestamp("201810031418");
@@ -49,9 +49,9 @@ public class JDBCTest {
 		System.out.println("LAST UNID STORED = " + last_unid);
 		 
 		// do something - now last_unid is 27 - need to check written ok to db and file though
-		boolean res = write_unid_to_file(27);
+		//boolean res = write_unid_to_file(27);
 
-		System.exit(1);
+		//System.exit(1);
 
 		System.out.println("Trying to connect");
 
@@ -99,15 +99,17 @@ public class JDBCTest {
 		String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS"; // IDS (dummy)
 		String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH"; // UDS (dummy)
 
-		StringBuilder query = new StringBuilder("SELECT PatientName, PatientMiddleName, PatientSurname, ");
+		StringBuilder query = new StringBuilder("SELECT UNID, PatientName, PatientMiddleName, PatientSurname, ");
 		query.append("DateOfBirth, HospitalNumber, PatientClass, PatientLocation, AdmissionDate, DischargeDate,");
 		query.append("MessageType, MessageVersion, MessageDateTime ");
-		query.append(" FROM TBL_IDS_MASTER;");
+		query.append(" FROM TBL_IDS_MASTER ");
+		query.append(" where unid > ").append(last_unid).append(";");
 
 		StringBuilder patient_name = new StringBuilder("J. Doe"); // NB StringBuilder is not thread-safe.
 		String dob = "unknown", hospital_number = "";
 		char patient_class;
 		String location, admit_date, discharge_date, msg_type, msg_version, msg_date_time;
+		long latest_unid_processed = 0;
 		StringBuilder uds_insert = new StringBuilder("");
 
 		// Extraction of data from IDS step. No HL7 parsing required.
@@ -121,24 +123,27 @@ public class JDBCTest {
 
 
 			Statement uds_st = uds_conn.createStatement();
-		
+
 			while (rs.next()) // Iterate over records
 			{
-				patient_name = new StringBuilder(rs.getString(1));
-				patient_name.append(" ").append(rs.getString(2));
-				patient_name.append(" ").append(rs.getString(3));
+				int index = 1;
+				long a_unid = rs.getLong(index++);
+
+				patient_name = new StringBuilder(rs.getString(index++)); //was 1
+				patient_name.append(" ").append(rs.getString(index++));  // was 2 
+				patient_name.append(" ").append(rs.getString(index++)); // etc
 				System.out.println(patient_name.toString());
 
-				dob = new String(rs.getString(4));
-				hospital_number = new String(rs.getString(5));
-				patient_class = (new String(rs.getString(6))).charAt(0);
-				location = new String(rs.getString(7));
-				admit_date = new String(rs.getString(8));
-				discharge_date = new String(rs.getString(9));
+				dob = new String(rs.getString(index++));
+				hospital_number = new String(rs.getString(index++));
+				patient_class = (new String(rs.getString(index++))).charAt(0);
+				location = new String(rs.getString(index++));
+				admit_date = new String(rs.getString(index++));
+				discharge_date = new String(rs.getString(index++));
 				
-				msg_type = new String(rs.getString(10)); // e.g. "ADT^A28"
-				msg_version = new String(rs.getString(11)); // e.g. "2.2" (HL7 version)
-				msg_date_time = new String(rs.getString(12));
+				msg_type = new String(rs.getString(index++)); // e.g. "ADT^A28"
+				msg_version = new String(rs.getString(index++)); // e.g. "2.2" (HL7 version)
+				msg_date_time = new String(rs.getString(index++));
 
 				// Deal with any missing timestamps (especially discharge_date)
 				//if (discharge_date == null || discharge_date.equals("")) discharge_date = "NULL";
@@ -170,6 +175,7 @@ public class JDBCTest {
 				msg_date_time = convert_timestamp(msg_date_time);
 				uds_insert.append("'").append(msg_date_time/*"NULL"*/).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
 				uds_insert.append(");");
+
 		
 				// Now we write the PERSON data to the UDS (clears uds_insert)
 				write_update_to_database(uds_insert, uds_st);
@@ -192,6 +198,8 @@ public class JDBCTest {
 				// Now we write the PATIENT_VISIT data to the UDS (clears uds_insert)
 				write_update_to_database(uds_insert, uds_st);
 
+				latest_unid_processed = a_unid;
+
 			}
 			uds_st.close();
 			uds_conn.close();
@@ -199,6 +207,8 @@ public class JDBCTest {
 			st.close();	
 			conn.close();
 			query.delete(0, query.length()); // Clear query StringBuilder.
+			boolean res = write_unid_to_file(latest_unid_processed);
+
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
