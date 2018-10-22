@@ -1,5 +1,5 @@
 /*
-	export CLASSPATH=.:postgresql-42.2.5.jar
+	export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
 	javac JDBCTest.java
 	java JDBCTest
 
@@ -11,12 +11,27 @@
 
 	Typical location is T11S^B11S^T11S-32
 
+	JSON page https://www.geeksforgeeks.org/parse-json-java/
+
 */
 
 
 import java.sql.*; // Uses postgresql-42.2.5.jar driver
+//import org.json.simple.*;
+import org.json.simple.JSONObject; 
+import org.json.simple.parser.*;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader; 
+import java.io.PrintWriter;
+import java.io.File;
+
 
 public class JDBCTest {
+
+	private static long /*int*/ last_unid = 0; // Last UNID from IDS read and processed successfully.
+
+	private static String filename = "UNID.json"; 
 
 	public static void main(String[] args) {
 
@@ -29,6 +44,14 @@ public class JDBCTest {
 		convert_timestamp("2018-10-03 14:18:07.7618");
 		System.exit(1);
 		*/
+
+		last_unid = read_last_unid_from_file();
+		System.out.println("LAST UNID STORED = " + last_unid);
+		 
+		// do something - now last_unid is 27 - need to check written ok to db and file though
+		boolean res = write_unid_to_file(27);
+
+		System.exit(1);
 
 		System.out.println("Trying to connect");
 
@@ -73,8 +96,8 @@ public class JDBCTest {
 		// admit_datetime, discharge_date_time, alternate_vist_id, visit_indicator
 		// Need to add patient id list
 		//////////////////////////////////////////
-		String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS";
-		String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH";
+		String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS"; // IDS (dummy)
+		String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH"; // UDS (dummy)
 
 		StringBuilder query = new StringBuilder("SELECT PatientName, PatientMiddleName, PatientSurname, ");
 		query.append("DateOfBirth, HospitalNumber, PatientClass, PatientLocation, AdmissionDate, DischargeDate,");
@@ -91,9 +114,12 @@ public class JDBCTest {
 		try {
 			conn = DriverManager.getConnection(ids_url);
 			st = conn.createStatement();
-			rs = st.executeQuery(query.toString());
+			rs = st.executeQuery(query.toString()); // move below
 
 			Connection uds_conn = DriverManager.getConnection(uds_url);
+			///String latest_uds_time = obtain_latest_UDS_time(uds_conn);
+
+
 			Statement uds_st = uds_conn.createStatement();
 		
 			while (rs.next()) // Iterate over records
@@ -182,6 +208,111 @@ public class JDBCTest {
 
 	}	// End (main)
 
+
+	// Attempt to locate and open file stroing last UNID.
+	// If file not found, or other error, set unid to 0.
+	// Obviously file will not be found the first time this is run.
+	private static long read_last_unid_from_file() {
+
+		Object obj;
+		try {
+			obj = new JSONParser().parse(new FileReader(filename)); 
+		}
+		catch (Exception e) { // FileNotFoundException or IOException
+			e.printStackTrace();
+			System.out.println("*** DEBUG: file not found or IO exception; setting last unid stored to 0 ***");
+			return 0; // do we really want to do this?
+		}
+
+		// typecasting obj to JSONObject 
+		JSONObject jo = (JSONObject) obj;
+
+		// JSON reads it as a long even though stored as an integer
+		//Integer newInt = new Integer(oldLong.intValue());
+		//last_unid = (int) jo.get("unid");
+		//last_unid = long_last_unid.intValue(); 
+		last_unid = (long) jo.get("unid");
+		
+		return last_unid;
+
+	}
+
+	private static boolean write_unid_to_file(/*int*/ long unid) {
+
+		JSONObject jo = new JSONObject();
+		jo.put("unid", unid);
+
+		// Try and write to the file. Create it if it doesn't exist
+		// (this will happen the first time)
+		File f = new File(filename);
+		if ( ! f.exists()) {
+
+			try {
+				f.createNewFile();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		if (f.exists() && !f.isDirectory()) { 
+    	
+			PrintWriter pw;
+			try {
+				pw = new PrintWriter(filename);
+			}
+			catch (FileNotFoundException e) {
+				e.printStackTrace();
+				return false;
+
+			} 
+
+			pw.write(jo.toJSONString()); 
+			
+			pw.flush(); 
+			pw.close(); 			
+		
+		}
+
+		return true;
+	}
+
+
+	// Obtain the latest timestamp stored in the UDS. Then we know that data up to that
+	// point was written OK and so we can extract new info from the IDS starting with that timestamp.
+	// NB Ideally it would be immediately AFTER the timestamp but as messages only have a timestamp
+	// precision to the nearest second we might find we miss messages if we jump to the next second.
+	// Not very likely but best to be safe.
+	//
+	// NB now Ashish says: "IT could be with missing seconds for some fields and only date for some fields. 
+	// The idea is to convert the format received from Carecast to postgres database and insert it in IDS database."
+	// So this approach (check latest UDS time before querying IDS) may not work.
+	//
+	// NB obviously at start up the UDS will be empty so we expect a null result
+	private static String obtain_latest_UDS_time (Connection c) throws SQLException {
+
+		// Test using sample tables in test db
+		// select persist_date_time from cities order by persist_date_time desc limit 1;
+		// probably better: select max(persist_date_time) from cities;
+
+		Statement st = c.createStatement();
+		String query = //"SELECT MAX(last_update_date_time) from PERSON;";
+			"select max(persist_date_time) from cities;";
+		ResultSet rs = st.executeQuery(query);
+		String latest_timestamp = "null";
+
+		while (rs.next()) // Iterate over records. If there aren't any the timestamp is "null". (Tested with empty table)
+		{
+			latest_timestamp = rs.getString(1);
+			break;
+		}
+		System.out.println ("LATEST UDS TIMESTAMP: " + latest_timestamp);
+
+		return latest_timestamp;
+	}
+
+
 	///////////////////////////////////////////
 	//
 	// write_update_to_database()
@@ -200,6 +331,8 @@ public class JDBCTest {
 			ret = s.executeUpdate(b.toString());
 			//String res = new String("return value was " + ret);
 			//System.out.println(res);
+
+			// If we reach here it is likely our update was processed OK.
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
@@ -223,6 +356,10 @@ public class JDBCTest {
 	// Returns: Postgres-format timestamp e.g. "2018-10-03 14:18:07.7618"
 	// NB some HL7 timestamps won't have the decimal part. And some will only
 	// be accurate to the day (so no hhmmss information)
+	//
+	// Unfortunately, Ashish says the precision is the same as what he sent me 
+	// in the test messages, which is to the nearest second. However we don't
+	// worry about that in this method.
 	//
 	///////////////////////////////////////////
 	private static String convert_timestamp (String hl7) {
@@ -252,21 +389,35 @@ public class JDBCTest {
 		String hours = "00";
 		String minutes = "00";
 		String seconds = "00";
-		if (firstpart.length() >= 10) {
+		//String fractional = "0000";
+		int stringlen = firstpart.length();
+		if (stringlen >= 10) {
 			hours = firstpart.substring(8,10); //System.out.println(hours);
 		}
-		if (firstpart.length() >= 12) {
+		if (stringlen >= 12) {
 			minutes = firstpart.substring(10,12); //System.out.println(minutes);
 		}
-		if (firstpart.length() >= 14) {
+		if (stringlen >= 14) {
 			seconds = firstpart.substring(12,14); //System.out.println(seconds);
 		}
+
+		// Deal with any fractional parts of a second.
+		/*
+		String secondpart = bigparts[1];
+		stringlen = secondpart.length();
+		if (stringlen >= 1) {
+			fractional = secondpart;
+			System.out.print ("frac:");
+			System.out.print(fractional);
+		}*/
+
 		StringBuilder postgres = new StringBuilder(year);
 		postgres.append("-").append(month);
 		postgres.append("-").append(day);
 		postgres.append(" ").append(hours);
 		postgres.append(":").append(minutes);
 		postgres.append(":").append(seconds);
+		//postgres.append(".").append(fractional);
 
 		if (len > 1) { // Decimal part exists. NB we don't perform rounding.
 			String secondpart = bigparts[1];
