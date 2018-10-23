@@ -1,0 +1,4 @@
+SHELL=/bin/sh
+# Run the Java program to extract date from IDS and put into UDS every minute.
+# Redirect output to /dev/null so we don't keep getting emails from cron.
+* * * * * cd $HOME/Desktop/HL7_java/code/INFORM && export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar && java JDBCTest > /dev/null 2>&1
