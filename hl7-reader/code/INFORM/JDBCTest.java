@@ -123,11 +123,12 @@ public class JDBCTest {
 
 
 			Statement uds_st = uds_conn.createStatement();
+			long latest_unid_read_this_time = 0;
 
 			while (rs.next()) // Iterate over records
 			{
 				int index = 1;
-				long a_unid = rs.getLong(index++);
+				latest_unid_read_this_time = rs.getLong(index++); // use below if all successful.
 
 				patient_name = new StringBuilder(rs.getString(index++)); //was 1
 				patient_name.append(" ").append(rs.getString(index++));  // was 2 
@@ -156,11 +157,13 @@ public class JDBCTest {
 				// Really we should check to see if this patient is already in the UDS; if
 				// so, update their record (based on message type)
 				// But this is just a first attempt.
+				//
+				// This could go in its own function
 				uds_insert.append("INSERT INTO PERSON ("); // patient_ID_list,set_ID,
 				uds_insert.append("hospital_number, patient_name, birth_date_time, sex, patient_address, ");
 				uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
 		
-				// NB May need to parse timestamps to get into correct format for Postgres.
+				// NB Need to parse HL7 timestamps to get into correct format for Postgres.
 				uds_insert.append(") VALUES (");
 				uds_insert.append(hospital_number).append(", ");
 				//uds_insert.append("NULL,"); // set_ID
@@ -181,6 +184,7 @@ public class JDBCTest {
 				write_update_to_database(uds_insert, uds_st);
 		
 				// Prepare the statement to insert data into the PATIENT_VISIT table
+				// Could move this to its own function as well.
 				uds_insert.append("INSERT INTO PATIENT_VISIT (");
 				uds_insert.append("hospital_number, patient_class, assigned_location, hospital_service, ");
 				uds_insert.append("readmission_indicator, admit_datetime, discharge_date_time, last_updated");
@@ -198,7 +202,7 @@ public class JDBCTest {
 				// Now we write the PATIENT_VISIT data to the UDS (clears uds_insert)
 				write_update_to_database(uds_insert, uds_st);
 
-				latest_unid_processed = a_unid;
+				
 
 			}
 			uds_st.close();
@@ -207,7 +211,15 @@ public class JDBCTest {
 			st.close();	
 			conn.close();
 			query.delete(0, query.length()); // Clear query StringBuilder.
-			boolean res = write_unid_to_file(latest_unid_processed);
+
+			// If our last unid processed is larger than that stored in file, update file.
+			// NB would we want to always do this? What if we wanted to re-run from scratch?
+			// In that case the JSON file would need to be removed or edited manualluy between runs.
+			if (latest_unid_read_this_time > latest_unid_processed) {
+				latest_unid_processed = latest_unid_read_this_time;
+				boolean res = write_unid_to_file(latest_unid_processed);
+			}
+			
 
 		}
 		catch (SQLException e) {
@@ -215,6 +227,8 @@ public class JDBCTest {
 		}	
 		
 	
+		last_unid = read_last_unid_from_file();
+		System.out.println("AFTER PROCESSING, LAST UNID STORED = " + last_unid);
 
 	}	// End (main)
 
