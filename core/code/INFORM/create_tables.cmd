@@ -4,6 +4,8 @@
 -- On command line:
 -- createdb INFORM_SCRATCH
 -- psql -f create_tables.cmd INFORM_SCRATCH
+-- psql INFORM_SCRATCH
+-- psql 
 
 
 -- The following table is based on the PID segment.
@@ -36,8 +38,8 @@ CREATE TABLE PERSON (
 	--- primary_language	,	-- Optional. PID-15
 	-- nationality	,	-- Withdrawn as of v2.7
 	patient_death_date_time	timestamp, --varchar(24),	-- Optional. PID-29
-	patient_death_indicator	char(1),	-- Optional. PID-30.  Y = deceased, N = not deceased
-	identity_unknown_indicator char(1), 	-- Optional. PID-31 Y = patient's/person's identity unknown. Else N	
+	----patient_death_indicator	char(1),	-- Optional. PID-30.  Y = deceased, N = not deceased
+	----identity_unknown_indicator char(1), 	-- Optional. PID-31 Y = patient's/person's identity unknown. Else N	
 	last_update_date_time	timestamp -- varchar(24),	-- Optional. DTM. PID-33)
 );
 
@@ -107,4 +109,13 @@ CREATE TABLE PATIENT_VISIT (
 	--- Service Episode Description
 	--- Service Episode Identifier
 	last_updated timestamp -- HL& MessageDateTime
+);
+
+-- Now we create a little table to store the latest IDS UNID successfully
+-- processed in the UDS. We can query this to see what UNID we need to starts
+-- with next time we query the IDS. 
+DROP TABLE IF EXISTS LAST_UNID_PROCESSED;
+
+CREATE TABLE LAST_UNID_PROCESSED (
+	LATEST INT PRIMARY KEY
 );
