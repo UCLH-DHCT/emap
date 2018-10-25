@@ -11,30 +11,33 @@
 
 	Typical location is T11S^B11S^T11S-32
 
-	JSON page https://www.geeksforgeeks.org/parse-json-java/
+	select latest from last_unid_processed ;
+	INSERT INTO last_unid_processed (latest) values(1);
+	select latest from last_unid_processed ;
+	INSERT INTO last_unid_processed (latest) values(200);
+	delete from last_unid_processed where latest='1';
+
+	Need to add logic to stop person and visit records being added to db if already there.
+	But of course we need to update the records.
+	Also a main loop and sleep
 
 */
 
 
 import java.sql.*; // Uses postgresql-42.2.5.jar driver
-//import org.json.simple.*;
-import org.json.simple.JSONObject; 
-import org.json.simple.parser.*;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader; 
-import java.io.PrintWriter;
-import java.io.File;
 
 
 public class JDBCTest {
 
-	private static long last_unid = 0; // Last UNID from IDS read and processed successfully.
+	//private static long last_unid_processed_this_time = 0; // Last UNID from IDS read and processed successfully.
+	private static long last_unid_processed_last_time = 0; // Last UNID currently stored in UDS
 
-	private static String filename = "UNID.json"; 
 
+	// TODO: break this up a bit
 	public static void main(String[] args) {
 
+		//convert_timestamp("200902110022"); //2009-02-11 00:22:00
+		//System.exit(1);
 		/* // Timestamp conversion tests
 		convert_timestamp("20181003141807.7618");
 		convert_timestamp("20181003141807");
@@ -45,39 +48,12 @@ public class JDBCTest {
 		System.exit(1);
 		*/
 
-		last_unid = read_last_unid_from_file();
-		System.out.println("LAST UNID STORED = " + last_unid);
-		 
-		// do something - now last_unid is 27 - need to check written ok to db and file though
-		//boolean res = write_unid_to_file(27);
 
-		//System.exit(1);
+		// process_command_line_arguments(args);
 
-		System.out.println("Trying to connect");
-
-		////String url = /*jdbc:postgresql:INFORM_SCRATCH";*/ 
-				////"jdbc:postgresql://localhost/INFORM_SCRATCH";
 		Connection conn;
 		Statement st;
 		ResultSet rs;
-		/*
-		try {
-			conn = DriverManager.getConnection(url);
-			st = conn.createStatement();
-			rs = st.executeQuery("SELECT * FROM weather;");
-			while (rs.next())
-			{
-    			System.out.print("Column 1 returned ");
-				System.out.println(rs.getString(1));
-			}
-			rs.close();
-			st.close();	
-			conn.close();
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
-		}
-		*/
 
 		//////////////////////////////////////////
 		// OK now try reading from the dummy IDS.
@@ -98,70 +74,103 @@ public class JDBCTest {
 		//////////////////////////////////////////
 		String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS"; // IDS (dummy)
 		String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH"; // UDS (dummy)
-
-		StringBuilder query = new StringBuilder("SELECT UNID, PatientName, PatientMiddleName, PatientSurname, ");
-		query.append("DateOfBirth, HospitalNumber, PatientClass, PatientLocation, AdmissionDate, DischargeDate,");
-		query.append("MessageType, MessageVersion, MessageDateTime ");
-		query.append(" FROM TBL_IDS_MASTER ");
-		query.append(" where unid > ").append(last_unid).append(";");
-
-		StringBuilder patient_name = new StringBuilder("J. Doe"); // NB StringBuilder is not thread-safe.
-		String dob = "unknown", hospital_number = "";
-		char patient_class;
-		String location, admit_date, discharge_date, msg_type, msg_version, msg_date_time;
-		long latest_unid_processed = 0;
-		StringBuilder uds_insert = new StringBuilder("");
+						// jdbc:postgresql:INFORM_SCRATCH
 
 		// Extraction of data from IDS step. No HL7 parsing required.
 		try {
+
+			System.out.println("Trying to connect");
+			Connection uds_conn = DriverManager.getConnection(uds_url);
+
+			// Testing
+			//lready_in_person_table(uds_conn, "94006000");
+			//already_in_person_table(uds_conn, "Fred Bloggs");
+			//System.exit(1);
+
+
+
+			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
+			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
+
+			//System.exit(1);
+
+
 			conn = DriverManager.getConnection(ids_url);
 			st = conn.createStatement();
+
+			// Build the query - select all messages later than last_unid_processed_last_time:
+			StringBuilder query = new StringBuilder("SELECT UNID, PatientName, PatientMiddleName, PatientSurname, ");
+			query.append("DateOfBirth, HospitalNumber, PatientClass, PatientLocation, AdmissionDate, DischargeDate,");
+			query.append("MessageType, MessageVersion, MessageDateTime ");
+			query.append(" FROM TBL_IDS_MASTER ");
+			query.append(" where unid > ").append(last_unid_processed_last_time).append(";");
+	
+			long latest_unid_processed = 0;
+			StringBuilder uds_insert = new StringBuilder("");
+
 			rs = st.executeQuery(query.toString()); // move below
 
-			Connection uds_conn = DriverManager.getConnection(uds_url);
-			///String latest_uds_time = obtain_latest_UDS_time(uds_conn);
-
-
 			Statement uds_st = uds_conn.createStatement();
-			long latest_unid_read_this_time = 0;
+			long latest_unid_read_this_time = 0; // last one read from IDS this time
 
-			while (rs.next()) // Iterate over records
+			while (rs.next()) // Iterate over records received from the query (if any)
 			{
-				int index = 1;
-				latest_unid_read_this_time = rs.getLong(index++); // use below if all successful.
 
-				patient_name = new StringBuilder(rs.getString(index++)); //was 1
-				patient_name.append(" ").append(rs.getString(index++));  // was 2 
-				patient_name.append(" ").append(rs.getString(index++)); // etc
+				// TO DO: be able to handle null values of all which are allowed to be null
+
+				latest_unid_read_this_time = rs.getLong("UNID"); // use below if all successful.
+
+				// Dummy values in case we get empty data returns. Plus defaults as we aren't parsing the HL7 messages in this demo.
+				StringBuilder patient_name = new StringBuilder("J. Doe"); // NB StringBuilder is not thread-safe.
+				String dob = "unknown", hospital_number = "", sex = "U"; // sex unknown without parsing HL7
+				String address = "Address unknown"; // address unknown without parsing HL7
+				String deathtime = "null::timestamp"; //"NULL"; // patient death time unknown without parsing HL7 (PID-29)
+				char patient_class;
+				String location, admit_date, discharge_date, msg_type, msg_version, msg_date_time;
+			
+				patient_name = new StringBuilder(rs.getString("PatientName"));
+				patient_name.append(" ").append(rs.getString("PatientMiddleName"));
+				patient_name.append(" ").append(rs.getString("PatientSurname"));
 				System.out.println(patient_name.toString());
 
-				dob = new String(rs.getString(index++));
-				hospital_number = new String(rs.getString(index++));
-				patient_class = (new String(rs.getString(index++))).charAt(0);
-				location = new String(rs.getString(index++));
-				admit_date = new String(rs.getString(index++));
-				discharge_date = new String(rs.getString(index++));
+				dob = new String(rs.getString("DateOfBirth"));
+				hospital_number = new String(rs.getString("HospitalNumber"));
+				patient_class = (new String(rs.getString("PatientClass"))).charAt(0);
+				location = new String(rs.getString("PatientLocation"));
+				admit_date = new String(rs.getString("AdmissionDate"));
+
+				discharge_date = rs.getString("DischargeDate");
+				if (rs.wasNull()) {
+					discharge_date = "NULL";
+				}
+
+				msg_type = new String(rs.getString("MessageType")); // e.g. "ADT^A28"
+				msg_version = new String(rs.getString("MessageVersion")); // e.g. "2.2" (HL7 version)	
+				msg_date_time = new String(rs.getString("MessageDateTime"));
+
 				
-				msg_type = new String(rs.getString(index++)); // e.g. "ADT^A28"
-				msg_version = new String(rs.getString(index++)); // e.g. "2.2" (HL7 version)
-				msg_date_time = new String(rs.getString(index++));
-
-				// Deal with any missing timestamps (especially discharge_date)
-				//if (discharge_date == null || discharge_date.equals("")) discharge_date = "NULL";
-				//if (admit_date == null || admit_date.equals("")) admit_date = "NULL"; // shouldn't be needed
-				//if (msg_date_time == null || msg_date_time.equals("")) msg_date_time = "NULL"; // shouldn't be needed
-
 				// Now insert this record into the UDS PERSON table.
-				// This really needs more logic i.e. do we want to use a UNID as PK?
-				//
-				// Really we should check to see if this patient is already in the UDS; if
-				// so, update their record (based on message type)
-				// But this is just a first attempt.
+
+				// Check to see if this person is already in the PERSON table - obtain latest update time
+				// if they are, and our update time is later than that stored, update table as appropriate.
+				String person_entry_last_updated = "NULL";
+				if (already_in_person_table(uds_conn, hospital_number)) {
+
+					// obtain timestamp last updated - are we more recent?
+					person_entry_last_updated = get_last_timestamp_of_person(uds_conn, hospital_number);
+					System.out.println("Stored timestamp is " + person_entry_last_updated);
+
+				}
+				else { // It's a completely new PERSON entry - and possibly a new patient_visit entry?
+
+				}
+
 				//
 				// This could go in its own function
 				uds_insert.append("INSERT INTO PERSON ("); // patient_ID_list,set_ID,
 				uds_insert.append("hospital_number, patient_name, birth_date_time, sex, patient_address, ");
-				uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
+				uds_insert.append("patient_death_date_time, last_update_date_time");
+				//uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
 		
 				// NB Need to parse HL7 timestamps to get into correct format for Postgres.
 				uds_insert.append(") VALUES (");
@@ -170,13 +179,13 @@ public class JDBCTest {
 				uds_insert.append("'").append(patient_name).append("', ");
 				dob = convert_timestamp(dob);	
 				uds_insert.append("'").append(dob /*"20090304"*/).append("', "); // example: 2018-10-01 14:57:41.090449
-				uds_insert.append("'").append("U").append("', "); // sex unknown without parsing HL7
-				uds_insert.append("'").append("Address Unknown").append("', "); // address unknown without parsing HL7
-				uds_insert.append("NULL").append(", "); // patient death time unknown without parsing HL7 (PID-29)
-				uds_insert.append("''").append(", "); // patient death indicator unknown without parsing HL7 (PID-30)
-				uds_insert.append("''").append(", "); // identity unknown unknown without parsing HL7 (PID-31)
+				uds_insert.append("'").append(sex).append("', "); // sex unknown without parsing HL7
+				uds_insert.append("'").append(address).append("', "); // address unknown without parsing HL7
+				uds_insert/*.append("'")*/.append(deathtime)/*.append("'")*/.append(", "); // patient death time unknown without parsing HL7 (PID-29)
+				//uds_insert.append("''").append(", "); // patient death indicator unknown without parsing HL7 (PID-30)
+				//uds_insert.append("''").append(", "); // identity unknown unknown without parsing HL7 (PID-31)
 				msg_date_time = convert_timestamp(msg_date_time);
-				uds_insert.append("'").append(msg_date_time/*"NULL"*/).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
+				uds_insert.append("'").append(msg_date_time).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
 				uds_insert.append(");");
 
 		
@@ -202,104 +211,147 @@ public class JDBCTest {
 				// Now we write the PATIENT_VISIT data to the UDS (clears uds_insert)
 				write_update_to_database(uds_insert, uds_st);
 
-				
+			} // end (while)
 
+			if (latest_unid_read_this_time > last_unid_processed_last_time) {
+				//latest_unid_processed = latest_unid_read_this_time;
+				write_last_unid_to_UDS(uds_conn, latest_unid_read_this_time, last_unid_processed_last_time);
 			}
+
+			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
+			System.out.println("AFTER PROCESSING, LAST UNID STORED = " + last_unid_processed_last_time);
+
 			uds_st.close();
 			uds_conn.close();
 			rs.close();
 			st.close();	
 			conn.close();
-			query.delete(0, query.length()); // Clear query StringBuilder.
 
-			// If our last unid processed is larger than that stored in file, update file.
-			// NB would we want to always do this? What if we wanted to re-run from scratch?
-			// In that case the JSON file would need to be removed or edited manualluy between runs.
-			if (latest_unid_read_this_time > latest_unid_processed) {
-				latest_unid_processed = latest_unid_read_this_time;
-				boolean res = write_unid_to_file(latest_unid_processed);
-			}
 			
-
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
-		}	
-		
-	
-		last_unid = read_last_unid_from_file();
-		System.out.println("AFTER PROCESSING, LAST UNID STORED = " + last_unid);
+		}		
 
 	}	// End (main)
 
 
-	// Attempt to locate and open file stroing last UNID.
-	// If file not found, or other error, set unid to 0.
-	// Obviously file will not be found the first time this is run.
-	private static long read_last_unid_from_file() {
+	// See if this hospital_number is already in the PERSON table
+	// NB does that necssarily mean they will also be in the patient_visit table? No they might
+	// be an outpatient. And if they ARE in the patient_visit table, they might be there
+	// multiple times. TODO
+	// We could add a current location field to person?
+	private static boolean already_in_person_table(Connection c, String hospital_number) throws SQLException {
 
-		Object obj;
-		try {
-			obj = new JSONParser().parse(new FileReader(filename)); 
+		Statement st = c.createStatement();
+		StringBuilder query = new StringBuilder("select * from person where hospital_number = '");
+		query.append(hospital_number).append("';");
+		//System.out.println("QUERY: " + query.toString());
+		ResultSet rs = st.executeQuery(query.toString());
+		if (rs.next()) {
+			//System.out.println("already in there");
+			return true;
 		}
-		catch (Exception e) { // FileNotFoundException or IOException
-			e.printStackTrace();
-			System.out.println("*** DEBUG: file not found or IO exception; setting last unid stored to 0 ***");
-			return 0; // do we really want to do this?
+		else {
+			//System.out.println("NOT already there");
+			return false;
 		}
+	}
 
-		// typecasting obj to JSONObject 
-		JSONObject jo = (JSONObject) obj;
 
-		// JSON reads it as a long even though stored as an integer
-		//Integer newInt = new Integer(oldLong.intValue());
-		//last_unid = (int) jo.get("unid");
-		//last_unid = long_last_unid.intValue(); 
-		last_unid = (long) jo.get("unid");
-		
-		return last_unid;
+	// Get the last time this person's record in the UDS was updated.
+	// In theory it should never be null but we take a safe approach.
+	private static String get_last_timestamp_of_person(Connection c, String hospital_number) throws SQLException {
+
+		Statement st = c.createStatement();
+		StringBuilder query = new StringBuilder("select last_update_date_time from person where hospital_number = '");
+		query.append(hospital_number).append("';");
+		System.out.println("QUERY: " + query.toString());
+		ResultSet rs = st.executeQuery(query.toString());
+
+		String timestamp = "NULL";
+		if ( rs.next() ) {
+			timestamp = rs.getString("last_update_date_time");
+		}
+		return timestamp;
 
 	}
 
-	private static boolean write_unid_to_file(/*int*/ long unid) {
 
-		JSONObject jo = new JSONObject();
-		jo.put("unid", unid);
+	// Obtain the UNID most recently (last time) read from the IDS and processed;
+	// this is stored in the UDS.
+	private static long read_last_unid_from_UDS (Connection c) throws SQLException {
 
-		// Try and write to the file. Create it if it doesn't exist
-		// (this will happen the first time)
-		File f = new File(filename);
-		if ( ! f.exists()) {
-
-			try {
-				f.createNewFile();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-		}
-		if (f.exists() && !f.isDirectory()) { 
-    	
-			PrintWriter pw;
-			try {
-				pw = new PrintWriter(filename);
-			}
-			catch (FileNotFoundException e) {
-				e.printStackTrace();
-				return false;
-
-			} 
-
-			pw.write(jo.toJSONString()); 
-			
-			pw.flush(); 
-			pw.close(); 			
+		Statement st = c.createStatement();
+		String query = "select latest from last_unid_processed ;";
+		ResultSet rs = st.executeQuery(query);
+		String last = "null";
+		if (rs.next()) { 
 		
+			last = rs.getString(1);
+			if (last.equals("null") || last.equals("")) { // unlikely
+				return 0;
+			}
+			else {
+				long l = 0;
+				try {
+					l = Long.parseLong(last);
+				}
+				catch (NumberFormatException e)  {
+					System.out.println("** ERROR: 'long number' from UDS is " + last);
+					l = 0;
+				}
+				return l; 
+			}
+		}
+		else { // Nothing in result
+			return 0;
+		}
+	}
+
+
+	// First we write new latest UNID processed. Then we delete the existing one.
+	// NB what if they are the same?
+	/* INSERT INTO last_unid_processed (latest) values(200);
+	delete from last_unid_processed where latest='1';
+	write_last_unid_to_UDS(uds_conn, latest_unid_read_this_time, last_unid_processed_last_time);*/
+	private static int write_last_unid_to_UDS(Connection c, 
+				long latest_unid_read_this_time,
+				long unid_processed_last_time) throws SQLException {
+
+		// Bail out if it's the trivial case.
+		if (latest_unid_read_this_time == unid_processed_last_time) {
+			return 0;
 		}
 
-		return true;
+		// If we get here someone probaboky needs to manually reset the UDS UNID table to 0
+		if (latest_unid_read_this_time < unid_processed_last_time) {
+			System.out.println("**ERROR: latest UNID read from IDS is less than that stored in UDS");
+			return -1;
+		}
+
+		Statement st = c.createStatement();
+		StringBuilder sb = new StringBuilder("");
+		sb.append("INSERT INTO last_unid_processed (latest) values(");
+		sb.append(latest_unid_read_this_time).append(");");
+		sb.append("delete from last_unid_processed where latest='");
+		sb.append(unid_processed_last_time).append("';");
+
+		int ret = 0;
+		try {
+			ret = st.executeUpdate(sb.toString());
+			//String res = new String("return value was " + ret);
+			//System.out.println(res);
+
+			// If we reach here it is likely our update was processed OK.
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			// should we add a rollback here?
+			ret = -2;
+		}
+		return ret;
+
 	}
 
 
@@ -314,7 +366,7 @@ public class JDBCTest {
 	// So this approach (check latest UDS time before querying IDS) may not work.
 	//
 	// NB obviously at start up the UDS will be empty so we expect a null result
-	private static String obtain_latest_UDS_time (Connection c) throws SQLException {
+	/*private static String obtain_latest_UDS_time (Connection c) throws SQLException {
 
 		// Test using sample tables in test db
 		// select persist_date_time from cities order by persist_date_time desc limit 1;
@@ -334,21 +386,21 @@ public class JDBCTest {
 		System.out.println ("LATEST UDS TIMESTAMP: " + latest_timestamp);
 
 		return latest_timestamp;
-	}
+	}*/
 
 
 	///////////////////////////////////////////
 	//
 	// write_update_to_database()
 	// 
-	// ARGS: StringBuilder b, Statement s
+	// ARGS: StringBuilder b (the SQL), Statement s
 	// 
 	// Performs write to database. Side-effect: reset builder to empty.
 	//
 	///////////////////////////////////////////
 	private static int write_update_to_database (StringBuilder b, Statement s) {
 
-		System.out.println("******* insert statement: *****");
+		System.out.println("******* statement: *****");
 		System.out.println(b.toString());
 		int ret = 0;
 		try {
@@ -392,7 +444,7 @@ public class JDBCTest {
 
 		// If it's NULL return NULL
 		//if (hl7.equals("NULL")) return "NULL";
-		if (hl7 == null || hl7.equals("")) return "NULL";
+		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
 
 		// First make sure this is not already in Postgres format (sanity check):
 		String[] test = hl7.split("-");
