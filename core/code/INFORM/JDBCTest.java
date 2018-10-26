@@ -21,17 +21,63 @@
 	But of course we need to update the records.
 	Also a main loop and sleep
 
+	NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
+
+	Questions for Roma
+	1. What sort of things are we likely to UPDATE in a PERSON record (rather than INSERT)?
+	2. How to handle timestamps - sometimes have '' or not - and this can cause problems.
+	3. How to handle PATIENT_RECORD - there can be multiple per person - presumably if the
+	   latest for this person does not have a discharge date that is the current one!
+
 */
 
 
 import java.sql.*; // Uses postgresql-42.2.5.jar driver
-
+//import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JDBCTest {
 
 	//private static long last_unid_processed_this_time = 0; // Last UNID from IDS read and processed successfully.
 	private static long last_unid_processed_last_time = 0; // Last UNID currently stored in UDS
 
+	
+	///////////////////////////////////////////////////
+	// Strings to hold the names of the keys in dict.
+	///////////////////////////////////////////////////
+
+	// IDS column names:
+	private static final String UNID = "UNID"; // PK
+	private static final String PATIENT_NAME = "PatientName";
+	private static final String PATIENT_MIDDLE_NAME = "PatientMiddleName";
+	private static final String PATIENT_SURNAME = "PatientSurname";
+	private static final String DATE_OF_BIRTH = "DateOfBirth";
+	//private static final String NHS_NUMBER = "NHSNumber";
+	private static final String HOSPITAL_NUMBER = "HospitalNumber";
+	private static final String PATIENT_CLASS = "PatientClass";
+	private static final String PATIENT_LOCATION = "PatientLocation";
+	private static final String ADMISSION_DATE = "AdmissionDate";
+	private static final String DISCHARGE_DATE = "DischargeDate";
+	private static final String MESSAGE_TYPE = "MessageType";
+	//private static final String SENDER_APPLICATION = "SenderApplication"; // NOT NULL
+	//private static final String MESSAGE_IDENTIFIER = "MessageIdentifier"; // NOT NULL
+	private static final String MESSAGE_VERSION = "MessageVersion"; // NOT NULL
+	private static final String MESSAGE_DATE_TIME = "MessageDateTime"; // NOT NULL
+	//private static final String HL7_MESSAGE = "HL7Message"; // NOT NULL 
+	private static final String PERSIST_DATE_TIME = "PersistDateTime"; // NOT NULL
+
+	// UDS column names:
+	//birth_date_time - change so same as UDS
+	private static final String SEX = "Sex";
+	private static final String PATIENT_ADDRESS = "PatientAddress";
+	private static final String PATIENT_DEATH_DATE = "PatientDeathDate";
+	//patient_death_indicator
+	//identity_unknown_indicator
+	// readmission _indicator
+	// hospital_service
+	private static final String PATIENT_FULL_NAME = "PatientFullName";
+	private static final String LAST_UPDATED = "LastUpdated";
 
 	// TODO: break this up a bit
 	public static void main(String[] args) {
@@ -47,6 +93,9 @@ public class JDBCTest {
 		convert_timestamp("2018-10-03 14:18:07.7618");
 		System.exit(1);
 		*/
+
+		// Keep track of possibly-changing values e.g. name etc. Key is Postgres table column name, value = what we need to insert
+		Map<String, String> dict = new HashMap<String, String>();
 
 
 		// process_command_line_arguments(args);
@@ -80,46 +129,39 @@ public class JDBCTest {
 		try {
 
 			System.out.println("Trying to connect");
-			Connection uds_conn = DriverManager.getConnection(uds_url);
-
+			
 			// Testing
-			//lready_in_person_table(uds_conn, "94006000");
+			//already_in_person_table(uds_conn, "94006000");
 			//already_in_person_table(uds_conn, "Fred Bloggs");
 			//System.exit(1);
 
-
-
+			Connection uds_conn = DriverManager.getConnection(uds_url);
+			Statement uds_st = uds_conn.createStatement();
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
-
 			//System.exit(1);
 
-
+			String ids_query = get_IDS_query_string(last_unid_processed_last_time);
 			conn = DriverManager.getConnection(ids_url);
 			st = conn.createStatement();
-
-			// Build the query - select all messages later than last_unid_processed_last_time:
-			StringBuilder query = new StringBuilder("SELECT UNID, PatientName, PatientMiddleName, PatientSurname, ");
-			query.append("DateOfBirth, HospitalNumber, PatientClass, PatientLocation, AdmissionDate, DischargeDate,");
-			query.append("MessageType, MessageVersion, MessageDateTime ");
-			query.append(" FROM TBL_IDS_MASTER ");
-			query.append(" where unid > ").append(last_unid_processed_last_time).append(";");
-	
-			long latest_unid_processed = 0;
+			rs = st.executeQuery(ids_query); // move below
+		
 			StringBuilder uds_insert = new StringBuilder("");
-
-			rs = st.executeQuery(query.toString()); // move below
-
-			Statement uds_st = uds_conn.createStatement();
 			long latest_unid_read_this_time = 0; // last one read from IDS this time
 
 			while (rs.next()) // Iterate over records received from the query (if any)
 			{
 
+				dict.clear();
+
 				// TO DO: be able to handle null values of all which are allowed to be null
 
+				// We don't want this stored in the per-person Dictionary
 				latest_unid_read_this_time = rs.getLong("UNID"); // use below if all successful.
 
+				extract_fields_from_IDS(rs, dict);
+
+				/*
 				// Dummy values in case we get empty data returns. Plus defaults as we aren't parsing the HL7 messages in this demo.
 				StringBuilder patient_name = new StringBuilder("J. Doe"); // NB StringBuilder is not thread-safe.
 				String dob = "unknown", hospital_number = "", sex = "U"; // sex unknown without parsing HL7
@@ -127,94 +169,70 @@ public class JDBCTest {
 				String deathtime = "null::timestamp"; //"NULL"; // patient death time unknown without parsing HL7 (PID-29)
 				char patient_class;
 				String location, admit_date, discharge_date, msg_type, msg_version, msg_date_time;
-			
-				patient_name = new StringBuilder(rs.getString("PatientName"));
-				patient_name.append(" ").append(rs.getString("PatientMiddleName"));
-				patient_name.append(" ").append(rs.getString("PatientSurname"));
-				System.out.println(patient_name.toString());
-
-				dob = new String(rs.getString("DateOfBirth"));
-				hospital_number = new String(rs.getString("HospitalNumber"));
-				patient_class = (new String(rs.getString("PatientClass"))).charAt(0);
-				location = new String(rs.getString("PatientLocation"));
-				admit_date = new String(rs.getString("AdmissionDate"));
-
-				discharge_date = rs.getString("DischargeDate");
-				if (rs.wasNull()) {
-					discharge_date = "NULL";
-				}
-
-				msg_type = new String(rs.getString("MessageType")); // e.g. "ADT^A28"
-				msg_version = new String(rs.getString("MessageVersion")); // e.g. "2.2" (HL7 version)	
-				msg_date_time = new String(rs.getString("MessageDateTime"));
-
+				*/
+				
 				
 				// Now insert this record into the UDS PERSON table.
 
 				// Check to see if this person is already in the PERSON table - obtain latest update time
 				// if they are, and our update time is later than that stored, update table as appropriate.
 				String person_entry_last_updated = "NULL";
-				if (already_in_person_table(uds_conn, hospital_number)) {
+				String who = dict.get(PATIENT_FULL_NAME ); // debug
+				if (already_in_person_table(uds_conn, dict)) {
+			
+					System.out.println("** DEBUG: " + who + " is already in UDS");
 
 					// obtain timestamp last updated - are we more recent?
-					person_entry_last_updated = get_last_timestamp_of_person(uds_conn, hospital_number);
+					person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict); //.get(HOSPITAL_NUMBER));
 					System.out.println("Stored timestamp is " + person_entry_last_updated);
+
+					// Now we need to update the PERSON record. Need to check for null values and also outdated values
+					// eg they change their name
 
 				}
 				else { // It's a completely new PERSON entry - and possibly a new patient_visit entry?
+					
+					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
+					// Now we write the PERSON data to the UDS (clears uds_insert)
+					String person_insert = get_UDS_insert_person_string(dict);
+					write_update_to_database(person_insert, uds_st);
 				}
 
-				//
-				// This could go in its own function
-				uds_insert.append("INSERT INTO PERSON ("); // patient_ID_list,set_ID,
-				uds_insert.append("hospital_number, patient_name, birth_date_time, sex, patient_address, ");
-				uds_insert.append("patient_death_date_time, last_update_date_time");
-				//uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
-		
-				// NB Need to parse HL7 timestamps to get into correct format for Postgres.
-				uds_insert.append(") VALUES (");
-				uds_insert.append(hospital_number).append(", ");
-				//uds_insert.append("NULL,"); // set_ID
-				uds_insert.append("'").append(patient_name).append("', ");
-				dob = convert_timestamp(dob);	
-				uds_insert.append("'").append(dob /*"20090304"*/).append("', "); // example: 2018-10-01 14:57:41.090449
-				uds_insert.append("'").append(sex).append("', "); // sex unknown without parsing HL7
-				uds_insert.append("'").append(address).append("', "); // address unknown without parsing HL7
-				uds_insert/*.append("'")*/.append(deathtime)/*.append("'")*/.append(", "); // patient death time unknown without parsing HL7 (PID-29)
-				//uds_insert.append("''").append(", "); // patient death indicator unknown without parsing HL7 (PID-30)
-				//uds_insert.append("''").append(", "); // identity unknown unknown without parsing HL7 (PID-31)
-				msg_date_time = convert_timestamp(msg_date_time);
-				uds_insert.append("'").append(msg_date_time).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
-				uds_insert.append(");");
+				
 
-		
-				// Now we write the PERSON data to the UDS (clears uds_insert)
-				write_update_to_database(uds_insert, uds_st);
-		
 				// Prepare the statement to insert data into the PATIENT_VISIT table
+				// Person will be in database by now. There may or may not be an existing
+				// patient_visit record (or several)
 				// Could move this to its own function as well.
+				// NEEDS MORE LOGIC
 				uds_insert.append("INSERT INTO PATIENT_VISIT (");
-				uds_insert.append("hospital_number, patient_class, assigned_location, hospital_service, ");
-				uds_insert.append("readmission_indicator, admit_datetime, discharge_date_time, last_updated");
+				uds_insert.append(HOSPITAL_NUMBER).append(", ");//"hospital_number, 
+				uds_insert.append(PATIENT_CLASS).append(", ");// patient_class, 
+				uds_insert.append(PATIENT_LOCATION).append(", "); // assigned_location,
+				// hospital_service, ");
+				//uds_insert.append("readmission_indicator, 
+				uds_insert.append(ADMISSION_DATE).append(", "); // admit_datetime,
+				uds_insert.append(DISCHARGE_DATE).append(", "); // discharge_date_time,
+				uds_insert.append(LAST_UPDATED); // last_updated;
 				uds_insert.append(") VALUES (");
-				uds_insert.append(hospital_number).append(", ");
-				uds_insert.append("'").append(patient_class).append("'").append(", ");
-				uds_insert.append("'").append(location).append("'").append(", ");
-				uds_insert.append("NULL").append(", "); // service
-				uds_insert.append("NULL").append(", "); // readmission_indicator
-				uds_insert.append("'").append(convert_timestamp(admit_date)).append("'").append(", ");
-				uds_insert/*.append("'")*/.append(convert_timestamp(discharge_date))/*.append("'")*/.append(", ");
-				uds_insert.append("'").append(msg_date_time).append("'"); // already converted
+				uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
+				uds_insert.append("'").append(dict.get(PATIENT_CLASS)).append("'").append(", ");
+				uds_insert.append("'").append(dict.get(PATIENT_LOCATION)).append("'").append(", ");
+				//uds_insert.append("NULL").append(", "); // service
+				//uds_insert.append("NULL").append(", "); // readmission_indicator
+				uds_insert.append("'").append(dict.get(ADMISSION_DATE)).append("'").append(", ");
+				uds_insert/*.append("'")*/.append(dict.get(DISCHARGE_DATE))/*.append("'")*/.append(", ");
+				uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'"); // already converted
 				uds_insert.append(");");
 
 				// Now we write the PATIENT_VISIT data to the UDS (clears uds_insert)
-				write_update_to_database(uds_insert, uds_st);
+				write_update_to_database(uds_insert.toString(), uds_st);
+				uds_insert.delete(0, uds_insert.length());
 
 			} // end (while)
 
 			if (latest_unid_read_this_time > last_unid_processed_last_time) {
-				//latest_unid_processed = latest_unid_read_this_time;
 				write_last_unid_to_UDS(uds_conn, latest_unid_read_this_time, last_unid_processed_last_time);
 			}
 
@@ -236,16 +254,255 @@ public class JDBCTest {
 	}	// End (main)
 
 
+
+	/////////////////////////////////////////////////////////////////////
+	//
+	// private static String get_IDS_query_string()
+	//
+	// ARGS: long last_unid_processed_last_time
+	//
+	// Build the string used to query the IDS for records since
+	// last_unid_processed_last_time
+	/////////////////////////////////////////////////////////////////////
+	private static String get_IDS_query_string(long last_unid_processed_last_time) {
+
+		System.out.println("** DEBUG - get_IDS_query_string()");
+
+		// Build the query - select all messages later than last_unid_processed_last_time:
+		StringBuilder query = new StringBuilder("SELECT ");
+		query.append(UNID).append(", ");
+		query.append(PATIENT_NAME).append(", "); // PatientName, 
+		query.append(PATIENT_MIDDLE_NAME).append(", "); //PatientMiddleName, 
+		query.append(PATIENT_SURNAME).append(", "); //PatientSurname, ");
+		query.append(DATE_OF_BIRTH).append(", "); //"DateOfBirth,
+		query.append(HOSPITAL_NUMBER).append(", "); // HospitalNumber, 
+		query.append(PATIENT_CLASS).append(", "); // PatientClass, 
+		query.append(PATIENT_LOCATION).append(", "); // PatientLocation, 
+		query.append(ADMISSION_DATE).append(", "); // AdmissionDate, 
+		query.append(DISCHARGE_DATE).append(", "); // DischargeDate,");
+		query.append(MESSAGE_TYPE).append(", "); //"MessageType, 
+		query.append(MESSAGE_VERSION).append(", "); // MessageVersion,
+		query.append(MESSAGE_DATE_TIME); // MessageDateTime ");
+		query.append(" FROM TBL_IDS_MASTER ");
+		query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
+
+		return query.toString();
+
+
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	//
+	// private static void extract_fields_from_IDS()
+	//
+	// ARGS: ResultSet - obtained from query previously
+	// dict - keep track of values of database columns
+	//
+	// Pulls fields from the IDS and populate the Dictionary for this record, 
+	// using default values where required.
+	//
+	/////////////////////////////////////////////////////////////////////
+	private static void extract_fields_from_IDS(ResultSet rs,
+					/*Hash*/Map<String, String> dict) throws SQLException {
+
+		System.out.println("** DEBUG - extract_fields_from_IDS()");
+
+
+		// NB some IDS fields cannot be null so we should always get a value for those:
+		// UNID, SenderApplication, MessageIdentifier, MessageVersion, MessageDateTime, HL7Message, PersistDateTime
+		
+		String value = "";
+
+		/*
+		patient_name = new StringBuilder(rs.getString("PatientName"));
+		patient_name.append(" ").append(rs.getString("PatientMiddleName"));
+		patient_name.append(" ").append(rs.getString("PatientSurname"));
+		System.out.println(patient_name.toString());
+		*/
+		value = rs.getString(PATIENT_NAME);
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		dict.put(PATIENT_NAME, value);
+		
+		value = rs.getString(PATIENT_MIDDLE_NAME);
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		dict.put(PATIENT_MIDDLE_NAME, value);
+		
+		value = rs.getString(PATIENT_SURNAME);
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		dict.put(PATIENT_SURNAME, value);
+
+		value = rs.getString(DATE_OF_BIRTH);
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		else {
+			value = convert_timestamp(value);
+		}
+		dict.put(DATE_OF_BIRTH, value);
+
+		// nhs number - not used
+
+		value = rs.getString(HOSPITAL_NUMBER);
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		dict.put(HOSPITAL_NUMBER, value);
+
+		//patient_class = (new String(rs.getString("PatientClass"))).charAt(0);
+		value = Character.toString(rs.getString(PATIENT_CLASS).charAt(0));
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		dict.put(PATIENT_CLASS, value);
+
+		//location = new String(rs.getString("PatientLocation"));
+		value = rs.getString(PATIENT_LOCATION);
+		if (rs.wasNull()) {
+			value = "NULL"; // or "unknown"?
+		}
+		dict.put(PATIENT_LOCATION, value);
+
+		//admit_date = new String(rs.getString("AdmissionDate"));
+		value = rs.getString(ADMISSION_DATE);
+		if (rs.wasNull()) {
+			value = "null::timestamp"; //"NULL"; // or "unknown"?
+		}
+		else {
+			value = convert_timestamp(value);
+		}
+		dict.put(ADMISSION_DATE, value);
+
+		//discharge_date = rs.getString("DischargeDate");
+		value = rs.getString(DISCHARGE_DATE);
+		if (rs.wasNull()) {
+			value = "null::timestamp" ; //"NULL";
+		}
+		else {
+			value = convert_timestamp(value);
+		}
+		dict.put("DISCHARGE_DATE", value);
+
+		
+		//msg_type = rs.getString("MessageType"); // e.g. "ADT^A28"
+		//dictionary.put("MessageType", msg_type)
+		value = rs.getString(MESSAGE_TYPE);
+		dict.put(MESSAGE_TYPE, value);
+
+		// The following should never be null so if we get an exception there is probably something wrong with the IDS.
+		//msg_version = rs.getString("MessageVersion"); // e.g. "2.2" (HL7 version)	
+		value = rs.getString(MESSAGE_VERSION);
+		dict.put(MESSAGE_VERSION, value);
+		//msg_date_time = rs.getString("MessageDateTime");
+		value = rs.getString(MESSAGE_DATE_TIME);
+		dict.put(MESSAGE_DATE_TIME, convert_timestamp(value));
+		// SENDER_APPLICATION
+		// MESSAGE_IDENTIFIER
+		// HL7_MESSAGE
+		//value = rs.getString(PERSIST_DATE_TIME);
+		//dict.put(PERSIST_DATE_TIME, value);
+
+		// The following can only have values obtained if the HL7 message is parsed:
+		dict.put(SEX, "U");
+		dict.put(PATIENT_ADDRESS, "unknown");
+		dict.put(PATIENT_DEATH_DATE, "null::timestamp");
+
+		// In the UDS we just store the patient's name as one long string, not separate strings.
+		StringBuilder patient_name = new StringBuilder(dict.get(PATIENT_NAME)); //rs.getString("PatientName"));
+		patient_name.append(" ").append(dict.get(PATIENT_MIDDLE_NAME)); //rs.getString("PatientMiddleName"));
+		patient_name.append(" ").append(dict.get(PATIENT_SURNAME)); //rs.getString("PatientSurname"));
+		System.out.println(patient_name.toString());
+		dict.put(PATIENT_FULL_NAME, patient_name.toString());
+
+
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// Buld string to insert a new record into the UDS PERSON table
+	/////////////////////////////////////////////////////////////////////
+	private static String get_UDS_insert_person_string(Map<String,String> dict) { 
+
+		System.out.println("** DEBUG - get_UDS_insert_person_string()");
+
+		StringBuilder uds_insert = new StringBuilder(); 
+		uds_insert.append("INSERT INTO PERSON ("); // patient_ID_list,set_ID,
+		uds_insert.append(HOSPITAL_NUMBER).append(", "); //"hospital_number,
+		uds_insert.append(PATIENT_FULL_NAME).append(", "); // patient_name, 
+		uds_insert.append(DATE_OF_BIRTH).append(","); // birth_date_time,
+		uds_insert.append(SEX).append(","); // sex, 
+		uds_insert.append(PATIENT_ADDRESS).append(",");// patient_address,
+		uds_insert.append(PATIENT_DEATH_DATE).append(","); // "patient_death_date_time,
+		// here: patient death indicator
+		// here: identity unknown
+		uds_insert.append(LAST_UPDATED); //.append(", "); // last_update_date_time");
+		//uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
+
+		// NB Need to parse HL7 timestamps to get into correct format for Postgres.
+		uds_insert.append(") VALUES (");
+		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
+		//uds_insert.append("NULL,"); // set_ID
+		uds_insert.append("'").append(dict.get(PATIENT_FULL_NAME)).append("', ");
+		uds_insert.append("'").append(dict.get(DATE_OF_BIRTH)).append("', "); // dob /*"20090304"*/).append("', "); // example: 2018-10-01 14:57:41.090449
+		uds_insert.append("'").append(dict.get(SEX)).append("', "); // sex unknown without parsing HL7
+		uds_insert.append("'").append(dict.get(PATIENT_ADDRESS)).append("', "); // address unknown without parsing HL7
+		uds_insert/*.append("'")*/.append(dict.get(PATIENT_DEATH_DATE)).append(", ");// deathtime)/*.append("'")*/.append(", "); // patient death time unknown without parsing HL7 (PID-29)
+		//uds_insert.append("''").append(", "); // patient death indicator unknown without parsing HL7 (PID-30)
+		//uds_insert.append("''").append(", "); // identity unknown unknown without parsing HL7 (PID-31)
+		//msg_date_time = convert_timestamp(msg_date_time);
+		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
+		uds_insert.append(");");
+
+		return uds_insert.toString();
+
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// Update an existing PERSON record in UDS
+	/////////////////////////////////////////////////////////////////////
+	private static void update_person_record(Connection c) throws SQLException {
+
+
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// this could be a new entry or udate of an existing one (e.g. adding a discharge date)
+	// obviously if current UDS discharge date is null then this must be the record relating
+	// to their present visit.
+	// NB we might want to add location to PERSON table?
+	/////////////////////////////////////////////////////////////////////
+	private static void update_patient_record_table(Connection c) throws SQLException {
+
+	}
+
+
+	/////////////////////////////////////////////////////////////////////
+	// 
+	// private static boolean already_in_person_table()
+	//
+	// ARGS: Connection c, dict
+	//
 	// See if this hospital_number is already in the PERSON table
 	// NB does that necssarily mean they will also be in the patient_visit table? No they might
 	// be an outpatient. And if they ARE in the patient_visit table, they might be there
 	// multiple times. TODO
 	// We could add a current location field to person?
-	private static boolean already_in_person_table(Connection c, String hospital_number) throws SQLException {
+	//
+	/////////////////////////////////////////////////////////////////////
+	private static boolean already_in_person_table(Connection c, 
+												//String hospital_number,
+												Map<String, String> dict) throws SQLException {
+
+		System.out.println("** DEBUG - already_in_person_table()");
 
 		Statement st = c.createStatement();
-		StringBuilder query = new StringBuilder("select * from person where hospital_number = '");
-		query.append(hospital_number).append("';");
+		StringBuilder query = new StringBuilder("select * from person where ");
+		query.append(HOSPITAL_NUMBER).append(" = '");
+		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
 		//System.out.println("QUERY: " + query.toString());
 		ResultSet rs = st.executeQuery(query.toString());
 		if (rs.next()) {
@@ -259,28 +516,51 @@ public class JDBCTest {
 	}
 
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	// private static String get_last_timestamp_of_person()
+	//
+	// ARGS: Connection c, dict
+	//
 	// Get the last time this person's record in the UDS was updated.
 	// In theory it should never be null but we take a safe approach.
-	private static String get_last_timestamp_of_person(Connection c, String hospital_number) throws SQLException {
+	//
+	/////////////////////////////////////////////////////////////////////
+	private static String get_last_timestamp_of_person(Connection c, Map<String,String> dict) throws SQLException {
+
+		System.out.println("** DEBUG - get_last_timestamp_of_person()");
+
 
 		Statement st = c.createStatement();
-		StringBuilder query = new StringBuilder("select last_update_date_time from person where hospital_number = '");
-		query.append(hospital_number).append("';");
+		StringBuilder query = new StringBuilder("select ");
+		query.append(LAST_UPDATED).append(" from person where ").append(HOSPITAL_NUMBER).append(" = '");
+		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
 		System.out.println("QUERY: " + query.toString());
 		ResultSet rs = st.executeQuery(query.toString());
 
 		String timestamp = "NULL";
 		if ( rs.next() ) {
-			timestamp = rs.getString("last_update_date_time");
+			timestamp = rs.getString(LAST_UPDATED);
 		}
 		return timestamp;
 
 	}
 
 
+	/////////////////////////////////////////////////////////////////////
+	// 
+	// private static long read_last_unid_from_UDS()
+	//
+	// ARGS: Connection c, the database connection (must already exist)
+	// 
 	// Obtain the UNID most recently (last time) read from the IDS and processed;
 	// this is stored in the UDS.
+	//
+	/////////////////////////////////////////////////////////////////////
 	private static long read_last_unid_from_UDS (Connection c) throws SQLException {
+
+		System.out.println("** DEBUG - read_last_unid_from_UDS()");
+
 
 		Statement st = c.createStatement();
 		String query = "select latest from last_unid_processed ;";
@@ -310,14 +590,19 @@ public class JDBCTest {
 	}
 
 
+	/////////////////////////////////////////////////////////////////////
 	// First we write new latest UNID processed. Then we delete the existing one.
 	// NB what if they are the same?
 	/* INSERT INTO last_unid_processed (latest) values(200);
 	delete from last_unid_processed where latest='1';
 	write_last_unid_to_UDS(uds_conn, latest_unid_read_this_time, last_unid_processed_last_time);*/
+	/////////////////////////////////////////////////////////////////////
 	private static int write_last_unid_to_UDS(Connection c, 
 				long latest_unid_read_this_time,
 				long unid_processed_last_time) throws SQLException {
+
+		System.out.println("** DEBUG - write_last_unid_to_UDS()");
+
 
 		// Bail out if it's the trivial case.
 		if (latest_unid_read_this_time == unid_processed_last_time) {
@@ -355,6 +640,7 @@ public class JDBCTest {
 	}
 
 
+	/////////////////////////////////////////////////////////////////////
 	// Obtain the latest timestamp stored in the UDS. Then we know that data up to that
 	// point was written OK and so we can extract new info from the IDS starting with that timestamp.
 	// NB Ideally it would be immediately AFTER the timestamp but as messages only have a timestamp
@@ -366,6 +652,7 @@ public class JDBCTest {
 	// So this approach (check latest UDS time before querying IDS) may not work.
 	//
 	// NB obviously at start up the UDS will be empty so we expect a null result
+	/////////////////////////////////////////////////////////////////////
 	/*private static String obtain_latest_UDS_time (Connection c) throws SQLException {
 
 		// Test using sample tables in test db
@@ -389,22 +676,25 @@ public class JDBCTest {
 	}*/
 
 
-	///////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////
 	//
 	// write_update_to_database()
 	// 
 	// ARGS: StringBuilder b (the SQL), Statement s
 	// 
-	// Performs write to database. Side-effect: reset builder to empty.
+	// Performs write to database. 
 	//
-	///////////////////////////////////////////
-	private static int write_update_to_database (StringBuilder b, Statement s) {
+	/////////////////////////////////////////////////////////////////////
+	private static int write_update_to_database (String str, Statement s) {
+
+		System.out.println("** DEBUG - write_update_to_database()");
+
 
 		System.out.println("******* statement: *****");
-		System.out.println(b.toString());
+		System.out.println(str);
 		int ret = 0;
 		try {
-			ret = s.executeUpdate(b.toString());
+			ret = s.executeUpdate(str);
 			//String res = new String("return value was " + ret);
 			//System.out.println(res);
 
@@ -416,16 +706,16 @@ public class JDBCTest {
 		}
 		finally {
 			// Reset StringBuilder
-			b.delete(0, b.length());
+			//b.delete(0, b.length());
 		}
 
 		return ret;
 	}
 
 
-	///////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////
 	//
-	// convert_timestamp()
+	// private static String convert_timestamp()
 	//
 	// ARGS: String hl7: an HL7 format timestamp e.g. "20181003141807.7618"
 	//
@@ -437,13 +727,16 @@ public class JDBCTest {
 	// in the test messages, which is to the nearest second. However we don't
 	// worry about that in this method.
 	//
-	///////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////
 	private static String convert_timestamp (String hl7) {
+
+
+		System.out.println("** DEBUG - convert_timestamp()");
+
 
 		System.out.println(hl7);
 
 		// If it's NULL return NULL
-		//if (hl7.equals("NULL")) return "NULL";
 		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
 
 		// First make sure this is not already in Postgres format (sanity check):
@@ -477,15 +770,6 @@ public class JDBCTest {
 			seconds = firstpart.substring(12,14); //System.out.println(seconds);
 		}
 
-		// Deal with any fractional parts of a second.
-		/*
-		String secondpart = bigparts[1];
-		stringlen = secondpart.length();
-		if (stringlen >= 1) {
-			fractional = secondpart;
-			System.out.print ("frac:");
-			System.out.print(fractional);
-		}*/
 
 		StringBuilder postgres = new StringBuilder(year);
 		postgres.append("-").append(month);
@@ -493,7 +777,6 @@ public class JDBCTest {
 		postgres.append(" ").append(hours);
 		postgres.append(":").append(minutes);
 		postgres.append(":").append(seconds);
-		//postgres.append(".").append(fractional);
 
 		if (len > 1) { // Decimal part exists. NB we don't perform rounding.
 			String secondpart = bigparts[1];
@@ -507,3 +790,5 @@ public class JDBCTest {
 
 	}
 }
+
+// EOF
