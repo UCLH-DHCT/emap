@@ -26,7 +26,7 @@ INSERT INTO TBL_IDS_MASTER (
         'Da Vinci',
         '1500-01-01',---'15000101',
         '',
-        '94006100', -- NB the id below is different
+        '94006200', -- NB the id below is different
         'I',
         'T11S^B11S^T11S-32',
         '2009-02-11 00:22:00', ---200902110022,
