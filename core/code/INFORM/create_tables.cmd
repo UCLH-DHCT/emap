@@ -67,7 +67,7 @@ DROP TABLE IF EXISTS PATIENT_VISIT;
 
 -- We have patientID as secondary key.
 CREATE TABLE PATIENT_VISIT (
-	UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
+	VISITID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
 	HospitalNumber char(8), --patient_ID_list	varchar(300) NOT NULL, -- Required. 300 is a guess. List of 1+ identifiers containing ID number, assigning authority, etc
 	---set_ID	int,	-- Set ID - PV-1. Optional
 	PatientClass char(1) NOT NULL, -- Required. PV1-2. Atos: S,I,P,O
