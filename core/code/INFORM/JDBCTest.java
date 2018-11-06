@@ -37,6 +37,15 @@ import java.sql.*; // Uses postgresql-42.2.5.jar driver
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.simple.JSONObject; 
+import org.json.simple.parser.*;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader; 
+import java.io.PrintWriter;
+import java.io.File;
+
+
 public class JDBCTest {
 
 	//private static long last_unid_processed_this_time = 0; // Last UNID from IDS read and processed successfully.
@@ -97,6 +106,43 @@ public class JDBCTest {
 		System.exit(1);
 		*/
 
+		String filename = "config.json";
+
+
+		String udshost = "", idshost = "", idsusername = "", idspassword = "", udsusername = "", udspassword = "";
+
+		Object obj;
+		JSONObject jo; 
+ 		try {
+			 obj = new JSONParser().parse(new FileReader(filename)); 
+			 
+			 // typecasting obj to JSONObject 
+			 jo = (JSONObject) obj;
+
+			udshost = (String)jo.get("udshost");
+			idshost = (String)jo.get("idshost");
+			idsusername = (String)jo.get("idsusername");
+			udsusername = (String)jo.get("udsusername");
+			// Passwords - can we store the MD5 hashes (rather than plsin text) in the Json file so not exposed?
+			idspassword	= (String)jo.get("idspassword");
+			udspassword	= (String)jo.get("udspassword");
+
+			//System.out.println("UDS:" + udshost + ", IDS: " + idshost);
+			//System.exit(1);
+ 		}
+ 		catch (Exception e) { // FileNotFoundException or IOException
+ 			e.printStackTrace();
+ 			System.out.println("*** DEBUG: file not found or IO exception - exiting ***");
+ 			System.exit(1);
+ 		}
+
+		/*String psqlhost = args[0];
+		if (psqlhost.isEmpty()) {
+			psqlhost = "localhost";
+		}
+		System.out.println("psqlhost IP = " + psqlhost);
+		*/
+
 		// Keep track of possibly-changing values e.g. name etc. Key is Postgres table column name, value = what we need to insert
 		Map<String, String> dict = new HashMap<String, String>();
 
@@ -124,9 +170,12 @@ public class JDBCTest {
 		// admit_datetime, discharge_date_time, alternate_vist_id, visit_indicator
 		// Need to add patient id list
 		//////////////////////////////////////////
-		String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS"; // IDS (dummy)
-		String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH"; // UDS (dummy)
+		//String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS"; // IDS (dummy)
+		//String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH"; // UDS (dummy)
 						// jdbc:postgresql:INFORM_SCRATCH
+
+		String ids_url = "jdbc:postgresql://" + idshost + "/DUMMY_IDS"; // IDS (dummy)
+		String uds_url = "jdbc:postgresql://" + udshost + "/INFORM_SCRATCH"; // UDS (dummy)
 
 		// Extraction of data from IDS step. No HL7 parsing required.
 		try {
@@ -138,14 +187,35 @@ public class JDBCTest {
 			//already_in_person_table(uds_conn, "Fred Bloggs");
 			//System.exit(1);
 
-			Connection uds_conn = DriverManager.getConnection(uds_url);
+			//String username = "matthewgillman";
+			//String password = ""; // "hl7"; //"md5d850aebb8e83e0e2641f53d50bcbacdf";//"";
+
+			//Properties connectionProps = new Properties();
+    		//connectionProps.put("user", "Java");
+    		//connectionProps.put("password", "md5d850aebb8e83e0e2641f53d50bcbacdf");
+			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword); //"md5d850aebb8e83e0e2641f53d50bcbacdf");//f
+			/*
+
+				createuser -P -e Java
+
+				SELECT pg_catalog.set_config('search_path', '', false)
+CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN;
+
+				https://docs.oracle.com/javase/tutorial/jdbc/basics/connecting.html
+				 Properties connectionProps = new Properties();
+    			connectionProps.put("user", this.userName);
+    			connectionProps.put("password", this.password);
+			*/
+
+
+
 			Statement uds_st = uds_conn.createStatement();
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
 			//System.exit(1);
 
 			String ids_query = get_IDS_query_string(last_unid_processed_last_time);
-			conn = DriverManager.getConnection(ids_url);
+			conn = DriverManager.getConnection(ids_url, idsusername, idspassword);
 			st = conn.createStatement();
 			rs = st.executeQuery(ids_query); // move below
 		
