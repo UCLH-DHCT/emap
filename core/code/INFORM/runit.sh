@@ -1,3 +1,4 @@
+#!/bin/sh
 # *******************************************
 # * This batch file runs example code
 # *
