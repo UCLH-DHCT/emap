@@ -1,37 +1,17 @@
-/*
-	export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
-	javac JDBCTest.java
-	java JDBCTest
-
-
-	psql INFORM_SCRATCH
-	select p.hospital_number, p.patient_name, pv.assigned_location 
-	from person p, patient_visit pv 
-	where p.hospital_number = pv.hospital_number;
-
-	Typical location is T11S^B11S^T11S-32
-
-	select latest from last_unid_processed ;
-	INSERT INTO last_unid_processed (latest) values(1);
-	select latest from last_unid_processed ;
-	INSERT INTO last_unid_processed (latest) values(200);
-	delete from last_unid_processed where latest='1';
-
-	Need to add logic to stop person and visit records being added to db if already there.
-	But of course we need to update the records.
-	Also a main loop and sleep
-
-	NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
-
-	Questions for Roma
-	1. What sort of things are we likely to UPDATE in a PERSON record (rather than INSERT)?
-	2. How to handle timestamps - sometimes have '' or not - and this can cause problems.
-	3. How to handle PATIENT_RECORD - there can be multiple per person - presumably if the
-	   latest for this person does not have a discharge date that is the current one!
+/**
+ * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
+ * writes relevant info to the UDS (INFORM_SCRATCH)
+ * <p>
+ * To compile:
+ * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
+ * javac JDBCTest.java
+ * java JDBCTest
+ * <p>
+ * A typical location value is T11S^B11S^T11S-32
+ * <p>
+ * NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
+ */
 	
-
-*/
-
 
 import java.sql.*; // Uses postgresql-42.2.5.jar driver
 import java.util.HashMap;
@@ -321,16 +301,13 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 
 
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	// private static String get_IDS_query_string()
-	//
-	// ARGS: long last_unid_processed_last_time
-	//
-	// Build the string used to query the IDS for records since
-	// last_unid_processed_last_time
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Build the string used to query the IDS for records since
+	 * last_unid_processed_last_time.
+	 * 
+	 * @param last_unid_processed_last_time last UNID processed
+	 * @return								SQL query string 
+	 */
 	private static String get_IDS_query_string(long last_unid_processed_last_time) {
 
 		System.out.println("** DEBUG - get_IDS_query_string()");
