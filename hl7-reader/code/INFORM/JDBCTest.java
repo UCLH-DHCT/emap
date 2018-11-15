@@ -1,17 +1,3 @@
-/**
- * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
- * writes relevant info to the UDS (INFORM_SCRATCH)
- * <p>
- * To compile:
- * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
- * javac JDBCTest.java
- * java JDBCTest
- * <p>
- * A typical location value is T11S^B11S^T11S-32
- * <p>
- * NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
- */
-	
 
 import java.sql.*; // Uses postgresql-42.2.5.jar driver
 import java.util.HashMap;
@@ -25,7 +11,21 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.File;
 
-
+/**
+ * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
+ * writes relevant info to the UDS (INFORM_SCRATCH)
+ *
+ * To compile:
+ * <pre>
+ * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
+ * javac JDBCTest.java
+ * java JDBCTest
+ * </pre>
+ 
+ * A typical location value is {@code T11S^B11S^T11S-32}
+ * 
+ * NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
+ */
 public class JDBCTest {
 
 	//private static long last_unid_processed_this_time = 0; // Last UNID from IDS read and processed successfully.
@@ -306,7 +306,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	 * last_unid_processed_last_time.
 	 * 
 	 * @param last_unid_processed_last_time last UNID processed
-	 * @return								SQL query string 
+	 * @return SQL query string 
 	 */
 	private static String get_IDS_query_string(long last_unid_processed_last_time) {
 
