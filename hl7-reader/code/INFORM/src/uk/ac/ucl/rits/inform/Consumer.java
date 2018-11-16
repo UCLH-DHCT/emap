@@ -1,11 +1,3 @@
-// Consumer.java
-//
-// Utility to ingest HL7 messages as strings (for later parsing)
-// either from a file or from the Immutable Data Store (IDS).
-//
-// Matthew Gillman
-// 20th August 2018
-
 package uk.ac.ucl.rits.inform;
 
 import java.io.BufferedInputStream;
@@ -17,17 +9,28 @@ import java.io.InputStream;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.DefaultHapiContext;
-//import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 import ca.uhn.hl7v2.validation.ValidationContext;
 
-
+/**
+ * 
+ * Consumer.java
+ * 
+ * Utility to ingest HL7 messages as strings (for later parsing)
+ * either from a file or from the Immutable Data Store (IDS).
+ * 
+ * Matthew Gillman
+ * 20th August 2018
+ */
 public class Consumer {
 
-    public /*static*/ void HelpMessage() {
+    /**
+     * Output a usage message.
+     */
+    public void HelpMessage() {
 
             String str = "Usage:\n"
                 + "Consumer [ -h | -f filename | -d databasefile -i last_unid_processed ]\n ";
@@ -36,19 +39,27 @@ public class Consumer {
 
     }
 
+    /**
+     * Constructor
+     */
     public Consumer() {
     	
     }
     
     // Based on the ReadMessagesFromFile class in the HAPI examples
-    public /*static*/ void process_file(String filename) {
+    /**
+     * Open a text file and read in (consume) HL7 messages iteratively.
+     * Then use the Engine class to process each message.
+     * 
+     * @param filename A file of HL7 messages
+     */
+    public void process_file(String filename) {
 
         File file = new File(filename);
     	InputStream is;
 	    try {
             is = new FileInputStream(file);
             is = new BufferedInputStream(is);
-            //Hl7InputStreamMessageStringIterator iter2 = new Hl7InputStreamMessageStringIterator(is); 
             Hl7InputStreamMessageIterator iter2 = new Hl7InputStreamMessageIterator(is, context); 
             iter2.setIgnoreComments(true);
             int count = 0;
@@ -58,23 +69,10 @@ public class Consumer {
                 System.out.println("*************** Next (" + count + ")*****************");
                 // Do something with the message. The iterator strips off the MSH and EVN segments.
                 //System.out.println("\nNext message is:******************\n" + next);
-                Message msg/*hapiMsg*/ = iter2.next();
+                Message msg = iter2.next();
 
                 engine.processMessage(msg);
-
-                //String ver = msg/*hapiMsg*/.getVersion();
-                //System.out.println("version is " + ver);
-                /*try {
-                    // The parse method performs the actual parsing
-                    hapiMsg = p.parse(next);
-                } catch (EncodingNotSupportedException e) {
-                    e.printStackTrace();
-                    return;
-                } catch (HL7Exception h) {
-                    h.printStackTrace();
-                    return;
-                } */
-                
+    
                 ////String msgType = hapiMsg.getMessageType().getMessageType().getValue();
                 ////String msgTrigger = hapiMsg.getMessageType().getTriggerEvent().getValue();
 
@@ -100,15 +98,19 @@ public class Consumer {
       	catch (Exception e) {
             e.printStackTrace();
             System.exit(2);
-          }
-    
+        } 
 
     }
 
 
-    // Args - initial UNID (1 onwards) and optional final UNID
-    // If both present, get records between initial and final (both ends included)
-    // If just initial present, get all records after and including this UNID.
+    /**
+     * Query the IDS for HL7 messages and then process each message.
+     * <p>
+     * TODO Not yet implemented.
+     * Likely Args - initial UNID (1 onwards) and optional final UNID
+     * If both present, get records between initial and final (both ends included)
+     * If just initial present, get all records after and including this UNID.
+     */
     public void query_IDS() {
 
 
@@ -116,6 +118,19 @@ public class Consumer {
     }
 
 
+    /**
+     * main function
+     * 
+     * Reads HL7 messages in, either from a file or (TODO) the IDS.
+     * <p>
+     * As HL7 messages may be from different HL7 versions, but later versions are
+     * backwards-compatible, we use HAPI's "CanonicalModelClassFactory"
+     * to set them all to the same version.
+     * For details, see:
+     * https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+     * 
+     * @param args Command-line arguments
+     */
     public static void main(String[] args) {
         System.out.println("Hello, World");
 
@@ -140,10 +155,6 @@ public class Consumer {
         CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
         c.context.setModelClassFactory(mcf);
         c.p = c.context.getPipeParser(); //getGenericParser();
-
-
-
-
         c.engine = new Engine(c.context, c.p);
 
         // Not very elegant. There must be a standard way of doing this
@@ -180,11 +191,10 @@ public class Consumer {
 
     }
 
-    private /*static*/ DefaultHapiContext context;
+    private DefaultHapiContext context;
 
-    // Move elsewhere:
-    private /*static*/ PipeParser p;
+    private PipeParser p;
 
-    private /*static*/ Engine engine;
+    private Engine engine;
 
 } // End (class Consumer)
