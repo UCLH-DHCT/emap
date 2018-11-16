@@ -23,12 +23,11 @@ import java.io.File;
  * </pre>
  
  * A typical location value is {@code T11S^B11S^T11S-32}
- * 
+ * <p>
  * NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
  */
 public class JDBCTest {
 
-	//private static long last_unid_processed_this_time = 0; // Last UNID from IDS read and processed successfully.
 	private static long last_unid_processed_last_time = 0; // Last UNID currently stored in UDS
 
 	
@@ -197,7 +196,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 			String ids_query = get_IDS_query_string(last_unid_processed_last_time);
 			conn = DriverManager.getConnection(ids_url, idsusername, idspassword);
 			st = conn.createStatement();
-			rs = st.executeQuery(ids_query); // move below
+			rs = st.executeQuery(ids_query);
 		
 			long latest_unid_read_this_time = 0; // last one read from IDS this time
 
@@ -206,23 +205,10 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 
 				dict.clear();
 
-				// TO DO: be able to handle null values of all which are allowed to be null
-
 				// We don't want this stored in the per-person Dictionary
 				latest_unid_read_this_time = rs.getLong("UNID"); // use below if all successful.
 				System.out.println("** DEBUG: latest_unid_read_this_time = " + latest_unid_read_this_time);
 				extract_fields_from_IDS(rs, dict);
-
-				/*
-				// Dummy values in case we get empty data returns. Plus defaults as we aren't parsing the HL7 messages in this demo.
-				StringBuilder patient_name = new StringBuilder("J. Doe"); // NB StringBuilder is not thread-safe.
-				String dob = "unknown", hospital_number = "", sex = "U"; // sex unknown without parsing HL7
-				String address = "Address unknown"; // address unknown without parsing HL7
-				String deathtime = NULL_TIMESTAMP; //"NULL"; // patient death time unknown without parsing HL7 (PID-29)
-				char patient_class;
-				String location, admit_date, discharge_date, msg_type, msg_version, msg_date_time;
-				*/
-				
 				
 				// Now insert this record into the UDS PERSON table.
 
@@ -270,10 +256,6 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 					write_update_to_database (patient_visit_insert, uds_st);
 
 				}
-
-				
-
-				// Prepare the statement to insert data into the PATIENT_VISIT table
 		
 
 			} // end (while)
@@ -337,17 +319,14 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	// private static void extract_fields_from_IDS()
-	//
-	// ARGS: ResultSet - obtained from query previously
-	// dict - keep track of values of database columns
-	//
-	// Pulls fields from the IDS and populate the Dictionary for this record, 
-	// using default values where required.
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Pulls fields from the IDS and populate the Dictionary for this record, 
+	 * using default values where required.
+	 * 
+	 * @param rs ResultSet, obtained from query previously
+	 * @param dict Map which keeps track of values from database columns.
+	 * @throws SQLException
+	 */
 	private static void extract_fields_from_IDS(ResultSet rs,
 					Map<String, String> dict) throws SQLException {
 
@@ -428,17 +407,13 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		}
 		dict.put(DISCHARGE_DATE, value);
 
-		
-		//msg_type = rs.getString("MessageType"); // e.g. "ADT^A28"
-		//dictionary.put("MessageType", msg_type)
 		value = rs.getString(MESSAGE_TYPE);
-		dict.put(MESSAGE_TYPE, value);
+		dict.put(MESSAGE_TYPE, value); // e.g. ADT^A28
 
 		// The following should never be null so if we get an exception there is probably something wrong with the IDS.
 		//msg_version = rs.getString("MessageVersion"); // e.g. "2.2" (HL7 version)	
 		value = rs.getString(MESSAGE_VERSION);
 		dict.put(MESSAGE_VERSION, value);
-		//msg_date_time = rs.getString("MessageDateTime");
 		value = rs.getString(MESSAGE_DATE_TIME);
 		dict.put(MESSAGE_DATE_TIME, convert_timestamp(value));
 		// SENDER_APPLICATION
@@ -460,15 +435,15 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		System.out.println(patient_name.toString());
 		dict.put(PATIENT_FULL_NAME, patient_name.toString());
 
-
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	// Buld string to insert a NEW record into the UDS PERSON table
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Buld string to insert a NEW record into the UDS PERSON table
+	 * 
+	 * @param dict Map of data items from IDS
+	 * @return SQL INSERT string for UDS PERSON table
+	 */
 	private static String get_UDS_insert_person_string(Map<String,String> dict) { 
 
 		System.out.println("** DEBUG - get_UDS_insert_person_string()");
@@ -514,7 +489,12 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	// Get SQL string needed to add a NEW patient_visit entry to UDS
+	/**
+	 * Get SQL string needed to add a NEW patient_visit entry to UDS
+	 * 
+	 * @param dict the Map which keeps track of IDS database data items
+	 * @return the INSERT statement string
+	 */
 	private static String get_UDS_insert_patient_visit_string(Map<String,String> dict) { 
 
 		// Person will be in database by now.
@@ -563,11 +543,17 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	// Look up patient visits for this person (keyed on hospital_number)
-	// If current visit (i.e. admission but no discharge date) found, return visitid
-	// else return 0 (we need to create a new patient_visit entry in that case.)
-	// NB what if there are multiple visits for the same patient with null discharge dates...?
-	// ... this would mean an error had occurred at some point. Maybe flag these up.
+	/**
+	 * Look up patient visits for this person (keyed on hospital_number)
+	 * <p>
+	 * NB what if there are multiple visits for the same patient with null discharge dates...?
+	 * ... this would mean an error had occurred at some point. Maybe flag these up.
+	 * 
+	 * @param c Current connection to UDS
+	 * @param dict Map of data items
+	 * @return <code>visitid</code> if a current visit (i.e. admission but no discharge date) found, else 0
+	 * @throws SQLException
+	 */
 	private static long get_current_visitid_for_person(Connection c, Map<String, String> dict) 
 												throws SQLException {
 
@@ -593,9 +579,9 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	// Update an existing patient_visit record:
-	// visitid | hospitalnumber | patientclass | patientlocation | hospitalservice | readmissionindicator | admissiondate | dischargedate | lastupdated  
-	// I guess we should check that our timedtamp is newer than lastupdated field.
+	// 
+	//   
+	// I guess we should .
 	/*
 		--begin;
 		update patient_visit
@@ -603,8 +589,23 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		where visitid='1' and lastupdated < '2009-02-13 00:22:03';
 		--commit;
 
-		Obviously we will only want to update existing fields if our new values are non-null?
+		
 	*/
+	/**
+	 * Update an existing patient_visit record:
+	 * visitid | hospitalnumber | patientclass | patientlocation | 
+	 * hospitalservice | readmissionindicator | admissiondate | 
+	 * dischargedate | lastupdated
+	 * <p>
+	 * TODO: check that our timestamp is newer than lastupdated field
+	 * <p>
+	 * TODO: Obviously only update existing fields if new values are non-null?
+	 * 
+	 * @param c Current connection to UDS
+	 * @param dict The Map of values
+	 * @param visitid The unique ID of this visit
+	 * @throws SQLException
+	 */
 	private static void update_patient_visit(Connection c, Map<String,String> dict, long visitid) 
 																throws SQLException {
 
@@ -647,33 +648,37 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-
-	/////////////////////////////////////////////////////////////////////
-	// Update an existing PERSON record in UDS
-	//
-	// This could well be quite complicated.
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Update an existing PERSON record in UDS. 
+	 * <p>
+	 * TODO: not yet implemented. This could well be quite complicated.
+	 * 
+	 * @param c Current connection to UDS
+	 * @throws SQLException
+	 */
 	private static void update_person_record(Connection c) throws SQLException {
 
 
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	// 
-	// private static boolean already_in_person_table()
-	//
-	// ARGS: Connection c, dict
-	//
-	// See if this hospital_number is already in the PERSON table
-	// NB does that necssarily mean they will also be in the patient_visit table? No they might
-	// be an outpatient. And if they ARE in the patient_visit table, they might be there
-	// multiple times. TODO
-	// We could add a current location field to person?
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * See if this hospital_number is already in the PERSON table
+	 * <p>
+	 * TODO: NB does that necessarily mean they will also be in the patient_visit table?
+	 * No they might be an outpatient. And if they ARE in the patient_visit table,
+	 * they might be there multiple times.
+	 * <p>
+	 * TODO: We could add a current location field to person?
+	 * 
+	 * 
+	 * @param c Current connection to UDS
+	 * @param dict The Map of data items
+	 * @return <code>true</code> if the hospital_number (stored in <code>dict</code>) is present,
+	 * <code>false</code> otherwise
+	 * @throws SQLException
+	 */
 	private static boolean already_in_person_table(Connection c, 
-												//String hospital_number,
 												Map<String, String> dict) throws SQLException {
 
 		System.out.println("** DEBUG - already_in_person_table()");
@@ -695,16 +700,16 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	// private static String get_last_timestamp_of_person()
-	//
-	// ARGS: Connection c, dict
-	//
-	// Get the last time this person's record in the UDS was updated.
-	// In theory it should never be null but we take a safe approach.
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Get the last time this person's record in the UDS was updated.
+	 * In theory it should never be null but we take a safe approach.
+	 * 
+	 * 
+	 * @param c Current connection to UDS
+	 * @param dict The Map of key-value data pairs
+	 * @return The last timestamp, or NULL if not available.
+	 * @throws SQLException
+	 */
 	private static String get_last_timestamp_of_person(Connection c, Map<String,String> dict) throws SQLException {
 
 		System.out.println("** DEBUG - get_last_timestamp_of_person()");
@@ -726,20 +731,18 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	// 
-	// private static long read_last_unid_from_UDS()
-	//
-	// ARGS: Connection c, the database connection (must already exist)
-	// 
-	// Obtain the UNID most recently (last time) read from the IDS and processed;
-	// this is stored in the UDS.
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Obtain the UNID most recently (last time) read from the IDS and processed;
+	 * this is stored in the UDS.
+	 * 
+	 * @param c Current connection to UDS
+	 * @return The UNID, which will be zero if none have been processed.
+	 * @throws SQLException
+	 * @see write_last_unid_to_UDS
+	 */
 	private static long read_last_unid_from_UDS (Connection c) throws SQLException {
 
 		System.out.println("** DEBUG - read_last_unid_from_UDS()");
-
 
 		Statement st = c.createStatement();
 		String query = "select latest from last_unid_processed ;";
@@ -769,26 +772,29 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	// First we write new latest UNID processed. Then we delete the existing one.
-	// NB what if they are the same?
-	/* INSERT INTO last_unid_processed (latest) values(200);
-	delete from last_unid_processed where latest='1';
-	write_last_unid_to_UDS(uds_conn, latest_unid_read_this_time, last_unid_processed_last_time);*/
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * First we write new latest UNID processed (read this time).
+	 * Then we delete the existing one.
+	 * 
+	 * @param c Current connection to UDS.
+	 * @param latest_unid_read_this_time The new latest IDS UNID processed.
+	 * @param unid_processed_last_time The existing value (in UDS) of last IDS UNID processed.
+	 * @return 0 if OK, -1 if the new value is less than the old value, -2 if SQLException thrown.
+	 * @throws SQLException
+	 * @see read_last_unid_from_UDS
+	 */
 	private static int write_last_unid_to_UDS(Connection c, 
 				long latest_unid_read_this_time,
 				long unid_processed_last_time) throws SQLException {
 
 		System.out.println("** DEBUG - write_last_unid_to_UDS()");
 
-
 		// Bail out if it's the trivial case.
 		if (latest_unid_read_this_time == unid_processed_last_time) {
 			return 0;
 		}
 
-		// If we get here someone probaboky needs to manually reset the UDS UNID table to 0
+		// If we get here someone probably needs to manually reset the UDS UNID table to 0
 		if (latest_unid_read_this_time < unid_processed_last_time) {
 			System.out.println("**ERROR: latest UNID read from IDS is less than that stored in UDS");
 			return -1;
@@ -855,15 +861,14 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}*/
 
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	// write_update_to_database()
-	// 
-	// ARGS: String str (the SQL), Statement s
-	// 
-	// Performs write to database. 
-	//
-	/////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Utility function to write an update to a database
+	 * 
+	 * @param str The SQL string
+	 * @param s The current statement
+	 * @return value of <code>executeUpdate()</code>
+	 */
 	private static int write_update_to_database (String str, Statement s) {
 
 		System.out.println("** DEBUG - write_update_to_database()");
@@ -892,23 +897,20 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	// private static String convert_timestamp()
-	//
-	// ARGS: String hl7: an HL7 format timestamp e.g. "20181003141807.7618"
-	//
-	// Returns: Postgres-format timestamp e.g. "2018-10-03 14:18:07.7618"
-	// NB some HL7 timestamps won't have the decimal part. And some will only
-	// be accurate to the day (so no hhmmss information)
-	//
-	// Unfortunately, Ashish says the precision is the same as what he sent me 
-	// in the test messages, which is to the nearest second. However we don't
-	// worry about that in this method.
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Convert HL7 format timestamp into a Postgres one.
+	 * <p>
+	 * NB some HL7 timestamps won't have the decimal part. And some will only
+	 * be accurate to the day (so no hhmmss information)
+	 * <p>
+	 * Unfortunately, Ashish says the precision is the same as what he sent me
+	 * in the test messages, which is to the nearest second. However we don't
+	 * worry about that in this method.
+	 * 
+	 * @param hl7 An HL7 format timestamp e.g. "20181003141807.7618"
+	 * @return Postgres-format timestamp e.g. "2018-10-03 14:18:07.7618"
+	 */
 	private static String convert_timestamp (String hl7) {
-
 
 		System.out.println("** DEBUG - convert_timestamp()");
 
