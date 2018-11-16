@@ -25,6 +25,14 @@ import java.io.File;
  * A typical location value is {@code T11S^B11S^T11S-32}
  * <p>
  * NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
+ * <p>
+ * From PostgresApp documentation
+ * https://postgresapp.com/documentation/cli-tools.html
+ * to install the App:
+ * <pre>
+ * sudo mkdir -p /etc/paths.d 
+ * sudo echo /Applications/Postgres.app/Contents/Versions/latest/bin | sudo tee /etc/paths.d/postgresapp
+ * </pre>
  */
 public class JDBCTest {
 
