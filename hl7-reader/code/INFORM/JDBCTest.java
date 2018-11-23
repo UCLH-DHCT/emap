@@ -14,21 +14,22 @@ import java.io.File;
 /**
  * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
- *
+ * <p>
  * To compile:
  * <pre>
  * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
  * javac JDBCTest.java
  * java JDBCTest
  * </pre>
- 
  * A typical location value is {@code T11S^B11S^T11S-32}
  * <p>
  * NB this demo code is intended to be single threaded. Later might want to use things like ConcurrentHashMap.
+ * </p>
  * <p>
  * From PostgresApp documentation
  * https://postgresapp.com/documentation/cli-tools.html
  * to install the App:
+ * </p>
  * <pre>
  * sudo mkdir -p /etc/paths.d 
  * sudo echo /Applications/Postgres.app/Contents/Versions/latest/bin | sudo tee /etc/paths.d/postgresapp
@@ -81,20 +82,7 @@ public class JDBCTest {
 
 	public static void main(String[] args) {
 
-		//convert_timestamp("200902110022"); //2009-02-11 00:22:00
-		//System.exit(1);
-		/* // Timestamp conversion tests
-		convert_timestamp("20181003141807.7618");
-		convert_timestamp("20181003141807");
-		convert_timestamp("201810031418");
-		convert_timestamp("2018100314");
-		convert_timestamp("20181003");
-		convert_timestamp("2018-10-03 14:18:07.7618");
-		System.exit(1);
-		*/
-
-		String filename = "config.json";
-
+		String filename = "config.json"; // maybe better to make this a command-line option?
 
 		String udshost = "", idshost = "", idsusername = "", idspassword = "", udsusername = "", udspassword = "";
 
@@ -123,14 +111,9 @@ public class JDBCTest {
  			System.exit(1);
  		}
 
-		/*String psqlhost = args[0];
-		if (psqlhost.isEmpty()) {
-			psqlhost = "localhost";
-		}
-		System.out.println("psqlhost IP = " + psqlhost);
-		*/
 
-		// Keep track of possibly-changing values e.g. name etc. Key is Postgres table column name, value = what we need to insert
+		// Keep track of possibly-changing values e.g. name etc. 
+		// Key is Postgres table column name, value = what we need to insert
 		Map<String, String> dict = new HashMap<String, String>();
 
 
@@ -169,37 +152,11 @@ public class JDBCTest {
 
 			System.out.println("Trying to connect");
 			
-			// Testing
-			//already_in_person_table(uds_conn, "94006000");
-			//already_in_person_table(uds_conn, "Fred Bloggs");
-			//System.exit(1);
-
-			//String username = "matthewgillman";
-			//String password = ""; // "hl7"; //"md5d850aebb8e83e0e2641f53d50bcbacdf";//"";
-
-			//Properties connectionProps = new Properties();
-    		//connectionProps.put("user", "Java");
-    		//connectionProps.put("password", "md5d850aebb8e83e0e2641f53d50bcbacdf");
-			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword); //"md5d850aebb8e83e0e2641f53d50bcbacdf");//f
-			/*
-
-				createuser -P -e Java
-
-				SELECT pg_catalog.set_config('search_path', '', false)
-CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN;
-
-				https://docs.oracle.com/javase/tutorial/jdbc/basics/connecting.html
-				 Properties connectionProps = new Properties();
-    			connectionProps.put("user", this.userName);
-    			connectionProps.put("password", this.password);
-			*/
-
-
+			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword);
 
 			Statement uds_st = uds_conn.createStatement();
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
-			//System.exit(1);
 
 			String ids_query = get_IDS_query_string(last_unid_processed_last_time);
 			conn = DriverManager.getConnection(ids_url, idsusername, idspassword);
@@ -213,7 +170,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 
 				dict.clear();
 
-				// We don't want this stored in the per-person Dictionary
+				// We don't want this stored in the per-person dict
 				latest_unid_read_this_time = rs.getLong("UNID"); // use below if all successful.
 				System.out.println("** DEBUG: latest_unid_read_this_time = " + latest_unid_read_this_time);
 				extract_fields_from_IDS(rs, dict);
@@ -229,7 +186,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 					System.out.println("** DEBUG: " + who + " is already in UDS");
 
 					// obtain timestamp last updated - are we more recent?
-					person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict); //.get(HOSPITAL_NUMBER));
+					person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
 					System.out.println("Stored timestamp is " + person_entry_last_updated);
 
 					// Now we need to update the PERSON record. Need to check for null values and also outdated values
@@ -300,23 +257,23 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	 */
 	private static String get_IDS_query_string(long last_unid_processed_last_time) {
 
-		System.out.println("** DEBUG - get_IDS_query_string()");
+		System.out.println("** DEBUG - get_IDS_query_string fn");
 
 		// Build the query - select all messages later than last_unid_processed_last_time:
 		StringBuilder query = new StringBuilder("SELECT ");
 		query.append(UNID).append(", ");
-		query.append(PATIENT_NAME).append(", "); // PatientName, 
-		query.append(PATIENT_MIDDLE_NAME).append(", "); //PatientMiddleName, 
-		query.append(PATIENT_SURNAME).append(", "); //PatientSurname, ");
-		query.append(DATE_OF_BIRTH).append(", "); //"DateOfBirth,
-		query.append(HOSPITAL_NUMBER).append(", "); // HospitalNumber, 
-		query.append(PATIENT_CLASS).append(", "); // PatientClass, 
-		query.append(PATIENT_LOCATION).append(", "); // PatientLocation, 
-		query.append(ADMISSION_DATE).append(", "); // AdmissionDate, 
-		query.append(DISCHARGE_DATE).append(", "); // DischargeDate,");
-		query.append(MESSAGE_TYPE).append(", "); //"MessageType, 
-		query.append(MESSAGE_VERSION).append(", "); // MessageVersion,
-		query.append(MESSAGE_DATE_TIME).append(", "); // MessageDateTime ");
+		query.append(PATIENT_NAME).append(", ");  
+		query.append(PATIENT_MIDDLE_NAME).append(", "); 
+		query.append(PATIENT_SURNAME).append(", "); 
+		query.append(DATE_OF_BIRTH).append(", "); 
+		query.append(HOSPITAL_NUMBER).append(", ");  
+		query.append(PATIENT_CLASS).append(", "); 
+		query.append(PATIENT_LOCATION).append(", ");  
+		query.append(ADMISSION_DATE).append(", ");  
+		query.append(DISCHARGE_DATE).append(", "); 
+		query.append(MESSAGE_TYPE).append(", "); 
+		query.append(MESSAGE_VERSION).append(", "); 
+		query.append(MESSAGE_DATE_TIME).append(", ");
 		query.append(PERSIST_DATE_TIME);
 		query.append(" FROM TBL_IDS_MASTER ");
 		query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
@@ -338,7 +295,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	private static void extract_fields_from_IDS(ResultSet rs,
 					Map<String, String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - extract_fields_from_IDS()");
+		System.out.println("** DEBUG - extract_fields_from_IDS fn");
 
 
 		// NB some IDS fields cannot be null so we should always get a value for those:
@@ -348,25 +305,25 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 
 		value = rs.getString(PATIENT_NAME);
 		if (rs.wasNull()) {
-			value = "NULL"; // or "unknown"?
+			value = "NULL";
 		}
 		dict.put(PATIENT_NAME, value);
 		
 		value = rs.getString(PATIENT_MIDDLE_NAME);
 		if (rs.wasNull()) {
-			value = "NULL"; // or "unknown"?
+			value = "NULL";
 		}
 		dict.put(PATIENT_MIDDLE_NAME, value);
 		
 		value = rs.getString(PATIENT_SURNAME);
 		if (rs.wasNull()) {
-			value = "NULL"; // or "unknown"?
+			value = "NULL";
 		}
 		dict.put(PATIENT_SURNAME, value);
 
 		value = rs.getString(DATE_OF_BIRTH);
 		if (rs.wasNull()) {
-			value = NULL_TIMESTAMP; //"NULL"; // or "unknown"?
+			value = NULL_TIMESTAMP;
 		}
 		else {
 			value = convert_timestamp(value);
@@ -377,25 +334,22 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 
 		value = rs.getString(HOSPITAL_NUMBER);
 		if (rs.wasNull()) {
-			value = "NULL"; // or "unknown"?
+			value = "NULL";
 		}
 		dict.put(HOSPITAL_NUMBER, value);
 
-		//patient_class = (new String(rs.getString("PatientClass"))).charAt(0);
 		value = Character.toString(rs.getString(PATIENT_CLASS).charAt(0));
 		if (rs.wasNull()) {
-			value = "NULL"; // or "unknown"?
+			value = "NULL";
 		}
 		dict.put(PATIENT_CLASS, value);
 
-		//location = new String(rs.getString("PatientLocation"));
 		value = rs.getString(PATIENT_LOCATION);
 		if (rs.wasNull()) {
-			value = "NULL"; // or "unknown"?
+			value = "NULL";
 		}
 		dict.put(PATIENT_LOCATION, value);
 
-		//admit_date = new String(rs.getString("AdmissionDate"));
 		value = rs.getString(ADMISSION_DATE);
 		if (rs.wasNull()) {
 			value = NULL_TIMESTAMP;
@@ -405,7 +359,6 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		}
 		dict.put(ADMISSION_DATE, value);
 
-		//discharge_date = rs.getString("DischargeDate");
 		value = rs.getString(DISCHARGE_DATE);
 		if (rs.wasNull()) {
 			value = NULL_TIMESTAMP;
@@ -437,9 +390,9 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		dict.put(PATIENT_DEATH_DATE, NULL_TIMESTAMP);
 
 		// In the UDS we just store the patient's name as one long string, not separate strings.
-		StringBuilder patient_name = new StringBuilder(dict.get(PATIENT_NAME)); //rs.getString("PatientName"));
-		patient_name.append(" ").append(dict.get(PATIENT_MIDDLE_NAME)); //rs.getString("PatientMiddleName"));
-		patient_name.append(" ").append(dict.get(PATIENT_SURNAME)); //rs.getString("PatientSurname"));
+		StringBuilder patient_name = new StringBuilder(dict.get(PATIENT_NAME));
+		patient_name.append(" ").append(dict.get(PATIENT_MIDDLE_NAME));
+		patient_name.append(" ").append(dict.get(PATIENT_SURNAME));
 		System.out.println(patient_name.toString());
 		dict.put(PATIENT_FULL_NAME, patient_name.toString());
 
@@ -457,16 +410,16 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		System.out.println("** DEBUG - get_UDS_insert_person_string()");
 
 		StringBuilder uds_insert = new StringBuilder(); 
-		uds_insert.append("INSERT INTO PERSON ("); // patient_ID_list,set_ID,
-		uds_insert.append(HOSPITAL_NUMBER).append(", "); //"hospital_number,
-		uds_insert.append(PATIENT_FULL_NAME).append(", "); // patient_name, 
-		uds_insert.append(DATE_OF_BIRTH).append(","); // birth_date_time,
-		uds_insert.append(SEX).append(","); // sex, 
-		uds_insert.append(PATIENT_ADDRESS).append(",");// patient_address,
-		uds_insert.append(PATIENT_DEATH_DATE).append(","); // "patient_death_date_time,
+		uds_insert.append("INSERT INTO PERSON ("); 
+		uds_insert.append(HOSPITAL_NUMBER).append(", "); 
+		uds_insert.append(PATIENT_FULL_NAME).append(", ");
+		uds_insert.append(DATE_OF_BIRTH).append(","); 
+		uds_insert.append(SEX).append(","); 
+		uds_insert.append(PATIENT_ADDRESS).append(",");
+		uds_insert.append(PATIENT_DEATH_DATE).append(","); 
 		// here: patient death indicator
 		// here: identity unknown
-		uds_insert.append(LAST_UPDATED); //.append(", "); // last_update_date_time");
+		uds_insert.append(LAST_UPDATED); 
 		//uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
 
 		// NB Need to parse HL7 timestamps to get into correct format for Postgres.
@@ -474,22 +427,22 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
 		//uds_insert.append("NULL,"); // set_ID
 		uds_insert.append("'").append(dict.get(PATIENT_FULL_NAME)).append("', ");
-		uds_insert.append("'").append(dict.get(DATE_OF_BIRTH)).append("', "); // dob /*"20090304"*/).append("', "); // example: 2018-10-01 14:57:41.090449
-		uds_insert.append("'").append(dict.get(SEX)).append("', "); // sex unknown without parsing HL7
-		uds_insert.append("'").append(dict.get(PATIENT_ADDRESS)).append("', "); // address unknown without parsing HL7
+		uds_insert.append("'").append(dict.get(DATE_OF_BIRTH)).append("', "); // example: 2018-10-01 14:57:41.090449
+		uds_insert.append("'").append(dict.get(SEX)).append("', ");
+		uds_insert.append("'").append(dict.get(PATIENT_ADDRESS)).append("', ");
 		String death = dict.get(PATIENT_DEATH_DATE);
 		if (death.equals(NULL_TIMESTAMP)) {
 			uds_insert.append(death).append(", ");
 		}
 		else {
-			uds_insert.append("'").append(death).append("', ");// deathtime)/*.append("'")*/.append(", "); // patient death time unknown without parsing HL7 (PID-29)
+			uds_insert.append("'").append(death).append("', "); // patient death time unknown without parsing HL7 (PID-29)
 		}
 			//uds_insert.append("''").append(", "); // patient death indicator unknown without parsing HL7 (PID-30)
 		//uds_insert.append("''").append(", "); // identity unknown unknown without parsing HL7 (PID-31)
 		//msg_date_time = convert_timestamp(msg_date_time);
 
 		// To populate the UDS LastUpdated field, for now we are using the IDS's MessageDateTime field (NOT NULL)
-		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'")/*.append(", ")*/; // last update date/time unknown without parsing HL7 (PID-33)	
+		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'"); // last update date/time unknown without parsing HL7 (PID-33)	
 		uds_insert.append(");");
 
 		return uds_insert.toString();
@@ -508,14 +461,14 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		// Person will be in database by now.
 		StringBuilder uds_insert = new StringBuilder("");
 		uds_insert.append("INSERT INTO PATIENT_VISIT (");
-		uds_insert.append(HOSPITAL_NUMBER).append(", ");//"hospital_number, 
-		uds_insert.append(PATIENT_CLASS).append(", ");// patient_class, 
-		uds_insert.append(PATIENT_LOCATION).append(", "); // assigned_location,
+		uds_insert.append(HOSPITAL_NUMBER).append(", ");
+		uds_insert.append(PATIENT_CLASS).append(", ");
+		uds_insert.append(PATIENT_LOCATION).append(", ");
 		// hospital_service, ");
 		//uds_insert.append("readmission_indicator, 
-		uds_insert.append(ADMISSION_DATE).append(", "); // admit_datetime,
-		uds_insert.append(DISCHARGE_DATE).append(", "); // discharge_date_time,
-		uds_insert.append(LAST_UPDATED); // last_updated;
+		uds_insert.append(ADMISSION_DATE).append(", ");
+		uds_insert.append(DISCHARGE_DATE).append(", ");
+		uds_insert.append(LAST_UPDATED);
 		uds_insert.append(") VALUES (");
 		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
 		uds_insert.append("'").append(dict.get(PATIENT_CLASS)).append("'").append(", ");
@@ -541,10 +494,6 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		// This one should never be null so we don't perform the null check here:
 		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'"); // already converted
 		uds_insert.append(");");
-
-		// Now we write the PATIENT_VISIT data to the UDS (clears uds_insert)
-		//write_update_to_database(uds_insert.toString(), uds_st);
-		//uds_insert.delete(0, uds_insert.length());
 
 		return uds_insert.toString();
 
@@ -587,27 +536,11 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	// 
-	//   
-	// I guess we should .
-	/*
-		--begin;
-		update patient_visit
-		set lastupdated = '2009-02-13 00:22:03', patientlocation='icu'
-		where visitid='1' and lastupdated < '2009-02-13 00:22:03';
-		--commit;
-
-		
-	*/
 	/**
 	 * Update an existing patient_visit record:
 	 * visitid | hospitalnumber | patientclass | patientlocation | 
 	 * hospitalservice | readmissionindicator | admissiondate | 
 	 * dischargedate | lastupdated
-	 * <p>
-	 * TODO: check that our timestamp is newer than lastupdated field
-	 * <p>
-	 * TODO: Obviously only update existing fields if new values are non-null?
 	 * 
 	 * @param c Current connection to UDS
 	 * @param dict The Map of values
@@ -659,7 +592,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	/**
 	 * Update an existing PERSON record in UDS. 
 	 * <p>
-	 * TODO: not yet implemented. This could well be quite complicated.
+	 * Not yet implemented. This could well be quite complicated. Issue #9
 	 * 
 	 * @param c Current connection to UDS
 	 * @throws SQLException
@@ -673,12 +606,9 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	/**
 	 * See if this hospital_number is already in the PERSON table
 	 * <p>
-	 * TODO: NB does that necessarily mean they will also be in the patient_visit table?
+	 * NB does that necessarily mean they will also be in the patient_visit table?
 	 * No they might be an outpatient. And if they ARE in the patient_visit table,
 	 * they might be there multiple times.
-	 * <p>
-	 * TODO: We could add a current location field to person?
-	 * 
 	 * 
 	 * @param c Current connection to UDS
 	 * @param dict The Map of data items
@@ -720,7 +650,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	 */
 	private static String get_last_timestamp_of_person(Connection c, Map<String,String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - get_last_timestamp_of_person()");
+		System.out.println("** DEBUG - get_last_timestamp_of_person fn");
 
 
 		Statement st = c.createStatement();
@@ -750,7 +680,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	 */
 	private static long read_last_unid_from_UDS (Connection c) throws SQLException {
 
-		System.out.println("** DEBUG - read_last_unid_from_UDS()");
+		System.out.println("** DEBUG - read_last_unid_from_UDS fn");
 
 		Statement st = c.createStatement();
 		String query = "select latest from last_unid_processed ;";
@@ -795,7 +725,7 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 				long latest_unid_read_this_time,
 				long unid_processed_last_time) throws SQLException {
 
-		System.out.println("** DEBUG - write_last_unid_to_UDS()");
+		System.out.println("** DEBUG - write_last_unid_to_UDS fn");
 
 		// Bail out if it's the trivial case.
 		if (latest_unid_read_this_time == unid_processed_last_time) {
@@ -833,43 +763,6 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 	}
 
 
-	/////////////////////////////////////////////////////////////////////
-	// Obtain the latest timestamp stored in the UDS. Then we know that data up to that
-	// point was written OK and so we can extract new info from the IDS starting with that timestamp.
-	// NB Ideally it would be immediately AFTER the timestamp but as messages only have a timestamp
-	// precision to the nearest second we might find we miss messages if we jump to the next second.
-	// Not very likely but best to be safe.
-	//
-	// NB now Ashish says: "IT could be with missing seconds for some fields and only date for some fields. 
-	// The idea is to convert the format received from Carecast to postgres database and insert it in IDS database."
-	// So this approach (check latest UDS time before querying IDS) may not work.
-	//
-	// NB obviously at start up the UDS will be empty so we expect a null result
-	/////////////////////////////////////////////////////////////////////
-	/*private static String obtain_latest_UDS_time (Connection c) throws SQLException {
-
-		// Test using sample tables in test db
-		// select persist_date_time from cities order by persist_date_time desc limit 1;
-		// probably better: select max(persist_date_time) from cities;
-
-		Statement st = c.createStatement();
-		String query = //"SELECT MAX(last_update_date_time) from PERSON;";
-			"select max(persist_date_time) from cities;";
-		ResultSet rs = st.executeQuery(query);
-		String latest_timestamp = "null";
-
-		while (rs.next()) // Iterate over records. If there aren't any the timestamp is "null". (Tested with empty table)
-		{
-			latest_timestamp = rs.getString(1);
-			break;
-		}
-		System.out.println ("LATEST UDS TIMESTAMP: " + latest_timestamp);
-
-		return latest_timestamp;
-	}*/
-
-
-
 	/**
 	 * Utility function to write an update to a database
 	 * 
@@ -895,10 +788,6 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 		catch (SQLException e) {
 			e.printStackTrace();
 			// should we add a rollback here?
-		}
-		finally {
-			// Reset StringBuilder
-			//b.delete(0, b.length());
 		}
 
 		return ret;
@@ -934,29 +823,26 @@ CREATE ROLE "Java" PASSWORD 'md5d850aebb8e83e0e2641f53d50bcbacdf' NOSUPERUSER NO
 
 		// HL7 timestamp format is YYYYMMDDHHMMSS[.S[S[S[S]]]] (with +/- offset if required)
 		String[] bigparts = hl7.split("\\."); // We have to escape the period character.
-		//for (String a : bigparts) 
-				//System.out.println(a); 
-		int len = bigparts.length; //System.out.println(len);
+		int len = bigparts.length; 
 		String firstpart = bigparts[0];
-		///System.out.println(firstpart);
-		String year = firstpart.substring(0,4); //System.out.println(year);
-		String month = firstpart.substring(4,6); //System.out.println(month);
-		String day = firstpart.substring(6,8); //System.out.println(day);
+		
+		String year = firstpart.substring(0,4); 
+		String month = firstpart.substring(4,6); 
+		String day = firstpart.substring(6,8); 
 
 		// Deal with hhmmss (or lack of them)
 		String hours = "00";
 		String minutes = "00";
 		String seconds = "00";
-		//String fractional = "0000";
 		int stringlen = firstpart.length();
 		if (stringlen >= 10) {
-			hours = firstpart.substring(8,10); //System.out.println(hours);
+			hours = firstpart.substring(8,10); 
 		}
 		if (stringlen >= 12) {
-			minutes = firstpart.substring(10,12); //System.out.println(minutes);
+			minutes = firstpart.substring(10,12);
 		}
 		if (stringlen >= 14) {
-			seconds = firstpart.substring(12,14); //System.out.println(seconds);
+			seconds = firstpart.substring(12,14); 
 		}
 
 
