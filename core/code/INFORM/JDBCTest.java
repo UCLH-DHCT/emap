@@ -463,7 +463,6 @@ public class JDBCTest {
 		uds_insert.append("INSERT INTO PATIENT_VISIT (");
 		uds_insert.append(HOSPITAL_NUMBER).append(", ");
 		uds_insert.append(PATIENT_CLASS).append(", ");
-		uds_insert.append(PATIENT_LOCATION).append(", ");
 		// hospital_service, ");
 		//uds_insert.append("readmission_indicator, 
 		uds_insert.append(ADMISSION_DATE).append(", ");
@@ -472,9 +471,6 @@ public class JDBCTest {
 		uds_insert.append(") VALUES (");
 		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
 		uds_insert.append("'").append(dict.get(PATIENT_CLASS)).append("'").append(", ");
-		uds_insert.append("'").append(dict.get(PATIENT_LOCATION)).append("'").append(", ");
-		//uds_insert.append("NULL").append(", "); // service
-		//uds_insert.append("NULL").append(", "); // readmission_indicator
 
 		// We want to enclose timestamps within '' but NOT a string like NULL or null::timestamp
 		String admit = dict.get(ADMISSION_DATE);
@@ -538,7 +534,7 @@ public class JDBCTest {
 
 	/**
 	 * Update an existing patient_visit record:
-	 * visitid | hospitalnumber | patientclass | patientlocation | 
+	 * visitid | hospitalnumber | patientclass |  
 	 * hospitalservice | readmissionindicator | admissiondate | 
 	 * dischargedate | lastupdated
 	 * 
@@ -564,7 +560,7 @@ public class JDBCTest {
 		// Update other values if relevant e.g. we get an ADT transfer message.
 		String msgtype = dict.get(MESSAGE_TYPE);
 		if (msgtype.equals("ADT^A02")) { // transfer
-			sb.append(", patientlocation = ").append(dict.get(PATIENT_LOCATION));
+			//sb.append(", patientlocation = ").append(dict.get(PATIENT_LOCATION));
 		}
 		else if (msgtype.equals("ADT^A03")) { // discharge - NB does this have a new location too?
 			String ddate = dict.get(DISCHARGE_DATE);
