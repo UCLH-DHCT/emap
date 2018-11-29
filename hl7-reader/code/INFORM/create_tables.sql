@@ -73,7 +73,7 @@ CREATE TABLE PATIENT_VISIT (
 	PatientClass char(1) NOT NULL, -- Required. PV1-2. Atos: S,I,P,O
 
 	-- This field contains the patient's initial assigned location or the location to which the patient is being moved.
-	PatientLocation	varchar(200), -- Optional. PV1-3. <Point of Care (HD)> ^ <Room (HD)> ^ <Bed (HD)> ^ <Facility (HD)> ^ ....
+	----PatientLocation	varchar(200), -- Optional. PV1-3. <Point of Care (HD)> ^ <Room (HD)> ^ <Bed (HD)> ^ <Facility (HD)> ^ ....
 	
 	--admission_type	char(1), -- Optional. PV1-4. e.g. A accident, E emergency, N newborn (i.e. birth), etc.
 	-- preadmit_number	, -- Optional PV1-5
