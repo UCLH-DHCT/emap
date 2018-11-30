@@ -682,7 +682,7 @@ public class JDBCTest {
 			sb.append("WHERE bed_visit_id = '").append(current_bedvisit_id).append("';");
 
 			// If it's a transfer we also need to create a new BEDVISIT entry (no end time):
-			if (msgtype.equals("ADT^A02")) {
+			if (msgtype.equals("ADT^A02") && visitid > 0) {
 				sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
 				sb.append(visitid).append(", ");
 				sb.append("'").append(dict.get(PATIENT_LOCATION)).append("',");
