@@ -109,9 +109,22 @@ CREATE TABLE PATIENT_VISIT (
 	--- Service Episode Description
 	--- Service Episode Identifier
 	
-	LastUpdated timestamp -- HL& MessageDateTime 
+	LastUpdated timestamp -- HL7 MessageDateTime 
 	--NB is this the same as the LastUpdated in person table?
 );
+
+
+DROP TABLE IF EXISTS BEDVISIT;
+
+CREATE TABLE BEDVISIT (
+	BED_VISIT_ID BIGSERIAL PRIMARY KEY,
+	patient_visit_id char(8) NOT NULL, -- primary key of patient_visit table
+	location varchar(30), -- i.e. an individual bed in the hospital.
+	start_time timestamp,
+	end_time timestamp
+);
+
+
 
 -- Now we create a little table to store the latest IDS UNID successfully
 -- processed in the UDS. We can query this to see what UNID we need to starts
