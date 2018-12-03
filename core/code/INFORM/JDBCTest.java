@@ -129,7 +129,7 @@ public class JDBCTest {
 		// We want to pull data from the IDS and insert it to the UDS.
 		// Fields required for UDS (some may be null for a given message):
 		//
-		// PERSON - (setID), patient_ID_list NOT NULL, patient_name NOT NULL, birth_date_time,
+		// PERSON_SCRATCH - (setID), patient_ID_list NOT NULL, patient_name NOT NULL, birth_date_time,
 		// sex, patient_address,  patient_death_date_time, patient_death_indicator, 
 		// identity_unknown_indicator, last_update_date_time (PID-33)
 		//
@@ -175,9 +175,9 @@ public class JDBCTest {
 				System.out.println("** DEBUG: latest_unid_read_this_time = " + latest_unid_read_this_time);
 				extract_fields_from_IDS(rs, dict);
 				
-				// Now insert this record into the UDS PERSON table.
+				// Now insert this record into the UDS PERSON_SCRATCH table.
 
-				// Check to see if this person is already in the PERSON table - obtain latest update time
+				// Check to see if this person is already in the PERSON_SCRATCH table - obtain latest update time
 				// if they are, and our update time is later than that stored, update table as appropriate.
 				String person_entry_last_updated = "NULL";
 				String who = dict.get(PATIENT_FULL_NAME); // debug
@@ -189,7 +189,7 @@ public class JDBCTest {
 					////person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
 					///System.out.println("Stored timestamp is " + person_entry_last_updated);
 
-					// Now we need to update the PERSON record. Need to check for null values and also outdated values
+					// Now we need to update the PERSON_SCRATCH record. Need to check for null values and also outdated values
 					// eg they change their name
 
 					// Also need to find current PATIENT_VISIT record and update as appropriate
@@ -211,7 +211,7 @@ public class JDBCTest {
 					
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
-					// Now we write the PERSON data to the UDS
+					// Now we write the PERSON_SCRATCH data to the UDS
 					String person_insert = get_UDS_insert_person_string(dict);
 					write_update_to_database(person_insert, uds_st);
 
@@ -444,17 +444,17 @@ public class JDBCTest {
 
 
 	/**
-	 * Buld string to insert a NEW record into the UDS PERSON table
+	 * Buld string to insert a NEW record into the UDS PERSON_SCRATCH table
 	 * 
 	 * @param dict Map of data items from IDS
-	 * @return SQL INSERT string for UDS PERSON table
+	 * @return SQL INSERT string for UDS PERSON_SCRATCH table
 	 */
 	private static String get_UDS_insert_person_string(Map<String,String> dict) { 
 
 		System.out.println("** DEBUG - get_UDS_insert_person_string()");
 
 		StringBuilder uds_insert = new StringBuilder(); 
-		uds_insert.append("INSERT INTO PERSON ("); 
+		uds_insert.append("INSERT INTO PERSON_SCRATCH ("); 
 		uds_insert.append(HOSPITAL_NUMBER).append(", "); 
 		uds_insert.append(PATIENT_FULL_NAME).append(", ");
 		uds_insert.append(DATE_OF_BIRTH).append(","); 
@@ -698,7 +698,7 @@ public class JDBCTest {
 	
 
 	/**
-	 * Update an existing PERSON record in UDS. 
+	 * Update an existing PERSON_SCRATCH record in UDS. 
 	 * <p>
 	 * Not yet implemented. This could well be quite complicated. Issue #9
 	 * 
@@ -712,7 +712,7 @@ public class JDBCTest {
 
 
 	/**
-	 * See if this hospital_number is already in the PERSON table
+	 * See if this hospital_number is already in the PERSON_SCRATCH table
 	 * <p>
 	 * NB does that necessarily mean they will also be in the patient_visit table?
 	 * No they might be an outpatient. And if they ARE in the patient_visit table,
@@ -730,7 +730,7 @@ public class JDBCTest {
 		System.out.println("** DEBUG - already_in_person_table()");
 
 		Statement st = c.createStatement();
-		StringBuilder query = new StringBuilder("select * from person where ");
+		StringBuilder query = new StringBuilder("select * from PERSON_SCRATCH where ");
 		query.append(HOSPITAL_NUMBER).append(" = '");
 		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
 		//System.out.println("QUERY: " + query.toString());
@@ -763,7 +763,7 @@ public class JDBCTest {
 
 		Statement st = c.createStatement();
 		StringBuilder query = new StringBuilder("select ");
-		query.append(LAST_UPDATED).append(" from person where ").append(HOSPITAL_NUMBER).append(" = '");
+		query.append(LAST_UPDATED).append(" from PERSON_SCRATCH where ").append(HOSPITAL_NUMBER).append(" = '");
 		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
 		System.out.println("QUERY: " + query.toString());
 		ResultSet rs = st.executeQuery(query.toString());
