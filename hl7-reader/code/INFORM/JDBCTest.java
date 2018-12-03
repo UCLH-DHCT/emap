@@ -11,6 +11,18 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.File;
 
+// HAPI imports
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import ca.uhn.hl7v2.validation.ValidationContext;
+
+import uk.ac.ucl.rits.inform.Engine;
+
+
 /**
  * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
@@ -37,6 +49,10 @@ import java.io.File;
  */
 public class JDBCTest {
 
+	private static Engine engine;
+	private static DefaultHapiContext context;
+	private static PipeParser parser;
+	
 	private static long last_unid_processed_last_time = 0; // Last UNID currently stored in UDS
 
 	
@@ -115,6 +131,18 @@ public class JDBCTest {
 		// Keep track of possibly-changing values e.g. name etc. 
 		// Key is Postgres table column name, value = what we need to insert
 		Map<String, String> dict = new HashMap<String, String>();
+
+		// Set up HAPI parser stuff
+        context = new DefaultHapiContext();
+        ValidationContext vc = ValidationContextFactory.noValidation();
+        context.setValidationContext(vc);
+
+        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        context.setModelClassFactory(mcf);
+        parser = context.getPipeParser(); //getGenericParser();
+        engine = new Engine(context, parser);
+
 
 
 		// process_command_line_arguments(args);
