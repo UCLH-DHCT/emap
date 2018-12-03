@@ -3,7 +3,7 @@
 -- Matthew Gillman 27/09/18
 -- On command line:
 -- createdb INFORM_SCRATCH
--- psql -f create_tables.cmd INFORM_SCRATCH
+-- psql -f create_tables.sql INFORM_SCRATCH
 -- psql INFORM_SCRATCH
 -- psql 
 
@@ -16,9 +16,9 @@
 -- NB check all following against UCLH-specific docs.
 
 
-DROP TABLE IF EXISTS PERSON;
+DROP TABLE IF EXISTS PERSON_SCRATCH;
 
-CREATE TABLE PERSON (
+CREATE TABLE PERSON_SCRATCH (
 	-----UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
 	HospitalNumber char(8), 
 	--set_ID	int, -- Optional. starts at 1 for first occurrence of segment, 2 for 2nd, etc
@@ -73,7 +73,7 @@ CREATE TABLE PATIENT_VISIT (
 	PatientClass char(1) NOT NULL, -- Required. PV1-2. Atos: S,I,P,O
 
 	-- This field contains the patient's initial assigned location or the location to which the patient is being moved.
-	PatientLocation	varchar(200), -- Optional. PV1-3. <Point of Care (HD)> ^ <Room (HD)> ^ <Bed (HD)> ^ <Facility (HD)> ^ ....
+	----PatientLocation	varchar(200), -- Optional. PV1-3. <Point of Care (HD)> ^ <Room (HD)> ^ <Bed (HD)> ^ <Facility (HD)> ^ ....
 	
 	--admission_type	char(1), -- Optional. PV1-4. e.g. A accident, E emergency, N newborn (i.e. birth), etc.
 	-- preadmit_number	, -- Optional PV1-5
@@ -109,9 +109,22 @@ CREATE TABLE PATIENT_VISIT (
 	--- Service Episode Description
 	--- Service Episode Identifier
 	
-	LastUpdated timestamp -- HL& MessageDateTime 
+	LastUpdated timestamp -- HL7 MessageDateTime 
 	--NB is this the same as the LastUpdated in person table?
 );
+
+
+DROP TABLE IF EXISTS BEDVISIT;
+
+CREATE TABLE BEDVISIT (
+	BED_VISIT_ID BIGSERIAL PRIMARY KEY,
+	patient_visit_id char(8) NOT NULL, -- primary key of patient_visit table
+	location varchar(30), -- i.e. an individual bed in the hospital.
+	start_time timestamp,
+	end_time timestamp
+);
+
+
 
 -- Now we create a little table to store the latest IDS UNID successfully
 -- processed in the UDS. We can query this to see what UNID we need to starts

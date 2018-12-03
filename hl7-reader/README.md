@@ -13,4 +13,6 @@ been done by Atos and relevant data fields extracted to IDS columns. It then upd
 These need to be combined in some way, e.g. JDBCTest will have to do some HL7 parsing to extract
 certain data items not in the IDS (such as a patient's address). We also need to use JPA
 instead of JDBC.  
-  
+
+NB ** currently if a discharge message is received, it is assumed that a person has already been admitted -
+should change this so only admitted if an A01 received, rather than just reading admit date from IDS?  
