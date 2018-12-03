@@ -129,7 +129,7 @@ public class JDBCTest {
 		// We want to pull data from the IDS and insert it to the UDS.
 		// Fields required for UDS (some may be null for a given message):
 		//
-		// PERSON - (setID), patient_ID_list NOT NULL, patient_name NOT NULL, birth_date_time,
+		// PERSON_SCRATCH - (setID), patient_ID_list NOT NULL, patient_name NOT NULL, birth_date_time,
 		// sex, patient_address,  patient_death_date_time, patient_death_indicator, 
 		// identity_unknown_indicator, last_update_date_time (PID-33)
 		//
@@ -165,7 +165,7 @@ public class JDBCTest {
 		
 			long latest_unid_read_this_time = 0; // last one read from IDS this time
 
-			while (rs.next()) // Iterate over records received from the query (if any)
+			while (rs.next()) // Iterate over records received from the IDS query (if any)
 			{
 
 				dict.clear();
@@ -175,9 +175,9 @@ public class JDBCTest {
 				System.out.println("** DEBUG: latest_unid_read_this_time = " + latest_unid_read_this_time);
 				extract_fields_from_IDS(rs, dict);
 				
-				// Now insert this record into the UDS PERSON table.
+				// Now insert this record into the UDS PERSON_SCRATCH table.
 
-				// Check to see if this person is already in the PERSON table - obtain latest update time
+				// Check to see if this person is already in the PERSON_SCRATCH table - obtain latest update time
 				// if they are, and our update time is later than that stored, update table as appropriate.
 				String person_entry_last_updated = "NULL";
 				String who = dict.get(PATIENT_FULL_NAME); // debug
@@ -186,15 +186,15 @@ public class JDBCTest {
 					System.out.println("** DEBUG: " + who + " is already in UDS");
 
 					// obtain timestamp last updated - are we more recent?
-					person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
-					System.out.println("Stored timestamp is " + person_entry_last_updated);
+					////person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
+					///System.out.println("Stored timestamp is " + person_entry_last_updated);
 
-					// Now we need to update the PERSON record. Need to check for null values and also outdated values
+					// Now we need to update the PERSON_SCRATCH record. Need to check for null values and also outdated values
 					// eg they change their name
 
 					// Also need to find current PATIENT_VISIT record and update as appropriate
 					// e.g. we get a discharge or transfer message.
-					long visitid = get_current_visitid_for_person(uds_conn, dict);
+					/*long visitid = get_current_visitid_for_person(uds_conn, dict);
 					System.out.println("** DEBUG: current visit id is " + visitid);
 					// It will be a NEW visit if they were discharged last visit:
 					if ( 0 == visitid )  {
@@ -203,7 +203,7 @@ public class JDBCTest {
 					}
 					else { // Found a "live" patient_visit entry. Update if necessary.
 						update_patient_visit(uds_conn, dict, visitid);
-					}
+					}*/
 					
 
 				}
@@ -211,15 +211,59 @@ public class JDBCTest {
 					
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
-					// Now we write the PERSON data to the UDS
+					// Now we write the PERSON_SCRATCH data to the UDS
 					String person_insert = get_UDS_insert_person_string(dict);
 					write_update_to_database(person_insert, uds_st);
 
 					// As this person has only just been added to UDS, he/she will have a new
 					// PATIENT_VISIT entry:
-					String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
-					write_update_to_database (patient_visit_insert, uds_st);
+					//String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
+					//write_update_to_database (patient_visit_insert, uds_st);
+					// Not necessarily. They could be an outpatient.
 
+				}
+
+				//////////////////////////////////////////
+				// Take action based on HL7 message type.
+				//////////////////////////////////////////
+
+				long visitid = get_current_visitid_for_person(uds_conn, dict);
+				String msgtype = dict.get(MESSAGE_TYPE);
+				System.out.println("** In main(): msgtype is " + msgtype);
+				if (msgtype.equals("ADT^A01")) { // admit
+
+					// The current visit id is probably 0 (i.e. no entry in the
+					// patient_visit table) but we double-check
+					System.out.println("** DEBUG: current visit id is " + visitid);
+					
+					// It will be a NEW visit if they were discharged last visit,
+					// or this is their first inpatient visit:
+					if ( 0 == visitid )  {
+						// Insert new PATIENT_VISIT entry:
+						String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
+						write_update_to_database (patient_visit_insert, uds_st);
+						visitid = get_current_visitid_for_person(uds_conn, dict);
+						update_bedvisit_table(uds_conn, dict, visitid);
+					}
+					else {
+						/// ??? insert_bedvisit_entry(dict, visitid); ???
+					}
+					
+				}
+				else if (msgtype.equals("ADT^A02")) { // transfer
+					
+					// Error here if no current patient_visit entry???
+
+					// Update bed location details.
+					update_bedvisit_table(uds_conn, dict, visitid);
+				}
+				else if (msgtype.equals("ADT^A03")) { // discharge
+
+					// update pv table
+					update_patient_visit(uds_conn, dict, visitid);
+
+					// Update bed location details
+					update_bedvisit_table(uds_conn, dict, visitid);
 				}
 		
 
@@ -400,17 +444,17 @@ public class JDBCTest {
 
 
 	/**
-	 * Buld string to insert a NEW record into the UDS PERSON table
+	 * Buld string to insert a NEW record into the UDS PERSON_SCRATCH table
 	 * 
 	 * @param dict Map of data items from IDS
-	 * @return SQL INSERT string for UDS PERSON table
+	 * @return SQL INSERT string for UDS PERSON_SCRATCH table
 	 */
 	private static String get_UDS_insert_person_string(Map<String,String> dict) { 
 
 		System.out.println("** DEBUG - get_UDS_insert_person_string()");
 
 		StringBuilder uds_insert = new StringBuilder(); 
-		uds_insert.append("INSERT INTO PERSON ("); 
+		uds_insert.append("INSERT INTO PERSON_SCRATCH ("); 
 		uds_insert.append(HOSPITAL_NUMBER).append(", "); 
 		uds_insert.append(PATIENT_FULL_NAME).append(", ");
 		uds_insert.append(DATE_OF_BIRTH).append(","); 
@@ -463,18 +507,14 @@ public class JDBCTest {
 		uds_insert.append("INSERT INTO PATIENT_VISIT (");
 		uds_insert.append(HOSPITAL_NUMBER).append(", ");
 		uds_insert.append(PATIENT_CLASS).append(", ");
-		uds_insert.append(PATIENT_LOCATION).append(", ");
 		// hospital_service, ");
 		//uds_insert.append("readmission_indicator, 
 		uds_insert.append(ADMISSION_DATE).append(", ");
-		uds_insert.append(DISCHARGE_DATE).append(", ");
+		/////uds_insert.append(DISCHARGE_DATE).append(", ");
 		uds_insert.append(LAST_UPDATED);
 		uds_insert.append(") VALUES (");
 		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
 		uds_insert.append("'").append(dict.get(PATIENT_CLASS)).append("'").append(", ");
-		uds_insert.append("'").append(dict.get(PATIENT_LOCATION)).append("'").append(", ");
-		//uds_insert.append("NULL").append(", "); // service
-		//uds_insert.append("NULL").append(", "); // readmission_indicator
 
 		// We want to enclose timestamps within '' but NOT a string like NULL or null::timestamp
 		String admit = dict.get(ADMISSION_DATE);
@@ -484,13 +524,13 @@ public class JDBCTest {
 		else {
 			uds_insert.append("'").append(admit).append("', ");
 		}
-		String discharge = dict.get(DISCHARGE_DATE);
+		/*String discharge = dict.get(DISCHARGE_DATE);
 		if (discharge.equals(NULL_TIMESTAMP)) {
 			uds_insert.append(discharge).append(", ");
 		}
 		else {
 			uds_insert.append("'").append(discharge).append("'").append(", ");
-		}
+		}*/
 		// This one should never be null so we don't perform the null check here:
 		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'"); // already converted
 		uds_insert.append(");");
@@ -538,7 +578,7 @@ public class JDBCTest {
 
 	/**
 	 * Update an existing patient_visit record:
-	 * visitid | hospitalnumber | patientclass | patientlocation | 
+	 * visitid | hospitalnumber | patientclass |  
 	 * hospitalservice | readmissionindicator | admissiondate | 
 	 * dischargedate | lastupdated
 	 * 
@@ -563,17 +603,17 @@ public class JDBCTest {
 
 		// Update other values if relevant e.g. we get an ADT transfer message.
 		String msgtype = dict.get(MESSAGE_TYPE);
-		if (msgtype.equals("ADT^A02")) { // transfer
-			sb.append(", patientlocation = ").append(dict.get(PATIENT_LOCATION));
-		}
-		else if (msgtype.equals("ADT^A03")) { // discharge - NB does this have a new location too?
+		//if (msgtype.equals("ADT^A02")) { // transfer
+			//sb.append(", patientlocation = ").append(dict.get(PATIENT_LOCATION));
+		//}
+		if (msgtype.equals("ADT^A03")) { // discharge - NB does this have a new location too?
 			String ddate = dict.get(DISCHARGE_DATE);
-			if (ddate.equals(NULL_TIMESTAMP)) {
+			/*if (ddate.equals(NULL_TIMESTAMP)) {
 				sb.append(", dischargedate = ").append(ddate);
 			}
-			else {
+			else {*/
 				sb.append(", dischargedate = '").append(ddate).append("'");
-			}
+			//}
 		}
 		else {
 			///???
@@ -588,9 +628,77 @@ public class JDBCTest {
 
 	}
 
+	/**
+	 * Insert new record and/or update existing record in BEDVISIT table.
+	 * 
+	 * @param c Current connection to UDS
+	 * @param dict The Map of values
+	 * @param visitid Primary key in patient_visit table
+	 * @throws SQLException
+	 */
+	private static void update_bedvisit_table(Connection c, Map<String,String> dict, long visitid) 
+	throws SQLException {
+		
+		Statement st = c.createStatement();
+
+		// If admit message, add new entry to table; start time but no end time
+		// If discharge message, add end time to existing entry.
+		// If transfer message, add end time to existing entry and start time to a new entry.
+		String msgtype = dict.get(MESSAGE_TYPE);
+
+		// bed_visit_id | patient_visit_id | location | start_time | end_time
+		StringBuilder sb = new StringBuilder(100);
+
+		// For admit messages we assume there is no current BEDVISIT entry for this patient.
+		// is that a safe assumption? What if two admit messages come through in
+		// quick succession?
+		if (msgtype.equals("ADT^A01")) { // We don't insert an end_time.
+			sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
+			sb.append(visitid).append(", ");
+			sb.append("'").append(dict.get(PATIENT_LOCATION)).append("',");
+			sb.append("'").append(dict.get(ADMISSION_DATE)).append("'");
+			sb.append(");");
+
+			System.out.println("** DEBUG - " + sb.toString());
+
+		}
+		else if (msgtype.equals("ADT^A02") || msgtype.equals("ADT^A03")) {
+			long current_bedvisit_id = 0;
+	
+			// In theory there should only be one currently-open bedvisit,
+			// but we select all just in case and then just take the ID of the latest one.
+			sb.append("SELECT bed_visit_id FROM BEDVISIT WHERE patient_visit_id = '");
+			sb.append(visitid).append("' AND end_time IS NULL ORDER BY bed_visit_id DESC;" );
+			ResultSet rs = st.executeQuery(sb.toString());
+			if (rs.next()) {
+				// Take the first (i.e. most recent) one.
+				current_bedvisit_id = rs.getLong("bed_visit_id");
+				System.out.println("** DEBUG: current_bedvisit_id = " + current_bedvisit_id);
+			}
+			
+			sb.setLength(0);
+			sb.append("UPDATE BEDVISIT "); // We assume here it is never null. Dangerous?
+			sb.append("set end_time = '").append(dict.get(MESSAGE_DATE_TIME)).append("' ");
+			sb.append("WHERE bed_visit_id = '").append(current_bedvisit_id).append("';");
+
+			// If it's a transfer we also need to create a new BEDVISIT entry (no end time):
+			if (msgtype.equals("ADT^A02") && visitid > 0) {
+				sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
+				sb.append(visitid).append(", ");
+				sb.append("'").append(dict.get(PATIENT_LOCATION)).append("',");
+				sb.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'");
+				sb.append(");");
+			}
+
+		}
+		
+		/*int ret = 0;
+		ret = */ st.executeUpdate(sb.toString());
+	}
+	
 
 	/**
-	 * Update an existing PERSON record in UDS. 
+	 * Update an existing PERSON_SCRATCH record in UDS. 
 	 * <p>
 	 * Not yet implemented. This could well be quite complicated. Issue #9
 	 * 
@@ -604,7 +712,7 @@ public class JDBCTest {
 
 
 	/**
-	 * See if this hospital_number is already in the PERSON table
+	 * See if this hospital_number is already in the PERSON_SCRATCH table
 	 * <p>
 	 * NB does that necessarily mean they will also be in the patient_visit table?
 	 * No they might be an outpatient. And if they ARE in the patient_visit table,
@@ -622,7 +730,7 @@ public class JDBCTest {
 		System.out.println("** DEBUG - already_in_person_table()");
 
 		Statement st = c.createStatement();
-		StringBuilder query = new StringBuilder("select * from person where ");
+		StringBuilder query = new StringBuilder("select * from PERSON_SCRATCH where ");
 		query.append(HOSPITAL_NUMBER).append(" = '");
 		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
 		//System.out.println("QUERY: " + query.toString());
@@ -655,7 +763,7 @@ public class JDBCTest {
 
 		Statement st = c.createStatement();
 		StringBuilder query = new StringBuilder("select ");
-		query.append(LAST_UPDATED).append(" from person where ").append(HOSPITAL_NUMBER).append(" = '");
+		query.append(LAST_UPDATED).append(" from PERSON_SCRATCH where ").append(HOSPITAL_NUMBER).append(" = '");
 		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
 		System.out.println("QUERY: " + query.toString());
 		ResultSet rs = st.executeQuery(query.toString());
