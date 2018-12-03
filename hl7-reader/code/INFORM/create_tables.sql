@@ -3,7 +3,7 @@
 -- Matthew Gillman 27/09/18
 -- On command line:
 -- createdb INFORM_SCRATCH
--- psql -f create_tables.cmd INFORM_SCRATCH
+-- psql -f create_tables.sql INFORM_SCRATCH
 -- psql INFORM_SCRATCH
 -- psql 
 
@@ -16,9 +16,9 @@
 -- NB check all following against UCLH-specific docs.
 
 
-DROP TABLE IF EXISTS PERSON;
+DROP TABLE IF EXISTS PERSON_SCRATCH;
 
-CREATE TABLE PERSON (
+CREATE TABLE PERSON_SCRATCH (
 	-----UNID SERIAL PRIMARY KEY, -- Postgres equiv of AUTOINCREMENT. Use bigserial instead if you anticipate the use of more than 2^31 identifiers over the lifetime of the table.
 	HospitalNumber char(8), 
 	--set_ID	int, -- Optional. starts at 1 for first occurrence of segment, 2 for 2nd, etc
