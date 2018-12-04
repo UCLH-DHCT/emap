@@ -77,7 +77,7 @@ public class JDBCTest {
 	//private static final String MESSAGE_IDENTIFIER = "MessageIdentifier"; // NOT NULL
 	private static final String MESSAGE_VERSION = "MessageVersion"; // NOT NULL
 	private static final String MESSAGE_DATE_TIME = "MessageDateTime"; // NOT NULL
-	//private static final String HL7_MESSAGE = "HL7Message"; // NOT NULL 
+	private static final String HL7_MESSAGE = "HL7Message"; // NOT NULL 
 	private static final String PERSIST_DATE_TIME = "PersistDateTime"; // NOT NULL
 
 	// UDS column names:
@@ -302,6 +302,7 @@ public class JDBCTest {
 		query.append(MESSAGE_TYPE).append(", "); 
 		query.append(MESSAGE_VERSION).append(", "); 
 		query.append(MESSAGE_DATE_TIME).append(", ");
+		query.append(HL7_MESSAGE).append(", ");
 		query.append(PERSIST_DATE_TIME);
 		query.append(" FROM TBL_IDS_MASTER ");
 		query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
@@ -407,7 +408,8 @@ public class JDBCTest {
 		dict.put(MESSAGE_DATE_TIME, convert_timestamp(value));
 		// SENDER_APPLICATION
 		// MESSAGE_IDENTIFIER
-		// HL7_MESSAGE
+		value = rs.getString(HL7_MESSAGE);
+		dict.put(HL7_MESSAGE, value); 
 		value = rs.getString(PERSIST_DATE_TIME);
 		dict.put(PERSIST_DATE_TIME, value);
 
