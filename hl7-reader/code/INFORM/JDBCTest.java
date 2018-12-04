@@ -235,7 +235,7 @@ public class JDBCTest {
 					
 
 				}
-				else { // It's a completely new PERSON entry - and therefore a new patient_visit entry.
+				else { // It's a completely new PERSON_SCRATCH entry - and therefore a new patient_visit entry.
 					
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
