@@ -19,6 +19,7 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
+import ca.uhn.hl7v2.HL7Exception;
 
 import uk.ac.ucl.rits.inform.Engine;
 
@@ -137,15 +138,15 @@ public class JDBCTest {
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
+		// As HL7 messages may be from different HL7 versions, but later versions are
+     	// backwards-compatible, we use HAPI's "CanonicalModelClassFactory"
+     	// to set them all to the same version.
         // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
         CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
         context.setModelClassFactory(mcf);
         parser = context.getPipeParser(); //getGenericParser();
         engine = new Engine(context, parser);
 
-
-
-		// process_command_line_arguments(args);
 
 		Connection conn;
 		Statement st;
@@ -161,12 +162,11 @@ public class JDBCTest {
 		// sex, patient_address,  patient_death_date_time, patient_death_indicator, 
 		// identity_unknown_indicator, last_update_date_time (PID-33)
 		//
-		// PATIENT_VISIT - setID, patient_class, assigned_location, admission_type, 
-		// prior_location, attending_doctor, referring_doctor, hospital_service,
-		// temp_location, preadmit_test_indicator, readmission_indicator, visit_number,
-		// discharge_disposition, discharged_to_location, pending_location, 
-		// admit_datetime, discharge_date_time, alternate_vist_id, visit_indicator
-		// Need to add patient id list
+		// PATIENT_VISIT - patient_class, admission_type, 
+		// hospital_service,
+		// preadmit_test_indicator, visit_number, 
+		// admit_datetime, discharge_date_time, 
+		// 
 		//////////////////////////////////////////
 		//String ids_url = "jdbc:postgresql://localhost/DUMMY_IDS"; // IDS (dummy)
 		//String uds_url = "jdbc:postgresql://localhost/INFORM_SCRATCH"; // UDS (dummy)
@@ -217,25 +217,8 @@ public class JDBCTest {
 					///person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
 					///System.out.println("Stored timestamp is " + person_entry_last_updated);
 
-					// Now we need to update the PERSON_SCRATCH record. Need to check for null values and also outdated values
-					// eg they change their name
-
-					// Also need to find current PATIENT_VISIT record and update as appropriate
-					// e.g. we get a discharge or transfer message.
-					/*long visitid = get_current_visitid_for_person(uds_conn, dict);
-					System.out.println("** DEBUG: current visit id is " + visitid);
-					// It will be a NEW visit if they were discharged last visit:
-					if ( 0 == visitid )  {
-						String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
-						write_update_to_database (patient_visit_insert, uds_st);
-					}
-					else { // Found a "live" patient_visit entry. Update if necessary.
-						update_patient_visit(uds_conn, dict, visitid);
-					}*/
-					
-
 				}
-				else { // It's a completely new PERSON_SCRATCH entry - and therefore a new patient_visit entry.
+				else { // It's a completely new PERSON_SCRATCH entry.
 					
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
@@ -294,8 +277,26 @@ public class JDBCTest {
 					update_bedvisit_table(uds_conn, dict, visitid);
 				}
 		
+				// Get current HL7 message so we can parse it with Engine if necessary:
+				String hl7 = dict.get(HL7_MESSAGE);
+				Message message;
+
+				try {
+					// Parse the message string into a Message object 
+					message = parser.parse(hl7);
+				}
+				catch (HL7Exception h) {
+					System.out.println("ERROR parsing message:" + hl7);
+					h.printStackTrace();
+				}
+
 				//////////////////////////////////////////
 				// Take action based on HL7 message type.
+				// Roma has looked at real messages and says he sees ADT-A0 [1, 2, 3, 4, 8, 13, 28, 31, 34 ]
+				// Atos docs suggest there are also ADT-A05 and ADT_A40
+				// NB HAPI uses the same message type to handle multiple messages
+				// e.g. A01 also handles A04, A08, A13
+				// See note in Engine class.
 				//////////////////////////////////////////
 
 				long visitid = get_current_visitid_for_person(uds_conn, dict);
@@ -336,6 +337,28 @@ public class JDBCTest {
 					// Update bed location details
 					update_bedvisit_table(uds_conn, dict, visitid);
 				}
+				else if (msgtype.equals("ADT^A04")) {  // REGISTER A PATIENT
+
+				}
+				else if (msgtype.equals("ADT^A05")) { // PRE-ADMIT A PATIENT
+					
+				}
+				else if (msgtype.equals("ADT^A13")) { // CANCEL DISCHARGE / END VISIT
+
+				} 
+				else if (msgtype.equals("ADT^A28")) { //
+
+				} 
+				else if (msgtype.equals("ADT^A31")) {
+
+				} 
+				else if (msgtype.equals("ADT^A34")) {
+
+				} 
+				else if (msgtype.equals("ADT^A40")) { // MERGE PATIENT - PATIENT IDENTIFIER LIST
+					// NB A39 is MERGE PERSON - PATIENT ID
+				} 
+				
 
 			} // end (while)
 

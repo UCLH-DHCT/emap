@@ -1,12 +1,26 @@
 Notes for testing JDBCTest
 
-1. Find out IP address of en0 on this machine with ifconfig command
-	Open a new shell and cd to docker directory
-	Edit config.json so both IP addresses in that file are the same as en0's.
+To run JDBCTest, use the ./runit.sh script.
+
+To run JDBCTest as a dockerised container, the following jar files need to be copied into the docker directory:
+
+hapi-base-2.3.jar		json-simple-1.1.1.jar		slf4j-api-1.7.10.jar
+hapi-hl7overhttp-2.3.jar	log4j-1.2.17.jar		slf4j-log4j12-1.7.10.jar
+hapi-structures-v27-2.3.jar	postgresql-42.2.5.jar
+
+#The postgres and json ones are in the HL7_java/code/INFORM directory.
+Download postgresql-42.2.5.jar from https://jdbc.postgresql.org/download.html
+Download json-simple-1.1.1.jar from various places.
+The hash I have for my json-simple-1.1.1.jar file is f1535657ebe122f89bad3f75a2dcedad for MD5
+The others are in the HL7_java/hapi-dist-2/lib directory. 
+
+0. 	Open a new shell and cd to docker directory
+	Edit config.json so the IP addresses etc. point to the ids and uds. If running this on your
+own laptop rather than the GAE the address will likely be that of en0 from the ifconfig command.
 	docker build -t jdbctest .
 
 1. Run script to reset entries in INFORM_SCRATCH (i.e. set to empty tables):
-	psql -f create_tables.sql INFORM_SCRATCH
+	psql -f create_dummy_uds.sql INFORM_SCRATCH
 
 2. Delete entries in DUMMY_IDS and add first two back in:
 	psql -f create_dummy_ids.sql DUMMY_IDS

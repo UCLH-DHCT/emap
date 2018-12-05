@@ -87,7 +87,7 @@ public class Engine {
         // We also refer to Functional Specification - Example CareCast HL7 ADT messages doc from Atos
         // as that has UCLH-specific things (e.g. adding death info to v2.2 messages)
 
-        // All 2.2 ASDT messages A01 to A37 have PID segment EXCEPT A20 (bed status update)
+        // All 2.2 ADT messages A01 to A37 have PID segment EXCEPT A20 (bed status update)
         // Maybe sometimes some of the PID info will be unknown??
 
         // NB https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/ExampleSuperStructures.html
