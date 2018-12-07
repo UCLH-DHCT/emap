@@ -689,40 +689,52 @@ public class JDBCTest {
 			sb.append(");");
 
 			System.out.println("** DEBUG - " + sb.toString());
+			st.executeUpdate(sb.toString());
 
 		}
+		// Transfer or discharge:
 		else if (msgtype.equals("ADT^A02") || msgtype.equals("ADT^A03")) {
 			long current_bedvisit_id = 0;
+			String current_location = "";
+			String new_location = dict.get(PATIENT_LOCATION);
 	
 			// In theory there should only be one currently-open bedvisit,
 			// but we select all just in case and then just take the ID of the latest one.
-			sb.append("SELECT bed_visit_id FROM BEDVISIT WHERE patient_visit_id = '");
+			sb.append("SELECT bed_visit_id, location FROM BEDVISIT WHERE patient_visit_id = '");
 			sb.append(visitid).append("' AND end_time IS NULL ORDER BY bed_visit_id DESC;" );
 			ResultSet rs = st.executeQuery(sb.toString());
 			if (rs.next()) {
 				// Take the first (i.e. most recent) one.
 				current_bedvisit_id = rs.getLong("bed_visit_id");
-				System.out.println("** DEBUG: current_bedvisit_id = " + current_bedvisit_id);
+				current_location = rs.getString("location");
+				//System.out.println("** DEBUG: current_bedvisit_id = " + current_bedvisit_id);
 			}
 			
-			sb.setLength(0);
-			sb.append("UPDATE BEDVISIT "); // We assume here it is never null. Dangerous?
-			sb.append("set end_time = '").append(dict.get(MESSAGE_DATE_TIME)).append("' ");
-			sb.append("WHERE bed_visit_id = '").append(current_bedvisit_id).append("';");
+			// We only update if the new location differs from the existing one.
+			// Sometimes transfer messages arise when just the consultant has changed, not the bed.
+			// But if it's a discharge message we do want to update the table regardless.
+			if ( msgtype.equals("ADT^A03") || ! new_location.equals(current_location) ) { 
+				sb.setLength(0);
+				sb.append("UPDATE BEDVISIT "); // We assume here it is never null. Dangerous?
+				sb.append("set end_time = '").append(dict.get(MESSAGE_DATE_TIME)).append("' ");
+				sb.append("WHERE bed_visit_id = '").append(current_bedvisit_id).append("';");
 
-			// If it's a transfer we also need to create a new BEDVISIT entry (no end time):
-			if (msgtype.equals("ADT^A02") && visitid > 0) {
-				sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
-				sb.append(visitid).append(", ");
-				sb.append("'").append(dict.get(PATIENT_LOCATION)).append("',");
-				sb.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'");
-				sb.append(");");
+				// If it's a transfer we also need to create a new BEDVISIT entry (no end time):
+				if (msgtype.equals("ADT^A02") && visitid > 0) {
+					sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
+					sb.append(visitid).append(", ");
+					sb.append("'").append(new_location /*dict.get(PATIENT_LOCATION)*/).append("',");
+					sb.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'");
+					sb.append(");");
+				}
+
+				st.executeUpdate(sb.toString());
 			}
 
 		}
 		
 		/*int ret = 0;
-		ret = */ st.executeUpdate(sb.toString());
+		ret = */ //st.executeUpdate(sb.toString());
 	}
 	
 
@@ -756,7 +768,7 @@ public class JDBCTest {
 	private static boolean already_in_person_table(Connection c, 
 												Map<String, String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - already_in_person_table()");
+		//System.out.println("** DEBUG - already_in_person_table()");
 
 		Statement st = c.createStatement();
 		StringBuilder query = new StringBuilder("select * from PERSON_SCRATCH where ");
