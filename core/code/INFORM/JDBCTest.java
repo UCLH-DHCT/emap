@@ -98,7 +98,7 @@ public class JDBCTest {
 			idshost = (String)jo.get("idshost");
 			idsusername = (String)jo.get("idsusername");
 			udsusername = (String)jo.get("udsusername");
-			// Passwords - can we store the MD5 hashes (rather than plsin text) in the Json file so not exposed?
+			// Passwords - can we store the MD5 hashes (rather than plain text) in the Json file so not exposed?
 			idspassword	= (String)jo.get("idspassword");
 			udspassword	= (String)jo.get("udspassword");
 
@@ -153,6 +153,8 @@ public class JDBCTest {
 			System.out.println("Trying to connect");
 			
 			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword);
+
+			create_UDS_tables_if_necessary(uds_conn);
 
 			Statement uds_st = uds_conn.createStatement();
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
@@ -291,6 +293,33 @@ public class JDBCTest {
 	}	// End (main)
 
 
+	private static void create_UDS_tables_if_necessary (Connection c) throws SQLException {
+
+		Statement st = c.createStatement();
+		StringBuffer sql = new StringBuffer(300);
+
+		// The following table is based on the HL7 PID segment.
+		sql.append("CREATE TABLE IF NOT EXISTS PERSON_SCRATCH (");
+		sql.append("hospitalnumber char(8), PatientFullName	varchar(200) NOT NULL, DateOfBirth	timestamp, ");
+		sql.append("Sex	char(1), PatientAddress	varchar(200), PatientDeathDate timestamp, LastUpdated timestamp);");
+
+		// Based on the HL7 PV1 segment definition.
+		sql.append("CREATE TABLE IF NOT EXISTS PATIENT_VISIT (");
+		sql.append("VISITID SERIAL PRIMARY KEY, HospitalNumber char(8), PatientClass char(1) NOT NULL, HospitalService char(3), ");
+		sql.append("ReadmissionIndicator char(1), AdmissionDate	timestamp, DischargeDate timestamp, LastUpdated timestamp);");
+
+		// A period of time, during a patient_visit, spent in a specific bed.
+		sql.append("CREATE TABLE IF NOT EXISTS BEDVISIT (");
+		sql.append("BED_VISIT_ID BIGSERIAL PRIMARY KEY, patient_visit_id char(8) NOT NULL, ");
+		sql.append("location varchar(30), start_time timestamp, end_time timestamp);");
+
+		// Table to keep track of last IDS UNID processed successfully (data written to UDS).
+		sql.append("CREATE TABLE IF NOT EXISTS LAST_UNID_PROCESSED (");
+		sql.append("LATEST INT PRIMARY KEY);");
+
+		st.executeUpdate(sql.toString());
+
+	}
 
 	/**
 	 * Build the string used to query the IDS for records since
