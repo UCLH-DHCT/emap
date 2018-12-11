@@ -775,39 +775,67 @@ public class JDBCTest {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("update patient_visit ");
-		sb.append("set lastupdated = ");
-		String update = dict.get(MESSAGE_DATE_TIME);
+		sb.append("set lastupdated = ? ");
+		/*String update = dict.get(MESSAGE_DATE_TIME);
 		if (update.equals(NULL_TIMESTAMP)) {
 			sb.append(update);
 		}
 		else {
 			sb.append("'").append(update).append("'");
-		}
+		}*/
+		//int count = 1; // position in statement
 
 		// Update other values if relevant e.g. we get an ADT transfer message.
 		String msgtype = dict.get(MESSAGE_TYPE);
-		//if (msgtype.equals("ADT^A02")) { // transfer
-			//sb.append(", patientlocation = ").append(dict.get(PATIENT_LOCATION));
-		//}
+		String ddate = NULL_TIMESTAMP;
 		if (msgtype.equals("ADT^A03")) { // discharge - NB does this have a new location too?
-			String ddate = dict.get(DISCHARGE_DATE);
-			/*if (ddate.equals(NULL_TIMESTAMP)) {
-				sb.append(", dischargedate = ").append(ddate);
-			}
-			else {*/
-				sb.append(", dischargedate = '").append(ddate).append("'");
-			//}
+			ddate = dict.get(DISCHARGE_DATE);
+			sb.append(", dischargedate = ? "); //.append(ddate).append("'");
+			//count++;
 		}
 		else {
 			///???
 		}
 
-		sb.append(" where visitid = '").append(visitid).append("' and lastupdated < '").append(dict.get(MESSAGE_DATE_TIME/*LAST_UPDATED*/)).append("';");
+		sb.append(" where visitid = ? ")/*.append(visitid)*/.append(" and lastupdated < ? ;"); 
+		//.append(dict.get(MESSAGE_DATE_TIME/*LAST_UPDATED*/)).append("';");
+		//System.out.println("** DEBUG: update_patient_visit: SQL = " + sb.toString());
 
-		System.out.println("** DEBUG: update_patient_visit: SQL = " + sb.toString());
+		PreparedStatement st = c.prepareStatement(sb.toString());
+		String update = dict.get(MESSAGE_DATE_TIME);
+		int pos = 1;
+		if (update.equals(NULL_TIMESTAMP)) {
+			st.setNull(pos, java.sql.Types.DATE);
+		}
+		else {
+			st.setTimestamp(pos, Timestamp.valueOf(update));
+		}
+		
 
-		Statement st = c.createStatement();
-		/*ResultSet rs = */ st.executeUpdate(sb.toString());
+		if (msgtype.equals("ADT^A03")) {
+			pos++; // 2
+			if (ddate.equals(NULL_TIMESTAMP)) {
+				st.setNull(pos, java.sql.Types.DATE);
+			}
+			else {
+				st.setTimestamp(pos, Timestamp.valueOf(ddate));
+			}
+
+		}
+
+		// visitid, lastupdated
+		pos++;
+		st.setString(pos, Long.toString(visitid));
+		pos++;
+		String mdt = dict.get(MESSAGE_DATE_TIME);
+		if (mdt.equals(NULL_TIMESTAMP)) {
+			st.setNull(pos, java.sql.Types.DATE);
+		}
+		else {
+			st.setTimestamp(pos, Timestamp.valueOf(mdt));
+		}
+
+		/*ResultSet rs = */ st.executeUpdate();
 
 	}
 
