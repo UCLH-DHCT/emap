@@ -164,6 +164,13 @@ public class JDBCTest {
 			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword);
 			////uds_conn.setAutoCommit(false); // http://weinan.io/2017/05/21/jdbc-part5.html
 
+
+			// For debug/testing ONLY
+			drop_my_UDS_tables(uds_conn);
+
+
+
+
 			create_UDS_tables_if_necessary(uds_conn);
 
 			Statement uds_st = uds_conn.createStatement();
@@ -347,12 +354,27 @@ public class JDBCTest {
 
 	}
 
+
+	// For debug/testing only
+	private static void drop_my_UDS_tables (Connection c) throws SQLException {
+
+		StringBuffer sql = new StringBuffer(150);
+		sql.append("drop table bedvisit;");
+		sql.append("drop table person_scratch;");
+		sql.append("drop table last_unid_processed;");
+		sql.append("drop table patient_visit;");
+
+		PreparedStatement st = c.prepareStatement(sql.toString());
+		st.execute();
+	}
+
 	/**
 	 * Build the string used to query the IDS for records since
 	 * last_unid_processed_last_time.
 	 * 
 	 * @param last_unid_processed_last_time last UNID processed
-	 * @return boolean
+	 * @param c Current connection to IDS.
+	 * @return ResultSet if successsful, otherwise SQLException thrown
 	 */
 	private static ResultSet query_IDS(long last_unid_processed_last_time, Connection c) 
 	throws SQLException {
@@ -381,21 +403,11 @@ public class JDBCTest {
 		query.append(" where ").append(UNID).append(" >  ? ;");//.append(last_unid_processed_last_time).append(";");
 		
 		ResultSet rs;
-		//try {
-			PreparedStatement st = c.prepareStatement(query.toString());
-			//st.setString(1, UNID);
-			st.setLong(1, last_unid_processed_last_time);
-			rs = st.executeQuery();
-			//st.close();
-		//}
-		/*
-		catch (SQLException e) {
-			System.out.println("ERROR in query_IDS()");
-			e.printStackTrace();
-			//c.rollback(); // raises an SQLException itself.
-		}*/
-		
-		//return query.toString();
+
+		PreparedStatement st = c.prepareStatement(query.toString());
+		st.setLong(1, last_unid_processed_last_time);
+		rs = st.executeQuery();
+
 		return rs;
 
 	}
@@ -720,14 +732,16 @@ public class JDBCTest {
 			return 0;
 		}
 													
-		Statement st = c.createStatement();
+		
 		StringBuilder sb = new StringBuilder();
 		//select visitid, dischargedate from patient_visit where hospitalnumber = '94006000';
 		sb.append("select visitid, dischargedate from PATIENT_VISIT ");
-		sb.append("where ").append(HOSPITAL_NUMBER).append(" = '").append(hospnum);
-		sb.append("';");
+		sb.append("where ").append(HOSPITAL_NUMBER).append(" = ? ;");
 
-		ResultSet rs = st.executeQuery(sb.toString());
+		PreparedStatement st = c.prepareStatement(sb.toString());
+		st.setString(1, hospnum);
+
+		ResultSet rs = st.executeQuery();
 		while (rs.next()) {
 			String discharge_date = rs.getString(DISCHARGE_DATE);
 
@@ -954,7 +968,7 @@ public class JDBCTest {
 	 */
 	private static String get_last_timestamp_of_person(Connection c, Map<String,String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - get_last_timestamp_of_person fn");
+		//System.out.println("** DEBUG - get_last_timestamp_of_person fn");
 
 		String hospnum = dict.get(HOSPITAL_NUMBER);
 		if (hospnum.equals(NULL)) {
