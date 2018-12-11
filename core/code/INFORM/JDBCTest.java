@@ -227,7 +227,10 @@ public class JDBCTest {
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
 					// Now we write the PERSON_SCRATCH data to the UDS
-					insert_person_UDS(dict, uds_conn);
+					boolean result = insert_person_UDS(dict, uds_conn);
+					if ( ! result ) {
+						continue; // we don't bother with this person e.g. null hospital number.
+					}
 
 					// As this person has only just been added to UDS, he/she will have a new
 					// PATIENT_VISIT entry:
@@ -243,8 +246,11 @@ public class JDBCTest {
 
 				long visitid = get_current_visitid_for_person(uds_conn, dict);
 				String msgtype = dict.get(MESSAGE_TYPE);
-				System.out.println("** In main(): msgtype is " + msgtype);
-				if (msgtype.equals("ADT^A01")) { // admit
+				//System.out.println("** In main(): msgtype is " + msgtype);
+				if (msgtype.equals(NULL)) {
+					continue;
+				}
+				else if (msgtype.equals("ADT^A01")) { // admit
 
 					// The current visit id is probably 0 (i.e. no entry in the
 					// patient_visit table) but we double-check
@@ -259,6 +265,9 @@ public class JDBCTest {
 						insert_patient_visit_uds(dict, uds_conn);
 
 						visitid = get_current_visitid_for_person(uds_conn, dict);
+						if ( 0 == visitid) {
+							continue;
+						}
 						update_bedvisit_table(uds_conn, dict, visitid);
 					}
 					else {
@@ -392,19 +401,19 @@ public class JDBCTest {
 
 		value = rs.getString(PATIENT_NAME);
 		if (rs.wasNull()) {
-			value = "NULL";
+			value = NULL;
 		}
 		dict.put(PATIENT_NAME, value);
 		
 		value = rs.getString(PATIENT_MIDDLE_NAME);
 		if (rs.wasNull()) {
-			value = "NULL";
+			value = NULL;
 		}
 		dict.put(PATIENT_MIDDLE_NAME, value);
 		
 		value = rs.getString(PATIENT_SURNAME);
 		if (rs.wasNull()) {
-			value = "NULL";
+			value = NULL;
 		}
 		dict.put(PATIENT_SURNAME, value);
 
@@ -420,25 +429,28 @@ public class JDBCTest {
 		// nhs number - not used
 
 		value = rs.getString(HOSPITAL_NUMBER);
-		if (rs.wasNull()) {
-			value = "NULL";
+		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
+			value = NULL;
 		}
+		/*else {
+			System.out.println("value is *" + value + "*");
+		}*/
 		dict.put(HOSPITAL_NUMBER, value);
 
 		value = Character.toString(rs.getString(PATIENT_CLASS).charAt(0));
-		if (rs.wasNull()) {
+		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
 			value = NULL;
 		}
 		dict.put(PATIENT_CLASS, value);
 
 		value = rs.getString(PATIENT_LOCATION);
-		if (rs.wasNull()) {
+		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
 			value = NULL;
 		}
 		dict.put(PATIENT_LOCATION, value);
 
 		value = rs.getString(ADMISSION_DATE);
-		if (rs.wasNull()) {
+		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
 			value = NULL_TIMESTAMP;
 		}
 		else {
@@ -447,7 +459,7 @@ public class JDBCTest {
 		dict.put(ADMISSION_DATE, value);
 
 		value = rs.getString(DISCHARGE_DATE);
-		if (rs.wasNull()) {
+		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
 			value = NULL_TIMESTAMP;
 		}
 		else {
@@ -456,6 +468,9 @@ public class JDBCTest {
 		dict.put(DISCHARGE_DATE, value);
 
 		value = rs.getString(MESSAGE_TYPE);
+		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
+			value = NULL_TIMESTAMP;
+		}
 		dict.put(MESSAGE_TYPE, value); // e.g. ADT^A28
 
 		// The following should never be null so if we get an exception there is probably something wrong with the IDS.
@@ -491,8 +506,9 @@ public class JDBCTest {
 	 * 
 	 * @param dict Map of data items from IDS
 	 * @param c The current connection to the UDS.
+	 * @return false if unable to insert, true otherwise
 	 */
-	private static void insert_person_UDS(Map<String,String> dict, Connection c) 
+	private static boolean insert_person_UDS(Map<String,String> dict, Connection c) 
 	throws SQLException {
 
 		StringBuilder sb = new StringBuilder(); 
@@ -514,17 +530,44 @@ public class JDBCTest {
 		try {
 			PreparedStatement st = c.prepareStatement(sb.toString());
 
-			st.setString(1, dict.get(HOSPITAL_NUMBER));
-			st.setString(2, dict.get(PATIENT_FULL_NAME));
-			String value = dict.get(DATE_OF_BIRTH);
+			String value = dict.get(HOSPITAL_NUMBER);
+			if (value.equals(NULL)) {
+				return false;
+			}
+			st.setString(1, value);
+
+			value = dict.get(PATIENT_FULL_NAME);
+			if (value.equals(NULL)) {
+				st.setNull(2, java.sql.Types.VARCHAR);
+			}
+			else {
+				st.setString(2, dict.get(PATIENT_FULL_NAME));
+			}
+					
+			value = dict.get(DATE_OF_BIRTH);
 			if (value.equals(NULL_TIMESTAMP)) {
 				st.setNull(3, java.sql.Types.DATE);//st.setString(3, dict.get(DATE_OF_BIRTH));
 			}
 			else {
 				st.setTimestamp(3, Timestamp.valueOf(value));
 			}
-			st.setString(4, dict.get(SEX));
-			st.setString(5, dict.get(PATIENT_ADDRESS));
+
+			value = dict.get(SEX);
+			if (value.equals(NULL)) {
+				st.setNull(4, java.sql.Types.VARCHAR);
+			}
+			else {
+				st.setString(4, value);
+			}
+			
+			value = dict.get(PATIENT_ADDRESS);
+			if (value.equals(NULL)) {
+				st.setNull(5, java.sql.Types.VARCHAR);
+			}
+			else {
+				st.setString(5, value);
+			}
+
 			value = dict.get(PATIENT_DEATH_DATE);
 			if (value.equals(NULL_TIMESTAMP)) {
 				st.setNull(6, java.sql.Types.DATE);//st.setString(6, dict.get(PATIENT_DEATH_DATE));
@@ -537,6 +580,7 @@ public class JDBCTest {
 				System.out.println("** ERROR got null timestamp from IDS! **");
 				// should we refuse to commit this record? Probably
 				st.setNull(7, java.sql.Types.DATE);
+				return false;
 			}
 			else {
 				st.setTimestamp(7, Timestamp.valueOf(value));
@@ -555,9 +599,11 @@ public class JDBCTest {
 		catch (SQLException e) {
 			System.out.println("ERROR in insert_person_UDS()");
 			e.printStackTrace();
+			return false;
 			//c.rollback(); // raises an SQLException itself.
 		}
 		
+		return true;
 	}
 
 
@@ -648,11 +694,16 @@ public class JDBCTest {
 	private static long get_current_visitid_for_person(Connection c, Map<String, String> dict) 
 												throws SQLException {
 
+		String hospnum = dict.get(HOSPITAL_NUMBER);
+		if (hospnum.equals(NULL)) {
+			return 0;
+		}
+													
 		Statement st = c.createStatement();
 		StringBuilder sb = new StringBuilder();
 		//select visitid, dischargedate from patient_visit where hospitalnumber = '94006000';
 		sb.append("select visitid, dischargedate from PATIENT_VISIT ");
-		sb.append("where ").append(HOSPITAL_NUMBER).append(" = '").append(dict.get(HOSPITAL_NUMBER));
+		sb.append("where ").append(HOSPITAL_NUMBER).append(" = '").append(hospnum);
 		sb.append("';");
 
 		ResultSet rs = st.executeQuery(sb.toString());
@@ -859,13 +910,17 @@ public class JDBCTest {
 	 * 
 	 * @param c Current connection to UDS
 	 * @param dict The Map of key-value data pairs
-	 * @return The last timestamp, or NULL if not available.
+	 * @return The last timestamp, or NULL_TIMESTAMP if not available.
 	 * @throws SQLException
 	 */
 	private static String get_last_timestamp_of_person(Connection c, Map<String,String> dict) throws SQLException {
 
 		System.out.println("** DEBUG - get_last_timestamp_of_person fn");
 
+		String hospnum = dict.get(HOSPITAL_NUMBER);
+		if (hospnum.equals(NULL)) {
+			return NULL_TIMESTAMP;
+		}
 
 		Statement st = c.createStatement();
 		StringBuilder query = new StringBuilder("select ");
@@ -874,7 +929,7 @@ public class JDBCTest {
 		System.out.println("QUERY: " + query.toString());
 		ResultSet rs = st.executeQuery(query.toString());
 
-		String timestamp = "NULL";
+		String timestamp = NULL_TIMESTAMP;
 		if ( rs.next() ) {
 			timestamp = rs.getString(LAST_UPDATED);
 		}
