@@ -10,6 +10,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader; 
 import java.io.PrintWriter;
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter; //https://stackoverflow.com/questions/8746084/string-to-localdate/22538939#22538939
+import java.util.Locale;
 
 /**
  * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
@@ -82,6 +85,14 @@ public class JDBCTest {
 
 	public static void main(String[] args) {
 
+		/*String adate = "2018-12-10 13:05:34.015681";
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.nnnnn");
+		formatter=formatter.withLocale(Locale.en_GB);
+		LocalDate ld = LocalDate.parse(adate, formatter);*/
+
+
+
+
 		String filename = "config.json"; // maybe better to make this a command-line option?
 
 		String udshost = "", idshost = "", idsusername = "", idspassword = "", udsusername = "", udspassword = "";
@@ -145,7 +156,7 @@ public class JDBCTest {
 						// jdbc:postgresql:INFORM_SCRATCH
 
 		String ids_url = "jdbc:postgresql://" + idshost + "/DUMMY_IDS"; // IDS (dummy)
-		String uds_url = "jdbc:postgresql://" + udshost + "/INFORM_SCRATCH"; // UDS (dummy)
+		String uds_url = "jdbc:postgresql://" + udshost + "/INFORM_SCRATCH?stringtype=unspecified"; // UDS (dummy)
 
 		// Extraction of data from IDS step. No HL7 parsing required.
 		try {
@@ -153,6 +164,7 @@ public class JDBCTest {
 			System.out.println("Trying to connect");
 			
 			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword);
+			////uds_conn.setAutoCommit(false); // http://weinan.io/2017/05/21/jdbc-part5.html
 
 			create_UDS_tables_if_necessary(uds_conn);
 
@@ -214,8 +226,10 @@ public class JDBCTest {
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
 					// Now we write the PERSON_SCRATCH data to the UDS
-					String person_insert = get_UDS_insert_person_string(dict);
-					write_update_to_database(person_insert, uds_st);
+					////String person_insert = get_UDS_insert_person_string(dict);
+					////write_update_to_database(person_insert, uds_st);
+
+					insert_person_UDS(dict, uds_conn);
 
 					// As this person has only just been added to UDS, he/she will have a new
 					// PATIENT_VISIT entry:
@@ -473,54 +487,77 @@ public class JDBCTest {
 
 
 	/**
-	 * Buld string to insert a NEW record into the UDS PERSON_SCRATCH table
+	 * Insert a new person_scratch record into the UDS.
 	 * 
 	 * @param dict Map of data items from IDS
-	 * @return SQL INSERT string for UDS PERSON_SCRATCH table
+	 * @param c The current connection to the UDS.
 	 */
-	private static String get_UDS_insert_person_string(Map<String,String> dict) { 
+	private static void insert_person_UDS(Map<String,String> dict, Connection c) 
+	throws SQLException {
 
-		System.out.println("** DEBUG - get_UDS_insert_person_string()");
-
-		StringBuilder uds_insert = new StringBuilder(); 
-		uds_insert.append("INSERT INTO PERSON_SCRATCH ("); 
-		uds_insert.append(HOSPITAL_NUMBER).append(", "); 
-		uds_insert.append(PATIENT_FULL_NAME).append(", ");
-		uds_insert.append(DATE_OF_BIRTH).append(","); 
-		uds_insert.append(SEX).append(","); 
-		uds_insert.append(PATIENT_ADDRESS).append(",");
-		uds_insert.append(PATIENT_DEATH_DATE).append(","); 
+		StringBuilder sb = new StringBuilder(); 
+		sb.append("INSERT INTO PERSON_SCRATCH ("); 
+		sb.append(HOSPITAL_NUMBER).append(", "); 
+		sb.append(PATIENT_FULL_NAME).append(", ");
+		sb.append(DATE_OF_BIRTH).append(","); 
+		sb.append(SEX).append(","); 
+		sb.append(PATIENT_ADDRESS).append(",");
+		sb.append(PATIENT_DEATH_DATE).append(","); 
 		// here: patient death indicator
 		// here: identity unknown
-		uds_insert.append(LAST_UPDATED); 
-		//uds_insert.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
+		sb.append(LAST_UPDATED); 
+		//sb.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
 
 		// NB Need to parse HL7 timestamps to get into correct format for Postgres.
-		uds_insert.append(") VALUES (");
-		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
-		//uds_insert.append("NULL,"); // set_ID
-		uds_insert.append("'").append(dict.get(PATIENT_FULL_NAME)).append("', ");
-		uds_insert.append("'").append(dict.get(DATE_OF_BIRTH)).append("', "); // example: 2018-10-01 14:57:41.090449
-		uds_insert.append("'").append(dict.get(SEX)).append("', ");
-		uds_insert.append("'").append(dict.get(PATIENT_ADDRESS)).append("', ");
-		String death = dict.get(PATIENT_DEATH_DATE);
-		if (death.equals(NULL_TIMESTAMP)) {
-			uds_insert.append(death).append(", ");
+		sb.append(") VALUES (?,?,?,?,?,?,?);");
+
+		try {
+			PreparedStatement st = c.prepareStatement(sb.toString());
+
+			st.setString(1, dict.get(HOSPITAL_NUMBER));
+			st.setString(2, dict.get(PATIENT_FULL_NAME));
+			String value = dict.get(DATE_OF_BIRTH);
+			if (value.equals(NULL_TIMESTAMP)) {
+				st.setNull(3, java.sql.Types.DATE);//st.setString(3, dict.get(DATE_OF_BIRTH));
+			}
+			else {
+				st.setTimestamp(3, Timestamp.valueOf(value));
+			}
+			st.setString(4, dict.get(SEX));
+			st.setString(5, dict.get(PATIENT_ADDRESS));
+			value = dict.get(PATIENT_DEATH_DATE);
+			if (value.equals(NULL_TIMESTAMP)) {
+				st.setNull(6, java.sql.Types.DATE);//st.setString(6, dict.get(PATIENT_DEATH_DATE));
+			}
+			else {
+				st.setTimestamp(6, Timestamp.valueOf(value));
+			}
+			value = dict.get(MESSAGE_DATE_TIME); // Should never be null
+			if (value.equals(NULL_TIMESTAMP)) {
+
+			}
+			else {
+				st.setTimestamp(7, Timestamp.valueOf(value));
+			}
+			
+				//st.setObject/*Timestamp*/(7, LocalDate.now()/*dict.get(MESSAGE_DATE_TIME)*/); // NB w and w/o null timestamp
+			//st.setTimestamp(7, Timestamp.valueOf(dict.get(MESSAGE_DATE_TIME)));
+			//st.setNull(7, java.sql.Types.DATE);
+
+			//http://www.java2s.com/Tutorials/Java/JDBC/Insert/Set_NULL_date_value_to_database_in_Java.htm
+
+			st.execute();
+
+			////c.commit();
 		}
-		else {
-			uds_insert.append("'").append(death).append("', "); // patient death time unknown without parsing HL7 (PID-29)
+		catch (SQLException e) {
+			System.out.println("ERROR in insert_person_UDS()");
+			e.printStackTrace();
+			//c.rollback(); // raises an SQLException itself.
 		}
-			//uds_insert.append("''").append(", "); // patient death indicator unknown without parsing HL7 (PID-30)
-		//uds_insert.append("''").append(", "); // identity unknown unknown without parsing HL7 (PID-31)
-		//msg_date_time = convert_timestamp(msg_date_time);
-
-		// To populate the UDS LastUpdated field, for now we are using the IDS's MessageDateTime field (NOT NULL)
-		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'"); // last update date/time unknown without parsing HL7 (PID-33)	
-		uds_insert.append(");");
-
-		return uds_insert.toString();
-
+		
 	}
+
 
 
 	/**
