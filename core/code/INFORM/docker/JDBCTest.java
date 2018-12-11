@@ -164,16 +164,25 @@ public class JDBCTest {
 			Connection uds_conn = DriverManager.getConnection(uds_url, udsusername, udspassword);
 			////uds_conn.setAutoCommit(false); // http://weinan.io/2017/05/21/jdbc-part5.html
 
+
+			// For testing ONLY
+			drop_my_UDS_tables(uds_conn);
+
+
+
+
 			create_UDS_tables_if_necessary(uds_conn);
 
 			Statement uds_st = uds_conn.createStatement();
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
 
-			String ids_query = get_IDS_query_string(last_unid_processed_last_time);
+			//String ids_query = get_IDS_query_string(last_unid_processed_last_time);
 			conn = DriverManager.getConnection(ids_url, idsusername, idspassword);
-			st = conn.createStatement();
-			rs = st.executeQuery(ids_query);
+			rs = query_IDS(last_unid_processed_last_time, conn);
+			
+			//st = conn.createStatement();
+			//rs = st.executeQuery(ids_query);
 		
 			long latest_unid_read_this_time = 0; // last one read from IDS this time
 
@@ -302,12 +311,13 @@ public class JDBCTest {
 			uds_st.close();
 			uds_conn.close();
 			rs.close();
-			st.close();	
+			//st.close();	
 			conn.close();
 
 			
 		}
 		catch (SQLException e) {
+			System.out.println("GOT AN ERROR");
 			e.printStackTrace();
 		}		
 
@@ -344,16 +354,32 @@ public class JDBCTest {
 
 	}
 
+
+	// For debug/testing only
+	private static void drop_my_UDS_tables (Connection c) throws SQLException {
+
+		StringBuffer sql = new StringBuffer(150);
+		sql.append("drop table bedvisit;");
+		sql.append("drop table person_scratch;");
+		sql.append("drop table last_unid_processed;");
+		sql.append("drop table patient_visit;");
+
+		PreparedStatement st = c.prepareStatement(sql.toString());
+		st.execute();
+	}
+
 	/**
 	 * Build the string used to query the IDS for records since
 	 * last_unid_processed_last_time.
 	 * 
 	 * @param last_unid_processed_last_time last UNID processed
-	 * @return SQL query string 
+	 * @param c Current connection to IDS.
+	 * @return ResultSet if successsful, otherwise SQLException thrown
 	 */
-	private static String get_IDS_query_string(long last_unid_processed_last_time) {
+	private static ResultSet query_IDS(long last_unid_processed_last_time, Connection c) 
+	throws SQLException {
 
-		System.out.println("** DEBUG - get_IDS_query_string fn");
+		//System.out.println("** DEBUG - get_IDS_query_string fn");
 
 		// Build the query - select all messages later than last_unid_processed_last_time:
 		StringBuilder query = new StringBuilder("SELECT ");
@@ -372,10 +398,17 @@ public class JDBCTest {
 		query.append(MESSAGE_DATE_TIME).append(", ");
 		query.append(PERSIST_DATE_TIME);
 		query.append(" FROM TBL_IDS_MASTER ");
-		query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
+		//query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
+		//query.append(" where  > ? ;");
+		query.append(" where ").append(UNID).append(" >  ? ;");//.append(last_unid_processed_last_time).append(";");
+		
+		ResultSet rs;
 
-		return query.toString();
+		PreparedStatement st = c.prepareStatement(query.toString());
+		st.setLong(1, last_unid_processed_last_time);
+		rs = st.executeQuery();
 
+		return rs;
 
 	}
 
@@ -933,7 +966,7 @@ public class JDBCTest {
 	 */
 	private static String get_last_timestamp_of_person(Connection c, Map<String,String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - get_last_timestamp_of_person fn");
+		//System.out.println("** DEBUG - get_last_timestamp_of_person fn");
 
 		String hospnum = dict.get(HOSPITAL_NUMBER);
 		if (hospnum.equals(NULL)) {
