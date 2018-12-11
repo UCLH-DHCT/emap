@@ -82,6 +82,7 @@ public class JDBCTest {
 	// Do not put single quotes around this String when using in SQL queries.
 	// We only do that for timestamps with values.
 	private static final String NULL_TIMESTAMP = "null::timestamp";
+	private static final String NULL = "NULL";
 
 	public static void main(String[] args) {
 
@@ -226,9 +227,6 @@ public class JDBCTest {
 					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
 
 					// Now we write the PERSON_SCRATCH data to the UDS
-					////String person_insert = get_UDS_insert_person_string(dict);
-					////write_update_to_database(person_insert, uds_st);
-
 					insert_person_UDS(dict, uds_conn);
 
 					// As this person has only just been added to UDS, he/she will have a new
@@ -256,8 +254,10 @@ public class JDBCTest {
 					// or this is their first inpatient visit:
 					if ( 0 == visitid )  {
 						// Insert new PATIENT_VISIT entry:
-						String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
-						write_update_to_database (patient_visit_insert, uds_st);
+						//String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
+						//write_update_to_database (patient_visit_insert, uds_st);
+						insert_patient_visit_uds(dict, uds_conn);
+
 						visitid = get_current_visitid_for_person(uds_conn, dict);
 						update_bedvisit_table(uds_conn, dict, visitid);
 					}
@@ -427,13 +427,13 @@ public class JDBCTest {
 
 		value = Character.toString(rs.getString(PATIENT_CLASS).charAt(0));
 		if (rs.wasNull()) {
-			value = "NULL";
+			value = NULL;
 		}
 		dict.put(PATIENT_CLASS, value);
 
 		value = rs.getString(PATIENT_LOCATION);
 		if (rs.wasNull()) {
-			value = "NULL";
+			value = NULL;
 		}
 		dict.put(PATIENT_LOCATION, value);
 
@@ -534,7 +534,9 @@ public class JDBCTest {
 			}
 			value = dict.get(MESSAGE_DATE_TIME); // Should never be null
 			if (value.equals(NULL_TIMESTAMP)) {
-
+				System.out.println("** ERROR got null timestamp from IDS! **");
+				// should we refuse to commit this record? Probably
+				st.setNull(7, java.sql.Types.DATE);
 			}
 			else {
 				st.setTimestamp(7, Timestamp.valueOf(value));
@@ -559,16 +561,15 @@ public class JDBCTest {
 	}
 
 
-
 	/**
-	 * Get SQL string needed to add a NEW patient_visit entry to UDS
+	 * Insert a patient_visit record into the UDS.
 	 * 
-	 * @param dict the Map which keeps track of IDS database data items
-	 * @return the INSERT statement string
+	 * @param dict - The Map of String values.
+	 * @param c The current connection to the UDS.
 	 */
-	private static String get_UDS_insert_patient_visit_string(Map<String,String> dict) { 
+	private static void insert_patient_visit_uds (Map<String,String> dict, Connection c) 
+	throws SQLException {
 
-		// Person will be in database by now.
 		StringBuilder uds_insert = new StringBuilder("");
 		uds_insert.append("INSERT INTO PATIENT_VISIT (");
 		uds_insert.append(HOSPITAL_NUMBER).append(", ");
@@ -578,32 +579,59 @@ public class JDBCTest {
 		uds_insert.append(ADMISSION_DATE).append(", ");
 		/////uds_insert.append(DISCHARGE_DATE).append(", ");
 		uds_insert.append(LAST_UPDATED);
-		uds_insert.append(") VALUES (");
-		uds_insert.append(dict.get(HOSPITAL_NUMBER)).append(", ");
-		uds_insert.append("'").append(dict.get(PATIENT_CLASS)).append("'").append(", ");
+		uds_insert.append(") VALUES (?,?,?,?);");
 
-		// We want to enclose timestamps within '' but NOT a string like NULL or null::timestamp
-		String admit = dict.get(ADMISSION_DATE);
-		if (admit.equals(NULL_TIMESTAMP)) {
-			uds_insert.append(admit).append(", ");
-		}
-		else {
-			uds_insert.append("'").append(admit).append("', ");
-		}
-		/*String discharge = dict.get(DISCHARGE_DATE);
-		if (discharge.equals(NULL_TIMESTAMP)) {
-			uds_insert.append(discharge).append(", ");
-		}
-		else {
-			uds_insert.append("'").append(discharge).append("'").append(", ");
-		}*/
-		// This one should never be null so we don't perform the null check here:
-		uds_insert.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'"); // already converted
-		uds_insert.append(");");
+		try {
+			PreparedStatement st = c.prepareStatement(uds_insert.toString());
+			String value = dict.get(HOSPITAL_NUMBER);
+			if (value.equals(NULL)) {
+				// Not sure what to do about this.
+				// We could try parsing the HL7 message but Atos should arlready have done this.
+				// Maybe we shouldn't bother storing this record?
+				st.setNull(1, java.sql.Types.VARCHAR);
+				// I think we should not commit this record  but bail out. See #21
+			} 
+			else {
+				st.setString(1, value);
+			}
 
-		return uds_insert.toString();
+			value = dict.get(PATIENT_CLASS);
+			if (value.equals(NULL)) {
+				st.setNull(2, java.sql.Types.VARCHAR);
+			}
+			else {
+				st.setString(2, value);
+			}
+
+			value = dict.get(ADMISSION_DATE);
+			if (value.equals(NULL_TIMESTAMP)){
+				st.setNull(3, java.sql.Types.DATE);
+			}
+			else {
+				st.setTimestamp(3, Timestamp.valueOf(value));
+			}
+
+			value = dict.get(PERSIST_DATE_TIME);
+			if (value.equals(NULL_TIMESTAMP)) {
+				// should never happen
+				st.setNull(4, java.sql.Types.DATE);
+			}
+			else {
+				st.setTimestamp(4, Timestamp.valueOf(value));
+			}
+
+			st.execute();
+			// st.commit();
+		}
+		catch (SQLException e) {
+			System.out.println("ERROR in insert_person_UDS()");
+			e.printStackTrace();
+			//c.rollback(); // raises an SQLException itself.
+		}
+
 
 	}
+
 
 
 	/**
