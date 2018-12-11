@@ -91,9 +91,6 @@ public class JDBCTest {
 		formatter=formatter.withLocale(Locale.en_GB);
 		LocalDate ld = LocalDate.parse(adate, formatter);*/
 
-
-
-
 		String filename = "config.json"; // maybe better to make this a command-line option?
 
 		String udshost = "", idshost = "", idsusername = "", idspassword = "", udsusername = "", udspassword = "";
@@ -173,10 +170,12 @@ public class JDBCTest {
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
 
-			String ids_query = get_IDS_query_string(last_unid_processed_last_time);
+			//String ids_query = get_IDS_query_string(last_unid_processed_last_time);
 			conn = DriverManager.getConnection(ids_url, idsusername, idspassword);
-			st = conn.createStatement();
-			rs = st.executeQuery(ids_query);
+			rs = query_IDS(last_unid_processed_last_time, conn);
+			
+			//st = conn.createStatement();
+			//rs = st.executeQuery(ids_query);
 		
 			long latest_unid_read_this_time = 0; // last one read from IDS this time
 
@@ -269,6 +268,7 @@ public class JDBCTest {
 							continue;
 						}
 						update_bedvisit_table(uds_conn, dict, visitid);
+						// what if it failed?
 					}
 					else {
 						/// ??? insert_bedvisit_entry(dict, visitid); ???
@@ -280,7 +280,7 @@ public class JDBCTest {
 					// Error here if no current patient_visit entry???
 
 					// Update bed location details.
-					update_bedvisit_table(uds_conn, dict, visitid);
+					update_bedvisit_table(uds_conn, dict, visitid); // what if false?
 				}
 				else if (msgtype.equals("ADT^A03")) { // discharge
 
@@ -288,7 +288,7 @@ public class JDBCTest {
 					update_patient_visit(uds_conn, dict, visitid);
 
 					// Update bed location details
-					update_bedvisit_table(uds_conn, dict, visitid);
+					update_bedvisit_table(uds_conn, dict, visitid); // what if false?
 				}
 		
 
@@ -304,12 +304,13 @@ public class JDBCTest {
 			uds_st.close();
 			uds_conn.close();
 			rs.close();
-			st.close();	
+			//st.close();	
 			conn.close();
 
 			
 		}
 		catch (SQLException e) {
+			System.out.println("GOT AN ERROR");
 			e.printStackTrace();
 		}		
 
@@ -318,7 +319,7 @@ public class JDBCTest {
 
 	private static void create_UDS_tables_if_necessary (Connection c) throws SQLException {
 
-		Statement st = c.createStatement();
+		//Statement st = c.createStatement();
 		StringBuffer sql = new StringBuffer(300);
 
 		// The following table is based on the HL7 PID segment.
@@ -340,7 +341,9 @@ public class JDBCTest {
 		sql.append("CREATE TABLE IF NOT EXISTS LAST_UNID_PROCESSED (");
 		sql.append("LATEST INT PRIMARY KEY);");
 
-		st.executeUpdate(sql.toString());
+		PreparedStatement st = c.prepareStatement(sql.toString());
+		st.execute();
+		//st.executeUpdate(sql.toString());
 
 	}
 
@@ -349,11 +352,12 @@ public class JDBCTest {
 	 * last_unid_processed_last_time.
 	 * 
 	 * @param last_unid_processed_last_time last UNID processed
-	 * @return SQL query string 
+	 * @return boolean
 	 */
-	private static String get_IDS_query_string(long last_unid_processed_last_time) {
+	private static ResultSet query_IDS(long last_unid_processed_last_time, Connection c) 
+	throws SQLException {
 
-		System.out.println("** DEBUG - get_IDS_query_string fn");
+		//System.out.println("** DEBUG - get_IDS_query_string fn");
 
 		// Build the query - select all messages later than last_unid_processed_last_time:
 		StringBuilder query = new StringBuilder("SELECT ");
@@ -372,10 +376,27 @@ public class JDBCTest {
 		query.append(MESSAGE_DATE_TIME).append(", ");
 		query.append(PERSIST_DATE_TIME);
 		query.append(" FROM TBL_IDS_MASTER ");
-		query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
-
-		return query.toString();
-
+		//query.append(" where ").append(UNID).append(" > ").append(last_unid_processed_last_time).append(";");
+		//query.append(" where  > ? ;");
+		query.append(" where ").append(UNID).append(" >  ? ;");//.append(last_unid_processed_last_time).append(";");
+		
+		ResultSet rs;
+		//try {
+			PreparedStatement st = c.prepareStatement(query.toString());
+			//st.setString(1, UNID);
+			st.setLong(1, last_unid_processed_last_time);
+			rs = st.executeQuery();
+			//st.close();
+		//}
+		/*
+		catch (SQLException e) {
+			System.out.println("ERROR in query_IDS()");
+			e.printStackTrace();
+			//c.rollback(); // raises an SQLException itself.
+		}*/
+		
+		//return query.toString();
+		return rs;
 
 	}
 
@@ -779,9 +800,11 @@ public class JDBCTest {
 	 * @param c Current connection to UDS
 	 * @param dict The Map of values
 	 * @param visitid Primary key in patient_visit table
+	 * @return false if unable to update, true otherwise
 	 * @throws SQLException
+	 * 
 	 */
-	private static void update_bedvisit_table(Connection c, Map<String,String> dict, long visitid) 
+	private static boolean update_bedvisit_table(Connection c, Map<String,String> dict, long visitid) 
 	throws SQLException {
 		
 		Statement st = c.createStatement();
@@ -790,9 +813,14 @@ public class JDBCTest {
 		// If discharge message, add end time to existing entry.
 		// If transfer message, add end time to existing entry and start time to a new entry.
 		String msgtype = dict.get(MESSAGE_TYPE);
+		if (msgtype.equals(NULL)) {
+			return false;
+		}
 
 		// bed_visit_id | patient_visit_id | location | start_time | end_time
 		StringBuilder sb = new StringBuilder(100);
+
+		//boolean ret;
 
 		// For admit messages we assume there is no current BEDVISIT entry for this patient.
 		// is that a safe assumption? What if two admit messages come through in
@@ -800,8 +828,17 @@ public class JDBCTest {
 		if (msgtype.equals("ADT^A01")) { // We don't insert an end_time.
 			sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
 			sb.append(visitid).append(", ");
-			sb.append("'").append(dict.get(PATIENT_LOCATION)).append("',");
-			sb.append("'").append(dict.get(ADMISSION_DATE)).append("'");
+			String value = dict.get(PATIENT_LOCATION);
+			if (value.equals(NULL)) {
+				return false;
+			}
+			sb.append("'").append(value).append("',");
+
+			value = dict.get(ADMISSION_DATE);
+			if (value.equals(NULL_TIMESTAMP)) {
+				return false;
+			}
+			sb.append("'").append(value).append("'");
 			sb.append(");");
 
 			System.out.println("** DEBUG - " + sb.toString());
@@ -851,6 +888,8 @@ public class JDBCTest {
 		
 		/*int ret = 0;
 		ret = */ //st.executeUpdate(sb.toString());
+		return true;
+		
 	}
 	
 
