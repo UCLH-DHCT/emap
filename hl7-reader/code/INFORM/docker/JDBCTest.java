@@ -165,7 +165,7 @@ public class JDBCTest {
 			////uds_conn.setAutoCommit(false); // http://weinan.io/2017/05/21/jdbc-part5.html
 
 
-			// For testing ONLY
+			// For debug/testing ONLY
 			drop_my_UDS_tables(uds_conn);
 
 
@@ -732,14 +732,16 @@ public class JDBCTest {
 			return 0;
 		}
 													
-		Statement st = c.createStatement();
+		
 		StringBuilder sb = new StringBuilder();
 		//select visitid, dischargedate from patient_visit where hospitalnumber = '94006000';
 		sb.append("select visitid, dischargedate from PATIENT_VISIT ");
-		sb.append("where ").append(HOSPITAL_NUMBER).append(" = '").append(hospnum);
-		sb.append("';");
+		sb.append("where ").append(HOSPITAL_NUMBER).append(" = ? ;");
 
-		ResultSet rs = st.executeQuery(sb.toString());
+		PreparedStatement st = c.prepareStatement(sb.toString());
+		st.setString(1, hospnum);
+
+		ResultSet rs = st.executeQuery();
 		while (rs.next()) {
 			String discharge_date = rs.getString(DISCHARGE_DATE);
 
@@ -937,12 +939,18 @@ public class JDBCTest {
 
 		//System.out.println("** DEBUG - already_in_person_table()");
 
-		Statement st = c.createStatement();
+		String hospnum = dict.get(HOSPITAL_NUMBER);
+		if (hospnum.equals(NULL)) {
+			return false;
+		}
+
 		StringBuilder query = new StringBuilder("select * from PERSON_SCRATCH where ");
-		query.append(HOSPITAL_NUMBER).append(" = '");
-		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
+		query.append(HOSPITAL_NUMBER).append(" = ? ;");
+	
+		PreparedStatement st = c.prepareStatement(query.toString());
+		st.setString(1, hospnum);
 		//System.out.println("QUERY: " + query.toString());
-		ResultSet rs = st.executeQuery(query.toString());
+		ResultSet rs = st.executeQuery();
 		if (rs.next()) {
 			//System.out.println("already in there");
 			return true;
