@@ -424,7 +424,7 @@ public class JDBCTest {
 	private static void extract_fields_from_IDS(ResultSet rs,
 					Map<String, String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - extract_fields_from_IDS fn");
+		////System.out.println("** DEBUG - extract_fields_from_IDS fn");
 
 
 		// NB some IDS fields cannot be null so we should always get a value for those:
@@ -1143,7 +1143,7 @@ public class JDBCTest {
 	 */
 	private static long read_last_unid_from_UDS (Connection c) throws SQLException {
 
-		System.out.println("** DEBUG - read_last_unid_from_UDS fn");
+		//System.out.println("** DEBUG - read_last_unid_from_UDS fn");
 
 		
 		String query = "select latest from last_unid_processed ;";
@@ -1189,7 +1189,7 @@ public class JDBCTest {
 				long latest_unid_read_this_time,
 				long unid_processed_last_time) throws SQLException {
 
-		System.out.println("** DEBUG - write_last_unid_to_UDS fn");
+		////System.out.println("** DEBUG - write_last_unid_to_UDS fn");
 
 		// Bail out if it's the trivial case.
 		if (latest_unid_read_this_time == unid_processed_last_time) {
