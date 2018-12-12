@@ -341,7 +341,7 @@ public class JDBCTest {
 
 		// A period of time, during a patient_visit, spent in a specific bed.
 		sql.append("CREATE TABLE IF NOT EXISTS BEDVISIT (");
-		sql.append("BED_VISIT_ID BIGSERIAL PRIMARY KEY, patient_visit_id char(8) NOT NULL, ");
+		sql.append("BED_VISIT_ID BIGSERIAL PRIMARY KEY, patient_visit_id INTEGER NOT NULL, ");
 		sql.append("location varchar(30), start_time timestamp, end_time timestamp);");
 
 		// Table to keep track of last IDS UNID processed successfully (data written to UDS).
