@@ -129,7 +129,7 @@ public class JDBCTest {
 		// process_command_line_arguments(args);
 
 		Connection conn;
-		Statement st;
+		//Statement st;
 		ResultSet rs;
 
 		//////////////////////////////////////////
@@ -173,7 +173,7 @@ public class JDBCTest {
 
 			create_UDS_tables_if_necessary(uds_conn);
 
-			Statement uds_st = uds_conn.createStatement();
+			////Statement uds_st = uds_conn.createStatement();
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AT START, LAST UNID STORED = " + last_unid_processed_last_time);
 
@@ -308,7 +308,7 @@ public class JDBCTest {
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
 			System.out.println("AFTER PROCESSING, LAST UNID STORED = " + last_unid_processed_last_time);
 
-			uds_st.close();
+			////uds_st.close();
 			uds_conn.close();
 			rs.close();
 			//st.close();	
@@ -341,7 +341,7 @@ public class JDBCTest {
 
 		// A period of time, during a patient_visit, spent in a specific bed.
 		sql.append("CREATE TABLE IF NOT EXISTS BEDVISIT (");
-		sql.append("BED_VISIT_ID BIGSERIAL PRIMARY KEY, patient_visit_id char(8) NOT NULL, ");
+		sql.append("BED_VISIT_ID BIGSERIAL PRIMARY KEY, patient_visit_id INTEGER NOT NULL, ");
 		sql.append("location varchar(30), start_time timestamp, end_time timestamp);");
 
 		// Table to keep track of last IDS UNID processed successfully (data written to UDS).
@@ -424,7 +424,7 @@ public class JDBCTest {
 	private static void extract_fields_from_IDS(ResultSet rs,
 					Map<String, String> dict) throws SQLException {
 
-		System.out.println("** DEBUG - extract_fields_from_IDS fn");
+		////System.out.println("** DEBUG - extract_fields_from_IDS fn");
 
 
 		// NB some IDS fields cannot be null so we should always get a value for those:
@@ -470,9 +470,12 @@ public class JDBCTest {
 		}*/
 		dict.put(HOSPITAL_NUMBER, value);
 
-		value = Character.toString(rs.getString(PATIENT_CLASS).charAt(0));
-		if (rs.wasNull() || value.equals("") || value.isEmpty()) {
+		String pc = rs.getString(PATIENT_CLASS);	
+		if (rs.wasNull() || pc.equals("") || pc.isEmpty()) {
 			value = NULL;
+		}
+		else {
+			value = Character.toString(pc.charAt(0));
 		}
 		dict.put(PATIENT_CLASS, value);
 
@@ -772,39 +775,67 @@ public class JDBCTest {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("update patient_visit ");
-		sb.append("set lastupdated = ");
-		String update = dict.get(MESSAGE_DATE_TIME);
+		sb.append("set lastupdated = ? ");
+		/*String update = dict.get(MESSAGE_DATE_TIME);
 		if (update.equals(NULL_TIMESTAMP)) {
 			sb.append(update);
 		}
 		else {
 			sb.append("'").append(update).append("'");
-		}
+		}*/
+		//int count = 1; // position in statement
 
 		// Update other values if relevant e.g. we get an ADT transfer message.
 		String msgtype = dict.get(MESSAGE_TYPE);
-		//if (msgtype.equals("ADT^A02")) { // transfer
-			//sb.append(", patientlocation = ").append(dict.get(PATIENT_LOCATION));
-		//}
+		String ddate = NULL_TIMESTAMP;
 		if (msgtype.equals("ADT^A03")) { // discharge - NB does this have a new location too?
-			String ddate = dict.get(DISCHARGE_DATE);
-			/*if (ddate.equals(NULL_TIMESTAMP)) {
-				sb.append(", dischargedate = ").append(ddate);
-			}
-			else {*/
-				sb.append(", dischargedate = '").append(ddate).append("'");
-			//}
+			ddate = dict.get(DISCHARGE_DATE);
+			sb.append(", dischargedate = ? "); //.append(ddate).append("'");
+			//count++;
 		}
 		else {
 			///???
 		}
 
-		sb.append(" where visitid = '").append(visitid).append("' and lastupdated < '").append(dict.get(MESSAGE_DATE_TIME/*LAST_UPDATED*/)).append("';");
+		sb.append(" where visitid = ? ")/*.append(visitid)*/.append(" and lastupdated < ? ;"); 
+		//.append(dict.get(MESSAGE_DATE_TIME/*LAST_UPDATED*/)).append("';");
+		//System.out.println("** DEBUG: update_patient_visit: SQL = " + sb.toString());
 
-		System.out.println("** DEBUG: update_patient_visit: SQL = " + sb.toString());
+		PreparedStatement st = c.prepareStatement(sb.toString());
+		String update = dict.get(MESSAGE_DATE_TIME);
+		int pos = 1;
+		if (update.equals(NULL_TIMESTAMP)) {
+			st.setNull(pos, java.sql.Types.DATE);
+		}
+		else {
+			st.setTimestamp(pos, Timestamp.valueOf(update));
+		}
+		
 
-		Statement st = c.createStatement();
-		/*ResultSet rs = */ st.executeUpdate(sb.toString());
+		if (msgtype.equals("ADT^A03")) {
+			pos++; // 2
+			if (ddate.equals(NULL_TIMESTAMP)) {
+				st.setNull(pos, java.sql.Types.DATE);
+			}
+			else {
+				st.setTimestamp(pos, Timestamp.valueOf(ddate));
+			}
+
+		}
+
+		// visitid, lastupdated
+		pos++;
+		st.setString(pos, Long.toString(visitid));
+		pos++;
+		String mdt = dict.get(MESSAGE_DATE_TIME);
+		if (mdt.equals(NULL_TIMESTAMP)) {
+			st.setNull(pos, java.sql.Types.DATE);
+		}
+		else {
+			st.setTimestamp(pos, Timestamp.valueOf(mdt));
+		}
+
+		/*ResultSet rs = */ st.executeUpdate();
 
 	}
 
@@ -813,11 +844,114 @@ public class JDBCTest {
 	 * 
 	 * @param c Current connection to UDS
 	 * @param dict The Map of values
-	 * @param visitid Primary key in patient_visit table
-	 * @return false if unable to update, true otherwise
+	 * @param visitid Primary key of patient_visit table
+	 * @return false if unable to update (e.g. null admission date, null message type), true otherwise
 	 * @throws SQLException
 	 * 
 	 */
+	
+	private static boolean update_bedvisit_table(Connection c, Map<String,String> dict, long visitid) 
+	throws SQLException {
+
+		// If admit message, add new entry to table; start time but no end time
+		// If discharge message, add end time to existing entry.
+		// If transfer message, add end time to existing entry and start time to a new entry.
+		String msgtype = dict.get(MESSAGE_TYPE);
+		if (msgtype.equals(NULL)) {
+			return false;
+		}
+
+		// bed_visit_id | patient_visit_id | location | start_time | end_time
+		StringBuilder sb = new StringBuilder(100);
+
+		//boolean ret;
+
+		// For admit messages we assume there is no current BEDVISIT entry for this patient.
+		// is that a safe assumption? What if two admit messages come through in
+		// quick succession?
+		if (msgtype.equals("ADT^A01")) { // We don't insert an end_time.
+			sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) ");
+			sb.append("VALUES(?, ?, ?);");
+			PreparedStatement st = c.prepareStatement(sb.toString());
+			st.setLong(1, visitid);
+
+			String value = dict.get(PATIENT_LOCATION);
+			if (value.equals(NULL)) {
+				return false;
+			}
+			else {
+				st.setString(2, value);
+			}
+	
+			value = dict.get(ADMISSION_DATE);
+			if (value.equals(NULL_TIMESTAMP)) {
+				return false;
+			}
+			else {
+				st.setTimestamp(3, Timestamp.valueOf(value));
+			}
+			st.executeUpdate();
+
+
+		}
+		// Transfer or discharge:
+		else if (msgtype.equals("ADT^A02") || msgtype.equals("ADT^A03")) {
+			long current_bedvisit_id = 0;
+			String current_location = "";
+			String new_location = dict.get(PATIENT_LOCATION);
+	
+			// In theory there should only be one currently-open bedvisit,
+			// but we select all just in case and then just take the ID of the latest one.
+			sb.append("SELECT bed_visit_id, location FROM BEDVISIT WHERE patient_visit_id=? ");
+			sb.append(" AND end_time IS NULL ORDER BY bed_visit_id DESC;" );
+			PreparedStatement st2 = c.prepareStatement(sb.toString());
+			st2.setString(1, Long.toString(visitid));
+
+			ResultSet rs = st2.executeQuery();
+
+			if (rs.next()) {
+				// Take the first (i.e. most recent) one.
+				current_bedvisit_id = rs.getLong("bed_visit_id");
+				current_location = rs.getString("location");
+				//System.out.println("** DEBUG: current_bedvisit_id = " + current_bedvisit_id);
+			}
+			
+			// We only update if the new location differs from the existing one.
+			// Sometimes transfer messages arise when just the consultant has changed, not the bed.
+			// But if it's a discharge message we do want to update the table regardless.
+			if ( msgtype.equals("ADT^A03") || ! new_location.equals(current_location) ) { 
+				sb.setLength(0);
+				sb.append("UPDATE BEDVISIT "); 
+				sb.append("set end_time=? "); 
+				sb.append("WHERE bed_visit_id=? ;");//.append(current_bedvisit_id).append("';");
+
+				// If it's a transfer we also need to create a new BEDVISIT entry (no end time):
+				if (msgtype.equals("ADT^A02") && visitid > 0) {
+					sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) ");
+					sb.append(" VALUES (?, ?, ?) ;");
+				}
+
+				PreparedStatement st3 = c.prepareStatement(sb.toString());
+				st3.setTimestamp(1, Timestamp.valueOf(dict.get(MESSAGE_DATE_TIME)));
+				st3.setLong(2, current_bedvisit_id);
+				
+				if (msgtype.equals("ADT^A02") && visitid > 0) {
+					st3.setLong(3, visitid);
+					st3.setString(4, new_location);
+					st3.setTimestamp(5, Timestamp.valueOf(dict.get(MESSAGE_DATE_TIME)));
+				}
+
+				st3.executeUpdate();
+			}
+
+		}
+
+		return true;
+		
+	}
+	
+
+	/* original version
 	private static boolean update_bedvisit_table(Connection c, Map<String,String> dict, long visitid) 
 	throws SQLException {
 		
@@ -890,7 +1024,7 @@ public class JDBCTest {
 				if (msgtype.equals("ADT^A02") && visitid > 0) {
 					sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) VALUES(");
 					sb.append(visitid).append(", ");
-					sb.append("'").append(new_location /*dict.get(PATIENT_LOCATION)*/).append("',");
+					sb.append("'").append(new_location).append("',");
 					sb.append("'").append(dict.get(MESSAGE_DATE_TIME)).append("'");
 					sb.append(");");
 				}
@@ -900,12 +1034,11 @@ public class JDBCTest {
 
 		}
 		
-		/*int ret = 0;
-		ret = */ //st.executeUpdate(sb.toString());
 		return true;
 		
 	}
-	
+	*/
+
 
 	/**
 	 * Update an existing PERSON_SCRATCH record in UDS. 
@@ -981,12 +1114,14 @@ public class JDBCTest {
 			return NULL_TIMESTAMP;
 		}
 
-		Statement st = c.createStatement();
+		
 		StringBuilder query = new StringBuilder("select ");
-		query.append(LAST_UPDATED).append(" from PERSON_SCRATCH where ").append(HOSPITAL_NUMBER).append(" = '");
-		query.append(dict.get(HOSPITAL_NUMBER)).append("';");
-		System.out.println("QUERY: " + query.toString());
-		ResultSet rs = st.executeQuery(query.toString());
+		query.append(LAST_UPDATED).append(" from PERSON_SCRATCH where ").append(HOSPITAL_NUMBER).append(" = ? ;");
+		//query.append(dict.get(HOSPITAL_NUMBER)).append("';");
+		//System.out.println("QUERY: " + query.toString());
+		PreparedStatement st = c.prepareStatement(query.toString());
+		st.setString(1, hospnum);
+		ResultSet rs = st.executeQuery();
 
 		String timestamp = NULL_TIMESTAMP;
 		if ( rs.next() ) {
@@ -1008,16 +1143,17 @@ public class JDBCTest {
 	 */
 	private static long read_last_unid_from_UDS (Connection c) throws SQLException {
 
-		System.out.println("** DEBUG - read_last_unid_from_UDS fn");
+		//System.out.println("** DEBUG - read_last_unid_from_UDS fn");
 
-		Statement st = c.createStatement();
+		
 		String query = "select latest from last_unid_processed ;";
-		ResultSet rs = st.executeQuery(query);
+		PreparedStatement st = c.prepareStatement(query);
+		ResultSet rs = st.executeQuery();
 		String last = "null";
 		if (rs.next()) { 
 		
 			last = rs.getString(1);
-			if (last.equals("null") || last.equals("")) { // unlikely
+			if (last.equals("null") || last.equals("") || last.isEmpty()) { // unlikely
 				return 0;
 			}
 			else {
@@ -1053,7 +1189,7 @@ public class JDBCTest {
 				long latest_unid_read_this_time,
 				long unid_processed_last_time) throws SQLException {
 
-		System.out.println("** DEBUG - write_last_unid_to_UDS fn");
+		////System.out.println("** DEBUG - write_last_unid_to_UDS fn");
 
 		// Bail out if it's the trivial case.
 		if (latest_unid_read_this_time == unid_processed_last_time) {
@@ -1066,16 +1202,21 @@ public class JDBCTest {
 			return -1;
 		}
 
-		Statement st = c.createStatement();
+		
 		StringBuilder sb = new StringBuilder("");
-		sb.append("INSERT INTO last_unid_processed (latest) values(");
-		sb.append(latest_unid_read_this_time).append(");");
-		sb.append("delete from last_unid_processed where latest='");
-		sb.append(unid_processed_last_time).append("';");
+		sb.append("INSERT INTO last_unid_processed (latest) values(?);");
+		//sb.append(latest_unid_read_this_time).append(");");
+		sb.append("delete from last_unid_processed where latest=? ;");
+		//sb.append(unid_processed_last_time).append("';");
+
+		
 
 		int ret = 0;
 		try {
-			ret = st.executeUpdate(sb.toString());
+			PreparedStatement st = c.prepareStatement(sb.toString());
+			st.setLong(1, latest_unid_read_this_time);
+			st.setLong(2, unid_processed_last_time);
+			ret = st.executeUpdate();
 			//String res = new String("return value was " + ret);
 			//System.out.println(res);
 
@@ -1088,37 +1229,6 @@ public class JDBCTest {
 		}
 		return ret;
 
-	}
-
-
-	/**
-	 * Utility function to write an update to a database
-	 * 
-	 * @param str The SQL string
-	 * @param s The current statement
-	 * @return value of <code>executeUpdate()</code>
-	 */
-	private static int write_update_to_database (String str, Statement s) {
-
-		System.out.println("** DEBUG - write_update_to_database()");
-
-
-		System.out.println("******* statement: *****");
-		System.out.println(str);
-		int ret = 0;
-		try {
-			ret = s.executeUpdate(str);
-			//String res = new String("return value was " + ret);
-			//System.out.println(res);
-
-			// If we reach here it is likely our update was processed OK.
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
-			// should we add a rollback here?
-		}
-
-		return ret;
 	}
 
 
@@ -1137,10 +1247,8 @@ public class JDBCTest {
 	 */
 	private static String convert_timestamp (String hl7) {
 
-		System.out.println("** DEBUG - convert_timestamp()");
-
-
-		System.out.println(hl7);
+		////System.out.println("** DEBUG - convert_timestamp()");
+		////System.out.println(hl7);
 
 		// If it's NULL return NULL
 		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
