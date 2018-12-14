@@ -17,7 +17,7 @@ CREATE TABLE mpi (
 	);
 
 CREATE TABLE attribute (
-	attribute_id INT PRIMARY KEY NOT NULL,
+	attribute_id SERIAL PRIMARY KEY NOT NULL,
 	short_label VARCHAR(50) NOT NULL,
 	long_label VARCHAR(200)
 	);
