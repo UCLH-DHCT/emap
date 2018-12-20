@@ -242,6 +242,9 @@ public class JDBCTest {
 				String msgtype = dict.get(MESSAGE_TYPE);
 				System.out.println("** In main(): msgtype is " + msgtype);
 				if (msgtype.equals("ADT^A01")) { // admit
+					// Functional spec: When a patient is admitted to the hospital ward,
+					// including day case, the triggered message (ADT^A01) from CareCast
+					// will be sent through to Receiving system.
 
 					// The current visit id is probably 0 (i.e. no entry in the
 					// patient_visit table) but we double-check
@@ -267,8 +270,13 @@ public class JDBCTest {
 
 					// Update bed location details.
 					update_bedvisit_table(uds_conn, dict, visitid);
+
+					// Functional spec says this message issued when a patient is transferred
+					// to a different ward, bed or consultant. For this last case we should probably
+					// check the current bedvisit location and only update if different? 
 				}
-				else if (msgtype.equals("ADT^A03")) { // discharge
+				else if (msgtype.equals("ADT^A03")) { // Inpatient discharge
+					// When a patient is discharged from the hospital ward.
 
 					// update pv table
 					update_patient_visit(uds_conn, dict, visitid);
@@ -343,20 +351,46 @@ public class JDBCTest {
 				else if (msgtype.equals("ADT^A05")) { // PRE-ADMIT A PATIENT
 					
 				}
+				else if (msgtype.equals("ADT^A08")) { // UPDATE PATIENT INFORMATION
+					// Inpatient Amend Admission/Discharge/Transfer 
+					// When a patient’s admission and discharge details are updated 
+					/* From Atos functional spec:
+						A user can carry out a valid transfer retrospectively. Under this
+						scenario CareCast triggers a P01 message with EVN-4 containing value
+						of CSTY. Interface will send this message as A08. EVN-3 will contain
+						the transfer date and time. The ward code in PV1-3 field may not be
+						the current ward for the patient. The Receiving system will have to 
+						check the transfer date time in the message against the transfer 
+						date time of the latest ward in their system’s database to ascertain 
+						whether this location is the current location or not. Also under this
+						scenario the previous ward is unlikely to be present.
+					*/
+				}
 				else if (msgtype.equals("ADT^A13")) { // CANCEL DISCHARGE / END VISIT
+					// When a patient’s last discharge from the hospital ward is cancelled 
 
 				} 
-				else if (msgtype.equals("ADT^A28")) { //
+				else if (msgtype.equals("ADT^A28")) { // ADD PERSON OR PATIENT INFORMATION
 
 				} 
-				else if (msgtype.equals("ADT^A31")) {
+				else if (msgtype.equals("ADT^A31")) { // UPDATE PERSON INFORMATION e.g. death
 
 				} 
-				else if (msgtype.equals("ADT^A34")) {
+				else if (msgtype.equals("ADT^A34")) { // MERGE PATIENT INFORMATION - PATIENT ID ONLY
+					/*
+						From standard (v 2.4, Page 3-35):
+						Event A34 has been retained for backward compatibility only. From V2.3.1 onwards,
+						event A40 (Merge patient - patient identifier list) should be used instead.
+
+						Ashish:
+						MRG segment.
+						MRG1.1 has the discarded MRN and PID3.1 has the new MRN.
+					*/
 
 				} 
 				else if (msgtype.equals("ADT^A40")) { // MERGE PATIENT - PATIENT IDENTIFIER LIST
 					// NB A39 is MERGE PERSON - PATIENT ID
+					// We might not see this at UCLH, only A34. See table on page 4 of functional spec.
 				} 
 				
 
