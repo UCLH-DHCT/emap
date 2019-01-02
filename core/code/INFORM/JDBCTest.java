@@ -867,9 +867,7 @@ public class JDBCTest {
 		// bed_visit_id | patient_visit_id | location | start_time | end_time
 		StringBuilder sb = new StringBuilder(100);
 
-		// For admit messages we assume there is no current BEDVISIT entry for this patient.
-		// is that a safe assumption? What if two admit messages come through in
-		// quick succession?
+		// See #25.
 		if (msgtype.equals("ADT^A01")) { // We don't insert an end_time.
 			sb.append("INSERT INTO BEDVISIT (PATIENT_VISIT_ID, LOCATION, START_TIME) ");
 			sb.append("VALUES(?, ?, ?);");
@@ -923,7 +921,7 @@ public class JDBCTest {
 				sb.setLength(0);
 				sb.append("UPDATE BEDVISIT "); 
 				sb.append("set end_time=? "); 
-				sb.append("WHERE bed_visit_id=? ;");//.append(current_bedvisit_id).append("';");
+				sb.append("WHERE bed_visit_id=? ;");
 
 				// If it's a transfer we also need to create a new BEDVISIT entry (no end time):
 				if (msgtype.equals("ADT^A02") && visitid > 0) {
