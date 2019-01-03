@@ -185,7 +185,9 @@ public class JDBCTest {
 
 				// We don't want this stored in the per-person dict
 				latest_unid_read_this_time = rs.getLong("UNID"); // use below if all successful.
-				System.out.println("** DEBUG: latest_unid_read_this_time = " + latest_unid_read_this_time);
+				if (debug) {
+					System.out.println("** DEBUG: latest_unid_read_this_time = " + latest_unid_read_this_time);
+				}
 				extract_fields_from_IDS(rs, dict);
 				
 				// Now insert this record into the UDS PERSON_SCRATCH table.
@@ -196,7 +198,9 @@ public class JDBCTest {
 				String who = dict.get(PATIENT_FULL_NAME); // debug
 				if (already_in_person_table(uds_conn, dict)) {
 			
-					System.out.println("** DEBUG: " + who + " is already in UDS");
+					if (debug) {
+						System.out.println("** DEBUG: " + who + " is already in UDS");
+					}
 
 					// obtain timestamp last updated - are we more recent?
 					////person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
@@ -222,7 +226,9 @@ public class JDBCTest {
 				}
 				else { // It's a completely new PERSON entry - and therefore a new patient_visit entry.
 					
-					System.out.println("** DEBUG: " + who + " is NOT already in UDS");
+					if (debug) {
+						System.out.println("** DEBUG: " + who + " is NOT already in UDS");
+					}
 
 					// Now we write the PERSON_SCRATCH data to the UDS
 					boolean result = insert_person_UDS(dict, uds_conn);
@@ -249,7 +255,6 @@ public class JDBCTest {
 
 					// The current visit id is probably 0 (i.e. no entry in the
 					// patient_visit table) but we double-check
-					//System.out.println("** DEBUG: current visit id is " + visitid);
 					
 					// It will be a NEW visit if they were discharged last visit,
 					// or this is their first inpatient visit:
@@ -298,10 +303,6 @@ public class JDBCTest {
 
 
 			} // end (while rs.next())	
-
-			//if (latest_unid_read_this_time > last_unid_processed_last_time) {
-			//	write_last_unid_to_UDS(uds_conn, latest_unid_read_this_time, last_unid_processed_last_time);
-			//}
 
 			// Progress check
 			last_unid_processed_last_time = read_last_unid_from_UDS(uds_conn);
@@ -576,8 +577,7 @@ public class JDBCTest {
 		// here: patient death indicator
 		// here: identity unknown
 		sb.append(LAST_UPDATED); 
-		//sb.append("patient_death_date_time, patient_death_indicator, identity_unknown_indicator, last_update_date_time");
-
+		
 		// NB Need to parse HL7 timestamps to get into correct format for Postgres.
 		sb.append(") VALUES (?,?,?,?,?,?,?);");
 
@@ -645,13 +645,11 @@ public class JDBCTest {
 
 			st.execute();
 
-			////c.commit();
 		}
 		catch (SQLException e) {
 			System.out.println("ERROR in insert_person_UDS()");
 			e.printStackTrace();
 			return false;
-			//c.rollback(); // raises an SQLException itself.
 		}
 		
 		return true;
@@ -672,10 +670,7 @@ public class JDBCTest {
 		uds_insert.append("INSERT INTO PATIENT_VISIT (");
 		uds_insert.append(HOSPITAL_NUMBER).append(", ");
 		uds_insert.append(PATIENT_CLASS).append(", ");
-		// hospital_service, ");
-		//uds_insert.append("readmission_indicator, 
 		uds_insert.append(ADMISSION_DATE).append(", ");
-		/////uds_insert.append(DISCHARGE_DATE).append(", ");
 		uds_insert.append(LAST_UPDATED);
 		uds_insert.append(") VALUES (?,?,?,?);");
 
@@ -719,12 +714,10 @@ public class JDBCTest {
 			}
 
 			st.execute();
-			// st.commit();
 		}
 		catch (SQLException e) {
 			System.out.println("ERROR in insert_person_UDS()");
 			e.printStackTrace();
-			//c.rollback(); // raises an SQLException itself.
 		}
 
 	}
@@ -802,7 +795,7 @@ public class JDBCTest {
 			///???
 		}
 
-		sb.append(" where visitid = ? ")/*.append(visitid)*/.append(" and lastupdated < ? ;"); 
+		sb.append(" where visitid = ? ").append(" and lastupdated < ? ;"); 
 		
 		PreparedStatement st = c.prepareStatement(sb.toString());
 		String update = dict.get(MESSAGE_DATE_TIME);
@@ -911,7 +904,6 @@ public class JDBCTest {
 				// Take the first (i.e. most recent) one.
 				current_bedvisit_id = rs.getLong("bed_visit_id");
 				current_location = rs.getString("location");
-				//System.out.println("** DEBUG: current_bedvisit_id = " + current_bedvisit_id);
 			}
 			
 			// We only update if the new location differs from the existing one.
@@ -979,8 +971,6 @@ public class JDBCTest {
 	private static boolean already_in_person_table(Connection c, 
 												Map<String, String> dict) throws SQLException {
 
-		//System.out.println("** DEBUG - already_in_person_table()");
-
 		String hospnum = dict.get(HOSPITAL_NUMBER);
 		if (hospnum.equals(NULL)) {
 			return false;
@@ -992,12 +982,10 @@ public class JDBCTest {
 		PreparedStatement st = c.prepareStatement(query.toString());
 		st.setString(1, hospnum);
 		ResultSet rs = st.executeQuery();
-		if (rs.next()) {
-			//System.out.println("already in there");
+		if (rs.next()) { // <- Already in there
 			return true;
 		}
 		else {
-			//System.out.println("NOT already there");
 			return false;
 		}
 	}
@@ -1140,9 +1128,6 @@ public class JDBCTest {
 	 * @return Postgres-format timestamp e.g. "2018-10-03 14:18:07.7618"
 	 */
 	private static String convert_timestamp (String hl7) {
-
-		////System.out.println("** DEBUG - convert_timestamp()");
-		////System.out.println(hl7);
 
 		// If it's NULL return NULL
 		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
