@@ -288,7 +288,7 @@ public class JDBCTest {
 					// or this is their first inpatient visit:
 					if ( 0 == visitid )  {
 						// Insert new PATIENT_VISIT entry:
-<
+
 						insert_patient_visit_uds(dict, uds_conn);
 
 						visitid = get_current_visitid_for_person(uds_conn, dict);
