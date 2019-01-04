@@ -118,7 +118,7 @@ DROP TABLE IF EXISTS BEDVISIT;
 
 CREATE TABLE BEDVISIT (
 	BED_VISIT_ID BIGSERIAL PRIMARY KEY,
-	patient_visit_id char(8) NOT NULL, -- primary key of patient_visit table
+	patient_visit_id INTEGER NOT NULL, -- primary key of patient_visit table
 	location varchar(30), -- i.e. an individual bed in the hospital.
 	start_time timestamp,
 	end_time timestamp
