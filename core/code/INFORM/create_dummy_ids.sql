@@ -58,7 +58,7 @@ INSERT INTO TBL_IDS_MASTER (
         VALUES(
         'Fred',
         '',
-        'Bloggs',
+        'O''Bloggs',
         '2009-03-04', --'20090304',
         '',
         '94006000', -- NB the id below is different
