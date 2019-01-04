@@ -8,11 +8,6 @@ hapi-base-2.3.jar		json-simple-1.1.1.jar		slf4j-api-1.7.10.jar
 hapi-hl7overhttp-2.3.jar	log4j-1.2.17.jar		slf4j-log4j12-1.7.10.jar
 hapi-structures-v27-2.3.jar	postgresql-42.2.5.jar
 
-
-We should see the person_scratch, patient_visit and bedvisit tables in the UDS being updated
-The bedvisit tables keeps track of a patient as they move around different beds.
-So for a single visit, there can be multiple bedvisits.
-
 #The postgres and json ones are in the HL7_java/code/INFORM directory.
 Download postgresql-42.2.5.jar from https://jdbc.postgresql.org/download.html
 Download json-simple-1.1.1.jar from various places.
@@ -21,15 +16,11 @@ The others are in the HL7_java/hapi-dist-2/lib directory.
 
 0. 	Open a new shell and cd to docker directory
 	Edit config.json so the IP addresses etc. point to the ids and uds. If running this on your
-own laptop rather than the GAE the address will likely be that of en0 from the ifconfig command. Or 
-you can set them both to "host.docker.internal"
+own laptop rather than the GAE the address will likely be that of en0 from the ifconfig command.
 	docker build -t jdbctest .
 
-1. If you wish to reset entries in INFORM_SCRATCH (i.e. set to empty tables) add this to config file:
-	change 
-	"debugging":"false"
-	to
-	"debugging":"true"
+1. Run script to reset entries in INFORM_SCRATCH (i.e. set to empty tables):
+	psql -f create_dummy_uds.sql INFORM_SCRATCH
 
 2. Delete entries in DUMMY_IDS and add first two back in:
 	psql -f create_dummy_ids.sql DUMMY_IDS
@@ -86,26 +77,5 @@ you can set them both to "host.docker.internal"
 
 12. If the container is run multiple times now you should find that the UDS is not updated.
 
-13. You can also run all is OK with the following commands, then running the docker image and
-checking each stage, all for Leonardo:
-
-psql -f insert_admit_message.sql DUMMY_IDS
-psql -f insert_transfer_message.sql DUMMY_IDS
-psql -f insert_discharge_message.sql DUMMY_IDS
-
-There is also a script to insert a patient with null value for hospital ID into the IDS:
-psql -f insert_nullhn_admit_message.sql DUMMY_IDS
-As the JDBCTest program uses hospitalnumber as the primary key you should find that no new records are
-added to the UDS if you then run the docker instance.
-
-
-14. Finally delete the image
+13. Finally delete the image
 	docker image rm -f jdbctest
-
-==========================
-Alternative commands for docker - replace above where needed:
-
-docker-compose build		imnstead of docker build
-docker-compose up			instead of docker run jdbctest
-docker-compose down
-docker-compose stop			instead of docker rm
