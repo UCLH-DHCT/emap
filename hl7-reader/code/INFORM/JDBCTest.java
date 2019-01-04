@@ -14,6 +14,19 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+// HAPI imports
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import ca.uhn.hl7v2.validation.ValidationContext;
+import ca.uhn.hl7v2.HL7Exception;
+
+import uk.ac.ucl.rits.inform.Engine;
+
+
 /**
  * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
@@ -40,6 +53,10 @@ import java.util.Locale;
  */
 public class JDBCTest {
 
+	private static Engine engine;
+	private static DefaultHapiContext context;
+	private static PipeParser parser;
+	
 	private static long last_unid_processed_last_time = 0; // Last UNID currently stored in UDS
 
 	
@@ -64,7 +81,7 @@ public class JDBCTest {
 	//private static final String MESSAGE_IDENTIFIER = "MessageIdentifier"; // NOT NULL
 	private static final String MESSAGE_VERSION = "MessageVersion"; // NOT NULL
 	private static final String MESSAGE_DATE_TIME = "MessageDateTime"; // NOT NULL
-	//private static final String HL7_MESSAGE = "HL7Message"; // NOT NULL 
+	private static final String HL7_MESSAGE = "HL7Message"; // NOT NULL 
 	private static final String PERSIST_DATE_TIME = "PersistDateTime"; // NOT NULL
 
 	// UDS column names:
@@ -135,12 +152,11 @@ public class JDBCTest {
 		// sex, patient_address,  patient_death_date_time, patient_death_indicator, 
 		// identity_unknown_indicator, last_update_date_time (PID-33)
 		//
-		// PATIENT_VISIT - setID, patient_class, assigned_location, admission_type, 
-		// prior_location, attending_doctor, referring_doctor, hospital_service,
-		// temp_location, preadmit_test_indicator, readmission_indicator, visit_number,
-		// discharge_disposition, discharged_to_location, pending_location, 
-		// admit_datetime, discharge_date_time, alternate_vist_id, visit_indicator
-		// Need to add patient id list
+		// PATIENT_VISIT - patient_class, admission_type, 
+		// hospital_service,
+		// preadmit_test_indicator, visit_number, 
+		// admit_datetime, discharge_date_time, 
+		// 
 		//////////////////////////////////////////
 
 		String ids_url = "jdbc:postgresql://" + idshost + "/DUMMY_IDS"; // IDS (dummy)
@@ -197,28 +213,11 @@ public class JDBCTest {
 					}
 
 					// obtain timestamp last updated - are we more recent?
-					////person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
+					///person_entry_last_updated = get_last_timestamp_of_person(uds_conn, dict);
 					///System.out.println("Stored timestamp is " + person_entry_last_updated);
 
-					// Now we need to update the PERSON_SCRATCH record. Need to check for null values and also outdated values
-					// eg they change their name
-
-					// Also need to find current PATIENT_VISIT record and update as appropriate
-					// e.g. we get a discharge or transfer message.
-					/*long visitid = get_current_visitid_for_person(uds_conn, dict);
-					System.out.println("** DEBUG: current visit id is " + visitid);
-					// It will be a NEW visit if they were discharged last visit:
-					if ( 0 == visitid )  {
-						String patient_visit_insert = get_UDS_insert_patient_visit_string(dict);
-						write_update_to_database (patient_visit_insert, uds_st);
-					}
-					else { // Found a "live" patient_visit entry. Update if necessary.
-						update_patient_visit(uds_conn, dict, visitid);
-					}*/
-					
-
 				}
-				else { // It's a completely new PERSON entry - and therefore a new patient_visit entry.
+				else { // It's a completely new PERSON_SCRATCH entry.
 					
 					if (debug) {
 						System.out.println("** DEBUG: " + who + " is NOT already in UDS");
@@ -277,7 +276,8 @@ public class JDBCTest {
 
 					//throw new SQLException(); // testing bugfix for #19
 				}
-				else if (msgtype.equals("ADT^A03")) { // discharge
+				else if (msgtype.equals("ADT^A03")) { // Inpatient discharge
+					// When a patient is discharged from the hospital ward.
 
 					// update pv table
 					update_patient_visit(uds_conn, dict, visitid);
@@ -397,6 +397,7 @@ public class JDBCTest {
 		query.append(MESSAGE_TYPE).append(", "); 
 		query.append(MESSAGE_VERSION).append(", "); 
 		query.append(MESSAGE_DATE_TIME).append(", ");
+		query.append(HL7_MESSAGE).append(", ");
 		query.append(PERSIST_DATE_TIME);
 		query.append(" FROM TBL_IDS_MASTER ");
 		query.append(" where ").append(UNID).append(" >  ? ;");
