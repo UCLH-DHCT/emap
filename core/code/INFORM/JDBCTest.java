@@ -27,6 +27,19 @@ import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.Engine;
 
 
+// HAPI imports
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import ca.uhn.hl7v2.validation.ValidationContext;
+import ca.uhn.hl7v2.HL7Exception;
+
+import uk.ac.ucl.rits.inform.Engine;
+
+
 /**
  * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
@@ -139,6 +152,22 @@ public class JDBCTest {
 		// Key is Postgres table column name, value = what we need to insert
 		Map<String, String> dict = new HashMap<String, String>();
 
+
+		// Set up HAPI parser stuff
+        context = new DefaultHapiContext();
+        ValidationContext vc = ValidationContextFactory.noValidation();
+        context.setValidationContext(vc);
+
+		// As HL7 messages may be from different HL7 versions, but later versions are
+     	// backwards-compatible, we use HAPI's "CanonicalModelClassFactory"
+     	// to set them all to the same version.
+        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        context.setModelClassFactory(mcf);
+        parser = context.getPipeParser(); //getGenericParser();
+        engine = new Engine(context, parser);
+
+
 		Connection conn;
 		ResultSet rs;
 
@@ -237,10 +266,16 @@ public class JDBCTest {
 
 				//////////////////////////////////////////
 				// Take action based on HL7 message type.
+				// Roma has looked at real messages and says he sees ADT-A0 [1, 2, 3, 4, 8, 13, 28, 31, 34 ]
+				// Atos docs suggest there are also ADT-A05 and ADT_A40
+				// NB HAPI uses the same message type to handle multiple messages
+				// e.g. A01 also handles A04, A08, A13
+				// See note in Engine class.
 				//////////////////////////////////////////
 
 				long visitid = get_current_visitid_for_person(uds_conn, dict);
 				String msgtype = dict.get(MESSAGE_TYPE);
+
 				if (msgtype.equals(NULL)) {
 					continue;
 				}
@@ -248,11 +283,12 @@ public class JDBCTest {
 
 					// The current visit id is probably 0 (i.e. no entry in the
 					// patient_visit table) but we double-check
-					
+
 					// It will be a NEW visit if they were discharged last visit,
 					// or this is their first inpatient visit:
 					if ( 0 == visitid )  {
 						// Insert new PATIENT_VISIT entry:
+<
 						insert_patient_visit_uds(dict, uds_conn);
 
 						visitid = get_current_visitid_for_person(uds_conn, dict);
@@ -261,10 +297,12 @@ public class JDBCTest {
 						}
 						update_bedvisit_table(uds_conn, dict, visitid);
 						// what if it failed?
+
 					}
 					else {
 						/// ??? insert_bedvisit_entry(dict, visitid); ???
 					}
+
 					
 				}
 				else if (msgtype.equals("ADT^A02")) { // transfer
@@ -287,6 +325,52 @@ public class JDBCTest {
 
 					//throw new SQLException(); // testing bugfix for #19.
 				}
+
+				else if (msgtype.equals("ADT^A05")) { // PRE-ADMIT A PATIENT
+					
+				}
+				else if (msgtype.equals("ADT^A08")) { // UPDATE PATIENT INFORMATION
+					// Inpatient Amend Admission/Discharge/Transfer 
+					// When a patient’s admission and discharge details are updated 
+					/* From Atos functional spec:
+						A user can carry out a valid transfer retrospectively. Under this
+						scenario CareCast triggers a P01 message with EVN-4 containing value
+						of CSTY. Interface will send this message as A08. EVN-3 will contain
+						the transfer date and time. The ward code in PV1-3 field may not be
+						the current ward for the patient. The Receiving system will have to 
+						check the transfer date time in the message against the transfer 
+						date time of the latest ward in their system’s database to ascertain 
+						whether this location is the current location or not. Also under this
+						scenario the previous ward is unlikely to be present.
+					*/
+				}
+				else if (msgtype.equals("ADT^A13")) { // CANCEL DISCHARGE / END VISIT
+					// When a patient’s last discharge from the hospital ward is cancelled 
+
+				} 
+				else if (msgtype.equals("ADT^A28")) { // ADD PERSON OR PATIENT INFORMATION
+
+				} 
+				else if (msgtype.equals("ADT^A31")) { // UPDATE PERSON INFORMATION e.g. death
+
+				} 
+				else if (msgtype.equals("ADT^A34")) { // MERGE PATIENT INFORMATION - PATIENT ID ONLY
+					/*
+						From standard (v 2.4, Page 3-35):
+						Event A34 has been retained for backward compatibility only. From V2.3.1 onwards,
+						event A40 (Merge patient - patient identifier list) should be used instead.
+
+						Ashish:
+						MRG segment.
+						MRG1.1 has the discarded MRN and PID3.1 has the new MRN.
+					*/
+
+				} 
+				else if (msgtype.equals("ADT^A40")) { // MERGE PATIENT - PATIENT IDENTIFIER LIST
+					// NB A39 is MERGE PERSON - PATIENT ID
+					// We might not see this at UCLH, only A34. See table on page 4 of functional spec.
+				} 
+
 
 
 				if (latest_unid_read_this_time > last_unid_processed_last_time) {
@@ -542,6 +626,7 @@ public class JDBCTest {
 		sb.append(SEX).append(","); 
 		sb.append(PATIENT_ADDRESS).append(",");
 		sb.append(PATIENT_DEATH_DATE).append(","); 
+
 		// here: patient death indicator
 		// here: identity unknown
 		sb.append(LAST_UPDATED); 
@@ -688,7 +773,7 @@ public class JDBCTest {
 			e.printStackTrace();
 		}
 
-	}
+  }
 
 
 	/**
@@ -736,7 +821,7 @@ public class JDBCTest {
 
 	/**
 	 * Update an existing patient_visit record:
-	 * visitid | hospitalnumber | patientclass |  
+	 * visitid | hospitalnumber | patientclass |
 	 * hospitalservice | readmissionindicator | admissiondate | 
 	 * dischargedate | lastupdated
 	 * 
@@ -778,6 +863,7 @@ public class JDBCTest {
 
 		if (msgtype.equals("ADT^A03")) {
 			pos++; // 2
+
 			if (ddate.equals(NULL_TIMESTAMP)) {
 				st.setNull(pos, java.sql.Types.DATE);
 			}
@@ -889,6 +975,7 @@ public class JDBCTest {
 					sb.append(" VALUES (?, ?, ?) ;");
 				}
 
+
 				PreparedStatement st3 = c.prepareStatement(sb.toString());
 				st3.setTimestamp(1, Timestamp.valueOf(dict.get(MESSAGE_DATE_TIME)));
 				st3.setLong(2, current_bedvisit_id);
@@ -907,7 +994,7 @@ public class JDBCTest {
 		return true;
 		
 	}
-	
+
 
 	/**
 	 * Update an existing PERSON_SCRATCH record in UDS. 
@@ -944,6 +1031,7 @@ public class JDBCTest {
 			return false;
 		}
 
+
 		StringBuilder query = new StringBuilder("select * from PERSON_SCRATCH where ");
 		query.append(HOSPITAL_NUMBER).append(" = ? ;");
 	
@@ -951,6 +1039,7 @@ public class JDBCTest {
 		st.setString(1, hospnum);
 		ResultSet rs = st.executeQuery();
 		if (rs.next()) { // <- Already in there
+
 			return true;
 		}
 		else {
