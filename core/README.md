@@ -15,4 +15,6 @@ certain data items not in the IDS (such as a patient's address). We also need to
 instead of JDBC.  
 
 NB ** currently if a discharge message is received, it is assumed that a person has already been admitted -
-should change this so only admitted if an A01 received, rather than just reading admit date from IDS?  
+should change this so only admitted if an A01 received, rather than just reading admit date from IDS?
+
+Basic instructions for running the demo code are in [README_demo.md](./code/INFORM/README_demo.md).  

@@ -79,8 +79,6 @@ public class JDBCTest {
 	private static final String PATIENT_FULL_NAME = "PatientFullName";
 	private static final String LAST_UPDATED = "LastUpdated"; // *** NB *** we tend to use the IDS MessageDateTime
 
-	// Do not put single quotes around this String when using in SQL queries.
-	// We only do that for timestamps with values.
 	private static final String NULL_TIMESTAMP = "null::timestamp";
 	private static final String NULL = "NULL";
 
@@ -124,11 +122,7 @@ public class JDBCTest {
 		// Key is Postgres table column name, value = what we need to insert
 		Map<String, String> dict = new HashMap<String, String>();
 
-
-		// process_command_line_arguments(args);
-
 		Connection conn;
-		//Statement st;
 		ResultSet rs;
 
 		//////////////////////////////////////////
@@ -193,7 +187,7 @@ public class JDBCTest {
 				// Now insert this record into the UDS PERSON_SCRATCH table.
 
 				// Check to see if this person is already in the PERSON_SCRATCH table - obtain latest update time
-				// if they are, and our update time is later than that stored, update table as appropriate.
+				// If they are, and our update time is later than that stored, update table as appropriate.
 				String person_entry_last_updated = "NULL";
 				String who = dict.get(PATIENT_FULL_NAME); // debug
 				if (already_in_person_table(uds_conn, dict)) {
@@ -429,12 +423,8 @@ public class JDBCTest {
 	private static boolean got_null_result(ResultSet rs, String str) 
 	throws SQLException {
 
-		if (rs.wasNull() || str.equals("") || str.isEmpty()) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return (rs.wasNull() || str.equals("") || str.isEmpty());
+	
 	}
 
 
@@ -454,40 +444,14 @@ public class JDBCTest {
 		
 		String value = "";
 
-		value = rs.getString(PATIENT_NAME);
-		if (got_null_result(rs, value)) {
-			value = NULL;
-		}
-		dict.put(PATIENT_NAME, value);
-		
-		value = rs.getString(PATIENT_MIDDLE_NAME);
-		if (got_null_result(rs, value)) {
-			value = NULL;
-		}
-		dict.put(PATIENT_MIDDLE_NAME, value);
-		
-		value = rs.getString(PATIENT_SURNAME);
-		if (got_null_result(rs, value)) {
-			value = NULL;
-		}
-		dict.put(PATIENT_SURNAME, value);
-
-		value = rs.getString(DATE_OF_BIRTH);
-		if (got_null_result(rs, value)) {
-			value = NULL_TIMESTAMP;
-		}
-		else {
-			value = convert_timestamp(value);
-		}
-		dict.put(DATE_OF_BIRTH, value);
-
+		update_dict(dict, rs, PATIENT_NAME, false);	
+		update_dict(dict, rs, PATIENT_MIDDLE_NAME, false);
+		update_dict(dict, rs, PATIENT_SURNAME, false);
+		update_dict(dict, rs, DATE_OF_BIRTH, true);
+	
 		// nhs number - not used
 
-		value = rs.getString(HOSPITAL_NUMBER);
-		if (got_null_result(rs, value)) {
-			value = NULL;
-		}
-		dict.put(HOSPITAL_NUMBER, value);
+		update_dict(dict, rs, HOSPITAL_NUMBER, false);
 
 		String pc = rs.getString(PATIENT_CLASS);	
 		if (got_null_result(rs, pc)) {
@@ -498,46 +462,20 @@ public class JDBCTest {
 		}
 		dict.put(PATIENT_CLASS, value);
 
-		value = rs.getString(PATIENT_LOCATION);
-		if (got_null_result(rs, value)) {
-			value = NULL;
-		}
-		dict.put(PATIENT_LOCATION, value);
+		update_dict(dict, rs, PATIENT_LOCATION, false);
+		update_dict(dict, rs, ADMISSION_DATE, true);
+		update_dict(dict, rs, DISCHARGE_DATE, true);
+		update_dict(dict, rs, MESSAGE_TYPE, false); // e.g. ADT^A28
 
-		value = rs.getString(ADMISSION_DATE);
-		if (got_null_result(rs, value)) {
-			value = NULL_TIMESTAMP;
-		}
-		else {
-			value = convert_timestamp(value);
-		}
-		dict.put(ADMISSION_DATE, value);
-
-		value = rs.getString(DISCHARGE_DATE);
-		if (got_null_result(rs, value)) {
-			value = NULL_TIMESTAMP;
-		}
-		else {
-			value = convert_timestamp(value);
-		}
-		dict.put(DISCHARGE_DATE, value);
-
-		value = rs.getString(MESSAGE_TYPE);
-		if (got_null_result(rs, value)) {
-			value = NULL_TIMESTAMP;
-		}
-		dict.put(MESSAGE_TYPE, value); // e.g. ADT^A28
-
-		// The following should never be null so if we get an exception there is probably something wrong with the IDS.
-		value = rs.getString(MESSAGE_VERSION);
-		dict.put(MESSAGE_VERSION, value); // e.g. 2.2
-		value = rs.getString(MESSAGE_DATE_TIME);
-		dict.put(MESSAGE_DATE_TIME, convert_timestamp(value));
+		////////////////////////
+		// The following should never be null so if we get an exception there is probably something wrong with the IDS.	
+		update_dict(dict, rs, MESSAGE_VERSION, false);
+		update_dict(dict, rs, MESSAGE_DATE_TIME, true);
 		// SENDER_APPLICATION
 		// MESSAGE_IDENTIFIER
 		// HL7_MESSAGE
-		value = rs.getString(PERSIST_DATE_TIME);
-		dict.put(PERSIST_DATE_TIME, value);
+		update_dict(dict, rs, PERSIST_DATE_TIME, true);
+		/////// end (should never be null) ///////////
 
 		// The following can only have values obtained if the HL7 message is parsed,
 		// so we use default vaues here:
@@ -553,6 +491,35 @@ public class JDBCTest {
 		dict.put(PATIENT_FULL_NAME, patient_name.toString());
 
 	} // End of extract_fields_from_IDS().
+
+
+	/**
+	 * Get value from ResultSet, or NULL if none exists. Insert into dict.
+	 * 
+	 * @param dict Map of dta items from IDS
+	 * @param rs ResultSet from IDS query
+	 * @param key String of required item, e.g. HOSPITAL_NUMBER
+	 * @param is_time_value True if it's a timestamp, false otherwise.
+	 * @throws SQLException
+	 */
+	private static void update_dict(Map<String,String>dict, ResultSet rs, String key,
+	boolean is_time_value) 
+	throws SQLException{
+
+		String value = rs.getString(key);
+		if (got_null_result(rs, value)) {
+			if (is_time_value) {
+				value = NULL_TIMESTAMP;
+			}
+			else {
+				value = NULL;
+			}
+		}
+		if (is_time_value) {
+			value = convert_timestamp(value);
+		}
+		dict.put(key, value);
+	}
 
 
 	/**
@@ -789,7 +756,7 @@ public class JDBCTest {
 		String ddate = NULL_TIMESTAMP;
 		if (msgtype.equals("ADT^A03")) { // discharge - NB does this have a new location too?
 			ddate = dict.get(DISCHARGE_DATE);
-			sb.append(", dischargedate = ? ");
+			sb.append(", dischargedate = ? "); 
 		}
 		else {
 			///???
