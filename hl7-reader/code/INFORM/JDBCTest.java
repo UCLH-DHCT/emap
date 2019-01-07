@@ -1189,6 +1189,9 @@ public class JDBCTest {
 		// If it's NULL return NULL
 		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
 
+		// Return if it's a Postgres-style null timestamp
+		if (hl7 == NULL_TIMESTAMP) return NULL_TIMESTAMP;
+
 		// First make sure this is not already in Postgres format (sanity check):
 		String[] test = hl7.split("-");
 		if (test.length >= 3) return hl7; // Assumes year, month and day all present!
