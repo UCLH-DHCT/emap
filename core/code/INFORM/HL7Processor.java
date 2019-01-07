@@ -41,14 +41,14 @@ import uk.ac.ucl.rits.inform.Engine;
 
 
 /**
- * JDBCTest was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
+ * HL7Processor was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
  * <p>
  * To compile:
  * <pre>
  * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
- * javac JDBCTest.java
- * java JDBCTest
+ * javac HL7Processor.java
+ * java HL7Processor
  * </pre>
  * A typical location value is {@code T11S^B11S^T11S-32}
  * <p>
@@ -64,7 +64,7 @@ import uk.ac.ucl.rits.inform.Engine;
  * sudo echo /Applications/Postgres.app/Contents/Versions/latest/bin | sudo tee /etc/paths.d/postgresapp
  * </pre>
  */
-public class JDBCTest {
+public class HL7Processor {
 
 	private static Engine engine;
 	private static DefaultHapiContext context;
