@@ -1,7 +1,7 @@
 version: '3'
 services:
   hl7:
-    container_name: jdbctest
+    container_name: hl7processor
     environment:
       NODE_ENV: test
     build:

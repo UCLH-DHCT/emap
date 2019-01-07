@@ -1,8 +1,8 @@
-Notes for testing JDBCTest
+Notes for testing HL7Processor
 
-To run JDBCTest, use the ./runit.sh script.
+To run HL7Processor, use the ./runit.sh script.
 
-To run JDBCTest as a dockerised container, the following jar files need to be copied into the docker directory:
+To run HL7Processor as a dockerised container, the following jar files need to be copied into the docker directory:
 
 hapi-base-2.3.jar		json-simple-1.1.1.jar		slf4j-api-1.7.10.jar
 hapi-hl7overhttp-2.3.jar	log4j-1.2.17.jar		slf4j-log4j12-1.7.10.jar
