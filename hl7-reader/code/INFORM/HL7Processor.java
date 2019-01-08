@@ -1184,7 +1184,7 @@ public class HL7Processor {
 	 * @param hl7 An HL7 format timestamp e.g. "20181003141807.7618"
 	 * @return Postgres-format timestamp e.g. "2018-10-03 14:18:07.7618"
 	 */
-	private static String convert_timestamp (String hl7) {
+	public static String convert_timestamp (String hl7) {
 
 		// If it's NULL return NULL
 		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
