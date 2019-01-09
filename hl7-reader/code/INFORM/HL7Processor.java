@@ -126,7 +126,7 @@ public class HL7Processor {
 			 obj = new JSONParser().parse(new FileReader(filename)); 
 			 
 			 // typecasting obj to JSONObject 
-			 jo = (JSONObject) obj;
+			jo = (JSONObject) obj;
 
 			udshost = (String)jo.get("udshost");
 			idshost = (String)jo.get("idshost");
@@ -505,10 +505,10 @@ public class HL7Processor {
 	 * @return true if got an empty result, false otherwise
 	 * @throws SQLException
 	 */
-	private static boolean got_null_result(ResultSet rs, String str) 
+	public static boolean got_null_result(ResultSet rs, String str) 
 	throws SQLException {
 
-		return (rs.wasNull() || str.equals("") || str.isEmpty());
+		return (rs == null || (rs != null) && rs.wasNull() || str.equals("") || str.isEmpty());
 	
 	}
 
