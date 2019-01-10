@@ -3,12 +3,12 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-
+import org.hamcrest.*;
 
 public class TestRunner {
    public static void main(String[] args) {
-      Result result = JUnitCore.runClasses(JunitTestSuite.class/*TestHL7Processor.class*/);
-		
+      Result result = JUnitCore.runClasses(JunitTestSuite.class);
+
       for (Failure failure : result.getFailures()) {
          System.out.println("FAILED: " + failure.toString());
       }
