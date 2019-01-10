@@ -10,11 +10,9 @@ public class TestRunner {
       Result result = JUnitCore.runClasses(JunitTestSuite.class/*TestHL7Processor.class*/);
 		
       for (Failure failure : result.getFailures()) {
-         System.out.println(failure.toString());
+         System.out.println("FAILED: " + failure.toString());
       }
 		
-      //System.out.println(result.wasSuccessful());
-
       if (result.wasSuccessful()) {
          System.out.println("\nALL TESTS PASSED\n");
       }
