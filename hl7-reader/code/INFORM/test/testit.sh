@@ -1,8 +1,7 @@
 #!/bin/sh
 # *******************************************
-# * This batch file runs example code
+# * This batch file runs our unit tests
 # *
-# * For more info, see: http://hl7api.sourceforge.net/devbyexample.html
 # ******************************************* 
 
 CP="."
@@ -11,7 +10,6 @@ do
 		  CP=$i:$CP;
 done
 
-#CP=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar:$CP
 CP=.:../postgresql-42.2.5.jar:../json-simple-1.1.1.jar:$CP
 
 CP=junit-4.10.jar:$CP
