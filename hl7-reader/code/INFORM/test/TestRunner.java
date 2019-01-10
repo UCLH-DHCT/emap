@@ -4,6 +4,7 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.hamcrest.*;
+import static org.mockito.Mockito.*;
 
 public class TestRunner {
    public static void main(String[] args) {

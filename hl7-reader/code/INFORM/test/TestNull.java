@@ -12,9 +12,22 @@ import junit.framework.TestCase;
 import java.sql.*;
 import uk.ac.ucl.rits.inform.*;
 
+import static org.mockito.Mockito.*;
+
 // NB despite the @Test annotation each test method name must begin with "test"
 
 public class TestNull extends TestCase {
+
+	//@Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+	//@Mock
+	//HL7Processor mockproc;
+
+
+	// @Before
+    public void init(){
+      //  MockitoAnnotations.initMocks(this);
+    }
 
     @Override
     public void setUp() {
@@ -45,6 +58,10 @@ public class TestNull extends TestCase {
     }
 
 
+	@Test
+	public void testmock() {
+		HL7Processor mockproc = mock(HL7Processor.class);
+	}
 
     @Override
     protected void tearDown() throws Exception {
