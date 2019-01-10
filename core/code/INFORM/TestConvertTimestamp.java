@@ -9,6 +9,7 @@
 import org.junit.Test;
 import static org.junit.Assert.*; 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.*;
 
 // NB despite the @Test annotation each test method name must begin with "test"
 
