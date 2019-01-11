@@ -27,7 +27,7 @@ echo "Removing old class files"
 rm *.class
 
 echo "Compiling"
-javac -classpath $CP ../src/uk/ac/ucl/rits/inform/Engine.java ../src/uk/ac/ucl/rits/inform/HL7Processor.java TestConvertTimestamp.java TestNull.java JunitTestSuite.java TestRunner.java
+javac -Xlint:unchecked -classpath $CP ../src/uk/ac/ucl/rits/inform/Engine.java ../src/uk/ac/ucl/rits/inform/HL7Processor.java TestConvertTimestamp.java TestNull.java TestJson.java JunitTestSuite.java TestRunner.java
 
 echo "Running tests"
 java -cp "../src:$CP" TestRunner
