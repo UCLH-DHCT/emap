@@ -5,7 +5,8 @@ import org.junit.runners.Suite;
 
 @Suite.SuiteClasses({
    TestConvertTimestamp.class,
-   TestNull.class
+   TestNull.class,
+   TestJson.class
 })
 
 public class JunitTestSuite {   

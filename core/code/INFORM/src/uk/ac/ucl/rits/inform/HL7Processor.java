@@ -135,7 +135,12 @@ public class HL7Processor {
 			 // typecasting obj to JSONObject 
 			jo = (JSONObject) obj;
 			//jo.put("test", "test");
-			interrogate_json_object(jo);
+			if ( ! interrogate_json_object(jo) ) {
+
+				System.out.println("Error in JSON file.");
+				System.exit(1);
+
+			}
 		
 
  		}
@@ -403,20 +408,52 @@ public class HL7Processor {
 	 * 
 	 * @param jo The JSONObject to interrogate.
 	 */
-	public static void interrogate_json_object(JSONObject jo) {
+	public static boolean interrogate_json_object(JSONObject jo) {
 
-		udshost = (String)jo.get("udshost");
-		idshost = (String)jo.get("idshost");
-		idsusername = (String)jo.get("idsusername");
-		udsusername = (String)jo.get("udsusername");
-		idspassword	= (String)jo.get("idspassword");
-		udspassword	= (String)jo.get("udspassword");
-
-		String debugging = (String)jo.get("debugging");
-		if (debugging.equals("yes") || debugging.equals("true")) {
-			debug = true;
+		// This parameter is optional so we don't check for emptiness.
+		if (jo.containsKey("debugging")) {
+			String debugging = (String)jo.get("debugging");
+			if (debugging.equals("yes") || debugging.equals("true")) {
+				debug = true;
+			}
 		}
 
+		// Check other parameters
+		boolean b1 = check_json_value(jo, udshost, "udshost");
+		boolean b2 = check_json_value(jo, idshost, "idshost");
+		boolean b3 = check_json_value(jo, idsusername, "idsusername");
+		boolean b4 = check_json_value(jo, udsusername, "udsusername");
+		boolean b5 = check_json_value(jo, idspassword, "idspassword");
+		boolean b6 = check_json_value(jo, udspassword, "udspassword");
+
+
+		return (b1 && b2 && b3 && b4 && b5 && b6);
+
+	}
+
+
+	/**
+	 * Robustly check JSON object for a required value.
+	 * When debugging is on, key may be missing from config file/JSONObject.
+	 * 
+	 * @param jo The JSON object being queried.
+	 * @param varname Name of a global String object, e.g. idsusername;
+	 * @param key Name of the key in the JSON object map/config file, e.g. "idsusername"
+	 * @return true if key and value found, false otherwise. 
+	 */
+	public static boolean check_json_value (JSONObject jo, String varname, String key) {
+
+		if ( ! jo.containsKey(key)) {
+			System.out.println("No entry found in config file for " + key);
+			return false;
+		}
+		varname = (String)jo.get(key);
+		if ( (! debug) && varname.isEmpty()) {
+			System.out.println("Empty " + key + " value");
+			return false;
+		}
+
+		return true;
 	}
 
 
