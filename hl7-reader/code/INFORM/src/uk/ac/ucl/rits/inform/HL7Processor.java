@@ -113,14 +113,20 @@ public class HL7Processor {
 	private static final String NULL_TIMESTAMP = "null::timestamp";
 	private static final String NULL = "NULL";
 
+	// Read from JSON config file
+	private static String udshost = "";
+	private static String idshost = "";
+	private static String idsusername = "";
+	private static String idspassword = "";
+	private static String udsusername = "";
+	private static String udspassword = "";
+
 	private static boolean debug = false;
 
 	public static void main(String[] args) {
 
 		String filename = "config.json"; // See issue #24
-
-		String udshost = "", idshost = "", idsusername = "", idspassword = "", udsusername = "", udspassword = "";
-
+		
 		Object obj;
 		JSONObject jo; 
  		try {
@@ -128,18 +134,9 @@ public class HL7Processor {
 			 
 			 // typecasting obj to JSONObject 
 			jo = (JSONObject) obj;
-
-			udshost = (String)jo.get("udshost");
-			idshost = (String)jo.get("idshost");
-			idsusername = (String)jo.get("idsusername");
-			udsusername = (String)jo.get("udsusername");
-			idspassword	= (String)jo.get("idspassword");
-			udspassword	= (String)jo.get("udspassword");
-
-			String debugging = (String)jo.get("debugging");
-			if (debugging.equals("yes") || debugging.equals("true")) {
-				debug = true;
-			}
+			//jo.put("test", "test");
+			interrogate_json_object(jo);
+		
 
  		}
  		catch (Exception e) { // FileNotFoundException or IOException
@@ -399,6 +396,28 @@ public class HL7Processor {
 		}		
 
 	}	// End (main)
+
+
+	/**
+	 * Get information from the JSON object extracted from the config file
+	 * 
+	 * @param jo The JSONObject to interrogate.
+	 */
+	public static void interrogate_json_object(JSONObject jo) {
+
+		udshost = (String)jo.get("udshost");
+		idshost = (String)jo.get("idshost");
+		idsusername = (String)jo.get("idsusername");
+		udsusername = (String)jo.get("udsusername");
+		idspassword	= (String)jo.get("idspassword");
+		udspassword	= (String)jo.get("udspassword");
+
+		String debugging = (String)jo.get("debugging");
+		if (debugging.equals("yes") || debugging.equals("true")) {
+			debug = true;
+		}
+
+	}
 
 
 	/**

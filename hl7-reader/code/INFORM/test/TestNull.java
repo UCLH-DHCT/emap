@@ -7,6 +7,8 @@
 import org.junit.Test;
 import static org.junit.Assert.*; 
 import junit.framework.TestCase;
+
+import java.beans.Transient;
 import java.sql.*;
 import uk.ac.ucl.rits.inform.*;
 
@@ -89,7 +91,25 @@ public class TestNull extends TestCase {
         }
 	    assertTrue(result);
 
-	}
+    }
+    
+
+    @Test
+    // Test with a non-empty string
+    public void testgnr3() {
+
+        String str = "I am not empty";
+        boolean result = false;
+        try {
+            result = mockproc.got_null_result(mockrs, str);
+        }
+        catch (SQLException e) {
+            System.out.println("Got exception");
+            e.printStackTrace();
+        }
+	    assertFalse(result);
+    }
+
 
     @Override
     protected void tearDown() throws Exception {

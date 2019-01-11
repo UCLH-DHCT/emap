@@ -8,6 +8,10 @@ import static org.mockito.Mockito.*;
 
 public class TestRunner {
    public static void main(String[] args) {
+
+
+//	MockitoAnnotations.initMocks(this);
+
       Result result = JUnitCore.runClasses(JunitTestSuite.class);
 
       for (Failure failure : result.getFailures()) {
