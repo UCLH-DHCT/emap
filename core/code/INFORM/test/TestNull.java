@@ -3,8 +3,6 @@
 
 // For multi-class example see https://www.tutorialspoint.com/junit/junit_suite_test.htm 
 
-// parameterised tests https://www.tutorialspoint.com/junit/junit_parameterized_test.htm
-//@RunWith(Parameterized.class) <- doesn't work with our version of junit (4.10)
 
 import org.junit.Test;
 import static org.junit.Assert.*; 
@@ -12,16 +10,25 @@ import junit.framework.TestCase;
 import java.sql.*;
 import uk.ac.ucl.rits.inform.*;
 
+import javax.sql.DataSource;
 import static org.mockito.Mockito.*;
 
 // NB despite the @Test annotation each test method name must begin with "test"
 
+
+// parameterised tests https://www.tutorialspoint.com/junit/junit_parameterized_test.htm
+//@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestNull extends TestCase {
 
 	//@Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-	//@Mock
-	//HL7Processor mockproc;
+	
+    // https://dzone.com/articles/mockito-basic-example-using-jdbc
+    //@Mock
+    private ResultSet mockrs;
+    private DataSource mockds;
+    private PreparedStatement mockps;
+    private Connection mockconn;
+    private HL7Processor mockproc;
 
 
 	// @Before
@@ -30,11 +37,20 @@ public class TestNull extends TestCase {
     }
 
     @Override
-    public void setUp() {
-        /*System.out.println("Setting it up!");
-        v1 = 17; v2 = 13;
-        proc = new HL7Processor();*/
-    }
+    public void setUp() throws Exception {
+        //System.out.println("Setting it up!");
+
+	mockrs = mock(ResultSet.class);
+	mockps = mock (PreparedStatement.class);
+	mockds = mock (DataSource.class);
+	mockconn = mock(Connection.class);
+	mockproc = mock(HL7Processor.class);
+
+	assertNotNull(mockds);
+	when(mockconn.prepareStatement(any(String.class))).thenReturn(mockps);
+    when(mockds.getConnection()).thenReturn(mockconn);
+    when(mockps.executeQuery()).thenReturn(mockrs);
+}
 
 
     /////////////////////////////////
@@ -58,9 +74,21 @@ public class TestNull extends TestCase {
     }
 
 
-	@Test
-	public void testmock() {
-		HL7Processor mockproc = mock(HL7Processor.class);
+    @Test
+    // Test with an empty string
+	public void testgnr2() {
+        
+        String str = "";
+        boolean result = false;
+        try {
+            result = mockproc.got_null_result(mockrs, str);
+        }
+        catch (SQLException e) {
+            System.out.println("Got exception");
+            e.printStackTrace();
+        }
+	    assertTrue(result);
+
 	}
 
     @Override
