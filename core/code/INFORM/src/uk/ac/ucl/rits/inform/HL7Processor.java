@@ -114,12 +114,18 @@ public class HL7Processor {
 	private static final String NULL = "NULL";
 
 	// Read from JSON config file
-	private static String udshost = "";
-	private static String idshost = "";
-	private static String idsusername = "";
-	private static String idspassword = "";
-	private static String udsusername = "";
-	private static String udspassword = "";
+	private static final String UDSHOSTSTR = "udshost";
+	private static final String IDSHOSTSTR = "idshost";
+	private static final String IDSUSERNAMESTR = "idsusername";
+	private static final String IDSPASSWORDSTR = "idspassword";
+	private static final String UDSUSERNAMESTR = "udsusername";
+	private static final String UDSPASSWORDSTR = "udspassword";
+	private static String udshost;
+	private static String idshost;
+	private static String idsusername;
+	private static String idspassword;
+	private static String udsusername;
+	private static String udspassword;
 
 	private static boolean debug = false;
 
@@ -142,7 +148,6 @@ public class HL7Processor {
 
 			}
 		
-
  		}
  		catch (Exception e) { // FileNotFoundException or IOException
  			e.printStackTrace();
@@ -193,6 +198,8 @@ public class HL7Processor {
 
 		String ids_url = "jdbc:postgresql://" + idshost + "/DUMMY_IDS"; // IDS (dummy)
 		String uds_url = "jdbc:postgresql://" + udshost + "/INFORM_SCRATCH?stringtype=unspecified"; // UDS (dummy)
+
+		//System.out.println("idsusername = " + idsusername + ", udsusername = " + udsusername + ", udshost = " + udshost);
 
 		// Extraction of data from IDS step. No HL7 parsing required.
 		try {
@@ -410,6 +417,17 @@ public class HL7Processor {
 	 */
 	public static boolean interrogate_json_object(JSONObject jo) {
 
+		/*
+			  idshost = (String)jo.get("idshost");
+                if (idshost.isEmpty()) {
+                        System.out.println("Empty idshost value");
+                        return false;
+                }
+
+		*/
+
+
+
 		// This parameter is optional so we don't check for emptiness.
 		if (jo.containsKey("debugging")) {
 			String debugging = (String)jo.get("debugging");
@@ -419,12 +437,25 @@ public class HL7Processor {
 		}
 
 		// Check other parameters
-		boolean b1 = check_json_value(jo, udshost, "udshost");
-		boolean b2 = check_json_value(jo, idshost, "idshost");
-		boolean b3 = check_json_value(jo, idsusername, "idsusername");
-		boolean b4 = check_json_value(jo, udsusername, "udsusername");
-		boolean b5 = check_json_value(jo, idspassword, "idspassword");
-		boolean b6 = check_json_value(jo, udspassword, "udspassword");
+		Object[] myobjs = check_json_value(jo, udshost, UDSHOSTSTR);
+		boolean b1 = ((Boolean)myobjs[0]).booleanValue(); udshost = (String)myobjs[1];
+		myobjs = check_json_value(jo, idshost, IDSHOSTSTR);
+		boolean b2 = ((Boolean)myobjs[0]).booleanValue(); idshost = (String)myobjs[1];
+		myobjs = check_json_value(jo, idsusername, IDSUSERNAMESTR);
+		boolean b3 = ((Boolean)myobjs[0]).booleanValue(); idsusername = (String)myobjs[1];
+		myobjs = check_json_value(jo, udsusername, UDSUSERNAMESTR);
+		boolean b4 = ((Boolean)myobjs[0]).booleanValue(); udsusername = (String)myobjs[1];
+		myobjs = check_json_value(jo, idspassword, IDSPASSWORDSTR);
+		boolean b5 = ((Boolean)myobjs[0]).booleanValue(); idspassword = (String)myobjs[1];
+		myobjs = check_json_value(jo, udspassword, UDSPASSWORDSTR);
+		boolean b6 = ((Boolean)myobjs[0]).booleanValue(); udspassword = (String)myobjs[1];
+
+		//boolean b1 = check_json_value(jo, udshost, UDSHOSTSTR); //, "udshost");
+		/*boolean b2 = check_json_value(jo, idshost, IDSHOSTSTR); //, "idshost");
+		boolean b3 = check_json_value(jo, idsusername, IDSUSERNAMESTR); //, "idsusername");
+		boolean b4 = check_json_value(jo, udsusername, UDSUSERNAMESTR); //, "udsusername");
+		boolean b5 = check_json_value(jo, idspassword, IDSPASSWORDSTR); //, "idspassword");
+		boolean b6 = check_json_value(jo, udspassword, UDSPASSWORDSTR); //, "udspassword");*/
 
 
 		return (b1 && b2 && b3 && b4 && b5 && b6);
@@ -437,23 +468,34 @@ public class HL7Processor {
 	 * When debugging is on, key may be missing from config file/JSONObject.
 	 * 
 	 * @param jo The JSON object being queried.
-	 * @param varname Name of a global String object, e.g. idsusername;
+	 * @param variable Name of a global String object, e.g. idsusername;
 	 * @param key Name of the key in the JSON object map/config file, e.g. "idsusername"
-	 * @return true if key and value found, false otherwise. 
+	 * @return double	 of Objects. First element is true if key and value found, false otherwise. If true, second element is new variable value. 
 	 */
-	public static boolean check_json_value (JSONObject jo, String varname, String key) {
+	public static Object[] check_json_value (JSONObject jo, String variable, String keystring) {
 
-		if ( ! jo.containsKey(key)) {
-			System.out.println("No entry found in config file for " + key);
-			return false;
+		Boolean b = new Boolean(false);
+		Object [] objarray = new Object[2];
+
+		if ( ! jo.containsKey(keystring)) {
+			System.out.println("No entry found in config file for " + keystring);
+			objarray[0] = b; objarray[1] = "";
+			return objarray;
 		}
-		varname = (String)jo.get(key);
-		if ( (! debug) && varname.isEmpty()) {
-			System.out.println("Empty " + key + " value");
-			return false;
+		variable = (String)jo.get(keystring);
+		if ( (! debug) && variable.isEmpty()) {
+			System.out.println("Empty " + keystring + " value");
+			//return false;
+			objarray[0] = b; objarray[1] = "";
+			return objarray;
 		}
 
-		return true;
+		// Success!
+		System.out.println("value of " + keystring + " is " + variable);	
+		b = new Boolean(true);
+		objarray[0] = b; objarray[1] = variable;
+		return objarray;
+
 	}
 
 
