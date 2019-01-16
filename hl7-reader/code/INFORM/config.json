@@ -2,6 +2,6 @@
 "udshost":"x.x.x.x",
 "idsusername":"joebloggs",
 "udsusername":"joebloggs",
-"idspassword":"",
-"udspassword":"",
+"idspassword":"apassword",
+"udspassword":"anotherpassword",
 "debugging":"false"}
