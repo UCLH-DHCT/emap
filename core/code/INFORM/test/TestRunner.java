@@ -3,18 +3,21 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-
+import org.hamcrest.*;
+import static org.mockito.Mockito.*;
 
 public class TestRunner {
    public static void main(String[] args) {
-      Result result = JUnitCore.runClasses(JunitTestSuite.class/*TestHL7Processor.class*/);
-		
+
+
+//	MockitoAnnotations.initMocks(this);
+
+      Result result = JUnitCore.runClasses(JunitTestSuite.class);
+
       for (Failure failure : result.getFailures()) {
-         System.out.println(failure.toString());
+         System.out.println("FAILED: " + failure.toString());
       }
 		
-      //System.out.println(result.wasSuccessful());
-
       if (result.wasSuccessful()) {
          System.out.println("\nALL TESTS PASSED\n");
       }
