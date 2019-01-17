@@ -76,7 +76,7 @@ public class TestJson extends TestCase {
     public void testcjv3() {
         JSONObject jo = new JSONObject();
         jo.put("udshost", "192.168.1.1");
-        Object[] objarray = mockproc.(jo, "idsusername", "idsusername");
+        Object[] objarray = mockproc.check_json_value(jo, "idsusername", "idsusername");
         boolean b = ((Boolean)objarray[0]).booleanValue();
         assertFalse(b);
     }
