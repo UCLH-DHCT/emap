@@ -7,9 +7,6 @@ import java.util.Map;
 import org.json.simple.JSONObject; 
 import org.json.simple.parser.*;
 
-//import org.json.*;
-//import org.json.parser.*;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader; 
 import java.io.PrintWriter;
@@ -27,21 +24,6 @@ import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.HL7Exception;
-
-//import uk.ac.ucl.rits.inform.Engine;
-
-
-// HAPI imports
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.HL7Exception;
-
-import uk.ac.ucl.rits.inform.Engine;
 
 
 /**
@@ -417,6 +399,7 @@ public class HL7Processor {
 	 * Get information from the JSON object extracted from the config file
 	 * 
 	 * @param jo The JSONObject to interrogate.
+	 * @return true if all parameters extracted successfully, false otherwise
 	 */
 	public static boolean interrogate_json_object(JSONObject jo) {
 
@@ -472,8 +455,8 @@ public class HL7Processor {
 	 * 
 	 * @param jo The JSON object being queried.
 	 * @param variable Name of a global String object, e.g. idsusername;
-	 * @param key Name of the key in the JSON object map/config file, e.g. "idsusername"
-	 * @return double	 of Objects. First element is true if key and value found, false otherwise. If true, second element is new variable value. 
+	 * @param keystring Name of the key in the JSON object map/config file, e.g. IDSUSERNAMESTR
+	 * @return double of Objects. First element is true if key and value found, false otherwise. If true, second element is new variable value. 
 	 */
 	public static Object[] check_json_value (JSONObject jo, String variable, String keystring) {
 
@@ -605,7 +588,7 @@ public class HL7Processor {
 	 * @param rs The current ResultSet
 	 * @param str The String value obtained from the database (may be empty or null)
 	 * @return true if got an empty result, false otherwise
-	 * @throws SQLException
+	 * @throws SQLException if rs raises exception.
 	 */
 	public static boolean got_null_result(ResultSet rs, String str) 
 	throws SQLException {
