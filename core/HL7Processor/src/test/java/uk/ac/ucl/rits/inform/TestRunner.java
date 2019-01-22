@@ -12,7 +12,7 @@ public class TestRunner {
 
 //	MockitoAnnotations.initMocks(this);
 
-      Result result = JUnitCore.runClasses(JunitTestSuite.class);
+      Result result = JUnitCore.runClasses(JunitSuiteTest.class);
 
       for (Failure failure : result.getFailures()) {
          System.out.println("FAILED: " + failure.toString());

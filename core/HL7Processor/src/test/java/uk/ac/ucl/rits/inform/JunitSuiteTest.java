@@ -9,5 +9,5 @@ import org.junit.runners.Suite;
    TestJson.class
 })
 
-public class JunitTestSuite {   
+public class JunitSuiteTest {   
 }

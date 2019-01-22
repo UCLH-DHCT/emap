@@ -25,31 +25,17 @@ import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.HL7Exception;
 
-//import uk.ac.ucl.rits.inform.Engine;
-
-
-// HAPI imports
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.HL7Exception;
-
-import uk.ac.ucl.rits.inform.Engine;
-
 
 /**
  * HL7Processor was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
  * <p>
- * To compile:
+ * To compile and run:
  * <pre>
- * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
- * javac HL7Processor.java
- * java HL7Processor
+ * mvn compile
+ * mvn test
+ * mvn exec:java -Dexec.mainClass="uk.ac.ucl.rits.inform.HL7Processor"
+ * mvn javadoc:javadoc
  * </pre>
  * A typical location value is {@code T11S^B11S^T11S-32}
  * <p>
@@ -79,7 +65,7 @@ public class HL7Processor {
 	///////////////////////////////////////////////////
 
 	// IDS column names:
-	private static final String UNID = "UNID"; // PK
+	private static final String UNID = "UNID"; // PK - this may need to change with Epic?s
 	private static final String PATIENT_NAME = "PatientName";
 	private static final String PATIENT_MIDDLE_NAME = "PatientMiddleName";
 	private static final String PATIENT_SURNAME = "PatientSurname";
@@ -140,7 +126,7 @@ public class HL7Processor {
 			 
 			 // typecasting obj to JSONObject 
 			jo = (JSONObject) obj;
-			//jo.put("test", "test");
+
 			if ( ! interrogate_json_object(jo) ) {
 
 				System.out.println("Error in JSON file.");
@@ -312,9 +298,9 @@ public class HL7Processor {
 					else {
 						/// ??? insert_bedvisit_entry(dict, visitid); ???
 					}
-
-					
+	
 				}
+
 				else if (msgtype.equals("ADT^A02")) { // transfer
 					
 					// Error here if no current patient_visit entry???
@@ -414,6 +400,7 @@ public class HL7Processor {
 	 * Get information from the JSON object extracted from the config file
 	 * 
 	 * @param jo The JSONObject to interrogate.
+	 * @return true if all parameters extracted successfully, false otherwise
 	 */
 	public static boolean interrogate_json_object(JSONObject jo) {
 
@@ -469,8 +456,8 @@ public class HL7Processor {
 	 * 
 	 * @param jo The JSON object being queried.
 	 * @param variable Name of a global String object, e.g. idsusername;
-	 * @param key Name of the key in the JSON object map/config file, e.g. "idsusername"
-	 * @return double	 of Objects. First element is true if key and value found, false otherwise. If true, second element is new variable value. 
+	 * @param keystring Name of the key in the JSON object map/config file, e.g. IDSUSERNAMESTR
+	 * @return double of Objects. First element is true if key and value found, false otherwise. If true, second element is new variable value. 
 	 */
 	public static Object[] check_json_value (JSONObject jo, String variable, String keystring) {
 
@@ -602,7 +589,7 @@ public class HL7Processor {
 	 * @param rs The current ResultSet
 	 * @param str The String value obtained from the database (may be empty or null)
 	 * @return true if got an empty result, false otherwise
-	 * @throws SQLException
+	 * @throws SQLException if rs raises exception.
 	 */
 	public static boolean got_null_result(ResultSet rs, String str) 
 	throws SQLException {

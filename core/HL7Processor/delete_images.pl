@@ -27,7 +27,7 @@ while ($line = <IN>) {
 	my $image = $parts[2];
 	print ("Got $repo, $image\n");
 	if ($repo eq "<none>") {
-		print ("Deleting docker image $image");
+		print ("Deleting docker image $image\n");
 		system ("docker image rm -f $image");
 	}
 }

@@ -23,15 +23,9 @@ import static org.mockito.Mockito.*;
 
 // parameterised tests https://www.tutorialspoint.com/junit/junit_parameterized_test.htm
 //@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
-public class TestJson extends TestCase {
+public class TestJson {
 
-    private HL7Processor mockproc;
-
-    @Override
-    public void setUp() throws Exception {
-        //System.out.println("Setting it up!");
-	    mockproc = mock(HL7Processor.class);
-    }
+    private HL7Processor mockproc = mock(HL7Processor.class);
 
 
     @Test
@@ -76,7 +70,7 @@ public class TestJson extends TestCase {
     public void testcjv3() {
         JSONObject jo = new JSONObject();
         jo.put("udshost", "192.168.1.1");
-        Object[] objarray = mockproc.(jo, "idsusername", "idsusername");
+        Object[] objarray = mockproc.check_json_value(jo, "idsusername", "idsusername");
         boolean b = ((Boolean)objarray[0]).booleanValue();
         assertFalse(b);
     }
@@ -91,9 +85,5 @@ public class TestJson extends TestCase {
         assertFalse(b);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        // System.out.println("Running: tearDown");
-    }
 
 }
