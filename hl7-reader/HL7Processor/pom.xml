@@ -10,9 +10,15 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+ <maven.compiler.target>1.8</maven.compiler.target>
+
   </properties>
 
   <dependencies>
+
+
+
 
     <!-- This is the core HAPI library -->
      <dependency>
@@ -186,7 +192,7 @@
                <executions>
                   <execution>
                      <goals>
-                        <goal>exec</goal>
+                        <goal>java</goal>
                      </goals>
                   </execution>
                 </executions>
