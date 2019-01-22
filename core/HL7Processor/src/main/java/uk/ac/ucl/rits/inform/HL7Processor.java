@@ -30,11 +30,12 @@ import ca.uhn.hl7v2.HL7Exception;
  * HL7Processor was written for the autumn 2018 demo. It extracts data from the IDS (DUMMY_IDS) and 
  * writes relevant info to the UDS (INFORM_SCRATCH)
  * <p>
- * To compile:
+ * To compile and run:
  * <pre>
- * export CLASSPATH=.:postgresql-42.2.5.jar:json-simple-1.1.1.jar
- * javac HL7Processor.java
- * java HL7Processor
+ * mvn compile
+ * mvn test
+ * mvn exec:java -Dexec.mainClass="uk.ac.ucl.rits.inform.HL7Processor"
+ * mvn javadoc:javadoc
  * </pre>
  * A typical location value is {@code T11S^B11S^T11S-32}
  * <p>
@@ -64,7 +65,7 @@ public class HL7Processor {
 	///////////////////////////////////////////////////
 
 	// IDS column names:
-	private static final String UNID = "UNID"; // PK
+	private static final String UNID = "UNID"; // PK - this may need to change with Epic?s
 	private static final String PATIENT_NAME = "PatientName";
 	private static final String PATIENT_MIDDLE_NAME = "PatientMiddleName";
 	private static final String PATIENT_SURNAME = "PatientSurname";
@@ -125,7 +126,7 @@ public class HL7Processor {
 			 
 			 // typecasting obj to JSONObject 
 			jo = (JSONObject) obj;
-			//jo.put("test", "test");
+
 			if ( ! interrogate_json_object(jo) ) {
 
 				System.out.println("Error in JSON file.");
@@ -297,9 +298,9 @@ public class HL7Processor {
 					else {
 						/// ??? insert_bedvisit_entry(dict, visitid); ???
 					}
-
-					
+	
 				}
+
 				else if (msgtype.equals("ADT^A02")) { // transfer
 					
 					// Error here if no current patient_visit entry???
