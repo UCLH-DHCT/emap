@@ -12,16 +12,23 @@ ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 # speed up Maven JVM a bit
 ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-ENTRYPOINT ["/usr/bin/mvn"]
+#ENTRYPOINT ["/usr/bin/mvn"]
 # ----
 # Install project dependencies and keep sources
-# make source folder
-RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 # install maven dependency packages (keep in image)
-COPY pom.xml /usr/src/app
-RUN mvn -T 1C install && rm -rf target
+COPY pom.xml pom.xml
+#COPY settings.xml $MAVEN_HOME/conf/settings.xml
+RUN mvn install && rm -rf target
+#RUN mkdir -p $MAVEN_HOME/conf
+##COPY settings.xml settings.xml
 # copy other source files (keep in image)
-COPY src /usr/src/app/src
+COPY src src
+COPY config.json config.json
 RUN mvn compile
-CMD mvn exec:java -Dexec.mainClass="uk.ac.ucl.rits.inform.HL7Processor"
+#RUN mvn package
+RUN mvn help:effective-settings
+#CMD mvn exec:java -Dexec.mainClass="uk.ac.ucl.rits.inform.HL7Processor"
+#CMD mvn org.codehaus.mojo:exec-maven-plugin:1.6.0:java -Dexec.mainClass="uk.ac.ucl.rits.inform.HL7Processor"
+CMD ["mvn", "exec:java", "-Dexec.mainClass=uk.ac.ucl.rits.inform.HL7Processor"]
+
