@@ -30,7 +30,7 @@ public class Consumer {
     /**
      * Output a usage message.
      */
-    public void HelpMessage() {
+    public void helpMessage() {
 
             String str = "Usage:\n"
                 + "Consumer [ -h | -f filename | -d databasefile -i last_unid_processed ]\n ";
@@ -171,7 +171,7 @@ public class Consumer {
                 last_unid = Long.parseLong(args[1]);
                 // read records from db starting with UNID i
             }
-            else c.HelpMessage();
+            else c.helpMessage();
 
         }
         else if (arglen >= 2) {
@@ -179,14 +179,14 @@ public class Consumer {
                filename = args[1];
                c.process_file(filename);
             }
-            else c.HelpMessage();
+            else c.helpMessage();
         }
         else if (arglen > 0) {
             if (args[0].equals("-h")) {
-                c.HelpMessage();
+                c.helpMessage();
             }
         }
-        else c.HelpMessage();
+        else c.helpMessage();
 
 
     }
