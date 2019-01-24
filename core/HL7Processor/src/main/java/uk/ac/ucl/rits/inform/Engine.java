@@ -11,6 +11,8 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.datatype.XPN;
+import ca.uhn.hl7v2.model.v27.datatype.CWE;
+//import ca.uhn.hl7v2.model.v27.datatype.PN;
 import ca.uhn.hl7v2.model.v27.message.*; //ADT_A01;
 
 // HL7 2.2 only
@@ -99,6 +101,7 @@ public class Engine {
             // AO1 message type can be used to represent other message types 
 
             try {
+                //pretty_print(msg);
                 process_ADT_01_et_al(msg);
             }
             catch (HL7Exception e)  {
@@ -124,6 +127,56 @@ public class Engine {
         else System.out.println("Another message type");
 
     }
+
+
+     /**
+     * Utility function to parse a message and show what we can get from it.
+     * 
+     * @param p A Hapi PipeParser
+     */
+    public void pretty_print(String hl7String) {
+
+
+
+        hl7String = "MSH|^~\\&|HIS|RIH|EKG|EKG|199904140038||ADT^A01||P|2.2\r"
+                + "PID|0001|00009874|00001122|A00977|SMITH^JOHN^M|MOM|19581119|F|NOTREAL^LINDA^M|C|564 SPRING ST^^NEEDHAM^MA^02494^US|0002|(818)565-1551|(425)828-3344|E|S|C|0000444444|252-00-4414||||SA|||SA||||NONE|V1|0001|I|D.ER^50A^M110^01|ER|P00055|11B^M011^02|070615^BATMAN^GEORGE^L|555888^NOTREAL^BOB^K^DR^MD|777889^NOTREAL^SAM^T^DR^MD^PHD|ER|D.WT^1A^M010^01|||ER|AMB|02|070615^NOTREAL^BILL^L|ER|000001916994|D||||||||||||||||GDD|WA|NORM|02|O|02|E.IN^02D^M090^01|E.IN^01D^M080^01|199904072124|199904101200|199904101200||||5555112333|||666097^NOTREAL^MANNY^P\r"
+                + "NK1|0222555|NOTREAL^JAMES^R|FA|STREET^OTHER STREET^CITY^ST^55566|(222)111-3333|(888)999-0000|||||||ORGANIZATION\r"
+          + "PV1|0001|I|D.ER^1F^M950^01|ER|P000998|11B^M011^02|070615^BATMAN^GEORGE^L|555888^OKNEL^BOB^K^DR^MD|777889^NOTREAL^SAM^T^DR^MD^PHD|ER|D.WT^1A^M010^01|||ER|AMB|02|070615^VOICE^BILL^L|ER|000001916994|D||||||||||||||||GDD|WA|NORM|02|O|02|E.IN^02D^M090^01|E.IN^01D^M080^01|199904072124|199904101200|||||5555112333|||666097^DNOTREAL^MANNY^P\r"
+         + "PV2|||0112^TESTING|55555^PATIENT IS NORMAL|NONE|||19990225|19990226|1|1|TESTING|555888^NOTREAL^BOB^K^DR^MD||||||||||PROD^003^099|02|ER||NONE|19990225|19990223|19990316|NONE\r"
+         + "AL1||SEV|001^POLLEN\r"
+        + "GT1||0222PL|NOTREAL^BOB^B||STREET^OTHER STREET^CITY^ST^77787|(444)999-3333|(222)777-5555||||MO|111-33-5555||||NOTREAL GILL N|STREET^OTHER STREET^CITY^ST^99999|(111)222-3333\r"
+          + "IN1||022254P|4558PD|BLUE CROSS|STREET^OTHER STREET^CITY^ST^00990||(333)333-6666||221K|LENIX|||19980515|19990515|||PATIENT01 TEST D||||||||||||||||||02LL|022LP554";
+
+
+
+
+
+        Message msg = null;
+        try {
+            msg = parser.parse(hl7String);
+
+        }
+        catch (HL7Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (msg instanceof ADT_A01) {
+            try {
+                process_ADT_01_et_al(msg);
+                System.exit(1);
+            }
+            catch (HL7Exception e) {
+                e.printStackTrace();
+                return;
+            }
+
+        }
+        //MSH msh = hapiMsg.getMSH();
+      
+    } 
+
+
 
     /**
      * process_XXX_YY() functions
@@ -202,30 +255,43 @@ public class Engine {
         //ca.uhn.hl7v2.model.v22.message.ADT_A01 a = (ca.uhn.hl7v2.model.v22.message.ADT_A01) msg;
         //PN patientName = adt_01.getPID().getPatientName();
         PID pid = adt_01.getPID();
-        XPN xpn[] = pid.getPatientName(); 
-        
-        String patient_name;
-        if (xpn != null && xpn.length > 0) {
-            patient_name = xpn[0].toString(); // e.g. "XPN[PECK^Jacqueline^Francis^^MISS]" - need to parse
-            // can also use this instead  - gives same answer: patient_name = pid.getPatientName(0).toString();
+        //XPN xpn[] = pid.getPatientName(); 
+        XPN xpn = pid.getPatientName(0);
 
+        //PN patientName = pid.getPatientName();
+        String givenName = "Jane";
+        String familyName = "Doe"; // = patientName.getFamilyName().getValue();
+        String sex = "unknown";
+        String birthdatetime = "unknown";
+        
+        if (xpn != null /*&& xpn.length > 0*/) {
+            //System.out.println("Non-null xpn");
+          //  patient_name = xpn/*[0]*/.getFamilyName().toString(); // e.g. "XPN[PECK^Jacqueline^Francis^^MISS]" - need to parse
+            // can also use this instead  - gives same answer: patient_name = pid.getPatientName(0).toString();
+            givenName = xpn.getGivenName().getValue();
+            familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue();
+            sex = pid.getAdministrativeSex().getText().getValue();  // M or F - comes out as CWE[F] etc
+            birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
         }
-        else patient_name = "Jane Doe";
+        //else patient_name = "Jane Doe";
         // NB public ID getIdentityUnknownIndicator()
         // Returns PID-31: "Identity Unknown Indicator" - creates it if necessary - maybe should use instead - but not present in e.g. v2.2
 
-        System.out.println("++++++ patientName is " + patient_name + "++:-)+++++");
+        System.out.println("\ngiven name is " + givenName);
+        System.out.println("family name is " + familyName);
+        System.out.println("sex is " + sex);
+        System.out.println("birthdatetime is " + birthdatetime);
 
         // Other data
-        String sex = pid.getAdministrativeSex().toString();  // M or F - comes out as CWE[F] etc
-        String birth_date_time = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
+        
+        
         //String patient_id = pid.getPatientID().toString(); // in our Atos examples this is sometimes null. Is that possible?
         // Also patient_id sometimes a non-numeric string e.g. ******** so we should probably check it's an int (or long).
         // NB PID-2 is external patient id and PID-3 is internal patient ID (according to v2.2)
         // PID-3 uses getPatientIdentifierList() nb what if >1 identifier?! Due to merging?
         // v2.7 standard says PID-2 removed as of 2.7 so should use PID-3
-        String patient_id = pid.getPatientIdentifierList()[0].toString(); // e.g. CX[PATID1234^5^M11^ADT1^MR^GOOD HEALTH HOSPITAL]
-        System.out.println("Data: " + sex + "," + birth_date_time + "," + patient_id); 
+        //String patient_id = pid.getPatientIdentifierList()[0].toString(); // e.g. CX[PATID1234^5^M11^ADT1^MR^GOOD HEALTH HOSPITAL]
+        //System.out.println("Data: " + sex + "," + birthdatetime + "," + patient_id); 
 
         /*ca.uhn.hl7v2.model.v27.segment.*/MSH msh = adt_01.getMSH();
         String msgTrigger = msh.getMessageType().getTriggerEvent().getValue();

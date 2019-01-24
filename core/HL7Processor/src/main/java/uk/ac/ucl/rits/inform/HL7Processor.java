@@ -225,6 +225,17 @@ public class HL7Processor {
 				}
 				extract_fields_from_IDS(rs, dict);
 				
+
+
+
+				String hl7 = dict.get(HL7_MESSAGE);
+				System.out.println(hl7);
+				engine.pretty_print(hl7);
+
+
+
+
+
 				// Now insert this record into the UDS PERSON_SCRATCH table.
 
 				// Check to see if this person is already in the PERSON_SCRATCH table - obtain latest update time
@@ -437,14 +448,6 @@ public class HL7Processor {
 		myobjs = check_json_value(jo, udspassword, UDSPASSWORDSTR);
 		boolean b6 = ((Boolean)myobjs[0]).booleanValue(); udspassword = (String)myobjs[1];
 
-		//boolean b1 = check_json_value(jo, udshost, UDSHOSTSTR); //, "udshost");
-		/*boolean b2 = check_json_value(jo, idshost, IDSHOSTSTR); //, "idshost");
-		boolean b3 = check_json_value(jo, idsusername, IDSUSERNAMESTR); //, "idsusername");
-		boolean b4 = check_json_value(jo, udsusername, UDSUSERNAMESTR); //, "udsusername");
-		boolean b5 = check_json_value(jo, idspassword, IDSPASSWORDSTR); //, "idspassword");
-		boolean b6 = check_json_value(jo, udspassword, UDSPASSWORDSTR); //, "udspassword");*/
-
-
 		return (b1 && b2 && b3 && b4 && b5 && b6);
 
 	}
@@ -645,6 +648,7 @@ public class HL7Processor {
 		// SENDER_APPLICATION
 		// MESSAGE_IDENTIFIER
 		// HL7_MESSAGE
+		update_dict(dict, rs, HL7_MESSAGE, false);
 		update_dict(dict, rs, PERSIST_DATE_TIME, true);
 		/////// end (should never be null) ///////////
 
