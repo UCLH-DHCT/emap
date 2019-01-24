@@ -18,6 +18,12 @@
 
   <dependencies>
 
+    <dependency>
+      <groupId>com.puppycrawl.tools</groupId>
+      <artifactId>checkstyle</artifactId>
+      <version>8.16</version>
+    </dependency>
+
 
 
     <!-- This is the core HAPI library -->
@@ -219,6 +225,8 @@
     <reporting>
        <plugins>
            <plugin>
+           <!-- https://maven.apache.org/plugins/maven-pmd-plugin/usage.html -->
+           <!-- This can be moved to the build section if required -->
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-pmd-plugin</artifactId>
               <version>3.11.0</version>
