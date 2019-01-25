@@ -12,6 +12,8 @@ import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.datatype.XPN;
 import ca.uhn.hl7v2.model.v27.datatype.CWE;
+import ca.uhn.hl7v2.model.v27.datatype.XAD;
+import ca.uhn.hl7v2.model.v27.datatype.SAD;
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
 import ca.uhn.hl7v2.model.v27.message.*; //ADT_A01;
 
@@ -289,7 +291,10 @@ public class Engine {
         String patientTitle = ""; // title PID-5.5 e.g. "Mr"
         String birthdatetime = "unknown"; // DOB PID-7.1 YYYYMMDD (no time of birth)
         String sex = "unknown";  // PID-8
-        String patientAddress = ""; // patient address PID-11.1 to PID-11.4
+        String patientStreetAddress = ""; // PID-11.1
+        String patientAddressOtherDesignation = ""; // PID-11.2
+        String patientAddressCity = ""; // PID-11.3
+        String patientAddressState = ""; // PID-11.4 <--- I imagine this is for US 
         String patientPostcode = ""; // patient postcode PID-11.5
         String patientCounty = ""; // patient county PID-11.9
         // home phone, mobile, email PID-13.1
@@ -341,21 +346,36 @@ public class Engine {
             givenName = xpn.getGivenName().getValue();
             familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue();
             middleName = xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue();
+            patientTitle = xpn.getPrefixEgDR().getValue();
         }
         sex = pid.getAdministrativeSex().getIdentifier().getValue();  // M or F - comes out as CWE[F] etc
         birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
         
+        // NB for these we may need to iterate over the components in the SAD (from xad.getStreetAddress())
+        // to make sure we can cope with complicated addresses
+        // e.g. Flat F2.2, St Mark's Flats, Block A, Woodsley Road, Leeds, W. Yorks., LS2 9JT
+        // Also, there can be multiple addresses listed for 1 patient; here, we just obtain the first.
+        XAD xad = pid.getPatientAddress(0);
+        String soma = xad.getStreetAddress().getStreetOrMailingAddress().getValue();
+        String patientStreet = xad.getStreetAddress().getStreetName().getValue(); // gives null
+        String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
+        patientStreetAddress = patientDwellingNumber + " " + patientStreet;
+        patientAddressCity = xad.getCity().getValue();
+        patientCounty = xad.getCountyParishCode().getText().getValue(); // I'm not sure this is correct. 
+        // We need examples of non-London address HL7 messages.
+        patientPostcode = xad.getZipOrPostalCode().getValue();
         
-        
-       
-        // NB public ID getIdentityUnknownIndicator()
-        // Returns PID-31: "Identity Unknown Indicator" - creates it if necessary - maybe should use instead - but not present in e.g. v2.2
-
         System.out.println("\ngiven name is " + givenName);
         System.out.println("middle name or initial: " + middleName);
         System.out.println("family name is " + familyName);
+        System.out.println("title is " + patientTitle);
         System.out.println("sex is " + sex);
         System.out.println("birthdatetime is " + birthdatetime);
+        System.out.println("soma = " + soma);
+        System.out.println("patientStreetAddress = " + patientStreetAddress); // gives null null
+        System.out.println("city = " + patientAddressCity);
+        System.out.println("county = " + patientCounty);
+        System.out.println("post code = " + patientPostcode);
 
         // Other data
         
