@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ucl.rits.inform</groupId>
@@ -11,7 +12,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
- <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.target>1.8</maven.compiler.target>
 
   </properties>
 
@@ -21,22 +22,22 @@
 
 
     <!-- This is the core HAPI library -->
-     <dependency>
-       <groupId>ca.uhn.hapi</groupId>
-       <artifactId>hapi-base</artifactId>
-       <version>2.3</version>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-base</artifactId>
+      <version>2.3</version>
     </dependency>
 
 
-	<!-- hapi-examples-2.3.jar -->		
-	<!-- slf4j-api-1.7.10.jar -->
+    <!-- hapi-examples-2.3.jar -->
+    <!-- slf4j-api-1.7.10.jar -->
 
 
     <!-- ********************************** -->
-    <!-- These are structure JARs for HL7.  -->
+    <!-- These are structure JARs for HL7. -->
     <!-- NB we don't actually need all these - probably just v2.7 -->
     <!-- ********************************** -->
-	
+
 
     <!-- HL7 v2.1 -->
     <dependency>
@@ -103,7 +104,7 @@
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-structures-v281</artifactId>
       <version>2.3</version>
-    </dependency> 
+    </dependency>
 
 
     <!-- log4j, for use with HAPI -->
@@ -116,7 +117,7 @@
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
-    </dependency> 
+    </dependency>
 
     <!-- HL7 over HTTP. Probably not needed. -->
     <dependency>
@@ -126,25 +127,25 @@
     </dependency>
 
 
-   <!-- JSON for Java -->
-   <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+    <!-- JSON for Java -->
+    <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>
       <version>1.1.1</version>
-   </dependency>
+    </dependency>
 
 
-   <!-- Postgres SQL JDBC driver --> 
-   <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-   <dependency>
+    <!-- Postgres SQL JDBC driver -->
+    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+    <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.2.5</version>
-   </dependency>
+    </dependency>
 
 
-    <!-- Junit --> 
+    <!-- Junit -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

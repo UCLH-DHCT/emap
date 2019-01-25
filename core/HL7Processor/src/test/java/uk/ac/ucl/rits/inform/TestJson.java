@@ -1,3 +1,5 @@
+package uk.ac.ucl.rits.inform;
+
 // https://www.tutorialspoint.com/junit/junit_environment_setup.htm
 // https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
 
