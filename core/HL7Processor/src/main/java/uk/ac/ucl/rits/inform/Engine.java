@@ -14,6 +14,8 @@ import ca.uhn.hl7v2.model.v27.datatype.XPN;
 import ca.uhn.hl7v2.model.v27.datatype.CWE;
 import ca.uhn.hl7v2.model.v27.datatype.XAD;
 import ca.uhn.hl7v2.model.v27.datatype.SAD;
+import ca.uhn.hl7v2.model.v27.datatype.XTN;
+import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
 import ca.uhn.hl7v2.model.v27.message.*; //ADT_A01;
 
@@ -297,7 +299,7 @@ public class Engine {
         String patientAddressState = ""; // PID-11.4 <--- I imagine this is for US 
         String patientPostcode = ""; // patient postcode PID-11.5
         String patientCounty = ""; // patient county PID-11.9
-        // home phone, mobile, email PID-13.1
+        String homePhone = "", mobile = "", email = ""; // home phone, mobile, email PID-13.1
         // business phone PID-14.1
         // PID-15.1	Interpreter code
         // PID-15.4	Language code
@@ -364,6 +366,13 @@ public class Engine {
         patientCounty = xad.getCountyParishCode().getText().getValue(); // I'm not sure this is correct. 
         // We need examples of non-London address HL7 messages.
         patientPostcode = xad.getZipOrPostalCode().getValue();
+
+        // Phone and email - check if Epic are following the standards. 
+        int homePhoneReps = pid.getPhoneNumberHomeReps(); System.out.println("reps = " + homePhoneReps);
+        if (homePhoneReps > 0) {
+            homePhone = pid.getPhoneNumberHome(0).getTelephoneNumber().getValue();
+        }
+        // add: mobile, email.
         
         System.out.println("\ngiven name is " + givenName);
         System.out.println("middle name or initial: " + middleName);
@@ -376,6 +385,7 @@ public class Engine {
         System.out.println("city = " + patientAddressCity);
         System.out.println("county = " + patientCounty);
         System.out.println("post code = " + patientPostcode);
+        System.out.println("home phone = " + homePhone); 
 
         // Other data
         
