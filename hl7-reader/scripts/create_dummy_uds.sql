@@ -3,7 +3,7 @@
 -- Matthew Gillman 27/09/18
 -- On command line:
 -- createdb INFORM_SCRATCH
--- psql -f create_tables.sql INFORM_SCRATCH
+-- psql -f create_dummy_uds.sql INFORM_SCRATCH
 -- psql INFORM_SCRATCH
 -- psql 
 

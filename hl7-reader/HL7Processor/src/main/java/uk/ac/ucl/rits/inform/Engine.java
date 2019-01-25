@@ -285,13 +285,13 @@ public class Engine {
         // patient ID PID-3   // NB is this the internal UCLH hospital number? (MRN)
         String familyName = "Doe"; // PID-5.1
         String givenName = "Jane"; // PID-5.2
-        // middle name PID-5.3
-        // title PID-5.5 e.g. "Mr"
+        String middleName = ""; // middle name PID-5.3
+        String patientTitle = ""; // title PID-5.5 e.g. "Mr"
         String birthdatetime = "unknown"; // DOB PID-7.1 YYYYMMDD (no time of birth)
         String sex = "unknown";  // PID-8
-        // patient address PID-11.1 to PID-11.4
-        // patient postcode PID-11.5
-        // patient county PID-11.9
+        String patientAddress = ""; // patient address PID-11.1 to PID-11.4
+        String patientPostcode = ""; // patient postcode PID-11.5
+        String patientCounty = ""; // patient county PID-11.9
         // home phone, mobile, email PID-13.1
         // business phone PID-14.1
         // PID-15.1	Interpreter code
@@ -324,8 +324,6 @@ public class Engine {
         // PV1-14	Admission Source	ZLC8.1	Source of admission
 
 
-
-
         // 5. Optional segments (not shown here)
         // PD - has details of GP, dentist, disability and Do Not Disclose indicator
         // NK1 - next of kin details
@@ -333,7 +331,7 @@ public class Engine {
         // OBX
         // ZUK (non-standard)
          
-
+        //pretty_print_pid(adt_01);
         PID pid = adt_01.getPID();
 
         //XPN xpn[] = pid.getPatientName(); 
@@ -342,8 +340,9 @@ public class Engine {
             //System.out.println("Non-null xpn");
             givenName = xpn.getGivenName().getValue();
             familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue();
+            middleName = xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue();
         }
-        sex = pid.getAdministrativeSex().getText().getValue();  // M or F - comes out as CWE[F] etc
+        sex = pid.getAdministrativeSex().getIdentifier().getValue();  // M or F - comes out as CWE[F] etc
         birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
         
         
@@ -353,6 +352,7 @@ public class Engine {
         // Returns PID-31: "Identity Unknown Indicator" - creates it if necessary - maybe should use instead - but not present in e.g. v2.2
 
         System.out.println("\ngiven name is " + givenName);
+        System.out.println("middle name or initial: " + middleName);
         System.out.println("family name is " + familyName);
         System.out.println("sex is " + sex);
         System.out.println("birthdatetime is " + birthdatetime);
