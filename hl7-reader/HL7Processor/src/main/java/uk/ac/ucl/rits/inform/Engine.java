@@ -238,42 +238,117 @@ public class Engine {
     private void process_ADT_01_et_al(Message msg) throws HL7Exception {
 
         // Want data for:
-        // name ??? probably not
         // hospital number ?? possibly map to person.person_source_value (can be encrypted)
         // PERSON - year_of_birth (required), month_of_birth, day_of_birth, birth_datetime
         // VISIT_OCCURRENCE - visit_start_date (required), visit_start_datetime
         // timestamp?
         // NB PID-2 patient ID withdrawn 2.7, now PID-3 patient_ID list ?? PID-7 date and time of birth, PID-8 sex, PID-29 and 30 death
-        //ca.uhn.hl7v2.model.v27.segment.PID pid = adt_04.getPID();
-        //TS birth = pid.getPid7_DateTimeOfBirth();
+     
 
         // The parser parses the v2.x message to a "v27" structure
         //ca.uhn.hl7v2.model.v27.message.ADT_ORU_R01 msg = (ca.uhn.hl7v2.model.v25.message.ORU_R01) parser.parse(v23message);
         ca.uhn.hl7v2.model.v27.message.ADT_A01 adt_01 = (ca.uhn.hl7v2.model.v27.message.ADT_A01) parser.parse(msg.encode());
         
+        // According to the standard (2.7), the following segments should be present:
+        // MSH, EVN, PID, PV1, plus many more optional ones.
+        // Carecast: MSH, EVN, PID, [PD1], [NK1], PV1, [PV2], {[OBX]}, [ZLW], [ZUK], [ZLC]
+        // i.e. Carecast has a subset of the possible segments the standard covers.
 
-        //ca.uhn.hl7v2.model.v22.message.ADT_A01 a = (ca.uhn.hl7v2.model.v22.message.ADT_A01) msg;
-        //PN patientName = adt_01.getPID().getPatientName();
+        // Obtain items which should be present (according to Carecast)
+        // Unmapped items are not included here.
+
+        // 1. MSH (Message Header) - mostly don't appear to be useful
+        // MSH-1 Field Separator
+        // MSH-2 Encoding Characters
+        // MSH-3 Sending Application (“CARECAST”)
+        // MSH-4 Sending Facility (“UCLH”)
+        // MSH-5 Receiving Application (“Receiving system”)
+        // MSH-7 Date/Time Of Message YYYYMMDDHHMM
+        // MSH-9.1	Message Type (ADT)
+        // MSH-9.2	Trigger Event (A01)
+        // MSH-10.1	Message Control ID	(Unique identifier)
+        // MSH-11	Processing ID (P)
+        // MSH-12	Version ID (e.g. 2.4) (version of HL7 used)
+        // MSH-15 	Accept Acknowledgment Type (AL)
+        // MSH-16	Application Acknowledgment Type (NE)
+
+        // 2. EVN (Event Type)
+        // EVN-1 Event Type Code (A01)
+        // EVN-2 Recorded Date/Time - Current Date/time YYYYMMDDHHMM
+        // EVN-3 Date/Time Planned Event
+        // EVN-4 Event Reason Code Eg. ADM
+        // EVN-5.1 Operator ID
+        // EVN-5.2 Operator Surname
+        // EVN-5.3 Operator First name
+
+        // 3. PID (Patient Identification)
+        // patient ID PID-3   // NB is this the internal UCLH hospital number? (MRN)
+        String familyName = "Doe"; // PID-5.1
+        String givenName = "Jane"; // PID-5.2
+        // middle name PID-5.3
+        // title PID-5.5 e.g. "Mr"
+        String birthdatetime = "unknown"; // DOB PID-7.1 YYYYMMDD (no time of birth)
+        String sex = "unknown";  // PID-8
+        // patient address PID-11.1 to PID-11.4
+        // patient postcode PID-11.5
+        // patient county PID-11.9
+        // home phone, mobile, email PID-13.1
+        // business phone PID-14.1
+        // PID-15.1	Interpreter code
+        // PID-15.4	Language code
+        // In place of PID-16 Carecast has ZLC.15 Marital status
+        // PID-17.1 Religion
+        // PID-18.1	Account number
+        // In place of PID-22 Carecast has PID-10.1 Ethnicity
+        // Date of death PID-29.1 YYYYMMDDHHmm format though hhmm is mainly 0000
+        // Death indicator PID-30. Y = dead, N = alive.
+
+        // 4. PV1 (Patient Visit) - note there is some duplication below e.g. consultant details
+        // PV1-2  Patient Class	PV1-2.1	Eg. A or I. Episode Type. Ref[1]
+        // PV1-3.1 Current Ward Code e.g. T06
+        // PV1-3.2 Current Room Code e.g. T06A
+        // PV1-3.3 Current Bed e.g. T06-32
+        // PV1-4.1 1st repeat = admit priority (e.g. I), 2nd = admit type (e.g. A)
+        // PV1-7.1 (1st repeat) Consultant code. Consultant for the clinic. Attending doctor GMC Code
+        // PV1-7.2 (1st repeat) Consultant surname Eg. CASSONI
+        // PV1-7.3 (1st repeat) Consultant Fname Eg. M
+        // PV1-7.4 (1st repeat) Consultant mname Eg. A
+        // PV1-7.6 (1st repeat) Consultant Title Eg. Dr
+        // PV1-7.7 (1st repeat) Consultant local code Eg. AC3
+        // PV1-8.1 (1st repeat) Consultant Code	(Registered GP user pointer), 2nd Consultant Code (Referring doctor GMC Code)
+        // PV1-8.2 (1st repeat) Consultant surname Eg. CASSONI, 2nd Consultant surname Eg. CASSONI
+        // PV1-8.3 (1st repeat) Consultant Fname Eg. M, 2nd Consultant Fname Eg. M
+        // PV1-8.4 (1st repeat) Consultant mname Eg. A, 2nd Consultant mname Eg. A
+        // PV1-8.6 1st repeat Consultant Title Eg. Dr, 2nd Consultant Title	Eg. Dr
+        // PV1-10	Hospital Service	Specialty eg. 31015
+        // PV1-14	Admission Source	ZLC8.1	Source of admission
+
+
+
+
+        // 5. Optional segments (not shown here)
+        // PD - has details of GP, dentist, disability and Do Not Disclose indicator
+        // NK1 - next of kin details
+        // PV2
+        // OBX
+        // ZUK (non-standard)
+         
+
         PID pid = adt_01.getPID();
+
         //XPN xpn[] = pid.getPatientName(); 
         XPN xpn = pid.getPatientName(0);
-
-        //PN patientName = pid.getPatientName();
-        String givenName = "Jane";
-        String familyName = "Doe"; // = patientName.getFamilyName().getValue();
-        String sex = "unknown";
-        String birthdatetime = "unknown";
-        
         if (xpn != null /*&& xpn.length > 0*/) {
             //System.out.println("Non-null xpn");
-          //  patient_name = xpn/*[0]*/.getFamilyName().toString(); // e.g. "XPN[PECK^Jacqueline^Francis^^MISS]" - need to parse
-            // can also use this instead  - gives same answer: patient_name = pid.getPatientName(0).toString();
             givenName = xpn.getGivenName().getValue();
             familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue();
-            sex = pid.getAdministrativeSex().getText().getValue();  // M or F - comes out as CWE[F] etc
-            birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
         }
-        //else patient_name = "Jane Doe";
+        sex = pid.getAdministrativeSex().getText().getValue();  // M or F - comes out as CWE[F] etc
+        birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
+        
+        
+        
+       
         // NB public ID getIdentityUnknownIndicator()
         // Returns PID-31: "Identity Unknown Indicator" - creates it if necessary - maybe should use instead - but not present in e.g. v2.2
 
