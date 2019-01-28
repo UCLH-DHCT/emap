@@ -300,8 +300,8 @@ public class Engine {
         String patientAddressState = ""; // PID-11.4 <--- I imagine this is for US 
         String patientPostcode = ""; // patient postcode PID-11.5
         String patientCounty = ""; // patient county PID-11.9
-        String homePhone = "", mobile = "", email = ""; // home phone, mobile, email PID-13.1
-        // business phone PID-14.1
+        String homePhone = "", mobile = "", email = ""; // home phone, mobile, email (1st-3rd repeats)PID-13.1
+        String businessPhone = "";// business phone PID-14.1
         // PID-15.1	Interpreter code
         // PID-15.4	Language code
         // In place of PID-16 Carecast has ZLC.15 Marital status
@@ -364,20 +364,23 @@ public class Engine {
         String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
         patientStreetAddress = patientDwellingNumber + " " + patientStreet;
         patientAddressCity = xad.getCity().getValue();
+
+        // We need examples of non-London address HL7 messages.
         //patientCounty = xad.getCountyParishCode().getText().getValue(); // gives null
         patientCounty = xad.getCountyParishCode().toString(); // gives CWE[Essex] so not ideal
         //CWE cwe = xad.getCountyParishCode();
         //patientCounty = xad.getCountyParishCode().getText().toString(); // gives null
-
-        // We need examples of non-London address HL7 messages.
+        
         patientPostcode = xad.getZipOrPostalCode().getValue();
 
         // Phone and email - check if Epic are following the standards. 
-        int homePhoneReps = pid.getPhoneNumberHomeReps(); System.out.println("reps = " + homePhoneReps);
-        if (homePhoneReps > 0) {
+        //int homePhoneReps = pid.getPhoneNumberHomeReps(); System.out.println("reps = " + homePhoneReps);
+        //if (homePhoneReps > 0) {
             homePhone = pid.getPhoneNumberHome(0).getTelephoneNumber().getValue();
-        }
-        // add: mobile, email.
+            mobile = pid.getPhoneNumberHome(1).getTelephoneNumber().getValue();
+            email = pid.getPhoneNumberHome(2).getTelephoneNumber().getValue();
+        //}
+        businessPhone = pid.getPhoneNumberBusiness(0).getTelephoneNumber().getValue();
         
         System.out.println("\ngiven name is " + givenName);
         System.out.println("middle name or initial: " + middleName);
@@ -391,6 +394,10 @@ public class Engine {
         System.out.println("county = " + patientCounty);
         System.out.println("post code = " + patientPostcode);
         System.out.println("home phone = " + homePhone); 
+        System.out.println("mobile = " + mobile);
+        System.out.println("email = " + email);
+        System.out.println("business phone = " + businessPhone);
+
 
         // Other data
         
