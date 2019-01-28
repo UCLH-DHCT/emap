@@ -15,7 +15,8 @@ import ca.uhn.hl7v2.model.v27.datatype.CWE;
 import ca.uhn.hl7v2.model.v27.datatype.XAD;
 import ca.uhn.hl7v2.model.v27.datatype.SAD;
 import ca.uhn.hl7v2.model.v27.datatype.XTN;
-import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
+import ca.uhn.hl7v2.model.v27.datatype.IS;
+//import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
 import ca.uhn.hl7v2.model.v27.message.*; //ADT_A01;
 
@@ -363,7 +364,11 @@ public class Engine {
         String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
         patientStreetAddress = patientDwellingNumber + " " + patientStreet;
         patientAddressCity = xad.getCity().getValue();
-        patientCounty = xad.getCountyParishCode().getText().getValue(); // I'm not sure this is correct. 
+        //patientCounty = xad.getCountyParishCode().getText().getValue(); // gives null
+        patientCounty = xad.getCountyParishCode().toString(); // gives CWE[Essex] so not ideal
+        //CWE cwe = xad.getCountyParishCode();
+        //patientCounty = xad.getCountyParishCode().getText().toString(); // gives null
+
         // We need examples of non-London address HL7 messages.
         patientPostcode = xad.getZipOrPostalCode().getValue();
 
