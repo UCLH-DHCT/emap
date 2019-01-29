@@ -16,6 +16,9 @@ import ca.uhn.hl7v2.model.v27.datatype.XAD;
 import ca.uhn.hl7v2.model.v27.datatype.SAD;
 import ca.uhn.hl7v2.model.v27.datatype.XTN;
 import ca.uhn.hl7v2.model.v27.datatype.IS;
+//import ca.uhn.hl7v2.model.primitive.ID;
+import ca.uhn.hl7v2.model.v27.datatype.ID;
+import ca.uhn.hl7v2.model.AbstractType;
 //import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
 import ca.uhn.hl7v2.model.v27.message.*; //ADT_A01;
@@ -143,7 +146,7 @@ public class Engine {
 
 
 
-        /*hl7String = "MSH|^~\\&|HIS|RIH|EKG|EKG|199904140038||ADT^A01||P|2.2\r"
+        hl7String = "MSH|^~\\&|HIS|RIH|EKG|EKG|199904140038||ADT^A01||P|2.2\r"
                 + "PID|0001|00009874|00001122|A00977|SMITH^JOHN^M|MOM|19581119|F|NOTREAL^LINDA^M|C|564 SPRING ST^^NEEDHAM^MA^02494^US|0002|(818)565-1551|(425)828-3344|E|S|C|0000444444|252-00-4414||||SA|||SA||||NONE|V1|0001|I|D.ER^50A^M110^01|ER|P00055|11B^M011^02|070615^BATMAN^GEORGE^L|555888^NOTREAL^BOB^K^DR^MD|777889^NOTREAL^SAM^T^DR^MD^PHD|ER|D.WT^1A^M010^01|||ER|AMB|02|070615^NOTREAL^BILL^L|ER|000001916994|D||||||||||||||||GDD|WA|NORM|02|O|02|E.IN^02D^M090^01|E.IN^01D^M080^01|199904072124|199904101200|199904101200||||5555112333|||666097^NOTREAL^MANNY^P\r"
                 + "NK1|0222555|NOTREAL^JAMES^R|FA|STREET^OTHER STREET^CITY^ST^55566|(222)111-3333|(888)999-0000|||||||ORGANIZATION\r"
           + "PV1|0001|I|D.ER^1F^M950^01|ER|P000998|11B^M011^02|070615^BATMAN^GEORGE^L|555888^OKNEL^BOB^K^DR^MD|777889^NOTREAL^SAM^T^DR^MD^PHD|ER|D.WT^1A^M010^01|||ER|AMB|02|070615^VOICE^BILL^L|ER|000001916994|D||||||||||||||||GDD|WA|NORM|02|O|02|E.IN^02D^M090^01|E.IN^01D^M080^01|199904072124|199904101200|||||5555112333|||666097^DNOTREAL^MANNY^P\r"
@@ -152,7 +155,7 @@ public class Engine {
         + "GT1||0222PL|NOTREAL^BOB^B||STREET^OTHER STREET^CITY^ST^77787|(444)999-3333|(222)777-5555||||MO|111-33-5555||||NOTREAL GILL N|STREET^OTHER STREET^CITY^ST^99999|(111)222-3333\r"
           + "IN1||022254P|4558PD|BLUE CROSS|STREET^OTHER STREET^CITY^ST^00990||(333)333-6666||221K|LENIX|||19980515|19990515|||PATIENT01 TEST D||||||||||||||||||02LL|022LP554";
 
-        */
+        
 
 
 
@@ -294,22 +297,22 @@ public class Engine {
         String patientTitle = ""; // title PID-5.5 e.g. "Mr"
         String birthdatetime = "unknown"; // DOB PID-7.1 YYYYMMDD (no time of birth)
         String sex = "unknown";  // PID-8
-        String patientStreetAddress = ""; // PID-11.1
-        String patientAddressOtherDesignation = ""; // PID-11.2
-        String patientAddressCity = ""; // PID-11.3
-        String patientAddressState = ""; // PID-11.4 <--- I imagine this is for US 
-        String patientPostcode = ""; // patient postcode PID-11.5
-        String patientCounty = ""; // patient county PID-11.9
-        String homePhone = "", mobile = "", email = ""; // home phone, mobile, email (1st-3rd repeats)PID-13.1
-        String businessPhone = "";// business phone PID-14.1
-        // PID-15.1	Interpreter code
-        // PID-15.4	Language code
-        // In place of PID-16 Carecast has ZLC.15 Marital status
-        // PID-17.1 Religion
+        String patientStreetAddress; // PID-11.1
+        String patientAddressOtherDesignation; // PID-11.2
+        String patientAddressCity; // PID-11.3
+        String patientAddressState; // PID-11.4 <--- I imagine this is for US 
+        String patientPostcode; // patient postcode PID-11.5
+        String patientCounty; // patient county PID-11.9
+        String homePhone, mobile, email; // home phone, mobile, email (1st-3rd repeats)PID-13.1
+        String businessPhone;// business phone PID-14.1
+        String interpreterCode;// PID-15.1	Interpreter code
+        String languageCode; // PID-15.4	Language code
+        String maritalStatus; // In place of PID-16 Carecast has ZLC.15 Marital status
+        String religion; // PID-17.1 Religion
         // PID-18.1	Account number
         // In place of PID-22 Carecast has PID-10.1 Ethnicity
         // Date of death PID-29.1 YYYYMMDDHHmm format though hhmm is mainly 0000
-        // Death indicator PID-30. Y = dead, N = alive.
+        String deathIndicator; // Death indicator PID-30. Y = dead, N = alive.
 
         // 4. PV1 (Patient Visit) - note there is some duplication below e.g. consultant details
         // PV1-2  Patient Class	PV1-2.1	Eg. A or I. Episode Type. Ref[1]
@@ -341,13 +344,14 @@ public class Engine {
          
         //pretty_print_pid(adt_01);
         PID pid = adt_01.getPID();
+        CWE cwe;
 
         //XPN xpn[] = pid.getPatientName(); 
         XPN xpn = pid.getPatientName(0);
         if (xpn != null /*&& xpn.length > 0*/) {
             //System.out.println("Non-null xpn");
             givenName = xpn.getGivenName().getValue();
-            familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue();
+            familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue(); // HAPI example has pid.getPatientName().getFamilyName().getValue();
             middleName = xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue();
             patientTitle = xpn.getPrefixEgDR().getValue();
         }
@@ -359,7 +363,7 @@ public class Engine {
         // e.g. Flat F2.2, St Mark's Flats, Block A, Woodsley Road, Leeds, W. Yorks., LS2 9JT
         // Also, there can be multiple addresses listed for 1 patient; here, we just obtain the first.
         XAD xad = pid.getPatientAddress(0);
-        String soma = xad.getStreetAddress().getStreetOrMailingAddress().getValue();
+        String streetOrMailingAddress = xad.getStreetAddress().getStreetOrMailingAddress().getValue();
         String patientStreet = xad.getStreetAddress().getStreetName().getValue(); // gives null
         String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
         patientStreetAddress = patientDwellingNumber + " " + patientStreet;
@@ -367,28 +371,39 @@ public class Engine {
 
         // We need examples of non-London address HL7 messages.
         //patientCounty = xad.getCountyParishCode().getText().getValue(); // gives null
-        patientCounty = xad.getCountyParishCode().toString(); // gives CWE[Essex] so not ideal
+        patientCounty = xad.getCountyParishCode().getComponent(0).toString();//xad.getCountyParishCode().toString(); // gives CWE[Essex] so not ideal
         //CWE cwe = xad.getCountyParishCode();
         //patientCounty = xad.getCountyParishCode().getText().toString(); // gives null
+        //patientCounty = xad.getCountyParishCode().getValue();
         
         patientPostcode = xad.getZipOrPostalCode().getValue();
 
         // Phone and email - check if Epic are following the standards. 
-        //int homePhoneReps = pid.getPhoneNumberHomeReps(); System.out.println("reps = " + homePhoneReps);
-        //if (homePhoneReps > 0) {
-            homePhone = pid.getPhoneNumberHome(0).getTelephoneNumber().getValue();
-            mobile = pid.getPhoneNumberHome(1).getTelephoneNumber().getValue();
-            email = pid.getPhoneNumberHome(2).getTelephoneNumber().getValue();
-        //}
+        homePhone = pid.getPhoneNumberHome(0).getTelephoneNumber().getValue();
+        mobile = pid.getPhoneNumberHome(1).getTelephoneNumber().getValue();
+        email = pid.getPhoneNumberHome(2).getTelephoneNumber().getValue();
         businessPhone = pid.getPhoneNumberBusiness(0).getTelephoneNumber().getValue();
+
+        cwe = pid.getPrimaryLanguage();
+
+        //maritalStatus = pid.getMaritalStatus().toString(); // gives CWE[x]
+        maritalStatus = pid.getMaritalStatus().getComponent(0).toString();
+        //boolean empty = pid.getMaritalStatus().isEmpty();
+        //if (empty) maritalStatus = "empty";
+        //else maritalStatus = "something";
+  
+        religion = pid.getReligion().getComponent(0).toString();
+
+        deathIndicator = pid.getPatientDeathIndicator().getValue();
         
-        System.out.println("\ngiven name is " + givenName);
+        System.out.println("\n****************************************");
+        System.out.println("given name is " + givenName);
         System.out.println("middle name or initial: " + middleName);
         System.out.println("family name is " + familyName);
         System.out.println("title is " + patientTitle);
         System.out.println("sex is " + sex);
         System.out.println("birthdatetime is " + birthdatetime);
-        System.out.println("soma = " + soma);
+        System.out.println("streetOrMailingAddress = " + streetOrMailingAddress);
         System.out.println("patientStreetAddress = " + patientStreetAddress); // gives null null
         System.out.println("city = " + patientAddressCity);
         System.out.println("county = " + patientCounty);
@@ -397,7 +412,13 @@ public class Engine {
         System.out.println("mobile = " + mobile);
         System.out.println("email = " + email);
         System.out.println("business phone = " + businessPhone);
+        System.out.println("marital status = " + maritalStatus);
+        System.out.println("religion = " + religion);
 
+        System.out.println("death indicator = " + deathIndicator);
+
+
+        System.out.println("\n****************************************");
 
         // Other data
         
