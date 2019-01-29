@@ -16,8 +16,9 @@ import ca.uhn.hl7v2.model.v27.datatype.XAD;
 import ca.uhn.hl7v2.model.v27.datatype.SAD;
 import ca.uhn.hl7v2.model.v27.datatype.XTN;
 import ca.uhn.hl7v2.model.v27.datatype.IS;
-//import ca.uhn.hl7v2.model.primitive.ID;
+import ca.uhn.hl7v2.model.v27.datatype.DTM;
 import ca.uhn.hl7v2.model.v27.datatype.ID;
+import ca.uhn.hl7v2.model.v27.datatype.CX;
 import ca.uhn.hl7v2.model.AbstractType;
 //import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
@@ -146,6 +147,7 @@ public class Engine {
 
 
 
+        // Example from HAPI.
         hl7String = "MSH|^~\\&|HIS|RIH|EKG|EKG|199904140038||ADT^A01||P|2.2\r"
                 + "PID|0001|00009874|00001122|A00977|SMITH^JOHN^M|MOM|19581119|F|NOTREAL^LINDA^M|C|564 SPRING ST^^NEEDHAM^MA^02494^US|0002|(818)565-1551|(425)828-3344|E|S|C|0000444444|252-00-4414||||SA|||SA||||NONE|V1|0001|I|D.ER^50A^M110^01|ER|P00055|11B^M011^02|070615^BATMAN^GEORGE^L|555888^NOTREAL^BOB^K^DR^MD|777889^NOTREAL^SAM^T^DR^MD^PHD|ER|D.WT^1A^M010^01|||ER|AMB|02|070615^NOTREAL^BILL^L|ER|000001916994|D||||||||||||||||GDD|WA|NORM|02|O|02|E.IN^02D^M090^01|E.IN^01D^M080^01|199904072124|199904101200|199904101200||||5555112333|||666097^NOTREAL^MANNY^P\r"
                 + "NK1|0222555|NOTREAL^JAMES^R|FA|STREET^OTHER STREET^CITY^ST^55566|(222)111-3333|(888)999-0000|||||||ORGANIZATION\r"
@@ -155,8 +157,19 @@ public class Engine {
         + "GT1||0222PL|NOTREAL^BOB^B||STREET^OTHER STREET^CITY^ST^77787|(444)999-3333|(222)777-5555||||MO|111-33-5555||||NOTREAL GILL N|STREET^OTHER STREET^CITY^ST^99999|(111)222-3333\r"
           + "IN1||022254P|4558PD|BLUE CROSS|STREET^OTHER STREET^CITY^ST^00990||(333)333-6666||221K|LENIX|||19980515|19990515|||PATIENT01 TEST D||||||||||||||||||02LL|022LP554";
 
-        
+        // Example from HL7 standard v2.7
+        hl7String = "MSH|^~\\&|ADT1|GOOD HEALTH HOSPITAL|GHH LAB, INC.|GOOD HEALTH HOSPITAL|198808181126|SECURITY|ADT^A01^ADT_A01|MSG00001|P|2.7|\r"
+            + "EVN|A01|200708181123||\r"
+            + "PID|1||PATID1234^5^M11^ADT1^MR^GOOD HEALTH HOSPITAL~123456789^^^USSSA^SS||EVERYMAN^ADAM^A^III||19610615|M||C|2222 HOME STREET^^GREENSBORO^NC^27401-1020|GL|(555) 555-2004|(555)555-2004||S|| PATID12345001^2^M10^ADT1^AN^A|444333333|987654^NC|\r"
+            + "NK1|1|NUCLEAR^NELDA^W|SPO^SPOUSE||||NK^NEXT OF KIN\r"
+            + "PV1|1|I|2000^2012^01||||004777^ATTEND^AARON^A|||SUR||||ADM|A0|\r";
 
+            hl7String = "MSH|^~\\&|ADT1|GOOD HEALTH HOSPITAL|GHH LAB, INC.|GOOD HEALTH HOSPITAL|198808181126|SECURITY|ADT^A01^ADT_A01|MSG00001|P|2.7|\r"
+            + "EVN|A01|200708181123||\r"
+            + "PID|1||PATID1234^5^M11^ADT1^MR^GOOD HEALTH HOSPITAL~123456789^^^USSSA^SS||De'Ath^Donald^D^III||19610615|M||C|2222 HOME STREET^^GREENSBORO^NC^27401-1020|GL|(555) 555-2004|(555)555-2004||S|C| PATID12345001^2^M10^ADT1^AN^A|444333333|987654^NC|" // PID-20
+            + "mother's identifier|ethnic group|birthplace|multiplebirthindicator|birthorder|citizenship|veteran|British|20190101|Y|\r"
+            + "NK1|1|NUCLEAR^NELDA^W|SPO^SPOUSE||||NK^NEXT OF KIN\r"
+            + "PV1|1|I|2000^2012^01||||004777^ATTEND^AARON^A|||SUR||||ADM|A0|\r";
 
 
         Message msg = null;
@@ -271,7 +284,7 @@ public class Engine {
         // MSH-3 Sending Application (“CARECAST”)
         // MSH-4 Sending Facility (“UCLH”)
         // MSH-5 Receiving Application (“Receiving system”)
-        // MSH-7 Date/Time Of Message YYYYMMDDHHMM
+        String messageTimestamp;// MSH-7 Date/Time Of Message YYYYMMDDHHMM
         // MSH-9.1	Message Type (ADT)
         // MSH-9.2	Trigger Event (A01)
         // MSH-10.1	Message Control ID	(Unique identifier)
@@ -309,10 +322,11 @@ public class Engine {
         String languageCode; // PID-15.4	Language code
         String maritalStatus; // In place of PID-16 Carecast has ZLC.15 Marital status
         String religion; // PID-17.1 Religion
-        // PID-18.1	Account number
-        // In place of PID-22 Carecast has PID-10.1 Ethnicity
-        // Date of death PID-29.1 YYYYMMDDHHmm format though hhmm is mainly 0000
+        String accountNumber; // PID-18.1	Account number
+        String ethnicity; // In place of PID-22 Carecast has PID-10.1 Ethnicity
+        String deathDateAndTime; // Date of death PID-29.1 YYYYMMDDHHmm format though hhmm is mainly 0000
         String deathIndicator; // Death indicator PID-30. Y = dead, N = alive.
+
 
         // 4. PV1 (Patient Visit) - note there is some duplication below e.g. consultant details
         // PV1-2  Patient Class	PV1-2.1	Eg. A or I. Episode Type. Ref[1]
@@ -342,6 +356,10 @@ public class Engine {
         // OBX
         // ZUK (non-standard)
          
+        MSH msh = adt_01.getMSH();
+
+
+
         //pretty_print_pid(adt_01);
         PID pid = adt_01.getPID();
         CWE cwe;
@@ -370,12 +388,7 @@ public class Engine {
         patientAddressCity = xad.getCity().getValue();
 
         // We need examples of non-London address HL7 messages.
-        //patientCounty = xad.getCountyParishCode().getText().getValue(); // gives null
-        patientCounty = xad.getCountyParishCode().getComponent(0).toString();//xad.getCountyParishCode().toString(); // gives CWE[Essex] so not ideal
-        //CWE cwe = xad.getCountyParishCode();
-        //patientCounty = xad.getCountyParishCode().getText().toString(); // gives null
-        //patientCounty = xad.getCountyParishCode().getValue();
-        
+        patientCounty = xad.getCountyParishCode().getComponent(0).toString();
         patientPostcode = xad.getZipOrPostalCode().getValue();
 
         // Phone and email - check if Epic are following the standards. 
@@ -386,14 +399,10 @@ public class Engine {
 
         cwe = pid.getPrimaryLanguage();
 
-        //maritalStatus = pid.getMaritalStatus().toString(); // gives CWE[x]
         maritalStatus = pid.getMaritalStatus().getComponent(0).toString();
-        //boolean empty = pid.getMaritalStatus().isEmpty();
-        //if (empty) maritalStatus = "empty";
-        //else maritalStatus = "something";
-  
         religion = pid.getReligion().getComponent(0).toString();
-
+        accountNumber = pid.getPatientAccountNumber().getComponent(0).toString();
+        deathDateAndTime = pid.getPatientDeathDateAndTime().toString();
         deathIndicator = pid.getPatientDeathIndicator().getValue();
         
         System.out.println("\n****************************************");
@@ -412,15 +421,19 @@ public class Engine {
         System.out.println("mobile = " + mobile);
         System.out.println("email = " + email);
         System.out.println("business phone = " + businessPhone);
-        System.out.println("marital status = " + maritalStatus);
+        System.out.println("marital status = " + maritalStatus + " (NB may not be seen in this segment with Carecast");
         System.out.println("religion = " + religion);
-
+        System.out.println("interpreter code = NOT YET IMPLEMENTED");
+        System.out.println("language code = NOT YET IMPLEMENTED");
+        System.out.println("accountNumber = " + accountNumber);
+        System.out.println("ethnicity = NOT YET IMPLEMENTED (and may be in a different place in Carecast");
+        System.out.println("deathDateAndTime = " + deathDateAndTime);
         System.out.println("death indicator = " + deathIndicator);
 
 
         System.out.println("\n****************************************");
 
-        // Other data
+        // Other data race = C, 12 county code GL, 
         
         
         //String patient_id = pid.getPatientID().toString(); // in our Atos examples this is sometimes null. Is that possible?
@@ -431,7 +444,7 @@ public class Engine {
         //String patient_id = pid.getPatientIdentifierList()[0].toString(); // e.g. CX[PATID1234^5^M11^ADT1^MR^GOOD HEALTH HOSPITAL]
         //System.out.println("Data: " + sex + "," + birthdatetime + "," + patient_id); 
 
-        /*ca.uhn.hl7v2.model.v27.segment.*/MSH msh = adt_01.getMSH();
+        /*ca.uhn.hl7v2.model.v27.segment.*///MSH msh = adt_01.getMSH();
         String msgTrigger = msh.getMessageType().getTriggerEvent().getValue();
         System.out.println("Trigger is " + msgTrigger);
 
