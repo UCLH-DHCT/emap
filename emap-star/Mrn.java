@@ -17,6 +17,7 @@ public class Mrn {
     private Timestamp end_datetime;
     private String source_system;
     private Timestamp event_time;
+    
     public int getMrn_id() {
         return mrn_id;
     }
