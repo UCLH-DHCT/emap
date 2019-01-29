@@ -3,14 +3,15 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.sql.Timestamp;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
 public class Person {
+    
+    public Person() {}
+
     public Person(int person_id, Timestamp create_datetime) {
-        super();
         this.person_id = person_id;
         this.create_datetime = create_datetime;
     }

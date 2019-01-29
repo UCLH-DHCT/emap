@@ -1,26 +1,28 @@
 package uk.ac.ucl.rits.inform;
 
-import java.util.Arrays;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonRepository;
 
-@SpringBootApplication
+@Component
 public class DBTester {
     @Autowired
     private PersonRepository repo;
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
+    public DBTester() {
+    }
+
     public String savePerson() {
-        Person psav = repo.save(new Person(42, java.sql.Timestamp.from(null)));
+        Person psav = repo.save(new Person(42, Timestamp.from(Instant.now())));
         return String.format("Hello world! %s", psav.toString());
     }
 
@@ -32,21 +34,9 @@ public class DBTester {
             return pgot;
 
         } else {
-            Person pnew = repo.save(new Person(42, java.sql.Timestamp.from(null)));
+            Person pnew = repo.save(new Person(42, Timestamp.from(Instant.now())));
             System.out.println(pnew.toString());
             return pnew;
-        }
-    }
-
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-        ApplicationContext applicationContext = SpringApplication.run(DBTester.class, args);
-        System.out.println("BEGIN: ");
-        
-        String[] foo = applicationContext.getBeanDefinitionNames();
-        Arrays.sort(foo);
-        for (String name : foo) {
-            System.out.println(name);
         }
     }
 
