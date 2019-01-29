@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
+import uk.ac.ucl.rits.inform.informdb.Mrn;
 import uk.ac.ucl.rits.inform.informdb.Person;
 
 @SpringBootApplication
@@ -21,6 +22,8 @@ public class App {
             System.out.println("hi");
             Person p = dbt.findOrAddPerson();
             System.out.println("Person: " + p.toString());
+            Mrn mrn = dbt.findOrAddMrn(p);
+            System.out.println("Related Mrn: " + mrn.toString());
         };
     }
 }
