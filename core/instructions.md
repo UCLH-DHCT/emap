@@ -33,10 +33,12 @@ To set up the tables in the UDS, type: `psql -f create_dummy_uds.sql INFORM_SCRA
 To set up the IDS tables, and populate with two messages, execute `psql -f create_dummy_ids.sql DUMMY_IDS`. 
 
 
-You can then connect to the IDS and verify that there are indeed two records in the table.<br>
-To connect: `psql DUMMY_IDS`<br>
+You can then connect to the IDS and verify that there are indeed two records in the table. <br>
+
+To connect: `psql DUMMY_IDS` <br>
+
 Once connected, the command ` \z` lists the tables. You can then get useful information by issuing the following two commands:<br>
-         `select * from tbl_ids_master limit 1;`
+         `select * from tbl_ids_master limit 1;` <br>
          `select unid, patientname, patientsurname, hospitalnumber, admissiondate, dischargedate, messagedatetime from tbl_ids_master;` <br>
 
 Note that there are not any discharge dates yet
@@ -45,10 +47,6 @@ To exit, type `\q`.
 
 You can also check that there is nothing in the UDS tables by connecting: `psql INFORM_SCRATCH`
 
-docker-compose build
-docker-compose up
-docker-compose down
-docker-compose stop
 
 ### 2. Configuration and docker
 The `HL7Processor` program reads in parameters from `config.json`. To run with docker a copy of this must
