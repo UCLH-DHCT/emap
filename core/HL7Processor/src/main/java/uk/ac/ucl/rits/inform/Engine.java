@@ -19,6 +19,8 @@ import ca.uhn.hl7v2.model.v27.datatype.IS;
 import ca.uhn.hl7v2.model.v27.datatype.DTM;
 import ca.uhn.hl7v2.model.v27.datatype.ID;
 import ca.uhn.hl7v2.model.v27.datatype.CX;
+import ca.uhn.hl7v2.model.v27.datatype.MSG;
+import ca.uhn.hl7v2.model.v27.datatype.HD;
 import ca.uhn.hl7v2.model.AbstractType;
 //import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
@@ -141,7 +143,7 @@ public class Engine {
      /**
      * Utility function to parse a message and show what we can get from it.
      * 
-     * @param p A Hapi PipeParser
+     * @param hl7String Stringified form of the HL7 message
      */
     public void pretty_print(String hl7String) {
 
@@ -276,17 +278,20 @@ public class Engine {
         // i.e. Carecast has a subset of the possible segments the standard covers.
 
         // Obtain items which should be present (according to Carecast)
+        // NB some of these are optional (may be null)
         // Unmapped items are not included here.
 
         // 1. MSH (Message Header) - mostly don't appear to be useful
+        MSH msh = adt_01.getMSH();
+        System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
         // MSH-2 Encoding Characters
-        // MSH-3 Sending Application (“CARECAST”)
-        // MSH-4 Sending Facility (“UCLH”)
+        System.out.println("sending application = " + msh.getSendingApplication().getComponent(0).toString());// MSH-3 Sending Application (“CARECAST”)
+        System.out.println("sending facility = " + msh.getSendingFacility().getComponent(0).toString()); // MSH-4 Sending Facility (“UCLH”)
         // MSH-5 Receiving Application (“Receiving system”)
-        String messageTimestamp;// MSH-7 Date/Time Of Message YYYYMMDDHHMM
-        // MSH-9.1	Message Type (ADT)
-        // MSH-9.2	Trigger Event (A01)
+        System.out.println("messageTimestamp = " + msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of Message YYYYMMDDHHMM
+        System.out.println("message type = " + msh.getMessageType().getMessageCode().toString()); // MSH-9.1	Message Type (ADT)
+        System.out.println("trigger event = " + msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2	Trigger Event (A01)
         // MSH-10.1	Message Control ID	(Unique identifier)
         // MSH-11	Processing ID (P)
         // MSH-12	Version ID (e.g. 2.4) (version of HL7 used)
@@ -303,7 +308,8 @@ public class Engine {
         // EVN-5.3 Operator First name
 
         // 3. PID (Patient Identification)
-        // patient ID PID-3   // NB is this the internal UCLH hospital number? (MRN)
+        String MRN; // patient ID PID-3.1[1] // internal UCLH hospital number
+        String NHSNumber; // patient ID PID-3.1[2] 
         String familyName = "Doe"; // PID-5.1
         String givenName = "Jane"; // PID-5.2
         String middleName = ""; // middle name PID-5.3
@@ -348,6 +354,9 @@ public class Engine {
         // PV1-10	Hospital Service	Specialty eg. 31015
         // PV1-14	Admission Source	ZLC8.1	Source of admission
 
+        // IDS also has:
+        // PV1-44.1 admission date
+        // PV1-45.1 discharge date
 
         // 5. Optional segments (not shown here)
         // PD - has details of GP, dentist, disability and Do Not Disclose indicator
@@ -356,13 +365,16 @@ public class Engine {
         // OBX
         // ZUK (non-standard)
          
-        MSH msh = adt_01.getMSH();
+        
 
 
 
         //pretty_print_pid(adt_01);
         PID pid = adt_01.getPID();
         CWE cwe;
+
+        MRN = pid.getPatientIdentifierList(0).getComponent(0).toString();
+        NHSNumber = pid.getPatientIdentifierList(1).getComponent(0).toString();
 
         //XPN xpn[] = pid.getPatientName(); 
         XPN xpn = pid.getPatientName(0);
@@ -373,12 +385,12 @@ public class Engine {
             middleName = xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue();
             patientTitle = xpn.getPrefixEgDR().getValue();
         }
-        sex = pid.getAdministrativeSex().getIdentifier().getValue();  // M or F - comes out as CWE[F] etc
+        sex = pid.getAdministrativeSex().getIdentifier().getValue(); 
         birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
         
         // NB for these we may need to iterate over the components in the SAD (from xad.getStreetAddress())
         // to make sure we can cope with complicated addresses
-        // e.g. Flat F2.2, St Mark's Flats, Block A, Woodsley Road, Leeds, W. Yorks., LS2 9JT
+        // e.g. Flat F2.2/4, St Mark's Flats, Block A, Woodsley Road, Leeds, W. Yorks., LS2 9JT
         // Also, there can be multiple addresses listed for 1 patient; here, we just obtain the first.
         XAD xad = pid.getPatientAddress(0);
         String streetOrMailingAddress = xad.getStreetAddress().getStreetOrMailingAddress().getValue();
@@ -405,7 +417,9 @@ public class Engine {
         deathDateAndTime = pid.getPatientDeathDateAndTime().toString();
         deathIndicator = pid.getPatientDeathIndicator().getValue();
         
-        System.out.println("\n****************************************");
+        System.out.println("\n************** PID segment **************************");
+        System.out.println("MRN = " + MRN);
+        System.out.println("NHSNumber = " + NHSNumber);
         System.out.println("given name is " + givenName);
         System.out.println("middle name or initial: " + middleName);
         System.out.println("family name is " + familyName);
@@ -421,12 +435,12 @@ public class Engine {
         System.out.println("mobile = " + mobile);
         System.out.println("email = " + email);
         System.out.println("business phone = " + businessPhone);
-        System.out.println("marital status = " + maritalStatus + " (NB may not be seen in this segment with Carecast");
+        System.out.println("marital status = " + maritalStatus + " (NB may not be seen in this segment with Carecast)");
         System.out.println("religion = " + religion);
         System.out.println("interpreter code = NOT YET IMPLEMENTED");
         System.out.println("language code = NOT YET IMPLEMENTED");
         System.out.println("accountNumber = " + accountNumber);
-        System.out.println("ethnicity = NOT YET IMPLEMENTED (and may be in a different place in Carecast");
+        System.out.println("ethnicity = NOT YET IMPLEMENTED (and may be in a different place in Carecast)");
         System.out.println("deathDateAndTime = " + deathDateAndTime);
         System.out.println("death indicator = " + deathIndicator);
 
