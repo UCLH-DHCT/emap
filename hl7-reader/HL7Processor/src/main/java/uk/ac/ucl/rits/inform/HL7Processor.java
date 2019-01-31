@@ -1276,6 +1276,12 @@ public class HL7Processor {
 	 */
 	public static String convert_timestamp (String hl7) {
 
+
+		// We should probably use HAPI's own classes to construct the Postgres timestamp
+		// from the HL7 one.
+		// See methods at https://hapifhir.github.io/hapi-hl7v2/base/apidocs/ca/uhn/hl7v2/model/v27/datatype/DTM.html
+
+
 		// If it's NULL return NULL
 		if (hl7 == null || hl7.equals("") || hl7.equals("NULL")) return "NULL";
 		
