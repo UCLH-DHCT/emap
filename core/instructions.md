@@ -1,4 +1,4 @@
-###How to use HL7Processor out of the box.
+# How to use HL7Processor out of the box.
 
 ## Using it in its real environment
 NOTE: you will almost certainly NOT wish to do this until you have tried it out on your own machine (see below for instructions).
@@ -15,7 +15,7 @@ You will then need to edit the `config.json` file to have the IP addresses, user
 
 
 ## Using it on your own machine
-# 1. Set up Postgres databases
+### 1. Set up Postgres databases
 This will require you to set up Postgres databases to simulate the IDS and UDS. The IDS (Immutable Data Store) 
 is read-only and will store the raw HL7 messages which Atos put there. Atos perform some parsing of the messages so that certain data items are stored as columns in the database master table. There is also a "merge" table to keep track of patient merges.
 
@@ -50,21 +50,21 @@ docker-compose up
 docker-compose down
 docker-compose stop
 
-# 2. Configuration and docker
+### 2. Configuration and docker
 The `HL7Processor` program reads in parameters from `config.json`. To run with docker a copy of this must
 reside in the `HL7Processor/docker` directory. A template can be found in `HL7Processor/example_config.json`. You need to state the username and psswords you used to set up the databases. If you do not have a password, the password string will simply be `""` in the config file.
 
 As you will be running the IDS and UDS on your own machine, the "idshost" and "udshost" values are likely to be `host.docker.internal`. If that doesn't work, try `127.0.0.1`.Or yo0u can try the en0 value for IP address you get by using the `ifconfig` command.
-Now say
+Now say<br>
 	`docker-compose build`<br>
-	`docker-compose up`
+	`docker-compose up`<br>
 
-	You should then find there are two people added to PERSON table in UDS, and two live hospital visits.
+You should then find there are two people added to PERSON table in UDS, and two live hospital visits.<br>
 	`psql INFORM_SCRATCH`
 	`select * from person;`
 	`select visitid, hospitalnumber, patientlocation, admissiondate, dischargedate, lastupdated from patient_visit;`
 
-# 3. Add a third admission message to the IDS
+### 3. Add a third admission message to the IDS
 Type:
 	`psql -f insert_admit_message.sql DUMMY_IDS`
 	Check this record has been added:
@@ -82,7 +82,7 @@ If you now log into UDS you can check there are 3 entries:
 
 	There should be 3 current hospital visits and 3 people.
 
-# 4. Transfer patient Leonardo Da Vinci from one bed to another
+### 4. Transfer patient Leonardo Da Vinci from one bed to another
 Type: `psql -f insert_transfer_message.sql DUMMY_IDS`.
 
 If you log in to the IDS you ill see there should be 4 HL7 messages.
@@ -92,7 +92,7 @@ To run the Java code again, which will read the IDS and update the UDS, type:<br
 
 If you now log in to the UDS you will see that the bedvisit table has two entries for the same patient visit, corresponding to the visit of Leonardo.
 
-# 5. Discharge patient from hospital
+### 5. Discharge patient from hospital
 Type:
 	`psql -f insert_discharge_message.sql DUMMY_IDS`
 
@@ -100,21 +100,21 @@ Type:
 	docker-compose up
 
  Open dummy UDS and you should find there are still 3 people but Leonardo's visit has come to an end.
-	`psql DUMMY_UDS`
-	`> select * from PERSON;`
-	`> select * from patient_visit;`
-	`> \q    -- to close database`
+	`psql DUMMY_UDS` <br>
+	`> select * from PERSON;` <br>
+	`> select * from patient_visit;` <br>
+	`> \q`    -- to close database
 
 Running the container again, without updating the IDS, will have no effect on the UDS.
 
-# 6. Other tests
+### 6. Other tests
 You can insert a patient with null hospital number to the IDS:
 `psql -f insert_nullhn_admit_message.sql DUMMY_IDS`
 If you then run the container, you will see that the UDS does NOT get updated. This is because it uses
 hospital number as a primary key in the database.
 
 
-# 7. Tidy up docker image
+### 7. Tidy up docker image
   `docker-compose down` <br>
   `docker-compose stop`
 
