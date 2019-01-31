@@ -2,12 +2,10 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.sql.Timestamp;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Entity
@@ -15,13 +13,12 @@ public class Mrn {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
-    private int mrn_id; // the record ID
+    private int mrn_id; // the ID for the record linking an MRN to a person
 
     @ManyToOne
     private Person person;
     
-    private int mrn; // the actual MRN - doesn't this have to be a string to allow for various
-                     // formats?
+    private String mrn; // the actual MRN
     private Timestamp store_datetime;
     private Timestamp end_datetime;
     private String source_system;
@@ -43,11 +40,11 @@ public class Mrn {
         this.person = person;
     }
 
-    public int getMrn() {
+    public String getMrn() {
         return mrn;
     }
 
-    public void setMrn(int mrn) {
+    public void setMrn(String mrn) {
         this.mrn = mrn;
     }
 
