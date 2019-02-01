@@ -11,8 +11,6 @@ data from the IDS, but for the demo did not perform any HL7 parsing as some of t
 been done by Atos and relevant data fields extracted to IDS columns. However, moving forward we may well be extracting
 all the data items ourselves by parsing. HL7Processor then updates the UDS database.
 
-These need to be combined in some way, e.g. HL7Processor will have to do some HL7 parsing to extract
-certain data items not in the IDS (such as a patient's address). We also need to use JPA
-instead of JDBC.  
+Now we need to combine Comsumer/Engine with HL7Processor. We also need to use JPA/Hibernate etc. instead of JDBC.  
 
-Basic instructions for running the code are in [instructions.md](./instructions.md).  
+Basic instructions for running the code are in [instructions.md](./instructions.md). Please also refer to the Github wiki pages. 
