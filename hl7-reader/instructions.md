@@ -50,17 +50,19 @@ You can also check that there is nothing in the UDS tables by connecting: `psql 
 
 ### 2. Configuration and docker
 The `HL7Processor` program reads in parameters from `config.json`. To run with docker a copy of this must
-reside in the `HL7Processor/docker` directory. A template can be found in `HL7Processor/example_config.json`. You need to state the username and psswords you used to set up the databases. If you do not have a password, the password string will simply be `""` in the config file.
+reside in the `HL7Processor/docker` directory. A template can be found in `HL7Processor/example_config.json`. You need to state the username and passwords you used to set up the databases. If you do not have a password, the password string will simply be `""` in the config file.
 
-As you will be running the IDS and UDS on your own machine, the "idshost" and "udshost" values are likely to be `host.docker.internal`. If that doesn't work, try `127.0.0.1`.Or yo0u can try the en0 value for IP address you get by using the `ifconfig` command.
+As you will be running the IDS and UDS on your own machine, the "idshost" and "udshost" values are likely to be `host.docker.internal`. If that doesn't work, try `127.0.0.1`.Or you can try the en0 value for IP address you get by using the `ifconfig` command.
 Now say<br>
 	`docker-compose build`<br>
 	`docker-compose up`<br>
 
-You should then find there are two people added to PERSON table in UDS, and two live hospital visits.<br>
+You should then find there are two people added to PERSON_SCRATCH table in UDS, and two live hospital visits in the PATIENT_VISIT table.<br>
 	`psql INFORM_SCRATCH`
-	`select * from person;`
+	`select * from person_scratch;`
 	`select visitid, hospitalnumber, patientlocation, admissiondate, dischargedate, lastupdated from patient_visit;`
+
+In this implementation, the PATIENT_VISIT table summarises the visit (start and end) to the hospital. However, the BEDVISIT table keeps track of a patient as they move around between beds *within* the hospital. Thus if we issue an HL7 transfer message (ADT^A02 - see step 4 below) the patient will still be in the same PATIENT_VISIT entry, but they will have a new BED_VISIT entry to show that they have finished being in one location (which can be an individual bed) and have started being in another. 
 
 ### 3. Add a third admission message to the IDS
 Type:
@@ -99,7 +101,7 @@ Type:
 
  Open dummy UDS and you should find there are still 3 people but Leonardo's visit has come to an end.
 	`psql DUMMY_UDS` <br>
-	`> select * from PERSON;` <br>
+	`> select * from PERSON_SCRATCH;` <br>
 	`> select * from patient_visit;` <br>
 	`> \q`    -- to close database
 
