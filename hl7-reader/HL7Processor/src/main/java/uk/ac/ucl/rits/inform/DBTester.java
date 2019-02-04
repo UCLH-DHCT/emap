@@ -26,8 +26,6 @@ public class DBTester {
     private EncounterRepository encounterRepo;
     @Autowired
     private PatientDemographicFactRepository patientDemographicFactRepository;
-    @Autowired
-    private PatientDemographicPropertyRepository patientDemographicPropertyRepository;
 
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
@@ -68,9 +66,8 @@ public class DBTester {
             attr.setDescription("Family Name");
             attr = attributeRepository.save(attr);
         }
-        PatientDemographicProperty prop = fact.setKeyValueProp(attr, encounterDetails.getFamilyName());
+        fact.setKeyValueProp(attr, encounterDetails.getFamilyName());
         fact = patientDemographicFactRepository.save(fact);
-        prop = patientDemographicPropertyRepository.save(prop);
 
         return enc;
     }
