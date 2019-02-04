@@ -17,11 +17,17 @@ import uk.ac.ucl.rits.inform.informdb.*;
 @Component
 public class DBTester {
     @Autowired
+    private AttributeRepository attributeRepository;
+    @Autowired
     private PersonRepository personRepo;
     @Autowired
     private MrnRepository mrnRepo;
     @Autowired
     private EncounterRepository encounterRepo;
+    @Autowired
+    private PatientDemographicFactRepository patientDemographicFactRepository;
+    @Autowired
+    private PatientDemographicPropertyRepository patientDemographicPropertyRepository;
 
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
@@ -41,9 +47,31 @@ public class DBTester {
         // Encounter is always a new one for an A01
         Encounter enc = new Encounter();
         enc.setStore_datetime(Timestamp.from(Instant.now()));
+        enc.setEncounter(encounterDetails.getVisitNumber());
         enc.setEvent_time(encounterDetails.getEventTime());
         enc.setMrn(newOrExistingMrn);
         enc = encounterRepo.save(enc);
+        PatientDemographicFact fact = new PatientDemographicFact();
+        fact.setEncounter(enc);
+        // need to make an attribute repo with a find by attr ID method??
+        // fact.setKeyValueProp(Attribute.AttributeId.FAMILY_NAME,
+        // encounterDetails.getFamilyName());
+        Optional<Attribute> attropt = attributeRepository.findById(Attribute.AttributeId.FAMILY_NAME);
+        Attribute attr;
+        if (attropt.isPresent()) {
+            attr = attropt.get();
+        }
+        else {
+            // TODO: The correct way would be to pre-populate all attrs on startup
+            attr = new Attribute();
+            attr.setAttribute_id(Attribute.AttributeId.FAMILY_NAME);
+            attr.setDescription("Family Name");
+            attr = attributeRepository.save(attr);
+        }
+        PatientDemographicProperty prop = fact.setKeyValueProp(attr, encounterDetails.getFamilyName());
+        fact = patientDemographicFactRepository.save(fact);
+        prop = patientDemographicPropertyRepository.save(prop);
+
         return enc;
     }
 

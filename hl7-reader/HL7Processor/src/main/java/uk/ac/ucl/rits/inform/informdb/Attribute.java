@@ -8,18 +8,21 @@ import javax.persistence.Id;
 
 @Entity
 public class Attribute {
-
+    public enum AttributeId {
+        FAMILY_NAME
+    }
+    
     @Id
-    private int attribute_id;
+    private AttributeId attribute_id;
     
     private String description;
 
-    public int getAttribute_id() {
+    public AttributeId getAttribute_id() {
         return attribute_id;
     }
 
-    public void setAttribute_id(int attribute_id) {
-        this.attribute_id = attribute_id;
+    public void setAttribute_id(AttributeId aid) {
+        this.attribute_id = aid;
     }
 
     public String getDescription() {

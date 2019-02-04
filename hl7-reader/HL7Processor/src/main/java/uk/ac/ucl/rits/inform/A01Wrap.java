@@ -8,8 +8,25 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.RandomStringUtils;
 
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
+import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 public class A01Wrap {
+
+    private String administrativeSex;
+
+    private Timestamp eventTime;
+
+    private String familyName; // PID-5.1
+
+    private String givenName; // PID-5.2
+
+    private String middleName;
+
+    private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
+
+    private String NHSNumber; // patient ID PID-3.1[2]
+    private Random random;
+    private String visitNumber; // PV1-19
 
     /**
      * Populate the data by generating it randomly.
@@ -21,6 +38,9 @@ public class A01Wrap {
         NHSNumber = randomNHSNumber();
         familyName = randomString();
         givenName = randomString();
+        // what is the format for this number?
+        // CSNs will probably change this again
+        visitNumber = RandomStringUtils.randomNumeric(8);
         middleName = randomString();
         administrativeSex = randomString();
         eventTime = Timestamp.from(Instant.now());
@@ -32,7 +52,41 @@ public class A01Wrap {
      * @param fromMsg the passed in HL7 message
      */
     public A01Wrap(ADT_A01 fromMsg) {
+        PV1 pv1 = fromMsg.getPV1();
+        pv1.getVisitNumber();
         throw new NotImplementedException();
+    }
+
+    public String getAdministrativeSex() {
+        return administrativeSex;
+    }
+
+    public Timestamp getEventTime() {
+        return eventTime;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public String getMiddleName() {
+        return middleName;
+    }
+
+    public String getMrn() {
+        return mrn;
+    }
+
+    public String getNHSNumber() {
+        return NHSNumber;
+    }
+
+    public String getVisitNumber() {
+        return visitNumber;
     }
 
     private String randomNHSNumber() {
@@ -60,46 +114,8 @@ public class A01Wrap {
         return RandomStringUtils.randomAlphabetic(length);
     }
 
-    private Random random;
-
-    private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
-    private String NHSNumber; // patient ID PID-3.1[2]
-    private String familyName; // PID-5.1
-    private String givenName; // PID-5.2
-    private String middleName;
-    private String administrativeSex;
-    private Timestamp eventTime;
-
-    public String getAdministrativeSex() {
-        return administrativeSex;
-    }
-
     public void setAdministrativeSex(String administrativeSex) {
         this.administrativeSex = administrativeSex;
-    }
-
-    public String getMrn() {
-        return mrn;
-    }
-
-    public String getNHSNumber() {
-        return NHSNumber;
-    }
-
-    public String getFamilyName() {
-        return familyName;
-    }
-
-    public String getGivenName() {
-        return givenName;
-    }
-
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    public Timestamp getEventTime() {
-        return eventTime;
     }
 
 }

@@ -2,11 +2,11 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.sql.Timestamp;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Entity
@@ -20,9 +20,10 @@ public class Encounter {
     // private int account;
 
     @ManyToOne
+    @JoinColumn(name = "mrn")
     private Mrn mrn;
 
-    private int encounter;
+    private String encounter;
     private Timestamp store_datetime;
     private Timestamp end_datetime;
     private String source_system;
@@ -50,11 +51,11 @@ public class Encounter {
 //    public void setAccount(int account) {
 //        this.account = account;
 //    }
-    public int getEncounter() {
+    public String getEncounter() {
         return encounter;
     }
 
-    public void setEncounter(int encounter) {
+    public void setEncounter(String encounter) {
         this.encounter = encounter;
     }
 
