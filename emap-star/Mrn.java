@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Entity
@@ -16,6 +17,7 @@ public class Mrn {
     private int mrn_id; // the ID for the record linking an MRN to a person
 
     @ManyToOne
+    @JoinColumn(name = "person")
     private Person person;
     
     private String mrn; // the actual MRN

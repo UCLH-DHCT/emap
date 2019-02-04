@@ -1,13 +1,17 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 @Entity
 public class PatientDemographicFact {
@@ -17,11 +21,15 @@ public class PatientDemographicFact {
 
     // should this be CSN or something else?
     @ManyToOne
+    @JoinColumn(name = "encounter")
     private Encounter encounter;
 
     private int fact_type;
     private Timestamp store_datetime;
     private Timestamp end_datetime;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy="fact")
+    private List<PatientDemographicProperty> factProperties = new ArrayList<>();
 
     public int getFact_id() {
         return fact_id;
@@ -61,6 +69,16 @@ public class PatientDemographicFact {
 
     public void setEnd_datetime(Timestamp end_datetime) {
         this.end_datetime = end_datetime;
+    }
+
+    public PatientDemographicProperty setKeyValueProp(Attribute attr, String value) {
+        PatientDemographicProperty prop = new PatientDemographicProperty();
+        prop.setAttribute(attr);
+        prop.setValue_as_string(value);
+        prop.setFact(this);
+        factProperties.add(prop);
+        return prop;
+
     }
 
 }
