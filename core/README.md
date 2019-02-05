@@ -1,5 +1,7 @@
 # HL7_java
 
+[![CircleCI](https://circleci.com/gh/inform-health-informatics/HL7store.svg?style=svg)](https://circleci.com/gh/inform-health-informatics/HL7store)
+
 This contains two related sets of code, both to do with HL7 messages.
 
 Consumer.java and Engine.java parse HL7 messages using the open-source HAPI parser. They handle
