@@ -33,10 +33,6 @@ public class Encounter {
         return encounter_id;
     }
 
-    public void setEncounter_id(int encounter_id) {
-        this.encounter_id = encounter_id;
-    }
-
     public Mrn getMrn() {
         return mrn;
     }
@@ -45,12 +41,6 @@ public class Encounter {
         this.mrn = mrn;
     }
 
-//    public int getAccount() {
-//        return account;
-//    }
-//    public void setAccount(int account) {
-//        this.account = account;
-//    }
     public String getEncounter() {
         return encounter;
     }
