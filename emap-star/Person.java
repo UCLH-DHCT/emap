@@ -30,10 +30,6 @@ public class Person {
         return person_id;
     }
 
-    public void setPerson_id(int person_id) {
-        this.person_id = person_id;
-    }
-
     public Timestamp getCreate_datetime() {
         return create_datetime;
     }
