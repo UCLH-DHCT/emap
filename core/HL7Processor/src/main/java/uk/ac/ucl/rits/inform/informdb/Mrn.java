@@ -30,10 +30,6 @@ public class Mrn {
         return mrn_id;
     }
 
-    public void setMrn_id(int mrn_id) {
-        this.mrn_id = mrn_id;
-    }
-
     public Person getPerson() {
         return person;
     }

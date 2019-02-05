@@ -41,10 +41,6 @@ public class PatientDemographicProperty {
         return property_id;
     }
 
-    public void setProperty_id(int property_id) {
-        this.property_id = property_id;
-    }
-
     public PatientDemographicFact getFact() {
         return fact;
     }

@@ -35,10 +35,6 @@ public class PatientDemographicFact {
         return fact_id;
     }
 
-    public void setFact_id(int fact_id) {
-        this.fact_id = fact_id;
-    }
-
     public Encounter getEncounter() {
         return encounter;
     }
