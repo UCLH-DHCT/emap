@@ -1,3 +1,5 @@
+package uk.ac.ucl.rits.inform;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
