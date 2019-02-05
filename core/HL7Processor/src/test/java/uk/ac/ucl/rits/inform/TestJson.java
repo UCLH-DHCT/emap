@@ -1,5 +1,11 @@
 package uk.ac.ucl.rits.inform;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import org.json.simple.JSONObject;
+
 // https://www.tutorialspoint.com/junit/junit_environment_setup.htm
 // https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
 
@@ -7,11 +13,6 @@ package uk.ac.ucl.rits.inform;
 
 
 import org.junit.Test;
-import static org.junit.Assert.*; 
-import junit.framework.TestCase;
-import org.json.simple.JSONObject; 
-import uk.ac.ucl.rits.inform.*;
-import static org.mockito.Mockito.*;
 
 //import static org.mockito.Mockito.*;
 

@@ -1,5 +1,16 @@
 package uk.ac.ucl.rits.inform;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.sql.DataSource;
+
 // https://www.tutorialspoint.com/junit/junit_environment_setup.htm
 // https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
 
@@ -7,15 +18,8 @@ package uk.ac.ucl.rits.inform;
 
 
 import org.junit.Test;
-import static org.junit.Assert.*; 
+
 import junit.framework.TestCase;
-
-import java.beans.Transient;
-import java.sql.*;
-import uk.ac.ucl.rits.inform.*;
-
-import javax.sql.DataSource;
-import static org.mockito.Mockito.*;
 
 // NB despite the @Test annotation each test method name must begin with "test"
 

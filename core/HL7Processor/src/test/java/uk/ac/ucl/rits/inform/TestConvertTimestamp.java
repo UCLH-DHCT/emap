@@ -9,9 +9,8 @@ package uk.ac.ucl.rits.inform;
 //@RunWith(Parameterized.class) <- doesn't work with our version of junit (4.10)
 
 import org.junit.Test;
-import static org.junit.Assert.*; 
+
 import junit.framework.TestCase;
-import uk.ac.ucl.rits.inform.*;
 
 // NB despite the @Test annotation each test method name must begin with "test"
 
