@@ -23,6 +23,14 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: a merge PR
+          command: |
+            if [[ -n "${CIRCLE_PR_NUMBER}" ]]; then
+              git fetch origin +refs/pull/$CIRCLE_PR_NUMBER/merge:pr/$CIRCLE_PR_NUMBER/merge
+              git checkout -qf pr/$CIRCLE_PR_NUMBER/merge
+            fi
+
       # Download and cache dependencies
       - restore_cache:
           keys:
