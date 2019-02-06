@@ -71,6 +71,10 @@ public class DBTester {
 
         return enc;
     }
+    
+    public long countEncounters() {
+        return encounterRepo.count();
+    }
 
     // Find an existing Mrn by its string representation, or create a new
     // Mrn record if it doesn't exist.
