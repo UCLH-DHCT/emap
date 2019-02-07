@@ -26,9 +26,6 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-//@EnableAutoConfiguration  
-//@Profile("test")
-//@AutoConfigureMockMvc
 public class TestInformDb {
 
     /**
@@ -72,7 +69,7 @@ public class TestInformDb {
         long numEncounters = 100;
         for (int i = 0; i < numEncounters; i++) {
             Encounter enc = dbt.addEncounter(new A01Wrap());
-            System.out.println("test: " + enc.toString());
+            //System.out.println("test: " + enc.toString());
         }
         long afterEncounters = dbt.countEncounters();
         long actualNewEncounters = afterEncounters - beforeEncounters;
