@@ -4,6 +4,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 
@@ -14,6 +15,7 @@ public class App {
     }
 
     @Bean
+    @Profile("default")
     public CommandLineRunner mainLoop(DBTester dbt) {
         return (args) -> {
             System.out.println("hi");
@@ -28,4 +30,16 @@ public class App {
             System.out.println(String.format("done, took %.0f secs", (endcurrentTimeMillis - startTimeMillis)/1000.0));
         };
     }
+    
+    /**
+     * Don't want to do any normal HL7 message processing if running test profile
+     */
+    @Bean
+    @Profile("test")
+    public CommandLineRunner mainLoopTest(DBTester dbt) {
+        return (args) -> {
+            System.out.println("hi, just testing, doing nothing");
+        };
+    }
+    
 }
