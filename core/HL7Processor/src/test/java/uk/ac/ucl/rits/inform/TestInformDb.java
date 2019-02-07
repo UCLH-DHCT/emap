@@ -62,17 +62,24 @@ public class TestInformDb {
     public void tearDown() throws Exception {
     }
 
+    /**
+     * Add N encounters, then check that the encounter count has increased by N
+     */
     @Test
-    public void test() {
+    public void testAddEncounters() {
         System.out.println("test?");
+        long beforeEncounters = dbt.countEncounters();
         long numEncounters = 100;
         for (int i = 0; i < numEncounters; i++) {
             Encounter enc = dbt.addEncounter(new A01Wrap());
             System.out.println("test: " + enc.toString());
         }
-        long actualEncounters = dbt.countEncounters();
-        assertEquals(numEncounters, actualEncounters);
-        // fail("Not yet implemented");
+        long afterEncounters = dbt.countEncounters();
+        long actualNewEncounters = afterEncounters - beforeEncounters;
+        String failureString = String.format("Actual: before = %d, after = %d, difference = %d", beforeEncounters,
+                afterEncounters, actualNewEncounters);
+        System.out.println(failureString);
+        assertEquals(failureString, numEncounters, actualNewEncounters);
     }
 
 }
