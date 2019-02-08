@@ -64,7 +64,7 @@ jobs:
       - checkout
       - run:
           name: Build docs
-          command: cd HL7Processor && mvn javadoc:javadoc
+          command: cd HL7Processor && mkdir docsbuild && mvn javadoc:javadoc
       - persist_to_workspace:
           root: HL7Processor/docsbuild
           paths: html
