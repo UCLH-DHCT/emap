@@ -66,7 +66,7 @@ jobs:
           name: Build docs
           command: cd HL7Processor && mvn javadoc:javadoc
       - persist_to_workspace:
-          root: HL7Processor/_docsbuild
+          root: HL7Processor/docsbuild
           paths: html
 
   docs-deploy:
@@ -75,7 +75,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: HL7Processor/_docsbuild
+          at: HL7Processor/docsbuild
       - run:
           name: Install and configure dependencies
           command: |
@@ -84,4 +84,4 @@ jobs:
             git config user.name "ci-build"
       - run:
           name: Deploy docs to gh-pages branch
-          command: gh-pages --dist HL7Processor/_docsbuild/html
+          command: gh-pages --dist HL7Processor/docsbuild/html
