@@ -69,7 +69,7 @@ jobs:
           root: HL7Processor/_docsbuild
           paths: html
 
-    docs-deploy:
+  docs-deploy:
     docker:
       - image: node:8.10.0
     steps:
