@@ -82,6 +82,12 @@ jobs:
             npm install -g --silent gh-pages@2.0.1
             git config user.email "m.gillman@ucl.ac.uk"
             git config user.name "ci-build"
+      -add_ssh_keys:
+         # NB CircleCI adding ssh key error - see this post: 
+         # https://discuss.circleci.com/t/cant-add-an-ssh-key-in-ssh-permissions/26344/3
+         fingerprints:
+           - "07:8a:e8:b5:b7:0b:f3:fa:8d:eb:9d:91:8b:eb:95:d7"
+
       - run:
           name: Deploy docs to gh-pages branch
           command: gh-pages --message "[skip ci] Updates" -d HL7Processor/target/site/apidocs # -s '{*.html,*.css,*.txt,*.js,uk/**}'
