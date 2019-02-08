@@ -54,5 +54,34 @@ jobs:
              cd HL7Processor
              mvn integration-test   #mvn integration-test
 
+  # Following the example given at 
+  # https://circleci.com/blog/deploying-documentation-to-github-pages-with-continuous-integration/
+  docs-build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+      working_directory: ~/repo
+    steps:
+      - checkout
+      -run:
+         name: Build docs
+         command: cd HL7Processor && mvn javadoc:javadoc
+      - persist_to_workspace:
+          root: HL7Processor/_docsbuild
+          paths: html
 
-
+    docs-deploy:
+    docker:
+      - image: node:8.10.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: HL7Processor/_docsbuild
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g --silent gh-pages@2.0.1
+            git config user.email "m.gillman@ucl.ac.uk"
+            git config user.name "ci-build"
+      - run:
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dist HL7Processor/_docsbuild/html
