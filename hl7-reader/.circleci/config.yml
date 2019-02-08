@@ -84,7 +84,7 @@ jobs:
             git config user.name "ci-build"
       - run:
           name: Deploy docs to gh-pages branch
-          command: gh-pages --message "[skip ci] Updates" -d HL7Processor/docsbuild -s '{*.html,*.css,*.txt,*.js,uk/**}'
+          command: gh-pages --message "[skip ci] Updates" -d HL7Processor/docsbuild # -s '{*.html,*.css,*.txt,*.js,uk/**}'
 
 
 workflows:
