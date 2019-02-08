@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  compile:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8-jdk
@@ -85,3 +85,19 @@ jobs:
       - run:
           name: Deploy docs to gh-pages branch
           command: gh-pages --dist HL7Processor/docsbuild/html
+
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - compile
+      - docs-build
+      - docs_deploy:
+          requires:
+            - compile
+            - docs-build
+          filters:
+            branches:
+              only: master
+
