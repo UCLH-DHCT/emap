@@ -62,9 +62,9 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-      -run:
-         name: Build docs
-         command: cd HL7Processor && mvn javadoc:javadoc
+      - run:
+          name: Build docs
+          command: cd HL7Processor && mvn javadoc:javadoc
       - persist_to_workspace:
           root: HL7Processor/_docsbuild
           paths: html
