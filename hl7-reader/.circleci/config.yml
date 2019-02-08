@@ -64,9 +64,9 @@ jobs:
       - checkout
       - run:
           name: Build docs
-          command: cd HL7Processor && mkdir docsbuild && mvn javadoc:javadoc
+          command: cd HL7Processor && mkdir -p HL7Processor/target/site/apidocs && mvn javadoc:javadoc
       - persist_to_workspace:
-          root: HL7Processor/docsbuild
+          root: HL7Processor/target/site/apidocs
           paths: .
 
   docs-deploy:
@@ -75,7 +75,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: HL7Processor/docsbuild
+          at: HL7Processor/target/site/apidocs
       - run:
           name: Install and configure dependencies
           command: |
@@ -84,7 +84,7 @@ jobs:
             git config user.name "ci-build"
       - run:
           name: Deploy docs to gh-pages branch
-          command: gh-pages --message "[skip ci] Updates" -d HL7Processor/docsbuild # -s '{*.html,*.css,*.txt,*.js,uk/**}'
+          command: gh-pages --message "[skip ci] Updates" -d HL7Processor/target/site/apidocs # -s '{*.html,*.css,*.txt,*.js,uk/**}'
 
 
 workflows:
