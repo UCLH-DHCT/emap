@@ -84,7 +84,7 @@ jobs:
             git config user.name "ci-build"
       - run:
           name: Deploy docs to gh-pages branch
-          command: gh-pages --dist HL7Processor/docsbuild/html
+          command: gh-pages --dist HL7Processor/docsbuild
 
 
 workflows:
