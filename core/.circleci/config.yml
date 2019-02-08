@@ -82,7 +82,7 @@ jobs:
             npm install -g --silent gh-pages@2.0.1
             git config user.email "m.gillman@ucl.ac.uk"
             git config user.name "ci-build"
-      -add_ssh_keys:
+      - add_ssh_keys:
          # NB CircleCI adding ssh key error - see this post: 
          # https://discuss.circleci.com/t/cant-add-an-ssh-key-in-ssh-permissions/26344/3
          fingerprints:
