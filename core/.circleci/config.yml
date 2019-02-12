@@ -86,7 +86,8 @@ jobs:
           # NB CircleCI adding ssh key error - see this post: 
           # https://discuss.circleci.com/t/cant-add-an-ssh-key-in-ssh-permissions/26344/3
           fingerprints:
-            - "d8:fa:9c:19:e2:ba:a0:1d:a6:95:31:1a:22:95:54:52"
+            - "b7:8e:62:38:9f:d7:32:d3:85:21:24:2d:1e:23:30:39"
+           # - "d8:fa:9c:19:e2:ba:a0:1d:a6:95:31:1a:22:95:54:52"
            # - "ef:03:7c:0c:d9:45:d0:17:df:84:32:65:a4:aa:a5:46"
            #- "ee:f4:37:fc:e6:3a:6c:78:79:fe:bc:e8:94:e6:d6:2f"
            #- "07:8a:e8:b5:b7:0b:f3:fa:8d:eb:9d:91:8b:eb:95:d7"
