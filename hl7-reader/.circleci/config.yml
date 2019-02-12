@@ -93,7 +93,8 @@ jobs:
 
       - run:
           name: Deploy docs to gh-pages branch
-          command: gh-pages --message "[skip ci] Updates" -d HL7Processor/target/site/apidocs # -s '{*.html,*.css,*.txt,*.js,uk/**}'
+          command: gh-pages --message "[skip ci] Updates" -d HL7Processor/target/site/apidocs -u "ci-build <ci-build@ucl.ac.uk>" 
+	# -s '{*.html,*.css,*.txt,*.js,uk/**}'
 
 
 workflows:
