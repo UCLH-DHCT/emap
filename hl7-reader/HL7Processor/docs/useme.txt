@@ -1,3 +1,0 @@
-rsync -r ./ mattgillucl@github.com:inform-health-informatics/HL7_java/HL7Processor/docs
-
-Destination: This is the target URL, where the code should end up. In the example, the URL consists of <remote-user-name>@<remote-hostname>:<remote-folder>. You could also use a local destination, by just providing a folder
