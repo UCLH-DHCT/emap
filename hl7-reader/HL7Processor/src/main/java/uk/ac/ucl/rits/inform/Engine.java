@@ -10,6 +10,7 @@ import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
+import ca.uhn.hl7v2.model.v27.segment.PV1;
 import ca.uhn.hl7v2.model.v27.datatype.XPN;
 import ca.uhn.hl7v2.model.v27.datatype.CWE;
 import ca.uhn.hl7v2.model.v27.datatype.XAD;
@@ -21,6 +22,7 @@ import ca.uhn.hl7v2.model.v27.datatype.ID;
 import ca.uhn.hl7v2.model.v27.datatype.CX;
 import ca.uhn.hl7v2.model.v27.datatype.MSG;
 import ca.uhn.hl7v2.model.v27.datatype.HD;
+import ca.uhn.hl7v2.model.v27.datatype.PL;
 import ca.uhn.hl7v2.model.AbstractType;
 //import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
@@ -334,11 +336,18 @@ public class Engine {
         String deathIndicator; // Death indicator PID-30. Y = dead, N = alive.
 
 
-        // 4. PV1 (Patient Visit) - note there is some duplication below e.g. consultant details
-        // PV1-2  Patient Class	PV1-2.1	Eg. A or I. Episode Type. Ref[1]
+        // 4. PV1 (Patient Visit) https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
+        PV1 pv1 = adt_01.getPV1();
+        System.out.println("\n************** PV1 segment **************************");
+        // PV1-2  Patient Class	PV1-2.1	Eg. A or I. Episode Type.
+        System.out.println("PV1-2 patient class is " + pv1.getPatientClass().getComponent(0).toString());
+        PL pl = pv1.getAssignedPatientLocation();
         // PV1-3.1 Current Ward Code e.g. T06
+        System.out.println("PV1-3.1 Current Ward Code = " + pl.getPl1_PointOfCare().getComponent(0).toString());
         // PV1-3.2 Current Room Code e.g. T06A
+        System.out.println("PV1-3.2 Current Room Code = " + pl.getPl2_Room().getComponent(0).toString());
         // PV1-3.3 Current Bed e.g. T06-32
+        System.out.println("PV1-3.3 Current Bed = " + pl.getPl3_Bed().getComponent(0).toString());
         // PV1-4.1 1st repeat = admit priority (e.g. I), 2nd = admit type (e.g. A)
         // PV1-7.1 (1st repeat) Consultant code. Consultant for the clinic. Attending doctor GMC Code
         // PV1-7.2 (1st repeat) Consultant surname Eg. CASSONI
@@ -354,6 +363,9 @@ public class Engine {
         // PV1-10	Hospital Service	Specialty eg. 31015
         // PV1-14	Admission Source	ZLC8.1	Source of admission
 
+
+
+
         // IDS also has:
         // PV1-44.1 admission date
         // PV1-45.1 discharge date
@@ -365,8 +377,10 @@ public class Engine {
         // OBX
         // ZUK (non-standard)
          
+       
+      
         
-
+        
 
 
         //pretty_print_pid(adt_01);
