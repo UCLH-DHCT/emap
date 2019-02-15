@@ -11,18 +11,20 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
-import ca.uhn.hl7v2.model.v27.datatype.XPN;
+
 import ca.uhn.hl7v2.model.v27.datatype.CWE;
-import ca.uhn.hl7v2.model.v27.datatype.XAD;
-import ca.uhn.hl7v2.model.v27.datatype.SAD;
-import ca.uhn.hl7v2.model.v27.datatype.XTN;
-import ca.uhn.hl7v2.model.v27.datatype.IS;
-import ca.uhn.hl7v2.model.v27.datatype.DTM;
-import ca.uhn.hl7v2.model.v27.datatype.ID;
 import ca.uhn.hl7v2.model.v27.datatype.CX;
-import ca.uhn.hl7v2.model.v27.datatype.MSG;
+import ca.uhn.hl7v2.model.v27.datatype.DTM;
 import ca.uhn.hl7v2.model.v27.datatype.HD;
+import ca.uhn.hl7v2.model.v27.datatype.ID;
+import ca.uhn.hl7v2.model.v27.datatype.IS;
+import ca.uhn.hl7v2.model.v27.datatype.MSG;
 import ca.uhn.hl7v2.model.v27.datatype.PL;
+import ca.uhn.hl7v2.model.v27.datatype.SAD;
+import ca.uhn.hl7v2.model.v27.datatype.XAD;
+import ca.uhn.hl7v2.model.v27.datatype.XCN;
+import ca.uhn.hl7v2.model.v27.datatype.XPN;
+import ca.uhn.hl7v2.model.v27.datatype.XTN;
 import ca.uhn.hl7v2.model.AbstractType;
 //import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Apparently not used in 2.7
 //import ca.uhn.hl7v2.model.v27.datatype.PN;
@@ -173,7 +175,7 @@ public class Engine {
             + "PID|1||PATID1234^5^M11^ADT1^MR^GOOD HEALTH HOSPITAL~123456789^^^USSSA^SS||De'Ath^Donald^D^III||19610615|M||C|2222 HOME STREET^^GREENSBORO^NC^27401-1020|GL|(555) 555-2004|(555)555-2004||S|C| PATID12345001^2^M10^ADT1^AN^A|444333333|987654^NC|" // PID-20
             + "mother's identifier|ethnic group|birthplace|multiplebirthindicator|birthorder|citizenship|veteran|British|20190101|Y|\r"
             + "NK1|1|NUCLEAR^NELDA^W|SPO^SPOUSE||||NK^NEXT OF KIN\r"
-            + "PV1|1|I|2000^2012^01||||004777^ATTEND^AARON^A|||SUR||||ADM|A0|\r";
+            + "PV1|1|I|2000^2012^01|ER|||004777^ATTEND^AARON^A|||SUR||||ADM|A0|\r";
 
 
         Message msg = null;
@@ -349,26 +351,53 @@ public class Engine {
         // PV1-3.3 Current Bed e.g. T06-32
         System.out.println("PV1-3.3 Current Bed = " + pl.getPl3_Bed().getComponent(0).toString());
         // PV1-4.1 1st repeat = admit priority (e.g. I), 2nd = admit type (e.g. A)
-        // PV1-7.1 (1st repeat) Consultant code. Consultant for the clinic. Attending doctor GMC Code
-        // PV1-7.2 (1st repeat) Consultant surname Eg. CASSONI
-        // PV1-7.3 (1st repeat) Consultant Fname Eg. M
-        // PV1-7.4 (1st repeat) Consultant mname Eg. A
-        // PV1-7.6 (1st repeat) Consultant Title Eg. Dr
-        // PV1-7.7 (1st repeat) Consultant local code Eg. AC3
-        // PV1-8.1 (1st repeat) Consultant Code	(Registered GP user pointer), 2nd Consultant Code (Referring doctor GMC Code)
-        // PV1-8.2 (1st repeat) Consultant surname Eg. CASSONI, 2nd Consultant surname Eg. CASSONI
-        // PV1-8.3 (1st repeat) Consultant Fname Eg. M, 2nd Consultant Fname Eg. M
-        // PV1-8.4 (1st repeat) Consultant mname Eg. A, 2nd Consultant mname Eg. A
-        // PV1-8.6 1st repeat Consultant Title Eg. Dr, 2nd Consultant Title	Eg. Dr
+        System.out.println("PV1-4.1 1st repeat (admit priority) = " + pv1.getAdmissionType().getComponent(0).toString());
+        System.out.println("PV1-4.1 2nd repeat (admit type) = " + pv1.getAdmissionType().getComponent(1).toString());
+        
+        int reps = pv1.getAttendingDoctorReps();
+        System.out.println("THERE ARE " + reps + " ATTENDING DOCTOR(S):");
+        for (int i = 0; i < reps; i++) {
+            // PV1-7.1 (1st repeat) Consultant code. Consultant for the clinic. Attending doctor GMC Code
+            System.out.println("\t(" + i + ") PV1-7.1 consultant code = " + pv1.getAttendingDoctor(i).getPersonIdentifier().toString());
+            // PV1-7.2 (1st repeat) Consultant surname Eg. CASSONI
+            System.out.println("\t(" + i + ") PV1-7.2 consultant surname = " + pv1.getAttendingDoctor(i).getFamilyName().getSurname().toString());
+            // PV1-7.3 (1st repeat) Consultant Fname Eg. M
+            System.out.println("\t(" + i + ") PV1-7.3 consultant firstname = " + pv1.getAttendingDoctor(i).getGivenName().toString());
+            // PV1-7.4 (1st repeat) Consultant mname Eg. A
+            System.out.println("\t(" + i + ") PV1-7.4 Consultant mname = " + pv1.getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString());
+            // PV1-7.6 (1st repeat) Consultant Title Eg. Dr
+            System.out.println("\t(" + i + ") PV1-7.6 Consultant Title = " + pv1.getAttendingDoctor(i).getPrefixEgDR().toString());
+            // PV1-7.7 (1st repeat) Consultant local code Eg. AC3
+            System.out.println("\t(" + i + ") PV1-7.7 Consultant local code = " + pv1.getAttendingDoctor(i)./*getComponent(7).*/getDegreeEgMD().toString());
+        }
+
+        reps = pv1.getReferringDoctorReps();
+        System.out.println("THERE ARE " + reps + " REFERRING DOCTOR(S):");
+        for (int i = 0; i < reps; i++) {   
+            // PV1-8.1 (1st repeat) Consultant Code	(Registered GP user pointer), 2nd Consultant Code (Referring doctor GMC Code)
+            System.out.println("\t(" + i + ") PV1-8.1 consultant code = " + pv1.getReferringDoctor(i).getPersonIdentifier().toString());
+            // PV1-8.2 (1st repeat) Consultant surname Eg. CASSONI, 2nd Consultant surname Eg. CASSONI
+            System.out.println("\t(" + i + ") PV1-8.2 Consultant surname = " + pv1.getReferringDoctor(i).getFamilyName().getSurname().toString());
+            // PV1-8.3 (1st repeat) Consultant Fname Eg. M, 2nd Consultant Fname Eg. M
+            System.out.println("\t(" + i + ") PV1-8.3 Consultant Fname = " + pv1.getReferringDoctor(i).getGivenName().toString());
+            // PV1-8.4 (1st repeat) Consultant mname Eg. A, 2nd Consultant mname Eg. A
+            System.out.println("\t(" + i + ") PV1-8.4 Consultant mname = " + pv1.getReferringDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString());
+            // PV1-8.6 1st repeat Consultant Title Eg. Dr, 2nd Consultant Title	Eg. Dr
+            System.out.println("\t(" + i + ") PV1-8.6 Consultant Title = " + pv1.getReferringDoctor(i).getPrefixEgDR().toString());
+        }
+
         // PV1-10	Hospital Service	Specialty eg. 31015
+        System.out.println("PV1-10 Hospital Service = " + pv1.getHospitalService().getComponent(0).toString());
         // PV1-14	Admission Source	ZLC8.1	Source of admission
-
-
-
+        System.out.println("PV1-14 Admit source = " + pv1.getAdmitSource().getComponent(0).toString());
+        System.out.println("PV1-18 Patient Type = " + pv1.getPatientType().getComponent(0).toString());
+        System.out.println("PV1-19 Visit number = " + pv1.getVisitNumber().getComponent(0).toString());
 
         // IDS also has:
-        // PV1-44.1 admission date
-        // PV1-45.1 discharge date
+        // PV1-44.1 admission datetime
+        System.out.println("PV1-44.1 admission datetime = " + pv1.getAdmitDateTime().toString());
+        // PV1-45.1 discharge datetime - will be null for A01
+        System.out.println("PV1-45.1 discharge datetime = " + pv1.getDischargeDateTime().toString());
 
         // 5. Optional segments (not shown here)
         // PD - has details of GP, dentist, disability and Do Not Disclose indicator
