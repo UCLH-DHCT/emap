@@ -311,33 +311,64 @@ public class Engine {
         // EVN-5.2 Operator Surname
         // EVN-5.3 Operator First name
 
-        // 3. PID (Patient Identification)
-        String MRN; // patient ID PID-3.1[1] // internal UCLH hospital number
-        String NHSNumber; // patient ID PID-3.1[2] 
-        String familyName = "Doe"; // PID-5.1
-        String givenName = "Jane"; // PID-5.2
-        String middleName = ""; // middle name PID-5.3
-        String patientTitle = ""; // title PID-5.5 e.g. "Mr"
-        String birthdatetime = "unknown"; // DOB PID-7.1 YYYYMMDD (no time of birth)
-        String sex = "unknown";  // PID-8
-        String patientStreetAddress; // PID-11.1
-        String patientAddressOtherDesignation; // PID-11.2
-        String patientAddressCity; // PID-11.3
-        String patientAddressState; // PID-11.4 <--- I imagine this is for US 
-        String patientPostcode; // patient postcode PID-11.5
-        String patientCounty; // patient county PID-11.9
-        String homePhone, mobile, email; // home phone, mobile, email (1st-3rd repeats)PID-13.1
-        String businessPhone;// business phone PID-14.1
-        String interpreterCode;// PID-15.1	Interpreter code
-        String languageCode; // PID-15.4	Language code
-        String maritalStatus; // In place of PID-16 Carecast has ZLC.15 Marital status
-        String religion; // PID-17.1 Religion
-        String accountNumber; // PID-18.1	Account number
-        String ethnicity; // In place of PID-22 Carecast has PID-10.1 Ethnicity
-        String deathDateAndTime; // Date of death PID-29.1 YYYYMMDDHHmm format though hhmm is mainly 0000
-        String deathIndicator; // Death indicator PID-30. Y = dead, N = alive.
+        // 3. PID (Patient Identification) - see below for output
+        System.out.println("\n************** PID segment **************************");
+        PID pid = adt_01.getPID();
+        System.out.println("PID-3.1[1] MRN = " + pid.getPatientIdentifierList(0).getComponent(0).toString());
+        System.out.println("PID-3.1[2] NHSNumber = " + pid.getPatientIdentifierList(1).getComponent(0).toString());
 
+        //XPN xpn[] = pid.getPatientName(); 
+        XPN xpn = pid.getPatientName(0);
+        //if (xpn != null /*&& xpn.length > 0*/) {
+            //System.out.println("Non-null xpn");
+            //givenName = xpn.getGivenName().getValue();
+        //}
+        System.out.println("PID-5.1 family name is " + xpn.getFamilyName().getSurname().getValue());
+        System.out.println("PID-5.2 given name is " + xpn.getGivenName().getValue());
+        System.out.println("PID-5.3 middle name or initial: " + xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue()); 
+        System.out.println("PID-5.5 title is " + xpn.getPrefixEgDR().getValue());
+        
+        System.out.println("PID-7.1 birthdatetime is " + pid.getDateTimeOfBirth().toString());
+        System.out.println("PID-8 sex is " + pid.getAdministrativeSex().getIdentifier().getValue());
 
+        // NB for these we may need to iterate over the components in the SAD (from xad.getStreetAddress())
+        // to make sure we can cope with complicated addresses
+        // e.g. Flat F2.2/4, St Mark's Flats, Block A, Woodsley Road, Leeds, W. Yorks., LS2 9JT
+        // Also, there can be multiple addresses listed for 1 patient; here, we just obtain the first.
+        XAD xad = pid.getPatientAddress(0);
+        System.out.println("streetOrMailingAddress = " + xad.getStreetAddress().getStreetOrMailingAddress().getValue());
+        String patientStreet = xad.getStreetAddress().getStreetName().getValue(); // gives null
+        String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
+        String patientStreetAddress = patientDwellingNumber + " " + patientStreet;
+        System.out.println("PID-11.1 patientStreetAddress = " + patientStreetAddress); // gives null null
+        System.out.println("PID-11.2 patientAddressOtherDesignation = ");
+        System.out.println("PID-11.3 city = " + xad.getCity().getValue()); 
+        System.out.println("PID-11.4 state = "); // I imagine this is for US 
+        System.out.println("PID-11.5 post code = " + xad.getZipOrPostalCode().getValue());
+        System.out.println("PID-11.9 county = " + xad.getCountyParishCode().getComponent(0).toString());
+
+        // Phone and email - check if Epic are following the standards. 
+        System.out.println("PID-13.1 (1st repeat) home phone = " + pid.getPhoneNumberHome(0).getTelephoneNumber().getValue()); 
+        System.out.println("PID-13.1 (2nd repeat) mobile = " + pid.getPhoneNumberHome(1).getTelephoneNumber().getValue());
+        System.out.println("PID-13.1 (3rd repeat) email = " + pid.getPhoneNumberHome(2).getTelephoneNumber().getValue());
+        System.out.println("PID-14.1 business phone = " + pid.getPhoneNumberBusiness(0).getTelephoneNumber().getValue());
+
+        CWE cwe = pid.getPrimaryLanguage();
+        System.out.println("PID-15.1 interpreter code = ");
+        System.out.println("PID-15.4 language code = ");
+
+        System.out.println("PID-16 (Carecast has ZLC.15) marital status = " + pid.getMaritalStatus().getComponent(0).toString() 
+                + " (NB may not be seen in this segment with Carecast)");
+        System.out.println("PID-17.1 religion = " + pid.getReligion().getComponent(0).toString());
+        System.out.println("interpreter code = NOT YET IMPLEMENTED");
+        System.out.println("language code = NOT YET IMPLEMENTED");
+        System.out.println("PID-18.1 accountNumber = " + pid.getPatientAccountNumber().getComponent(0).toString());
+        // In place of PID-22 Carecast has PID-10.1 Ethnicity
+        System.out.println("ethnicity = NOT YET IMPLEMENTED (and may be in a different place in Carecast)");
+        System.out.println("PID-29.1 deathDateAndTime = " + pid.getPatientDeathDateAndTime().toString()); // YYYYMMDDHHmm format though hhmm is mainly 0000
+        System.out.println("PID-30 death indicator = " + pid.getPatientDeathIndicator().getValue()); // Y = dead, N = alive.
+ 
+      
         // 4. PV1 (Patient Visit) https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
         PV1 pv1 = adt_01.getPV1();
         System.out.println("\n************** PV1 segment **************************");
@@ -406,88 +437,13 @@ public class Engine {
         // OBX
         // ZUK (non-standard)
          
-       
-      
-        
-        
 
 
         //pretty_print_pid(adt_01);
-        PID pid = adt_01.getPID();
-        CWE cwe;
-
-        MRN = pid.getPatientIdentifierList(0).getComponent(0).toString();
-        NHSNumber = pid.getPatientIdentifierList(1).getComponent(0).toString();
-
-        //XPN xpn[] = pid.getPatientName(); 
-        XPN xpn = pid.getPatientName(0);
-        if (xpn != null /*&& xpn.length > 0*/) {
-            //System.out.println("Non-null xpn");
-            givenName = xpn.getGivenName().getValue();
-            familyName = xpn/*[0]*/.getFamilyName().getSurname().getValue(); // HAPI example has pid.getPatientName().getFamilyName().getValue();
-            middleName = xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue();
-            patientTitle = xpn.getPrefixEgDR().getValue();
-        }
-        sex = pid.getAdministrativeSex().getIdentifier().getValue(); 
-        birthdatetime = pid.getDateTimeOfBirth().toString(); // may be null? e.g. 193508040000 or 19610615
         
-        // NB for these we may need to iterate over the components in the SAD (from xad.getStreetAddress())
-        // to make sure we can cope with complicated addresses
-        // e.g. Flat F2.2/4, St Mark's Flats, Block A, Woodsley Road, Leeds, W. Yorks., LS2 9JT
-        // Also, there can be multiple addresses listed for 1 patient; here, we just obtain the first.
-        XAD xad = pid.getPatientAddress(0);
-        String streetOrMailingAddress = xad.getStreetAddress().getStreetOrMailingAddress().getValue();
-        String patientStreet = xad.getStreetAddress().getStreetName().getValue(); // gives null
-        String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
-        patientStreetAddress = patientDwellingNumber + " " + patientStreet;
-        patientAddressCity = xad.getCity().getValue();
+       
 
-        // We need examples of non-London address HL7 messages.
-        patientCounty = xad.getCountyParishCode().getComponent(0).toString();
-        patientPostcode = xad.getZipOrPostalCode().getValue();
-
-        // Phone and email - check if Epic are following the standards. 
-        homePhone = pid.getPhoneNumberHome(0).getTelephoneNumber().getValue();
-        mobile = pid.getPhoneNumberHome(1).getTelephoneNumber().getValue();
-        email = pid.getPhoneNumberHome(2).getTelephoneNumber().getValue();
-        businessPhone = pid.getPhoneNumberBusiness(0).getTelephoneNumber().getValue();
-
-        cwe = pid.getPrimaryLanguage();
-
-        maritalStatus = pid.getMaritalStatus().getComponent(0).toString();
-        religion = pid.getReligion().getComponent(0).toString();
-        accountNumber = pid.getPatientAccountNumber().getComponent(0).toString();
-        deathDateAndTime = pid.getPatientDeathDateAndTime().toString();
-        deathIndicator = pid.getPatientDeathIndicator().getValue();
         
-        System.out.println("\n************** PID segment **************************");
-        System.out.println("MRN = " + MRN);
-        System.out.println("NHSNumber = " + NHSNumber);
-        System.out.println("given name is " + givenName);
-        System.out.println("middle name or initial: " + middleName);
-        System.out.println("family name is " + familyName);
-        System.out.println("title is " + patientTitle);
-        System.out.println("sex is " + sex);
-        System.out.println("birthdatetime is " + birthdatetime);
-        System.out.println("streetOrMailingAddress = " + streetOrMailingAddress);
-        System.out.println("patientStreetAddress = " + patientStreetAddress); // gives null null
-        System.out.println("city = " + patientAddressCity);
-        System.out.println("county = " + patientCounty);
-        System.out.println("post code = " + patientPostcode);
-        System.out.println("home phone = " + homePhone); 
-        System.out.println("mobile = " + mobile);
-        System.out.println("email = " + email);
-        System.out.println("business phone = " + businessPhone);
-        System.out.println("marital status = " + maritalStatus + " (NB may not be seen in this segment with Carecast)");
-        System.out.println("religion = " + religion);
-        System.out.println("interpreter code = NOT YET IMPLEMENTED");
-        System.out.println("language code = NOT YET IMPLEMENTED");
-        System.out.println("accountNumber = " + accountNumber);
-        System.out.println("ethnicity = NOT YET IMPLEMENTED (and may be in a different place in Carecast)");
-        System.out.println("deathDateAndTime = " + deathDateAndTime);
-        System.out.println("death indicator = " + deathIndicator);
-
-
         System.out.println("\n****************************************");
 
         // Other data race = C, 12 county code GL, 
