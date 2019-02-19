@@ -11,6 +11,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
+import ca.uhn.hl7v2.model.v27.segment.EVN;
 
 import ca.uhn.hl7v2.model.v27.datatype.CWE;
 import ca.uhn.hl7v2.model.v27.datatype.CX;
@@ -303,10 +304,16 @@ public class Engine {
         // MSH-16	Application Acknowledgment Type (NE)
 
         // 2. EVN (Event Type)
+        System.out.println("\n************** EVN segment **************************");
+        EVN evn = adt_01.getEVN();
         // EVN-1 Event Type Code (A01)
+        System.out.println("EVN-1 event type code = " + evn.getEvn1_EventTypeCode().toString());
         // EVN-2 Recorded Date/Time - Current Date/time YYYYMMDDHHMM
+        System.out.println("EVN-2 Recorded Date/Time = " + evn.getEvn2_RecordedDateTime().toString());
         // EVN-3 Date/Time Planned Event
+        System.out.println("EVN-3 Date/Time Planned Event = " + evn.getEvn3_DateTimePlannedEvent().toString());
         // EVN-4 Event Reason Code Eg. ADM
+        System.out.println("EVN-4 Event Reason Code (is this correct?) = " + evn.getEvn4_EventReasonCode().getComponent(0).toString());
         // EVN-5.1 Operator ID
         // EVN-5.2 Operator Surname
         // EVN-5.3 Operator First name
@@ -341,9 +348,9 @@ public class Engine {
         String patientDwellingNumber = xad.getStreetAddress().getDwellingNumber().getValue(); // gives null
         String patientStreetAddress = patientDwellingNumber + " " + patientStreet;
         System.out.println("PID-11.1 patientStreetAddress = " + patientStreetAddress); // gives null null
-        System.out.println("PID-11.2 patientAddressOtherDesignation = ");
+        System.out.println("PID-11.2 patientAddressOtherDesignation = (NOT YET IMPL)");
         System.out.println("PID-11.3 city = " + xad.getCity().getValue()); 
-        System.out.println("PID-11.4 state = "); // I imagine this is for US 
+        System.out.println("PID-11.4 state = (NOT YET IMPL)"); // I imagine this is for US 
         System.out.println("PID-11.5 post code = " + xad.getZipOrPostalCode().getValue());
         System.out.println("PID-11.9 county = " + xad.getCountyParishCode().getComponent(0).toString());
 
@@ -354,14 +361,13 @@ public class Engine {
         System.out.println("PID-14.1 business phone = " + pid.getPhoneNumberBusiness(0).getTelephoneNumber().getValue());
 
         CWE cwe = pid.getPrimaryLanguage();
-        System.out.println("PID-15.1 interpreter code = ");
-        System.out.println("PID-15.4 language code = ");
+        System.out.println("PID-15.1 interpreter code = NOT YET IMPLEMENTED");
+        System.out.println("PID-15.4 language code = NOT YET IMPLEMENTED");
 
         System.out.println("PID-16 (Carecast has ZLC.15) marital status = " + pid.getMaritalStatus().getComponent(0).toString() 
                 + " (NB may not be seen in this segment with Carecast)");
         System.out.println("PID-17.1 religion = " + pid.getReligion().getComponent(0).toString());
-        System.out.println("interpreter code = NOT YET IMPLEMENTED");
-        System.out.println("language code = NOT YET IMPLEMENTED");
+ 
         System.out.println("PID-18.1 accountNumber = " + pid.getPatientAccountNumber().getComponent(0).toString());
         // In place of PID-22 Carecast has PID-10.1 Ethnicity
         System.out.println("ethnicity = NOT YET IMPLEMENTED (and may be in a different place in Carecast)");
