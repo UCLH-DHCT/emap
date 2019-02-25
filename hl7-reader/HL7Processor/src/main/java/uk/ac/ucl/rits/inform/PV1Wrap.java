@@ -102,6 +102,65 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
         return _pv1.getAdmissionType().getComponent(1).toString();
     }
 
+
+    /**
+     * 
+     * @return PV1-10	Hospital Service	Specialty eg. 31015
+     * @throws HL7Exception
+     */
+    public String getHospitalService() throws HL7Exception {
+        return _pv1.getHospitalService().getComponent(0).toString();
+    }
+
+    /**
+     * 
+     * @return PV1-14	Admission Source. NB Carecast says ZLC8.1	Source of admission
+     * @throws HL7Exception
+     */
+    public String getAdmitSource() throws HL7Exception {
+        return _pv1.getAdmitSource().getComponent(0).toString();
+    }
+
+
+    /**
+     * 
+     * @return PV1-18 Patient Type
+     * @throws HL7Exception
+     */
+    public String getPatientType() throws HL7Exception {
+        return _pv1.getPatientType().getComponent(0).toString();
+    }
+
+
+    /**
+     * 
+     * @return PV1-19 Visit number
+     * @throws HL7Exception
+     */
+    public String getVisitNumber() throws HL7Exception {
+        return _pv1.getVisitNumber().getComponent(0).toString();
+    }
+
+
+    /**
+     * 
+     * @return PV1-44.1 admission datetime - may want to get individual components instead/as well as
+     * @throws HL7Exception
+     */
+    public String getAdmissionDateTime() throws HL7Exception {
+        return _pv1.getAdmitDateTime().toString();
+    }
+
+
+    /**
+     * 
+     * @return PV1-45.1 discharge datetime - may want to get individual components instead/as well as
+     * @throws HL7Exception
+     */
+    public String getDischargeDateTime() throws HL7Exception {
+        return _pv1.getDischargeDateTime().toString();
+    }
+
  }
  
  /*
@@ -136,18 +195,4 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
      // PV1-8.6 1st repeat Consultant Title Eg. Dr, 2nd Consultant Title	Eg. Dr
      System.out.println("\t(" + i + ") PV1-8.6 Consultant Title = " + pv1.getReferringDoctor(i).getPrefixEgDR().toString());
  }
-
- 
- // PV1-10	Hospital Service	Specialty eg. 31015
- System.out.println("PV1-10 Hospital Service = " + pv1.getHospitalService().getComponent(0).toString());
- // PV1-14	Admission Source	ZLC8.1	Source of admission
- System.out.println("PV1-14 Admit source = " + pv1.getAdmitSource().getComponent(0).toString());
- System.out.println("PV1-18 Patient Type = " + pv1.getPatientType().getComponent(0).toString());
- System.out.println("PV1-19 Visit number = " + pv1.getVisitNumber().getComponent(0).toString());
-
- // IDS also has:
- // PV1-44.1 admission datetime
- System.out.println("PV1-44.1 admission datetime = " + pv1.getAdmitDateTime().toString());
- // PV1-45.1 discharge datetime - will be null for A01
- System.out.println("PV1-45.1 discharge datetime = " + pv1.getDischargeDateTime().toString());
  */
