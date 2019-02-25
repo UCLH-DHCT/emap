@@ -40,6 +40,16 @@ public class A01Wrap {
     private Random random;
     private String visitNumber; // PV1-19
 
+    private MSHWrap mshwrap;
+
+    public MSHWrap getMSHWrap () {
+        return mshwrap;
+    }
+
+    public void setMSHWrap (MSHWrap mshwrap) {
+        mshwrap = mshwrap;
+    }
+
     /**
      * Populate the data by generating it randomly.
      */
@@ -68,10 +78,13 @@ public class A01Wrap {
 
         // 1. MSH (Message Header) - mostly don't appear to be useful
         MSH msh = adt_01.getMSH();
+        mshwrap = new MSHWrap(msh);
+
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
         // MSH-2 Encoding Characters
-        System.out.println("sending application = " + msh.getSendingApplication().getComponent(0).toString());// MSH-3
+        System.out.println("sending application = " + mshwrap.getSendingApplication());
+        //+ msh.getSendingApplication().getComponent(0).toString());// MSH-3
                                                                                                               // Sending
                                                                                                               // Application
                                                                                                               // (“CARECAST”)
