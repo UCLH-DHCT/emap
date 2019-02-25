@@ -23,7 +23,7 @@ import ca.uhn.hl7v2.model.v27.segment.MSH;
 
 public class MSHWrap {
 
-    private MSH msh;
+    private MSH _msh;
 
     /**
      * Constructor
@@ -33,25 +33,61 @@ public class MSHWrap {
      * @param myMSH MSH segment, obtained by parsing the message to which this segment relates (msg.getMSH())
      */
     public MSHWrap(MSH myMSH) {
-        msh = myMSH;
+        _msh = myMSH;
     }
 
-    /*
-        System.out.println("sending facility = " + msh.getSendingFacility().getComponent(0).toString()); // MSH-4 Sending Facility (“UCLH”)
-        // MSH-5 Receiving Application (“Receiving system”)
-        System.out.println("messageTimestamp = " + msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of Message YYYYMMDDHHMM
-        System.out.println("message type = " + msh.getMessageType().getMessageCode().toString()); // MSH-9.1	Message Type (ADT)
-        System.out.println("trigger event = " + msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2	Trigger Event (A01)
-      */
 
     /**
      * 
      * @return MSH-3 Sending Application (e.g. “CARECAST”)
+     * @throws HL7Exception
      */
     public String getSendingApplication() throws HL7Exception {
-        return msh.getSendingApplication().getComponent(0).toString();
+        return _msh.getSendingApplication().getComponent(0).toString();
     }
 
 
+    /**
+     * 
+     * @return MSH-4 Sending Facility (e.g. “UCLH”)
+     * @throws HL7Exception
+     */
+    public String getSendingFacility() throws HL7Exception {
+        return _msh.getSendingFacility().getComponent(0).toString();
+    }
+
+
+    // To add:
+    // MSH-5 Receiving Application (“Receiving system”)
+
+
+    /**
+     * 
+     * @return MSH-7 Date/Time Of Message YYYYMMDDHHMM
+     * @throws HL7Exception
+     */
+    public String getMessageTimestamp() throws HL7Exception {
+        return _msh.getDateTimeOfMessage().toString();
+    } 
+
+
+    /**
+     * 
+     * @return MSH-9.1	Message Type (e.g. "ADT")
+     * @throws HL7Exception
+     */
+    public String getMessageType() throws HL7Exception {
+        return _msh.getMessageType().getMessageCode().toString();
+    }
+
+
+    /**
+     * 
+     * @return MSH-9.2	Trigger Event (e.g. "A01")
+     * @throws HL7Exception
+     */
+    public String getTriggerEvent() throws HL7Exception {
+        return _msh.getMessageType().getTriggerEvent().getValue();
+    }
 
 }

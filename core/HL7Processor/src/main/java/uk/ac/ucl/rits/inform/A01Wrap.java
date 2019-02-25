@@ -46,6 +46,11 @@ public class A01Wrap {
         return mshwrap;
     }
 
+    /**
+     * I'm not sure if we would ever use this, as opposed to creating the mshwrap object in the constructor.
+     * 
+     * @param mshwrap
+     */
     public void setMSHWrap (MSHWrap mshwrap) {
         mshwrap = mshwrap;
     }
@@ -88,17 +93,17 @@ public class A01Wrap {
                                                                                                               // Sending
                                                                                                               // Application
                                                                                                               // (“CARECAST”)
-        System.out.println("sending facility = " + msh.getSendingFacility().getComponent(0).toString()); // MSH-4
+        System.out.println("sending facility = " + mshwrap.getSendingFacility()); //.getComponent(0).toString()); // MSH-4
                                                                                                          // Sending
                                                                                                          // Facility
                                                                                                          // (“UCLH”)
         // MSH-5 Receiving Application (“Receiving system”)
-        System.out.println("messageTimestamp = " + msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of
+        System.out.println("messageTimestamp = " + mshwrap.getMessageTimestamp());//msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of
                                                                                            // Message
                                                                                            // YYYYMMDDHHMM
-        System.out.println("message type = " + msh.getMessageType().getMessageCode().toString()); // MSH-9.1 Message
+        System.out.println("message type = " + mshwrap.getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
                                                                                                   // Type (ADT)
-        System.out.println("trigger event = " + msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
+        System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
                                                                                                     // Trigger
         PV1 pv1 = adt_01.getPV1();
         CX visitNumber2 = pv1.getVisitNumber();
