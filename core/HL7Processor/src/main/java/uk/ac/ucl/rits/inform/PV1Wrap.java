@@ -20,6 +20,8 @@ import ca.uhn.hl7v2.model.AbstractType;
 
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
+import java.util.Vector;
+
 /**
  * class PV1Wrap
  * 
@@ -101,6 +103,40 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
     public String getAdmitType() throws HL7Exception {
         return _pv1.getAdmissionType().getComponent(1).toString();
     }
+
+
+    /*int reps = pv1.getAttendingDoctorReps();
+ System.out.println("THERE ARE " + reps + " ATTENDING DOCTOR(S):");
+ for (int i = 0; i < reps; i++) {
+     // PV1-7.1 (1st repeat) Consultant code. Consultant for the clinic. Attending doctor GMC Code
+     System.out.println("\t(" + i + ") PV1-7.1 consultant code = " + pv1.getAttendingDoctor(i).getPersonIdentifier().toString());
+     // PV1-7.2 (1st repeat) Consultant surname Eg. CASSONI
+     System.out.println("\t(" + i + ") PV1-7.2 consultant surname = " + pv1.getAttendingDoctor(i).getFamilyName().getSurname().toString());
+     // PV1-7.3 (1st repeat) Consultant Fname Eg. M
+     System.out.println("\t(" + i + ") PV1-7.3 consultant firstname = " + pv1.getAttendingDoctor(i).getGivenName().toString());
+     // PV1-7.4 (1st repeat) Consultant mname Eg. A
+     System.out.println("\t(" + i + ") PV1-7.4 Consultant mname = " + pv1.getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString());
+     // PV1-7.6 (1st repeat) Consultant Title Eg. Dr
+     System.out.println("\t(" + i + ") PV1-7.6 Consultant Title = " + pv1.getAttendingDoctor(i).getPrefixEgDR().toString());
+     // PV1-7.7 (1st repeat) Consultant local code Eg. AC3
+     System.out.println("\t(" + i + ") PV1-7.7 Consultant local code = " + pv1.getAttendingDoctor(i)./*getComponent(7).*//*getDegreeEgMD().toString());
+ }
+    */
+
+    public Vector<Doctor> getAttendingDoctors() throws HL7Exception {
+
+        int reps = _pv1.getAttendingDoctorReps();
+        Vector v = new Vector(reps, 1);
+        for (int i = 0; i < reps; i++) {
+            Doctor dr = new Doctor();
+            dr.setConsultantCode(_pv1.getAttendingDoctor(i).getPersonIdentifier().toString());
+
+            v.add(dr);
+        }
+
+        return v;
+    }
+
 
 
     /**
