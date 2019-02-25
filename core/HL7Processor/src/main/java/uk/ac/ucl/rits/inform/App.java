@@ -22,6 +22,8 @@ import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageStringIterator.ParseFailureError;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import uk.ac.ucl.rits.inform.ids.IdsMaster;
+import uk.ac.ucl.rits.inform.ids.IdsMasterRepository;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 
 @SpringBootApplication
