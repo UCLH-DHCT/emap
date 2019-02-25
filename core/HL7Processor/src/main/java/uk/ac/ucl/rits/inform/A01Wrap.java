@@ -41,6 +41,7 @@ public class A01Wrap {
     private String visitNumber; // PV1-19
 
     private MSHWrap mshwrap;
+    private PV1Wrap pv1wrap;
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
@@ -53,6 +54,10 @@ public class A01Wrap {
      */
     public void setMSHWrap (MSHWrap mshwrap) {
         mshwrap = mshwrap;
+    }
+
+    public PV1Wrap getPV1Wrap () {
+        return pv1wrap;
     }
 
     /**
@@ -84,6 +89,7 @@ public class A01Wrap {
         // 1. MSH (Message Header) - mostly don't appear to be useful
         MSH msh = adt_01.getMSH();
         mshwrap = new MSHWrap(msh);
+        pv1wrap = new PV1Wrap(adt_01.getPV1());
 
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
@@ -105,6 +111,9 @@ public class A01Wrap {
                                                                                                   // Type (ADT)
         System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
                                                                                                     // Trigger
+        
+        System.out.println("current bed = " + pv1wrap.getCurrentBed());
+
         PV1 pv1 = adt_01.getPV1();
         CX visitNumber2 = pv1.getVisitNumber();
         ST idNumber = visitNumber2.getIDNumber();
