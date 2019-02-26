@@ -105,31 +105,24 @@ import java.util.Vector;
     }
 
 
-    /*int reps = pv1.getAttendingDoctorReps();
- System.out.println("THERE ARE " + reps + " ATTENDING DOCTOR(S):");
- for (int i = 0; i < reps; i++) {
-     // PV1-7.1 (1st repeat) Consultant code. Consultant for the clinic. Attending doctor GMC Code
-     System.out.println("\t(" + i + ") PV1-7.1 consultant code = " + pv1.getAttendingDoctor(i).getPersonIdentifier().toString());
-     // PV1-7.2 (1st repeat) Consultant surname Eg. CASSONI
-     System.out.println("\t(" + i + ") PV1-7.2 consultant surname = " + pv1.getAttendingDoctor(i).getFamilyName().getSurname().toString());
-     // PV1-7.3 (1st repeat) Consultant Fname Eg. M
-     System.out.println("\t(" + i + ") PV1-7.3 consultant firstname = " + pv1.getAttendingDoctor(i).getGivenName().toString());
-     // PV1-7.4 (1st repeat) Consultant mname Eg. A
-     System.out.println("\t(" + i + ") PV1-7.4 Consultant mname = " + pv1.getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString());
-     // PV1-7.6 (1st repeat) Consultant Title Eg. Dr
-     System.out.println("\t(" + i + ") PV1-7.6 Consultant Title = " + pv1.getAttendingDoctor(i).getPrefixEgDR().toString());
-     // PV1-7.7 (1st repeat) Consultant local code Eg. AC3
-     System.out.println("\t(" + i + ") PV1-7.7 Consultant local code = " + pv1.getAttendingDoctor(i)./*getComponent(7).*//*getDegreeEgMD().toString());
- }
-    */
-
+    /**
+     * Get the attending doctor(s) PV1-7.1 to PV1-7.7
+     * 
+     * @return Vector of Doctor objects
+     * @throws HL7Exception
+     */
     public Vector<Doctor> getAttendingDoctors() throws HL7Exception {
 
         int reps = _pv1.getAttendingDoctorReps();
         Vector v = new Vector(reps, 1);
         for (int i = 0; i < reps; i++) {
             Doctor dr = new Doctor();
-            dr.setConsultantCode(_pv1.getAttendingDoctor(i).getPersonIdentifier().toString());
+            dr.setConsultantCode(_pv1.getAttendingDoctor(i).getPersonIdentifier().toString()); // PV1-7.1
+            dr.setSurname(_pv1.getAttendingDoctor(i).getFamilyName().getSurname().toString()); // PV1-7.2
+            dr.setFirstname(_pv1.getAttendingDoctor(i).getGivenName().toString()); // PV1-7.3
+            dr.setMiddlenameOrInitial(_pv1.getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-7.4
+            dr.setTitle(_pv1.getAttendingDoctor(i).getPrefixEgDR().toString()); // PV1-7.6
+            dr.setLocalCode(_pv1.getAttendingDoctor(i).getComponent(7)/*getDegreeEgMD()*/.toString()); // PV1-7.7
 
             v.add(dr);
         }
