@@ -6,13 +6,26 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.*;
+import uk.ac.ucl.rits.inform.ids.IdsMaster;
+import uk.ac.ucl.rits.inform.informdb.Attribute;
+import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.EncounterRepository;
+import uk.ac.ucl.rits.inform.informdb.Mrn;
+import uk.ac.ucl.rits.inform.informdb.MrnRepository;
+import uk.ac.ucl.rits.inform.informdb.PatientDemographicFact;
+import uk.ac.ucl.rits.inform.informdb.PatientDemographicFactRepository;
+import uk.ac.ucl.rits.inform.informdb.Person;
+import uk.ac.ucl.rits.inform.informdb.PersonRepository;
 
 @Component
 public class DBTester {
@@ -29,7 +42,39 @@ public class DBTester {
 
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
+    private SessionFactory idsFactory;
+    private Session idsSession;
+
     public DBTester() {
+        idsFactory = makeSessionFactory("ids.cfg.xml", "IDS");
+        idsSession = idsFactory.openSession();
+        IdsMaster ids = null;
+        try {
+            ids = idsSession.find(IdsMaster.class, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        System.out.println("ids record = " + ids);
+
+        idsSession.close();
+        idsFactory.close();
+    }
+
+    private static SessionFactory makeSessionFactory(String configFile, String label) {
+        Configuration cfg = new Configuration().configure(configFile);
+        cfg.addAnnotatedClass(IdsMaster.class);
+
+        // take the username and password out of the environment
+        // so the config file can safely go into source control
+        String envVarUsername = label + "_USERNAME";
+        String envVarPassword = label + "_PASSWORD";
+
+        cfg.setProperty("hibernate.connection.username", System.getenv(envVarUsername));
+        cfg.setProperty("hibernate.connection.password", System.getenv(envVarPassword));
+
+        return cfg.buildSessionFactory();
     }
 
     /**
@@ -58,8 +103,7 @@ public class DBTester {
         Attribute attr;
         if (attropt.isPresent()) {
             attr = attropt.get();
-        }
-        else {
+        } else {
             // TODO: The correct way would be to pre-populate all attrs on startup
             attr = new Attribute();
             attr.setAttribute_id(Attribute.AttributeId.FAMILY_NAME);
@@ -71,7 +115,7 @@ public class DBTester {
 
         return enc;
     }
-    
+
     public long countEncounters() {
         return encounterRepo.count();
     }
