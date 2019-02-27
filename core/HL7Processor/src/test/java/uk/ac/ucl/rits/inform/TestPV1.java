@@ -6,6 +6,9 @@ import static org.mockito.Mockito.when;
 
 import java.beans.Transient;
 
+//import java.beans.Transient;
+
+import java.util.Vector;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
@@ -112,6 +115,7 @@ public class TestPV1 extends TestCase {
 
     }
 
+
     @Test
     // PV1-3.1
     public void testGetCurrentWardCode1() {
@@ -167,9 +171,133 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetCurrentBed1()");
             e.printStackTrace();
         }
+        //System.out.println("debug test result = " + result);
         assertEquals(result, "H203-11");
     }
 
+    @Test
+    // PV1-8
+    public void testGetReferringDoctors1() {
+        Doctor dr1 = null, dr2 = null;
+        Vector<Doctor> vec = null; 
+        try {
+           vec = wrapper.getReferringDoctors();
+        }
+        catch(HL7Exception e) {
+            System.out.println("Got exception in testGetReferringDoctors1()");
+            e.printStackTrace();
+        }
+        dr1 = vec.get(0);
+        dr2 = vec.get(1);
+        assertEquals("Wrong dr1 consultant code", dr1.getConsultantCode(), "397982");
+        assertEquals("Wrong dr2 consultant code", dr2.getConsultantCode(), "392275");
+        assertEquals("Wrong dr1 surname", dr1.getSurname(), "LAWSON");
+        assertEquals("Wrong dr2 surname", dr2.getSurname(), "ISENBERG");
+        assertEquals("Wrong dr1 firstname", dr1.getFirstname(), "M");
+        assertEquals("Wrong dr2 firstname", dr2.getFirstname(), "DAVID");
+        assertEquals("Wrong dr1 middlename", dr1.getMiddlenameOrInitial(), null);
+        assertEquals("Wrong dr2 middlename", dr2.getMiddlenameOrInitial(), "J");
+        assertEquals("Wrong dr1 title", dr1.getTitle(), "DR");
+        assertEquals("Wrong dr2 title", dr2.getTitle(), "PROF");
+        // assertEquals("")getLocalCode()
+    }
+
+
+    @Test 
+    // PV1-10
+    public void testGetHospitalService1() throws HL7Exception {
+
+        String result = "";
+        try {
+            result = wrapper.getHospitalService();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetHospitalService1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, "41008");
+
+    } 
+
+    @Test 
+    // PV1-14
+    public void testGetAdmitSource1() throws HL7Exception {
+
+        String result = "";
+        try {
+            result = wrapper.getAdmitSource();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetAdmitSource1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, "19");
+
+    }
+
+    @Test 
+    // PV1-18
+    public void testGetPatientType1() throws HL7Exception {
+
+        String result = "";
+        try {
+            result = wrapper.getPatientType();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetAPatientSource1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, null);
+
+    }
+
+    @Test 
+    // PV1-19
+    public void testGetVisitNumber1() throws HL7Exception {
+
+        String result = "";
+        try {
+            result = wrapper.getVisitNumber();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetVisitNumber1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, null);
+
+    }
+
+    @Test 
+    // PV1-44.1
+    public void testGetAdmissionDateTime1() throws HL7Exception {
+
+        String result = "";
+        try {
+            result = wrapper.getAdmissionDateTime();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetAdmissionDateTime1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, "201209211840");
+
+    }
+
+    @Test 
+    // PV1-45.1
+    public void testGetDischargeDateTime1() throws HL7Exception {
+
+        String result = "";
+        try {
+            result = wrapper.getDischargeDateTime();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetDischargeDateTime1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, null);
+
+    }
 
 
     @Override
@@ -178,3 +306,13 @@ public class TestPV1 extends TestCase {
     }
 
 }
+
+/* original message from Atos
+
+// An example Atos-provided message
+        String hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|||201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
+            + "ZUK|Q12|5CF|1|||||||N  N||12||||||||||||||||B83035^2.16.840.1.113883.2.1.4.3|G9014646^2.16.840.1.113883.2.1.4.2|U439966^2.16.840.1.113883.2.1.3.2.4.11||41008\r";
+
+
+
+*/
