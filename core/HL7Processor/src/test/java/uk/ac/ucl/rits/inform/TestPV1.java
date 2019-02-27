@@ -4,10 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.beans.Transient;
-
-//import java.beans.Transient;
-
 import java.util.Vector;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 import ca.uhn.hl7v2.model.Message;

@@ -20,7 +20,14 @@ import ca.uhn.hl7v2.model.AbstractType;
 
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 
-
+/**
+ * class MSHWrap
+ * 
+ * Wrapper around the HAPI parser's MSH segment object, to make it easier to use.
+ * 
+ * Other methods could be added: see https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/MSH.html
+ * e.g. MSH-5 Receiving Application (“Receiving system”)
+ */
 public class MSHWrap {
 
     private MSH _msh;
@@ -57,11 +64,8 @@ public class MSHWrap {
     }
 
 
-    // To add:
-    // MSH-5 Receiving Application (“Receiving system”)
-
-
     /**
+     * NB we might want to extract individual components of the timestamp too
      * 
      * @return MSH-7 Date/Time Of Message YYYYMMDDHHMM
      * @throws HL7Exception
