@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -13,68 +11,82 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+/**
+ * This represents a grouper for a fact about a patient.
+ *
+ * @author UCL RITS
+ *
+ */
 @Entity
 public class PatientDemographicFact {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int fact_id;
+    private int                              factId;
 
-    // should this be CSN or something else?
     @ManyToOne
     @JoinColumn(name = "encounter")
-    private Encounter encounter;
+    private Encounter                        encounter;
 
-    private int fact_type;
-    private Timestamp store_datetime;
-    private Timestamp end_datetime;
+    private Attribute                        factType;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy="fact")
-    private List<PatientDemographicProperty> factProperties = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
+    private List<PatientDemographicProperty> factProperties;
 
-    public int getFact_id() {
-        return fact_id;
+    /**
+     * @return the factId
+     */
+    public int getFactId() {
+        return factId;
     }
 
+    /**
+     * @param factId the factId to set
+     */
+    public void setFactId(int factId) {
+        this.factId = factId;
+    }
+
+    /**
+     * @return the encounter
+     */
     public Encounter getEncounter() {
         return encounter;
     }
 
+    /**
+     * @param encounter the encounter to set
+     */
     public void setEncounter(Encounter encounter) {
         this.encounter = encounter;
     }
 
-    public int getFact_type() {
-        return fact_type;
+    /**
+     * @return the factType
+     */
+    public Attribute getFactType() {
+        return factType;
     }
 
-    public void setFact_type(int fact_type) {
-        this.fact_type = fact_type;
+    /**
+     * @param factType the factType to set
+     */
+    public void setFactType(Attribute factType) {
+        this.factType = factType;
     }
 
-    public Timestamp getStore_datetime() {
-        return store_datetime;
+    /**
+     * @return the factProperties
+     */
+    public List<PatientDemographicProperty> getFactProperties() {
+        return factProperties;
     }
 
-    public void setStore_datetime(Timestamp store_datetime) {
-        this.store_datetime = store_datetime;
-    }
-
-    public Timestamp getEnd_datetime() {
-        return end_datetime;
-    }
-
-    public void setEnd_datetime(Timestamp end_datetime) {
-        this.end_datetime = end_datetime;
-    }
-
-    public PatientDemographicProperty setKeyValueProp(Attribute attr, String value) {
-        PatientDemographicProperty prop = new PatientDemographicProperty();
-        prop.setAttribute(attr);
-        prop.setValue_as_string(value);
-        prop.setFact(this);
-        factProperties.add(prop);
-        return prop;
-
+    /**
+     * @param factProperties the factProperties to set
+     */
+    public void setFactProperties(List<PatientDemographicProperty> factProperties) {
+        this.factProperties = factProperties;
     }
 
 }

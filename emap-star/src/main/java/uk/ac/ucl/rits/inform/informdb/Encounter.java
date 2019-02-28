@@ -1,91 +1,118 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.sql.Timestamp;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
+/**
+ * This is an association of a single encounter with a MRN.
+ * <p>
+ * Note that the same encounter may be present multiple times in this table with
+ * different associated MRNs (with different valid from - until).
+ *
+ * @author UCL RITS
+ *
+ */
 @Entity
-public class Encounter {
+@Table(indexes = { @Index(name = "validUntilIndex", columnList = "valid_until", unique = false),
+        @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
+public class Encounter extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int encounter_id;
-
-    // Am ignoring accounts for now, going straight to MRNs
-    // private int account;
+    private int       encounterId;
 
     @ManyToOne
     @JoinColumn(name = "mrn")
-    private Mrn mrn;
+    private Mrn       mrn;
 
-    private String encounter;
-    private Timestamp store_datetime;
-    private Timestamp end_datetime;
-    private String source_system;
-    private Timestamp event_time;
+    private String    encounter;
+    private String    sourceSystem;
 
-    public int getEncounter_id() {
-        return encounter_id;
+    @ManyToOne
+    @JoinColumn(name = "mrn")
+    private Encounter parentEncounter;
+
+    /**
+     * @return the encounterId
+     */
+    public int getEncounterId() {
+        return encounterId;
     }
 
+    /**
+     * @param encounterId the encounterId to set
+     */
+    public void setEncounterId(int encounterId) {
+        this.encounterId = encounterId;
+    }
+
+    /**
+     * @return the mrn
+     */
     public Mrn getMrn() {
         return mrn;
     }
 
+    /**
+     * @param mrn the mrn to set
+     */
     public void setMrn(Mrn mrn) {
         this.mrn = mrn;
     }
 
+    /**
+     * @return the encounter
+     */
     public String getEncounter() {
         return encounter;
     }
 
+    /**
+     * @param encounter the encounter to set
+     */
     public void setEncounter(String encounter) {
         this.encounter = encounter;
     }
 
-    public Timestamp getStore_datetime() {
-        return store_datetime;
+    /**
+     * @return the sourceSystem
+     */
+    public String getSourceSystem() {
+        return sourceSystem;
     }
 
-    public void setStore_datetime(Timestamp store_datetime) {
-        this.store_datetime = store_datetime;
+    /**
+     * @param sourceSystem the sourceSystem to set
+     */
+    public void setSourceSystem(String sourceSystem) {
+        this.sourceSystem = sourceSystem;
     }
 
-    public Timestamp getEnd_datetime() {
-        return end_datetime;
+    /**
+     * @return the parentEncounter
+     */
+    public Encounter getParentEncounter() {
+        return parentEncounter;
     }
 
-    public void setEnd_datetime(Timestamp end_datetime) {
-        this.end_datetime = end_datetime;
-    }
-
-    public String getSource_system() {
-        return source_system;
-    }
-
-    public void setSource_system(String source_system) {
-        this.source_system = source_system;
-    }
-
-    public Timestamp getEvent_time() {
-        return event_time;
-    }
-
-    public void setEvent_time(Timestamp event_time) {
-        this.event_time = event_time;
+    /**
+     * @param parentEncounter the parentEncounter to set
+     */
+    public void setParentEncounter(Encounter parentEncounter) {
+        this.parentEncounter = parentEncounter;
     }
 
     @Override
     public String toString() {
-        return "Encounter [encounter_id=" + encounter_id + ", mrn=" + mrn + ", encounter=" + encounter
-                + ", store_datetime=" + store_datetime + ", end_datetime=" + end_datetime + ", source_system="
-                + source_system + ", event_time=" + event_time + "]";
+        return "Encounter [encounter_id=" + encounterId + ", mrn=" + mrn + ", encounter=" + encounter
+                + ", store_datetime=" + this.getStoredFrom() + ", end_datetime=" + this.getValidUntil()
+                + ", source_system=" + sourceSystem + ", event_time=" + this.getValidFrom() + "]";
     }
 
 }
