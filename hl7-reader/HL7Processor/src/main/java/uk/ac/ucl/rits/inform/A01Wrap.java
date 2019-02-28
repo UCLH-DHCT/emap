@@ -86,6 +86,18 @@ public class A01Wrap {
      */
     public A01Wrap(ADT_A01 adt_01) throws HL7Exception {
 
+        /**
+         * NOTE: MSH-9.2 Trigger Event is an important field. 
+         * The HAPI parser uses some object types to represent other messages, 
+         * due to the similarities in the message structure. e.g. An A01 object 
+         * can represent an A01 message but can also be used to represent 
+         * A04, A08 and A13 messages. Thus it is always necessary to check 
+         * the Trigger Event field to see what message type we are dealing with.
+         * 
+         */
+
+
+
         // 1. MSH (Message Header) - mostly don't appear to be useful
         MSH msh = adt_01.getMSH();
         mshwrap = new MSHWrap(msh);
