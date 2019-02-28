@@ -1,87 +1,106 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.sql.Timestamp;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
+/**
+ * This class represents the association of Medical Resource Identifier (MRN) to
+ * an individual patient (a Person).
+ * <p>
+ * Over the course of its lifetime a single MRN may be associated with any
+ * number of patients. However, it may only be associated with a single patient
+ * at any given point in history.
+ *
+ * @author UCL RITS
+ *
+ */
 @Entity
-public class Mrn {
+@Table(indexes = { @Index(name = "endValidIndex", columnList = "validUntil", unique = false) })
+public class Mrn extends TemporalCore {
 
+    /**
+     * The MrnId is the UID for the association of an MRN value to a Person.
+     */
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private int mrn_id; // the ID for the record linking an MRN to a person
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int    mrnId;
 
     @ManyToOne
     @JoinColumn(name = "person")
     private Person person;
-    
-    private String mrn; // the actual MRN
-    private Timestamp store_datetime;
-    private Timestamp end_datetime;
-    private String source_system;
-    private Timestamp event_time;
 
-    public int getMrn_id() {
-        return mrn_id;
+    /**
+     * The value of the MRN identifier.
+     */
+    private String mrn;
+    private String sourceSystem;
+
+    /**
+     * @return the mrnId
+     */
+    public int getMrnId() {
+        return mrnId;
     }
 
+    /**
+     * @param mrnId the mrnId to set
+     */
+    public void setMrnId(int mrnId) {
+        this.mrnId = mrnId;
+    }
+
+    /**
+     * @return the person
+     */
     public Person getPerson() {
         return person;
     }
 
+    /**
+     * @param person the person to set
+     */
     public void setPerson(Person person) {
         this.person = person;
     }
 
+    /**
+     * @return the mrn
+     */
     public String getMrn() {
         return mrn;
     }
 
+    /**
+     * @param mrn the mrn to set
+     */
     public void setMrn(String mrn) {
         this.mrn = mrn;
     }
 
-    public Timestamp getStore_datetime() {
-        return store_datetime;
+    /**
+     * @return the sourceSystem
+     */
+    public String getSourceSystem() {
+        return sourceSystem;
     }
 
-    public void setStore_datetime(Timestamp store_datetime) {
-        this.store_datetime = store_datetime;
-    }
-
-    public Timestamp getEnd_datetime() {
-        return end_datetime;
-    }
-
-    public void setEnd_datetime(Timestamp end_datetime) {
-        this.end_datetime = end_datetime;
-    }
-
-    public String getSource_system() {
-        return source_system;
-    }
-
-    public void setSource_system(String source_system) {
-        this.source_system = source_system;
-    }
-
-    public Timestamp getEvent_time() {
-        return event_time;
-    }
-
-    public void setEvent_time(Timestamp event_time) {
-        this.event_time = event_time;
+    /**
+     * @param sourceSystem the sourceSystem to set
+     */
+    public void setSourceSystem(String sourceSystem) {
+        this.sourceSystem = sourceSystem;
     }
 
     @Override
     public String toString() {
-        return "Mrn [mrn_id=" + mrn_id + ", person=" + person + ", mrn=" + mrn + ", store_datetime=" + store_datetime
-                + ", end_datetime=" + end_datetime + ", source_system=" + source_system + ", event_time=" + event_time
-                + "]";
+        return "Mrn [mrn_id=" + mrnId + ", person=" + person + ", mrn=" + mrn + ", store_datetime="
+                + this.getStoredFrom() + ", end_datetime=" + this.getValidUntil() + ", source_system=" + sourceSystem
+                + ", event_time=" + this.getValidFrom() + "]";
     }
 }

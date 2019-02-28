@@ -1,45 +1,87 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
+/**
+ * A person represents the Inform-DB concept of a single real person (to whom
+ * MRN events happen (e.g., merges).
+ * <p>
+ * Persons have a creation time that cannot be modified, and serves as an
+ * indicator as to their age.
+ *
+ * @author UCL RITS
+ *
+ */
 @Entity
 public class Person {
 
-    public Person() {
-        /*
-         * Is there a circumstance where we'd want to allow the client to set the create
-         * time?
-         * Creating a person retrospectively? 
-         */
-        this.create_datetime = Timestamp.from(Instant.now());
-    }
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private int person_id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int       personId;
 
-    private Timestamp create_datetime;
+    @Column(insertable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant   createDatetime;
 
-    public int getPerson_id() {
-        return person_id;
+    @OneToMany
+    @JoinColumn(name = "Mrn")
+    private List<Mrn> mrns;
+
+    /**
+     * @return the personId
+     */
+    public int getPersonId() {
+        return personId;
     }
 
-    public Timestamp getCreate_datetime() {
-        return create_datetime;
+    /**
+     * @param personId the personId to set
+     */
+    public void setPersonId(int personId) {
+        this.personId = personId;
     }
 
-    public void setCreate_datetime(Timestamp create_datetime) {
-        this.create_datetime = create_datetime;
+    /**
+     * @return the createDatetime
+     */
+    public Instant getCreateDatetime() {
+        return createDatetime;
+    }
+
+    /**
+     * @param createDatetime the createDatetime to set
+     */
+    public void setCreateDatetime(Instant createDatetime) {
+        this.createDatetime = createDatetime;
+    }
+
+    /**
+     * @return the mrns
+     */
+    public List<Mrn> getMrns() {
+        return mrns;
+    }
+
+    /**
+     * @param mrns the mrns to set
+     */
+    public void setMrns(List<Mrn> mrns) {
+        this.mrns = mrns;
     }
 
     @Override
     public String toString() {
-        return "Person [person_id=" + person_id + ", create_datetime=" + create_datetime + "]";
+        return "Person [person_id=" + personId + ", create_datetime=" + createDatetime + "]";
     }
 }
