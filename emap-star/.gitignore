@@ -1,0 +1,14 @@
+# Temp files
+*#
+*~
+*.swp
+*.swo
+
+# Outputs 
+target/
+
+# IDE stuff
+.classpath
+.project
+.settings/
+
