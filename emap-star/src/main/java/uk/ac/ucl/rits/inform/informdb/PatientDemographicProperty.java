@@ -9,11 +9,18 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+/**
+ * A patient demographic property is a single property of a fact.
+ *
+ * @author UCL RITS
+ *
+ */
 @Entity
 public class PatientDemographicProperty {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int property_id;
+    private int                    propertyId;
 
     @ManyToOne
     @JoinColumn(name = "fact")
@@ -21,112 +28,159 @@ public class PatientDemographicProperty {
 
     @ManyToOne
     @JoinColumn(name = "attribute")
-    private Attribute attribute;
+    private Attribute              attribute;
 
-    private String value_as_string;
-    private int value_as_integer;
-    private boolean value_as_boolean;
-    private float value_as_real;
-    private Timestamp value_as_datetime;
-    
+    private String                 valueAsString;
+    private int                    valueAsInteger;
+    private boolean                valueAsBoolean;
+    private float                  valueAsReal;
+    private Timestamp              valueAsDatetime;
+
     @ManyToOne
     @JoinColumn(name = "value_as_attribute")
-    private Attribute value_as_attribute;
-    
-    private int value_as_link;
-    private Timestamp store_datetime;
-    private Timestamp end_datetime;
+    private Attribute              valueAsAttribute;
 
-    public int getProperty_id() {
-        return property_id;
+    private int                    valueAsLink;
+
+
+    /**
+     * @return the propertyId
+     */
+    public int getPropertyId() {
+        return propertyId;
     }
 
+    /**
+     * @param propertyId the propertyId to set
+     */
+    public void setPropertyId(int propertyId) {
+        this.propertyId = propertyId;
+    }
+
+    /**
+     * @return the fact
+     */
     public PatientDemographicFact getFact() {
         return fact;
     }
 
+    /**
+     * @param fact the fact to set
+     */
     public void setFact(PatientDemographicFact fact) {
         this.fact = fact;
     }
 
+    /**
+     * @return the attribute
+     */
     public Attribute getAttribute() {
         return attribute;
     }
 
+    /**
+     * @param attribute the attribute to set
+     */
     public void setAttribute(Attribute attribute) {
         this.attribute = attribute;
     }
 
-    public String getValue_as_string() {
-        return value_as_string;
+    /**
+     * @return the valueAsString
+     */
+    public String getValueAsString() {
+        return valueAsString;
     }
 
-    public void setValue_as_string(String value_as_string) {
-        this.value_as_string = value_as_string;
+    /**
+     * @param valueAsString the valueAsString to set
+     */
+    public void setValueAsString(String valueAsString) {
+        this.valueAsString = valueAsString;
     }
 
-    public int getValue_as_integer() {
-        return value_as_integer;
+    /**
+     * @return the valueAsInteger
+     */
+    public int getValueAsInteger() {
+        return valueAsInteger;
     }
 
-    public void setValue_as_integer(int value_as_integer) {
-        this.value_as_integer = value_as_integer;
+    /**
+     * @param valueAsInteger the valueAsInteger to set
+     */
+    public void setValueAsInteger(int valueAsInteger) {
+        this.valueAsInteger = valueAsInteger;
     }
 
-    public boolean isValue_as_boolean() {
-        return value_as_boolean;
+    /**
+     * @return the valueAsBoolean
+     */
+    public boolean isValueAsBoolean() {
+        return valueAsBoolean;
     }
 
-    public void setValue_as_boolean(boolean value_as_boolean) {
-        this.value_as_boolean = value_as_boolean;
+    /**
+     * @param valueAsBoolean the valueAsBoolean to set
+     */
+    public void setValueAsBoolean(boolean valueAsBoolean) {
+        this.valueAsBoolean = valueAsBoolean;
     }
 
-    public float getValue_as_real() {
-        return value_as_real;
+    /**
+     * @return the valueAsReal
+     */
+    public float getValueAsReal() {
+        return valueAsReal;
     }
 
-    public void setValue_as_real(float value_as_real) {
-        this.value_as_real = value_as_real;
+    /**
+     * @param valueAsReal the valueAsReal to set
+     */
+    public void setValueAsReal(float valueAsReal) {
+        this.valueAsReal = valueAsReal;
     }
 
-    public Timestamp getValue_as_datetime() {
-        return value_as_datetime;
+    /**
+     * @return the valueAsDatetime
+     */
+    public Timestamp getValueAsDatetime() {
+        return valueAsDatetime;
     }
 
-    public void setValue_as_datetime(Timestamp value_as_datetime) {
-        this.value_as_datetime = value_as_datetime;
+    /**
+     * @param valueAsDatetime the valueAsDatetime to set
+     */
+    public void setValueAsDatetime(Timestamp valueAsDatetime) {
+        this.valueAsDatetime = valueAsDatetime;
     }
 
-    public Attribute getValue_as_attribute() {
-        return value_as_attribute;
+    /**
+     * @return the valueAsAttribute
+     */
+    public Attribute getValueAsAttribute() {
+        return valueAsAttribute;
     }
 
-    public void setValue_as_attribute(Attribute value_as_attribute) {
-        this.value_as_attribute = value_as_attribute;
+    /**
+     * @param valueAsAttribute the valueAsAttribute to set
+     */
+    public void setValueAsAttribute(Attribute valueAsAttribute) {
+        this.valueAsAttribute = valueAsAttribute;
     }
 
-    public int getValue_as_link() {
-        return value_as_link;
+    /**
+     * @return the valueAsLink
+     */
+    public int getValueAsLink() {
+        return valueAsLink;
     }
 
-    public void setValue_as_link(int value_as_link) {
-        this.value_as_link = value_as_link;
-    }
-
-    public Timestamp getStore_datetime() {
-        return store_datetime;
-    }
-
-    public void setStore_datetime(Timestamp store_datetime) {
-        this.store_datetime = store_datetime;
-    }
-
-    public Timestamp getEnd_datetime() {
-        return end_datetime;
-    }
-
-    public void setEnd_datetime(Timestamp end_datetime) {
-        this.end_datetime = end_datetime;
+    /**
+     * @param valueAsLink the valueAsLink to set
+     */
+    public void setValueAsLink(int valueAsLink) {
+        this.valueAsLink = valueAsLink;
     }
 
 }
