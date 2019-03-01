@@ -1,35 +1,36 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
+import org.springframework.lang.NonNull;
+
+/**
+ * An attribute represents a vocabulary item. This may be a question, or answer
+ * to a question.
+ *
+ * @author UCL RITS
+ *
+ */
 @Entity
 public class Attribute {
-    public enum AttributeId {
-        FAMILY_NAME
-    }
-    
+
     @Id
-    private AttributeId attribute_id;
-    
-    private String description;
+    private long       attributeId;
 
-    public AttributeId getAttribute_id() {
-        return attribute_id;
-    }
+    @NonNull
+    private String     shortName;
+    @NonNull
+    private String     description;
+    @NonNull
+    private ResultType resultType;
+    @NonNull
+    private Instant    addedTime;
 
-    public void setAttribute_id(AttributeId aid) {
-        this.attribute_id = aid;
-    }
+    @Transient
+    private AttributeKeyMap attributeKey;
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }
