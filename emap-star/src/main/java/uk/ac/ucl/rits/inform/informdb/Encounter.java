@@ -19,7 +19,7 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(indexes = { @Index(name = "validUntilIndex", columnList = "valid_until", unique = false),
+@Table(indexes = { @Index(name = "validUntilIndex", columnList = "validUntil", unique = false),
         @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
 public class Encounter extends TemporalCore {
 
@@ -28,14 +28,14 @@ public class Encounter extends TemporalCore {
     private int       encounterId;
 
     @ManyToOne
-    @JoinColumn(name = "mrn")
+    @JoinColumn()
     private Mrn       mrn;
 
     private String    encounter;
     private String    sourceSystem;
 
     @ManyToOne
-    @JoinColumn(name = "mrn")
+    @JoinColumn()
     private Encounter parentEncounter;
 
     /**

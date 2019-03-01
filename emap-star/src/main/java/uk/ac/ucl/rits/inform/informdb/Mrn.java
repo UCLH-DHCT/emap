@@ -32,7 +32,7 @@ public class Mrn extends TemporalCore {
     private int    mrnId;
 
     @ManyToOne
-    @JoinColumn(name = "person")
+    @JoinColumn()
     private Person person;
 
     /**

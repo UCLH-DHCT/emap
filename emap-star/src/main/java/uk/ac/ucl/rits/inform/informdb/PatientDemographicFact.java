@@ -28,6 +28,8 @@ public class PatientDemographicFact {
     @JoinColumn(name = "encounter")
     private Encounter                        encounter;
 
+    @ManyToOne
+    @JoinColumn(name = "attributeId")
     private Attribute                        factType;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
