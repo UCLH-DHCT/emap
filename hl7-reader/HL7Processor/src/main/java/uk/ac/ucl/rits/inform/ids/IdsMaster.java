@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.ids;
 
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -27,6 +28,7 @@ public class IdsMaster {
     private String messageformat;
     private String messageversion;
     private Timestamp messagedatetime;
+    @Column(columnDefinition="text")
     private String hl7message;
     private Timestamp persistdatetime;
 

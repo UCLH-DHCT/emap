@@ -45,47 +45,26 @@ public class App {
             CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
             context.setModelClassFactory(mcf);
             PipeParser parser = context.getPipeParser(); // getGenericParser();
+            System.out.println("hello there1");
+            while (true) {
+                try {
+                    boolean processed = dbt.processNextHl7(parser);
+                    if (!processed) {
+                        break;
+                    }
+                } catch (HL7Exception hl7e) {
+                    System.out.println("HL7 parsing error");
+                    hl7e.printStackTrace();
+                }
+            }
 
-            File file = null;
-            try {
-                file = new File(args[0]);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            System.out.println(file.getAbsolutePath() + " " + file.exists());
-            InputStream is = new BufferedInputStream(new FileInputStream(file));
-            Hl7InputStreamMessageIterator hl7iter = new Hl7InputStreamMessageIterator(is, context);
-            hl7iter.setIgnoreComments(true);
-            int count = 0;
-            while (hl7iter.hasNext()) {
-                count++;
-                System.out.println("*************** Next (" + count + ")*****************");
-                // Do something with the message. The iterator strips off the MSH and EVN
-                // segments.
-                Message msg = hl7iter.next();
-                processHL7(dbt, parser, msg);
-            }
             long endCurrentTimeMillis = System.currentTimeMillis();
             System.out.println(String.format("done, %.0f secs", (endCurrentTimeMillis - startTimeMillis) / 1000.0));
             context.close();
+            dbt.close();
 
+            System.out.println("BYE");
         };
-    }
-
-    private void processHL7(DBTester dbt, PipeParser parser, Message msg) throws HL7Exception {
-
-        System.out.println("Engine: version is " + msg.getVersion());
-
-        if (msg instanceof ADT_A01) {
-            System.out.println("Got an ADT_A01");
-            // AO1 message type can be used to represent other message types
-
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(msg.encode());
-            Encounter enc = dbt.addEncounter(new A01Wrap(adt_01));
-            System.out.println("Added: " + enc.toString());
-        } else {
-            System.out.println("Other message type: " + msg.getClass().toString());
-        }
     }
 
     /**
