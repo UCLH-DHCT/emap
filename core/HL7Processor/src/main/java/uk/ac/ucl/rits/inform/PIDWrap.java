@@ -85,6 +85,8 @@ public class PIDWrap {
      * Certainly in Epic it appears that only one name data (XPN) object is stored.
      * XPN xpn = pid.getPatientName(0); etc
      * 
+     * NB Epic also has Suffix, Prefix, Academic degree, Name Type
+     * 
      * @return PID-5.1 family name
      * @throws HL7Exception
      */
@@ -114,6 +116,13 @@ public class PIDWrap {
         return result;
     }
 
+    /**
+     * PID-6 Mother's Maiden Name. This does not appear in the Carecast spec. 
+     * Epic: optional. Escape characters can be translated.
+     * @return
+     * @throws HL7Exception
+     */
+
 
     /**
      * We could probably use the HAPI functions to obtain the different components of this result,
@@ -137,15 +146,29 @@ public class PIDWrap {
     }
 
 
-    // alias
+    /**
+     * PID-9 Patient Alias. Epic only. 
+     * If the seventh component (name type code) of the field is M, the value in the first component 
+     * will be treated as patient maiden name. The example format to receive patient maiden name:
+     * <Patient maiden name>^^^^^^M~
+     * @return
+     * @throws HL7Exception
+     */
 
-    // race
+
+    /**
+     * PID-10 Race. Epic only(?)
+     * Format: <race>^^^^^^^^~<race>^^^^^^^^
+     * @return
+     * @throws HL7Exception
+     */
+
 
     // addresses
 
 
     /**
-     * 
+     * May be different for Epic
      * @return Carecast - PID-13.1 (1st repeat) home phone
      * @throws HL7Exception
      */
@@ -154,7 +177,7 @@ public class PIDWrap {
     }
 
     /**
-     * 
+     * May be different for Epic
      * @return Carecast - PID-13.1 (2nd repeat) mobile
      * @throws HL7Exception
      */
@@ -163,7 +186,7 @@ public class PIDWrap {
     }
 
     /**
-     * 
+     * May be different for Epic
      * @return Carecast - PID-13.1 (3rd repeat) email
      * @throws HL7Exception
      */
@@ -228,9 +251,14 @@ public class PIDWrap {
     // language - seems different for Carecast and Epic
     // Carecast has PID-15.1 Interpreter code and PID-15.4 Language code.
     // Epic just seems to have one code value. Format: <code>^^^^^^^^~
+    // CWE c = pid.getPid15_PrimaryLanguage()
+    // component 1: c.getCwe1_Identifier() [ST type]
+    // component 4: c.getCwe4_AlternateIdentifier() [ST]
+
 
     // PID-16 Marital Status. NOTE: The Carecast spec says that it uses the locally-defined field ZLC.15 instead. 
-    // I doubt if this will be so for Epic but we will have to check (assuming we need this information).
+    // Epic: Format: <code>^^^^^^^^
+    // cwe c = pid.getPid16_MaritalStatus()
 
     /**
      * 
@@ -251,16 +279,35 @@ public class PIDWrap {
         return _pid.getPatientAccountNumber().getComponent(0).toString();
     }
 
-    // PID-21 Mother's Identifier. This is not mapped in the Carecast spec
+    // PID-21 Mother's Identifier (for newborns). This is not mapped in the Carecast spec
+    // Epic: This field is used to link a newborn to his or her mother. It should contain the MRN or a visit
+    // identifier for the mother of the patient in the PID segment of the message.
+    // CX[] c = pid.getPid21_MotherSIdentifier()
 
     // PID-22 Ethnic Group.  In place of PID-22 Carecast has PID-10.1 Ethnicity, although according to the spec it doesn't have PID-10!!!
     // Epic: Patient ethnic group. Only the first component is used
+    // CWE[] getPid22_EthnicGroup() Returns all repetitions of Ethnic Group (PID-22).
+    // Epic: Patient ethnic group. Only the first component is used. Format: <ethnic group>^^^^^^^^~
+    /**
+     * getEthnicGroup. Looks like Carecast and Epic may be the same (need to see real data to check)
+     * @return
+     * @throws HL7Exception
+     */
+    public String getEthnicGroup() throws HL7Exception {
+        return _pid.getPid22_EthnicGroup(0).getText().toString(); // ???need data to check this is correct.
+    }
 
     // PID-23 Birth Place This is not mapped in the Carecast spec.
     // Epic: Birth city and state. HL7 address format is used rather than the string format defined in the standard. State can be mapped using a translation table 
+    // Need to see real messages to understand what they mean in line above.
+    // Possibly pid.getPid23_BirthPlace() [ST]
 
     // PID-24 Multiple Birth Indicator. This is not mapped in the Carecast spec.
     // Epic: This field can be set to "Y" or "N" to denote whether the patient was born as part of a multiple birth (twins, triplets, etc.).
+    // ID getPid24_MultipleBirthIndicator()
+    public String getMultipleBirthIndicator() throws HL7Exception {
+        return _pid.getPid24_MultipleBirthIndicator().toString(); // ??? need to see data to check
+    }
 
     // PID-26 Citizenship. This is not mapped in the Carecast spec. Epic: This field can be mapped using a translation table.
 
@@ -287,5 +334,5 @@ public class PIDWrap {
     }
 
     // Epic - PID-32 Identity Reliability Code ??
-
+    // From HAPI docs looks like there can be multiple such codes.
 }
