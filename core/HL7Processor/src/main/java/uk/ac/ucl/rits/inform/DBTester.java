@@ -6,13 +6,31 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.*;
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v27.message.ADT_A01;
+import ca.uhn.hl7v2.parser.PipeParser;
+import uk.ac.ucl.rits.inform.ids.IdsMaster;
+import uk.ac.ucl.rits.inform.informdb.Attribute;
+import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.EncounterRepository;
+import uk.ac.ucl.rits.inform.informdb.Mrn;
+import uk.ac.ucl.rits.inform.informdb.MrnRepository;
+import uk.ac.ucl.rits.inform.informdb.PatientDemographicFact;
+import uk.ac.ucl.rits.inform.informdb.PatientDemographicFactRepository;
+import uk.ac.ucl.rits.inform.informdb.Person;
+import uk.ac.ucl.rits.inform.informdb.PersonRepository;
 
 @Component
 public class DBTester {
@@ -26,10 +44,123 @@ public class DBTester {
     private EncounterRepository encounterRepo;
     @Autowired
     private PatientDemographicFactRepository patientDemographicFactRepository;
+    @Autowired
+    private IdsProgressRepository idsProgressRepository;
 
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
+    private SessionFactory idsFactory;
+    private Session idsSession;
+
     public DBTester() {
+        System.out.println("DBTester() 1");
+        idsFactory = makeSessionFactory("ids.cfg.xml", "IDS");
+        System.out.println("DBTester() 2");
+
+    }
+
+    public void close() {
+        if (idsFactory != null) {
+            idsFactory.close();
+        }
+        idsFactory = null;
+    }
+
+    /**
+     * Wrapper for the entire transaction that performs: - read latest processed ID
+     * from Inform-db (ETL metadata) - process the message and write to Inform-db -
+     * write the latest processed ID to reflect the above message
+     * 
+     * @param parser the HAPI parser to be used
+     * 
+     * @return true if a message was processed, false if there were no messages to
+     *         process
+     */
+    @Transactional(rollbackFor = HL7Exception.class)
+    public boolean processNextHl7(PipeParser parser) throws HL7Exception {
+        System.out.println("hello there1a");
+        int lastProcessedId = getLatestProcessedId();
+
+        System.out.println("hello there1b");
+        IdsMaster idsMsg = getNextHL7IdsRecord(lastProcessedId);
+        if (idsMsg == null) {
+            return false;
+        }
+        System.out.println("hello there2, msg = " + idsMsg);
+        Message msgFromIds = null;
+        msgFromIds = parser.parse(idsMsg.getHl7message());
+        System.out.println("version is " + msgFromIds.getVersion());
+        if (msgFromIds instanceof ADT_A01) {
+            ADT_A01 adt_01 = (ADT_A01) msgFromIds;
+            System.out.println("hello there4");
+            Encounter enc = addEncounter(new A01Wrap(adt_01));
+            System.out.println("Added from IDS: " + enc.toString());
+        } else {
+            System.out.println("Not an A01, skipping " + msgFromIds.getClass());
+        }
+        setLatestProcessedId(idsMsg.getUnid());
+
+        return true;
+    }
+
+    @Transactional
+    public int getLatestProcessedId() {
+        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+        if (onlyRow == null) {
+            onlyRow = new IdsProgress();
+            // Is it wrong to set in a get?
+            onlyRow = idsProgressRepository.save(onlyRow);
+        }
+        return onlyRow.getLastProcessedIdsUnid();
+    }
+
+    @Transactional
+    public void setLatestProcessedId(int lastProcessedIdsUnid) {
+        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+        onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
+        idsProgressRepository.save(onlyRow);
+    }
+
+    public String getNextHL7IdsMsg(int lastProcessedId) {
+        IdsMaster next = getNextHL7IdsRecord(lastProcessedId);
+        if (next == null) {
+            return null;
+        } else {
+            System.out.println("Got message with unid " + next.getUnid());
+            return next.getHl7message();
+        }
+    }
+
+    public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
+        idsSession = idsFactory.openSession();
+        Query<IdsMaster> qnext = idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid",
+                IdsMaster.class);
+        qnext.setParameter("lastProcessedId", lastProcessedId);
+        qnext.setMaxResults(1);
+        List<IdsMaster> nextMsgOrEmpty = qnext.list();
+        idsSession.close();
+        if (nextMsgOrEmpty.isEmpty()) {
+            return null;
+        } else if (nextMsgOrEmpty.size() == 1) {
+            return nextMsgOrEmpty.get(0);
+        } else {
+            throw new InternalError();
+        }
+    }
+
+    private static SessionFactory makeSessionFactory(String configFile, String label) {
+        Configuration cfg = new Configuration().configure(configFile);
+        cfg.addAnnotatedClass(IdsMaster.class);
+
+        // take the username and password out of the environment
+        // so the config file can safely go into source control
+        String envVarUsername = label + "_USERNAME";
+        String envVarPassword = label + "_PASSWORD";
+
+        cfg.setProperty("hibernate.connection.username", System.getenv(envVarUsername));
+        cfg.setProperty("hibernate.connection.password", System.getenv(envVarPassword));
+
+        return cfg.buildSessionFactory();
     }
 
     /**
@@ -58,8 +189,7 @@ public class DBTester {
         Attribute attr;
         if (attropt.isPresent()) {
             attr = attropt.get();
-        }
-        else {
+        } else {
             // TODO: The correct way would be to pre-populate all attrs on startup
             attr = new Attribute();
             attr.setAttribute_id(Attribute.AttributeId.FAMILY_NAME);
@@ -71,7 +201,7 @@ public class DBTester {
 
         return enc;
     }
-    
+
     public long countEncounters() {
         return encounterRepo.count();
     }
