@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -15,6 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v27.message.ADT_A01;
+import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
@@ -39,6 +44,8 @@ public class DBTester {
     private EncounterRepository encounterRepo;
     @Autowired
     private PatientDemographicFactRepository patientDemographicFactRepository;
+    @Autowired
+    private IdsProgressRepository idsProgressRepository;
 
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
@@ -46,20 +53,99 @@ public class DBTester {
     private Session idsSession;
 
     public DBTester() {
+        System.out.println("DBTester() 1");
         idsFactory = makeSessionFactory("ids.cfg.xml", "IDS");
-        idsSession = idsFactory.openSession();
-        IdsMaster ids = null;
-        try {
-            ids = idsSession.find(IdsMaster.class, 0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+        System.out.println("DBTester() 2");
+
+    }
+
+    public void close() {
+        if (idsFactory != null) {
+            idsFactory.close();
         }
+        idsFactory = null;
+    }
 
-        System.out.println("ids record = " + ids);
+    /**
+     * Wrapper for the entire transaction that performs: - read latest processed ID
+     * from Inform-db (ETL metadata) - process the message and write to Inform-db -
+     * write the latest processed ID to reflect the above message
+     * 
+     * @param parser the HAPI parser to be used
+     * 
+     * @return true if a message was processed, false if there were no messages to
+     *         process
+     */
+    @Transactional(rollbackFor = HL7Exception.class)
+    public boolean processNextHl7(PipeParser parser) throws HL7Exception {
+        System.out.println("hello there1a");
+        int lastProcessedId = getLatestProcessedId();
 
+        System.out.println("hello there1b");
+        IdsMaster idsMsg = getNextHL7IdsRecord(lastProcessedId);
+        if (idsMsg == null) {
+            return false;
+        }
+        System.out.println("hello there2, msg = " + idsMsg);
+        Message msgFromIds = null;
+        msgFromIds = parser.parse(idsMsg.getHl7message());
+        System.out.println("version is " + msgFromIds.getVersion());
+        if (msgFromIds instanceof ADT_A01) {
+            ADT_A01 adt_01 = (ADT_A01) msgFromIds;
+            System.out.println("hello there4");
+            Encounter enc = addEncounter(new A01Wrap(adt_01));
+            System.out.println("Added from IDS: " + enc.toString());
+        } else {
+            System.out.println("Not an A01, skipping " + msgFromIds.getClass());
+        }
+        setLatestProcessedId(idsMsg.getUnid());
+
+        return true;
+    }
+
+    @Transactional
+    public int getLatestProcessedId() {
+        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+        if (onlyRow == null) {
+            onlyRow = new IdsProgress();
+            // Is it wrong to set in a get?
+            onlyRow = idsProgressRepository.save(onlyRow);
+        }
+        return onlyRow.getLastProcessedIdsUnid();
+    }
+
+    @Transactional
+    public void setLatestProcessedId(int lastProcessedIdsUnid) {
+        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+        onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
+        idsProgressRepository.save(onlyRow);
+    }
+
+    public String getNextHL7IdsMsg(int lastProcessedId) {
+        IdsMaster next = getNextHL7IdsRecord(lastProcessedId);
+        if (next == null) {
+            return null;
+        } else {
+            System.out.println("Got message with unid " + next.getUnid());
+            return next.getHl7message();
+        }
+    }
+
+    public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
+        idsSession = idsFactory.openSession();
+        Query<IdsMaster> qnext = idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid",
+                IdsMaster.class);
+        qnext.setParameter("lastProcessedId", lastProcessedId);
+        qnext.setMaxResults(1);
+        List<IdsMaster> nextMsgOrEmpty = qnext.list();
         idsSession.close();
-        idsFactory.close();
+        if (nextMsgOrEmpty.isEmpty()) {
+            return null;
+        } else if (nextMsgOrEmpty.size() == 1) {
+            return nextMsgOrEmpty.get(0);
+        } else {
+            throw new InternalError();
+        }
     }
 
     private static SessionFactory makeSessionFactory(String configFile, String label) {
