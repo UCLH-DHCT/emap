@@ -1,5 +1,9 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -7,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -29,17 +34,20 @@ public class Mrn extends TemporalCore {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int    mrnId;
+    private int             mrnId;
 
     @ManyToOne
     @JoinColumn()
-    private Person person;
+    private Person          person;
+
+    @OneToMany(mappedBy = "mrn", cascade = CascadeType.ALL)
+    private List<Encounter> encounters;
 
     /**
      * The value of the MRN identifier.
      */
-    private String mrn;
-    private String sourceSystem;
+    private String          mrn;
+    private String          sourceSystem;
 
     /**
      * @return the mrnId
@@ -95,6 +103,19 @@ public class Mrn extends TemporalCore {
      */
     public void setSourceSystem(String sourceSystem) {
         this.sourceSystem = sourceSystem;
+    }
+
+    /**
+     * Add a new encounter to this MRN.
+     *
+     * @param enc the encounter to add
+     */
+    public void addEncounter(Encounter enc) {
+        if (this.encounters == null) {
+            this.encounters = new ArrayList<>();
+        }
+        this.encounters.add(enc);
+        enc.setMrn(this);
     }
 
     @Override

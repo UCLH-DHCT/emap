@@ -1,5 +1,9 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -7,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -25,18 +30,21 @@ public class Encounter extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int       encounterId;
+    private int                          encounterId;
 
     @ManyToOne
     @JoinColumn()
-    private Mrn       mrn;
+    private Mrn                          mrn;
 
-    private String    encounter;
-    private String    sourceSystem;
+    private String                       encounter;
+    private String                       sourceSystem;
 
     @ManyToOne
     @JoinColumn()
-    private Encounter parentEncounter;
+    private Encounter                    parentEncounter;
+
+    @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
+    private List<PatientDemographicFact> demographics;
 
     /**
      * @return the encounterId
@@ -106,6 +114,19 @@ public class Encounter extends TemporalCore {
      */
     public void setParentEncounter(Encounter parentEncounter) {
         this.parentEncounter = parentEncounter;
+    }
+
+    /**
+     * Add a patient demographic fact to this encounter.
+     *
+     * @param fact The fact to add
+     */
+    public void addDemographic(PatientDemographicFact fact) {
+        if (this.demographics == null) {
+            this.demographics = new ArrayList<>();
+        }
+        this.demographics.add(fact);
+        fact.setEncounter(this);
     }
 
     @Override

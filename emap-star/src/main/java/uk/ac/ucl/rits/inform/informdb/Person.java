@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -28,7 +29,7 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int       personId;
 
-    @Column(insertable = false, updatable = false, nullable = false, columnDefinition = "timestamp with time zone")
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant   createDatetime;
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL)
@@ -52,7 +53,7 @@ public class Person {
      * @return the createDatetime
      */
     public Instant getCreateDatetime() {
-        return createDatetime;
+        return this.createDatetime;
     }
 
     /**
@@ -74,6 +75,19 @@ public class Person {
      */
     public void setMrns(List<Mrn> mrns) {
         this.mrns = mrns;
+    }
+
+    /**
+     * Add an MRN to this person.
+     *
+     * @param mrn The mrn to add
+     */
+    public void addMrn(Mrn mrn) {
+        if (this.mrns == null) {
+            this.mrns = new ArrayList<>();
+        }
+        this.mrns.add(mrn);
+        mrn.setPerson(this);
     }
 
     @Override

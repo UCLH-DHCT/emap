@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -18,7 +19,7 @@ import javax.persistence.OneToMany;
  *
  */
 @Entity
-public class PatientDemographicFact {
+public class PatientDemographicFact extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -89,6 +90,19 @@ public class PatientDemographicFact {
      */
     public void setFactProperties(List<PatientDemographicProperty> factProperties) {
         this.factProperties = factProperties;
+    }
+
+    /**
+     * Add a property to a fact.
+     *
+     * @param prop A single property to append.
+     */
+    public void addProperty(PatientDemographicProperty prop) {
+        if (this.factProperties == null) {
+            this.factProperties = new ArrayList<>();
+        }
+        this.factProperties.add(prop);
+        prop.setFact(this);
     }
 
 }

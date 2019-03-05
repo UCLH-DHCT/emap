@@ -15,11 +15,11 @@ public enum AttributeKeyMap {
     /**
      * Middle names separated by ,s.
      */
-    MIDDLE_NAMES("M_NAMES"),
+    MIDDLE_NAMES("M_NAME"),
     /**
      * Family name.
      */
-    FAMILY_NAME("F_NAME"),
+    FAMILY_NAME("L_NAME"),
     /**
      * Naming Grouper.
      */

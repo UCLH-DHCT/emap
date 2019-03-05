@@ -16,7 +16,7 @@ import javax.persistence.ManyToOne;
  *
  */
 @Entity
-public class PatientDemographicProperty {
+public class PatientDemographicProperty extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -41,7 +41,6 @@ public class PatientDemographicProperty {
     private Attribute              valueAsAttribute;
 
     private int                    valueAsLink;
-
 
     /**
      * @return the propertyId

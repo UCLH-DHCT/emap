@@ -11,7 +11,7 @@ public enum ResultType {
     /**
      * This attribute doesn't have a result.
      */
-    NONE,
+    None,
     /**
      * This attribute has a string result.
      */
