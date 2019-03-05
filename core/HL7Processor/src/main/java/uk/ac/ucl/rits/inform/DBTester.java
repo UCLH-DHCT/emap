@@ -13,6 +13,7 @@ import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,14 +50,16 @@ public class DBTester {
 
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
+    private String idsCfgXml;
+
     private SessionFactory idsFactory;
     private Session idsSession;
 
-    public DBTester() {
-        System.out.println("DBTester() 1");
-        idsFactory = makeSessionFactory("ids.cfg.xml", "IDS");
+    public DBTester(@Value("${ids.cfg.xml.file}") String idsCfgXml) {
+        this.idsCfgXml = idsCfgXml;
+        System.out.println("DBTester() 1 - opening config file " + idsCfgXml);
+        idsFactory = makeSessionFactory(idsCfgXml, "IDS");
         System.out.println("DBTester() 2");
-
     }
 
     public void close() {
@@ -157,8 +160,14 @@ public class DBTester {
         String envVarUsername = label + "_USERNAME";
         String envVarPassword = label + "_PASSWORD";
 
-        cfg.setProperty("hibernate.connection.username", System.getenv(envVarUsername));
-        cfg.setProperty("hibernate.connection.password", System.getenv(envVarPassword));
+        String uname = System.getenv(envVarUsername);
+        String pword = System.getenv(envVarPassword);
+        if (uname != null) {
+            cfg.setProperty("hibernate.connection.username", uname);
+        }
+        if (pword != null) {
+            cfg.setProperty("hibernate.connection.password", pword);
+        }
 
         return cfg.buildSessionFactory();
     }
