@@ -44,7 +44,7 @@ jobs:
       - run:
           command: |
              cd HL7Processor
-             mvn -Dspring.profiles.active=test integration-test   #mvn integration-test
+             mvn -Dspring.profiles.active=test integration-test
 
 
 
