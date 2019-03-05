@@ -35,7 +35,7 @@ public class VisitFact extends TemporalCore {
     @JoinColumn(name = "attributeId")
     private Attribute           visitType;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "vist")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "visit")
     private List<VisitProperty> visitProperties;
 
     /**

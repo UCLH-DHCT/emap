@@ -46,6 +46,9 @@ public class Encounter extends TemporalCore {
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
     private List<PatientDemographicFact> demographics;
 
+    @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
+    private List<VisitFact>              visits;
+
     /**
      * @return the encounterId
      */
@@ -126,6 +129,19 @@ public class Encounter extends TemporalCore {
             this.demographics = new ArrayList<>();
         }
         this.demographics.add(fact);
+        fact.setEncounter(this);
+    }
+
+    /**
+     * Add a visit fact to this encounter.
+     *
+     * @param fact The fact to add
+     */
+    public void addVisit(VisitFact fact) {
+        if (this.visits == null) {
+            this.visits = new ArrayList<>();
+        }
+        this.visits.add(fact);
         fact.setEncounter(this);
     }
 

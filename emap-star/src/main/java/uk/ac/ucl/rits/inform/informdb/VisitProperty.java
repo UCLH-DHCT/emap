@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -34,7 +34,7 @@ public class VisitProperty extends TemporalCore {
     private int       valueAsInteger;
     private boolean   valueAsBoolean;
     private float     valueAsReal;
-    private Timestamp valueAsDatetime;
+    private Instant   valueAsDatetime;
 
     @ManyToOne
     @JoinColumn
@@ -143,14 +143,14 @@ public class VisitProperty extends TemporalCore {
     /**
      * @return the valueAsDatetime
      */
-    public Timestamp getValueAsDatetime() {
+    public Instant getValueAsDatetime() {
         return valueAsDatetime;
     }
 
     /**
      * @param valueAsDatetime the valueAsDatetime to set
      */
-    public void setValueAsDatetime(Timestamp valueAsDatetime) {
+    public void setValueAsDatetime(Instant valueAsDatetime) {
         this.valueAsDatetime = valueAsDatetime;
     }
 

@@ -23,7 +23,19 @@ public enum AttributeKeyMap {
     /**
      * Naming Grouper.
      */
-    NAME_FACT("NAMING");
+    NAME_FACT("NAMING"),
+    /**
+     * Hospital visit grouper.
+     */
+    HOSPITAL_VISIT("HOSP_VISIT"),
+    /**
+     * Arrival time as a date time.
+     */
+    ARRIVAL_TIME("ARRIVAL_TIME"),
+    /**
+     * Discharge time as a date time.
+     */
+    DICHARGE_TIME("DISCH_TIME");
 
     private String shortname;
 

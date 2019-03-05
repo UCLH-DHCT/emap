@@ -15,6 +15,10 @@ public enum ResultType {
     /**
      * This attribute has a string result.
      */
-    String
+    String,
+    /**
+     * This attribute is a date & time.
+     */
+    Datetime
 
 }
