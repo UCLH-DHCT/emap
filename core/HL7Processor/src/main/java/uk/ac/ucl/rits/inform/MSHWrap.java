@@ -11,7 +11,10 @@ import ca.uhn.hl7v2.model.v27.datatype.ID;
 import ca.uhn.hl7v2.model.v27.datatype.IS;
 import ca.uhn.hl7v2.model.v27.datatype.MSG;
 import ca.uhn.hl7v2.model.v27.datatype.PL;
+import ca.uhn.hl7v2.model.v27.datatype.PT;
 import ca.uhn.hl7v2.model.v27.datatype.SAD;
+import ca.uhn.hl7v2.model.v27.datatype.ST;
+import ca.uhn.hl7v2.model.v27.datatype.VID;
 import ca.uhn.hl7v2.model.v27.datatype.XAD;
 import ca.uhn.hl7v2.model.v27.datatype.XCN;
 import ca.uhn.hl7v2.model.v27.datatype.XPN;
@@ -63,6 +66,24 @@ public class MSHWrap {
         return _msh.getSendingFacility().getComponent(0).toString();
     }
 
+    /**
+     * 
+     * @return MSH-5 Receiving Application
+     * @throws HL7Exception
+     */
+    public String getReceivingApplication() throws HL7Exception {
+        return _msh.getMsh5_ReceivingApplication().getComponent(0).toString();
+    }
+
+    /**
+     * 
+     * @return MSH-6 Receiving Facility. Not used in Carecast.
+     * @throws HL7Exception
+     */
+    public String getReceivingFacility() throws HL7Exception {
+        return _msh.getMsh6_ReceivingFacility().getComponent(0).toString(); // to be verified
+    }
+
 
     /**
      * NB we might want to extract individual components of the timestamp too
@@ -92,6 +113,86 @@ public class MSHWrap {
      */
     public String getTriggerEvent() throws HL7Exception {
         return _msh.getMessageType().getTriggerEvent().getValue();
+    }
+
+
+    /**
+     * 
+     * @return MSH-10 Message Control ID
+     * @throws HL7Exception
+     */
+    public String getMessageControlID() throws HL7Exception {
+        return _msh.getMsh10_MessageControlID().toString(); // to be verified
+    }
+
+
+    /**
+     * 
+     * @return MSH-11 Processing ID e.g. D (debugging), P (production), T (training)
+     * @throws HL7Exception
+     */
+    public String getProcessingID() throws HL7Exception {
+        return _msh.getMsh11_ProcessingID().getProcessingID().toString(); // to be verified
+    }
+
+    /**
+     * 
+     * @return MSH-12 HL7 version used
+     * @throws HL7Exception
+     */
+    public String getVersionID() throws HL7Exception {
+        return _msh.getMsh12_VersionID().getVersionID().toString(); // to be verified
+    }
+
+    
+    /**
+     * 
+     * @return MSH-13 Sequence Number. NB Format is Numeric so might not be an int. Epic only.
+     * HAPI NM class: A NM contains a single String value.
+     * @throws HL7Exception
+     */
+    public String /*int*/ getSequenceNumber() throws HL7Exception {
+        return _msh.getMsh13_SequenceNumber().toString(); // to be verified
+    }
+
+
+    /**
+     * 
+     * @return MSH-14 Continuation Pointer. Epic only.
+     * @throws HL7Exception
+     */
+    public String getContinuationPointer() throws HL7Exception {
+        return _msh.getMsh14_ContinuationPointer().toString(); // to be verified
+    }
+
+    /**
+     * 
+     * @return MSH-15 Accept Acknowledgement Type e.g. AL, NE, ER, SU.
+     * @throws HL7Exception
+     */
+    public String getAcceptAcknowledgementType() throws HL7Exception {
+        return _msh.getMsh15_AcceptAcknowledgmentType().toString(); // to be verified
+    }
+
+
+     /**
+     * 
+     * @return MSH-16 Application Acknowledgement Type e.g. AL, NE, ER, SU. Carecast only
+     * @throws HL7Exception
+     */
+    public String getApplicationAcknowledgementType() throws HL7Exception {
+        return _msh.getMsh16_ApplicationAcknowledgmentType().toString(); // to be verified
+    }
+
+   
+    /**
+     * 
+     * @return MSH-18 Character Set. Epic only. I've assumed we only want the first one, 
+     * but this field can contain multiple character sets
+     * @throws HL7Exception
+     */
+    public String getCharacterSet() throws HL7Exception {
+        return _msh.getCharacterSet(0).toString(); // to be verified
     }
 
 }

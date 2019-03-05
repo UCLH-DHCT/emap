@@ -45,8 +45,10 @@ public class TestMSH extends TestCase {
     public void setUp() throws Exception {
         System.out.println("**Setting it up in TestMSH!");
 
-        // An example Atos-provided message
-        String hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|||201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
+        // An example message, adapted from one provided by Atos
+        // NB This is a generic string for testing. Atos A01 example messages, for instance, do not have field MSH-5 populated.
+        // So there will likely be content in fields below which, for a given message type, would actually be blank.
+        String generic_hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|UCLH|ZZ|201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
             + "ZUK|Q12|5CF|1|||||||N  N||12||||||||||||||||B83035^2.16.840.1.113883.2.1.4.3|G9014646^2.16.840.1.113883.2.1.4.2|U439966^2.16.840.1.113883.2.1.3.2.4.11||41008\r";
 
         context = new DefaultHapiContext();
@@ -59,7 +61,7 @@ public class TestMSH extends TestCase {
         parser = context.getPipeParser(); //getGenericParser();
             
         try {
-            msg = parser.parse(hl7);
+            msg = parser.parse(generic_hl7);
             ADT_A01 adt_01 = (ADT_A01) parser.parse(msg.encode());
             msh = adt_01.getMSH();
             wrapper = new MSHWrap(msh);
@@ -100,7 +102,36 @@ public class TestMSH extends TestCase {
         assertEquals(result, "RRV30");
     }
 
+
+    @Test
+    // MSH-5
+    public void testGetReceivingApplication1() {
+        String result = "";
+        try {
+            result = wrapper.getReceivingApplication();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetReceivingApplication1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, "UCLH");
+    }
     
+    @Test
+    // MSH-6
+    public void testGetReceivingFacility1() {
+        String result = "";
+        try {
+            result = wrapper.getReceivingFacility();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetReceivingFacility1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, "ZZ");
+    }
+
+
     @Test
     // MSH-7
     public void testGetMessageTimestamp1() {
@@ -145,6 +176,23 @@ public class TestMSH extends TestCase {
     }
 
 
+    @Test
+    // MSH-10
+    public void testGetMessageControlID1() {
+        String result = "";
+        try {
+            result = wrapper.getMessageControlID();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetMessageControlID1()");
+            e.printStackTrace();
+        }
+        assertEquals(result, "PLW21221500942883310");
+    }
+
+
+
+    
     @Override
     protected void tearDown() throws Exception {
         // System.out.println("Running: tearDown");
