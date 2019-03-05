@@ -42,6 +42,7 @@ public class A01Wrap {
 
     private MSHWrap mshwrap;
     private PV1Wrap pv1wrap;
+    private PIDWrap pidwrap;
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
@@ -58,6 +59,10 @@ public class A01Wrap {
 
     public PV1Wrap getPV1Wrap () {
         return pv1wrap;
+    }
+
+    public PIDWrap getPIDWrap() {
+        return pidwrap;
     }
 
     /**
@@ -102,6 +107,7 @@ public class A01Wrap {
         MSH msh = adt_01.getMSH();
         mshwrap = new MSHWrap(msh);
         pv1wrap = new PV1Wrap(adt_01.getPV1());
+        pidwrap = new PIDWrap(adt_01.getPID());
 
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
