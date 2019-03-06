@@ -138,6 +138,12 @@ public class A01Wrap {
         
         System.out.println("current bed = " + pv1wrap.getCurrentBed());
 
+        //// Minimal info needed //////
+        System.out.println("patient name = " + pidwrap.getPatientFullName());
+        System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
+        //System.out.println("admission time = " + pv1wrap.getAdmissionDateTime()); // NB this is in HL7 format not Postgres format
+        System.out.println("admission time = " + HL7Processor.convert_timestamp(pv1wrap.getAdmissionDateTime()));
+
         PV1 pv1 = adt_01.getPV1();
         CX visitNumber2 = pv1.getVisitNumber();
         ST idNumber = visitNumber2.getIDNumber();
