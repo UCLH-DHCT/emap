@@ -26,8 +26,7 @@ public class A01Wrap {
 
     private String administrativeSex; // PID-8
 
-    private Timestamp eventTime; // I think this should be EVN-2 Recorded Date/Time, but it is possible Epic does not use this.
-                                 // As an alternative we can use the timestamp of the message (MSH-7), which is often the same as this.
+    private Timestamp eventTime; // Need to change to a java.util.Time.Instant object
 
     private String familyName; // PID-5.1
 
@@ -45,6 +44,7 @@ public class A01Wrap {
     private PV1Wrap pv1wrap;
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
+    private EVNWrap evnwrap;
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
@@ -69,6 +69,10 @@ public class A01Wrap {
 
     public PD1Wrap getPD1Wrap() {
         return pd1wrap;
+    }
+
+    public EVNWrap getEVNWrap() {
+        return evnwrap;
     }
 
     /**
@@ -115,6 +119,7 @@ public class A01Wrap {
         pv1wrap = new PV1Wrap(adt_01.getPV1());
         pidwrap = new PIDWrap(adt_01.getPID());
         pd1wrap = new PD1Wrap(adt_01.getPD1());
+        evnwrap = new EVNWrap(adt_01.getEVN());
 
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
@@ -149,7 +154,25 @@ public class A01Wrap {
         ///////////////////////////////////////////////////////////////////////////////////////
         // Populate the class fields. They may be null if the information is not held in the message.
         administrativeSex = pidwrap.getPatientSex();
-        // Timestamp eventTime = 
+
+        // Get eventTime. Jeremy, I first try the admit date/time, then the recorded date/time (might be null),
+        // then the message timestamp (which should not be null). You might want to change the ordering
+        // so we try to get admit date/time first.
+        // First get the time in YYYYMMDDHHMM format.
+        eventTime = null;
+        String hl7timestring = pv1wrap.getAdmissionDateTime();
+        if (hl7timestring == null) {
+            hl7timestring = evnwrap.getRecordedDateTime();
+        }
+        if (hl7timestring == null) {
+            hl7timestring = mshwrap.getMessageTimestamp();
+        }
+        if (hl7timestring != null) {
+            // Convert YYYYMMDDHHMM format to Postgres format e.g. 2018-10-03 14:18:07.0000
+            String postgres = HL7Processor.convert_timestamp(hl7timestring); // We might replace this method
+            eventTime = Timestamp.valueOf(postgres);
+        }
+
         familyName = pidwrap.getPatientFamilyName();
         givenName = pidwrap.getPatientGivenName();
         middleName = pidwrap.getPatientMiddleName();
