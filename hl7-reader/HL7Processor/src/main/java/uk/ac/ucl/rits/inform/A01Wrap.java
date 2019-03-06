@@ -24,15 +24,16 @@ import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 public class A01Wrap {
 
-    private String administrativeSex;
+    private String administrativeSex; // PID-8
 
-    private Timestamp eventTime;
+    private Timestamp eventTime; // I think this should be EVN-2 Recorded Date/Time, but it is possible Epic does not use this.
+                                 // As an alternative we can use the timestamp of the message (MSH-7), which is often the same as this.
 
     private String familyName; // PID-5.1
 
     private String givenName; // PID-5.2
 
-    private String middleName;
+    private String middleName; // PID-5.3 middle name or initial
 
     private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
 
@@ -143,6 +144,19 @@ public class A01Wrap {
         System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
         //System.out.println("admission time = " + pv1wrap.getAdmissionDateTime()); // NB this is in HL7 format not Postgres format
         System.out.println("admission time = " + HL7Processor.convert_timestamp(pv1wrap.getAdmissionDateTime()));
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Populate the class fields. They may be null if the information is not held in the message.
+        administrativeSex = pidwrap.getPatientSex();
+        // Timestamp eventTime = 
+        familyName = pidwrap.getPatientFamilyName();
+        givenName = pidwrap.getPatientGivenName();
+        middleName = pidwrap.getPatientMiddleName();
+        mrn = pidwrap.getPatientFirstIdentifier(); // patient ID PID-3.1[1] // internal UCLH hospital number
+        NHSNumber = pidwrap.getPatientSecondIdentifier(); // patient ID PID-3.1[2]
+        visitNumber = pv1wrap.getVisitNumber(); // PV1-19
+        ///////////////////////////////////////////////////////////////////////////////////////
 
         PV1 pv1 = adt_01.getPV1();
         CX visitNumber2 = pv1.getVisitNumber();
