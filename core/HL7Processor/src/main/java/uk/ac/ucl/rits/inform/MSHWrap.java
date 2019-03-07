@@ -81,7 +81,7 @@ public class MSHWrap {
      * @throws HL7Exception
      */
     public String getReceivingFacility() throws HL7Exception {
-        return _msh.getMsh6_ReceivingFacility().getComponent(0).toString(); // to be verified
+        return _msh.getMsh6_ReceivingFacility().getComponent(0).toString();
     }
 
 
@@ -122,7 +122,7 @@ public class MSHWrap {
      * @throws HL7Exception
      */
     public String getMessageControlID() throws HL7Exception {
-        return _msh.getMsh10_MessageControlID().toString(); // to be verified
+        return _msh.getMsh10_MessageControlID().toString();
     }
 
 
@@ -132,16 +132,16 @@ public class MSHWrap {
      * @throws HL7Exception
      */
     public String getProcessingID() throws HL7Exception {
-        return _msh.getMsh11_ProcessingID().getProcessingID().toString(); // to be verified
+        return _msh.getMsh11_ProcessingID().getProcessingID().toString();
     }
 
     /**
      * 
-     * @return MSH-12 HL7 version used
+     * @return MSH-12 HL7 version used (original version e.g. 2.2 even if we have "converted" to to something else e.g. 2.7)
      * @throws HL7Exception
      */
     public String getVersionID() throws HL7Exception {
-        return _msh.getMsh12_VersionID().getVersionID().toString(); // to be verified
+        return _msh.getMsh12_VersionID().getVersionID().toString();
     }
 
     

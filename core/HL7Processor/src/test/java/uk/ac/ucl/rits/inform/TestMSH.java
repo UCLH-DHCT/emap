@@ -191,7 +191,35 @@ public class TestMSH extends TestCase {
     }
 
 
+    @Test
+    // MSH-11
+    public void testGetProcessingID1() {
+        String result = "";
+        try {
+            result = wrapper.getProcessingID();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetProcessingID1()");
+            e.printStackTrace();
+        }
+        assertEquals("P", result);
+    }
 
+
+    @Test
+    // MSH-12
+    // Even though we "converted" the 2.2 message to a 2.7 message, this field still returns 2.2
+    public void testGetVersionID1() {
+        String result = "";
+        try {
+            result = wrapper.getVersionID();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetVersionID1()");
+            e.printStackTrace();
+        }
+        assertEquals("2.2", result);
+    }
     
     @Override
     protected void tearDown() throws Exception {
