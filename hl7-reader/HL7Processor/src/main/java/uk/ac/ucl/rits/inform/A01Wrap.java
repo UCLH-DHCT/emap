@@ -26,7 +26,7 @@ public class A01Wrap {
 
     private String administrativeSex; // PID-8
 
-    private Timestamp eventTime; // Need to change to a java.util.Time.Instant object
+    private Timestamp eventTime; // Need to change to a java.Time.Instant object
 
     private String familyName; // PID-5.1
 

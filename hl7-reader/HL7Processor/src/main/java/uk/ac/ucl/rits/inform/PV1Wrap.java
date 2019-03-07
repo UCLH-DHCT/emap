@@ -198,8 +198,10 @@ import java.util.Vector;
 
 
     /**
+     * We could probably use the HAPI functions to obtain the different components of this result,
+     * e.g. for easier conversion to Postgres timestamp format.
      * 
-     * @return PV1-44.1 admission datetime - may want to get individual components instead/as well as
+     * @return PV1-44.1 admission datetime 
      * @throws HL7Exception
      */
     public String getAdmissionDateTime() throws HL7Exception {
@@ -208,8 +210,10 @@ import java.util.Vector;
 
 
     /**
+     * We could probably use the HAPI functions to obtain the different components of this result,
+     * e.g. for easier conversion to Postgres timestamp format.
      * 
-     * @return PV1-45.1 discharge datetime - may want to get individual components instead/as well as
+     * @return PV1-45.1 discharge datetime
      * @throws HL7Exception
      */
     public String getDischargeDateTime() throws HL7Exception {
