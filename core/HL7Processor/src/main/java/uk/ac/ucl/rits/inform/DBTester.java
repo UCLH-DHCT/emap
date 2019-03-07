@@ -214,26 +214,40 @@ public class DBTester {
         enc.setEvent_time(encounterDetails.getEventTime());
         enc.setMrn(newOrExistingMrn);
         enc = encounterRepo.save(enc);
+        addAttrValue(enc, Attribute.AttributeId.FIRST_NAME, encounterDetails.getGivenName());
+        addAttrValue(enc, Attribute.AttributeId.MIDDLE_NAME, encounterDetails.getMiddleName());
+        addAttrValue(enc, Attribute.AttributeId.FAMILY_NAME, encounterDetails.getFamilyName());
+        return enc;
+    }
+    
+    /**
+     * This is a temporary way to add a single-property fact
+     * to an encounter. Will be superceded by Roma's version of the
+     * Inform-db JPA entities
+     * 
+     * @param enc
+     * @param attrId
+     * @param factValue
+     */
+    private void addAttrValue(Encounter enc, Attribute.AttributeId attrId, String factValue) {
+        // doesn't consider that the fact may already exist
         PatientDemographicFact fact = new PatientDemographicFact();
         fact.setEncounter(enc);
-        // need to make an attribute repo with a find by attr ID method??
-        // fact.setKeyValueProp(Attribute.AttributeId.FAMILY_NAME,
-        // encounterDetails.getFamilyName());
-        Optional<Attribute> attropt = attributeRepository.findById(Attribute.AttributeId.FAMILY_NAME);
+        Optional<Attribute> attropt = attributeRepository.findById(attrId);
         Attribute attr;
         if (attropt.isPresent()) {
             attr = attropt.get();
         } else {
-            // TODO: The correct way would be to pre-populate all attrs on startup
+            // In future we will have a more orderly list of Attributes, but am
+            // creating them on the fly for now
             attr = new Attribute();
-            attr.setAttribute_id(Attribute.AttributeId.FAMILY_NAME);
-            attr.setDescription("Family Name");
+            attr.setAttribute_id(attrId);
+            attr.setDescription(attrId.toString()); // just assume a description from the name for now
             attr = attributeRepository.save(attr);
         }
-        fact.setKeyValueProp(attr, encounterDetails.getFamilyName());
+        fact.setKeyValueProp(attr, factValue);
         fact = patientDemographicFactRepository.save(fact);
 
-        return enc;
     }
 
     public long countEncounters() {

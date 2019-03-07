@@ -9,7 +9,9 @@ import javax.persistence.Id;
 @Entity
 public class Attribute {
     public enum AttributeId {
-        FAMILY_NAME
+        FIRST_NAME,
+        MIDDLE_NAME,
+        FAMILY_NAME,
     }
     
     @Id
