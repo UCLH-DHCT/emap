@@ -13,9 +13,10 @@
       org.postgresql.Driver
     </property>
 
-    <property name="hibernate.connection.url">
-      jdbc:postgresql://localhost/ids
-    </property>
+    <!-- intentionally left blank, to be filled in from the environment -->
+    <property name="hibernate.connection.url"></property>
+    <property name="hibernate.connection.username"></property>
+    <property name="hibernate.connection.password"></property>
 
     <property name="hibernate.hbm2ddl.auto">
       validate
