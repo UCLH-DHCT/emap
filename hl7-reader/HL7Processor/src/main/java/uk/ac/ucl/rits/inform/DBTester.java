@@ -105,9 +105,9 @@ public class DBTester {
             ADT_A01 adt_01 = (ADT_A01) msgFromIds;
             System.out.println("hello there4");
             Encounter enc = addEncounter(new A01Wrap(adt_01));
-            System.out.println("Added from IDS: " + enc.toString());
+            System.out.println("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
         } else {
-            System.out.println("Not an A01, skipping " + msgFromIds.getClass());
+            System.out.println("[" + idsMsg.getUnid() + "] Skipping " + msgFromIds.getClass());
         }
         setLatestProcessedId(idsMsg.getUnid());
 
