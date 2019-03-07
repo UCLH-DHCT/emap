@@ -69,7 +69,7 @@ public class TestConvertTimestamp extends TestCase {
     public void testct3() {
         String hl7 = "20181003141807.7618";
         String jdbc = HL7Processor.convert_timestamp(hl7);
-        assertEquals(jdbc, "2018-10-03 14:18:07.7618");
+        assertEquals("2018-10-03 14:18:07.7618", jdbc);
     }
 
     @Test
@@ -77,7 +77,7 @@ public class TestConvertTimestamp extends TestCase {
     public void testct4() {
         String hl7 = "20181003141807";
         String jdbc = HL7Processor.convert_timestamp(hl7);
-        assertEquals(jdbc, "2018-10-03 14:18:07");
+        assertEquals("2018-10-03 14:18:07", jdbc);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class TestConvertTimestamp extends TestCase {
     public void testct5() {
         String hl7 = "201810031418";
         String jdbc = HL7Processor.convert_timestamp(hl7);
-        assertEquals(jdbc, "2018-10-03 14:18:00");
+        assertEquals("2018-10-03 14:18:00", jdbc);
     }
 
     @Test
@@ -93,7 +93,7 @@ public class TestConvertTimestamp extends TestCase {
     public void testct6() {
         String hl7 = "2018100314";
         String jdbc = HL7Processor.convert_timestamp(hl7);
-        assertEquals(jdbc, "2018-10-03 14:00:00");
+        assertEquals("2018-10-03 14:00:00", jdbc);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class TestConvertTimestamp extends TestCase {
     public void testct7() {
         String hl7 = "20181003";
         String jdbc = HL7Processor.convert_timestamp(hl7);
-        assertEquals(jdbc, "2018-10-03 00:00:00");
+        assertEquals("2018-10-03 00:00:00", jdbc);
     }
 
 

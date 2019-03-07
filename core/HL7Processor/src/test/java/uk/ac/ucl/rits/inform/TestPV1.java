@@ -123,7 +123,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetCurrentWardCode1()");
             e.printStackTrace();
         }
-        assertEquals(result, "H2HH");
+        assertEquals("H2HH", result);
     }
 
 
@@ -138,7 +138,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetCurrentRoomCode1()");
             e.printStackTrace();
         }
-        assertEquals(result, "H203");
+        assertEquals("H203", result);
     }
 
 
@@ -168,7 +168,7 @@ public class TestPV1 extends TestCase {
             e.printStackTrace();
         }
         //System.out.println("debug test result = " + result);
-        assertEquals(result, "H203-11");
+        assertEquals("H203-11", result);
     }
 
     @Test
@@ -185,16 +185,16 @@ public class TestPV1 extends TestCase {
         }
         dr1 = vec.get(0);
         dr2 = vec.get(1);
-        assertEquals("Wrong dr1 consultant code", dr1.getConsultantCode(), "397982");
-        assertEquals("Wrong dr2 consultant code", dr2.getConsultantCode(), "392275");
-        assertEquals("Wrong dr1 surname", dr1.getSurname(), "LAWSON");
-        assertEquals("Wrong dr2 surname", dr2.getSurname(), "ISENBERG");
-        assertEquals("Wrong dr1 firstname", dr1.getFirstname(), "M");
-        assertEquals("Wrong dr2 firstname", dr2.getFirstname(), "DAVID");
-        assertEquals("Wrong dr1 middlename", dr1.getMiddlenameOrInitial(), null);
-        assertEquals("Wrong dr2 middlename", dr2.getMiddlenameOrInitial(), "J");
-        assertEquals("Wrong dr1 title", dr1.getTitle(), "DR");
-        assertEquals("Wrong dr2 title", dr2.getTitle(), "PROF");
+        assertEquals("Wrong dr1 consultant code", "397982", dr1.getConsultantCode());
+        assertEquals("Wrong dr2 consultant code", "392275", dr2.getConsultantCode());
+        assertEquals("Wrong dr1 surname", "LAWSON", dr1.getSurname());
+        assertEquals("Wrong dr2 surname", "ISENBERG", dr2.getSurname());
+        assertEquals("Wrong dr1 firstname", "M", dr1.getFirstname());
+        assertEquals("Wrong dr2 firstname", "DAVID", dr2.getFirstname());
+        assertEquals("Wrong dr1 middlename", null, dr1.getMiddlenameOrInitial());
+        assertEquals("Wrong dr2 middlename", "J", dr2.getMiddlenameOrInitial());
+        assertEquals("Wrong dr1 title", "DR", dr1.getTitle());
+        assertEquals("Wrong dr2 title", "PROF", dr2.getTitle());
         // assertEquals("")getLocalCode()
     }
 
@@ -211,7 +211,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetHospitalService1()");
             e.printStackTrace();
         }
-        assertEquals(result, "41008");
+        assertEquals("41008", result);
 
     } 
 
@@ -227,7 +227,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetAdmitSource1()");
             e.printStackTrace();
         }
-        assertEquals(result, "19");
+        assertEquals("19", result);
 
     }
 
@@ -243,7 +243,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetAPatientSource1()");
             e.printStackTrace();
         }
-        assertEquals(result, null);
+        assertEquals(null, result);
 
     }
 
@@ -259,7 +259,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetVisitNumber1()");
             e.printStackTrace();
         }
-        assertEquals(result, null);
+        assertEquals(null, result);
 
     }
 
@@ -275,7 +275,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetAdmissionDateTime1()");
             e.printStackTrace();
         }
-        assertEquals(result, "201209211840");
+        assertEquals("201209211840", result);
 
     }
 
@@ -291,7 +291,7 @@ public class TestPV1 extends TestCase {
             System.out.println("Got exception in testGetDischargeDateTime1()");
             e.printStackTrace();
         }
-        assertEquals(result, null);
+        assertEquals(null, result);
 
     }
 

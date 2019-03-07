@@ -84,7 +84,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetSendingApplication1()");
             e.printStackTrace();
         }
-        assertEquals(result, "UCLH4");
+        assertEquals("UCLH4", result);
     }
 
 
@@ -99,7 +99,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetSendingAFacility1()");
             e.printStackTrace();
         }
-        assertEquals(result, "RRV30");
+        assertEquals("RRV30", result);
     }
 
 
@@ -114,7 +114,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetReceivingApplication1()");
             e.printStackTrace();
         }
-        assertEquals(result, "UCLH");
+        assertEquals("UCLH", result);
     }
     
     @Test
@@ -128,7 +128,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetReceivingFacility1()");
             e.printStackTrace();
         }
-        assertEquals(result, "ZZ");
+        assertEquals("ZZ", result);
     }
 
 
@@ -143,7 +143,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetMessageTimestamp1()");
             e.printStackTrace();
         }
-        assertEquals(result, "201209211843");
+        assertEquals("201209211843", result);
     }
 
 
@@ -158,7 +158,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetSessageType1()");
             e.printStackTrace();
         }
-        assertEquals(result, "ADT");
+        assertEquals("ADT", result);
     }
 
     @Test
@@ -172,7 +172,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetTriggerEvent1()");
             e.printStackTrace();
         }
-        assertEquals(result, "A01");
+        assertEquals("A01", result);
     }
 
 
@@ -187,7 +187,7 @@ public class TestMSH extends TestCase {
             System.out.println("Got exception in testGetMessageControlID1()");
             e.printStackTrace();
         }
-        assertEquals(result, "PLW21221500942883310");
+        assertEquals("PLW21221500942883310", result);
     }
 
 
