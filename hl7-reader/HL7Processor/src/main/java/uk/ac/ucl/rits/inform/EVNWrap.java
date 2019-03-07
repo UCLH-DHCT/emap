@@ -36,7 +36,7 @@ public class EVNWrap {
      * @throws HL7Exception
      */
     public String getEventType() throws HL7Exception {
-        return _evn.getEvn1_EventTypeCode().toString(); // need to test
+        return _evn.getEvn1_EventTypeCode().toString();
     }
 
 
@@ -47,10 +47,18 @@ public class EVNWrap {
      * @throws HL7Exception
      */
     public String getRecordedDateTime() throws HL7Exception {
-        return _evn.getEvn2_RecordedDateTime().toString(); // need to test
+        return _evn.getEvn2_RecordedDateTime().toString();
     } 
 
 
+     /**
+     * 
+     * @return EVN-4 Event Reason Code (e.g. ADM)
+     * @throws HL7Exception
+     */
+    public String getEventReasonCode() throws HL7Exception {
+        return _evn.getEvn4_EventReasonCode().getComponent(0).toString();
+    }
 
 
      /**
@@ -61,7 +69,17 @@ public class EVNWrap {
      * @throws HL7Exception
      */
     public String getOperatorID() throws HL7Exception {
-        return _evn.getEvn5_OperatorID(0).getPersonIdentifier().toString(); // need to test
+        return _evn.getEvn5_OperatorID(0).getPersonIdentifier().toString();
+    }
+
+
+    /**
+     * 
+     * @return EVN-6 Event Occurred. Epic only - transfer date and time for an A02 message
+     * @throws HL7Exception
+     */
+    public String getEventOccurred() throws HL7Exception {
+        return _evn.getEvn6_EventOccurred().toString();
     }
 
 }
