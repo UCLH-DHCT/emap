@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,10 +56,17 @@ public class DBTester {
     private SessionFactory idsFactory;
     private Session idsSession;
 
-    public DBTester(@Value("${ids.cfg.xml.file}") String idsCfgXml) {
+    public DBTester(
+            @Value("${ids.cfg.xml.file}") String idsCfgXml,
+            @Autowired Environment environment
+        ) {
         this.idsCfgXml = idsCfgXml;
         System.out.println("DBTester() 1 - opening config file " + idsCfgXml);
-        idsFactory = makeSessionFactory(idsCfgXml, "IDS");
+        String envPrefix = "IDS";
+        if (environment.acceptsProfiles("test")) {
+            envPrefix = null;
+        }
+        idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         System.out.println("DBTester() 2");
     }
 
@@ -151,22 +159,39 @@ public class DBTester {
         }
     }
 
-    private static SessionFactory makeSessionFactory(String configFile, String label) {
+    /**
+     * create a session factory from the given config file, overwriting
+     * configurable values from the environment, if specified
+     *
+     * @param configFile the hibernate xml config file
+     * @param envPrefix the prefix for environment variable names, or null if no
+     *        variables should be read from the environment
+     *
+     * @return the SessionFactory thus created
+     */
+    private static SessionFactory makeSessionFactory(String configFile, String envPrefix) {
         Configuration cfg = new Configuration().configure(configFile);
         cfg.addAnnotatedClass(IdsMaster.class);
 
-        // take the username and password out of the environment
-        // so the config file can safely go into source control
-        String envVarUsername = label + "_USERNAME";
-        String envVarPassword = label + "_PASSWORD";
+        if (envPrefix != null) {
+            // take the username and password out of the environment
+            // so the config file can safely go into source control
+            String envVarUrl = envPrefix + "_JDBC_URL";
+            String envVarUsername = envPrefix + "_USERNAME";
+            String envVarPassword = envPrefix + "_PASSWORD";
 
-        String uname = System.getenv(envVarUsername);
-        String pword = System.getenv(envVarPassword);
-        if (uname != null) {
-            cfg.setProperty("hibernate.connection.username", uname);
-        }
-        if (pword != null) {
-            cfg.setProperty("hibernate.connection.password", pword);
+            String url = System.getenv(envVarUrl);
+            String uname = System.getenv(envVarUsername);
+            String pword = System.getenv(envVarPassword);
+            if (url != null) {
+                cfg.setProperty("hibernate.connection.url", url);
+            }
+            if (uname != null) {
+                cfg.setProperty("hibernate.connection.username", uname);
+            }
+            if (pword != null) {
+                cfg.setProperty("hibernate.connection.password", pword);
+            }
         }
 
         return cfg.buildSessionFactory();

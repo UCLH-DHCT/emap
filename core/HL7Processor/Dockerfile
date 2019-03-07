@@ -7,4 +7,5 @@ COPY pom.xml /app/
 RUN source set_mvn_proxy.sh; mvn dependency:resolve
 COPY . /app
 RUN source set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true
+#RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test
 CMD ["java", "-jar", "./target/HL7Processor-1.0-SNAPSHOT.jar"]
