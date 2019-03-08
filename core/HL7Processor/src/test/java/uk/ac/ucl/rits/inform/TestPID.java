@@ -59,6 +59,36 @@ public class TestPID extends TestCase {
 
     }
 
+
+    @Test
+    // PID-3.1[1] - in Carecast this is the MRN. Will Epic follow this convention?
+    public void testGetPatientFirstIdentifier1() {
+        String result = "";
+        try {
+            result = wrapper.getPatientFirstIdentifier();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetPatientFirstIdentifier1()");
+            e.printStackTrace();
+        }
+        assertEquals("50032556", result);
+    }
+
+    @Test
+    // PID-3.1[2] - in Carecast this is the NHS number. Will Epic follow this convention?
+    public void testGetPatientSecondIdentifier1() {
+        String result = "";
+        try {
+            result = wrapper.getPatientSecondIdentifier();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetPatientSecondIdentifier1()");
+            e.printStackTrace();
+        }
+        assertEquals("this is a test NHS number", result);
+    }
+
+
     @Test
     // PID-5.1
     public void testGetPatientFamilyName1() {
@@ -89,8 +119,48 @@ public class TestPID extends TestCase {
     }
 
 
-    
+    @Test
+    // PID-5.3 Middle name or initial
+    public void testGetPatientMiddleName1() {
+        String result = "";
+        try {
+            result = wrapper.getPatientMiddleName();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetPatientMiddleName1()");
+            e.printStackTrace();
+        }
+        assertEquals("Longforenamesecondfn", result);
+    }
 
+
+    @Test
+    // PID-5.5 Title
+    public void testGetPatientTitle1() {
+        String result = "";
+        try {
+            result = wrapper.getPatientTitle();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetPatientTitle1()");
+            e.printStackTrace();
+        }
+        assertEquals("LADY", result);
+    }
+
+    @Test
+    // Convenience method
+    public void testGetPatientFullName1() {
+        String result = "";
+        try {
+            result = wrapper.getPatientFullName();
+        }
+        catch (HL7Exception e) {
+            System.out.println("Got exception in testGetPatientFullName1()");
+            e.printStackTrace();
+        }
+        assertEquals("LADY Amendadmission Longforenamesecondfn INTERFACES", result);
+    }
     
     @Override
     protected void tearDown() throws Exception {
