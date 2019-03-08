@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform;
 
 import ca.uhn.hl7v2.model.v27.segment.EVN;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.DefaultHapiContext;
@@ -31,7 +30,6 @@ public class TestEVN extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private Message msg;
     private EVN evn;
     private EVNWrap wrapper;
 
@@ -57,8 +55,7 @@ public class TestEVN extends TestCase {
         parser = context.getPipeParser(); //getGenericParser();
             
         try {
-            msg = parser.parse(generic_hl7);
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(msg.encode());
+            ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
             evn = adt_01.getEVN();
             wrapper = new EVNWrap(evn);
         }

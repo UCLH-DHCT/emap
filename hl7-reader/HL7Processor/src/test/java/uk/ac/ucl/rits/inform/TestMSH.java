@@ -6,7 +6,6 @@ package uk.ac.ucl.rits.inform;
 
 //import java.util.Vector;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.DefaultHapiContext;
@@ -36,7 +35,6 @@ public class TestMSH extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private Message msg;
     private MSH msh;
     private MSHWrap wrapper;
 
@@ -61,8 +59,7 @@ public class TestMSH extends TestCase {
         parser = context.getPipeParser(); //getGenericParser();
             
         try {
-            msg = parser.parse(generic_hl7);
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(msg.encode());
+            ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
             msh = adt_01.getMSH();
             wrapper = new MSHWrap(msh);
         }
