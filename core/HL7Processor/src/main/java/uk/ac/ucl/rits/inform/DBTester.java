@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,34 +85,41 @@ public class DBTester {
      * 
      * @param parser the HAPI parser to be used
      * 
-     * @return true if a message was processed, false if there were no messages to
+     * @return 1 if a message was processed, 0 if skipped, -1 if there were no messages to
      *         process
      */
     @Transactional(rollbackFor = HL7Exception.class)
-    public boolean processNextHl7(PipeParser parser) throws HL7Exception {
-        System.out.println("hello there1a");
+    public int processNextHl7(PipeParser parser) throws HL7Exception {
         int lastProcessedId = getLatestProcessedId();
 
-        System.out.println("hello there1b");
         IdsMaster idsMsg = getNextHL7IdsRecord(lastProcessedId);
         if (idsMsg == null) {
-            return false;
+            return -1;
         }
-        System.out.println("hello there2, msg = " + idsMsg);
-        Message msgFromIds = null;
-        msgFromIds = parser.parse(idsMsg.getHl7message());
-        System.out.println("version is " + msgFromIds.getVersion());
+        int processed = 0;
+        String hl7msg = idsMsg.getHl7message();
+        // HL7 is supposed to use \r for line endings, but
+        // the IDS uses \n
+        hl7msg = hl7msg.replace("\n", "\r");
+        Message msgFromIds = parser.parse(hl7msg);
+        String messagetype = "";
+        ADT_A01 a01_ish = null;
         if (msgFromIds instanceof ADT_A01) {
-            ADT_A01 adt_01 = (ADT_A01) msgFromIds;
-            System.out.println("hello there4");
-            Encounter enc = addEncounter(new A01Wrap(adt_01));
+            a01_ish = (ADT_A01) msgFromIds;
+            // ok, but is it really an A01?
+            messagetype = a01_ish.getMSH().getMessageType().getTriggerEvent().getValue();
+            System.out.println("message type: " + messagetype);
+        }
+        if (messagetype.equals("A01")) {
+            Encounter enc = addEncounter(new A01Wrap(a01_ish));
             System.out.println("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
+            processed = 1;
         } else {
-            System.out.println("[" + idsMsg.getUnid() + "] Skipping " + msgFromIds.getClass());
+            System.out.println("[" + idsMsg.getUnid() + "] Skipping " + messagetype + " (" + msgFromIds.getClass() + ")");
         }
         setLatestProcessedId(idsMsg.getUnid());
 
-        return true;
+        return processed;
     }
 
     @Transactional
