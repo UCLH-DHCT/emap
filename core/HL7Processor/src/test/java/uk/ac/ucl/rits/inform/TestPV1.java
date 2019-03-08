@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Vector;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.DefaultHapiContext;
@@ -48,7 +47,6 @@ public class TestPV1 extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private Message msg;
     private PV1 pv1;
     private PV1Wrap wrapper;
 
@@ -86,8 +84,7 @@ public class TestPV1 extends TestCase {
             parser = context.getPipeParser(); //getGenericParser();
             
             try {
-                msg = parser.parse(hl7);
-                ADT_A01 adt_01 = (ADT_A01) parser.parse(msg.encode());
+                ADT_A01 adt_01 = (ADT_A01) parser.parse(hl7);
                 pv1 = adt_01.getPV1();
                 wrapper = new PV1Wrap(pv1);
             }

@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform;
 
 
 import ca.uhn.hl7v2.model.v27.segment.PID;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.DefaultHapiContext;
@@ -11,8 +10,6 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
-
-
 
 import org.junit.Test;
 
@@ -27,7 +24,6 @@ public class TestPID extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private Message msg;
     private PID pid;
     private PIDWrap wrapper;
 
@@ -52,8 +48,7 @@ public class TestPID extends TestCase {
         parser = context.getPipeParser(); //getGenericParser();
             
         try {
-            msg = parser.parse(generic_hl7);
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(msg.encode());
+            ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
             pid = adt_01.getPID();
             wrapper = new PIDWrap(pid);
         }
