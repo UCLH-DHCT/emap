@@ -25,6 +25,13 @@
   <dependencies>
 
     <dependency>
+      <groupId>uk.ac.ucl.rits.inform</groupId>
+      <artifactId>inform-db</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <!-- <scope>system</scope> -->
+    </dependency>
+
+    <dependency>
       <groupId>com.puppycrawl.tools</groupId>
       <artifactId>checkstyle</artifactId>
       <version>8.16</version>

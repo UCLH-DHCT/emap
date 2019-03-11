@@ -26,7 +26,7 @@ public class A01Wrap {
 
     private String administrativeSex; // PID-8
 
-    private Timestamp eventTime; // Need to change to a java.Time.Instant object
+    private Instant eventTime;
 
     private String familyName; // PID-5.1
 
@@ -90,7 +90,7 @@ public class A01Wrap {
         visitNumber = RandomStringUtils.randomNumeric(8);
         middleName = randomString();
         administrativeSex = randomString();
-        eventTime = Timestamp.from(Instant.now());
+        eventTime = Instant.now();
     }
 
     /**
@@ -170,7 +170,7 @@ public class A01Wrap {
         if (hl7timestring != null) {
             // Convert YYYYMMDDHHMM format to Postgres format e.g. 2018-10-03 14:18:07.0000
             String postgres = HL7Processor.convert_timestamp(hl7timestring); // We might replace this method
-            eventTime = Timestamp.valueOf(postgres);
+            eventTime = Timestamp.valueOf(postgres).toInstant();
         }
 
         familyName = pidwrap.getPatientFamilyName();
@@ -192,7 +192,7 @@ public class A01Wrap {
         return administrativeSex;
     }
 
-    public Timestamp getEventTime() {
+    public Instant getEventTime() {
         return eventTime;
     }
 
