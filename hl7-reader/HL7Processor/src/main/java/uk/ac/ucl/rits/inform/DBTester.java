@@ -25,6 +25,7 @@ import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
+import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.EncounterRepository;
@@ -32,6 +33,7 @@ import uk.ac.ucl.rits.inform.informdb.Mrn;
 import uk.ac.ucl.rits.inform.informdb.MrnRepository;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicFact;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicFactRepository;
+import uk.ac.ucl.rits.inform.informdb.PatientDemographicProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonRepository;
 
@@ -217,14 +219,14 @@ public class DBTester {
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr);
         // Encounter is always a new one for an A01
         Encounter enc = new Encounter();
-        enc.setStore_datetime(Timestamp.from(Instant.now()));
+        enc.setStoredFrom(Instant.now());
         enc.setEncounter(encounterDetails.getVisitNumber());
-        enc.setEvent_time(encounterDetails.getEventTime());
+        enc.setValidFrom(encounterDetails.getEventTime());
         enc.setMrn(newOrExistingMrn);
         enc = encounterRepo.save(enc);
-        addAttrValue(enc, Attribute.AttributeId.FIRST_NAME, encounterDetails.getGivenName());
-        addAttrValue(enc, Attribute.AttributeId.MIDDLE_NAME, encounterDetails.getMiddleName());
-        addAttrValue(enc, Attribute.AttributeId.FAMILY_NAME, encounterDetails.getFamilyName());
+        addAttrValue(enc, AttributeKeyMap.FIRST_NAME, encounterDetails.getGivenName());
+        addAttrValue(enc, AttributeKeyMap.MIDDLE_NAMES, encounterDetails.getMiddleName());
+        addAttrValue(enc, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
         return enc;
     }
     
@@ -234,14 +236,14 @@ public class DBTester {
      * Inform-db JPA entities
      * 
      * @param enc
-     * @param attrId
+     * @param attrKM
      * @param factValue
      */
-    private void addAttrValue(Encounter enc, Attribute.AttributeId attrId, String factValue) {
+    private void addAttrValue(Encounter enc, AttributeKeyMap attrKM, String factValue) {
         // doesn't consider that the fact may already exist
         PatientDemographicFact fact = new PatientDemographicFact();
         fact.setEncounter(enc);
-        Optional<Attribute> attropt = attributeRepository.findById(attrId);
+        Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
         Attribute attr;
         if (attropt.isPresent()) {
             attr = attropt.get();
@@ -249,11 +251,16 @@ public class DBTester {
             // In future we will have a more orderly list of Attributes, but am
             // creating them on the fly for now
             attr = new Attribute();
-            attr.setAttribute_id(attrId);
-            attr.setDescription(attrId.toString()); // just assume a description from the name for now
+            attr.setShortName(attrKM.getShortname());
+            attr.setDescription(attrKM.toString()); // just assume a description from the name for now
             attr = attributeRepository.save(attr);
         }
-        fact.setKeyValueProp(attr, factValue);
+        
+        PatientDemographicProperty prop = new PatientDemographicProperty();
+        prop.setAttribute(attr);
+        prop.setValueAsString(factValue);
+        
+        fact.addProperty(prop);
         fact = patientDemographicFactRepository.save(fact);
 
     }
@@ -276,6 +283,7 @@ public class DBTester {
             mrn = new Mrn();
             mrn.setMrn(mrnStr);
             Person pers = new Person();
+            pers.setCreateDatetime(Instant.now());
             personRepo.save(pers);
             mrn.setPerson(pers);
         } else if (allMrns.size() > 1) {
@@ -283,7 +291,7 @@ public class DBTester {
         } else {
             mrn = allMrns.get(0);
         }
-        mrn.setStore_datetime(Timestamp.from(Instant.now()));
+        mrn.setStoredFrom(Instant.now());
         mrn = mrnRepo.save(mrn);
         return mrn;
     }
