@@ -23,21 +23,15 @@ import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 public class A01Wrap {
+    private Random random;
 
     private String administrativeSex; // PID-8
-
     private Instant eventTime;
-
     private String familyName; // PID-5.1
-
     private String givenName; // PID-5.2
-
     private String middleName; // PID-5.3 middle name or initial
-
     private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
-
     private String NHSNumber; // patient ID PID-3.1[2]
-    private Random random;
     private String visitNumber; // PV1-19
 
     private MSHWrap mshwrap;
@@ -233,8 +227,8 @@ public class A01Wrap {
      */
     private String randomString() {
         int length = 9 + Math.round((float) (4 * random.nextGaussian()));
-        if (length < 0)
-            length = 0;
+        if (length < 5)
+            length = 5;
         return randomString(length);
     }
 
