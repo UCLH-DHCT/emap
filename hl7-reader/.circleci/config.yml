@@ -23,6 +23,12 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          command: |
+              git clone git@github.com:inform-health-informatics/Inform-DB.git infdep
+              cd infdep
+              git checkout autoattrid
+
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -40,7 +46,11 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "HL7Processor/pom.xml" }}
         
-      # run tests!
+      - run:
+          command: |
+              cd infdep
+              mvn install -Dmaven.test.skip=true
+
       - run:
           command: |
              cd HL7Processor
