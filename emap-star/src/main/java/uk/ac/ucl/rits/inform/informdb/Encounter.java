@@ -145,6 +145,34 @@ public class Encounter extends TemporalCore {
         fact.setEncounter(this);
     }
 
+    /**
+     * @return the demographics
+     */
+    public List<PatientDemographicFact> getDemographics() {
+        return demographics;
+    }
+
+    /**
+     * @param demographics the demographics to set
+     */
+    public void setDemographics(List<PatientDemographicFact> demographics) {
+        this.demographics = demographics;
+    }
+
+    /**
+     * @return the visits
+     */
+    public List<VisitFact> getVisits() {
+        return visits;
+    }
+
+    /**
+     * @param visits the visits to set
+     */
+    public void setVisits(List<VisitFact> visits) {
+        this.visits = visits;
+    }
+
     @Override
     public String toString() {
         return "Encounter [encounter_id=" + encounterId + ", mrn=" + mrn + ", encounter=" + encounter
