@@ -118,6 +118,20 @@ public class Mrn extends TemporalCore {
         enc.setMrn(this);
     }
 
+    /**
+     * @return the encounters
+     */
+    public List<Encounter> getEncounters() {
+        return encounters;
+    }
+
+    /**
+     * @param encounters the encounters to set
+     */
+    public void setEncounters(List<Encounter> encounters) {
+        this.encounters = encounters;
+    }
+
     @Override
     public String toString() {
         return "Mrn [mrn_id=" + mrnId + ", person=" + person + ", mrn=" + mrn + ", store_datetime="
