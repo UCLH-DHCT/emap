@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -47,12 +50,16 @@ public class App {
             PipeParser parser = context.getPipeParser(); // getGenericParser();
             System.out.println("hello there1");
             int count = 0;
+            List<String> parsingErrors = new ArrayList<String>();
             while (true) {
-                int processed = dbt.processNextHl7(parser);
+                int processed = dbt.processNextHl7(parser, parsingErrors);
                 if (processed == -1) {
                     break;
                 }
                 count += processed;
+                if (count % 1000 == 0) {
+                    printErrorSummary(parsingErrors);
+                }
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
@@ -62,6 +69,10 @@ public class App {
 
             System.out.println("BYE");
         };
+    }
+
+    private void printErrorSummary(List<String> errors) {
+        System.out.println("There are " + errors.size() + " parsing errors");
     }
 
     /**

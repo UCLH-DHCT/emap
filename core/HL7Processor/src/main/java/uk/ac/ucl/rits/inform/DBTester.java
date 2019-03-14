@@ -91,7 +91,7 @@ public class DBTester {
      * @return number of messages processes
      */
     @Transactional(rollbackFor = HL7Exception.class)
-    public int processNextHl7(PipeParser parser) throws HL7Exception {
+    public int processNextHl7(PipeParser parser, List<String> parsingErrors) throws HL7Exception {
         int lastProcessedId = getLatestProcessedId();
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
         int processed = 0;
@@ -104,8 +104,15 @@ public class DBTester {
             msgFromIds = parser.parse(hl7msg);
         }
         catch (HL7Exception hl7e) {
-            System.out.println("[" + idsMsg.getUnid() + "]  HL7 parsing error");
+            String errString = "[" + idsMsg.getUnid() + "]  HL7 parsing error";
             hl7e.printStackTrace();
+            // Mark the message as processed even though we couldn't parse it,
+            // but record it for later debugging.
+            // Will need a more sophisticated way of logging these errors. Do
+            // it in the destination database?
+            parsingErrors.add(errString);
+            System.out.println(errString);
+            setLatestProcessedId(idsMsg.getUnid());
             return processed;
         }
         String messagetype = "";
