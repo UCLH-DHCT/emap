@@ -93,23 +93,7 @@ public class DBTester {
     @Transactional(rollbackFor = HL7Exception.class)
     public int processNextHl7(PipeParser parser) throws HL7Exception {
         int lastProcessedId = getLatestProcessedId();
-
-        long secondsSleep = 10;
-        IdsMaster idsMsg;
-        while (true) {
-            idsMsg = getNextHL7IdsRecord(lastProcessedId);
-            if (idsMsg == null) {
-                System.out.println("No more messages, retrying in " + secondsSleep + " seconds");
-                try {
-                    Thread.sleep(secondsSleep * 1000);
-                }
-                catch (InterruptedException ie) {
-                }
-            }
-            else {
-                break;
-            }
-        }
+        IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
         int processed = 0;
         String hl7msg = idsMsg.getHl7message();
         // HL7 is supposed to use \r for line endings, but
@@ -162,6 +146,32 @@ public class DBTester {
         idsProgressRepository.save(onlyRow);
     }
 
+    public IdsMaster getNextHL7IdsRecordBlocking(int lastProcessedId) {
+        long secondsSleep = 10;
+        IdsMaster idsMsg = null;
+        while (true) {
+            idsMsg = getNextHL7IdsRecord(lastProcessedId);
+            if (idsMsg == null) {
+                System.out.println("No more messages, retrying in " + secondsSleep + " seconds");
+                try {
+                    Thread.sleep(secondsSleep * 1000);
+                }
+                catch (InterruptedException ie) {
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return idsMsg;
+    }
+
+    /**
+     * Get next entry in the IDS, if it exists
+     * @param lastProcessedId the last one we have successfully processed
+     *
+     * @return the first message that comes after lastProcessedId, or null if there isn't one
+     */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
         // consider changing to "get next N messages" for more efficient database performance
         // when doing large "catch-up" operations
