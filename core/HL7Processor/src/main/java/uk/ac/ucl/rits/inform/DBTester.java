@@ -83,41 +83,61 @@ public class DBTester {
     /**
      * Wrapper for the entire transaction that performs: - read latest processed ID
      * from Inform-db (ETL metadata) - process the message and write to Inform-db -
-     * write the latest processed ID to reflect the above message
+     * write the latest processed ID to reflect the above message.
+     * Blocks until there are new messages.
      * 
      * @param parser the HAPI parser to be used
      * 
-     * @return 1 if a message was processed, 0 if skipped, -1 if there were no messages to
-     *         process
+     * @return number of messages processes
      */
     @Transactional(rollbackFor = HL7Exception.class)
     public int processNextHl7(PipeParser parser) throws HL7Exception {
         int lastProcessedId = getLatestProcessedId();
 
-        IdsMaster idsMsg = getNextHL7IdsRecord(lastProcessedId);
-        if (idsMsg == null) {
-            return -1;
+        long secondsSleep = 10;
+        IdsMaster idsMsg;
+        while (true) {
+            idsMsg = getNextHL7IdsRecord(lastProcessedId);
+            if (idsMsg == null) {
+                System.out.println("No more messages, retrying in " + secondsSleep + " seconds");
+                try {
+                    Thread.sleep(secondsSleep * 1000);
+                }
+                catch (InterruptedException ie) {
+                }
+            }
+            else {
+                break;
+            }
         }
         int processed = 0;
         String hl7msg = idsMsg.getHl7message();
         // HL7 is supposed to use \r for line endings, but
         // the IDS uses \n
         hl7msg = hl7msg.replace("\n", "\r");
-        Message msgFromIds = parser.parse(hl7msg);
+        Message msgFromIds;
+        try {
+            msgFromIds = parser.parse(hl7msg);
+        }
+        catch (HL7Exception hl7e) {
+            System.out.println("[" + idsMsg.getUnid() + "]  HL7 parsing error");
+            hl7e.printStackTrace();
+            return processed;
+        }
         String messagetype = "";
         ADT_A01 a01_ish = null;
         if (msgFromIds instanceof ADT_A01) {
             a01_ish = (ADT_A01) msgFromIds;
             // ok, but is it really an A01?
             messagetype = a01_ish.getMSH().getMessageType().getTriggerEvent().getValue();
-            System.out.println("message type: " + messagetype);
+            //System.out.println("message type: " + messagetype);
         }
         if (messagetype.equals("A01")) {
             Encounter enc = addEncounter(new A01Wrap(a01_ish));
             System.out.println("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
-            processed = 1;
+            processed += 1;
         } else {
-            System.out.println("[" + idsMsg.getUnid() + "] Skipping " + messagetype + " (" + msgFromIds.getClass() + ")");
+            //System.out.println("[" + idsMsg.getUnid() + "] Skipping " + messagetype + " (" + msgFromIds.getClass() + ")");
         }
         setLatestProcessedId(idsMsg.getUnid());
 
@@ -142,17 +162,10 @@ public class DBTester {
         idsProgressRepository.save(onlyRow);
     }
 
-    public String getNextHL7IdsMsg(int lastProcessedId) {
-        IdsMaster next = getNextHL7IdsRecord(lastProcessedId);
-        if (next == null) {
-            return null;
-        } else {
-            System.out.println("Got message with unid " + next.getUnid());
-            return next.getHl7message();
-        }
-    }
-
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
+        // consider changing to "get next N messages" for more efficient database performance
+        // when doing large "catch-up" operations
+        // (handle the batching in the caller)
         idsSession = idsFactory.openSession();
         Query<IdsMaster> qnext = idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid",
                 IdsMaster.class);

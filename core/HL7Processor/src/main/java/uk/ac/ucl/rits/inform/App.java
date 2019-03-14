@@ -48,19 +48,11 @@ public class App {
             System.out.println("hello there1");
             int count = 0;
             while (true) {
-                try {
-                    int processed = dbt.processNextHl7(parser);
-                    if (processed == -1) {
-                        break;
-                    }
-                    count += processed;
-                } catch (HL7Exception hl7e) {
-                    System.out.println("HL7 parsing error");
-                    hl7e.printStackTrace();
-                }
-                if (count >= 100) {
+                int processed = dbt.processNextHl7(parser);
+                if (processed == -1) {
                     break;
                 }
+                count += processed;
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
