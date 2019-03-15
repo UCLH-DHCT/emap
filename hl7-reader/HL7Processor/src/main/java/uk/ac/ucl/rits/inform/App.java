@@ -33,6 +33,17 @@ public class App {
     }
 
     @Bean
+    @Profile("populate")
+    public CommandLineRunner populateIDS(DBTester dbt) {
+        return (args) -> {
+            String hl7fileSource = args[0];
+            System.out.println("populating the IDS from file " + hl7fileSource);
+            dbt.writeToIds("a random hl7 message #42");
+            dbt.close();
+        };
+    }
+
+    @Bean
     @Profile("default")
     public CommandLineRunner mainLoop(DBTester dbt) {
         return (args) -> {
