@@ -36,13 +36,38 @@ public class App {
     @Profile("populate")
     public CommandLineRunner populateIDS(DBTester dbt) {
         return (args) -> {
+            HapiContext context = InitializeHapiContext();
             String hl7fileSource = args[0];
-            System.out.println("populating the IDS from file " + hl7fileSource);
-            dbt.writeToIds("a random hl7 message #42");
+            File file = new File(hl7fileSource);
+            System.out.println("populating the IDS from file " + file.getAbsolutePath() + " exists = " + file.exists());
+            InputStream is = new BufferedInputStream(new FileInputStream(file));
+            Hl7InputStreamMessageIterator hl7iter = new Hl7InputStreamMessageIterator(is, context);
+            hl7iter.setIgnoreComments(true);
+            int count = 0;
+            while (hl7iter.hasNext()) {
+                count++;
+                Message msg = hl7iter.next();
+                String singleMessageText = msg.encode();
+                dbt.writeToIds(singleMessageText);
+            }
+            System.out.println("Wrote " + count + " messages to IDS");
             dbt.close();
+            context.close();
         };
     }
 
+    private HapiContext InitializeHapiContext() {
+        HapiContext context = new DefaultHapiContext();
+
+        ValidationContext vc = ValidationContextFactory.noValidation();
+        context.setValidationContext(vc);
+
+        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        context.setModelClassFactory(mcf);
+        return context;
+    }
+    
     @Bean
     @Profile("default")
     public CommandLineRunner mainLoop(DBTester dbt) {
@@ -50,14 +75,7 @@ public class App {
             System.out.println("hi");
 
             long startTimeMillis = System.currentTimeMillis();
-            HapiContext context = new DefaultHapiContext();
-
-            ValidationContext vc = ValidationContextFactory.noValidation();
-            context.setValidationContext(vc);
-
-            // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-            CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
-            context.setModelClassFactory(mcf);
+            HapiContext context = InitializeHapiContext();
             PipeParser parser = context.getPipeParser(); // getGenericParser();
             System.out.println("hello there1");
             int count = 0;
