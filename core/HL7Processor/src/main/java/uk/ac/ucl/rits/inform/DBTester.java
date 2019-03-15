@@ -10,6 +10,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +56,9 @@ public class DBTester {
     private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
 
     private String idsCfgXml;
+    private boolean idsEmptyOnInit;
 
     private SessionFactory idsFactory;
-    private Session idsSession;
 
     public DBTester(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
@@ -71,6 +72,8 @@ public class DBTester {
         }
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         System.out.println("DBTester() 2");
+        idsEmptyOnInit = getIdsIsEmpty();
+        System.out.println("DBTester() : idsEmptyOnInit = " + idsEmptyOnInit);
     }
 
     public void close() {
@@ -183,7 +186,7 @@ public class DBTester {
         // consider changing to "get next N messages" for more efficient database performance
         // when doing large "catch-up" operations
         // (handle the batching in the caller)
-        idsSession = idsFactory.openSession();
+        Session idsSession = idsFactory.openSession();
         Query<IdsMaster> qnext = idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid",
                 IdsMaster.class);
         qnext.setParameter("lastProcessedId", lastProcessedId);
@@ -337,6 +340,47 @@ public class DBTester {
             Person pnew = personRepo.save(new Person());
             System.out.println(pnew.toString());
             return pnew;
+        }
+    }
+
+    /**
+     * Is the IDS currently empty?
+     */
+    private boolean getIdsIsEmpty() {
+        Session idsSession = idsFactory.openSession();
+        // check is empty
+        Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
+        qexists.setMaxResults(1);
+        boolean idsIsEmpty = qexists.list().isEmpty();
+        idsSession.close();
+        return idsIsEmpty;
+    }
+
+    /**
+     * 
+     * @return Was the IDS empty when this object was initialised?
+     */
+    public boolean getIdsEmptyOnInit() {
+        return idsEmptyOnInit;
+    }
+
+    public void writeToIds(String hl7message) {
+        // To avoid the risk of accidentally attempting to write into the real
+        // IDS, check that the IDS was empty when we started. Emptiness strongly suggests
+        // that this is a test IDS.
+        if (!getIdsEmptyOnInit()) {
+            throw new RuntimeException("Cannot write into non-empty IDS, are you sure this is a test?");
+        }
+        Session idsSession = idsFactory.openSession();
+        try {
+            Transaction tx = idsSession.beginTransaction();
+            IdsMaster idsrecord = new IdsMaster();
+            idsrecord.setHl7message(hl7message);
+            idsSession.save(idsrecord);
+            tx.commit();
+        }
+        finally {
+            idsSession.close();
         }
     }
 
