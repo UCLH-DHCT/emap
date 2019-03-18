@@ -256,46 +256,40 @@ public class DBTester {
         enc.setEncounter(encounterDetails.getVisitNumber());
         enc.setValidFrom(encounterDetails.getEventTime());
         enc.setMrn(newOrExistingMrn);
+
+        PatientDemographicFact fact = new PatientDemographicFact();
+        Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
+        fact.setFactType(attr);
+        addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, encounterDetails.getGivenName());
+        addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, encounterDetails.getMiddleName());
+        addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
+        fact.setEncounter(enc);
         enc = encounterRepo.save(enc);
-        addAttrValue(enc, AttributeKeyMap.FIRST_NAME, encounterDetails.getGivenName());
-        addAttrValue(enc, AttributeKeyMap.MIDDLE_NAMES, encounterDetails.getMiddleName());
-        addAttrValue(enc, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
         return enc;
     }
     
-    /**
-     * This is a temporary way to add a single-property fact
-     * to an encounter. Will be superceded by Roma's version of the
-     * Inform-db JPA entities
-     * 
-     * @param enc
-     * @param attrKM
-     * @param factValue
-     */
-    private void addAttrValue(Encounter enc, AttributeKeyMap attrKM, String factValue) {
-        // doesn't consider that the fact may already exist
-        PatientDemographicFact fact = new PatientDemographicFact();
-        fact.setEncounter(enc);
+    private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
         Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
-        Attribute attr;
         if (attropt.isPresent()) {
-            attr = attropt.get();
+            return attropt.get();
         } else {
             // In future we will have a more orderly list of Attributes, but am
             // creating them on the fly for now
-            attr = new Attribute();
+            Attribute attr = new Attribute();
             attr.setShortName(attrKM.getShortname());
             attr.setDescription(attrKM.toString()); // just assume a description from the name for now
             attr = attributeRepository.save(attr);
+            return attr;
         }
-        
+    }
+
+    private void addPropertyToFact(PatientDemographicFact fact, AttributeKeyMap attrKM, String factValue) {
+        Attribute attr = getCreateAttribute(attrKM);
         PatientDemographicProperty prop = new PatientDemographicProperty();
         prop.setAttribute(attr);
         prop.setValueAsString(factValue);
-        
         fact.addProperty(prop);
         fact = patientDemographicFactRepository.save(fact);
-
     }
 
     public long countEncounters() {
