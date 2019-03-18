@@ -263,7 +263,7 @@ public class DBTester {
         addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, encounterDetails.getGivenName());
         addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, encounterDetails.getMiddleName());
         addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
-        fact.setEncounter(enc);
+        enc.addDemographic(fact);
         enc = encounterRepo.save(enc);
         return enc;
     }
@@ -289,7 +289,6 @@ public class DBTester {
         prop.setAttribute(attr);
         prop.setValueAsString(factValue);
         fact.addProperty(prop);
-        fact = patientDemographicFactRepository.save(fact);
     }
 
     public long countEncounters() {
@@ -311,7 +310,8 @@ public class DBTester {
             mrn.setMrn(mrnStr);
             Person pers = new Person();
             pers.setCreateDatetime(Instant.now());
-            personRepo.save(pers);
+            pers.addMrn(mrn);
+            pers = personRepo.save(pers);
             mrn.setPerson(pers);
         } else if (allMrns.size() > 1) {
             throw new NotImplementedException("Does this even make sense?");
@@ -323,19 +323,6 @@ public class DBTester {
         return mrn;
     }
 
-    private Person findOrAddPerson() {
-        Optional<Person> pers = personRepo.findById(42);
-        if (pers.isPresent()) {
-            Person pgot = pers.get();
-            System.out.println(pgot.toString());
-            return pgot;
-
-        } else {
-            Person pnew = personRepo.save(new Person());
-            System.out.println(pnew.toString());
-            return pnew;
-        }
-    }
 
     /**
      * Is the IDS currently empty?
