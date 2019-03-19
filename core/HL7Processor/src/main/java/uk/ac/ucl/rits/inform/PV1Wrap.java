@@ -1,28 +1,15 @@
 // PV1Wrap.java
 package uk.ac.ucl.rits.inform;
 
-import ca.uhn.hl7v2.HL7Exception;
-
-import ca.uhn.hl7v2.model.v27.datatype.CWE;
-import ca.uhn.hl7v2.model.v27.datatype.CX;
-import ca.uhn.hl7v2.model.v27.datatype.DTM;
-import ca.uhn.hl7v2.model.v27.datatype.HD;
-import ca.uhn.hl7v2.model.v27.datatype.ID;
-import ca.uhn.hl7v2.model.v27.datatype.IS;
-import ca.uhn.hl7v2.model.v27.datatype.MSG;
-import ca.uhn.hl7v2.model.v27.datatype.PL;
-import ca.uhn.hl7v2.model.v27.datatype.SAD;
-import ca.uhn.hl7v2.model.v27.datatype.XAD;
-import ca.uhn.hl7v2.model.v27.datatype.XCN;
-import ca.uhn.hl7v2.model.v27.datatype.XPN;
-import ca.uhn.hl7v2.model.v27.datatype.XTN;
-import ca.uhn.hl7v2.model.AbstractType;
-import ca.uhn.hl7v2.model.DataTypeException;
-import ca.uhn.hl7v2.model.v27.segment.PV1;
-
 import java.time.Instant;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.Vector;
+
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.v27.datatype.DTM;
+import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 /**
  * class PV1Wrap
@@ -196,9 +183,40 @@ public class PV1Wrap {
             // this is not a good way of doing test data
             return Instant.parse("2014-05-06T07:08:09Z");
         }
-        return _pv1.getAdmitDateTime().getValueAsDate().toInstant();
+        return interpretLocalTime(_pv1.getAdmitDateTime());
     }
 
+    /**
+     * HL7 messages may or may not specify a timezone. Our assumption is
+     * that we will interpret unspecified ones as "local" time, which means local time
+     * for the hospital, NOT local time for the computer this code is running on.
+     *
+     * @param hl7DTM the hl7 DTM object as it comes from the message
+     * @return an Instant representing this same point in time
+     * @throws DataTypeException
+     */
+    public Instant interpretLocalTime(DTM hl7DTM) throws DataTypeException {
+        Calendar valueAsCal = hl7DTM.getValueAsCalendar();
+        // BUG: If no timezone/offset is specified in the HL7 message,
+        // the Calendar object still comes out with a timezone of Europe/London,
+        // or presumably whatever the tz is on the computer this is running on.
+        // We need to be able to tell between no TZ specified and an explicit Europe/London.
+        // Is this somewhere in the HAPI config?
+        // Chances are no HL7 messages we ever see will specify it, though...
+        TimeZone before = valueAsCal.getTimeZone();
+        // The hospital will always be in London, however this code could
+        // theoretically run anywhere. In fact, CircleCI containers seem to be set on UTC.
+        // Therefore forcibly interpret as this timezone (this should be in config).
+        // There's the possibility that different equipment in the hospital will be in
+        // different timezones (or will be manually updated at different times), but we'll
+        // deal with that when we come to it.
+        valueAsCal.setTimeZone(TimeZone.getTimeZone("Europe/London"));
+        TimeZone after = valueAsCal.getTimeZone();
+        Instant result = valueAsCal.toInstant();
+        //System.out.println("before: " + hl7DTM + "|" + before + ", after: " + result + "|" + after);
+        return result;
+    }
+    
     /**
      * We could probably use the HAPI functions to obtain the different components of this result,
      * e.g. for easier conversion to Postgres timestamp format.
