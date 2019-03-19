@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Vector;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 import ca.uhn.hl7v2.parser.PipeParser;
@@ -263,17 +264,9 @@ public class TestPV1 extends TestCase {
     @Test 
     // PV1-44.1
     public void testGetAdmissionDateTime1() throws HL7Exception {
-
-        String result = "";
-        try {
-            result = wrapper.getAdmissionDateTime();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetAdmissionDateTime1()");
-            e.printStackTrace();
-        }
-        assertEquals("201209211840", result);
-
+        assertEquals(
+                Instant.parse("2012-09-21T17:40:00.00Z"),
+                wrapper.getAdmissionDateTime());
     }
 
     @Test 

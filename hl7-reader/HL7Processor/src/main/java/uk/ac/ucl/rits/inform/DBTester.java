@@ -37,6 +37,8 @@ import uk.ac.ucl.rits.inform.informdb.PatientDemographicFactRepository;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonRepository;
+import uk.ac.ucl.rits.inform.informdb.VisitFact;
+import uk.ac.ucl.rits.inform.informdb.VisitProperty;
 
 @Component
 public class DBTester {
@@ -264,6 +266,21 @@ public class DBTester {
         addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, encounterDetails.getMiddleName());
         addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
         enc.addDemographic(fact);
+
+        VisitFact visitFact = new VisitFact();
+        Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
+        visitFact.setVisitType(hosp);
+        VisitProperty visProp = new VisitProperty();
+        Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
+        visProp.setAttribute(arrivalTime);
+        try {
+            Instant admissionDateTime = encounterDetails.getPV1Wrap().getAdmissionDateTime();
+            visProp.setValueAsDatetime(admissionDateTime);
+        } catch (HL7Exception e) {
+        }
+        visitFact.addProperty(visProp);
+        enc.addVisit(visitFact);
+
         enc = encounterRepo.save(enc);
         return enc;
     }
@@ -284,11 +301,13 @@ public class DBTester {
     }
 
     private void addPropertyToFact(PatientDemographicFact fact, AttributeKeyMap attrKM, String factValue) {
-        Attribute attr = getCreateAttribute(attrKM);
-        PatientDemographicProperty prop = new PatientDemographicProperty();
-        prop.setAttribute(attr);
-        prop.setValueAsString(factValue);
-        fact.addProperty(prop);
+        if (factValue != null) {
+            Attribute attr = getCreateAttribute(attrKM);
+            PatientDemographicProperty prop = new PatientDemographicProperty();
+            prop.setAttribute(attr);
+            prop.setValueAsString(factValue);
+            fact.addProperty(prop);
+        }
     }
 
     public long countEncounters() {
