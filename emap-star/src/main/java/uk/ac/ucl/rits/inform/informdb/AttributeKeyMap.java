@@ -29,13 +29,21 @@ public enum AttributeKeyMap {
      */
     HOSPITAL_VISIT("HOSP_VISIT"),
     /**
+     * Bed visit grouper.
+     */
+    BED_VISIT("BED_VISIT"),
+    /**
      * Arrival time as a date time.
      */
     ARRIVAL_TIME("ARRIVAL_TIME"),
     /**
      * Discharge time as a date time.
      */
-    DICHARGE_TIME("DISCH_TIME");
+    DISCHARGE_TIME("DISCH_TIME"),
+    /**
+     * Location as a String.
+     */
+    LOCATION("LOCATION");
 
     private String shortname;
 
