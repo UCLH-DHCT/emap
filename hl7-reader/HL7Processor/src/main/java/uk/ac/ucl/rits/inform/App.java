@@ -34,7 +34,7 @@ public class App {
 
     @Bean
     @Profile("populate")
-    public CommandLineRunner populateIDS(DBTester dbt) {
+    public CommandLineRunner populateIDS(InformDbOperations dbt) {
         return (args) -> {
             HapiContext context = InitializeHapiContext();
             String hl7fileSource = args[0];
@@ -70,7 +70,7 @@ public class App {
     
     @Bean
     @Profile("default")
-    public CommandLineRunner mainLoop(DBTester dbt) {
+    public CommandLineRunner mainLoop(InformDbOperations dbt) {
         return (args) -> {
             System.out.println("hi");
 
@@ -109,7 +109,7 @@ public class App {
      */
     @Bean
     @Profile("test")
-    public CommandLineRunner mainLoopTest(DBTester dbt) {
+    public CommandLineRunner mainLoopTest(InformDbOperations dbt) {
         return (args) -> {
             System.out.println("hi, just testing, doing nothing");
         };
