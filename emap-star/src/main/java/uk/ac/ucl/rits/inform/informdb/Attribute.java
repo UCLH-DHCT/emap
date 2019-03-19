@@ -22,7 +22,7 @@ import org.springframework.lang.NonNull;
 public class Attribute {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long            attributeId;
 
     @Column(unique = true, nullable = false, length = 15)
