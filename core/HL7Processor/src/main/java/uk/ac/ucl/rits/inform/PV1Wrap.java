@@ -17,9 +17,11 @@ import ca.uhn.hl7v2.model.v27.datatype.XCN;
 import ca.uhn.hl7v2.model.v27.datatype.XPN;
 import ca.uhn.hl7v2.model.v27.datatype.XTN;
 import ca.uhn.hl7v2.model.AbstractType;
-
+import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Vector;
 
 /**
@@ -30,23 +32,27 @@ import java.util.Vector;
  * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
  * 
  */
-
- public class PV1Wrap {
+public class PV1Wrap {
 
     private PV1 _pv1;
 
     /**
-     * Constructor
-     * 
      * @param myPV1 PV1 segment, obtained by parsing the message to which this segment relates (msg.getPV1
      */
     public PV1Wrap(PV1 myPV1) {
+        if (myPV1 == null) {
+            throw new IllegalArgumentException();
+        }
         _pv1 = myPV1;
     }
 
+    /**
+     * If you wish test values to be generated
+     */
+    public PV1Wrap() {
+    }
 
     /**
-     * 
      * @return PV1-2 patient class
      * @throws HL7Exception
      */
@@ -54,9 +60,7 @@ import java.util.Vector;
         return _pv1.getPatientClass().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-3.1 Current Ward Code e.g. T06
      * @throws HL7Exception
      */
@@ -64,9 +68,7 @@ import java.util.Vector;
         return _pv1.getAssignedPatientLocation().getPl1_PointOfCare().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-3.2 Current Room Code e.g. T06A
      * @throws HL7Exception
      */
@@ -74,9 +76,7 @@ import java.util.Vector;
         return _pv1.getAssignedPatientLocation().getPl2_Room().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-3.3 Current Bed e.g. T06-32
      * @throws HL7Exception
      */
@@ -84,9 +84,7 @@ import java.util.Vector;
         return _pv1.getAssignedPatientLocation().getPl3_Bed().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-4.1 1st repeat (admit priority) e.g. I
      * @throws HL7Exception
      */
@@ -94,16 +92,13 @@ import java.util.Vector;
         return _pv1.getAdmissionType().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-4.1 2nd repeat (admit type) e.g. A
      * @throws HL7Exception
      */
     public String getAdmitType() throws HL7Exception {
         return _pv1.getAdmissionType().getComponent(1).toString();
     }
-
 
     /**
      * Get the attending doctor(s) PV1-7.1 to PV1-7.7
@@ -129,7 +124,6 @@ import java.util.Vector;
 
         return v;
     }
-
 
     /**
      * Get Referring Doctor(s) PV1-8.1 to PV1-8.6
@@ -159,7 +153,6 @@ import java.util.Vector;
     }
 
     /**
-     * 
      * @return PV1-10	Hospital Service	Specialty eg. 31015
      * @throws HL7Exception
      */
@@ -168,7 +161,6 @@ import java.util.Vector;
     }
 
     /**
-     * 
      * @return PV1-14	Admission Source. NB Carecast says ZLC8.1	Source of admission
      * @throws HL7Exception
      */
@@ -176,9 +168,7 @@ import java.util.Vector;
         return _pv1.getAdmitSource().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-18 Patient Type
      * @throws HL7Exception
      */
@@ -186,16 +176,13 @@ import java.util.Vector;
         return _pv1.getPatientType().getComponent(0).toString();
     }
 
-
     /**
-     * 
      * @return PV1-19 Visit number
      * @throws HL7Exception
      */
     public String getVisitNumber() throws HL7Exception {
         return _pv1.getVisitNumber().getComponent(0).toString();
     }
-
 
     /**
      * We could probably use the HAPI functions to obtain the different components of this result,
@@ -204,10 +191,13 @@ import java.util.Vector;
      * @return PV1-44.1 admission datetime 
      * @throws HL7Exception
      */
-    public String getAdmissionDateTime() throws HL7Exception {
-        return _pv1.getAdmitDateTime().toString();
+    public Instant getAdmissionDateTime() throws HL7Exception {
+        if (_pv1 == null) {
+            // this is not a good way of doing test data
+            return Instant.parse("2014-05-06T07:08:09Z");
+        }
+        return _pv1.getAdmitDateTime().getValueAsDate().toInstant();
     }
-
 
     /**
      * We could probably use the HAPI functions to obtain the different components of this result,
@@ -220,6 +210,4 @@ import java.util.Vector;
         return _pv1.getDischargeDateTime().toString();
     }
 
- }
- 
- 
+}

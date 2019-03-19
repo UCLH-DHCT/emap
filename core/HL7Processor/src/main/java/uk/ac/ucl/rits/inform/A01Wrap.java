@@ -85,6 +85,8 @@ public class A01Wrap {
         middleName = randomString();
         administrativeSex = randomString();
         eventTime = Instant.now();
+
+        pv1wrap = new PV1Wrap();
     }
 
     /**
@@ -104,8 +106,6 @@ public class A01Wrap {
          * the Trigger Event field to see what message type we are dealing with.
          * 
          */
-
-
 
         // 1. MSH (Message Header) - mostly don't appear to be useful
         MSH msh = adt_01.getMSH();
@@ -141,32 +141,13 @@ public class A01Wrap {
         //// Minimal info needed //////
         System.out.println("patient name = " + pidwrap.getPatientFullName());
         System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
-        //System.out.println("admission time = " + pv1wrap.getAdmissionDateTime()); // NB this is in HL7 format not Postgres format
-        System.out.println("admission time = " + HL7Processor.convert_timestamp(pv1wrap.getAdmissionDateTime()));
+        System.out.println("admission time = " + pv1wrap.getAdmissionDateTime());
 
 
         ///////////////////////////////////////////////////////////////////////////////////////
         // Populate the class fields. They may be null if the information is not held in the message.
         administrativeSex = pidwrap.getPatientSex();
-
-        // Get eventTime. Jeremy, I first try the admit date/time, then the recorded date/time (might be null),
-        // then the message timestamp (which should not be null). You might want to change the ordering
-        // so we try to get admit date/time first.
-        // First get the time in YYYYMMDDHHMM format.
-        eventTime = null;
-        String hl7timestring = pv1wrap.getAdmissionDateTime();
-        if (hl7timestring == null) {
-            hl7timestring = evnwrap.getRecordedDateTime();
-        }
-        if (hl7timestring == null) {
-            hl7timestring = mshwrap.getMessageTimestamp();
-        }
-        if (hl7timestring != null) {
-            // Convert YYYYMMDDHHMM format to Postgres format e.g. 2018-10-03 14:18:07.0000
-            String postgres = HL7Processor.convert_timestamp(hl7timestring); // We might replace this method
-            eventTime = Timestamp.valueOf(postgres).toInstant();
-        }
-
+        eventTime = pv1wrap.getAdmissionDateTime();
         familyName = pidwrap.getPatientFamilyName();
         givenName = pidwrap.getPatientGivenName();
         middleName = pidwrap.getPatientMiddleName();
@@ -179,13 +160,16 @@ public class A01Wrap {
         CX visitNumber2 = pv1.getVisitNumber();
         ST idNumber = visitNumber2.getIDNumber();
         idNumber.getValue();
-
     }
 
     public String getAdministrativeSex() {
         return administrativeSex;
     }
 
+    /**
+     * Currently mapped to the admission time - is this what was intended?
+     * @return "event" time
+     */
     public Instant getEventTime() {
         return eventTime;
     }
