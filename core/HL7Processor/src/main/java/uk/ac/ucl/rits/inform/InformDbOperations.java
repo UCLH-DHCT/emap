@@ -41,7 +41,7 @@ import uk.ac.ucl.rits.inform.informdb.VisitFact;
 import uk.ac.ucl.rits.inform.informdb.VisitProperty;
 
 @Component
-public class DBTester {
+public class InformDbOperations {
     @Autowired
     private AttributeRepository attributeRepository;
     @Autowired
@@ -55,14 +55,14 @@ public class DBTester {
     @Autowired
     private IdsProgressRepository idsProgressRepository;
 
-    private final static Logger logger = LoggerFactory.getLogger(DBTester.class);
+    private final static Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     private String idsCfgXml;
     private boolean idsEmptyOnInit;
 
     private SessionFactory idsFactory;
 
-    public DBTester(
+    public InformDbOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
             @Autowired Environment environment
         ) {

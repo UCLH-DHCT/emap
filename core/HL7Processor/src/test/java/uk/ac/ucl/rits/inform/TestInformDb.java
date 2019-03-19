@@ -43,7 +43,7 @@ public class TestInformDb {
     }
 
     @Autowired
-    private DBTester dbt;
+    private InformDbOperations dbt;
 
     /**
      * @throws java.lang.Exception
