@@ -33,14 +33,14 @@ public class Encounter extends TemporalCore {
     private int                          encounterId;
 
     @ManyToOne
-    @JoinColumn()
+    @JoinColumn(name = "mrn")
     private Mrn                          mrn;
 
     private String                       encounter;
     private String                       sourceSystem;
 
     @ManyToOne
-    @JoinColumn()
+    @JoinColumn(name = "parent_encounter")
     private Encounter                    parentEncounter;
 
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)

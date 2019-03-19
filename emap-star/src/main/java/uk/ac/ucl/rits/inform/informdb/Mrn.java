@@ -37,7 +37,7 @@ public class Mrn extends TemporalCore {
     private int             mrnId;
 
     @ManyToOne
-    @JoinColumn()
+    @JoinColumn(name = "person")
     private Person          person;
 
     @OneToMany(mappedBy = "mrn", cascade = CascadeType.ALL)

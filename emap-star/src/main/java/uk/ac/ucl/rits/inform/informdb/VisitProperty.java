@@ -23,11 +23,11 @@ public class VisitProperty extends TemporalCore {
     private int       propertyId;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "visit")
     private VisitFact visit;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "attribute")
     private Attribute attribute;
 
     private String    valueAsString;
@@ -37,7 +37,7 @@ public class VisitProperty extends TemporalCore {
     private Instant   valueAsDatetime;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "value_as_attribute")
     private Attribute valueAsAttribute;
 
     private Long      valueAsLink;
