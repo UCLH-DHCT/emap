@@ -54,7 +54,5 @@ jobs:
       - run:
           command: |
              cd HL7Processor
-             mvn -Dspring.profiles.active=test integration-test
-
-
-
+             TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test
+             TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test
