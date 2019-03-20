@@ -192,11 +192,14 @@ public class PV1Wrap {
      * for the hospital, NOT local time for the computer this code is running on.
      *
      * @param hl7DTM the hl7 DTM object as it comes from the message
-     * @return an Instant representing this same point in time
+     * @return an Instant representing this same point in time, or null if no time is specified in the DTM
      * @throws DataTypeException
      */
     public Instant interpretLocalTime(DTM hl7DTM) throws DataTypeException {
         Calendar valueAsCal = hl7DTM.getValueAsCalendar();
+        if (valueAsCal == null) {
+            return null;
+        }
         // BUG: If no timezone/offset is specified in the HL7 message,
         // the Calendar object still comes out with a timezone of Europe/London,
         // or presumably whatever the tz is on the computer this is running on.
