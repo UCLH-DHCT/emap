@@ -189,6 +189,7 @@ public class InformDbOperations {
         // when doing large "catch-up" operations
         // (handle the batching in the caller)
         Session idsSession = idsFactory.openSession();
+        idsSession.setDefaultReadOnly(true);
         Query<IdsMaster> qnext = idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid",
                 IdsMaster.class);
         qnext.setParameter("lastProcessedId", lastProcessedId);
@@ -348,6 +349,7 @@ public class InformDbOperations {
      */
     private boolean getIdsIsEmpty() {
         Session idsSession = idsFactory.openSession();
+        idsSession.setDefaultReadOnly(true);
         // check is empty
         Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
         qexists.setMaxResults(1);
@@ -364,7 +366,7 @@ public class InformDbOperations {
         return idsEmptyOnInit;
     }
 
-    public void writeToIds(String hl7message) {
+    public void writeToIds(String hl7message, int id) {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly suggests
         // that this is a test IDS.
@@ -375,6 +377,11 @@ public class InformDbOperations {
         try {
             Transaction tx = idsSession.beginTransaction();
             IdsMaster idsrecord = new IdsMaster();
+            // We can't use a sequence to assign ID because it won't exist on the
+            // real IDS, so that will cause Hibernate validation to fail.
+            // However, since we're starting with an empty IDS and populating it
+            // in a single shot, just set the id manually in the client.
+            idsrecord.setUnid(id);
             idsrecord.setHl7message(hl7message);
             idsSession.save(idsrecord);
             tx.commit();

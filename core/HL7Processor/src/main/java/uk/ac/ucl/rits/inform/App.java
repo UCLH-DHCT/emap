@@ -48,7 +48,7 @@ public class App {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                dbt.writeToIds(singleMessageText);
+                dbt.writeToIds(singleMessageText, count);
             }
             System.out.println("Wrote " + count + " messages to IDS");
             dbt.close();

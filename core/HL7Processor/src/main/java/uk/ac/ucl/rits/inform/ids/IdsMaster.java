@@ -13,7 +13,6 @@ import javax.persistence.Table;
 @Table(name = "tbl_ids_master")
 public class IdsMaster {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private int unid;
     private String patientname;
     private String patientmiddlename;
@@ -113,6 +112,10 @@ public class IdsMaster {
 
     public void setHl7message(String hl7message) {
         this.hl7message = hl7message;
+    }
+
+    public void setUnid(int unid) {
+        this.unid = unid;
     }
 
 }
