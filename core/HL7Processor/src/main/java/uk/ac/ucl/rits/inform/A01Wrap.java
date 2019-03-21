@@ -1,26 +1,16 @@
 package uk.ac.ucl.rits.inform;
 
-import java.io.IOException;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Random;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v27.datatype.CX;
 import ca.uhn.hl7v2.model.v27.datatype.ST;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 public class A01Wrap {
     private Random random;
