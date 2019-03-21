@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.informdb;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

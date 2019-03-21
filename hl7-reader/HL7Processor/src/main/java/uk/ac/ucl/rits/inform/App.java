@@ -24,7 +24,6 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
 
 @SpringBootApplication
 public class App {
