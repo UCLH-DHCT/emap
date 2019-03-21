@@ -1,17 +1,12 @@
 package uk.ac.ucl.rits.inform;
 
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.NotYetImplementedException;
+import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -289,7 +284,7 @@ public class InformDbOperations {
             pers = personRepo.save(pers);
             mrn.setPerson(pers);
         } else if (allMrns.size() > 1) {
-            throw new NotImplementedException("Does this even make sense?");
+            throw new NotYetImplementedException("Does this even make sense?");
         } else {
             mrn = allMrns.get(0);
         }

@@ -65,11 +65,6 @@
       <version>2.3</version>
     </dependency>
 
-
-    <!-- hapi-examples-2.3.jar -->
-    <!-- slf4j-api-1.7.10.jar -->
-
-
     <!-- Structure JAR for HL7. -->
     <!-- HL7 v2.7 -->
     <dependency>
@@ -78,13 +73,11 @@
       <version>2.3</version>
     </dependency>
 
-    <!-- HL7 over HTTP. Probably not needed. -->
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
     <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-hl7overhttp</artifactId>
-      <version>2.2</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
-
 
     <!-- JSON for Java -->
     <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
