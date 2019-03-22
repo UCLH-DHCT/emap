@@ -4,7 +4,7 @@ WORKDIR /app
 # download as much as possible early on,
 # only redoing if the pom changes
 COPY set_mvn_proxy.sh /app/
-RUN git clone --branch develop https://github.com/inform-health-informatics/Inform-DB.git
+RUN git clone --branch etl_fixes https://github.com/inform-health-informatics/Inform-DB.git
 WORKDIR /app/Inform-DB
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true
 WORKDIR /app
