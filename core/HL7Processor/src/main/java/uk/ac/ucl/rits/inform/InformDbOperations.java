@@ -220,17 +220,27 @@ public class InformDbOperations {
         VisitFact visitFact = new VisitFact();
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setVisitType(hosp);
-        VisitProperty visProp = new VisitProperty();
-        Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
-        visProp.setAttribute(arrivalTime);
         try {
+            Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
             Instant admissionDateTime = encounterDetails.getPV1Wrap().getAdmissionDateTime();
+            VisitProperty visProp = new VisitProperty();
             visProp.setValueAsDatetime(admissionDateTime);
+            visProp.setAttribute(arrivalTime);
+            visitFact.addProperty(visProp);
         } catch (HL7Exception e) {
         }
-        visitFact.addProperty(visProp);
-        enc.addVisit(visitFact);
+        try {
+            Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
+            String bed = encounterDetails.getPV1Wrap().getCurrentBed();
+            VisitProperty visProp = new VisitProperty();
+            visProp.setAttribute(location);
+            visProp.setValueAsString(bed);
+            visitFact.addProperty(visProp);
+        }
+        catch (HL7Exception e) {
+        }
 
+        enc.addVisit(visitFact);
         enc = encounterRepo.save(enc);
         return enc;
     }

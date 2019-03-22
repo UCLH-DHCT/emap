@@ -68,6 +68,10 @@ public class PV1Wrap {
      * @throws HL7Exception
      */
     public String getCurrentBed() throws HL7Exception {
+        if (_pv1 == null) {
+            // Need to come up with a better way of generating test data
+            return "Test bed location";
+        }
         return _pv1.getAssignedPatientLocation().getPl3_Bed().getComponent(0).toString();
     }
 
