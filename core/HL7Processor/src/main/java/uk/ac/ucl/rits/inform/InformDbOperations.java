@@ -105,20 +105,14 @@ public class InformDbOperations {
             setLatestProcessedId(idsMsg.getUnid());
             return processed;
         }
-        String messagetype = "";
-        ADT_A01 a01_ish = null;
-        if (msgFromIds instanceof ADT_A01) {
-            a01_ish = (ADT_A01) msgFromIds;
-            // ok, but is it really an A01?
-            messagetype = a01_ish.getMSH().getMessageType().getTriggerEvent().getValue();
-            logger.debug("message type: " + messagetype);
-        }
-        if (messagetype.equals("A01")) {
-            Encounter enc = addEncounter(new A01Wrap(a01_ish));
+
+        A01Wrap adtWrap = new A01Wrap(msgFromIds);
+        if (adtWrap.getTriggerEvent().equals("A01")) {
+            Encounter enc = addEncounter(adtWrap);
             logger.info("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
             processed += 1;
         } else {
-            logger.debug("[" + idsMsg.getUnid() + "] Skipping " + messagetype + " (" + msgFromIds.getClass() + ")");
+            logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " (" + msgFromIds.getClass() + ")");
         }
         setLatestProcessedId(idsMsg.getUnid());
 
