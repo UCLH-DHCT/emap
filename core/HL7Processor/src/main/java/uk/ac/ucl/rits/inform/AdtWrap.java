@@ -16,8 +16,8 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
-public class A01Wrap {
-    private final static Logger logger = LoggerFactory.getLogger(A01Wrap.class);
+public class AdtWrap {
+    private final static Logger logger = LoggerFactory.getLogger(AdtWrap.class);
     private Random random;
 
     private String administrativeSex; // PID-8
@@ -68,7 +68,7 @@ public class A01Wrap {
     /**
      * Populate the data by generating it randomly.
      */
-    public A01Wrap() {
+    public AdtWrap() {
         random = new Random();
 
         mrn = randomString();
@@ -91,7 +91,7 @@ public class A01Wrap {
      * @param fromMsg the passed in HL7 message
      * @throws HL7Exception
      */
-    public A01Wrap(Message adtMsg) throws HL7Exception {
+    public AdtWrap(Message adtMsg) throws HL7Exception {
 
         /**
          * NOTE: MSH-9.2 Trigger Event is an important field. 
