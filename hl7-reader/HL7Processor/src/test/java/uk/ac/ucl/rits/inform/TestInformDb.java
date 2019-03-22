@@ -68,7 +68,7 @@ public class TestInformDb {
         long beforeEncounters = dbt.countEncounters();
         long numEncounters = 100;
         for (int i = 0; i < numEncounters; i++) {
-            Encounter enc = dbt.addEncounter(new A01Wrap());
+            Encounter enc = dbt.addEncounter(new AdtWrap());
             //System.out.println("test: " + enc.toString());
         }
         long afterEncounters = dbt.countEncounters();

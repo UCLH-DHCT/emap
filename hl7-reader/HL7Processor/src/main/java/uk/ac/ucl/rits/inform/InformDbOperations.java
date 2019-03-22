@@ -107,7 +107,7 @@ public class InformDbOperations {
         }
 
         try {
-            A01Wrap adtWrap = new A01Wrap(msgFromIds);
+            AdtWrap adtWrap = new AdtWrap(msgFromIds);
             if (adtWrap.getTriggerEvent().equals("A01")) {
                 Encounter enc = addEncounter(adtWrap);
                 logger.info("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
@@ -199,7 +199,7 @@ public class InformDbOperations {
      * @param encounterDetails
      */
     @Transactional
-    public Encounter addEncounter(A01Wrap encounterDetails) {
+    public Encounter addEncounter(AdtWrap encounterDetails) {
         String mrnStr = encounterDetails.getMrn();
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr);
         // Encounter is always a new one for an A01
