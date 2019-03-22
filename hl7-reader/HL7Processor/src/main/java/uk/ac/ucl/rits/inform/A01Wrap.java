@@ -4,15 +4,20 @@ import java.time.Instant;
 import java.util.Random;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v27.datatype.CX;
-import ca.uhn.hl7v2.model.v27.datatype.ST;
+import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
+import ca.uhn.hl7v2.model.v27.segment.EVN;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
+import ca.uhn.hl7v2.model.v27.segment.PD1;
+import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 public class A01Wrap {
+    private final static Logger logger = LoggerFactory.getLogger(A01Wrap.class);
     private Random random;
 
     private String administrativeSex; // PID-8
@@ -29,6 +34,7 @@ public class A01Wrap {
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
     private EVNWrap evnwrap;
+    private String triggerEvent;
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
@@ -85,7 +91,7 @@ public class A01Wrap {
      * @param fromMsg the passed in HL7 message
      * @throws HL7Exception
      */
-    public A01Wrap(ADT_A01 adt_01) throws HL7Exception {
+    public A01Wrap(Message adtMsg) throws HL7Exception {
 
         /**
          * NOTE: MSH-9.2 Trigger Event is an important field. 
@@ -98,12 +104,11 @@ public class A01Wrap {
          */
 
         // 1. MSH (Message Header) - mostly don't appear to be useful
-        MSH msh = adt_01.getMSH();
-        mshwrap = new MSHWrap(msh);
-        pv1wrap = new PV1Wrap(adt_01.getPV1());
-        pidwrap = new PIDWrap(adt_01.getPID());
-        pd1wrap = new PD1Wrap(adt_01.getPD1());
-        evnwrap = new EVNWrap(adt_01.getEVN());
+        mshwrap = new MSHWrap((MSH) adtMsg.get("MSH"));
+        pv1wrap = new PV1Wrap((PV1) adtMsg.get("PV1"));
+        pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
+        pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
+        evnwrap = new EVNWrap((EVN) adtMsg.get("EVN"));
 
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
@@ -133,9 +138,9 @@ public class A01Wrap {
         System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
         System.out.println("admission time = " + pv1wrap.getAdmissionDateTime());
 
-
         ///////////////////////////////////////////////////////////////////////////////////////
         // Populate the class fields. They may be null if the information is not held in the message.
+        triggerEvent = mshwrap.getTriggerEvent();
         administrativeSex = pidwrap.getPatientSex();
         eventTime = pv1wrap.getAdmissionDateTime();
         familyName = pidwrap.getPatientFamilyName();
@@ -146,10 +151,6 @@ public class A01Wrap {
         visitNumber = pv1wrap.getVisitNumber(); // PV1-19
         ///////////////////////////////////////////////////////////////////////////////////////
 
-        PV1 pv1 = adt_01.getPV1();
-        CX visitNumber2 = pv1.getVisitNumber();
-        ST idNumber = visitNumber2.getIDNumber();
-        idNumber.getValue();
     }
 
     public String getAdministrativeSex() {
@@ -217,4 +218,7 @@ public class A01Wrap {
         this.administrativeSex = administrativeSex;
     }
 
+    public String getTriggerEvent() {
+        return triggerEvent;
+    }
 }
