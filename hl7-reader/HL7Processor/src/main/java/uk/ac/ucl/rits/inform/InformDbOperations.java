@@ -106,13 +106,20 @@ public class InformDbOperations {
             return processed;
         }
 
-        A01Wrap adtWrap = new A01Wrap(msgFromIds);
-        if (adtWrap.getTriggerEvent().equals("A01")) {
-            Encounter enc = addEncounter(adtWrap);
-            logger.info("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
-            processed += 1;
-        } else {
-            logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " (" + msgFromIds.getClass() + ")");
+        try {
+            A01Wrap adtWrap = new A01Wrap(msgFromIds);
+            if (adtWrap.getTriggerEvent().equals("A01")) {
+                Encounter enc = addEncounter(adtWrap);
+                logger.info("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
+                processed += 1;
+            } else {
+                logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
+                        + msgFromIds.getClass() + ")");
+            }
+        }
+        catch (HL7Exception e) {
+            logger.warn("[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
+                    + ")");
         }
         setLatestProcessedId(idsMsg.getUnid());
 
