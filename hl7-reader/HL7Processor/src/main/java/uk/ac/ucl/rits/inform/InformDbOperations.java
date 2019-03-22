@@ -63,9 +63,7 @@ public class InformDbOperations {
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
             @Autowired Environment environment
         ) {
-        System.out.println("InformDbOperations 1");
         idsOperations = new IdsOperations(idsCfgXml, environment);
-        System.out.println("InformDbOperations 2");
     }
 
     public void close() {
@@ -103,7 +101,7 @@ public class InformDbOperations {
             // Will need a more sophisticated way of logging these errors. Do
             // it in the destination database?
             parsingErrors.add(errString);
-            System.out.println(errString);
+            logger.info(errString);
             setLatestProcessedId(idsMsg.getUnid());
             return processed;
         }
@@ -113,14 +111,14 @@ public class InformDbOperations {
             a01_ish = (ADT_A01) msgFromIds;
             // ok, but is it really an A01?
             messagetype = a01_ish.getMSH().getMessageType().getTriggerEvent().getValue();
-            //System.out.println("message type: " + messagetype);
+            logger.debug("message type: " + messagetype);
         }
         if (messagetype.equals("A01")) {
             Encounter enc = addEncounter(new A01Wrap(a01_ish));
-            System.out.println("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
+            logger.info("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
             processed += 1;
         } else {
-            //System.out.println("[" + idsMsg.getUnid() + "] Skipping " + messagetype + " (" + msgFromIds.getClass() + ")");
+            logger.debug("[" + idsMsg.getUnid() + "] Skipping " + messagetype + " (" + msgFromIds.getClass() + ")");
         }
         setLatestProcessedId(idsMsg.getUnid());
 
@@ -151,7 +149,7 @@ public class InformDbOperations {
         while (true) {
             idsMsg = getNextHL7IdsRecord(lastProcessedId);
             if (idsMsg == null) {
-                System.out.println("No more messages, retrying in " + secondsSleep + " seconds");
+                logger.info("No more messages, retrying in " + secondsSleep + " seconds");
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 }
