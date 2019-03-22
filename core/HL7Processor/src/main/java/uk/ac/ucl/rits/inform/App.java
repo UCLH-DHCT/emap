@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,6 +29,8 @@ import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 @SpringBootApplication
 public class App {
+    private final static Logger logger = LoggerFactory.getLogger(App.class);
+
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
@@ -38,7 +42,7 @@ public class App {
             HapiContext context = InitializeHapiContext();
             String hl7fileSource = args[0];
             File file = new File(hl7fileSource);
-            System.out.println("populating the IDS from file " + file.getAbsolutePath() + " exists = " + file.exists());
+            logger.info("populating the IDS from file " + file.getAbsolutePath() + " exists = " + file.exists());
             InputStream is = new BufferedInputStream(new FileInputStream(file));
             Hl7InputStreamMessageIterator hl7iter = new Hl7InputStreamMessageIterator(is, context);
             hl7iter.setIgnoreComments(true);
@@ -49,7 +53,7 @@ public class App {
                 String singleMessageText = msg.encode();
                 dbt.writeToIds(singleMessageText, count);
             }
-            System.out.println("Wrote " + count + " messages to IDS");
+            logger.info("Wrote " + count + " messages to IDS");
             dbt.close();
             context.close();
         };
@@ -71,12 +75,11 @@ public class App {
     @Profile("default")
     public CommandLineRunner mainLoop(InformDbOperations dbt) {
         return (args) -> {
-            System.out.println("hi");
-
+            logger.info("Initialising HAPI...");
             long startTimeMillis = System.currentTimeMillis();
             HapiContext context = InitializeHapiContext();
             PipeParser parser = context.getPipeParser(); // getGenericParser();
-            System.out.println("hello there1");
+            logger.info("Done initialising HAPI");
             int count = 0;
             List<String> parsingErrors = new ArrayList<String>();
             while (true) {
@@ -91,16 +94,14 @@ public class App {
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
-            System.out.println(String.format("done, %.0f secs", (endCurrentTimeMillis - startTimeMillis) / 1000.0));
+            logger.info(String.format("processed %d messages in %.0f secs", count, (endCurrentTimeMillis - startTimeMillis) / 1000.0));
             context.close();
             dbt.close();
-
-            System.out.println("BYE");
         };
     }
 
     private void printErrorSummary(List<String> errors) {
-        System.out.println("There are " + errors.size() + " parsing errors");
+        logger.info("There are " + errors.size() + " parsing errors");
     }
 
     /**
@@ -110,7 +111,7 @@ public class App {
     @Profile("test")
     public CommandLineRunner mainLoopTest(InformDbOperations dbt) {
         return (args) -> {
-            System.out.println("hi, just testing, doing nothing");
+            logger.info("Running test CommandLineRunner, which does nothing");
         };
     }
 
