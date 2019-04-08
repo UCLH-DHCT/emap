@@ -1,5 +1,5 @@
 // Doctor.java
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.hl7;
 
 /**
  * Doctor.java

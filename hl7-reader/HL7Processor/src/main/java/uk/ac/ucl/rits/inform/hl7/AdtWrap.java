@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
 import java.util.Random;

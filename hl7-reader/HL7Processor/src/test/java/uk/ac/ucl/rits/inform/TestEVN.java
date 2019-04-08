@@ -20,6 +20,7 @@ import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.hl7.EVNWrap;
 
 // NB despite the @Test annotation each test method name must begin with "test"
 

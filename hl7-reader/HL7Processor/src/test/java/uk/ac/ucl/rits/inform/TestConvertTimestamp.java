@@ -11,6 +11,7 @@ package uk.ac.ucl.rits.inform;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.hl7.HL7Processor;
 
 // NB despite the @Test annotation each test method name must begin with "test"
 

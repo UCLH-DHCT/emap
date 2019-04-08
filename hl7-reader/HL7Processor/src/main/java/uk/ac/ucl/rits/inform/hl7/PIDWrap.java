@@ -1,5 +1,5 @@
 // PIDWrap.java
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.hl7;
 
 import ca.uhn.hl7v2.HL7Exception;
 
