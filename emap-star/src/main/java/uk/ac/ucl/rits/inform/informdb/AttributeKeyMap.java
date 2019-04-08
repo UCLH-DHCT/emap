@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This maps programming used attributes names to Attribute shortnames.
  *
@@ -43,7 +46,11 @@ public enum AttributeKeyMap {
     /**
      * Location as a String.
      */
-    LOCATION("LOCATION");
+    LOCATION("LOCATION"),
+    /**
+     * Parent visit.
+     */
+    PARENT_VISIT("VISIT_PAREN");
 
     private String shortname;
 
