@@ -1,9 +1,11 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,16 +28,19 @@ import javax.persistence.Table;
 @Entity
 @Table(indexes = { @Index(name = "validUntilIndex", columnList = "validUntil", unique = false),
         @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
-public class Encounter extends TemporalCore {
+public class Encounter extends TemporalCore implements Serializable {
+
+    private static final long            serialVersionUID = -915410794459512129L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int                          encounterId;
 
     @ManyToOne
-    @JoinColumn(name = "mrn")
+    @JoinColumn(name = "mrn", referencedColumnName = "mrn")
     private Mrn                          mrn;
 
+    @Column(unique = false, nullable = false)
     private String                       encounter;
     private String                       sourceSystem;
 
