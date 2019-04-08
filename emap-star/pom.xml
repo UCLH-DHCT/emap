@@ -12,20 +12,16 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.source>1.8</maven.compiler.source>
-		<spring.data.jpa.version>2.1.5.RELEASE</spring.data.jpa.version>
-		<hibernate.version>1.0.2.Final</hibernate.version>
+		<hibernate.core.version>5.4.2.Final</hibernate.core.version>
+		<checkstyle.version>8.19</checkstyle.version>
+		<checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-jpa</artifactId>
-			<version>${spring.data.jpa.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate.javax.persistence</groupId>
-			<artifactId>hibernate-jpa-2.1-api</artifactId>
-			<version>${hibernate.version}</version>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${hibernate.core.version}</version>
 		</dependency>
 	</dependencies>
 

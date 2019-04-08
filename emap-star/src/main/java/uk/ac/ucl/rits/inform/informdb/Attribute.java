@@ -9,7 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import org.springframework.lang.NonNull;
+import com.sun.istack.NotNull;
 
 /**
  * An attribute represents a vocabulary item. This may be a question, or answer
@@ -27,11 +27,11 @@ public class Attribute {
 
     @Column(unique = true, nullable = false, length = 15)
     private String          shortName;
-    @NonNull
+    @NotNull
     private String          description;
-    @NonNull
+    @NotNull
     private ResultType      resultType;
-    @NonNull
+    @NotNull
     private Instant         addedTime;
 
     @Transient
