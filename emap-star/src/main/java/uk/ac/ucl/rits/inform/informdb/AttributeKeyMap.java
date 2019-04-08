@@ -72,4 +72,22 @@ public enum AttributeKeyMap {
     public String getShortname() {
         return this.shortname;
     }
+
+    private static Map<String, AttributeKeyMap> values;
+
+    /**
+     * Read the Attributes back from a String matching its shortname.
+     *
+     * @param text String to read from
+     * @return Matching AttributeKeyMap
+     */
+    public static AttributeKeyMap parseFromShortName(String text) {
+        if (values == null) {
+            values = new HashMap<>();
+            for (AttributeKeyMap a: AttributeKeyMap.values()) {
+                values.put(a.shortname.toUpperCase(), a);
+            }
+        }
+        return values.get(text.toUpperCase());
+    }
 }
