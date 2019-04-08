@@ -20,6 +20,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import ca.uhn.hl7v2.parser.PipeParser;
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;

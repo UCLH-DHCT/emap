@@ -14,6 +14,8 @@ import org.json.simple.JSONObject;
 
 import org.junit.Test;
 
+import uk.ac.ucl.rits.inform.hl7.HL7Processor;
+
 //import static org.mockito.Mockito.*;
 
 // NB despite the @Test annotation each test method name must begin with "test"

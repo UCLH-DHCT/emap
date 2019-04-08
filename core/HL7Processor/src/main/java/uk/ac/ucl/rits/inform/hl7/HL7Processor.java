@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.hl7;
 
 import java.sql.*; // Uses postgresql-42.2.5.jar driver
 import java.util.HashMap;

@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 
 /**
