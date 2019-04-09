@@ -110,34 +110,6 @@ public class AdtWrap {
         pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
         evnwrap = new EVNWrap((EVN) adtMsg.get("EVN"));
 
-        System.out.println("\n************** MSH segment **************************");
-        // MSH-1 Field Separator
-        // MSH-2 Encoding Characters
-        System.out.println("sending application = " + mshwrap.getSendingApplication());
-        //+ msh.getSendingApplication().getComponent(0).toString());// MSH-3
-                                                                                                              // Sending
-                                                                                                              // Application
-                                                                                                              // (“CARECAST”)
-        System.out.println("sending facility = " + mshwrap.getSendingFacility()); //.getComponent(0).toString()); // MSH-4
-                                                                                                         // Sending
-                                                                                                         // Facility
-                                                                                                         // (“UCLH”)
-        // MSH-5 Receiving Application (“Receiving system”)
-        System.out.println("messageTimestamp = " + mshwrap.getMessageTimestamp());//msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of
-                                                                                           // Message
-                                                                                           // YYYYMMDDHHMM
-        System.out.println("message type = " + mshwrap.getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
-                                                                                                  // Type (ADT)
-        System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
-                                                                                                    // Trigger
-        
-        System.out.println("current bed = " + pv1wrap.getCurrentBed());
-
-        //// Minimal info needed //////
-        System.out.println("patient name = " + pidwrap.getPatientFullName());
-        System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
-        System.out.println("admission time = " + pv1wrap.getAdmissionDateTime());
-
         ///////////////////////////////////////////////////////////////////////////////////////
         // Populate the class fields. They may be null if the information is not held in the message.
         triggerEvent = mshwrap.getTriggerEvent();
@@ -153,6 +125,36 @@ public class AdtWrap {
 
     }
 
+    private void prettyPrint() throws HL7Exception {
+        System.out.println("\n************** MSH segment **************************");
+        // MSH-1 Field Separator
+        // MSH-2 Encoding Characters
+        System.out.println("sending application = " + mshwrap.getSendingApplication());
+        //+ msh.getSendingApplication().getComponent(0).toString());// MSH-3
+        // Sending
+        // Application
+        // (“CARECAST”)
+        System.out.println("sending facility = " + mshwrap.getSendingFacility()); //.getComponent(0).toString()); // MSH-4
+        // Sending
+        // Facility
+        // (“UCLH”)
+        // MSH-5 Receiving Application (“Receiving system”)
+        System.out.println("messageTimestamp = " + mshwrap.getMessageTimestamp());//msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of
+        // Message
+        // YYYYMMDDHHMM
+        System.out.println("message type = " + mshwrap.getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
+        // Type (ADT)
+        System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
+        // Trigger
+        
+        System.out.println("current bed = " + pv1wrap.getCurrentBed());
+        
+        //// Minimal info needed //////
+        System.out.println("patient name = " + pidwrap.getPatientFullName());
+        System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
+        System.out.println("admission time = " + pv1wrap.getAdmissionDateTime());
+    }
+    
     public String getAdministrativeSex() {
         return administrativeSex;
     }

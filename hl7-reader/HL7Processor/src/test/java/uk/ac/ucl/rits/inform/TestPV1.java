@@ -274,16 +274,9 @@ public class TestPV1 extends TestCase {
     @Test 
     // PV1-45.1
     public void testGetDischargeDateTime1() throws HL7Exception {
-
-        String result = "";
-        try {
-            result = wrapper.getDischargeDateTime();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetDischargeDateTime1()");
-            e.printStackTrace();
-        }
-        assertEquals(null, result);
+        assertEquals(
+                null,
+                wrapper.getDischargeDateTime());
 
     }
 

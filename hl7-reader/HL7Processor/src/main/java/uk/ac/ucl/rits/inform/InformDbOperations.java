@@ -38,6 +38,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientDemographicProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.VisitFact;
+import uk.ac.ucl.rits.inform.informdb.VisitFactRepository;
 import uk.ac.ucl.rits.inform.informdb.VisitProperty;
 
 @Component
@@ -53,6 +54,8 @@ public class InformDbOperations {
     private EncounterRepository encounterRepo;
     @Autowired
     private PatientDemographicFactRepository patientDemographicFactRepository;
+    @Autowired
+    private VisitFactRepository visitFactRepository;
     @Autowired
     private IdsProgressRepository idsProgressRepository;
 
@@ -111,7 +114,12 @@ public class InformDbOperations {
             AdtWrap adtWrap = new AdtWrap(msgFromIds);
             if (adtWrap.getTriggerEvent().equals("A01")) {
                 Encounter enc = addEncounter(adtWrap);
-                logger.info("[" + idsMsg.getUnid() + "] Added from IDS: " + enc.toString());
+                logger.info("[" + idsMsg.getUnid() + "] A01, add new encounter: " + enc.toString());
+                processed += 1;
+            }
+            else if (adtWrap.getTriggerEvent().equals("A02")) {
+                transferPatient(adtWrap);
+                logger.info("[" + idsMsg.getUnid() + "] A02, transfer: ....");
                 processed += 1;
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
@@ -202,7 +210,7 @@ public class InformDbOperations {
     @Transactional
     public Encounter addEncounter(AdtWrap encounterDetails) {
         String mrnStr = encounterDetails.getMrn();
-        Mrn newOrExistingMrn = findOrAddMrn(mrnStr);
+        Mrn newOrExistingMrn = findOrAddMrn(mrnStr, true);
         // Encounter is always a new one for an A01
         Encounter enc = new Encounter();
         enc.setStoredFrom(Instant.now());
@@ -218,12 +226,23 @@ public class InformDbOperations {
         addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
         enc.addDemographic(fact);
 
+        addOpenVisit(enc, encounterDetails);
+        enc = encounterRepo.save(enc);
+        return enc;
+    }
+
+    /**
+     * @param enc the encounter to add the Visit to
+     * @param adtDetails where to find the data to add
+     */
+    @Transactional
+    private void addOpenVisit(Encounter enc, AdtWrap adtDetails) {
         VisitFact visitFact = new VisitFact();
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setVisitType(hosp);
         try {
             Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
-            Instant admissionDateTime = encounterDetails.getPV1Wrap().getAdmissionDateTime();
+            Instant admissionDateTime = adtDetails.getPV1Wrap().getAdmissionDateTime();
             VisitProperty visProp = new VisitProperty();
             visProp.setValueAsDatetime(admissionDateTime);
             visProp.setAttribute(arrivalTime);
@@ -232,7 +251,7 @@ public class InformDbOperations {
         }
         try {
             Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
-            String bed = encounterDetails.getPV1Wrap().getCurrentBed();
+            String bed = adtDetails.getPV1Wrap().getCurrentBed();
             VisitProperty visProp = new VisitProperty();
             visProp.setAttribute(location);
             visProp.setValueAsString(bed);
@@ -242,9 +261,54 @@ public class InformDbOperations {
         }
 
         enc.addVisit(visitFact);
-        enc = encounterRepo.save(enc);
-        return enc;
     }
+    
+    /**
+     * Close off the existing Visit and open a new one
+     * @param transferDetails
+     * @throws HL7Exception 
+     */
+    @Transactional
+    public void transferPatient(AdtWrap transferDetails) throws HL7Exception {
+        // Find the current VisitFact.
+        // Close it off.
+        // Start a new one with its own admit time + location.
+        String mrnStr = transferDetails.getMrn();
+        
+        logger.info("Finding MRN " + mrnStr);
+        List<VisitFact> latestVisitsByMrn = visitFactRepository.findLatestVisitsByMrn(mrnStr, AttributeKeyMap.ARRIVAL_TIME.getShortname());
+
+        if (latestVisitsByMrn.isEmpty()) {
+            logger.warn("Cannot transfer an MRN that doesn't exist: " + mrnStr);
+            return;
+        }
+        VisitFact latestVisit = latestVisitsByMrn.get(0);
+        logger.info("Latest visit: " + latestVisit.toString());
+        
+        Instant dischargeDateTime = transferDetails.getPV1Wrap().getDischargeDateTime();
+
+        Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
+        VisitProperty visProp = new VisitProperty();
+        visProp.setValueAsDatetime(dischargeDateTime);
+        visProp.setAttribute(dischargeTime);
+        latestVisit.addProperty(visProp);
+        
+        Instant admissionDateTime = transferDetails.getPV1Wrap().getAdmissionDateTime();
+        // these are different by one second in one example - is one Epic only?
+        // Hmmm.
+        String recordedDateTime = transferDetails.getEVNWrap().getRecordedDateTime();
+        String eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
+        
+        String admitSource = transferDetails.getPV1Wrap().getAdmitSource();
+        logger.info("TRANSFERRING: MRN = " + mrnStr);
+        logger.info("    A02 details: dis/adm " + dischargeDateTime + "/" + admissionDateTime);
+        logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/" + recordedDateTime);
+
+        // add a new visit to the current encounter
+        Encounter encounter = latestVisit.getEncounter();
+        addOpenVisit(encounter, transferDetails);
+    }
+    
     
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
         Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
@@ -277,15 +341,19 @@ public class InformDbOperations {
 
     // Find an existing Mrn by its string representation, or create a new
     // Mrn record if it doesn't exist.
-    private Mrn findOrAddMrn(String mrnStr) {
+    private Mrn findOrAddMrn(String mrnStr, boolean createIfNotExist) {
         List<Mrn> allMrns = mrnRepo.findByMrnString(mrnStr);
         Mrn mrn;
         if (allMrns.isEmpty()) {
+            if (!createIfNotExist) {
+                return null;
+            }
             /*
              * If it's a new MRN then assume that it's also a new person (or at least we
              * don't know which person it is yet, and we'll have to wait for the merge
              * before we find out, so we'll have to create a new person for now)
              */
+            logger.info("Creating a new MRN");
             mrn = new Mrn();
             mrn.setMrn(mrnStr);
             Person pers = new Person();
@@ -296,6 +364,7 @@ public class InformDbOperations {
         } else if (allMrns.size() > 1) {
             throw new NotYetImplementedException("Does this even make sense?");
         } else {
+            logger.info("Reusing an existing MRN");
             mrn = allMrns.get(0);
         }
         mrn.setStoredFrom(Instant.now());
