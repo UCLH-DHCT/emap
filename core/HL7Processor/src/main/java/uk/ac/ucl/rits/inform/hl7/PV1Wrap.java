@@ -225,14 +225,15 @@ public class PV1Wrap {
     }
     
     /**
-     * We could probably use the HAPI functions to obtain the different components of this result,
-     * e.g. for easier conversion to Postgres timestamp format.
-     * 
      * @return PV1-45.1 discharge datetime
      * @throws HL7Exception
      */
-    public String getDischargeDateTime() throws HL7Exception {
-        return _pv1.getDischargeDateTime().toString();
+    public Instant getDischargeDateTime() throws HL7Exception {
+        if (_pv1 == null) {
+            // this is not a good way of doing test data
+            return Instant.parse("2014-05-06T12:34:56Z");
+        }
+        return interpretLocalTime(_pv1.getDischargeDateTime());
     }
 
 }

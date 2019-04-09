@@ -101,7 +101,7 @@ public class App {
     }
 
     private void printErrorSummary(List<String> errors) {
-        logger.info("There are " + errors.size() + " parsing errors");
+        logger.debug("There are " + errors.size() + " parsing errors");
     }
 
     /**
