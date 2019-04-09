@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This maps programming used attributes names to Attribute shortnames.
  *
@@ -29,13 +32,25 @@ public enum AttributeKeyMap {
      */
     HOSPITAL_VISIT("HOSP_VISIT"),
     /**
+     * Bed visit grouper.
+     */
+    BED_VISIT("BED_VISIT"),
+    /**
      * Arrival time as a date time.
      */
     ARRIVAL_TIME("ARRIVAL_TIME"),
     /**
      * Discharge time as a date time.
      */
-    DICHARGE_TIME("DISCH_TIME");
+    DISCHARGE_TIME("DISCH_TIME"),
+    /**
+     * Location as a String.
+     */
+    LOCATION("LOCATION"),
+    /**
+     * Parent visit.
+     */
+    PARENT_VISIT("VISIT_PAREN");
 
     private String shortname;
 
@@ -56,5 +71,23 @@ public enum AttributeKeyMap {
      */
     public String getShortname() {
         return this.shortname;
+    }
+
+    private static Map<String, AttributeKeyMap> values;
+
+    /**
+     * Read the Attributes back from a String matching its shortname.
+     *
+     * @param text String to read from
+     * @return Matching AttributeKeyMap
+     */
+    public static AttributeKeyMap parseFromShortName(String text) {
+        if (values == null) {
+            values = new HashMap<>();
+            for (AttributeKeyMap a: AttributeKeyMap.values()) {
+                values.put(a.shortname.toUpperCase(), a);
+            }
+        }
+        return values.get(text.toUpperCase());
     }
 }

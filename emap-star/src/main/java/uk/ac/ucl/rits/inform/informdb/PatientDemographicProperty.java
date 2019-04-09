@@ -31,16 +31,16 @@ public class PatientDemographicProperty extends TemporalCore {
     private Attribute              attribute;
 
     private String                 valueAsString;
-    private int                    valueAsInteger;
-    private boolean                valueAsBoolean;
-    private float                  valueAsReal;
+    private Long                   valueAsInteger;
+    private Boolean                valueAsBoolean;
+    private Double                 valueAsReal;
     private Instant                valueAsDatetime;
 
     @ManyToOne
     @JoinColumn(name = "value_as_attribute")
     private Attribute              valueAsAttribute;
 
-    private int                    valueAsLink;
+    private Integer                valueAsLink;
 
     /**
      * @return the propertyId
@@ -99,48 +99,6 @@ public class PatientDemographicProperty extends TemporalCore {
     }
 
     /**
-     * @return the valueAsInteger
-     */
-    public int getValueAsInteger() {
-        return valueAsInteger;
-    }
-
-    /**
-     * @param valueAsInteger the valueAsInteger to set
-     */
-    public void setValueAsInteger(int valueAsInteger) {
-        this.valueAsInteger = valueAsInteger;
-    }
-
-    /**
-     * @return the valueAsBoolean
-     */
-    public boolean isValueAsBoolean() {
-        return valueAsBoolean;
-    }
-
-    /**
-     * @param valueAsBoolean the valueAsBoolean to set
-     */
-    public void setValueAsBoolean(boolean valueAsBoolean) {
-        this.valueAsBoolean = valueAsBoolean;
-    }
-
-    /**
-     * @return the valueAsReal
-     */
-    public float getValueAsReal() {
-        return valueAsReal;
-    }
-
-    /**
-     * @param valueAsReal the valueAsReal to set
-     */
-    public void setValueAsReal(float valueAsReal) {
-        this.valueAsReal = valueAsReal;
-    }
-
-    /**
      * @return the valueAsDatetime
      */
     public Instant getValueAsDatetime() {
@@ -169,16 +127,58 @@ public class PatientDemographicProperty extends TemporalCore {
     }
 
     /**
+     * @return the valueAsInteger
+     */
+    public Long getValueAsInteger() {
+        return valueAsInteger;
+    }
+
+    /**
+     * @param valueAsInteger the valueAsInteger to set
+     */
+    public void setValueAsInteger(Long valueAsInteger) {
+        this.valueAsInteger = valueAsInteger;
+    }
+
+    /**
+     * @return the valueAsBoolean
+     */
+    public Boolean getValueAsBoolean() {
+        return valueAsBoolean;
+    }
+
+    /**
+     * @param valueAsBoolean the valueAsBoolean to set
+     */
+    public void setValueAsBoolean(Boolean valueAsBoolean) {
+        this.valueAsBoolean = valueAsBoolean;
+    }
+
+    /**
+     * @return the valueAsReal
+     */
+    public Double getValueAsReal() {
+        return valueAsReal;
+    }
+
+    /**
+     * @param valueAsReal the valueAsReal to set
+     */
+    public void setValueAsReal(Double valueAsReal) {
+        this.valueAsReal = valueAsReal;
+    }
+
+    /**
      * @return the valueAsLink
      */
-    public int getValueAsLink() {
+    public Integer getValueAsLink() {
         return valueAsLink;
     }
 
     /**
      * @param valueAsLink the valueAsLink to set
      */
-    public void setValueAsLink(int valueAsLink) {
+    public void setValueAsLink(Integer valueAsLink) {
         this.valueAsLink = valueAsLink;
     }
 

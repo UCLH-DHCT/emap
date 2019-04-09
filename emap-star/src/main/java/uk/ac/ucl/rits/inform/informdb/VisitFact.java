@@ -25,10 +25,10 @@ public class VisitFact extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int                 visitId;
+    private Long             visitId;
 
     @ManyToOne
-    @JoinColumn(name = "encounter")
+    @JoinColumn(name = "encounter", referencedColumnName = "encounter")
     private Encounter           encounter;
 
     @ManyToOne
@@ -41,14 +41,14 @@ public class VisitFact extends TemporalCore {
     /**
      * @return the visitId
      */
-    public int getVisitId() {
+    public Long getVisitId() {
         return visitId;
     }
 
     /**
      * @param visitId the visitId to set
      */
-    public void setVisitId(int visitId) {
+    public void setVisitId(Long visitId) {
         this.visitId = visitId;
     }
 

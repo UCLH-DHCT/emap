@@ -9,7 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import org.springframework.lang.NonNull;
+import com.sun.istack.NotNull;
 
 /**
  * An attribute represents a vocabulary item. This may be a question, or answer
@@ -22,16 +22,16 @@ import org.springframework.lang.NonNull;
 public class Attribute {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long            attributeId;
 
     @Column(unique = true, nullable = false, length = 15)
     private String          shortName;
-    @NonNull
+    @NotNull
     private String          description;
-    @NonNull
+    @NotNull
     private ResultType      resultType;
-    @NonNull
+    @NotNull
     private Instant         addedTime;
 
     @Transient

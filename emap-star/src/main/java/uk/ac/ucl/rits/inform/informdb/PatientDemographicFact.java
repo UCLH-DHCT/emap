@@ -26,7 +26,7 @@ public class PatientDemographicFact extends TemporalCore {
     private int                              factId;
 
     @ManyToOne
-    @JoinColumn(name = "encounter")
+    @JoinColumn(name = "encounter", referencedColumnName = "encounter")
     private Encounter                        encounter;
 
     @ManyToOne

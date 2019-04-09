@@ -1,9 +1,11 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,8 +28,11 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(indexes = { @Index(name = "endValidIndex", columnList = "validUntil", unique = false) })
-public class Mrn extends TemporalCore {
+@Table(indexes = { @Index(name = "endValidIndex", columnList = "validUntil", unique = false),
+        @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
+public class Mrn extends TemporalCore implements Serializable {
+
+    private static final long serialVersionUID = 939614930197714827L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
@@ -46,6 +51,7 @@ public class Mrn extends TemporalCore {
     /**
      * The value of the MRN identifier.
      */
+    @Column(unique = false, nullable = false)
     private String          mrn;
     private String          sourceSystem;
 
@@ -116,6 +122,20 @@ public class Mrn extends TemporalCore {
         }
         this.encounters.add(enc);
         enc.setMrn(this);
+    }
+
+    /**
+     * @return the encounters
+     */
+    public List<Encounter> getEncounters() {
+        return encounters;
+    }
+
+    /**
+     * @param encounters the encounters to set
+     */
+    public void setEncounters(List<Encounter> encounters) {
+        this.encounters = encounters;
     }
 
     @Override

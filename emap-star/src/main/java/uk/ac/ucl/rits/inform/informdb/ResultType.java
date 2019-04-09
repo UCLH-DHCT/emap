@@ -19,6 +19,10 @@ public enum ResultType {
     /**
      * This attribute is a date & time.
      */
-    Datetime
+    Datetime,
+    /**
+     * This attribute is a foreign key to a table.
+     */
+    Link
 
 }
