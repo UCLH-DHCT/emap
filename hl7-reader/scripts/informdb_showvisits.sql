@@ -29,9 +29,9 @@ FROM visit_property vp
 LEFT JOIN attribute attrkey ON attrkey.attribute_id = vp.attribute
 LEFT JOIN attribute attrval ON attrval.attribute_id = vp.value_as_attribute
 INNER JOIN visit_fact vf ON vf.visit_id = vp.visit
-INNER JOIN encounter enc ON enc.encounter_id = vf.encounter
-INNER JOIN mrn ON mrn.mrn_id = enc.mrn
-LEFT JOIN patient_demographic_fact pdf ON pdf.encounter = enc.encounter_id
+INNER JOIN encounter enc ON enc.encounter = vf.encounter
+INNER JOIN mrn ON mrn.mrn = enc.mrn
+LEFT JOIN patient_demographic_fact pdf ON pdf.encounter = enc.encounter
 LEFT JOIN DEMO_FACT_AGG dfa ON pdf.fact_id = dfa.fact_id
 --WHERE mrn.mrn = '21011035'
 ;
