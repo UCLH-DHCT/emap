@@ -119,7 +119,11 @@ public class InformDbOperations {
             }
             else if (adtWrap.getTriggerEvent().equals("A02")) {
                 transferPatient(adtWrap);
-                logger.info("[" + idsMsg.getUnid() + "] A02, transfer: ....");
+                logger.info("[" + idsMsg.getUnid() + "] A02, transfer");
+                processed += 1;
+            } else if (adtWrap.getTriggerEvent().equals("A03")) {
+                dischargePatient(adtWrap);
+                logger.info("[" + idsMsg.getUnid() + "] A03, discharge");
                 processed += 1;
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
@@ -235,7 +239,9 @@ public class InformDbOperations {
 
     /**
      * @param enc the encounter to add the Visit to
-     * @param adtDetails where to find the data to add
+     * @param visitBeginTime when the Visit began, which could be an admission
+     * or a transfer time
+     * @param currentBed
      */
     @Transactional
     private void addOpenVisit(Encounter enc, Instant visitBeginTime, String currentBed) {
@@ -269,20 +275,15 @@ public class InformDbOperations {
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
         
-        // Find the current VisitFact.
-        // Close it off.
-        // Start a new one with its own admit time + location.
+        // Find the current VisitFact, close it off, and start a new one with its own
+        // admit time + location.
         String mrnStr = transferDetails.getMrn();
         
-        logger.info("Finding MRN " + mrnStr);
-        List<VisitFact> latestVisitsByMrn = visitFactRepository.findLatestVisitsByMrn(mrnStr, AttributeKeyMap.ARRIVAL_TIME.getShortname());
-
-        if (latestVisitsByMrn.isEmpty()) {
+        VisitFact latestVisit = findLatestVisitByMrn(mrnStr);
+        if (latestVisit == null) {
             logger.warn("Cannot transfer an MRN that doesn't exist: " + mrnStr);
             return;
         }
-        VisitFact latestVisit = latestVisitsByMrn.get(0);
-        logger.info("Latest visit: " + latestVisit.toString());
         
         // The discharge datetime will be null, presumably because the patient hasn't
         // been discharged yet
@@ -295,9 +296,6 @@ public class InformDbOperations {
         addDischargeToVisit(latestVisit, eventOccurred);
         
         Instant admissionDateTime = transferDetails.getPV1Wrap().getAdmissionDateTime();
-        // these are different by one second in one example - is one Epic only?
-        // Hmmm.
-        
         Instant recordedDateTime = transferDetails.getEVNWrap().getRecordedDateTime();
         
         String admitSource = transferDetails.getPV1Wrap().getAdmitSource();
@@ -311,15 +309,58 @@ public class InformDbOperations {
     }
 
     /**
-     * @param latestVisit
-     * @param dischargeDateTime
+     * @param mrnStr
+     * @return the most recent VisitFact associated with the given MRN,
+     * or null if there aren't any
      */
-    private void addDischargeToVisit(VisitFact latestVisit, Instant dischargeDateTime) {
+    private VisitFact findLatestVisitByMrn(String mrnStr) {
+        List<VisitFact> latestVisitsByMrn = visitFactRepository.findLatestVisitsByMrn(mrnStr, AttributeKeyMap.ARRIVAL_TIME.getShortname());
+
+        if (latestVisitsByMrn.isEmpty()) {
+            return null;
+        }
+        VisitFact latestVisit = latestVisitsByMrn.get(0);
+        logger.info("Latest visit: " + latestVisit.getVisitId());
+        return latestVisit;
+    }
+
+    /**
+     * Mark the patient's most recent Visit as finished
+     * @param adtWrap the A03 message detailing the discharge
+     * @throws HL7Exception 
+     */
+    @Transactional
+    public void dischargePatient(AdtWrap adtWrap) throws HL7Exception {
+        String mrnStr = adtWrap.getMrn();
+        VisitFact latestVisit = findLatestVisitByMrn(mrnStr);
+        if (latestVisit == null) {
+            logger.warn("Cannot discharge an MRN that doesn't exist: " + mrnStr);
+            return;
+        }
+        Instant eventOccurred = adtWrap.getEVNWrap().getEventOccurred();
+        Instant dischargeDateTime = adtWrap.getPV1Wrap().getDischargeDateTime();
+        logger.info("DISCHARGE: MRN " + mrnStr);
+        logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
+        if (eventOccurred == null) {
+            logger.warn("Trying to discharge but the event occurred date is null. Is this a dupe message?");
+        }
+        else {
+            addDischargeToVisit(latestVisit, dischargeDateTime);
+        }
+    }
+    
+    /**
+     * Mark a Visit as finished, which can happen either when transferring or
+     * discharging a patient.
+     * @param visit the visit to mark as finished
+     * @param dischargeDateTime the discharge/transfer time
+     */
+    private void addDischargeToVisit(VisitFact visit, Instant dischargeDateTime) {
         Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
         VisitProperty visProp = new VisitProperty();
         visProp.setValueAsDatetime(dischargeDateTime);
         visProp.setAttribute(dischargeTime);
-        latestVisit.addProperty(visProp);
+        visit.addProperty(visProp);
     }
     
     
