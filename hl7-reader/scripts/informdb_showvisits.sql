@@ -20,10 +20,10 @@ SELECT
 mrn.mrn,
 dfa.value,
 vf.visit_id,
-attrkey.description,
+attrkey.description as attribute,
 vp.value_as_string,
 vp.value_as_datetime,
-attrval.description,
+attrval.description as value_as_attribute,
 enc.encounter
 FROM visit_property vp
 LEFT JOIN attribute attrkey ON attrkey.attribute_id = vp.attribute
@@ -34,5 +34,6 @@ INNER JOIN mrn ON mrn.mrn = enc.mrn
 LEFT JOIN patient_demographic_fact pdf ON pdf.encounter = enc.encounter
 LEFT JOIN DEMO_FACT_AGG dfa ON pdf.fact_id = dfa.fact_id
 --WHERE mrn.mrn = '21011035'
+ORDER BY mrn, visit_id, attribute
 ;
 
