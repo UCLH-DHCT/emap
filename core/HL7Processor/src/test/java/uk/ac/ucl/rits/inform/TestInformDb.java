@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 
@@ -62,9 +63,10 @@ public class TestInformDb {
 
     /**
      * Add N encounters, then check that the encounter count has increased by N
+     * @throws HL7Exception 
      */
     @Test
-    public void testAddEncounters() {
+    public void testAddEncounters() throws HL7Exception {
         System.out.println("test?");
         long beforeEncounters = dbt.countEncounters();
         long numEncounters = 100;
