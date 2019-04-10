@@ -2,6 +2,8 @@
 
 package uk.ac.ucl.rits.inform.hl7;
 
+import java.time.Instant;
+
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.EVN;
 import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Special datatype used in fields which have been withdrawn from the HL7 specification and should not contain a value.
@@ -46,8 +48,8 @@ public class EVNWrap {
      * @return EVN-2 Recorded Date/Time - Current Date/time in format YYYYMMDDHHMM
      * @throws HL7Exception
      */
-    public String getRecordedDateTime() throws HL7Exception {
-        return _evn.getEvn2_RecordedDateTime().toString();
+    public Instant getRecordedDateTime() throws HL7Exception {
+        return HL7Utils.interpretLocalTime(_evn.getEvn2_RecordedDateTime());
     } 
 
 
@@ -75,11 +77,12 @@ public class EVNWrap {
 
     /**
      * 
-     * @return EVN-6 Event Occurred. Epic only - transfer date and time for an A02 message
+     * @return EVN-6 Event Occurred. Epic only. Eg. transfer date and time for an A02 message
+     * If this is Epic only where does Carecast specify transfer times?
      * @throws HL7Exception
      */
-    public String getEventOccurred() throws HL7Exception {
-        return _evn.getEvn6_EventOccurred().toString();
+    public Instant getEventOccurred() throws HL7Exception {
+        return HL7Utils.interpretLocalTime(_evn.getEvn6_EventOccurred());
     }
 
 }

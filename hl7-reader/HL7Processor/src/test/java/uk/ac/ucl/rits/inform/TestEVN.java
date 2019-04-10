@@ -10,6 +10,7 @@ import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 
+import java.time.Instant;
 
 // https://www.tutorialspoint.com/junit/junit_environment_setup.htm
 // https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
@@ -84,16 +85,9 @@ public class TestEVN extends TestCase {
 
     @Test
     // EVN-2
-    public void testGetRecordedDateTime1() {
-        String result = "";
-        try {
-            result = wrapper.getRecordedDateTime();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetRecordedDateTime1()");
-            e.printStackTrace();
-        }
-        assertEquals("201209211843", result);
+    public void testGetRecordedDateTime1() throws HL7Exception {
+        Instant result = wrapper.getRecordedDateTime();
+        assertEquals(Instant.parse("2012-09-21T17:43:00.00Z"), result);
     }
 
 
@@ -129,16 +123,9 @@ public class TestEVN extends TestCase {
     
     @Test
     // EVN-6 EventOccurred - for Epic only, A02 messages
-    public void testGetEventOccurred1() {
-        String result = "";
-        try {
-            result = wrapper.getEventOccurred();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetEventOccurred()");
-            e.printStackTrace();
-        }
-        assertEquals("106601011200", result);
+    public void testGetEventOccurred1() throws HL7Exception {
+        Instant result = wrapper.getEventOccurred();
+        assertEquals(Instant.parse("2012-01-01T12:00:00.00Z"), result);
     }
 
 
