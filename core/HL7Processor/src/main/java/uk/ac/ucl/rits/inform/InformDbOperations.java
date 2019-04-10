@@ -270,6 +270,10 @@ public class InformDbOperations {
      */
     @Transactional
     public void transferPatient(AdtWrap transferDetails) throws HL7Exception {
+        // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
+        // Location while the old patient location should appear in PV1-6 - Prior
+        // Patient Location."
+        
         // Find the current VisitFact.
         // Close it off.
         // Start a new one with its own admit time + location.
@@ -285,28 +289,42 @@ public class InformDbOperations {
         VisitFact latestVisit = latestVisitsByMrn.get(0);
         logger.info("Latest visit: " + latestVisit.toString());
         
-        Instant dischargeDateTime = transferDetails.getPV1Wrap().getDischargeDateTime();
+        // The discharge datetime will be null, presumably because the patient hasn't
+        // been discharged yet
 
-        Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
-        VisitProperty visProp = new VisitProperty();
-        visProp.setValueAsDatetime(dischargeDateTime);
-        visProp.setAttribute(dischargeTime);
-        latestVisit.addProperty(visProp);
+        // Docs: "EVN-6 Event Occurred (DTM) 01278
+        // Definition: This field contains the date/time that the event actually
+        // occurred. For example, on a transfer (A02 transfer a patient), this field
+        // would contain the date/time the patient was actually transferred."
+        Instant eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
+        addDischargeToVisit(latestVisit, eventOccurred);
         
         Instant admissionDateTime = transferDetails.getPV1Wrap().getAdmissionDateTime();
         // these are different by one second in one example - is one Epic only?
         // Hmmm.
-        String recordedDateTime = transferDetails.getEVNWrap().getRecordedDateTime();
-        String eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
+        
+        Instant recordedDateTime = transferDetails.getEVNWrap().getRecordedDateTime();
         
         String admitSource = transferDetails.getPV1Wrap().getAdmitSource();
         logger.info("TRANSFERRING: MRN = " + mrnStr);
-        logger.info("    A02 details: dis/adm " + dischargeDateTime + "/" + admissionDateTime);
+        logger.info("    A02 details: adm " + admissionDateTime);
         logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/" + recordedDateTime);
 
         // add a new visit to the current encounter
         Encounter encounter = latestVisit.getEncounter();
         addOpenVisit(encounter, transferDetails);
+    }
+
+    /**
+     * @param latestVisit
+     * @param dischargeDateTime
+     */
+    private void addDischargeToVisit(VisitFact latestVisit, Instant dischargeDateTime) {
+        Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
+        VisitProperty visProp = new VisitProperty();
+        visProp.setValueAsDatetime(dischargeDateTime);
+        visProp.setAttribute(dischargeTime);
+        latestVisit.addProperty(visProp);
     }
     
     
