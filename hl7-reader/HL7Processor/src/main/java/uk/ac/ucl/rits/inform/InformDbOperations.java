@@ -206,9 +206,10 @@ public class InformDbOperations {
      * also entail creating a new Mrn and Person if these don't already exist.
      * 
      * @param encounterDetails
+     * @throws HL7Exception 
      */
     @Transactional
-    public Encounter addEncounter(AdtWrap encounterDetails) {
+    public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
         String mrnStr = encounterDetails.getMrn();
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr, true);
         // Encounter is always a new one for an A01
@@ -226,7 +227,8 @@ public class InformDbOperations {
         addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
         enc.addDemographic(fact);
 
-        addOpenVisit(enc, encounterDetails);
+        addOpenVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
+                encounterDetails.getPV1Wrap().getCurrentBed());
         enc = encounterRepo.save(enc);
         return enc;
     }
@@ -236,29 +238,22 @@ public class InformDbOperations {
      * @param adtDetails where to find the data to add
      */
     @Transactional
-    private void addOpenVisit(Encounter enc, AdtWrap adtDetails) {
+    private void addOpenVisit(Encounter enc, Instant visitBeginTime, String currentBed) {
         VisitFact visitFact = new VisitFact();
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setVisitType(hosp);
-        try {
-            Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
-            Instant admissionDateTime = adtDetails.getPV1Wrap().getAdmissionDateTime();
-            VisitProperty visProp = new VisitProperty();
-            visProp.setValueAsDatetime(admissionDateTime);
-            visProp.setAttribute(arrivalTime);
-            visitFact.addProperty(visProp);
-        } catch (HL7Exception e) {
-        }
-        try {
-            Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
-            String bed = adtDetails.getPV1Wrap().getCurrentBed();
-            VisitProperty visProp = new VisitProperty();
-            visProp.setAttribute(location);
-            visProp.setValueAsString(bed);
-            visitFact.addProperty(visProp);
-        }
-        catch (HL7Exception e) {
-        }
+
+        Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
+        VisitProperty arrVisProp = new VisitProperty();
+        arrVisProp.setValueAsDatetime(visitBeginTime);
+        arrVisProp.setAttribute(arrivalTime);
+        visitFact.addProperty(arrVisProp);
+
+        Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
+        VisitProperty locVisProp = new VisitProperty();
+        locVisProp.setAttribute(location);
+        locVisProp.setValueAsString(currentBed);
+        visitFact.addProperty(locVisProp);
 
         enc.addVisit(visitFact);
     }
@@ -312,7 +307,7 @@ public class InformDbOperations {
 
         // add a new visit to the current encounter
         Encounter encounter = latestVisit.getEncounter();
-        addOpenVisit(encounter, transferDetails);
+        addOpenVisit(encounter, eventOccurred, transferDetails.getPV1Wrap().getCurrentBed());
     }
 
     /**
