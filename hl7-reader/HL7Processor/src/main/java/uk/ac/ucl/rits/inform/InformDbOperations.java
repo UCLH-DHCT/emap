@@ -426,8 +426,8 @@ public class InformDbOperations {
         return mrn;
     }
 
-    public void writeToIds(String hl7message, int id) {
-        idsOperations.writeToIds(hl7message, id);
+    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn) {
+        idsOperations.writeToIds(hl7message, id, triggerEvent, mrn);
     }
 
 }

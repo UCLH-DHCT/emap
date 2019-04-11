@@ -21,11 +21,14 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
+import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 
 @SpringBootApplication
 public class App {
@@ -51,7 +54,10 @@ public class App {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                dbt.writeToIds(singleMessageText, count);
+                AdtWrap adtWrap = new AdtWrap(msg);
+                String triggerEvent = adtWrap.getTriggerEvent();
+                String mrn = adtWrap.getMrn();
+                dbt.writeToIds(singleMessageText, count, triggerEvent, mrn);
             }
             logger.info("Wrote " + count + " messages to IDS");
             dbt.close();
