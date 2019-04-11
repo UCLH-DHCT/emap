@@ -103,7 +103,7 @@ public class IdsOperations {
         return cfg.buildSessionFactory();
     }
 
-    public void writeToIds(String hl7message, int id) {
+    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn) {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly
         // suggests that this is a test IDS.
@@ -120,6 +120,8 @@ public class IdsOperations {
             // in a single shot, just set the id manually in the client.
             idsrecord.setUnid(id);
             idsrecord.setHl7message(hl7message);
+            idsrecord.setMessagetype(triggerEvent);
+            idsrecord.setHospitalnumber(mrn);
             idsSession.save(idsrecord);
             tx.commit();
         } finally {

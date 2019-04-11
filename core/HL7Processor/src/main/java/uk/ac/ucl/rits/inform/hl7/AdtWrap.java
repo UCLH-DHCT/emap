@@ -103,25 +103,34 @@ public class AdtWrap {
          * 
          */
 
-        // 1. MSH (Message Header) - mostly don't appear to be useful
+        // Populate the class fields. They may be null if the information is not held in the message.
         mshwrap = new MSHWrap((MSH) adtMsg.get("MSH"));
-        pv1wrap = new PV1Wrap((PV1) adtMsg.get("PV1"));
-        pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
-        pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
+        try {
+            pv1wrap = new PV1Wrap((PV1) adtMsg.get("PV1"));
+            eventTime = pv1wrap.getAdmissionDateTime();
+            visitNumber = pv1wrap.getVisitNumber(); // PV1-19
+        } catch (HL7Exception e) {
+            // sections are allowed to not exist
+        }
+        
+        try {
+            pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
+            administrativeSex = pidwrap.getPatientSex();
+            familyName = pidwrap.getPatientFamilyName();
+            givenName = pidwrap.getPatientGivenName();
+            middleName = pidwrap.getPatientMiddleName();
+            mrn = pidwrap.getPatientFirstIdentifier(); // patient ID PID-3.1[1] // internal UCLH hospital number
+            NHSNumber = pidwrap.getPatientSecondIdentifier(); // patient ID PID-3.1[2]
+        } catch (HL7Exception e) {
+        }
+        
+        try {
+            pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
+        } catch (HL7Exception e) {
+        }
         evnwrap = new EVNWrap((EVN) adtMsg.get("EVN"));
 
-        ///////////////////////////////////////////////////////////////////////////////////////
-        // Populate the class fields. They may be null if the information is not held in the message.
         triggerEvent = mshwrap.getTriggerEvent();
-        administrativeSex = pidwrap.getPatientSex();
-        eventTime = pv1wrap.getAdmissionDateTime();
-        familyName = pidwrap.getPatientFamilyName();
-        givenName = pidwrap.getPatientGivenName();
-        middleName = pidwrap.getPatientMiddleName();
-        mrn = pidwrap.getPatientFirstIdentifier(); // patient ID PID-3.1[1] // internal UCLH hospital number
-        NHSNumber = pidwrap.getPatientSecondIdentifier(); // patient ID PID-3.1[2]
-        visitNumber = pv1wrap.getVisitNumber(); // PV1-19
-        ///////////////////////////////////////////////////////////////////////////////////////
 
     }
 

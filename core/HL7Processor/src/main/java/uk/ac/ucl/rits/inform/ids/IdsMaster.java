@@ -118,4 +118,12 @@ public class IdsMaster {
         this.unid = unid;
     }
 
+    public void setMessagetype(String messagetype) {
+        this.messagetype = messagetype;
+    }
+
+    public void setHospitalnumber(String hospitalnumber) {
+        this.hospitalnumber = hospitalnumber;
+    }
+
 }
