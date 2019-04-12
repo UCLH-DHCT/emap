@@ -50,7 +50,35 @@ public enum AttributeKeyMap {
     /**
      * Parent visit.
      */
-    PARENT_VISIT("VISIT_PAREN");
+    PARENT_VISIT("VISIT_PAREN"),
+    /**
+     * Generate single key value pair demographic grouper.
+     */
+    GENERAL_DEMOGRAPHIC("GENERAL_DEMO"),
+    /**
+     * Date of Birth.
+     */
+    DOB("DOB"),
+    /**
+     * Sex.
+     */
+    SEX("SEX"),
+    /**
+     * Male.
+     */
+    MALE("MALE"),
+    /**
+     * Female.
+     */
+    FEMALE("FEMALE"),
+    /**
+     * Other, i.e. not a category we have explicitly recoreded.
+     */
+    OTHER("OTHER"),
+    /**
+     * Date item is known to exist, but its value is unknown.
+     */
+    UNKNOWN("UNKNOWN");
 
     private String shortname;
 

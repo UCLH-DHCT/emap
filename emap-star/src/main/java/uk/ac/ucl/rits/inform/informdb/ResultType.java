@@ -23,6 +23,10 @@ public enum ResultType {
     /**
      * This attribute is a foreign key to a table.
      */
-    Link
+    Link,
+    /**
+     * This result is stored as an attribute (i.e. categorical).
+     */
+    Attribute
 
 }
