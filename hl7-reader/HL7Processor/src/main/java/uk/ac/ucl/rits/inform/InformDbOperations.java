@@ -293,12 +293,14 @@ public class InformDbOperations {
 
         Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
         VisitProperty arrVisProp = new VisitProperty();
+        arrVisProp.setStoredFrom(Instant.now());
         arrVisProp.setValueAsDatetime(visitBeginTime);
         arrVisProp.setAttribute(arrivalTime);
         visitFact.addProperty(arrVisProp);
 
         Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
         VisitProperty locVisProp = new VisitProperty();
+        locVisProp.setStoredFrom(Instant.now());
         locVisProp.setAttribute(location);
         locVisProp.setValueAsString(currentBed);
         visitFact.addProperty(locVisProp);
@@ -400,6 +402,7 @@ public class InformDbOperations {
     private void addDischargeToVisit(VisitFact visit, Instant dischargeDateTime) {
         Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
         VisitProperty visProp = new VisitProperty();
+        visProp.setStoredFrom(Instant.now());
         visProp.setValueAsDatetime(dischargeDateTime);
         visProp.setAttribute(dischargeTime);
         visit.addProperty(visProp);
