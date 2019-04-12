@@ -3,6 +3,9 @@ package uk.ac.ucl.rits.inform;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hibernate.Session;
 import org.hibernate.cfg.NotYetImplementedException;
@@ -204,6 +207,47 @@ public class InformDbOperations {
         }
     }
 
+    // Search through encounters in memory with a given encounter number
+    private List<Encounter> getEncounterWhere(Mrn mrn, String encounter) {
+        List<Encounter> existingEncs = mrn.getEncounters();
+        if (existingEncs == null) {
+            return null;
+        }
+        List<Encounter> matchingEncs = existingEncs
+                .stream()
+                .filter(e -> encounter.equals(e.getEncounter()))
+                .collect(Collectors.toList());
+        return matchingEncs;
+    }
+    
+    /**
+     * Get existing encounter or create a new one if it doesn't exist
+     * @param mrn the MRN to search in
+     * @param encounterDetails contains encounter ID (visit ID) to search for
+     * @return the Encounter, existing or newly created
+     */
+    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) {
+        logger.info("getCreateEncounter");
+        String encounter = encounterDetails.getVisitNumber();
+        List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
+        if (existingEncs == null || existingEncs.isEmpty()) {
+            logger.info("getCreateEncounter CREATING NEW");
+            Encounter enc = new Encounter();
+            enc.setStoredFrom(Instant.now());
+            enc.setEncounter(encounter);
+            enc.setValidFrom(encounterDetails.getEventTime());
+            enc.setMrn(mrn);
+            return enc;
+        }
+        else if (existingEncs.size() > 1) {
+            throw new RuntimeException("More than one encounter with this ID, not sure how to handle this yet: " + encounter);
+        }
+        else {
+            // return the only element
+            logger.info("getCreateEncounter RETURNING EXISTING");
+            return existingEncs.get(0);
+        }
+    }
 
     /**
      * Create a new encounter using the details given in the A01 message. This may
@@ -216,13 +260,11 @@ public class InformDbOperations {
     public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
         String mrnStr = encounterDetails.getMrn();
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr, true);
-        // Encounter is always a new one for an A01
-        Encounter enc = new Encounter();
-        enc.setStoredFrom(Instant.now());
-        enc.setEncounter(encounterDetails.getVisitNumber());
-        enc.setValidFrom(encounterDetails.getEventTime());
-        enc.setMrn(newOrExistingMrn);
-
+        // Encounter is usually a new one for an A01, but it is
+        // possible to get a second A01 if the first admission gets deleted
+        // and re-made. (User corrected an error in Epic we assume).
+        Encounter enc = getCreateEncounter(newOrExistingMrn, encounterDetails);
+      
         PatientDemographicFact fact = new PatientDemographicFact();
         Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
         fact.setFactType(attr);
