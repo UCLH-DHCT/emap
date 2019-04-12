@@ -425,6 +425,7 @@ public class InformDbOperations {
         if (factValue != null) {
             Attribute attr = getCreateAttribute(attrKM);
             PatientDemographicProperty prop = new PatientDemographicProperty();
+            prop.setStoredFrom(Instant.now());
             prop.setAttribute(attr);
             prop.setValueAsString(factValue);
             fact.addProperty(prop);
