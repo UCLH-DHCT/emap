@@ -440,8 +440,8 @@ public class InformDbOperations {
         // would contain the date/time the patient was actually transferred."
         Instant eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
         if (latestOpenBedVisits.isEmpty()) {
-            logger.error("There is no open bed visit, cannot transfer, vis num " + visitNumber);
-            throw new RuntimeException("wtaf");
+            logger.error("There is no open bed visit, cannot transfer, was there an A13 message you didn't process? vis num " + visitNumber);
+            return;
         }
         VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
