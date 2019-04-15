@@ -116,17 +116,18 @@ public class InformDbOperations {
         try {
             AdtWrap adtWrap = new AdtWrap(msgFromIds);
             if (adtWrap.getTriggerEvent().equals("A01")) {
+                logger.info("[" + idsMsg.getUnid() + "] A01, admission ");
                 Encounter enc = addEncounter(adtWrap);
-                logger.info("[" + idsMsg.getUnid() + "] A01, add new encounter: " + enc.toString());
+                logger.info("[" + idsMsg.getUnid() + "] Done A01, encounter: " + enc.toString());
                 processed += 1;
             }
             else if (adtWrap.getTriggerEvent().equals("A02")) {
-                transferPatient(adtWrap);
                 logger.info("[" + idsMsg.getUnid() + "] A02, transfer");
+                transferPatient(adtWrap);
                 processed += 1;
             } else if (adtWrap.getTriggerEvent().equals("A03")) {
-                dischargePatient(adtWrap);
                 logger.info("[" + idsMsg.getUnid() + "] A03, discharge");
+                dischargePatient(adtWrap);
                 processed += 1;
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
@@ -136,6 +137,10 @@ public class InformDbOperations {
         catch (HL7Exception e) {
             logger.warn("[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
                     + ")");
+        }
+        catch (InvalidMrnException e) {
+            logger.warn("[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass()
+            + ")");
         }
         setLatestProcessedId(idsMsg.getUnid());
 
@@ -259,6 +264,9 @@ public class InformDbOperations {
     @Transactional
     public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
         String mrnStr = encounterDetails.getMrn();
+        if (mrnStr == null) {
+            throw new InvalidMrnException();
+        }
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr, true);
         // Encounter is usually a new one for an A01, but it is
         // possible to get a second A01 if the first admission gets deleted
