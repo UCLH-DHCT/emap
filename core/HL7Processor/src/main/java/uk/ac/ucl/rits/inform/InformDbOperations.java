@@ -1,9 +1,11 @@
 package uk.ac.ucl.rits.inform;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -225,6 +227,56 @@ public class InformDbOperations {
         return matchingEncs;
     }
     
+    private List<VisitFact> getVisitFactWhere(Encounter encounter, Predicate<? super VisitFact> pred) {
+        List<VisitFact> visits = encounter.getVisits();
+        if (visits == null) {
+            return null;
+        }
+        List<VisitFact> matchingVisits = visits
+                .stream()
+                .filter(pred)
+                .collect(Collectors.toList());
+        return matchingVisits;
+    }
+    
+    private boolean visitFactIsOpen(VisitFact vf) {
+        List<VisitProperty> vpEnd = getPropertyByAttribute(vf, AttributeKeyMap.DISCHARGE_TIME);
+        return vpEnd.isEmpty();
+    }
+    
+    private List<VisitProperty> getPropertyByAttribute(VisitFact vf, AttributeKeyMap dischargeTime) {
+        List<VisitProperty> props = vf.getVisitProperties();
+        if (props == null) {
+            return new ArrayList<VisitProperty>();
+        }
+        List<VisitProperty> propsWithAttr = props.stream()
+                .filter(prop -> prop.getAttribute().getShortName().equals(dischargeTime.getShortname()))
+                .collect(Collectors.toList());
+        return propsWithAttr;
+    }
+
+    private boolean visitFactIsOfType(VisitFact vf, AttributeKeyMap visitTypeAttr) {
+        return visitTypeAttr.getShortname().equals(vf.getVisitType().getShortName());
+    }
+    /**
+     * Get all VisitFact objects on this encounter with the given visit type, or null if none
+     * @param encounter where to look for VisitFact objects
+     * @param attr the visit type (as an attribute)
+     * @return
+     */
+    private List<VisitFact> getVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
+        return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr));
+    }
+
+
+    private List<VisitFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
+        logger.info("getOpenVisitFactWhereVisitType: " + encounter + " " + attr);
+        return getVisitFactWhere(encounter,
+                vf -> visitFactIsOfType(vf, attr)
+                && visitFactIsOpen(vf)
+                );
+    }
+    
     /**
      * Get existing encounter or create a new one if it doesn't exist
      * @param mrn the MRN to search in
@@ -281,12 +333,24 @@ public class InformDbOperations {
         addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
         enc.addDemographic(fact);
 
-        addOpenVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
+        VisitFact hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime());
+        
+        addOpenBedVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
+                hospitalVisit,
                 encounterDetails.getPV1Wrap().getCurrentBed());
         enc = encounterRepo.save(enc);
         return enc;
     }
 
+    private VisitFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
+        VisitFact visitFact = new VisitFact();
+        Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
+        visitFact.setVisitType(hosp);
+        addArrivalTimeToVisit(visitFact, visitBeginTime);
+        enc.addVisit(visitFact);
+        return visitFact;
+    }
+    
     /**
      * @param enc the encounter to add the Visit to
      * @param visitBeginTime when the Visit began, which could be an admission
@@ -294,26 +358,54 @@ public class InformDbOperations {
      * @param currentBed
      */
     @Transactional
-    private void addOpenVisit(Encounter enc, Instant visitBeginTime, String currentBed) {
+    private void addOpenBedVisit(Encounter enc, Instant visitBeginTime, VisitFact parentVisit, String currentBed) {
         VisitFact visitFact = new VisitFact();
-        Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
+        Attribute hosp = getCreateAttribute(AttributeKeyMap.BED_VISIT);
         visitFact.setVisitType(hosp);
+        addArrivalTimeToVisit(visitFact, visitBeginTime);
+        addLocationToVisit(visitFact, currentBed);
+        addParentVisitToVisit(visitFact, parentVisit);
+        enc.addVisit(visitFact);
+    }
 
-        Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
-        VisitProperty arrVisProp = new VisitProperty();
-        arrVisProp.setStoredFrom(Instant.now());
-        arrVisProp.setValueAsDatetime(visitBeginTime);
-        arrVisProp.setAttribute(arrivalTime);
-        visitFact.addProperty(arrVisProp);
+    /**
+     * @param visitFact
+     * @param currentBed
+     */
+    private void addParentVisitToVisit(VisitFact visitFact, VisitFact parentVisit) {
+        Attribute attr = getCreateAttribute(AttributeKeyMap.PARENT_VISIT);
+        VisitProperty prop = new VisitProperty();
+        prop.setStoredFrom(Instant.now());
+        prop.setAttribute(attr);
+        prop.setValueAsLink(parentVisit.getVisitId());
+        visitFact.addProperty(prop);
+    }
 
+    
+    /**
+     * @param visitFact
+     * @param currentBed
+     */
+    private void addLocationToVisit(VisitFact visitFact, String currentBed) {
         Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
         VisitProperty locVisProp = new VisitProperty();
         locVisProp.setStoredFrom(Instant.now());
         locVisProp.setAttribute(location);
         locVisProp.setValueAsString(currentBed);
         visitFact.addProperty(locVisProp);
+    }
 
-        enc.addVisit(visitFact);
+    /**
+     * @param visitFact
+     * @param visitBeginTime
+     */
+    private void addArrivalTimeToVisit(VisitFact visitFact, Instant visitBeginTime) {
+        Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
+        VisitProperty arrVisProp = new VisitProperty();
+        arrVisProp.setStoredFrom(Instant.now());
+        arrVisProp.setValueAsDatetime(visitBeginTime);
+        arrVisProp.setAttribute(arrivalTime);
+        visitFact.addProperty(arrVisProp);
     }
     
     /**
@@ -330,13 +422,15 @@ public class InformDbOperations {
         // Find the current VisitFact, close it off, and start a new one with its own
         // admit time + location.
         String mrnStr = transferDetails.getMrn();
+        String visitNumber = transferDetails.getVisitNumber();
+        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         
-        VisitFact latestVisit = findLatestVisitByMrn(mrnStr);
-        if (latestVisit == null) {
-            logger.warn("Cannot transfer an MRN that doesn't exist: " + mrnStr);
+        if (encounter == null) {
+            logger.warn("Cannot transfer an encounter that doesn't exist: " + visitNumber);
             return;
         }
         
+        List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
         // The discharge datetime will be null, presumably because the patient hasn't
         // been discharged yet
 
@@ -345,7 +439,12 @@ public class InformDbOperations {
         // occurred. For example, on a transfer (A02 transfer a patient), this field
         // would contain the date/time the patient was actually transferred."
         Instant eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
-        addDischargeToVisit(latestVisit, eventOccurred);
+        if (latestOpenBedVisits.isEmpty()) {
+            logger.error("There is no open bed visit, cannot transfer, vis num " + visitNumber);
+            throw new RuntimeException("wtaf");
+        }
+        VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
+        addDischargeToVisit(latestOpenBedVisit, eventOccurred);
         
         Instant admissionDateTime = transferDetails.getPV1Wrap().getAdmissionDateTime();
         Instant recordedDateTime = transferDetails.getEVNWrap().getRecordedDateTime();
@@ -356,8 +455,14 @@ public class InformDbOperations {
         logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/" + recordedDateTime);
 
         // add a new visit to the current encounter
-        Encounter encounter = latestVisit.getEncounter();
-        addOpenVisit(encounter, eventOccurred, transferDetails.getPV1Wrap().getCurrentBed());
+        Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
+        if (encounter != encounterDoubleCheck) {
+            logger.error("Different encounter: " + encounter + " | " + encounterDoubleCheck);
+            throw new RuntimeException("waaa");
+        }
+        List<VisitFact> hospitalVisit = getVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
+        // link the bed visit to the parent (hospital) visit
+        addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), transferDetails.getPV1Wrap().getCurrentBed());
     }
 
     /**
@@ -384,11 +489,14 @@ public class InformDbOperations {
     @Transactional
     public void dischargePatient(AdtWrap adtWrap) throws HL7Exception {
         String mrnStr = adtWrap.getMrn();
-        VisitFact latestVisit = findLatestVisitByMrn(mrnStr);
-        if (latestVisit == null) {
-            logger.warn("Cannot discharge an MRN that doesn't exist: " + mrnStr);
+        String visitNumber = adtWrap.getVisitNumber();
+        
+        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+        if (encounter == null) {
+            logger.warn("Cannot discharge for a visit that doesn't exist: " + visitNumber);
             return;
         }
+        List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
         Instant eventOccurred = adtWrap.getEVNWrap().getEventOccurred();
         Instant dischargeDateTime = adtWrap.getPV1Wrap().getDischargeDateTime();
         logger.info("DISCHARGE: MRN " + mrnStr);
@@ -397,7 +505,12 @@ public class InformDbOperations {
             logger.warn("Trying to discharge but the event occurred date is null. Is this a dupe message?");
         }
         else {
-            addDischargeToVisit(latestVisit, dischargeDateTime);
+            VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
+            // Discharge from the bed visit and the hospital visit
+            addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
+            List<VisitFact> hospVisit = getVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT);
+            // There *should* be exactly 1...
+            addDischargeToVisit(hospVisit.get(0), dischargeDateTime);
         }
     }
     
