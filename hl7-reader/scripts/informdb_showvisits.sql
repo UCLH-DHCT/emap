@@ -20,6 +20,7 @@ SELECT
 mrn.mrn,
 dfa.value,
 vf.visit_id,
+vf.attribute_id as visit_type,
 attrkey.description as attribute,
 vp.value_as_string,
 vp.value_as_datetime,
