@@ -334,7 +334,10 @@ public class InformDbOperations {
         enc.addDemographic(fact);
 
         VisitFact hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime());
-        
+        // Need to save here so the hospital visit can be created (and thus assigned an ID),
+        // so we can refer to that ID in the bed visit.
+        // (Bed visits refer to hosp visits explicitly by their IDs).
+        enc = encounterRepo.save(enc);
         addOpenBedVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
                 hospitalVisit,
                 encounterDetails.getPV1Wrap().getCurrentBed());
