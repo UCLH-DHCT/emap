@@ -497,6 +497,10 @@ public class InformDbOperations {
             return;
         }
         List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
+        if (latestOpenBedVisits.isEmpty()) {
+            logger.error("There is no open bed visit, cannot discharge, was there an A13 message you didn't process? vis num " + visitNumber);
+            return;
+        }
         Instant eventOccurred = adtWrap.getEVNWrap().getEventOccurred();
         Instant dischargeDateTime = adtWrap.getPV1Wrap().getDischargeDateTime();
         logger.info("DISCHARGE: MRN " + mrnStr);
