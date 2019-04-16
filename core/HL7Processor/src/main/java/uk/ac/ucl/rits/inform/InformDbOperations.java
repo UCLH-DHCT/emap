@@ -326,6 +326,7 @@ public class InformDbOperations {
         Encounter enc = getCreateEncounter(newOrExistingMrn, encounterDetails);
       
         PatientDemographicFact fact = new PatientDemographicFact();
+        fact.setStoredFrom(Instant.now());
         Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
         fact.setFactType(attr);
         addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, encounterDetails.getGivenName());
@@ -347,6 +348,7 @@ public class InformDbOperations {
 
     private VisitFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
         VisitFact visitFact = new VisitFact();
+        visitFact.setStoredFrom(Instant.now());
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setVisitType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
@@ -363,6 +365,7 @@ public class InformDbOperations {
     @Transactional
     private void addOpenBedVisit(Encounter enc, Instant visitBeginTime, VisitFact parentVisit, String currentBed) {
         VisitFact visitFact = new VisitFact();
+        visitFact.setStoredFrom(Instant.now());
         Attribute hosp = getCreateAttribute(AttributeKeyMap.BED_VISIT);
         visitFact.setVisitType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
@@ -584,6 +587,7 @@ public class InformDbOperations {
             logger.info("Creating a new MRN");
             mrn = new Mrn();
             mrn.setMrn(mrnStr);
+            mrn.setStoredFrom(Instant.now());
             Person pers = new Person();
             pers.setCreateDatetime(Instant.now());
             pers.addMrn(mrn);
@@ -595,7 +599,6 @@ public class InformDbOperations {
             logger.info("Reusing an existing MRN");
             mrn = allMrns.get(0);
         }
-        mrn.setStoredFrom(Instant.now());
         mrn = mrnRepo.save(mrn);
         return mrn;
     }
