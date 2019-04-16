@@ -20,6 +20,7 @@ import ca.uhn.hl7v2.model.AbstractType;
 
 import ca.uhn.hl7v2.model.v27.segment.PID;
 
+import java.time.Instant;
 import java.util.Vector;
 
 /**
@@ -131,8 +132,8 @@ public class PIDWrap {
      * @return PID-7.1 birthdatetime
      * @throws HL7Exception
      */
-    public String getPatientBirthDate() throws HL7Exception {
-        return _pid.getDateTimeOfBirth().toString();
+    public Instant getPatientBirthDate() throws HL7Exception {
+        return HL7Utils.interpretLocalTime(_pid.getDateTimeOfBirth());
     }
 
 

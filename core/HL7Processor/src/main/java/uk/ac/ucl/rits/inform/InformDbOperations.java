@@ -358,14 +358,50 @@ public class InformDbOperations {
      * @param msgDetails the message details to use
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) {
-        PatientDemographicFact fact = new PatientDemographicFact();
-        fact.setStoredFrom(Instant.now());
-        Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
-        fact.setFactType(attr);
-        addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, msgDetails.getGivenName());
-        addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getMiddleName());
-        addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, msgDetails.getFamilyName());
-        enc.addDemographic(fact);
+        {
+            PatientDemographicFact fact = new PatientDemographicFact();
+            fact.setStoredFrom(Instant.now());
+            Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
+            fact.setFactType(attr);
+            addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, msgDetails.getGivenName());
+            addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getMiddleName());
+            addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, msgDetails.getFamilyName());
+            enc.addDemographic(fact);
+        }
+        {
+            PatientDemographicFact fact = new PatientDemographicFact();
+            fact.setStoredFrom(Instant.now());
+            fact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
+            
+            // will we have to worry about Instants and timezones shifting the date?
+            addPropertyToFact(fact, AttributeKeyMap.DOB, msgDetails.getDob());
+            
+            String hl7Sex = msgDetails.getAdministrativeSex();
+            Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
+            addPropertyToFact(fact, AttributeKeyMap.SEX, sexAttrValue);
+            enc.addDemographic(fact);
+        }
+    }
+    
+    /**
+     * A little mapping table to convert HL7 sex to Inform-db sex
+     * @param hl7Sex
+     * @return Inform-db sex
+     */
+    private AttributeKeyMap mapSex(String hl7Sex) {
+        switch (hl7Sex) {
+        case "M":
+            return AttributeKeyMap.MALE;
+        case "F":
+            return AttributeKeyMap.FEMALE;
+        case "A":
+            return AttributeKeyMap.OTHER;
+        case "O":
+            return AttributeKeyMap.OTHER;
+        case "U":
+        default:
+            return AttributeKeyMap.UNKNOWN;
+        }
     }
 
     private VisitFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
@@ -577,13 +613,13 @@ public class InformDbOperations {
         }
     }
 
-    private void addPropertyToFact(PatientDemographicFact fact, AttributeKeyMap attrKM, String factValue) {
+    private void addPropertyToFact(PatientDemographicFact fact, AttributeKeyMap attrKM, Object factValue) {
         if (factValue != null) {
             Attribute attr = getCreateAttribute(attrKM);
             PatientDemographicProperty prop = new PatientDemographicProperty();
             prop.setStoredFrom(Instant.now());
             prop.setAttribute(attr);
-            prop.setValueAsString(factValue);
+            prop.setValue(factValue);
             fact.addProperty(prop);
         }
     }
