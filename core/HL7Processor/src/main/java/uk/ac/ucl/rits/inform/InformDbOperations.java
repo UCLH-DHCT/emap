@@ -230,7 +230,7 @@ public class InformDbOperations {
     private List<VisitFact> getVisitFactWhere(Encounter encounter, Predicate<? super VisitFact> pred) {
         List<VisitFact> visits = encounter.getVisits();
         if (visits == null) {
-            return null;
+            return new ArrayList<VisitFact>();
         }
         List<VisitFact> matchingVisits = visits
                 .stream()
@@ -323,18 +323,25 @@ public class InformDbOperations {
         // Encounter is usually a new one for an A01, but it is
         // possible to get a second A01 if the first admission gets deleted
         // and re-made. (User corrected an error in Epic we assume).
+        // Therefore need to reuse the existing encounter and the open visit if it exists.
+        // (Better to move the hosp visit creation to the actual "new Encounter"?)
         Encounter enc = getCreateEncounter(newOrExistingMrn, encounterDetails);
-      
-        PatientDemographicFact fact = new PatientDemographicFact();
-        fact.setStoredFrom(Instant.now());
-        Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
-        fact.setFactType(attr);
-        addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, encounterDetails.getGivenName());
-        addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, encounterDetails.getMiddleName());
-        addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, encounterDetails.getFamilyName());
-        enc.addDemographic(fact);
+        List<VisitFact> allHospitalVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.HOSPITAL_VISIT);
 
-        VisitFact hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime());
+        // This perhaps belongs in a getCreateHospitalVisit method, with an InformDbDataIntegrity exception
+        VisitFact hospitalVisit;
+        switch (allHospitalVisits.size()) {
+        case 0:
+            hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime());
+            break;
+        case 1:
+            hospitalVisit = allHospitalVisits.get(0);
+            break;
+        default:
+            throw new RuntimeException("More than 1 (count = " + allHospitalVisits.size()
+                    + ") hospital visits in encounter " + encounterDetails.getVisitNumber());
+        }
+        addDemographicsToEncounter(enc, encounterDetails);
         // Need to save here so the hospital visit can be created (and thus assigned an ID),
         // so we can refer to that ID in the bed visit.
         // (Bed visits refer to hosp visits explicitly by their IDs).
@@ -344,6 +351,21 @@ public class InformDbOperations {
                 encounterDetails.getPV1Wrap().getCurrentBed());
         enc = encounterRepo.save(enc);
         return enc;
+    }
+
+    /**
+     * @param enc the encounter to add to
+     * @param msgDetails the message details to use
+     */
+    private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) {
+        PatientDemographicFact fact = new PatientDemographicFact();
+        fact.setStoredFrom(Instant.now());
+        Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
+        fact.setFactType(attr);
+        addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, msgDetails.getGivenName());
+        addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getMiddleName());
+        addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, msgDetails.getFamilyName());
+        enc.addDemographic(fact);
     }
 
     private VisitFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
