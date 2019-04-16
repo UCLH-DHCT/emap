@@ -27,7 +27,7 @@ jobs:
           command: |
               git clone git@github.com:inform-health-informatics/Inform-DB.git
               cd Inform-DB
-              git checkout develop
+              git checkout more_demo
 
       # Download and cache dependencies
       - restore_cache:
