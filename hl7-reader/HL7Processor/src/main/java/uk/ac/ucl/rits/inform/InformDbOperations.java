@@ -389,6 +389,9 @@ public class InformDbOperations {
      * @return Inform-db sex
      */
     private AttributeKeyMap mapSex(String hl7Sex) {
+        if (hl7Sex == null) {
+            return AttributeKeyMap.UNKNOWN;
+        }
         switch (hl7Sex) {
         case "M":
             return AttributeKeyMap.MALE;
