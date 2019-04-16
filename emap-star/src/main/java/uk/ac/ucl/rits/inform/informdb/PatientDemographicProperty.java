@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.xml.bind.TypeConstraintException;
 
 /**
  * A patient demographic property is a single property of a fact.
@@ -89,6 +90,25 @@ public class PatientDemographicProperty extends TemporalCore {
      */
     public String getValueAsString() {
         return valueAsString;
+    }
+
+    /**
+     * @param value the value, of any supported type
+     */
+    public void setValue(Object value) {
+        if (value instanceof String) {
+            this.valueAsString = (String) value;
+        } else if (value instanceof Instant) {
+            this.valueAsDatetime = (Instant) value;
+        } else if (value instanceof Double) {
+            this.valueAsReal = (Double) value;
+        } else if (value instanceof Boolean) {
+            this.valueAsBoolean = (Boolean) value;
+        } else if (value instanceof Attribute) {
+            this.valueAsAttribute = (Attribute) value;
+        } else {
+            throw new TypeConstraintException("Not a supported type: " + value.getClass());
+        }
     }
 
     /**
