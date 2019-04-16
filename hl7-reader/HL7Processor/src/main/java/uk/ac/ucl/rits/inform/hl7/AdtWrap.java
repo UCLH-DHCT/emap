@@ -28,25 +28,17 @@ public class AdtWrap {
     private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
     private String NHSNumber; // patient ID PID-3.1[2]
     private String visitNumber; // PV1-19
+    private String triggerEvent;
+    private Instant dob;
 
     private MSHWrap mshwrap;
     private PV1Wrap pv1wrap;
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
     private EVNWrap evnwrap;
-    private String triggerEvent;
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
-    }
-
-    /**
-     * I'm not sure if we would ever use this, as opposed to creating the mshwrap object in the constructor.
-     * 
-     * @param mshwrap
-     */
-    public void setMSHWrap (MSHWrap mshwrap) {
-        mshwrap = mshwrap;
     }
 
     public PV1Wrap getPV1Wrap () {
@@ -116,6 +108,7 @@ public class AdtWrap {
         try {
             pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
             administrativeSex = pidwrap.getPatientSex();
+            dob = pidwrap.getPatientBirthDate();
             familyName = pidwrap.getPatientFamilyName();
             givenName = pidwrap.getPatientGivenName();
             middleName = pidwrap.getPatientMiddleName();
@@ -232,4 +225,9 @@ public class AdtWrap {
     public String getTriggerEvent() {
         return triggerEvent;
     }
+
+    public Instant getDob() {
+        return dob;
+    }
+
 }
