@@ -76,6 +76,16 @@ public class PV1Wrap {
     }
 
     /**
+     * Get all the location components concatenated together.
+     * We may need to canonicalise these to remove duplicate info.
+     * @return
+     * @throws HL7Exception
+     */
+    public String getFullLocationString() throws HL7Exception {
+        return String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
+    }
+
+    /**
      * @return PV1-4.1 1st repeat (admit priority) e.g. I
      * @throws HL7Exception
      */
