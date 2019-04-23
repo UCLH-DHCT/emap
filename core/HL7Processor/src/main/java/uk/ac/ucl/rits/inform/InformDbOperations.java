@@ -348,7 +348,7 @@ public class InformDbOperations {
         enc = encounterRepo.save(enc);
         addOpenBedVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
                 hospitalVisit,
-                encounterDetails.getPV1Wrap().getCurrentBed());
+                encounterDetails.getPV1Wrap().getFullLocationString());
         enc = encounterRepo.save(enc);
         return enc;
     }
@@ -529,7 +529,7 @@ public class InformDbOperations {
         }
         List<VisitFact> hospitalVisit = getVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
-        addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), transferDetails.getPV1Wrap().getCurrentBed());
+        addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), transferDetails.getPV1Wrap().getFullLocationString());
     }
 
     /**

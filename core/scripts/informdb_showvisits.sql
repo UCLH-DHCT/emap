@@ -57,3 +57,17 @@ left join attribute attrval on pdp.value_as_attribute = attrval.attribute_id
 where attrkey.short_name in ('DOB', 'SEX')
 order by encounter, attrkey.short_name
 ;
+
+SELECT
+enc.encounter,
+attrkey.short_name,
+timeprop.value_as_datetime as arrival_time,
+vp.value_as_string
+from visit_property vp
+inner join visit_fact vf on vp.visit = vf.visit_id
+inner join encounter enc on enc.encounter = vf.encounter
+inner join attribute attrkey on vp.attribute = attrkey.attribute_id
+left join visit_property timeprop on timeprop.visit = vf.visit_id AND timeprop.attribute = (select attribute_id from attribute where short_name = 'ARRIVAL_TIME')
+where attrkey.short_name in ('LOCATION')
+order by encounter, arrival_time
+;
