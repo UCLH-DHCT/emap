@@ -52,6 +52,10 @@ public class PV1Wrap {
      * @throws HL7Exception
      */
     public String getCurrentWardCode() throws HL7Exception {
+        if (_pv1 == null) {
+            // Need to come up with a better way of generating test data
+            return "Test poc location";
+        }
         return _pv1.getAssignedPatientLocation().getPl1_PointOfCare().getComponent(0).toString();
     }
 
@@ -60,6 +64,10 @@ public class PV1Wrap {
      * @throws HL7Exception
      */
     public String getCurrentRoomCode() throws HL7Exception {
+        if (_pv1 == null) {
+            // Need to come up with a better way of generating test data
+            return "Test room location";
+        }
         return _pv1.getAssignedPatientLocation().getPl2_Room().getComponent(0).toString();
     }
 
