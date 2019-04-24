@@ -74,6 +74,7 @@ inner join attribute attrkey on vp.attribute = attrkey.attribute_id
 left join visit_property arrivaltime on arrivaltime.visit = vf.visit_id AND arrivaltime.attribute = (select attribute_id from attribute where short_name = 'ARRIVAL_TIME')
 left join visit_property dischtime on dischtime.visit = vf.visit_id AND dischtime.attribute = (select attribute_id from attribute where short_name = 'DISCH_TIME')
 where attrkey.short_name in ('LOCATION')
+and vp.valid_until is null
 order by encounter, arrival_time
 ;
 

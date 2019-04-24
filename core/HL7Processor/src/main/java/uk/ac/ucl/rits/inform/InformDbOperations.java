@@ -263,9 +263,20 @@ public class InformDbOperations {
         return matchingVisits;
     }
     
-    private boolean visitFactIsOpen(VisitFact vf) {
+    /**
+     * Check whether VisitFact has no discharge time property, indicating it's still open,
+     * and its valid until column is null, indicating that it has never been
+     * invalidated.
+     * Note: this does not perform time travel (ie. check whether validuntil is null or in the future)
+     * Note: the validity of the underlying visit properties is not checked - what would it mean to have
+     * a mismatch in validity between a Fact and its underlying properties? 
+     * @param vf
+     * @return
+     */
+    private boolean visitFactIsOpenAndValid(VisitFact vf) {
         List<VisitProperty> vpEnd = getPropertyByAttribute(vf, AttributeKeyMap.DISCHARGE_TIME);
-        return vpEnd.isEmpty();
+        Instant validUntil = vf.getValidUntil();
+        return vpEnd.isEmpty() && (validUntil == null);
     }
     
     private List<VisitProperty> getPropertyByAttribute(VisitFact vf, AttributeKeyMap dischargeTime) {
@@ -293,11 +304,17 @@ public class InformDbOperations {
     }
 
 
+    /**
+     * Get all open and valid Visit
+     * @param encounter
+     * @param attr
+     * @return
+     */
     private List<VisitFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
         logger.info("getOpenVisitFactWhereVisitType: " + encounter + " " + attr);
         return getVisitFactWhere(encounter,
                 vf -> visitFactIsOfType(vf, attr)
-                && visitFactIsOpen(vf)
+                && visitFactIsOpenAndValid(vf)
                 );
     }
     
@@ -357,19 +374,37 @@ public class InformDbOperations {
         switch (allHospitalVisits.size()) {
         case 0:
             hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime());
+            addDemographicsToEncounter(enc, encounterDetails);
+            // Need to save here so the hospital visit can be created (and thus assigned an ID),
+            // so we can refer to that ID in the bed visit.
+            // (Bed visits refer to hosp visits explicitly by their IDs).
+            enc = encounterRepo.save(enc);
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
+            // We have received an A01 but there was already an
+            // open hospital visit, so invalidate the existing bed visit and its properties
+            logger.info("Invalidating previoud bed visit");
+            List<VisitFact> allOpenBedVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.BED_VISIT);
+            if (allOpenBedVisits.size() != 1) {
+                throw new InformDbIntegrityException(
+                        "Found an open hospital visit with open bed visit count != 1 - hosp visit = "
+                                + hospitalVisit.getVisitId());
+            }
+            // Need to check whether it's the bed visit that corresponds to the existing hospital visit?
+            VisitFact openBedVisit = allOpenBedVisits.get(0);
+            Instant invalidTime = Instant.now();
+            openBedVisit.setValidUntil(invalidTime);
+            // invalidate all the properties too
+            for (VisitProperty prop : openBedVisit.getVisitProperties()) {
+                prop.setValidUntil(invalidTime);
+            }
             break;
         default:
             throw new MessageIgnoredException("More than 1 (count = " + allHospitalVisits.size()
                     + ") hospital visits in encounter " + encounterDetails.getVisitNumber());
         }
-        addDemographicsToEncounter(enc, encounterDetails);
-        // Need to save here so the hospital visit can be created (and thus assigned an ID),
-        // so we can refer to that ID in the bed visit.
-        // (Bed visits refer to hosp visits explicitly by their IDs).
-        enc = encounterRepo.save(enc);
+        // create a new bed visit with the new (or updated) location
         addOpenBedVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
                 hospitalVisit,
                 encounterDetails.getPV1Wrap().getFullLocationString());
