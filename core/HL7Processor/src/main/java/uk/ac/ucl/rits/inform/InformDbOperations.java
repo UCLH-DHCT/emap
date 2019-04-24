@@ -33,6 +33,8 @@ import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.EncounterRepository;
+import uk.ac.ucl.rits.inform.informdb.IdsEffectLogging;
+import uk.ac.ucl.rits.inform.informdb.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.informdb.IdsProgress;
 import uk.ac.ucl.rits.inform.informdb.IdsProgressRepository;
 import uk.ac.ucl.rits.inform.informdb.Mrn;
@@ -63,6 +65,8 @@ public class InformDbOperations {
     private VisitFactRepository visitFactRepository;
     @Autowired
     private IdsProgressRepository idsProgressRepository;
+    @Autowired
+    private IdsEffectLoggingRepository idsEffectLoggingRepository;
 
     private final static Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -93,6 +97,11 @@ public class InformDbOperations {
     public int processNextHl7(PipeParser parser, List<String> parsingErrors) throws HL7Exception {
         int lastProcessedId = getLatestProcessedId();
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
+        IdsEffectLogging idsLog = new IdsEffectLogging();
+        idsLog.setProcessingStartTime(Instant.now());
+        idsLog.setIdsUnid(idsMsg.getUnid());
+        idsLog.setMrn(idsMsg.getHospitalnumber());
+        idsLog.setMessageType(idsMsg.getMessagetype());
         int processed = 0;
         String hl7msg = idsMsg.getHl7message();
         // HL7 is supposed to use \r for line endings, but
@@ -107,12 +116,14 @@ public class InformDbOperations {
             hl7e.printStackTrace();
             // Mark the message as processed even though we couldn't parse it,
             // but record it for later debugging.
-            // Will need a more sophisticated way of logging these errors. Do
-            // it in the destination database?
             parsingErrors.add(errString);
             logger.info(errString);
+            idsLog.setMessage(errString);
             setLatestProcessedId(idsMsg.getUnid());
             return processed;
+        }
+        finally {
+            idsLog = idsEffectLoggingRepository.save(idsLog);
         }
 
         try {
@@ -134,16 +145,29 @@ public class InformDbOperations {
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
                         + msgFromIds.getClass() + ")");
+                idsLog.setMessage("Skipping due to message type");
             }
         }
         catch (HL7Exception e) {
-            logger.warn("[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
-                    + ")");
+            String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
+                    + ")";
+            idsLog.setMessage(errMsg);
+            logger.warn(errMsg);
         }
         catch (InvalidMrnException e) {
-            logger.warn("[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass()
-            + ")");
+            String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass()
+            + ")";
+            idsLog.setMessage(errMsg);
+            logger.warn(errMsg);
         }
+        catch (MessageIgnoredException e) {
+            idsLog.setMessage(e.getClass() + " " + e.getMessage());
+        }
+        finally {
+            idsLog = idsEffectLoggingRepository.save(idsLog);
+        }
+        idsLog.setProcessingEndTime(Instant.now());
+        idsLog = idsEffectLoggingRepository.save(idsLog);
         setLatestProcessedId(idsMsg.getUnid());
 
         return processed;
@@ -297,7 +321,7 @@ public class InformDbOperations {
             return enc;
         }
         else if (existingEncs.size() > 1) {
-            throw new RuntimeException("More than one encounter with this ID, not sure how to handle this yet: " + encounter);
+            throw new MessageIgnoredException("More than one encounter with this ID, not sure how to handle this yet: " + encounter);
         }
         else {
             // return the only element
@@ -338,7 +362,7 @@ public class InformDbOperations {
             hospitalVisit = allHospitalVisits.get(0);
             break;
         default:
-            throw new RuntimeException("More than 1 (count = " + allHospitalVisits.size()
+            throw new MessageIgnoredException("More than 1 (count = " + allHospitalVisits.size()
                     + ") hospital visits in encounter " + encounterDetails.getVisitNumber());
         }
         addDemographicsToEncounter(enc, encounterDetails);
@@ -493,8 +517,7 @@ public class InformDbOperations {
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         
         if (encounter == null) {
-            logger.warn("Cannot transfer an encounter that doesn't exist: " + visitNumber);
-            return;
+            throw new MessageIgnoredException("Cannot transfer an encounter that doesn't exist: " + visitNumber);
         }
         
         List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
@@ -507,8 +530,7 @@ public class InformDbOperations {
         // would contain the date/time the patient was actually transferred."
         Instant eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
         if (latestOpenBedVisits.isEmpty()) {
-            logger.error("There is no open bed visit, cannot transfer, was there an A13 message you didn't process? vis num " + visitNumber);
-            return;
+            throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
@@ -524,8 +546,7 @@ public class InformDbOperations {
         // add a new visit to the current encounter
         Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
         if (encounter != encounterDoubleCheck) {
-            logger.error("Different encounter: " + encounter + " | " + encounterDoubleCheck);
-            throw new RuntimeException("waaa");
+            throw new MessageIgnoredException("Different encounter: " + encounter + " | " + encounterDoubleCheck);
         }
         List<VisitFact> hospitalVisit = getVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
@@ -560,13 +581,11 @@ public class InformDbOperations {
         
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
-            logger.warn("Cannot discharge for a visit that doesn't exist: " + visitNumber);
-            return;
+            throw new MessageIgnoredException("Cannot discharge for a visit that doesn't exist: " + visitNumber);
         }
         List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
         if (latestOpenBedVisits.isEmpty()) {
-            logger.error("There is no open bed visit, cannot discharge, was there an A13 message you didn't process? vis num " + visitNumber);
-            return;
+            throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         Instant eventOccurred = adtWrap.getEVNWrap().getEventOccurred();
         Instant dischargeDateTime = adtWrap.getPV1Wrap().getDischargeDateTime();
