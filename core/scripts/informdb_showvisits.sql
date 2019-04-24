@@ -62,6 +62,7 @@ order by encounter, attrkey.short_name
 CREATE TEMPORARY VIEW VISIT_TIMES AS
 SELECT
 enc.encounter,
+enc.mrn,
 attrkey.short_name,
 arrivaltime.value_as_datetime as arrival_time,
 dischtime.value_as_datetime as discharge_time,
