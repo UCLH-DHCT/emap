@@ -58,16 +58,50 @@ where attrkey.short_name in ('DOB', 'SEX')
 order by encounter, attrkey.short_name
 ;
 
+-- locations + times
+CREATE TEMPORARY VIEW VISIT_TIMES AS
 SELECT
 enc.encounter,
 attrkey.short_name,
-timeprop.value_as_datetime as arrival_time,
-vp.value_as_string
+arrivaltime.value_as_datetime as arrival_time,
+dischtime.value_as_datetime as discharge_time,
+vp.value_as_string as location
 from visit_property vp
 inner join visit_fact vf on vp.visit = vf.visit_id
 inner join encounter enc on enc.encounter = vf.encounter
 inner join attribute attrkey on vp.attribute = attrkey.attribute_id
-left join visit_property timeprop on timeprop.visit = vf.visit_id AND timeprop.attribute = (select attribute_id from attribute where short_name = 'ARRIVAL_TIME')
+left join visit_property arrivaltime on arrivaltime.visit = vf.visit_id AND arrivaltime.attribute = (select attribute_id from attribute where short_name = 'ARRIVAL_TIME')
+left join visit_property dischtime on dischtime.visit = vf.visit_id AND dischtime.attribute = (select attribute_id from attribute where short_name = 'DISCH_TIME')
 where attrkey.short_name in ('LOCATION')
 order by encounter, arrival_time
+;
+
+-- all locations and times
+SELECT * FROM VISIT_TIMES
+order by arrival_time
+;
+
+-- locations and times for people currently in the hospital
+SELECT * FROM VISIT_TIMES
+WHERE discharge_time is null
+order by arrival_time
+;
+
+-- locations and times for people currently in the hospital, organised
+-- by location (can check whether two patients appear to be in the same bed)
+SELECT * FROM VISIT_TIMES
+WHERE discharge_time is null
+order by location
+;
+
+SELECT location,
+count(*),
+min(NOW() - arrival_time) as min_since_arrival,
+avg(NOW() - arrival_time) as avg_since_arrival,
+max(NOW() - arrival_time) as max_since_arrival
+FROM VISIT_TIMES
+WHERE discharge_time is null
+AND location like 'ED%'
+group by location
+order by location
 ;
