@@ -398,7 +398,7 @@ public class InformDbOperations {
             }
             // Need to check whether it's the bed visit that corresponds to the existing hospital visit?
             VisitFact openBedVisit = allOpenBedVisits.get(0);
-            Instant invalidTime = Instant.now();
+            Instant invalidTime = encounterDetails.getEventTime();
             openBedVisit.setValidUntil(invalidTime);
             // invalidate all the properties too
             for (VisitProperty prop : openBedVisit.getVisitProperties()) {
@@ -473,6 +473,7 @@ public class InformDbOperations {
 
     private VisitFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
         VisitFact visitFact = new VisitFact();
+        visitFact.setValidFrom(visitBeginTime);
         visitFact.setStoredFrom(Instant.now());
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setVisitType(hosp);
@@ -491,11 +492,12 @@ public class InformDbOperations {
     private void addOpenBedVisit(Encounter enc, Instant visitBeginTime, VisitFact parentVisit, String currentBed) {
         VisitFact visitFact = new VisitFact();
         visitFact.setStoredFrom(Instant.now());
+        visitFact.setValidFrom(visitBeginTime);
         Attribute hosp = getCreateAttribute(AttributeKeyMap.BED_VISIT);
         visitFact.setVisitType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
-        addLocationToVisit(visitFact, currentBed);
-        addParentVisitToVisit(visitFact, parentVisit);
+        addLocationToVisit(visitFact, currentBed, visitBeginTime);
+        addParentVisitToVisit(visitFact, parentVisit, visitBeginTime);
         enc.addVisit(visitFact);
     }
 
@@ -503,9 +505,10 @@ public class InformDbOperations {
      * @param visitFact
      * @param currentBed
      */
-    private void addParentVisitToVisit(VisitFact visitFact, VisitFact parentVisit) {
+    private void addParentVisitToVisit(VisitFact visitFact, VisitFact parentVisit, Instant validFrom) {
         Attribute attr = getCreateAttribute(AttributeKeyMap.PARENT_VISIT);
         VisitProperty prop = new VisitProperty();
+        prop.setValidFrom(validFrom);
         prop.setStoredFrom(Instant.now());
         prop.setAttribute(attr);
         prop.setValueAsLink(parentVisit.getVisitId());
@@ -517,9 +520,10 @@ public class InformDbOperations {
      * @param visitFact
      * @param currentBed
      */
-    private void addLocationToVisit(VisitFact visitFact, String currentBed) {
+    private void addLocationToVisit(VisitFact visitFact, String currentBed, Instant validFrom) {
         Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
         VisitProperty locVisProp = new VisitProperty();
+        locVisProp.setValidFrom(validFrom);
         locVisProp.setStoredFrom(Instant.now());
         locVisProp.setAttribute(location);
         locVisProp.setValueAsString(currentBed);
@@ -533,6 +537,7 @@ public class InformDbOperations {
     private void addArrivalTimeToVisit(VisitFact visitFact, Instant visitBeginTime) {
         Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
         VisitProperty arrVisProp = new VisitProperty();
+        arrVisProp.setValidFrom(visitBeginTime);
         arrVisProp.setStoredFrom(Instant.now());
         arrVisProp.setValueAsDatetime(visitBeginTime);
         arrVisProp.setAttribute(arrivalTime);
@@ -653,6 +658,7 @@ public class InformDbOperations {
     private void addDischargeToVisit(VisitFact visit, Instant dischargeDateTime) {
         Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
         VisitProperty visProp = new VisitProperty();
+        visProp.setValidFrom(dischargeDateTime);
         visProp.setStoredFrom(Instant.now());
         visProp.setValueAsDatetime(dischargeDateTime);
         visProp.setAttribute(dischargeTime);
