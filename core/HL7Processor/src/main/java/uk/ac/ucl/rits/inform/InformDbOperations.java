@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +103,10 @@ public class InformDbOperations {
         idsLog.setIdsUnid(idsMsg.getUnid());
         idsLog.setMrn(idsMsg.getHospitalnumber());
         idsLog.setMessageType(idsMsg.getMessagetype());
+        Timestamp messagedatetime = idsMsg.getMessagedatetime();
+        if (messagedatetime != null) {
+            idsLog.setMessageDatetime(messagedatetime.toInstant());
+        }
         int processed = 0;
         String hl7msg = idsMsg.getHl7message();
         // HL7 is supposed to use \r for line endings, but
