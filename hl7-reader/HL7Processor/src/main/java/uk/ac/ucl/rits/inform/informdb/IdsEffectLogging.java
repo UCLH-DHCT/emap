@@ -23,6 +23,7 @@ public class IdsEffectLogging {
     private int id;
     // the unique ID of the IDS message
     private int idsUnid;
+    private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
     // the MRN as stated in the IDS
@@ -54,5 +55,9 @@ public class IdsEffectLogging {
 
     public void setMessageType(String messageType) {
         this.messageType = messageType;
+    }
+
+    public void setMessageDatetime(Instant messageDatetime) {
+        this.messageDatetime = messageDatetime;
     }
 }
