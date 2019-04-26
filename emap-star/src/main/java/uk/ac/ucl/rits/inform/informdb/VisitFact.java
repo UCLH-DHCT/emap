@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -105,6 +106,26 @@ public class VisitFact extends TemporalCore {
         }
         this.visitProperties.add(prop);
         prop.setVisit(this);
+    }
+
+    /**
+     * @param attrKey the attribute
+     * @return the property(ies) in this fact with the given attribute (key)
+     */
+    public List<VisitProperty> getPropertyByAttribute(AttributeKeyMap attrKey) {
+        // Might want to cache this as K->[V,V',V'',...] pairs.
+        // Many properties have logical constraints on the number of elements that
+        // should exist - consider enforcing this here?
+        // Also can this go in an interface that handles the Fact-Property relationship
+        // wherever it arises (here + Demographics)?
+        List<VisitProperty> props = this.getVisitProperties();
+        if (props == null) {
+            return new ArrayList<VisitProperty>();
+        }
+        List<VisitProperty> propsWithAttr = props.stream()
+                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey.getShortname()))
+                .collect(Collectors.toList());
+        return propsWithAttr;
     }
 
 }
