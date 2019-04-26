@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -422,6 +423,18 @@ public class InformDbOperations {
      * @param msgDetails the message details to use
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) {
+        HashMap<AttributeKeyMap,PatientDemographicFact> demogs = buildDemographics(msgDetails);
+        demogs.forEach((k, v) -> enc.addDemographic(v));
+    }
+
+    /**
+     * Build the demographics objects from a message but don't actually do
+     * anything with them.
+     * @param msgDetails
+     * @return Attribute->Fact key-value pairs
+     */
+    private HashMap<AttributeKeyMap,PatientDemographicFact> buildDemographics(AdtWrap msgDetails) {
+        HashMap<AttributeKeyMap, PatientDemographicFact> demographics = new HashMap<AttributeKeyMap, PatientDemographicFact>();
         {
             PatientDemographicFact fact = new PatientDemographicFact();
             fact.setStoredFrom(Instant.now());
@@ -430,7 +443,7 @@ public class InformDbOperations {
             addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, msgDetails.getGivenName());
             addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getMiddleName());
             addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, msgDetails.getFamilyName());
-            enc.addDemographic(fact);
+            demographics.put(AttributeKeyMap.NAME_FACT, fact);
         }
         {
             PatientDemographicFact fact = new PatientDemographicFact();
@@ -443,8 +456,9 @@ public class InformDbOperations {
             String hl7Sex = msgDetails.getAdministrativeSex();
             Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
             addPropertyToFact(fact, AttributeKeyMap.SEX, sexAttrValue);
-            enc.addDemographic(fact);
+            demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC, fact);
         }
+        return demographics;
     }
     
     /**
