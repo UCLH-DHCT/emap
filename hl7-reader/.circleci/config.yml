@@ -30,23 +30,11 @@ jobs:
               git checkout more_demo
               mvn install -Dmaven.test.skip=true
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "HL7Processor/pom.xml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
       - run:
           command: |
              cd HL7Processor
              mvn dependency:go-offline
 
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "HL7Processor/pom.xml" }}
-        
       - run:
           command: |
              cd HL7Processor
