@@ -17,7 +17,7 @@ import javax.xml.bind.TypeConstraintException;
  *
  */
 @Entity
-public class PatientDemographicProperty extends TemporalCore {
+public class PatientDemographicProperty extends TemporalCore implements Property {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

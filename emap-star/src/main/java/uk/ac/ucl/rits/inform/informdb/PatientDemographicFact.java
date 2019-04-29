@@ -19,7 +19,7 @@ import javax.persistence.OneToMany;
  *
  */
 @Entity
-public class PatientDemographicFact extends TemporalCore {
+public class PatientDemographicFact extends TemporalCore implements FactToProperty<PatientDemographicProperty> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

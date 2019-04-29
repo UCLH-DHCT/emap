@@ -16,7 +16,7 @@ import javax.persistence.ManyToOne;
  *
  */
 @Entity
-public class VisitProperty extends TemporalCore {
+public class VisitProperty extends TemporalCore implements Property {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
