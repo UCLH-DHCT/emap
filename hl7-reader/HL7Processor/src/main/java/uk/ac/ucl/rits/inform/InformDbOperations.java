@@ -280,20 +280,9 @@ public class InformDbOperations {
      * @return
      */
     private boolean visitFactIsOpenAndValid(VisitFact vf) {
-        List<VisitProperty> vpEnd = getPropertyByAttribute(vf, AttributeKeyMap.DISCHARGE_TIME);
+        List<VisitProperty> vpEnd = vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
         Instant validUntil = vf.getValidUntil();
         return vpEnd.isEmpty() && (validUntil == null);
-    }
-    
-    private List<VisitProperty> getPropertyByAttribute(VisitFact vf, AttributeKeyMap dischargeTime) {
-        List<VisitProperty> props = vf.getVisitProperties();
-        if (props == null) {
-            return new ArrayList<VisitProperty>();
-        }
-        List<VisitProperty> propsWithAttr = props.stream()
-                .filter(prop -> prop.getAttribute().getShortName().equals(dischargeTime.getShortname()))
-                .collect(Collectors.toList());
-        return propsWithAttr;
     }
 
     private boolean visitFactIsOfType(VisitFact vf, AttributeKeyMap visitTypeAttr) {
@@ -402,7 +391,7 @@ public class InformDbOperations {
             Instant invalidTime = encounterDetails.getEventTime();
             openBedVisit.setValidUntil(invalidTime);
             // invalidate all the properties too
-            for (VisitProperty prop : openBedVisit.getVisitProperties()) {
+            for (VisitProperty prop : openBedVisit.getFactProperties()) {
                 prop.setValidUntil(invalidTime);
             }
             break;
