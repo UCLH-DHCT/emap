@@ -201,5 +201,4 @@ public class PatientDemographicProperty extends TemporalCore implements Property
     public void setValueAsLink(Integer valueAsLink) {
         this.valueAsLink = valueAsLink;
     }
-
 }
