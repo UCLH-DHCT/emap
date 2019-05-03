@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -155,6 +156,15 @@ public class Encounter extends TemporalCore implements Serializable {
      */
     public List<PatientDemographicFact> getDemographics() {
         return demographics;
+    }
+
+    /**
+     * @return the demographics as a HashMap, indexed by fact short name
+     */
+    public HashMap<String, PatientDemographicFact> getDemographicsAsHashMap() {
+        HashMap<String, PatientDemographicFact> demographicsHM = new HashMap<String, PatientDemographicFact>();
+        demographics.forEach(d -> demographicsHM.put(d.getFactType().getShortName(), d));
+        return demographicsHM;
     }
 
     /**

@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,4 +53,9 @@ public interface FactToProperty<PropertyType extends Property> {
      */
     List<PropertyType> getFactProperties();
 
+    /**
+     * Invalidate the fact and all its properties.
+     * @param invalidationDate the instant at which this fact became invalid
+     */
+    void invalidateAll(Instant invalidationDate);
 }

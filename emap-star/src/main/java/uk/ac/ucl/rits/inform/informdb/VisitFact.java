@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -106,5 +107,14 @@ public class VisitFact extends TemporalCore implements FactToProperty<VisitPrope
         this.visitProperties.add(prop);
         prop.setVisit(this);
     }
+
+    @Override
+    public void invalidateAll(Instant invalidationDate) {
+        setValidUntil(invalidationDate);
+        for (VisitProperty vp: getFactProperties()) {
+            vp.setValidUntil(invalidationDate);
+        }
+    }
+
 
 }

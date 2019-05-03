@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,6 +104,52 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
         }
         this.factProperties.add(prop);
         prop.setFact(this);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((factProperties == null) ? 0 : factProperties.hashCode());
+        result = prime * result + ((factType == null) ? 0 : factType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        PatientDemographicFact other = (PatientDemographicFact) obj;
+        if (factProperties == null) {
+            if (other.factProperties != null) {
+                return false;
+            }
+        } else if (!factProperties.equals(other.factProperties)) {
+            return false;
+        }
+        if (factType == null) {
+            if (other.factType != null) {
+                return false;
+            }
+        } else if (!factType.equals(other.factType)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void invalidateAll(Instant invalidationDate) {
+        setValidUntil(invalidationDate);
+        for (PatientDemographicProperty pdp: getFactProperties()) {
+            pdp.setValidUntil(invalidationDate);
+        }
     }
 
 }
