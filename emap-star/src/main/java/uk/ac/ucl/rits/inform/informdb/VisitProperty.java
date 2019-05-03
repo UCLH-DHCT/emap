@@ -16,7 +16,7 @@ import javax.persistence.ManyToOne;
  *
  */
 @Entity
-public class VisitProperty extends TemporalCore implements Property {
+public class VisitProperty extends TemporalCore implements Property, Comparable<VisitProperty> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -180,6 +180,12 @@ public class VisitProperty extends TemporalCore implements Property {
      */
     public void setValueAsLink(Long valueAsLink) {
         this.valueAsLink = valueAsLink;
+    }
+
+    @Override
+    public int compareTo(VisitProperty o) {
+        return getAttribute().getShortName().compareTo(
+                o.getAttribute().getShortName());
     }
 
 }

@@ -17,7 +17,7 @@ import javax.xml.bind.TypeConstraintException;
  *
  */
 @Entity
-public class PatientDemographicProperty extends TemporalCore implements Property {
+public class PatientDemographicProperty extends TemporalCore implements Property, Comparable<PatientDemographicProperty> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -286,5 +286,11 @@ public class PatientDemographicProperty extends TemporalCore implements Property
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(PatientDemographicProperty o) {
+        return getAttribute().getShortName().compareTo(
+                o.getAttribute().getShortName());
     }
 }

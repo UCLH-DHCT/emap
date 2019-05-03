@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +39,7 @@ public interface FactToProperty<PropertyType extends Property> {
         // Might want to cache this as K->[V,V',V'',...] pairs.
         // Many properties have logical constraints on the number of elements that
         // should exist - consider enforcing this here?
-        List<PropertyType> props = getFactProperties();
+        SortedSet<PropertyType> props = getFactProperties();
         if (props == null) {
             return new ArrayList<PropertyType>();
         }
@@ -51,7 +52,7 @@ public interface FactToProperty<PropertyType extends Property> {
     /**
      * @return the properties for the fact
      */
-    List<PropertyType> getFactProperties();
+    SortedSet<PropertyType> getFactProperties();
 
     /**
      * Invalidate the fact and all its properties.

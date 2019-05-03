@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -12,6 +12,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+
+import org.hibernate.annotations.Sort;
+import org.hibernate.annotations.SortType;
 
 /**
  * This represents a grouper for a fact about a patient.
@@ -35,7 +38,8 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
     private Attribute                        factType;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
-    private List<PatientDemographicProperty> factProperties;
+    @Sort(type = SortType.NATURAL)
+    private SortedSet<PatientDemographicProperty> factProperties;
 
     /**
      * @return the factId
@@ -82,14 +86,14 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
     /**
      * @return the factProperties
      */
-    public List<PatientDemographicProperty> getFactProperties() {
+    public SortedSet<PatientDemographicProperty> getFactProperties() {
         return factProperties;
     }
 
     /**
      * @param factProperties the factProperties to set
      */
-    public void setFactProperties(List<PatientDemographicProperty> factProperties) {
+    public void setFactProperties(SortedSet<PatientDemographicProperty> factProperties) {
         this.factProperties = factProperties;
     }
 
@@ -100,7 +104,7 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
      */
     public void addProperty(PatientDemographicProperty prop) {
         if (this.factProperties == null) {
-            this.factProperties = new ArrayList<>();
+            this.factProperties = new TreeSet<>();
         }
         this.factProperties.add(prop);
         prop.setFact(this);
