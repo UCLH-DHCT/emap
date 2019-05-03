@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -147,6 +148,10 @@ public class InformDbOperations {
             } else if (adtWrap.getTriggerEvent().equals("A03")) {
                 logger.info("[" + idsMsg.getUnid() + "] A03, discharge");
                 dischargePatient(adtWrap);
+                processed += 1;
+            } else if (adtWrap.getTriggerEvent().equals("A08")) {
+                logger.info("[" + idsMsg.getUnid() + "] A08, update patient info");
+                updatePatientInfo(adtWrap);
                 processed += 1;
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
@@ -412,7 +417,7 @@ public class InformDbOperations {
      * @param msgDetails the message details to use
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) {
-        HashMap<AttributeKeyMap,PatientDemographicFact> demogs = buildDemographics(msgDetails);
+        HashMap<String,PatientDemographicFact> demogs = buildDemographics(msgDetails);
         demogs.forEach((k, v) -> enc.addDemographic(v));
     }
 
@@ -422,20 +427,22 @@ public class InformDbOperations {
      * @param msgDetails
      * @return Attribute->Fact key-value pairs
      */
-    private HashMap<AttributeKeyMap,PatientDemographicFact> buildDemographics(AdtWrap msgDetails) {
-        HashMap<AttributeKeyMap, PatientDemographicFact> demographics = new HashMap<AttributeKeyMap, PatientDemographicFact>();
+    private HashMap<String,PatientDemographicFact> buildDemographics(AdtWrap msgDetails) {
+        HashMap<String, PatientDemographicFact> demographics = new HashMap<String, PatientDemographicFact>();
         {
             PatientDemographicFact fact = new PatientDemographicFact();
+            fact.setValidFrom(msgDetails.getEventTime());
             fact.setStoredFrom(Instant.now());
             Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
             fact.setFactType(attr);
             addPropertyToFact(fact, AttributeKeyMap.FIRST_NAME, msgDetails.getGivenName());
             addPropertyToFact(fact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getMiddleName());
             addPropertyToFact(fact, AttributeKeyMap.FAMILY_NAME, msgDetails.getFamilyName());
-            demographics.put(AttributeKeyMap.NAME_FACT, fact);
+            demographics.put(AttributeKeyMap.NAME_FACT.getShortname(), fact);
         }
         {
             PatientDemographicFact fact = new PatientDemographicFact();
+            fact.setValidFrom(msgDetails.getEventTime());
             fact.setStoredFrom(Instant.now());
             fact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
             
@@ -445,7 +452,7 @@ public class InformDbOperations {
             String hl7Sex = msgDetails.getAdministrativeSex();
             Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
             addPropertyToFact(fact, AttributeKeyMap.SEX, sexAttrValue);
-            demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC, fact);
+            demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname(), fact);
         }
         return demographics;
     }
@@ -640,7 +647,7 @@ public class InformDbOperations {
         logger.info("DISCHARGE: MRN " + mrnStr);
         logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
         if (eventOccurred == null) {
-            logger.warn("Trying to discharge but the event occurred date is null. Is this a dupe message?");
+            throw new MessageIgnoredException("Trying to discharge but the event occurred date is null. Is this a dupe message?");
         }
         else {
             VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
@@ -688,10 +695,94 @@ public class InformDbOperations {
         if (factValue != null) {
             Attribute attr = getCreateAttribute(attrKM);
             PatientDemographicProperty prop = new PatientDemographicProperty();
+            prop.setValidFrom(fact.getValidFrom());
             prop.setStoredFrom(Instant.now());
             prop.setAttribute(attr);
             prop.setValue(factValue);
             fact.addProperty(prop);
+        }
+    }
+
+    private <E> E getOnlyElement(List<E> list) {
+        switch (list.size()) {
+        case 0:
+            return null;
+        case 1:
+            return list.get(0);
+        default:
+            throw new DuplicateValueException();
+        }
+    }
+
+    /**
+     * Handle an A08 message. This is supposed to be about patient info changes (ie. demographics,
+     * but we also see changes to location (ie. transfers) communicated only via an A08)
+     *
+     * @param adtWrap
+     * @throws HL7Exception
+     */
+    @Transactional
+    private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception {
+        String visitNumber = adtWrap.getVisitNumber();
+        String newLocation = adtWrap.getPV1Wrap().getFullLocationString();
+
+        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+        if (encounter == null) {
+            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+        }
+
+        // Compare new demographics with old
+        HashMap<String,PatientDemographicFact> newDemographics = buildDemographics(adtWrap);
+        HashMap<String, PatientDemographicFact> currentDemographics = encounter.getDemographicsAsHashMap();
+        updateDemographics(encounter, currentDemographics, newDemographics);
+
+        // Visits, just detect changes for now until I work out what to do
+        List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
+        VisitFact onlyOpenBedVisit = getOnlyElement(latestOpenBedVisits);
+        if (onlyOpenBedVisit == null) {
+            throw new MessageIgnoredException("Got A08 but no open bed visit for visit " + visitNumber);
+        }
+        VisitProperty knownlocation = getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION));
+        if (!newLocation.equals(knownlocation.getValueAsString())) {
+            logger.warn(String.format("[vis num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|",
+                    visitNumber, knownlocation.getValueAsString(), newLocation));
+        }
+
+        encounter = encounterRepo.save(encounter);
+    }
+
+    /**
+     * If demographics have changed, update them and invalidate the old.
+     * @param encounter the existing encounter that we may need to modify demographics of
+     * @param currentDemographics existing demographics (eg. from the db)
+     * @param newDemographics new demographics (eg. from the current message)
+     */
+    private void updateDemographics(
+            Encounter encounter,
+            HashMap<String, PatientDemographicFact> currentDemographics,
+            HashMap<String, PatientDemographicFact> newDemographics) {
+        logger.info(String.format("A08 comparing %d existing demographic facts to %s new facts",
+                currentDemographics.size(), newDemographics.size()));
+        for (String newKey : newDemographics.keySet()) {
+            PatientDemographicFact newFact = newDemographics.get(newKey);
+            PatientDemographicFact currentFact = currentDemographics.get(newKey);
+            if (currentFact == null) {
+                logger.info("fact does not exist, adding " + newFact.getFactType().getShortName());
+                encounter.addDemographic(newFact);
+            }
+            else {
+                if (newFact.equals(currentFact)) {
+                    logger.info("fact exists and matches, no action: " + currentFact.getFactType().getShortName());
+                }
+                else {
+                    // Just invalidate the entire fact and write in the new one.
+                    // May try this on a per-property basis in future.
+                    Instant invalidationDate = newFact.getValidFrom();
+                    logger.info("fact exists but does not match, replacing: " + currentFact.getFactType().getShortName());
+                    currentFact.invalidateAll(invalidationDate);
+                    encounter.addDemographic(newFact);
+                }
+            }
         }
     }
 
