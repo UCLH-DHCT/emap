@@ -556,7 +556,7 @@ public class InformDbOperations {
     
     /**
      * Close off the existing Visit and open a new one
-     * @param transferDetails
+     * @param transferDetails usually an A02 message but can be an A08
      * @throws HL7Exception 
      */
     @Transactional
@@ -584,10 +584,28 @@ public class InformDbOperations {
         // occurred. For example, on a transfer (A02 transfer a patient), this field
         // would contain the date/time the patient was actually transferred."
         Instant eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
+        if (transferDetails.getTriggerEvent().equals("A08")) {
+            // A08 doesn't have an event time, so use the recorded time instead
+            // Downside: recorded time is later than event time, so subsequent discharge time
+            // for this visit can be *earlier* than the arrival time if it's a very short visit
+            // or there was a big gap between A08 event + recorded time.
+            eventOccurred = transferDetails.getEVNWrap().getRecordedDateTime();
+        }
         if (latestOpenBedVisits.isEmpty()) {
             throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
+        String newTransferLocation = transferDetails.getPV1Wrap().getFullLocationString();
+        String currentKnownLocation = getOnlyElement(
+                latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION)).getValueAsString();
+        if (newTransferLocation.equals(currentKnownLocation)) {
+            // If we get an A02 with a new location that matches where we already thought the patient was,
+            // don't perform an actual transfer. In the test data, this happens in a minority of cases
+            // following an A08 implied transfer. Let's see what it does in the real data...
+            String err = "[mrn " + mrnStr + "] REDUNDANT transfer, location has not changed: " + currentKnownLocation;
+            logger.warn(err);
+            throw new MessageIgnoredException(err);
+        }
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
         
         Instant admissionDateTime = transferDetails.getPV1Wrap().getAdmissionDateTime();
@@ -605,7 +623,7 @@ public class InformDbOperations {
         }
         List<VisitFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
-        addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), transferDetails.getPV1Wrap().getFullLocationString());
+        addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), newTransferLocation);
     }
 
     /**
@@ -744,8 +762,9 @@ public class InformDbOperations {
         }
         VisitProperty knownlocation = getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION));
         if (!newLocation.equals(knownlocation.getValueAsString())) {
-            logger.warn(String.format("[vis num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|",
-                    visitNumber, knownlocation.getValueAsString(), newLocation));
+            logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|",
+                    adtWrap.getMrn(), visitNumber, knownlocation.getValueAsString(), newLocation));
+            transferPatient(adtWrap);
         }
 
         encounter = encounterRepo.save(encounter);
