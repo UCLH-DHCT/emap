@@ -603,7 +603,7 @@ public class InformDbOperations {
         if (encounter != encounterDoubleCheck) {
             throw new MessageIgnoredException("Different encounter: " + encounter + " | " + encounterDoubleCheck);
         }
-        List<VisitFact> hospitalVisit = getVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
+        List<VisitFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
         addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), transferDetails.getPV1Wrap().getFullLocationString());
     }
@@ -653,7 +653,7 @@ public class InformDbOperations {
             VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
             // Discharge from the bed visit and the hospital visit
             addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
-            List<VisitFact> hospVisit = getVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT);
+            List<VisitFact> hospVisit = getOpenVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT);
             // There *should* be exactly 1...
             addDischargeToVisit(hospVisit.get(0), dischargeDateTime);
         }
