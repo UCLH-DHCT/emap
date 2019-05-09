@@ -394,11 +394,7 @@ public class InformDbOperations {
             // Need to check whether it's the bed visit that corresponds to the existing hospital visit?
             VisitFact openBedVisit = allOpenBedVisits.get(0);
             Instant invalidTime = encounterDetails.getEventTime();
-            openBedVisit.setValidUntil(invalidTime);
-            // invalidate all the properties too
-            for (VisitProperty prop : openBedVisit.getFactProperties()) {
-                prop.setValidUntil(invalidTime);
-            }
+            openBedVisit.invalidateAll(invalidTime);
             break;
         default:
             throw new MessageIgnoredException("More than 1 (count = " + allHospitalVisits.size()
