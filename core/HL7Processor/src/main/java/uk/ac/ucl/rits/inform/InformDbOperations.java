@@ -664,8 +664,8 @@ public class InformDbOperations {
         Instant dischargeDateTime = adtWrap.getPV1Wrap().getDischargeDateTime();
         logger.info("DISCHARGE: MRN " + mrnStr);
         logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
-        if (eventOccurred == null) {
-            throw new MessageIgnoredException("Trying to discharge but the event occurred date is null. Is this a dupe message?");
+        if (dischargeDateTime == null) {
+            throw new MessageIgnoredException("Trying to discharge but the discharge date is null");
         }
         else {
             VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
