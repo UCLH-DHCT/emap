@@ -73,17 +73,10 @@ public class InformDbOperations {
 
     private final static Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
+    @Autowired
     private IdsOperations idsOperations;
     
-    public InformDbOperations(
-            @Value("${ids.cfg.xml.file}") String idsCfgXml,
-            @Autowired Environment environment
-        ) {
-        idsOperations = new IdsOperations(idsCfgXml, environment);
-    }
-
     public void close() {
-       idsOperations.close();
     }
 
     /**
@@ -836,10 +829,6 @@ public class InformDbOperations {
         }
         mrn = mrnRepo.save(mrn);
         return mrn;
-    }
-
-    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn) {
-        idsOperations.writeToIds(hl7message, id, triggerEvent, mrn);
     }
 
 }

@@ -5,9 +5,13 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
+@Component
 @EntityScan("uk.ac.ucl.rits.inform.ids")
 public class IdsOperations {
 
@@ -15,8 +19,8 @@ public class IdsOperations {
     private boolean idsEmptyOnInit;
 
     public IdsOperations(
-            String idsCfgXml,
-            Environment environment) {
+            @Value("${ids.cfg.xml.file}") String idsCfgXml,
+            @Autowired Environment environment) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
@@ -103,7 +107,7 @@ public class IdsOperations {
         return cfg.buildSessionFactory();
     }
 
-    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn) {
+    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn, String patientClass, String patientLocation) {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly
         // suggests that this is a test IDS.
@@ -122,6 +126,8 @@ public class IdsOperations {
             idsrecord.setHl7message(hl7message);
             idsrecord.setMessagetype(triggerEvent);
             idsrecord.setHospitalnumber(mrn);
+            idsrecord.setPatientclass(patientClass);
+            idsrecord.setPatientlocation(patientLocation);
             idsSession.save(idsrecord);
             tx.commit();
         } finally {
