@@ -29,6 +29,7 @@ import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.MSHWrap;
+import uk.ac.ucl.rits.inform.ids.IdsOperations;
 
 @SpringBootApplication
 public class App {
@@ -40,7 +41,7 @@ public class App {
 
     @Bean
     @Profile("populate")
-    public CommandLineRunner populateIDS(InformDbOperations dbt) {
+    public CommandLineRunner populateIDS(IdsOperations ids) {
         return (args) -> {
             HapiContext context = InitializeHapiContext();
             String hl7fileSource = args[0];
@@ -57,10 +58,12 @@ public class App {
                 AdtWrap adtWrap = new AdtWrap(msg);
                 String triggerEvent = adtWrap.getTriggerEvent();
                 String mrn = adtWrap.getMrn();
-                dbt.writeToIds(singleMessageText, count, triggerEvent, mrn);
+                String patientClass = adtWrap.getPV1Wrap().getPatientClass();
+                String patientLocation = adtWrap.getPV1Wrap().getFullLocationString();
+                ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation);
             }
             logger.info("Wrote " + count + " messages to IDS");
-            dbt.close();
+            ids.close();
             context.close();
         };
     }
