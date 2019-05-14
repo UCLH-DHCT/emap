@@ -58,8 +58,8 @@ public class App {
                 AdtWrap adtWrap = new AdtWrap(msg);
                 String triggerEvent = adtWrap.getTriggerEvent();
                 String mrn = adtWrap.getMrn();
-                String patientClass = adtWrap.getPV1Wrap().getPatientClass();
-                String patientLocation = adtWrap.getPV1Wrap().getFullLocationString();
+                String patientClass = adtWrap.getPatientClass();
+                String patientLocation = adtWrap.getFullLocationString();
                 ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation);
             }
             logger.info("Wrote " + count + " messages to IDS");
