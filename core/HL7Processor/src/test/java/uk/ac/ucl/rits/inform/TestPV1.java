@@ -26,6 +26,7 @@ import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.Doctor;
 import uk.ac.ucl.rits.inform.hl7.PV1Wrap;
 
@@ -50,8 +51,7 @@ public class TestPV1 extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private PV1 pv1;
-    private PV1Wrap wrapper;
+    private AdtWrap wrapper;
 
 	/*@Before
     public void init(){
@@ -88,8 +88,7 @@ public class TestPV1 extends TestCase {
             
             try {
                 ADT_A01 adt_01 = (ADT_A01) parser.parse(hl7);
-                pv1 = adt_01.getPV1();
-                wrapper = new PV1Wrap(pv1);
+                wrapper = new AdtWrap(adt_01);
             }
             catch (HL7Exception e) {
                 e.printStackTrace();

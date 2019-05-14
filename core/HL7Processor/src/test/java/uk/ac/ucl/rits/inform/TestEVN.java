@@ -21,6 +21,7 @@ import java.time.Instant;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.EVNWrap;
 
 // NB despite the @Test annotation each test method name must begin with "test"
@@ -32,9 +33,7 @@ public class TestEVN extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private EVN evn;
     private EVNWrap wrapper;
-
 	
     @Override
     public void setUp() throws Exception {
@@ -57,13 +56,11 @@ public class TestEVN extends TestCase {
         parser = context.getPipeParser(); //getGenericParser();
             
         try {
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
-            evn = adt_01.getEVN();
-            wrapper = new EVNWrap(evn);
+            wrapper = new AdtWrap(parser.parse(generic_hl7));
         }
         catch (HL7Exception e) {
             e.printStackTrace();
-            return;
+            throw e;
         }
 
     }

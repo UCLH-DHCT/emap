@@ -3,8 +3,12 @@ package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
 import java.util.Calendar;
+import java.util.IdentityHashMap;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.Vector;
+
+import org.apache.commons.lang3.RandomStringUtils;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
@@ -19,68 +23,68 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
  * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
  * 
  */
-public class PV1Wrap {
-
-    private PV1 _pv1;
-
-    /**
-     * @param myPV1 PV1 segment, obtained by parsing the message to which this segment relates (msg.getPV1
-     */
-    public PV1Wrap(PV1 myPV1) {
-        if (myPV1 == null) {
-            throw new IllegalArgumentException();
-        }
-        _pv1 = myPV1;
-    }
+public interface PV1Wrap {
+    PV1 getPV1();
 
     /**
-     * If you wish test values to be generated
+     * @return Is this a test object which should generate synthetic data instead
+     * of using the HL7 message data?
      */
-    public PV1Wrap() {
+    boolean isTest();
+
+    default boolean pv1SegmentExists() {
+        return getPV1() != null;
     }
 
     /**
      * @return PV1-2 patient class
      * @throws HL7Exception
      */
-    public String getPatientClass() throws HL7Exception {
-        return _pv1.getPatientClass().getComponent(0).toString();
+    default String getPatientClass() throws HL7Exception {
+        if (isTest()) {
+            // Need to come up with a better way of generating test data
+            return "??";
+        }
+        if (!pv1SegmentExists()) {
+            return null;
+        }
+        return getPV1().getPatientClass().getComponent(0).toString();
     }
 
     /**
      * @return PV1-3.1 Current Ward Code e.g. T06
      * @throws HL7Exception
      */
-    public String getCurrentWardCode() throws HL7Exception {
-        if (_pv1 == null) {
+    default String getCurrentWardCode() throws HL7Exception {
+        if (isTest()) {
             // Need to come up with a better way of generating test data
             return "Test poc location";
         }
-        return _pv1.getAssignedPatientLocation().getPl1_PointOfCare().getComponent(0).toString();
+        return getPV1().getAssignedPatientLocation().getPl1_PointOfCare().getComponent(0).toString();
     }
 
     /**
      * @return PV1-3.2 Current Room Code e.g. T06A
      * @throws HL7Exception
      */
-    public String getCurrentRoomCode() throws HL7Exception {
-        if (_pv1 == null) {
+    default String getCurrentRoomCode() throws HL7Exception {
+        if (isTest()) {
             // Need to come up with a better way of generating test data
             return "Test room location";
         }
-        return _pv1.getAssignedPatientLocation().getPl2_Room().getComponent(0).toString();
+        return getPV1().getAssignedPatientLocation().getPl2_Room().getComponent(0).toString();
     }
 
     /**
      * @return PV1-3.3 Current Bed e.g. T06-32
      * @throws HL7Exception
      */
-    public String getCurrentBed() throws HL7Exception {
-        if (_pv1 == null) {
+    default String getCurrentBed() throws HL7Exception {
+        if (isTest()) {
             // Need to come up with a better way of generating test data
             return "Test bed location";
         }
-        return _pv1.getAssignedPatientLocation().getPl3_Bed().getComponent(0).toString();
+        return getPV1().getAssignedPatientLocation().getPl3_Bed().getComponent(0).toString();
     }
 
     /**
@@ -89,7 +93,10 @@ public class PV1Wrap {
      * @return
      * @throws HL7Exception
      */
-    public String getFullLocationString() throws HL7Exception {
+    default String getFullLocationString() throws HL7Exception {
+        if (!pv1SegmentExists()) {
+            return null;
+        }
         return String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
     }
 
@@ -97,16 +104,16 @@ public class PV1Wrap {
      * @return PV1-4.1 1st repeat (admit priority) e.g. I
      * @throws HL7Exception
      */
-    public String getAdmitPriority() throws HL7Exception {
-        return _pv1.getAdmissionType().getComponent(0).toString();
+    default String getAdmitPriority() throws HL7Exception {
+        return getPV1().getAdmissionType().getComponent(0).toString();
     }
 
     /**
      * @return PV1-4.1 2nd repeat (admit type) e.g. A
      * @throws HL7Exception
      */
-    public String getAdmitType() throws HL7Exception {
-        return _pv1.getAdmissionType().getComponent(1).toString();
+    default String getAdmitType() throws HL7Exception {
+        return getPV1().getAdmissionType().getComponent(1).toString();
     }
 
     /**
@@ -115,18 +122,18 @@ public class PV1Wrap {
      * @return Vector of Doctor objects
      * @throws HL7Exception
      */
-    public Vector<Doctor> getAttendingDoctors() throws HL7Exception {
+    default Vector<Doctor> getAttendingDoctors() throws HL7Exception {
 
-        int reps = _pv1.getAttendingDoctorReps();
+        int reps = getPV1().getAttendingDoctorReps();
         Vector v = new Vector(reps, 1);
         for (int i = 0; i < reps; i++) {
             Doctor dr = new Doctor();
-            dr.setConsultantCode(_pv1.getAttendingDoctor(i).getPersonIdentifier().toString()); // PV1-7.1
-            dr.setSurname(_pv1.getAttendingDoctor(i).getFamilyName().getSurname().toString()); // PV1-7.2
-            dr.setFirstname(_pv1.getAttendingDoctor(i).getGivenName().toString()); // PV1-7.3
-            dr.setMiddlenameOrInitial(_pv1.getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-7.4
-            dr.setTitle(_pv1.getAttendingDoctor(i).getPrefixEgDR().toString()); // PV1-7.6
-            dr.setLocalCode(_pv1.getAttendingDoctor(i).getComponent(7)/*getDegreeEgMD()*/.toString()); // PV1-7.7
+            dr.setConsultantCode(getPV1().getAttendingDoctor(i).getPersonIdentifier().toString()); // PV1-7.1
+            dr.setSurname(getPV1().getAttendingDoctor(i).getFamilyName().getSurname().toString()); // PV1-7.2
+            dr.setFirstname(getPV1().getAttendingDoctor(i).getGivenName().toString()); // PV1-7.3
+            dr.setMiddlenameOrInitial(getPV1().getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-7.4
+            dr.setTitle(getPV1().getAttendingDoctor(i).getPrefixEgDR().toString()); // PV1-7.6
+            dr.setLocalCode(getPV1().getAttendingDoctor(i).getComponent(7)/*getDegreeEgMD()*/.toString()); // PV1-7.7
 
             v.add(dr);
         }
@@ -142,17 +149,17 @@ public class PV1Wrap {
      * @return Vector of Doctor objects
      * @throws HL7Exception
      */
-    public Vector<Doctor> getReferringDoctors() throws HL7Exception {
+    default Vector<Doctor> getReferringDoctors() throws HL7Exception {
 
-        int reps = _pv1.getReferringDoctorReps();
+        int reps = getPV1().getReferringDoctorReps();
         Vector v = new Vector(reps, 1);
         for (int i = 0; i < reps; i++) {
             Doctor dr = new Doctor();
-            dr.setConsultantCode(_pv1.getReferringDoctor(i).getPersonIdentifier().toString()); // PV1-8.1
-            dr.setSurname(_pv1.getReferringDoctor(i).getFamilyName().getSurname().toString()); // PV1-8.2
-            dr.setFirstname(_pv1.getReferringDoctor(i).getGivenName().toString()); // PV1-8.3
-            dr.setMiddlenameOrInitial(_pv1.getReferringDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-8.4
-            dr.setTitle(_pv1.getReferringDoctor(i).getPrefixEgDR().toString()); // PV1-8.6
+            dr.setConsultantCode(getPV1().getReferringDoctor(i).getPersonIdentifier().toString()); // PV1-8.1
+            dr.setSurname(getPV1().getReferringDoctor(i).getFamilyName().getSurname().toString()); // PV1-8.2
+            dr.setFirstname(getPV1().getReferringDoctor(i).getGivenName().toString()); // PV1-8.3
+            dr.setMiddlenameOrInitial(getPV1().getReferringDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-8.4
+            dr.setTitle(getPV1().getReferringDoctor(i).getPrefixEgDR().toString()); // PV1-8.6
             //dr.setLocalCode(_pv1.); // PV1-8.7
 
             v.add(dr);
@@ -165,32 +172,36 @@ public class PV1Wrap {
      * @return PV1-10	Hospital Service	Specialty eg. 31015
      * @throws HL7Exception
      */
-    public String getHospitalService() throws HL7Exception {
-        return _pv1.getHospitalService().getComponent(0).toString();
+    default String getHospitalService() throws HL7Exception {
+        return getPV1().getHospitalService().getComponent(0).toString();
     }
 
     /**
      * @return PV1-14	Admission Source. NB Carecast says ZLC8.1	Source of admission
      * @throws HL7Exception
      */
-    public String getAdmitSource() throws HL7Exception {
-        return _pv1.getAdmitSource().getComponent(0).toString();
+    default String getAdmitSource() throws HL7Exception {
+        return getPV1().getAdmitSource().getComponent(0).toString();
     }
 
     /**
      * @return PV1-18 Patient Type
      * @throws HL7Exception
      */
-    public String getPatientType() throws HL7Exception {
-        return _pv1.getPatientType().getComponent(0).toString();
+    default String getPatientType() throws HL7Exception {
+        return getPV1().getPatientType().getComponent(0).toString();
     }
 
     /**
      * @return PV1-19 Visit number
      * @throws HL7Exception
      */
-    public String getVisitNumber() throws HL7Exception {
-        return _pv1.getVisitNumber().getComponent(0).toString();
+    default String getVisitNumber() throws HL7Exception {
+        if (isTest()) {
+            // Need to come up with a better way of generating test data
+            return HL7Utils.randomNumericSeeded(System.identityHashCode(this), 8);
+        }
+        return getPV1().getVisitNumber().getComponent(0).toString();
     }
 
     /**
@@ -200,12 +211,12 @@ public class PV1Wrap {
      * @return PV1-44.1 admission datetime 
      * @throws HL7Exception
      */
-    public Instant getAdmissionDateTime() throws HL7Exception {
-        if (_pv1 == null) {
+    default Instant getAdmissionDateTime() throws HL7Exception {
+        if (isTest()) {
             // this is not a good way of doing test data
             return Instant.parse("2014-05-06T07:08:09Z");
         }
-        return HL7Utils.interpretLocalTime(_pv1.getAdmitDateTime());
+        return HL7Utils.interpretLocalTime(getPV1().getAdmitDateTime());
     }
 
     
@@ -213,12 +224,12 @@ public class PV1Wrap {
      * @return PV1-45.1 discharge datetime
      * @throws HL7Exception
      */
-    public Instant getDischargeDateTime() throws HL7Exception {
-        if (_pv1 == null) {
+    default Instant getDischargeDateTime() throws HL7Exception {
+        if (isTest()) {
             // this is not a good way of doing test data
             return Instant.parse("2014-05-06T12:34:56Z");
         }
-        return HL7Utils.interpretLocalTime(_pv1.getDischargeDateTime());
+        return HL7Utils.interpretLocalTime(getPV1().getDischargeDateTime());
     }
 
 }

@@ -316,8 +316,9 @@ public class InformDbOperations {
      * @param mrn the MRN to search in
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
+     * @throws HL7Exception 
      */
-    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) {
+    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception {
         logger.info("getCreateEncounter");
         String encounter = encounterDetails.getVisitNumber();
         List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
@@ -326,7 +327,7 @@ public class InformDbOperations {
             Encounter enc = new Encounter();
             enc.setStoredFrom(Instant.now());
             enc.setEncounter(encounter);
-            enc.setValidFrom(encounterDetails.getEventTime());
+            enc.setValidFrom(encounterDetails.getEventOccurred());
             enc.setMrn(mrn);
             return enc;
         }
@@ -366,7 +367,7 @@ public class InformDbOperations {
         VisitFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
-            hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime());
+            hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getAdmissionDateTime());
             addDemographicsToEncounter(enc, encounterDetails);
             // Need to save here so the hospital visit can be created (and thus assigned an ID),
             // so we can refer to that ID in the bed visit.
@@ -386,7 +387,7 @@ public class InformDbOperations {
             }
             // Need to check whether it's the bed visit that corresponds to the existing hospital visit?
             VisitFact openBedVisit = allOpenBedVisits.get(0);
-            Instant invalidTime = encounterDetails.getEventTime();
+            Instant invalidTime = encounterDetails.getEventOccurred();
             openBedVisit.invalidateAll(invalidTime);
             break;
         default:
@@ -394,9 +395,9 @@ public class InformDbOperations {
                     + ") hospital visits in encounter " + encounterDetails.getVisitNumber());
         }
         // create a new bed visit with the new (or updated) location
-        addOpenBedVisit(enc, encounterDetails.getPV1Wrap().getAdmissionDateTime(),
+        addOpenBedVisit(enc, encounterDetails.getAdmissionDateTime(),
                 hospitalVisit,
-                encounterDetails.getPV1Wrap().getFullLocationString());
+                encounterDetails.getFullLocationString());
         enc = encounterRepo.save(enc);
         return enc;
     }
@@ -404,8 +405,9 @@ public class InformDbOperations {
     /**
      * @param enc the encounter to add to
      * @param msgDetails the message details to use
+     * @throws HL7Exception 
      */
-    private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) {
+    private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
         HashMap<String,PatientDemographicFact> demogs = buildDemographics(msgDetails);
         demogs.forEach((k, v) -> enc.addDemographic(v));
     }
@@ -415,12 +417,13 @@ public class InformDbOperations {
      * anything with them.
      * @param msgDetails
      * @return Attribute->Fact key-value pairs
+     * @throws HL7Exception 
      */
-    private HashMap<String,PatientDemographicFact> buildDemographics(AdtWrap msgDetails) {
+    private HashMap<String,PatientDemographicFact> buildDemographics(AdtWrap msgDetails) throws HL7Exception {
         HashMap<String, PatientDemographicFact> demographics = new HashMap<String, PatientDemographicFact>();
         {
             PatientDemographicFact fact = new PatientDemographicFact();
-            fact.setValidFrom(msgDetails.getEventTime());
+            fact.setValidFrom(msgDetails.getEventOccurred());
             fact.setStoredFrom(Instant.now());
             Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
             fact.setFactType(attr);
@@ -431,7 +434,7 @@ public class InformDbOperations {
         }
         {
             PatientDemographicFact fact = new PatientDemographicFact();
-            fact.setValidFrom(msgDetails.getEventTime());
+            fact.setValidFrom(msgDetails.getEventOccurred());
             fact.setStoredFrom(Instant.now());
             fact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
             
@@ -572,19 +575,19 @@ public class InformDbOperations {
         // Definition: This field contains the date/time that the event actually
         // occurred. For example, on a transfer (A02 transfer a patient), this field
         // would contain the date/time the patient was actually transferred."
-        Instant eventOccurred = transferDetails.getEVNWrap().getEventOccurred();
+        Instant eventOccurred = transferDetails.getEventOccurred();
         if (transferDetails.getTriggerEvent().equals("A08")) {
             // A08 doesn't have an event time, so use the recorded time instead
             // Downside: recorded time is later than event time, so subsequent discharge time
             // for this visit can be *earlier* than the arrival time if it's a very short visit
             // or there was a big gap between A08 event + recorded time.
-            eventOccurred = transferDetails.getEVNWrap().getRecordedDateTime();
+            eventOccurred = transferDetails.getRecordedDateTime();
         }
         if (latestOpenBedVisits.isEmpty()) {
             throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         VisitFact latestOpenBedVisit = latestOpenBedVisits.get(0);
-        String newTransferLocation = transferDetails.getPV1Wrap().getFullLocationString();
+        String newTransferLocation = transferDetails.getFullLocationString();
         String currentKnownLocation = getOnlyElement(
                 latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION)).getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
@@ -597,10 +600,10 @@ public class InformDbOperations {
         }
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
         
-        Instant admissionDateTime = transferDetails.getPV1Wrap().getAdmissionDateTime();
-        Instant recordedDateTime = transferDetails.getEVNWrap().getRecordedDateTime();
+        Instant admissionDateTime = transferDetails.getAdmissionDateTime();
+        Instant recordedDateTime = transferDetails.getRecordedDateTime();
         
-        String admitSource = transferDetails.getPV1Wrap().getAdmitSource();
+        String admitSource = transferDetails.getAdmitSource();
         logger.info("TRANSFERRING: MRN = " + mrnStr);
         logger.info("    A02 details: adm " + admissionDateTime);
         logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/" + recordedDateTime);
@@ -649,8 +652,8 @@ public class InformDbOperations {
         if (latestOpenBedVisits.isEmpty()) {
             throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
-        Instant eventOccurred = adtWrap.getEVNWrap().getEventOccurred();
-        Instant dischargeDateTime = adtWrap.getPV1Wrap().getDischargeDateTime();
+        Instant eventOccurred = adtWrap.getEventOccurred();
+        Instant dischargeDateTime = adtWrap.getDischargeDateTime();
         logger.info("DISCHARGE: MRN " + mrnStr);
         logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
         if (dischargeDateTime == null) {
@@ -731,7 +734,7 @@ public class InformDbOperations {
     @Transactional
     private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception {
         String visitNumber = adtWrap.getVisitNumber();
-        String newLocation = adtWrap.getPV1Wrap().getFullLocationString();
+        String newLocation = adtWrap.getFullLocationString();
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {

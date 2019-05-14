@@ -16,33 +16,33 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
-public class AdtWrap {
+public class AdtWrap implements PV1Wrap, EVNWrap {
     private final static Logger logger = LoggerFactory.getLogger(AdtWrap.class);
     private Random random;
 
     private String administrativeSex; // PID-8
-    private Instant eventTime;
     private String familyName; // PID-5.1
     private String givenName; // PID-5.2
     private String middleName; // PID-5.3 middle name or initial
     private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
     private String NHSNumber; // patient ID PID-3.1[2]
-    private String visitNumber; // PV1-19
     private String triggerEvent;
     private Instant dob;
 
     private MSHWrap mshwrap;
-    private PV1Wrap pv1wrap;
+    private PV1 _pv1;
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
-    private EVNWrap evnwrap;
+    private EVN _evn;
+    private boolean isTest;
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
     }
 
-    public PV1Wrap getPV1Wrap () {
-        return pv1wrap;
+    @Override
+    public PV1 getPV1() {
+        return _pv1;
     }
 
     public PIDWrap getPIDWrap() {
@@ -53,28 +53,25 @@ public class AdtWrap {
         return pd1wrap;
     }
 
-    public EVNWrap getEVNWrap() {
-        return evnwrap;
+    @Override
+    public EVN getEVN() {
+        return _evn;
     }
 
     /**
      * Populate the data by generating it randomly.
      */
     public AdtWrap() {
+        isTest = true;
         random = new Random();
 
         mrn = randomString();
         NHSNumber = randomNHSNumber();
         familyName = randomString();
         givenName = randomString();
-        // what is the format for this number?
-        // CSNs will probably change this again
-        visitNumber = RandomStringUtils.randomNumeric(8);
         middleName = randomString();
         administrativeSex = randomString();
-        eventTime = Instant.now();
 
-        pv1wrap = new PV1Wrap();
     }
 
     /**
@@ -84,6 +81,7 @@ public class AdtWrap {
      * @throws HL7Exception
      */
     public AdtWrap(Message adtMsg) throws HL7Exception {
+        isTest = false;
 
         /**
          * NOTE: MSH-9.2 Trigger Event is an important field. 
@@ -98,9 +96,7 @@ public class AdtWrap {
         // Populate the class fields. They may be null if the information is not held in the message.
         mshwrap = new MSHWrap((MSH) adtMsg.get("MSH"));
         try {
-            pv1wrap = new PV1Wrap((PV1) adtMsg.get("PV1"));
-            eventTime = pv1wrap.getAdmissionDateTime();
-            visitNumber = pv1wrap.getVisitNumber(); // PV1-19
+            _pv1 = (PV1) adtMsg.get("PV1");
         } catch (HL7Exception e) {
             // sections are allowed to not exist
         }
@@ -121,7 +117,11 @@ public class AdtWrap {
             pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
         } catch (HL7Exception e) {
         }
-        evnwrap = new EVNWrap((EVN) adtMsg.get("EVN"));
+        try {
+            _evn = (EVN) adtMsg.get("EVN");
+        } catch (HL7Exception e) {
+            // EVN is allowed not to exist
+        }
 
         triggerEvent = mshwrap.getTriggerEvent();
 
@@ -149,24 +149,16 @@ public class AdtWrap {
         System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
         // Trigger
         
-        System.out.println("current bed = " + pv1wrap.getCurrentBed());
+        System.out.println("current bed = " + getCurrentBed());
         
         //// Minimal info needed //////
         System.out.println("patient name = " + pidwrap.getPatientFullName());
         System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
-        System.out.println("admission time = " + pv1wrap.getAdmissionDateTime());
+        System.out.println("admission time = " + getAdmissionDateTime());
     }
     
     public String getAdministrativeSex() {
         return administrativeSex;
-    }
-
-    /**
-     * Currently mapped to the admission time - is this what was intended?
-     * @return "event" time
-     */
-    public Instant getEventTime() {
-        return eventTime;
     }
 
     public String getFamilyName() {
@@ -187,10 +179,6 @@ public class AdtWrap {
 
     public String getNHSNumber() {
         return NHSNumber;
-    }
-
-    public String getVisitNumber() {
-        return visitNumber;
     }
 
     private String randomNHSNumber() {
@@ -228,6 +216,11 @@ public class AdtWrap {
 
     public Instant getDob() {
         return dob;
+    }
+
+    @Override
+    public boolean isTest() {
+        return isTest;
     }
 
 }

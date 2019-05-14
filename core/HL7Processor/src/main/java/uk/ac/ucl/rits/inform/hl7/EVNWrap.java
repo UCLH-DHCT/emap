@@ -1,5 +1,3 @@
-// EVNWrap.java
-
 package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
@@ -18,39 +16,36 @@ import ca.uhn.hl7v2.model.v27.datatype.XCN;
  * 
  */
 
-public class EVNWrap {
-
-    private EVN _evn;
+public interface EVNWrap {
+    EVN getEVN();
 
     /**
-     * Constructor
-     * 
-     * @param myEVN EVN segment, obtained by parsing the message to which this segment relates (msg.getEVN())
+     * @return Is this a test object which should generate synthetic data instead
+     * of using the HL7 message data?
      */
-    public EVNWrap(EVN myEVN) {
-        _evn = myEVN;
+    boolean isTest();
+
+    default boolean EVNSegmentExists() {
+        return getEVN() != null;
     }
-
-
-     /**
+    
+    /**
      * 
      * @return EVN-1 Event Type Code (e.g. A01)
      * @throws HL7Exception
      */
-    public String getEventType() throws HL7Exception {
-        return _evn.getEvn1_EventTypeCode().toString();
+    default String getEventType() throws HL7Exception {
+        return getEVN().getEvn1_EventTypeCode().toString();
     }
 
 
-     /**
-     * NB we might want to extract individual components of the timestamp too
-     * 
-     * @return EVN-2 Recorded Date/Time - Current Date/time in format YYYYMMDDHHMM
+    /**
+     * @return EVN-2 Recorded Date/Time
      * @throws HL7Exception
      */
-    public Instant getRecordedDateTime() throws HL7Exception {
-        return HL7Utils.interpretLocalTime(_evn.getEvn2_RecordedDateTime());
-    } 
+    default Instant getRecordedDateTime() throws HL7Exception {
+        return HL7Utils.interpretLocalTime(getEVN().getEvn2_RecordedDateTime());
+    }
 
 
      /**
@@ -58,8 +53,8 @@ public class EVNWrap {
      * @return EVN-4 Event Reason Code (e.g. ADM)
      * @throws HL7Exception
      */
-    public String getEventReasonCode() throws HL7Exception {
-        return _evn.getEvn4_EventReasonCode().getComponent(0).toString();
+    default String getEventReasonCode() throws HL7Exception {
+        return getEVN().getEvn4_EventReasonCode().getComponent(0).toString();
     }
 
 
@@ -70,8 +65,8 @@ public class EVNWrap {
      * @return EVN-5 Operator ID - could be multiple but we just take first for now
      * @throws HL7Exception
      */
-    public String getOperatorID() throws HL7Exception {
-        return _evn.getEvn5_OperatorID(0).getPersonIdentifier().toString();
+    default String getOperatorID() throws HL7Exception {
+        return getEVN().getEvn5_OperatorID(0).getPersonIdentifier().toString();
     }
 
 
@@ -81,8 +76,11 @@ public class EVNWrap {
      * If this is Epic only where does Carecast specify transfer times?
      * @throws HL7Exception
      */
-    public Instant getEventOccurred() throws HL7Exception {
-        return HL7Utils.interpretLocalTime(_evn.getEvn6_EventOccurred());
+    default Instant getEventOccurred() throws HL7Exception {
+        if (isTest()) {
+            return Instant.now();
+        }
+        return HL7Utils.interpretLocalTime(getEVN().getEvn6_EventOccurred());
     }
 
 }
