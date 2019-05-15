@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
 import java.util.Calendar;
-import java.util.Random;
 import java.util.TimeZone;
 
 import ca.uhn.hl7v2.model.DataTypeException;
@@ -44,15 +43,5 @@ public class HL7Utils {
         Instant result = valueAsCal.toInstant();
         //System.out.println("before: " + hl7DTM + "|" + before + ", after: " + result + "|" + after);
         return result;
-    }
-
-    public static String randomNumericSeeded(int seed, int length) {
-        Random random = new Random(seed);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(random.nextInt(10));
-        }
-        String res = sb.toString();
-        return res;
     }
 }

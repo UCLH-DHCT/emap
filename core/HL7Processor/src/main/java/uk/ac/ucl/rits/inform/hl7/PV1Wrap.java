@@ -199,7 +199,7 @@ public interface PV1Wrap {
     default String getVisitNumber() throws HL7Exception {
         if (isTest()) {
             // Need to come up with a better way of generating test data
-            return HL7Utils.randomNumericSeeded(System.identityHashCode(this), 8);
+            return HL7Random.randomNumericSeeded(System.identityHashCode(this), 8);
         }
         return getPV1().getVisitNumber().getComponent(0).toString();
     }

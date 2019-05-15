@@ -1,15 +1,12 @@
 package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
-import java.util.Random;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import ca.uhn.hl7v2.model.v27.segment.EVN;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PD1;
@@ -18,7 +15,6 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 public class AdtWrap implements PV1Wrap, EVNWrap {
     private final static Logger logger = LoggerFactory.getLogger(AdtWrap.class);
-    private Random random;
 
     private String administrativeSex; // PID-8
     private String familyName; // PID-5.1
@@ -63,15 +59,13 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
      */
     public AdtWrap() {
         isTest = true;
-        random = new Random();
-
-        mrn = randomString();
-        NHSNumber = randomNHSNumber();
-        familyName = randomString();
-        givenName = randomString();
-        middleName = randomString();
-        administrativeSex = randomString();
-
+        HL7Random random = new HL7Random();
+        mrn = random.randomString();
+        NHSNumber = random.randomNHSNumber();
+        familyName = random.randomString();
+        givenName = random.randomString();
+        middleName = random.randomString();
+        administrativeSex = random.randomString();
     }
 
     /**
@@ -179,31 +173,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
 
     public String getNHSNumber() {
         return NHSNumber;
-    }
-
-    private String randomNHSNumber() {
-        // New-style 3-3-4 nhs number - will need to generate old style ones eventually.
-        // This doesn't generate the check digit correctly as a real NHS number would.
-        // NHS numbers starting with a 9 haven't been issued (yet) so there is no
-        // danger of this clashing with a real number at the time of writing.
-        return String.format("987 %03d %04d", random.nextInt(1000), random.nextInt(10000));
-    }
-
-    /**
-     * @return random alpha string with random length
-     */
-    private String randomString() {
-        int length = 9 + Math.round((float) (4 * random.nextGaussian()));
-        if (length < 5)
-            length = 5;
-        return randomString(length);
-    }
-
-    /**
-     * @return random alpha string of given length
-     */
-    private String randomString(int length) {
-        return RandomStringUtils.randomAlphabetic(length);
     }
 
     public void setAdministrativeSex(String administrativeSex) {
