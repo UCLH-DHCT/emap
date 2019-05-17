@@ -205,17 +205,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     }
 
     public String getMergedPatientId() {
-        CX mrg1_PriorPatientIdentifierList = _mrg.getMrg1_PriorPatientIdentifierList(0);
-        String string1 = mrg1_PriorPatientIdentifierList.getIDNumber().toString();
-        logger.info("getMergedPatientId: merged ID 1 = " + string1);
-        try {
-            String string2 = _mrg.getMrg1_PriorPatientIdentifierList(0).getComponent(0).toString();
-            logger.info("getMergedPatientId: merged ID 2 = " + string2);
-        } catch (DataTypeException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return string1;
+        return _mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
     }
 
     @Override
