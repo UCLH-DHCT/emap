@@ -6,8 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v27.datatype.CX;
+import ca.uhn.hl7v2.model.v27.group.ADT_A39_PATIENT;
+import ca.uhn.hl7v2.model.v27.message.ADT_A39;
 import ca.uhn.hl7v2.model.v27.segment.EVN;
+import ca.uhn.hl7v2.model.v27.segment.MRG;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PD1;
 import ca.uhn.hl7v2.model.v27.segment.PID;
@@ -30,7 +35,9 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
     private EVN _evn;
+    private MRG _mrg;
     private boolean isTest;
+
 
     public MSHWrap getMSHWrap () {
         return mshwrap;
@@ -89,14 +96,27 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
 
         // Populate the class fields. They may be null if the information is not held in the message.
         mshwrap = new MSHWrap((MSH) adtMsg.get("MSH"));
+        triggerEvent = mshwrap.getTriggerEvent();
+
         try {
             _pv1 = (PV1) adtMsg.get("PV1");
         } catch (HL7Exception e) {
-            // sections are allowed to not exist
+            // sections are allowed not to exist
+        }
+        
+        // I want the "MRG" segment for A40 messages, is this really
+        // the best way to get it? Why do we have to get the PID segment in
+        // a different way for an A39/A40 message?
+        if (adtMsg instanceof ADT_A39) {
+            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) adtMsg.get("PATIENT");
+            _mrg = a39Patient.getMRG();
+            pidwrap = new PIDWrap(a39Patient.getPID());
+        }
+        else {
+            pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
         }
         
         try {
-            pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
             administrativeSex = pidwrap.getPatientSex();
             dob = pidwrap.getPatientBirthDate();
             familyName = pidwrap.getPatientFamilyName();
@@ -106,7 +126,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
             NHSNumber = pidwrap.getPatientSecondIdentifier(); // patient ID PID-3.1[2]
         } catch (HL7Exception e) {
         }
-        
+
         try {
             pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
         } catch (HL7Exception e) {
@@ -116,9 +136,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         } catch (HL7Exception e) {
             // EVN is allowed not to exist
         }
-
-        triggerEvent = mshwrap.getTriggerEvent();
-
     }
 
     private void prettyPrint() throws HL7Exception {
@@ -185,6 +202,20 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
 
     public Instant getDob() {
         return dob;
+    }
+
+    public String getMergedPatientId() {
+        CX mrg1_PriorPatientIdentifierList = _mrg.getMrg1_PriorPatientIdentifierList(0);
+        String string1 = mrg1_PriorPatientIdentifierList.getIDNumber().toString();
+        logger.info("getMergedPatientId: merged ID 1 = " + string1);
+        try {
+            String string2 = _mrg.getMrg1_PriorPatientIdentifierList(0).getComponent(0).toString();
+            logger.info("getMergedPatientId: merged ID 2 = " + string2);
+        } catch (DataTypeException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return string1;
     }
 
     @Override
