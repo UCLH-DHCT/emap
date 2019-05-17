@@ -1,27 +1,11 @@
 // PIDWrap.java
 package uk.ac.ucl.rits.inform.hl7;
 
-import ca.uhn.hl7v2.HL7Exception;
-
-import ca.uhn.hl7v2.model.v27.datatype.CWE;
-import ca.uhn.hl7v2.model.v27.datatype.CX;
-import ca.uhn.hl7v2.model.v27.datatype.DTM;
-import ca.uhn.hl7v2.model.v27.datatype.HD;
-import ca.uhn.hl7v2.model.v27.datatype.ID;
-import ca.uhn.hl7v2.model.v27.datatype.IS;
-import ca.uhn.hl7v2.model.v27.datatype.MSG;
-import ca.uhn.hl7v2.model.v27.datatype.PL;
-import ca.uhn.hl7v2.model.v27.datatype.SAD;
-import ca.uhn.hl7v2.model.v27.datatype.XAD;
-import ca.uhn.hl7v2.model.v27.datatype.XCN;
-import ca.uhn.hl7v2.model.v27.datatype.XPN;
-import ca.uhn.hl7v2.model.v27.datatype.XTN;
-import ca.uhn.hl7v2.model.AbstractType;
-
-import ca.uhn.hl7v2.model.v27.segment.PID;
-
 import java.time.Instant;
 import java.util.Vector;
+
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v27.segment.PID;
 
 /**
  * class PIDWrap
@@ -165,8 +149,12 @@ public class PIDWrap {
      */
 
 
-    // addresses
-
+    /**
+     * @return the patient postcode (PID-11, first rep, component 5)
+     */
+    public String getPatientZipOrPostalCode() {
+        return _pid.getPatientAddress(0).getZipOrPostalCode().getValueOrEmpty();
+    }
 
     /**
      * May be different for Epic

@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.datatype.CX;
 import ca.uhn.hl7v2.model.v27.group.ADT_A39_PATIENT;
 import ca.uhn.hl7v2.model.v27.message.ADT_A39;
 import ca.uhn.hl7v2.model.v27.segment.EVN;
@@ -29,6 +27,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     private String NHSNumber; // patient ID PID-3.1[2]
     private String triggerEvent;
     private Instant dob;
+    private String postcode;
 
     private MSHWrap mshwrap;
     private PV1 _pv1;
@@ -69,6 +68,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         HL7Random random = new HL7Random();
         mrn = random.randomString();
         NHSNumber = random.randomNHSNumber();
+        postcode = random.randomString();
         familyName = random.randomString();
         givenName = random.randomString();
         middleName = random.randomString();
@@ -119,6 +119,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         try {
             administrativeSex = pidwrap.getPatientSex();
             dob = pidwrap.getPatientBirthDate();
+            postcode = pidwrap.getPatientZipOrPostalCode();
             familyName = pidwrap.getPatientFamilyName();
             givenName = pidwrap.getPatientGivenName();
             middleName = pidwrap.getPatientMiddleName();
@@ -211,6 +212,10 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     @Override
     public boolean isTest() {
         return isTest;
+    }
+
+    public String getPatientZipOrPostalCode() {
+        return postcode;
     }
 
 }
