@@ -60,6 +60,10 @@ public enum AttributeKeyMap {
      */
     DOB("DOB"),
     /**
+     * Patient home postcode.
+     */
+    POST_CODE("POST_CODE"),
+    /**
      * Sex.
      */
     SEX("SEX"),
