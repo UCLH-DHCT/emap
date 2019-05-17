@@ -6,11 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.Predicate;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hibernate.Session;
 import org.hibernate.cfg.NotYetImplementedException;
@@ -18,15 +15,12 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
@@ -145,6 +139,10 @@ public class InformDbOperations {
             } else if (adtWrap.getTriggerEvent().equals("A08")) {
                 logger.info("[" + idsMsg.getUnid() + "] A08, update patient info");
                 updatePatientInfo(adtWrap);
+                processed += 1;
+            } else if (adtWrap.getTriggerEvent().equals("A40")) {
+                logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
+                mergeById(adtWrap);
                 processed += 1;
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
@@ -351,10 +349,11 @@ public class InformDbOperations {
     @Transactional
     public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
         String mrnStr = encounterDetails.getMrn();
+        Instant admissionTime = encounterDetails.getAdmissionDateTime();
         if (mrnStr == null) {
             throw new InvalidMrnException();
         }
-        Mrn newOrExistingMrn = findOrAddMrn(mrnStr, true);
+        Mrn newOrExistingMrn = findOrAddMrn(mrnStr, admissionTime, true);
         // Encounter is usually a new one for an A01, but it is
         // possible to get a second A01 if the first admission gets deleted
         // and re-made. (User corrected an error in Epic we assume).
@@ -367,7 +366,7 @@ public class InformDbOperations {
         VisitFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
-            hospitalVisit = addOpenHospitalVisit(enc, encounterDetails.getAdmissionDateTime());
+            hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
             addDemographicsToEncounter(enc, encounterDetails);
             // Need to save here so the hospital visit can be created (and thus assigned an ID),
             // so we can refer to that ID in the bed visit.
@@ -797,13 +796,50 @@ public class InformDbOperations {
         }
     }
 
+    @Transactional
+    private void mergeById(AdtWrap adtWrap) throws HL7Exception {
+        String oldMrnStr = adtWrap.getMergedPatientId();
+        String survivingMrnStr = adtWrap.getMrn();
+        Instant mergeTime = adtWrap.getRecordedDateTime();
+        logger.info("MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
+        if (mergeTime == null) {
+            throw new HL7Exception("event occurred null");
+        }
+
+        // The non-surviving Mrn is invalidated but still points to the old person
+        // (we are recording the fact that between these dates, the hospital believed
+        // that the mrn belonged to this person
+        Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
+        oldMrn.setValidUntil(mergeTime);
+
+        Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
+        // what if we don't know about the surviving mrn? (ie this is null)
+        Person survivingPerson = survivingMrn.getPerson();
+ 
+        // As of the merge, the non-surviving mrn now points to the surviving person.
+        // We are not invalidating the old mrn as such, but our expectation is that
+        // no new hospital encounters would be added to it.
+        Mrn newOldMrn = new Mrn();
+        newOldMrn.setMrn(oldMrnStr);
+        newOldMrn.setPerson(survivingPerson);
+        newOldMrn.setStoredFrom(Instant.now());
+        newOldMrn.setValidFrom(mergeTime);
+        newOldMrn = mrnRepo.save(newOldMrn);
+    }
+
     public long countEncounters() {
         return encounterRepo.count();
     }
 
-    // Find an existing Mrn by its string representation, or create a new
+    /**
+     *  Find an existing Mrn by its string representation, optionally creating it first if it doesn't exist
+     * @param mrnStr The mrn
+     * @param startTime If createIfNotExist, when did the Mrn first come into existence (valid from). Ignored if !createIfNotExist 
+     * @param createIfNotExist whether to create if it doesn't exist
+     * @return the Mrn, pre-existing or newly created, or null if it doesn't exist and !createIfNotExist
+     */
     // Mrn record if it doesn't exist.
-    private Mrn findOrAddMrn(String mrnStr, boolean createIfNotExist) {
+    private Mrn findOrAddMrn(String mrnStr, Instant startTime, boolean createIfNotExist) {
         List<Mrn> allMrns = mrnRepo.findByMrnString(mrnStr);
         Mrn mrn;
         if (allMrns.isEmpty()) {
@@ -817,6 +853,7 @@ public class InformDbOperations {
              */
             logger.info("Creating a new MRN");
             mrn = new Mrn();
+            mrn.setValidFrom(startTime);
             mrn.setMrn(mrnStr);
             mrn.setStoredFrom(Instant.now());
             Person pers = new Person();
