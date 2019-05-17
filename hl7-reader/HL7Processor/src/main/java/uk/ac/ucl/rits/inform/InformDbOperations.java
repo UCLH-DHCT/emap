@@ -141,9 +141,13 @@ public class InformDbOperations {
                 updatePatientInfo(adtWrap);
                 processed += 1;
             } else if (adtWrap.getTriggerEvent().equals("A40")) {
-                logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
-                mergeById(adtWrap);
-                processed += 1;
+                // this feature is not ready yet
+                boolean a40_enabled = false;
+                if (a40_enabled) {
+                    logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
+                    mergeById(adtWrap);
+                    processed += 1;
+                }
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
                         + msgFromIds.getClass() + ")");
