@@ -2,17 +2,9 @@
 package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.IdentityHashMap;
-import java.util.Random;
-import java.util.TimeZone;
 import java.util.Vector;
 
-import org.apache.commons.lang3.RandomStringUtils;
-
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.DataTypeException;
-import ca.uhn.hl7v2.model.v27.datatype.DTM;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 /**
@@ -123,18 +115,13 @@ public interface PV1Wrap {
      * @throws HL7Exception
      */
     default Vector<Doctor> getAttendingDoctors() throws HL7Exception {
-
+        Vector<Doctor> v = new Vector<Doctor>();
+        if (isTest()) {
+            return v;
+        }
         int reps = getPV1().getAttendingDoctorReps();
-        Vector v = new Vector(reps, 1);
         for (int i = 0; i < reps; i++) {
-            Doctor dr = new Doctor();
-            dr.setConsultantCode(getPV1().getAttendingDoctor(i).getPersonIdentifier().toString()); // PV1-7.1
-            dr.setSurname(getPV1().getAttendingDoctor(i).getFamilyName().getSurname().toString()); // PV1-7.2
-            dr.setFirstname(getPV1().getAttendingDoctor(i).getGivenName().toString()); // PV1-7.3
-            dr.setMiddlenameOrInitial(getPV1().getAttendingDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-7.4
-            dr.setTitle(getPV1().getAttendingDoctor(i).getPrefixEgDR().toString()); // PV1-7.6
-            dr.setLocalCode(getPV1().getAttendingDoctor(i).getComponent(7)/*getDegreeEgMD()*/.toString()); // PV1-7.7
-
+            Doctor dr = new Doctor(getPV1().getAttendingDoctor(i));
             v.add(dr);
         }
 
@@ -150,21 +137,12 @@ public interface PV1Wrap {
      * @throws HL7Exception
      */
     default Vector<Doctor> getReferringDoctors() throws HL7Exception {
-
         int reps = getPV1().getReferringDoctorReps();
-        Vector v = new Vector(reps, 1);
+        Vector<Doctor> v = new Vector<Doctor>(reps);
         for (int i = 0; i < reps; i++) {
-            Doctor dr = new Doctor();
-            dr.setConsultantCode(getPV1().getReferringDoctor(i).getPersonIdentifier().toString()); // PV1-8.1
-            dr.setSurname(getPV1().getReferringDoctor(i).getFamilyName().getSurname().toString()); // PV1-8.2
-            dr.setFirstname(getPV1().getReferringDoctor(i).getGivenName().toString()); // PV1-8.3
-            dr.setMiddlenameOrInitial(getPV1().getReferringDoctor(i).getSecondAndFurtherGivenNamesOrInitialsThereof().toString()); // PV1-8.4
-            dr.setTitle(getPV1().getReferringDoctor(i).getPrefixEgDR().toString()); // PV1-8.6
-            //dr.setLocalCode(_pv1.); // PV1-8.7
-
+            Doctor dr = new Doctor(getPV1().getReferringDoctor(i));
             v.add(dr);
         }
-
         return v;
     }
 
