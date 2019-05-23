@@ -1,15 +1,23 @@
-// Doctor.java
 package uk.ac.ucl.rits.inform.hl7;
 
-/**
- * Doctor.java
- * 
- * Store information for GPs and consultants etc - fields PV1-7 and PV1-8
- */
+import ca.uhn.hl7v2.model.v27.datatype.XCN;
 
+/**
+ * Store information for GPs and consultants etc - fields PV1-7 and PV1-8
+ * This is actually a wrapper around an XCN, so it should probably be
+ * generalised to all uses of XCN.
+ */
 public class Doctor {
 
-    private String consultantCode, surname, firstname, middlename, title, localCode;
+    private String consultantCode, surname, firstname, middlename, title;
+
+    public Doctor(XCN xcnDoc) {
+        consultantCode = xcnDoc.getPersonIdentifier().toString(); // PV1-7.1
+        surname = xcnDoc.getFamilyName().getSurname().toString(); // PV1-7.2
+        firstname = xcnDoc.getGivenName().toString(); // PV1-7.3
+        middlename = xcnDoc.getSecondAndFurtherGivenNamesOrInitialsThereof().toString(); // PV1-7.4
+        title = xcnDoc.getPrefixEgDR().toString(); // PV1-7.6
+    }
 
     /**
      * PV1-7.1 Consultant code or attending doctor GMC code.
@@ -22,20 +30,12 @@ public class Doctor {
         return consultantCode;
     }
 
-    public void setConsultantCode(String code) {
-        consultantCode = code;
-    }
-
     /**
      * 
      * @return PV1-7.2 and PV-8.2 Consultant surname Eg. CASSONI
      */
     public String getSurname() {
         return surname;
-    }
-
-    public void setSurname(String sname) {
-        surname = sname;
     }
 
     /**
@@ -46,10 +46,6 @@ public class Doctor {
         return firstname;
     }
 
-    public void setFirstname(String fname) {
-        firstname = fname;
-    }
-
     /**
      * 
      * @return PV1-7.4/PV1-8.4 consultant middle name or initial
@@ -57,11 +53,6 @@ public class Doctor {
     public String getMiddlenameOrInitial() {
         return middlename;
     }
-
-    public void setMiddlenameOrInitial(String mname) {
-        middlename = mname;
-    }
-
 
     /**
      * 
@@ -71,24 +62,10 @@ public class Doctor {
         return title;
     }
 
-    public void setTitle(String atitle) {
-        title = atitle;
-    }
-
-  
-    /**
-     * 
-     * Not necessarily used for PV1-8.7. Carecast appears to use this field for local code
-     * but usually this is the degree or other qualification of the doctor.
-     * 
-     * @return PV1-7.7 local code e.g. AC3.
-     */
-    public String getLocalCode() {
-        return localCode;
-    }
-
-    public void setLocalCode(String code) {
-        localCode = code;
+    @Override
+    public String toString() {
+        return "Doctor [consultantCode=" + consultantCode + ", surname=" + surname + ", firstname=" + firstname
+                + ", middlename=" + middlename + ", title=" + title + "]";
     }
 }
 
