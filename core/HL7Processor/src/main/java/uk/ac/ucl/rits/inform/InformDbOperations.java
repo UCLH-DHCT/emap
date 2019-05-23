@@ -411,7 +411,7 @@ public class InformDbOperations {
      * @throws HL7Exception 
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
-        HashMap<String,PatientDemographicFact> demogs = buildDemographics(msgDetails);
+        HashMap<String,PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
         demogs.forEach((k, v) -> enc.addDemographic(v));
     }
 
@@ -422,7 +422,7 @@ public class InformDbOperations {
      * @return Attribute->Fact key-value pairs
      * @throws HL7Exception 
      */
-    private HashMap<String,PatientDemographicFact> buildDemographics(AdtWrap msgDetails) throws HL7Exception {
+    private HashMap<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
         HashMap<String, PatientDemographicFact> demographics = new HashMap<String, PatientDemographicFact>();
         {
             PatientDemographicFact fact = new PatientDemographicFact();
@@ -748,7 +748,7 @@ public class InformDbOperations {
         }
 
         // Compare new demographics with old
-        HashMap<String,PatientDemographicFact> newDemographics = buildDemographics(adtWrap);
+        HashMap<String,PatientDemographicFact> newDemographics = buildPatientDemographics(adtWrap);
         HashMap<String, PatientDemographicFact> currentDemographics = encounter.getDemographicsAsHashMap();
         updateDemographics(encounter, currentDemographics, newDemographics);
 
