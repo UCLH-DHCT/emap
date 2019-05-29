@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +12,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -28,9 +27,9 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(indexes = { @Index(name = "endValidIndex", columnList = "validUntil", unique = false),
+@Table(indexes = {
         @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
-public class Mrn extends TemporalCore implements Serializable {
+public class Mrn implements Serializable {
 
     private static final long serialVersionUID = 939614930197714827L;
 
@@ -39,14 +38,10 @@ public class Mrn extends TemporalCore implements Serializable {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int             mrnId;
+    private Integer             mrnId;
 
-    @ManyToOne
-    @JoinColumn(name = "person")
-    private Person          person;
-
-    @OneToMany(mappedBy = "mrn", cascade = CascadeType.ALL)
-    private List<Encounter> encounters;
+    @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
+    private List<MrnEncounter> encounters;
 
     /**
      * The value of the MRN identifier.
@@ -55,32 +50,21 @@ public class Mrn extends TemporalCore implements Serializable {
     private String          mrn;
     private String          sourceSystem;
 
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
+    private Instant   createDatetime;
+
     /**
      * @return the mrnId
      */
-    public int getMrnId() {
+    public Integer getMrnId() {
         return mrnId;
     }
 
     /**
      * @param mrnId the mrnId to set
      */
-    public void setMrnId(int mrnId) {
+    public void setMrnId(Integer mrnId) {
         this.mrnId = mrnId;
-    }
-
-    /**
-     * @return the person
-     */
-    public Person getPerson() {
-        return person;
-    }
-
-    /**
-     * @param person the person to set
-     */
-    public void setPerson(Person person) {
-        this.person = person;
     }
 
     /**
@@ -120,28 +104,43 @@ public class Mrn extends TemporalCore implements Serializable {
         if (this.encounters == null) {
             this.encounters = new ArrayList<>();
         }
-        this.encounters.add(enc);
-        enc.setMrn(this);
+        MrnEncounter mrnEncounter = new MrnEncounter(this, enc);
+        this.encounters.add(mrnEncounter);
+        // Is this enough now?
+        //enc.setMrn(this);
     }
 
     /**
      * @return the encounters
      */
-    public List<Encounter> getEncounters() {
+    public List<MrnEncounter> getEncounters() {
         return encounters;
     }
 
     /**
      * @param encounters the encounters to set
      */
-    public void setEncounters(List<Encounter> encounters) {
+    public void setEncounters(List<MrnEncounter> encounters) {
         this.encounters = encounters;
     }
 
     @Override
     public String toString() {
-        return "Mrn [mrn_id=" + mrnId + ", person=" + person + ", mrn=" + mrn + ", store_datetime="
-                + this.getStoredFrom() + ", end_datetime=" + this.getValidUntil() + ", source_system=" + sourceSystem
-                + ", event_time=" + this.getValidFrom() + "]";
+        return "Mrn [mrnId=" + mrnId + ", encounters=" + encounters + ", mrn=" + mrn + ", sourceSystem=" + sourceSystem
+                + "]";
+    }
+
+    /**
+     * @return the Instant this Mrn was first recorded in the database
+     */
+    public Instant getCreateDatetime() {
+        return createDatetime;
+    }
+
+    /**
+     * @param createDatetime the Instant this Mrn was first recorded in the database
+     */
+    public void setCreateDatetime(Instant createDatetime) {
+        this.createDatetime = createDatetime;
     }
 }

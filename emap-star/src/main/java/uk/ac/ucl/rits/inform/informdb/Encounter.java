@@ -37,15 +37,11 @@ public class Encounter extends TemporalCore implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int                          encounterId;
 
-    @ManyToOne
-    @JoinColumn(name = "mrn", referencedColumnName = "mrn")
-    private Mrn                          mrn;
-
     @Column(unique = false, nullable = false)
     private String                       encounter;
     private String                       sourceSystem;
 
-    @ManyToOne
+    @ManyToOne(targetEntity = Encounter.class)
     @JoinColumn(name = "parent_encounter")
     private Encounter                    parentEncounter;
 
@@ -54,6 +50,9 @@ public class Encounter extends TemporalCore implements Serializable {
 
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
     private List<VisitFact>              visits;
+
+    @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter", cascade = CascadeType.ALL)
+    private List<MrnEncounter> mrns;
 
     /**
      * @return the encounterId
@@ -67,20 +66,6 @@ public class Encounter extends TemporalCore implements Serializable {
      */
     public void setEncounterId(int encounterId) {
         this.encounterId = encounterId;
-    }
-
-    /**
-     * @return the mrn
-     */
-    public Mrn getMrn() {
-        return mrn;
-    }
-
-    /**
-     * @param mrn the mrn to set
-     */
-    public void setMrn(Mrn mrn) {
-        this.mrn = mrn;
     }
 
     /**
@@ -190,7 +175,7 @@ public class Encounter extends TemporalCore implements Serializable {
 
     @Override
     public String toString() {
-        return "Encounter [encounter_id=" + encounterId + ", mrn=" + mrn + ", encounter=" + encounter
+        return "Encounter [encounter_id=" + encounterId + ", encounter=" + encounter
                 + ", store_datetime=" + this.getStoredFrom() + ", end_datetime=" + this.getValidUntil()
                 + ", source_system=" + sourceSystem + ", event_time=" + this.getValidFrom() + "]";
     }

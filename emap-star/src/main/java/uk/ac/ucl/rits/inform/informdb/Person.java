@@ -32,8 +32,8 @@ public class Person {
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant   createDatetime;
 
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL)
-    private List<Mrn> mrns;
+    @OneToMany(targetEntity = PersonMrn.class, mappedBy = "person", cascade = CascadeType.ALL)
+    private List<PersonMrn> mrns;
 
     /**
      * @return the personId
@@ -66,16 +66,16 @@ public class Person {
     /**
      * @return the mrns
      */
-    public List<Mrn> getMrns() {
+    public List<PersonMrn> getMrns() {
         return mrns;
     }
 
-    /**
-     * @param mrns the mrns to set
-     */
-    public void setMrns(List<Mrn> mrns) {
-        this.mrns = mrns;
-    }
+//    /**
+//     * @param mrns the mrns to set
+//     */
+//    public void setMrns(List<Mrn> mrns) {
+//        this.mrns = mrns;
+//    }
 
     /**
      * Add an MRN to this person.
@@ -86,8 +86,10 @@ public class Person {
         if (this.mrns == null) {
             this.mrns = new ArrayList<>();
         }
-        this.mrns.add(mrn);
-        mrn.setPerson(this);
+        PersonMrn perMrn = new PersonMrn(this, mrn);
+        this.mrns.add(perMrn);
+        // Might be enough
+        //mrn.setPerson(this);
     }
 
     @Override
