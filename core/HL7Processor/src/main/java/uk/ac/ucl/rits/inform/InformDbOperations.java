@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Vector;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.hl7.Doctor;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
@@ -35,6 +37,7 @@ import uk.ac.ucl.rits.inform.informdb.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.informdb.IdsProgress;
 import uk.ac.ucl.rits.inform.informdb.IdsProgressRepository;
 import uk.ac.ucl.rits.inform.informdb.Mrn;
+import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.MrnRepository;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicFact;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicFactRepository;
@@ -246,12 +249,13 @@ public class InformDbOperations {
 
     // Search through encounters in memory with a given encounter number
     private List<Encounter> getEncounterWhere(Mrn mrn, String encounter) {
-        List<Encounter> existingEncs = mrn.getEncounters();
-        if (existingEncs == null) {
+        List<MrnEncounter> existingMrnEncs = mrn.getEncounters();
+        if (existingMrnEncs == null) {
             return null;
         }
-        List<Encounter> matchingEncs = existingEncs
+        List<Encounter> matchingEncs = existingMrnEncs
                 .stream()
+                .map(mrnE -> mrnE.getEncounter())
                 .filter(e -> encounter.equals(e.getEncounter()))
                 .collect(Collectors.toList());
         return matchingEncs;
@@ -314,8 +318,8 @@ public class InformDbOperations {
     }
     
     /**
-     * Get existing encounter or create a new one if it doesn't exist
-     * @param mrn the MRN to search in
+     * Get existing encounter or create a new one if it doesn't exist.
+     * @param mrn the MRN to search/create in
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
      * @throws HL7Exception 
@@ -330,7 +334,10 @@ public class InformDbOperations {
             enc.setStoredFrom(Instant.now());
             enc.setEncounter(encounter);
             enc.setValidFrom(encounterDetails.getEventOccurred());
-            enc.setMrn(mrn);
+            mrn.addEncounter(enc);
+            //enc.setMrn(mrn);
+            //mrn = mrnRepo.save(mrn);
+            //enc = encounterRepo.save(enc);
             return enc;
         }
         else if (existingEncs.size() > 1) {
@@ -479,6 +486,7 @@ public class InformDbOperations {
         }
     }
 
+    @Transactional
     private VisitFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
         VisitFact visitFact = new VisitFact();
         visitFact.setValidFrom(visitBeginTime);
@@ -625,22 +633,6 @@ public class InformDbOperations {
     }
 
     /**
-     * @param mrnStr
-     * @return the most recent VisitFact associated with the given MRN,
-     * or null if there aren't any
-     */
-    private VisitFact findLatestVisitByMrn(String mrnStr) {
-        List<VisitFact> latestVisitsByMrn = visitFactRepository.findLatestVisitsByMrn(mrnStr, AttributeKeyMap.ARRIVAL_TIME.getShortname());
-
-        if (latestVisitsByMrn.isEmpty()) {
-            return null;
-        }
-        VisitFact latestVisit = latestVisitsByMrn.get(0);
-        logger.info("Latest visit: " + latestVisit.getVisitId());
-        return latestVisit;
-    }
-
-    /**
      * Mark the patient's most recent Visit as finished
      * @param adtWrap the A03 message detailing the discharge
      * @throws HL7Exception 
@@ -692,6 +684,7 @@ public class InformDbOperations {
     }
     
     
+    @Transactional
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
         Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
         if (attropt.isPresent()) {
@@ -817,10 +810,12 @@ public class InformDbOperations {
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person
         Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
-        oldMrn.setValidUntil(mergeTime);
+        //oldMrn.setValidUntil(mergeTime);
 
         Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
         // what if we don't know about the surviving mrn? (ie this is null)
+
+        /* disable merges for now
         Person survivingPerson = survivingMrn.getPerson();
  
         // As of the merge, the non-surviving mrn now points to the surviving person.
@@ -832,6 +827,7 @@ public class InformDbOperations {
         newOldMrn.setStoredFrom(Instant.now());
         newOldMrn.setValidFrom(mergeTime);
         newOldMrn = mrnRepo.save(newOldMrn);
+        */
     }
 
     public long countEncounters() {
@@ -860,14 +856,15 @@ public class InformDbOperations {
              */
             logger.info("Creating a new MRN");
             mrn = new Mrn();
-            mrn.setValidFrom(startTime);
+            mrn.setCreateDatetime(Instant.now());
+            //mrn.setValidFrom(startTime);
             mrn.setMrn(mrnStr);
-            mrn.setStoredFrom(Instant.now());
+            //mrn.setStoredFrom(Instant.now());
             Person pers = new Person();
             pers.setCreateDatetime(Instant.now());
             pers.addMrn(mrn);
             pers = personRepo.save(pers);
-            mrn.setPerson(pers);
+            //mrn.setPerson(pers);
         } else if (allMrns.size() > 1) {
             throw new NotYetImplementedException("Does this even make sense?");
         } else {
