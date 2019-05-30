@@ -70,26 +70,21 @@ public class Person {
         return mrns;
     }
 
-//    /**
-//     * @param mrns the mrns to set
-//     */
-//    public void setMrns(List<Mrn> mrns) {
-//        this.mrns = mrns;
-//    }
-
     /**
      * Add an MRN to this person.
      *
      * @param mrn The mrn to add
+     * @param validFrom when the association became true
+     * @param storedFrom when the association was stored
      */
-    public void addMrn(Mrn mrn) {
+    public void addMrn(Mrn mrn, Instant validFrom, Instant storedFrom) {
         if (this.mrns == null) {
             this.mrns = new ArrayList<>();
         }
         PersonMrn perMrn = new PersonMrn(this, mrn);
+        perMrn.setValidFrom(validFrom);
+        perMrn.setStoredFrom(storedFrom);
         this.mrns.add(perMrn);
-        // Might be enough
-        //mrn.setPerson(this);
     }
 
     @Override

@@ -99,15 +99,17 @@ public class Mrn implements Serializable {
      * Add a new encounter to this MRN.
      *
      * @param enc the encounter to add
+     * @param validFrom when the association became true
+     * @param storedFrom when the association was stored
      */
-    public void addEncounter(Encounter enc) {
+    public void addEncounter(Encounter enc, Instant validFrom, Instant storedFrom) {
         if (this.encounters == null) {
             this.encounters = new ArrayList<>();
         }
         MrnEncounter mrnEncounter = new MrnEncounter(this, enc);
+        mrnEncounter.setValidFrom(validFrom);
+        mrnEncounter.setStoredFrom(storedFrom);
         this.encounters.add(mrnEncounter);
-        // Is this enough now?
-        //enc.setMrn(this);
     }
 
     /**

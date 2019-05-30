@@ -55,10 +55,6 @@ public class MrnEncounter extends TemporalCore {
         return mrn;
     }
 
-//    public void setMrn(Mrn mrn) {
-//        this.mrn = mrn;
-//    }
-
     /**
      * @return the Encounter in the association
      */
@@ -66,25 +62,6 @@ public class MrnEncounter extends TemporalCore {
         return encounter;
     }
 
-//    public void setEncounter(Encounter encounter) {
-//        this.encounter = encounter;
-//    }
-//
-//    /**
-//     * @return the Id
-//     */
-//    public Integer getId() {
-//        return mrnEncounterid;
-//    }
-//
-//    /**
-//     * set the Id.
-//     * @param id the Id
-//     */
-//    public void setId(Integer id) {
-//        this.mrnEncounterid = id;
-//    }
-//
     @Override
     public String toString() {
         return "MrnEncounter [mrnEncounterid=" + mrnEncounterid + ", mrn=" + mrn + ", encounter=" + encounter
