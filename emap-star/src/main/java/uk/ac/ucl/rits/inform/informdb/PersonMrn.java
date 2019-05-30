@@ -22,11 +22,11 @@ public class PersonMrn extends TemporalCore {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "person") //, nullable = false)
+    @JoinColumn(name = "person", nullable = false)
     private Person person;
 
     @ManyToOne
-    @JoinColumn(name = "mrn") //, nullable = false)
+    @JoinColumn(name = "mrn", nullable = false)
     private Mrn mrn;
 
     /**

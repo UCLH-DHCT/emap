@@ -25,11 +25,11 @@ public class MrnEncounter extends TemporalCore {
     private Integer mrnEncounterid;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "mrn") //, nullable = false)
+    @JoinColumn(name = "mrn", nullable = false)
     private Mrn mrn;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "encounter") //, nullable = false)
+    @JoinColumn(name = "encounter", nullable = false)
     private Encounter encounter;
 
     /**
