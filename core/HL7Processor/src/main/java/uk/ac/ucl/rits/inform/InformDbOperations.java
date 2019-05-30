@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.Vector;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -24,7 +23,6 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.hl7.Doctor;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
@@ -331,13 +329,12 @@ public class InformDbOperations {
         if (existingEncs == null || existingEncs.isEmpty()) {
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
-            enc.setStoredFrom(Instant.now());
+            Instant storedFrom = Instant.now();
+            enc.setStoredFrom(storedFrom);
             enc.setEncounter(encounter);
-            enc.setValidFrom(encounterDetails.getEventOccurred());
-            mrn.addEncounter(enc);
-            //enc.setMrn(mrn);
-            //mrn = mrnRepo.save(mrn);
-            //enc = encounterRepo.save(enc);
+            Instant validFrom = encounterDetails.getEventOccurred();
+            enc.setValidFrom(validFrom);
+            mrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         }
         else if (existingEncs.size() > 1) {
@@ -693,6 +690,7 @@ public class InformDbOperations {
             // In future we will have a more orderly list of Attributes, but am
             // creating them on the fly for now
             Attribute attr = new Attribute();
+            attr.setAddedTime(Instant.now());
             attr.setShortName(attrKM.getShortname());
             attr.setDescription(attrKM.toString()); // just assume a description from the name for now
             attr = attributeRepository.save(attr);
@@ -856,15 +854,13 @@ public class InformDbOperations {
              */
             logger.info("Creating a new MRN");
             mrn = new Mrn();
-            mrn.setCreateDatetime(Instant.now());
-            //mrn.setValidFrom(startTime);
+            Instant storedFrom = Instant.now();
+            mrn.setCreateDatetime(storedFrom);
             mrn.setMrn(mrnStr);
-            //mrn.setStoredFrom(Instant.now());
             Person pers = new Person();
-            pers.setCreateDatetime(Instant.now());
-            pers.addMrn(mrn);
+            pers.setCreateDatetime(storedFrom);
+            pers.addMrn(mrn, startTime, storedFrom);
             pers = personRepo.save(pers);
-            //mrn.setPerson(pers);
         } else if (allMrns.size() > 1) {
             throw new NotYetImplementedException("Does this even make sense?");
         } else {
