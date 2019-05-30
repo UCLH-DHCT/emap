@@ -857,6 +857,7 @@ public class InformDbOperations {
             Instant storedFrom = Instant.now();
             mrn.setCreateDatetime(storedFrom);
             mrn.setMrn(mrnStr);
+            mrn = mrnRepo.save(mrn);
             Person pers = new Person();
             pers.setCreateDatetime(storedFrom);
             pers.addMrn(mrn, startTime, storedFrom);
