@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -35,6 +36,7 @@ public class PatientDemographicProperty extends TemporalCore implements Property
     private Long                   valueAsInteger;
     private Boolean                valueAsBoolean;
     private Double                 valueAsReal;
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant                valueAsDatetime;
 
     @ManyToOne

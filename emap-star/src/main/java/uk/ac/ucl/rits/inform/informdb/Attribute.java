@@ -31,7 +31,7 @@ public class Attribute {
     private String          description;
     @NotNull
     private ResultType      resultType;
-    @NotNull
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant         addedTime;
 
     @Transient

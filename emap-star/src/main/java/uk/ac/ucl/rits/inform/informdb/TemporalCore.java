@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
 
+import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 /**
@@ -21,9 +22,13 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class TemporalCore {
 
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant validFrom;
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant validUntil;
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant storedFrom;
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
     /**
