@@ -9,8 +9,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import com.sun.istack.NotNull;
-
 /**
  * An attribute represents a vocabulary item. This may be a question, or answer
  * to a question.
@@ -27,9 +25,9 @@ public class Attribute {
 
     @Column(unique = true, nullable = false, length = 15)
     private String          shortName;
-    @NotNull
+    @Column(nullable = false)
     private String          description;
-    @NotNull
+    //@Column(nullable = false)
     private ResultType      resultType;
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant         addedTime;
