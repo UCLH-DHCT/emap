@@ -841,13 +841,19 @@ public class InformDbOperations {
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person
         Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
+        Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
+        if (survivingMrn == null || oldMrn == null) {
+            throw new InvalidMrnException(String.format(
+                    "MRNs %s or %s (%s or %s) are not previously known, do nothing",
+                    oldMrnStr, survivingMrnStr,
+                    oldMrn, survivingMrn
+                    ));
+        }
         Instant now = Instant.now();
 
         PersonMrn oldPersonMrn = getOnlyElementWhere(
                 oldMrn.getPersons(),
                 pm -> pm.isValidAsOf(now));
-
-        Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
 
         PersonMrn survivingPersonMrn = getOnlyElementWhere(
                 survivingMrn.getPersons(),
