@@ -64,7 +64,7 @@ public class MrnEncounter extends TemporalCore {
 
     @Override
     public String toString() {
-        return "MrnEncounter [mrnEncounterid=" + mrnEncounterid + ", mrn=" + mrn + ", encounter=" + encounter
+        return "MrnEncounter [mrnEncounterid=" + mrnEncounterid + ", mrn=" + mrn.getMrnId() + ", encounter=" + encounter.getEncounterId()
                 + "]";
     }
 }

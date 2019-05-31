@@ -131,7 +131,7 @@ public class Mrn implements Serializable {
 
     @Override
     public String toString() {
-        return "Mrn [mrnId=" + mrnId + ", encounters=" + encounters + ", mrn=" + mrn + ", sourceSystem=" + sourceSystem
+        return "Mrn [mrnId=" + mrnId + ", mrn=" + mrn + ", sourceSystem=" + sourceSystem
                 + "]";
     }
 
