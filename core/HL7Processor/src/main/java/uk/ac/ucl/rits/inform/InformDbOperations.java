@@ -97,9 +97,11 @@ public class InformDbOperations {
         idsLog.setIdsUnid(idsMsg.getUnid());
         idsLog.setMrn(idsMsg.getHospitalnumber());
         idsLog.setMessageType(idsMsg.getMessagetype());
-        Timestamp messagedatetime = idsMsg.getMessagedatetime();
-        if (messagedatetime != null) {
-            idsLog.setMessageDatetime(messagedatetime.toInstant());
+        Timestamp messageDatetime = idsMsg.getMessagedatetime();
+        Instant messageDatetimeInstant = null;
+        if (messageDatetime != null) {
+            idsLog.setMessageDatetime(messageDatetime.toInstant());
+            messageDatetimeInstant = messageDatetime.toInstant();
         }
         int processed = 0;
         String hl7msg = idsMsg.getHl7message();
@@ -118,7 +120,9 @@ public class InformDbOperations {
             parsingErrors.add(errString);
             logger.info(errString);
             idsLog.setMessage(errString);
-            setLatestProcessedId(idsMsg.getUnid());
+            Instant processingEnd = Instant.now();
+            idsLog.setProcessingEndTime(processingEnd);
+            setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
             return processed;
         }
         finally {
@@ -177,9 +181,10 @@ public class InformDbOperations {
         finally {
             idsLog = idsEffectLoggingRepository.save(idsLog);
         }
-        idsLog.setProcessingEndTime(Instant.now());
+        Instant processingEnd = Instant.now();
+        idsLog.setProcessingEndTime(processingEnd);
         idsLog = idsEffectLoggingRepository.save(idsLog);
-        setLatestProcessedId(idsMsg.getUnid());
+        setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
 
         return processed;
     }
@@ -196,9 +201,11 @@ public class InformDbOperations {
     }
 
     @Transactional
-    public void setLatestProcessedId(int lastProcessedIdsUnid) {
+    public void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
         onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
+        onlyRow.setLastProcessedMessageDatetime(messageDatetime);
+        onlyRow.setLastProcessingDatetime(processingEnd);
         idsProgressRepository.save(onlyRow);
     }
 
