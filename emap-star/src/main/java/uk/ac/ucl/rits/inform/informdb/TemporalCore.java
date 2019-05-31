@@ -96,4 +96,16 @@ public abstract class TemporalCore {
         this.storedUntil = storedUntil;
     }
 
+    /**
+     * @param asOfTime The time to test validity at,
+     * ie. the simulated "now" point (which will equal
+     * the actual current moment in time for queries
+     * that aren't time travelling). Cannot be null.
+     * @return whether this row is valid as of the given time
+     */
+    public boolean isValidAsOf(Instant asOfTime) {
+        return (asOfTime.compareTo(getStoredFrom()) >= 0
+                && (getStoredUntil() == null
+                        || asOfTime.compareTo(getStoredUntil()) < 0));
+    }
 }

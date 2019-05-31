@@ -43,6 +43,9 @@ public class Mrn implements Serializable {
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
     private List<MrnEncounter> encounters;
 
+    @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn", cascade = CascadeType.ALL)
+    private List<PersonMrn> persons = new ArrayList<>();
+
     /**
      * The value of the MRN identifier.
      */
@@ -144,5 +147,12 @@ public class Mrn implements Serializable {
      */
     public void setCreateDatetime(Instant createDatetime) {
         this.createDatetime = createDatetime;
+    }
+
+    /**
+     * @return all Persons that are or have ever been associated with this Mrn
+     */
+    public List<PersonMrn> getPersons() {
+        return persons;
     }
 }

@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,7 +18,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "person_mrn")
-public class PersonMrn extends TemporalCore {
+public class PersonMrn extends TemporalCore implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -28,6 +30,12 @@ public class PersonMrn extends TemporalCore {
     @ManyToOne
     @JoinColumn(name = "mrn", nullable = false)
     private Mrn mrn;
+
+    /**
+     * .
+     */
+    public PersonMrn() {
+    }
 
     /**
      * create a new person/mrn association.
