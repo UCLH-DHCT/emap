@@ -41,6 +41,8 @@ import uk.ac.ucl.rits.inform.informdb.PatientDemographicFact;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicFactRepository;
 import uk.ac.ucl.rits.inform.informdb.PatientDemographicProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
+import uk.ac.ucl.rits.inform.informdb.PersonMrn;
+import uk.ac.ucl.rits.inform.informdb.PersonMrnRepository;
 import uk.ac.ucl.rits.inform.informdb.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.VisitFact;
 import uk.ac.ucl.rits.inform.informdb.VisitFactRepository;
@@ -61,6 +63,8 @@ public class InformDbOperations {
     private PatientDemographicFactRepository patientDemographicFactRepository;
     @Autowired
     private VisitFactRepository visitFactRepository;
+    @Autowired
+    private PersonMrnRepository personMrnRepo;
     @Autowired
     private IdsProgressRepository idsProgressRepository;
     @Autowired
@@ -143,7 +147,7 @@ public class InformDbOperations {
                 processed += 1;
             } else if (adtWrap.getTriggerEvent().equals("A40")) {
                 // this feature is not ready yet
-                boolean a40_enabled = false;
+                boolean a40_enabled = true;
                 if (a40_enabled) {
                     logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
                     mergeById(adtWrap);
@@ -710,6 +714,21 @@ public class InformDbOperations {
         }
     }
 
+    /**
+     * Filter on a predicate where at most one element should satisfy it.
+     * @param list the list to look in
+     * @param pred the predicate to test with
+     * @return the only element that satisfies it, or null if there are none that do
+     * @throws DuplicateValueException if more than one element satisfies pred
+     */
+    private <E> E getOnlyElementWhere(List<E> list, Predicate<? super E> pred) {
+        List<E> persons = list
+                .stream()
+                .filter(pred)
+                .collect(Collectors.toList());
+        return getOnlyElement(persons);
+    }
+
     private <E> E getOnlyElement(List<E> list) {
         switch (list.size()) {
         case 0:
@@ -794,6 +813,15 @@ public class InformDbOperations {
         }
     }
 
+    /**
+     * Indicate in the DB that two MRNs now belong to the same person.
+     * One MRN is designated the surviving MRN, although we can't really enforce this as
+     * we'll continue to add further data to whichever MRN is specified in future,
+     * which (if the source system is behaving) we'd hope would be the surviving MRN.
+     * The best we could do is flag it as an error if new data is put against a non-surviving MRN.
+     * @param adtWrap message containing merge info
+     * @throws HL7Exception
+     */
     @Transactional
     private void mergeById(AdtWrap adtWrap) throws HL7Exception {
         String oldMrnStr = adtWrap.getMergedPatientId();
@@ -808,24 +836,45 @@ public class InformDbOperations {
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person
         Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
-        //oldMrn.setValidUntil(mergeTime);
+        Instant now = Instant.now();
+
+        PersonMrn oldPersonMrn = getOnlyElementWhere(
+                oldMrn.getPersons(),
+                pm -> pm.isValidAsOf(now));
 
         Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
-        // what if we don't know about the surviving mrn? (ie this is null)
 
-        /* disable merges for now
-        Person survivingPerson = survivingMrn.getPerson();
- 
-        // As of the merge, the non-surviving mrn now points to the surviving person.
-        // We are not invalidating the old mrn as such, but our expectation is that
-        // no new hospital encounters would be added to it.
-        Mrn newOldMrn = new Mrn();
-        newOldMrn.setMrn(oldMrnStr);
-        newOldMrn.setPerson(survivingPerson);
-        newOldMrn.setStoredFrom(Instant.now());
-        newOldMrn.setValidFrom(mergeTime);
-        newOldMrn = mrnRepo.save(newOldMrn);
-        */
+        PersonMrn survivingPersonMrn = getOnlyElementWhere(
+                survivingMrn.getPersons(),
+                pm -> pm.isValidAsOf(now));
+
+        if (survivingPersonMrn == null || oldPersonMrn == null) {
+            throw new InvalidMrnException(String.format(
+                    "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
+                    oldMrnStr, survivingMrnStr,
+                    oldPersonMrn, survivingPersonMrn
+                    ));
+        }
+
+        // Invalidate the old person<->mrn association
+        oldPersonMrn.setValidUntil(mergeTime);
+
+        // If we already thought they were the same person, do nothing further.
+        // (Wait, I don't think this can happen, because they wouldn't both be valid)
+        if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
+            throw new MessageIgnoredException(
+                    String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
+                            survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
+        }
+
+        // Create a new person<->mrn association that tells us that as of the merge time
+        // the old MRN is believed to belong to the person associated with the surviving Mrn
+        PersonMrn newOldPersonMrn = new PersonMrn(survivingPersonMrn.getPerson(), oldMrn);
+        newOldPersonMrn.setStoredFrom(Instant.now());
+        newOldPersonMrn.setValidFrom(mergeTime);
+
+        newOldPersonMrn = personMrnRepo.save(newOldPersonMrn);
+        oldPersonMrn = personMrnRepo.save(oldPersonMrn);
     }
 
     public long countEncounters() {
