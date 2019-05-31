@@ -432,9 +432,14 @@ public class InformDbOperations {
      */
     private HashMap<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
         HashMap<String, PatientDemographicFact> demographics = new HashMap<String, PatientDemographicFact>();
+        Instant validFrom = msgDetails.getEventOccurred();
+        if (validFrom == null) {
+            // some messages (eg. A08) don't have an event occurred field
+            validFrom = msgDetails.getRecordedDateTime();
+        }
         {
             PatientDemographicFact fact = new PatientDemographicFact();
-            fact.setValidFrom(msgDetails.getEventOccurred());
+            fact.setValidFrom(validFrom);
             fact.setStoredFrom(Instant.now());
             Attribute attr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
             fact.setFactType(attr);
@@ -445,7 +450,7 @@ public class InformDbOperations {
         }
         {
             PatientDemographicFact fact = new PatientDemographicFact();
-            fact.setValidFrom(msgDetails.getEventOccurred());
+            fact.setValidFrom(validFrom);
             fact.setStoredFrom(Instant.now());
             fact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
             
