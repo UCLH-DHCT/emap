@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -146,8 +147,8 @@ public class Encounter extends TemporalCore implements Serializable {
     /**
      * @return the demographics as a HashMap, indexed by fact short name
      */
-    public HashMap<String, PatientDemographicFact> getDemographicsAsHashMap() {
-        HashMap<String, PatientDemographicFact> demographicsHM = new HashMap<>();
+    public Map<String, PatientDemographicFact> getDemographicsAsHashMap() {
+        Map<String, PatientDemographicFact> demographicsHM = new HashMap<>();
         demographics.forEach(d -> demographicsHM.put(d.getFactType().getShortName(), d));
         return demographicsHM;
     }
