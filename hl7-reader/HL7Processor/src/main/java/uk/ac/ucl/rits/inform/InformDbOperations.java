@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -426,7 +427,7 @@ public class InformDbOperations {
      * @throws HL7Exception 
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
-        HashMap<String,PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
+        Map<String,PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
         demogs.forEach((k, v) -> enc.addDemographic(v));
     }
 
@@ -437,8 +438,8 @@ public class InformDbOperations {
      * @return Attribute->Fact key-value pairs
      * @throws HL7Exception 
      */
-    private HashMap<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
-        HashMap<String, PatientDemographicFact> demographics = new HashMap<String, PatientDemographicFact>();
+    private Map<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
+        Map<String, PatientDemographicFact> demographics = new HashMap<>();
         Instant validFrom = msgDetails.getEventOccurred();
         if (validFrom == null) {
             // some messages (eg. A08) don't have an event occurred field
@@ -770,8 +771,8 @@ public class InformDbOperations {
         }
 
         // Compare new demographics with old
-        HashMap<String,PatientDemographicFact> newDemographics = buildPatientDemographics(adtWrap);
-        HashMap<String, PatientDemographicFact> currentDemographics = encounter.getDemographicsAsHashMap();
+        Map<String,PatientDemographicFact> newDemographics = buildPatientDemographics(adtWrap);
+        Map<String, PatientDemographicFact> currentDemographics = encounter.getDemographicsAsHashMap();
         updateDemographics(encounter, currentDemographics, newDemographics);
 
         // Visits, just detect changes for now until I work out what to do
@@ -798,8 +799,8 @@ public class InformDbOperations {
      */
     private void updateDemographics(
             Encounter encounter,
-            HashMap<String, PatientDemographicFact> currentDemographics,
-            HashMap<String, PatientDemographicFact> newDemographics) {
+            Map<String, PatientDemographicFact> currentDemographics,
+            Map<String, PatientDemographicFact> newDemographics) {
         logger.info(String.format("A08 comparing %d existing demographic facts to %s new facts",
                 currentDemographics.size(), newDemographics.size()));
         for (String newKey : newDemographics.keySet()) {
