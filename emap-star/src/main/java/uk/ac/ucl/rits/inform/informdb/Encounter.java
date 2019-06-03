@@ -147,7 +147,7 @@ public class Encounter extends TemporalCore implements Serializable {
      * @return the demographics as a HashMap, indexed by fact short name
      */
     public HashMap<String, PatientDemographicFact> getDemographicsAsHashMap() {
-        HashMap<String, PatientDemographicFact> demographicsHM = new HashMap<String, PatientDemographicFact>();
+        HashMap<String, PatientDemographicFact> demographicsHM = new HashMap<>();
         demographics.forEach(d -> demographicsHM.put(d.getFactType().getShortName(), d));
         return demographicsHM;
     }

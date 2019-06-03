@@ -52,7 +52,7 @@ public enum AttributeKeyMap {
      */
     PARENT_VISIT("VISIT_PAREN"),
     /**
-     * Generate single key value pair demographic grouper.
+     * General demographic grouper.
      */
     GENERAL_DEMOGRAPHIC("GENERAL_DEMO"),
     /**
@@ -76,7 +76,7 @@ public enum AttributeKeyMap {
      */
     FEMALE("FEMALE"),
     /**
-     * Other, i.e. not a category we have explicitly recoreded.
+     * Other, i.e. not a category we have explicitly recorded.
      */
     OTHER("OTHER"),
     /**

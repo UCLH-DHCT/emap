@@ -104,8 +104,8 @@ public abstract class TemporalCore {
      * @return whether this row is valid as of the given time
      */
     public boolean isValidAsOf(Instant asOfTime) {
-        return (asOfTime.compareTo(getStoredFrom()) >= 0
-                && (getStoredUntil() == null
-                        || asOfTime.compareTo(getStoredUntil()) < 0));
+        return (asOfTime.compareTo(getValidFrom()) >= 0
+                && (getValidUntil() == null
+                        || asOfTime.compareTo(getValidUntil()) < 0));
     }
 }
