@@ -469,6 +469,8 @@ public class InformDbOperations {
             Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
             addPropertyToFact(fact, AttributeKeyMap.SEX, sexAttrValue);
 
+            addPropertyToFact(fact, AttributeKeyMap.NHS_NUMBER, msgDetails.getNHSNumber());
+
             addPropertyToFact(fact, AttributeKeyMap.POST_CODE, msgDetails.getPatientZipOrPostalCode());
 
             demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname(), fact);
