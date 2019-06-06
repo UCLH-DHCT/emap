@@ -52,6 +52,11 @@ public enum AttributeKeyMap {
      */
     PARENT_VISIT("VISIT_PAREN"),
     /**
+     * The NHS number associated with an encounter (and hopefully
+     * an entire MRN).
+     */
+    NHS_NUMBER("NHS_NUMBER"),
+    /**
      * General demographic grouper.
      */
     GENERAL_DEMOGRAPHIC("GENERAL_DEMO"),
