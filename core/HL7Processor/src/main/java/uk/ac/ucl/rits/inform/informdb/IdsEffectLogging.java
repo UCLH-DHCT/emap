@@ -21,42 +21,59 @@ public class IdsEffectLogging {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    // the unique ID of the IDS message
     private int idsUnid;
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
-    // the MRN as stated in the IDS
     private String mrn;
-    // message type from IDS (aka trigger event)
     private String messageType;
-    // text description of what action was taken based on this message
     private String message;
 
+    /**
+     * @param idsUnid the unique ID of the IDS message
+     */
     public void setIdsUnid(int idsUnid) {
         this.idsUnid = idsUnid;
     }
 
+    /**
+     * @param processingStartTime when did processing this message start
+     */
     public void setProcessingStartTime(Instant processingStartTime) {
         this.processingStartTime = processingStartTime;
     }
 
+    /**
+     * @param processingEndTime when did processing this message finish
+     */
     public void setProcessingEndTime(Instant processingEndTime) {
         this.processingEndTime = processingEndTime;
     }
 
+    /**
+     * @param mrn the MRN as stated in the IDS
+     */
     public void setMrn(String mrn) {
         this.mrn = mrn;
     }
 
+    /**
+     * @param message text description of what action was taken based on this message
+     */
     public void setMessage(String message) {
         this.message = message;
     }
 
+    /**
+     * @param messageType message type from IDS (aka trigger event)
+     */
     public void setMessageType(String messageType) {
         this.messageType = messageType;
     }
 
+    /**
+     * @param messageDatetime the timestamp in the message itself
+     */
     public void setMessageDatetime(Instant messageDatetime) {
         this.messageDatetime = messageDatetime;
     }

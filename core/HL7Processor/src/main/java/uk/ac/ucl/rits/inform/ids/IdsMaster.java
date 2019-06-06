@@ -4,8 +4,6 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -170,80 +168,136 @@ public class IdsMaster {
         return persistdatetime;
     }
 
+    /**
+     * @param hl7message the HL7 message text
+     */
     public void setHl7message(String hl7message) {
         this.hl7message = hl7message;
     }
 
+    /**
+     * @param unid the IDS unique ID
+     */
     public void setUnid(int unid) {
         this.unid = unid;
     }
 
+    /**
+     * @param messagetype message type (aka trigger event)
+     */
     public void setMessagetype(String messagetype) {
         this.messagetype = messagetype;
     }
 
+    /**
+     * @param hospitalnumber patient MRN
+     */
     public void setHospitalnumber(String hospitalnumber) {
         this.hospitalnumber = hospitalnumber;
     }
 
+    /**
+     * @param patientname patient name
+     */
     public void setPatientname(String patientname) {
         this.patientname = patientname;
     }
 
+    /**
+     * @param patientmiddlename patient middle name
+     */
     public void setPatientmiddlename(String patientmiddlename) {
         this.patientmiddlename = patientmiddlename;
     }
 
+    /**
+     * @param patientsurname patient surname
+     */
     public void setPatientsurname(String patientsurname) {
         this.patientsurname = patientsurname;
     }
 
+    /**
+     * @param dateofbirth patient dob
+     */
     public void setDateofbirth(Timestamp dateofbirth) {
         this.dateofbirth = dateofbirth;
     }
 
+    /**
+     * @param nhsnumber patient NHS number
+     */
     public void setNhsnumber(String nhsnumber) {
         this.nhsnumber = nhsnumber;
     }
 
+    /**
+     * @param patientclass patient class
+     */
     public void setPatientclass(String patientclass) {
         this.patientclass = patientclass;
     }
 
+    /**
+     * @param patientlocation patient location
+     */
     public void setPatientlocation(String patientlocation) {
         this.patientlocation = patientlocation;
     }
 
+    /**
+     * @param admissiondate patient admission date
+     */
     public void setAdmissiondate(Timestamp admissiondate) {
         this.admissiondate = admissiondate;
     }
 
+    /**
+     * @param dischargedate patient discharge date
+     */
     public void setDischargedate(Timestamp dischargedate) {
         this.dischargedate = dischargedate;
     }
 
+    /**
+     * @param senderapplication sender application
+     */
     public void setSenderapplication(String senderapplication) {
         this.senderapplication = senderapplication;
     }
 
+    /**
+     * @param messageidentifier message identifier
+     */
     public void setMessageidentifier(String messageidentifier) {
         this.messageidentifier = messageidentifier;
     }
 
+    /**
+     * @param messageformat message format
+     */
     public void setMessageformat(String messageformat) {
         this.messageformat = messageformat;
     }
 
+    /**
+     * @param messageversion message version
+     */
     public void setMessageversion(String messageversion) {
         this.messageversion = messageversion;
     }
 
+    /**
+     * @param messagedatetime message timestamp
+     */
     public void setMessagedatetime(Timestamp messagedatetime) {
         this.messagedatetime = messagedatetime;
     }
 
+    /**
+     * @param persistdatetime timestamp the message was persisted to the IDS
+     */
     public void setPersistdatetime(Timestamp persistdatetime) {
         this.persistdatetime = persistdatetime;
     }
-
 }
