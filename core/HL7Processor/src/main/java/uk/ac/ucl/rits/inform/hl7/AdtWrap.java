@@ -77,7 +77,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
 
     /**
      * Populate the data from an HL7 message.
-     * 
+     *
      * @param fromMsg the passed in HL7 message
      * @throws HL7Exception
      */
@@ -85,13 +85,13 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         isTest = false;
 
         /**
-         * NOTE: MSH-9.2 Trigger Event is an important field. 
-         * The HAPI parser uses some object types to represent other messages, 
-         * due to the similarities in the message structure. e.g. An A01 object 
-         * can represent an A01 message but can also be used to represent 
-         * A04, A08 and A13 messages. Thus it is always necessary to check 
+         * NOTE: MSH-9.2 Trigger Event is an important field.
+         * The HAPI parser uses some object types to represent other messages,
+         * due to the similarities in the message structure. e.g. An A01 object
+         * can represent an A01 message but can also be used to represent
+         * A04, A08 and A13 messages. Thus it is always necessary to check
          * the Trigger Event field to see what message type we are dealing with.
-         * 
+         *
          */
 
         // Populate the class fields. They may be null if the information is not held in the message.
@@ -103,7 +103,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         } catch (HL7Exception e) {
             // sections are allowed not to exist
         }
-        
+
         // I want the "MRG" segment for A40 messages, is this really
         // the best way to get it? Why do we have to get the PID segment in
         // a different way for an A39/A40 message?
@@ -115,7 +115,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         else {
             pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
         }
-        
+
         try {
             administrativeSex = pidwrap.getPatientSex();
             dob = pidwrap.getPatientBirthDate();
@@ -160,15 +160,15 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         // Type (ADT)
         System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
         // Trigger
-        
+
         System.out.println("current bed = " + getCurrentBed());
-        
+
         //// Minimal info needed //////
         System.out.println("patient name = " + pidwrap.getPatientFullName());
         System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
         System.out.println("admission time = " + getAdmissionDateTime());
     }
-    
+
     public String getAdministrativeSex() {
         return administrativeSex;
     }

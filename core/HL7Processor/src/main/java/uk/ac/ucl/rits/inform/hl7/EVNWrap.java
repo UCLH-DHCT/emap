@@ -8,12 +8,8 @@ import ca.uhn.hl7v2.model.v27.datatype.NULLDT; // Special datatype used in field
 import ca.uhn.hl7v2.model.v27.datatype.XCN;
 
 /**
- * class EVNWrap
- * 
  * Wrapper around the HAPI parser's EVN segment object, to make it easier to use.
- * 
- * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/EVN.html 
- * 
+ * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/EVN.html
  */
 
 public interface EVNWrap {
@@ -28,9 +24,8 @@ public interface EVNWrap {
     default boolean EVNSegmentExists() {
         return getEVN() != null;
     }
-    
+
     /**
-     * 
      * @return EVN-1 Event Type Code (e.g. A01)
      * @throws HL7Exception
      */
@@ -48,8 +43,7 @@ public interface EVNWrap {
     }
 
 
-     /**
-     * 
+    /**
      * @return EVN-4 Event Reason Code (e.g. ADM)
      * @throws HL7Exception
      */
@@ -59,9 +53,9 @@ public interface EVNWrap {
 
 
      /**
-     * Carecast has EVN-5.1 Operator ID, EVN-5.2 Operator Surname, 
+     * Carecast has EVN-5.1 Operator ID, EVN-5.2 Operator Surname,
      * EVN-5.3 Operator First name. Epic has ID of the user who triggered the message
-     * 
+     *
      * @return EVN-5 Operator ID - could be multiple but we just take first for now
      * @throws HL7Exception
      */
@@ -71,7 +65,6 @@ public interface EVNWrap {
 
 
     /**
-     * 
      * @return EVN-6 Event Occurred. Epic only. Eg. transfer date and time for an A02 message
      * If this is Epic only where does Carecast specify transfer times?
      * @throws HL7Exception

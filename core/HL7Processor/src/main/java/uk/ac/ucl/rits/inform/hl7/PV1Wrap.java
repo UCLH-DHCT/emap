@@ -1,4 +1,3 @@
-// PV1Wrap.java
 package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
@@ -8,12 +7,8 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 /**
- * class PV1Wrap
- * 
  * Wrapper around the HAPI parser's PV1 segment object, to make it easier to use.
- * 
  * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
- * 
  */
 public interface PV1Wrap {
     PV1 getPV1();
@@ -110,7 +105,6 @@ public interface PV1Wrap {
 
     /**
      * Get the attending doctor(s) PV1-7.1 to PV1-7.7
-     * 
      * @return Vector of Doctor objects
      * @throws HL7Exception
      */
@@ -130,9 +124,9 @@ public interface PV1Wrap {
 
     /**
      * Get Referring Doctor(s) PV1-8.1 to PV1-8.6
-     * 
-     * I am not sure if Carecast uses PV1-8.7. 
-     * 
+     *
+     * I am not sure if Carecast uses PV1-8.7.
+     *
      * @return Vector of Doctor objects
      * @throws HL7Exception
      */
@@ -185,8 +179,8 @@ public interface PV1Wrap {
     /**
      * We could probably use the HAPI functions to obtain the different components of this result,
      * e.g. for easier conversion to Postgres timestamp format.
-     * 
-     * @return PV1-44.1 admission datetime 
+     *
+     * @return PV1-44.1 admission datetime
      * @throws HL7Exception
      */
     default Instant getAdmissionDateTime() throws HL7Exception {
@@ -197,7 +191,6 @@ public interface PV1Wrap {
         return HL7Utils.interpretLocalTime(getPV1().getAdmitDateTime());
     }
 
-    
     /**
      * @return PV1-45.1 discharge datetime
      * @throws HL7Exception
@@ -209,5 +202,4 @@ public interface PV1Wrap {
         }
         return HL7Utils.interpretLocalTime(getPV1().getDischargeDateTime());
     }
-
 }

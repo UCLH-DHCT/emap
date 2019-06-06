@@ -1,10 +1,5 @@
 package uk.ac.ucl.rits.inform;
 
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.mock;
-//import static org.mockito.Mockito.when;
-
-//import java.util.Vector;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
@@ -19,7 +14,7 @@ import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 // https://www.tutorialspoint.com/junit/junit_environment_setup.htm
 // https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
 
-// For multi-class example see https://www.tutorialspoint.com/junit/junit_suite_test.htm 
+// For multi-class example see https://www.tutorialspoint.com/junit/junit_suite_test.htm
 
 
 import org.junit.Test;
@@ -39,7 +34,6 @@ public class TestMSH extends TestCase {
     private MSH msh;
     private MSHWrap wrapper;
 
-	
     @Override
     public void setUp() throws Exception {
         System.out.println("**Setting it up in TestMSH!");
@@ -53,12 +47,12 @@ public class TestMSH extends TestCase {
         context = new DefaultHapiContext();
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
-      
+
         // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
         CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
         context.setModelClassFactory(mcf);
         parser = context.getPipeParser(); //getGenericParser();
-            
+
         try {
             ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
             msh = adt_01.getMSH();
@@ -114,7 +108,7 @@ public class TestMSH extends TestCase {
         }
         assertEquals("UCLH", result);
     }
-    
+
     @Test
     // MSH-6
     public void testGetReceivingFacility1() {
@@ -218,7 +212,7 @@ public class TestMSH extends TestCase {
         }
         assertEquals("2.2", result);
     }
-    
+
     @Override
     protected void tearDown() throws Exception {
         // System.out.println("Running: tearDown");

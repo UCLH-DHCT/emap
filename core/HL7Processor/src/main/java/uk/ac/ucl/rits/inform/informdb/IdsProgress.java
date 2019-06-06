@@ -15,11 +15,11 @@ public class IdsProgress {
     private Instant lastProcessedMessageDatetime;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant lastProcessingDatetime;
-    
+
     public IdsProgress() {
         // there is only one row
         id = 0;
-        setLastProcessedIdsUnid(-1); 
+        setLastProcessedIdsUnid(-1);
     }
     public void setLastProcessedIdsUnid(int lastProcessedIdsUnid) {
         this.lastProcessedIdsUnid = lastProcessedIdsUnid;

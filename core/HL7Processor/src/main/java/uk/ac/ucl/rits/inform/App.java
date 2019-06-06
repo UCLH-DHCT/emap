@@ -79,7 +79,7 @@ public class App {
         context.setModelClassFactory(mcf);
         return context;
     }
-    
+
     @Bean
     @Profile("default")
     public CommandLineRunner mainLoop(InformDbOperations dbt) {

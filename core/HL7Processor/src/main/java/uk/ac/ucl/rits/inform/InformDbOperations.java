@@ -75,7 +75,7 @@ public class InformDbOperations {
 
     @Autowired
     private IdsOperations idsOperations;
-    
+
     public void close() {
     }
 
@@ -84,9 +84,8 @@ public class InformDbOperations {
      * from Inform-db (ETL metadata) - process the message and write to Inform-db -
      * write the latest processed ID to reflect the above message.
      * Blocks until there are new messages.
-     * 
+     *
      * @param parser the HAPI parser to be used
-     * 
      * @return number of messages processes
      */
     @Transactional(rollbackFor = HL7Exception.class)
@@ -270,7 +269,7 @@ public class InformDbOperations {
                 .collect(Collectors.toList());
         return matchingEncs;
     }
-    
+
     private List<VisitFact> getVisitFactWhere(Encounter encounter, Predicate<? super VisitFact> pred) {
         List<VisitFact> visits = encounter.getVisits();
         if (visits == null) {
@@ -282,14 +281,14 @@ public class InformDbOperations {
                 .collect(Collectors.toList());
         return matchingVisits;
     }
-    
+
     /**
      * Check whether VisitFact has no discharge time property, indicating it's still open,
      * and its valid until column is null, indicating that it has never been
      * invalidated.
      * Note: this does not perform time travel (ie. check whether validuntil is null or in the future)
      * Note: the validity of the underlying visit properties is not checked - what would it mean to have
-     * a mismatch in validity between a Fact and its underlying properties? 
+     * a mismatch in validity between a Fact and its underlying properties?
      * @param vf
      * @return
      */
@@ -326,13 +325,13 @@ public class InformDbOperations {
                 && visitFactIsOpenAndValid(vf)
                 );
     }
-    
+
     /**
      * Get existing encounter or create a new one if it doesn't exist.
      * @param mrn the MRN to search/create in
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception {
         logger.info("getCreateEncounter");
@@ -362,9 +361,9 @@ public class InformDbOperations {
     /**
      * Create a new encounter using the details given in the A01 message. This may
      * also entail creating a new Mrn and Person if these don't already exist.
-     * 
+     *
      * @param encounterDetails
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     @Transactional
     public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
@@ -424,7 +423,7 @@ public class InformDbOperations {
     /**
      * @param enc the encounter to add to
      * @param msgDetails the message details to use
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
         Map<String,PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
@@ -436,7 +435,7 @@ public class InformDbOperations {
      * anything with them.
      * @param msgDetails
      * @return Attribute->Fact key-value pairs
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     private Map<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
         Map<String, PatientDemographicFact> demographics = new HashMap<>();
@@ -461,10 +460,10 @@ public class InformDbOperations {
             fact.setValidFrom(validFrom);
             fact.setStoredFrom(Instant.now());
             fact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
-            
+
             // will we have to worry about Instants and timezones shifting the date?
             addPropertyToFact(fact, AttributeKeyMap.DOB, msgDetails.getDob());
-            
+
             String hl7Sex = msgDetails.getAdministrativeSex();
             Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
             addPropertyToFact(fact, AttributeKeyMap.SEX, sexAttrValue);
@@ -477,7 +476,7 @@ public class InformDbOperations {
         }
         return demographics;
     }
-    
+
     /**
      * A little mapping table to convert HL7 sex to Inform-db sex
      * @param hl7Sex
@@ -513,7 +512,7 @@ public class InformDbOperations {
         enc.addVisit(visitFact);
         return visitFact;
     }
-    
+
     /**
      * @param enc the encounter to add the Visit to
      * @param visitBeginTime when the Visit began, which could be an admission
@@ -547,7 +546,6 @@ public class InformDbOperations {
         visitFact.addProperty(prop);
     }
 
-    
     /**
      * @param visitFact
      * @param currentBed
@@ -575,28 +573,28 @@ public class InformDbOperations {
         arrVisProp.setAttribute(arrivalTime);
         visitFact.addProperty(arrVisProp);
     }
-    
+
     /**
      * Close off the existing Visit and open a new one
      * @param transferDetails usually an A02 message but can be an A08
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     @Transactional
     public void transferPatient(AdtWrap transferDetails) throws HL7Exception {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
-        
+
         // Find the current VisitFact, close it off, and start a new one with its own
         // admit time + location.
         String mrnStr = transferDetails.getMrn();
         String visitNumber = transferDetails.getVisitNumber();
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        
+
         if (encounter == null) {
             throw new MessageIgnoredException("Cannot transfer an encounter that doesn't exist: " + visitNumber);
         }
-        
+
         List<VisitFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
         // The discharge datetime will be null, presumably because the patient hasn't
         // been discharged yet
@@ -629,10 +627,10 @@ public class InformDbOperations {
             throw new MessageIgnoredException(err);
         }
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
-        
+
         Instant admissionDateTime = transferDetails.getAdmissionDateTime();
         Instant recordedDateTime = transferDetails.getRecordedDateTime();
-        
+
         String admitSource = transferDetails.getAdmitSource();
         logger.info("TRANSFERRING: MRN = " + mrnStr);
         logger.info("    A02 details: adm " + admissionDateTime);
@@ -651,13 +649,13 @@ public class InformDbOperations {
     /**
      * Mark the patient's most recent Visit as finished
      * @param adtWrap the A03 message detailing the discharge
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     @Transactional
     public void dischargePatient(AdtWrap adtWrap) throws HL7Exception {
         String mrnStr = adtWrap.getMrn();
         String visitNumber = adtWrap.getVisitNumber();
-        
+
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
             throw new MessageIgnoredException("Cannot discharge for a visit that doesn't exist: " + visitNumber);
@@ -682,7 +680,7 @@ public class InformDbOperations {
             addDischargeToVisit(hospVisit.get(0), dischargeDateTime);
         }
     }
-    
+
     /**
      * Mark a Visit as finished, which can happen either when transferring or
      * discharging a patient.
@@ -698,8 +696,7 @@ public class InformDbOperations {
         visProp.setAttribute(dischargeTime);
         visit.addProperty(visProp);
     }
-    
-    
+
     @Transactional
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
         Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
@@ -905,7 +902,7 @@ public class InformDbOperations {
     /**
      *  Find an existing Mrn by its string representation, optionally creating it first if it doesn't exist
      * @param mrnStr The mrn
-     * @param startTime If createIfNotExist, when did the Mrn first come into existence (valid from). Ignored if !createIfNotExist 
+     * @param startTime If createIfNotExist, when did the Mrn first come into existence (valid from). Ignored if !createIfNotExist
      * @param createIfNotExist whether to create if it doesn't exist
      * @return the Mrn, pre-existing or newly created, or null if it doesn't exist and !createIfNotExist
      */
