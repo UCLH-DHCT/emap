@@ -10,22 +10,14 @@ import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 
-
-// https://www.tutorialspoint.com/junit/junit_environment_setup.htm
-// https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
-
-// For multi-class example see https://www.tutorialspoint.com/junit/junit_suite_test.htm
-
-
 import org.junit.Test;
 
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 
-// NB despite the @Test annotation each test method name must begin with "test"
-
-
-// parameterised tests https://www.tutorialspoint.com/junit/junit_parameterized_test.htm
+/**
+ * Test MSH wrapper.
+ */
 //@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestMSH extends TestCase {
 
@@ -53,171 +45,111 @@ public class TestMSH extends TestCase {
         context.setModelClassFactory(mcf);
         parser = context.getPipeParser(); //getGenericParser();
 
-        try {
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
-            msh = adt_01.getMSH();
-            wrapper = new MSHWrap(msh);
-        }
-        catch (HL7Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
+        ADT_A01 adtA01 = (ADT_A01) parser.parse(generic_hl7);
+        msh = adtA01.getMSH();
+        wrapper = new MSHWrap(msh);
     }
 
+    /**
+     * Test MSH-3.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-3
-    public void testGetSendingApplication1() {
-        String result = "";
-        try {
-            result = wrapper.getSendingApplication();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetSendingApplication1()");
-            e.printStackTrace();
-        }
+    public void testGetSendingApplication1() throws HL7Exception {
+        String result = wrapper.getSendingApplication();
         assertEquals("UCLH4", result);
     }
 
-
+    /**
+     * Test MSH-4.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-4
-    public void testGetSendingFacility1() {
-        String result = "";
-        try {
-            result = wrapper.getSendingFacility();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetSendingAFacility1()");
-            e.printStackTrace();
-        }
+    public void testGetSendingFacility1() throws HL7Exception {
+        String result = wrapper.getSendingFacility();
         assertEquals("RRV30", result);
     }
 
-
+    /**
+     * Test MSH-5.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-5
-    public void testGetReceivingApplication1() {
-        String result = "";
-        try {
-            result = wrapper.getReceivingApplication();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetReceivingApplication1()");
-            e.printStackTrace();
-        }
+    public void testGetReceivingApplication1() throws HL7Exception {
+        String result = wrapper.getReceivingApplication();
         assertEquals("UCLH", result);
     }
 
+    /**
+     * Test MSH-6.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-6
-    public void testGetReceivingFacility1() {
-        String result = "";
-        try {
-            result = wrapper.getReceivingFacility();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetReceivingFacility1()");
-            e.printStackTrace();
-        }
+    public void testGetReceivingFacility1() throws HL7Exception {
+        String result = wrapper.getReceivingFacility();
         assertEquals("ZZ", result);
     }
 
-
+    /**
+     * Test MSH-7.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-7
-    public void testGetMessageTimestamp1() {
-        String result = "";
-        try {
-            result = wrapper.getMessageTimestamp();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetMessageTimestamp1()");
-            e.printStackTrace();
-        }
+    public void testGetMessageTimestamp1() throws HL7Exception {
+        String result = wrapper.getMessageTimestamp();
         assertEquals("201209211843", result);
     }
 
-
+    /**
+     * Test MSH-9.1.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-9.1
-    public void testGetMessageType1() {
-        String result = "";
-        try {
-            result = wrapper.getMessageType();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetSessageType1()");
-            e.printStackTrace();
-        }
+    public void testGetMessageType1() throws HL7Exception {
+        String result = wrapper.getMessageType();
         assertEquals("ADT", result);
     }
 
+    /**
+     * Test MSH-9.2.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-9.2
-    public void testGetTriggerEvent1() {
-        String result = "";
-        try {
-            result = wrapper.getTriggerEvent();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetTriggerEvent1()");
-            e.printStackTrace();
-        }
+    public void testGetTriggerEvent1() throws HL7Exception {
+        String result = wrapper.getTriggerEvent();
         assertEquals("A01", result);
     }
 
-
+    /**
+     * Test MSH-10.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-10
-    public void testGetMessageControlID1() {
-        String result = "";
-        try {
-            result = wrapper.getMessageControlID();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetMessageControlID1()");
-            e.printStackTrace();
-        }
+    public void testGetMessageControlID1() throws HL7Exception {
+        String result = wrapper.getMessageControlID();
         assertEquals("PLW21221500942883310", result);
     }
 
-
+    /**
+     * Test MSH-11.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-11
-    public void testGetProcessingID1() {
-        String result = "";
-        try {
-            result = wrapper.getProcessingID();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetProcessingID1()");
-            e.printStackTrace();
-        }
+    public void testGetProcessingID1() throws HL7Exception {
+        String result = wrapper.getProcessingID();
         assertEquals("P", result);
     }
 
-
+    /**
+     * Test MSH-12.
+     * Even though we "converted" the 2.2 message to a 2.7 message, this field still returns 2.2
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // MSH-12
-    // Even though we "converted" the 2.2 message to a 2.7 message, this field still returns 2.2
-    public void testGetVersionID1() {
-        String result = "";
-        try {
-            result = wrapper.getVersionID();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetVersionID1()");
-            e.printStackTrace();
-        }
+    public void testGetVersionID1() throws HL7Exception {
+        String result = wrapper.getVersionID();
         assertEquals("2.2", result);
     }
-
-    @Override
-    protected void tearDown() throws Exception {
-        // System.out.println("Running: tearDown");
-    }
-
 }
 
 /* original message from Atos

@@ -1,12 +1,7 @@
 package uk.ac.ucl.rits.inform;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.time.Instant;
 import java.util.Vector;
-import ca.uhn.hl7v2.model.v27.segment.PV1;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.DefaultHapiContext;
@@ -21,8 +16,10 @@ import org.junit.Test;
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.Doctor;
-import uk.ac.ucl.rits.inform.hl7.PV1Wrap;
-//
+
+/**
+ * Test the PV1 wrapper.
+ */
 //@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestPV1 extends TestCase {
 
@@ -30,7 +27,7 @@ public class TestPV1 extends TestCase {
     private HapiContext context;
     private AdtWrap wrapper;
 
-	/*@Before
+    /*@Before
     public void init(){
       //  MockitoAnnotations.initMocks(this);
 
@@ -63,102 +60,48 @@ public class TestPV1 extends TestCase {
             context.setModelClassFactory(mcf);
             parser = context.getPipeParser(); //getGenericParser();
 
-            try {
-                ADT_A01 adt_01 = (ADT_A01) parser.parse(hl7);
-                wrapper = new AdtWrap(adt_01);
-            }
-            catch (HL7Exception e) {
-                e.printStackTrace();
-                return;
-            }
-
-	/*
-	mockrs = mock(ResultSet.class);
-	mockps = mock (PreparedStatement.class);
-	mockds = mock (DataSource.class);
-	mockconn = mock(Connection.class);
-	mockproc = mock(HL7Processor.class);
-
-	assertNotNull(mockds);
-	when(mockconn.prepareStatement(any(String.class))).thenReturn(mockps);
-    	when(mockds.getConnection()).thenReturn(mockconn);
-    	when(mockps.executeQuery()).thenReturn(mockrs);
-	*/
-
+            ADT_A01 adtA01 = (ADT_A01) parser.parse(hl7);
+            wrapper = new AdtWrap(adtA01);
     }
 
-
+    /**
+     * Test PV1-3.1.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-3.1
-    public void testGetCurrentWardCode1() {
-        String result = "";
-        try {
-            result = wrapper.getCurrentWardCode();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetCurrentWardCode1()");
-            e.printStackTrace();
-        }
+    public void testGetCurrentWardCode1() throws HL7Exception {
+        String result = wrapper.getCurrentWardCode();
         assertEquals("H2HH", result);
     }
 
-
+    /**
+     * Test PV1-3.2.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-3.2
-    public void testGetCurrentRoomCode1() {
-        String result = "";
-        try {
-            result = wrapper.getCurrentRoomCode();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetCurrentRoomCode1()");
-            e.printStackTrace();
-        }
+    public void testGetCurrentRoomCode1() throws HL7Exception {
+        String result = wrapper.getCurrentRoomCode();
         assertEquals("H203", result);
     }
 
-
+    /**
+     * PV1-3.3.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-3.3
-    public void testGetCurrentBed1() {
-
-	/*        ResultSet rs = null;
-        String str = "hello";
-        boolean result = false;
-        try {
-            result = HL7Processor.got_null_result(rs, str);
-        }
-        catch (SQLException e) {
-            System.out.println("Got exception");
-            e.printStackTrace();
-        }
-	    assertTrue(result);
-	*/
-        //System.out.println("Hello from a test function");
-        String result = "";
-        try {
-            result = wrapper.getCurrentBed();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetCurrentBed1()");
-            e.printStackTrace();
-        }
-        //System.out.println("debug test result = " + result);
+    public void testGetCurrentBed1() throws HL7Exception {
+        String result = wrapper.getCurrentBed();
         assertEquals("H203-11", result);
     }
 
+    /**
+     * PV1-8.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-8
-    public void testGetReferringDoctors1() {
+    public void testGetReferringDoctors1() throws HL7Exception {
         Doctor dr1 = null, dr2 = null;
-        Vector<Doctor> vec = null;
-        try {
-           vec = wrapper.getReferringDoctors();
-        }
-        catch(HL7Exception e) {
-            System.out.println("Got exception in testGetReferringDoctors1()");
-            e.printStackTrace();
-        }
+        Vector<Doctor> vec = wrapper.getReferringDoctors();
         dr1 = vec.get(0);
         dr2 = vec.get(1);
         assertEquals("Wrong dr1 consultant code", "397982", dr1.getConsultantCode());
@@ -174,81 +117,66 @@ public class TestPV1 extends TestCase {
         // assertEquals("")getLocalCode()
     }
 
+    /**
+     * PV1-10.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-10
     public void testGetHospitalService1() throws HL7Exception {
-        String result = "";
-        try {
-            result = wrapper.getHospitalService();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetHospitalService1()");
-            e.printStackTrace();
-        }
+        String result = wrapper.getHospitalService();
         assertEquals("41008", result);
     }
 
+    /**
+     * PV1-14.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-14
     public void testGetAdmitSource1() throws HL7Exception {
-        String result = "";
-        try {
-            result = wrapper.getAdmitSource();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetAdmitSource1()");
-            e.printStackTrace();
-        }
+        String result = wrapper.getAdmitSource();
         assertEquals("19", result);
     }
 
+    /**
+     * PV1-18.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-18
     public void testGetPatientType1() throws HL7Exception {
-        String result = "";
-        try {
-            result = wrapper.getPatientType();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetAPatientSource1()");
-            e.printStackTrace();
-        }
+        String result = wrapper.getPatientType();
         assertEquals(null, result);
     }
 
+    /**
+     * PV1-19.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-19
     public void testGetVisitNumber1() throws HL7Exception {
-        String result = "";
-        try {
-            result = wrapper.getVisitNumber();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetVisitNumber1()");
-            e.printStackTrace();
-        }
+        String result = wrapper.getVisitNumber();
         assertEquals(null, result);
     }
 
+    /**
+     * PV1-44.1.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-44.1
     public void testGetAdmissionDateTime1() throws HL7Exception {
         assertEquals(
                 Instant.parse("2012-09-21T17:40:00.00Z"),
                 wrapper.getAdmissionDateTime());
     }
 
+    /**
+     * PV1-45.1.
+     * @throws HL7Exception when HAPI does
+     */
     @Test
-    // PV1-45.1
     public void testGetDischargeDateTime1() throws HL7Exception {
         assertEquals(
                 null,
                 wrapper.getDischargeDateTime());
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        // System.out.println("Running: tearDown");
     }
 }
 
