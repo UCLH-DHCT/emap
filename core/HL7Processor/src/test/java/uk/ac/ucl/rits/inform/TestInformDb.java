@@ -60,7 +60,7 @@ public class TestInformDb {
 
     /**
      * Add N encounters, then check that the encounter count has increased by N
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     @Test
     public void testAddEncounters() throws HL7Exception {

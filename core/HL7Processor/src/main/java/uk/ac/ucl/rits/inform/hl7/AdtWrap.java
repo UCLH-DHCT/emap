@@ -164,7 +164,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
 
     /**
      * @return PID-8 sex
-     * @throws HL7Exception
      */
     public String getAdministrativeSex() {
         return administrativeSex;

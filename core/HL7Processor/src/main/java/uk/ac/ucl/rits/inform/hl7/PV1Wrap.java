@@ -25,7 +25,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-2 patient class
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getPatientClass() throws HL7Exception {
         if (isTest()) {
@@ -40,7 +40,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-3.1 Current Ward Code e.g. T06
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getCurrentWardCode() throws HL7Exception {
         if (isTest()) {
@@ -52,7 +52,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-3.2 Current Room Code e.g. T06A
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getCurrentRoomCode() throws HL7Exception {
         if (isTest()) {
@@ -64,7 +64,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-3.3 Current Bed e.g. T06-32
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getCurrentBed() throws HL7Exception {
         if (isTest()) {
@@ -78,7 +78,7 @@ public interface PV1Wrap {
      * Get all the location components concatenated together.
      * We may need to canonicalise these to remove duplicate info.
      * @return
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getFullLocationString() throws HL7Exception {
         if (!pv1SegmentExists()) {
@@ -89,7 +89,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-4.1 1st repeat (admit priority) e.g. I
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getAdmitPriority() throws HL7Exception {
         return getPV1().getAdmissionType().getComponent(0).toString();
@@ -97,7 +97,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-4.1 2nd repeat (admit type) e.g. A
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getAdmitType() throws HL7Exception {
         return getPV1().getAdmissionType().getComponent(1).toString();
@@ -106,7 +106,7 @@ public interface PV1Wrap {
     /**
      * Get the attending doctor(s) PV1-7.1 to PV1-7.7
      * @return Vector of Doctor objects
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default Vector<Doctor> getAttendingDoctors() throws HL7Exception {
         Vector<Doctor> v = new Vector<Doctor>();
@@ -128,7 +128,7 @@ public interface PV1Wrap {
      * I am not sure if Carecast uses PV1-8.7.
      *
      * @return Vector of Doctor objects
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default Vector<Doctor> getReferringDoctors() throws HL7Exception {
         int reps = getPV1().getReferringDoctorReps();
@@ -142,7 +142,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-10	Hospital Service	Specialty eg. 31015
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getHospitalService() throws HL7Exception {
         return getPV1().getHospitalService().getComponent(0).toString();
@@ -150,7 +150,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-14	Admission Source. NB Carecast says ZLC8.1	Source of admission
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getAdmitSource() throws HL7Exception {
         return getPV1().getAdmitSource().getComponent(0).toString();
@@ -158,7 +158,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-18 Patient Type
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getPatientType() throws HL7Exception {
         return getPV1().getPatientType().getComponent(0).toString();
@@ -166,7 +166,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-19 Visit number
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default String getVisitNumber() throws HL7Exception {
         if (isTest()) {
@@ -181,7 +181,7 @@ public interface PV1Wrap {
      * e.g. for easier conversion to Postgres timestamp format.
      *
      * @return PV1-44.1 admission datetime
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default Instant getAdmissionDateTime() throws HL7Exception {
         if (isTest()) {
@@ -193,7 +193,7 @@ public interface PV1Wrap {
 
     /**
      * @return PV1-45.1 discharge datetime
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     default Instant getDischargeDateTime() throws HL7Exception {
         if (isTest()) {

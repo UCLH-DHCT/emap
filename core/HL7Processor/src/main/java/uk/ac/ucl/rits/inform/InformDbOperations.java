@@ -322,7 +322,7 @@ public class InformDbOperations {
      * @param mrn the MRN to search/create in
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception {
         logger.info("getCreateEncounter");
@@ -354,7 +354,7 @@ public class InformDbOperations {
      * also entail creating a new Mrn and Person if these don't already exist.
      *
      * @param encounterDetails
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     @Transactional
     public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
@@ -414,7 +414,7 @@ public class InformDbOperations {
     /**
      * @param enc the encounter to add to
      * @param msgDetails the message details to use
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
         Map<String,PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
@@ -426,7 +426,7 @@ public class InformDbOperations {
      * anything with them.
      * @param msgDetails
      * @return Attribute->Fact key-value pairs
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     private Map<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
         Map<String, PatientDemographicFact> demographics = new HashMap<>();
@@ -568,7 +568,7 @@ public class InformDbOperations {
     /**
      * Close off the existing Visit and open a new one
      * @param transferDetails usually an A02 message but can be an A08
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     @Transactional
     public void transferPatient(AdtWrap transferDetails) throws HL7Exception {
@@ -640,7 +640,7 @@ public class InformDbOperations {
     /**
      * Mark the patient's most recent Visit as finished
      * @param adtWrap the A03 message detailing the discharge
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     @Transactional
     public void dischargePatient(AdtWrap adtWrap) throws HL7Exception {
@@ -760,7 +760,7 @@ public class InformDbOperations {
      * but we also see changes to location (ie. transfers) communicated only via an A08)
      *
      * @param adtWrap
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     @Transactional
     private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception {

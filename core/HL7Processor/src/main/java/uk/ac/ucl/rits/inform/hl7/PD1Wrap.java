@@ -23,7 +23,7 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
 
     /**
      * @return PD1-6 Disability. Not in Epic spec.
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getDisability() throws HL7Exception {
         return _pd1.getHandicap().getText().toString();
