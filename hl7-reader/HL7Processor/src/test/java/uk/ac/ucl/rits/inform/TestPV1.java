@@ -16,38 +16,15 @@ import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 
-
-// https://www.tutorialspoint.com/junit/junit_environment_setup.htm
-// https://examples.javacodegeeks.com/core-java/junit/junit-setup-teardown-example/
-
-// For multi-class example see https://www.tutorialspoint.com/junit/junit_suite_test.htm 
-
-
 import org.junit.Test;
 
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.Doctor;
 import uk.ac.ucl.rits.inform.hl7.PV1Wrap;
-
-// NB despite the @Test annotation each test method name must begin with "test"
-
-
-// parameterised tests https://www.tutorialspoint.com/junit/junit_parameterized_test.htm
+//
 //@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestPV1 extends TestCase {
-
-	//@Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-	
-    // https://dzone.com/articles/mockito-basic-example-using-jdbc
-    //@Mock
-    /*private ResultSet mockrs;
-    private DataSource mockds;
-    private PreparedStatement mockps;
-    private Connection mockconn;
-    private HL7Processor mockproc;
-	*/
-
 
     private PipeParser parser;
     private HapiContext context;
@@ -80,12 +57,12 @@ public class TestPV1 extends TestCase {
             context = new DefaultHapiContext();
             ValidationContext vc = ValidationContextFactory.noValidation();
             context.setValidationContext(vc);
-      
+
             // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
             CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
             context.setModelClassFactory(mcf);
             parser = context.getPipeParser(); //getGenericParser();
-            
+
             try {
                 ADT_A01 adt_01 = (ADT_A01) parser.parse(hl7);
                 wrapper = new AdtWrap(adt_01);
@@ -174,7 +151,7 @@ public class TestPV1 extends TestCase {
     // PV1-8
     public void testGetReferringDoctors1() {
         Doctor dr1 = null, dr2 = null;
-        Vector<Doctor> vec = null; 
+        Vector<Doctor> vec = null;
         try {
            vec = wrapper.getReferringDoctors();
         }
@@ -197,11 +174,9 @@ public class TestPV1 extends TestCase {
         // assertEquals("")getLocalCode()
     }
 
-
-    @Test 
+    @Test
     // PV1-10
     public void testGetHospitalService1() throws HL7Exception {
-
         String result = "";
         try {
             result = wrapper.getHospitalService();
@@ -211,13 +186,11 @@ public class TestPV1 extends TestCase {
             e.printStackTrace();
         }
         assertEquals("41008", result);
+    }
 
-    } 
-
-    @Test 
+    @Test
     // PV1-14
     public void testGetAdmitSource1() throws HL7Exception {
-
         String result = "";
         try {
             result = wrapper.getAdmitSource();
@@ -227,13 +200,11 @@ public class TestPV1 extends TestCase {
             e.printStackTrace();
         }
         assertEquals("19", result);
-
     }
 
-    @Test 
+    @Test
     // PV1-18
     public void testGetPatientType1() throws HL7Exception {
-
         String result = "";
         try {
             result = wrapper.getPatientType();
@@ -243,13 +214,11 @@ public class TestPV1 extends TestCase {
             e.printStackTrace();
         }
         assertEquals(null, result);
-
     }
 
-    @Test 
+    @Test
     // PV1-19
     public void testGetVisitNumber1() throws HL7Exception {
-
         String result = "";
         try {
             result = wrapper.getVisitNumber();
@@ -259,10 +228,9 @@ public class TestPV1 extends TestCase {
             e.printStackTrace();
         }
         assertEquals(null, result);
-
     }
 
-    @Test 
+    @Test
     // PV1-44.1
     public void testGetAdmissionDateTime1() throws HL7Exception {
         assertEquals(
@@ -270,21 +238,18 @@ public class TestPV1 extends TestCase {
                 wrapper.getAdmissionDateTime());
     }
 
-    @Test 
+    @Test
     // PV1-45.1
     public void testGetDischargeDateTime1() throws HL7Exception {
         assertEquals(
                 null,
                 wrapper.getDischargeDateTime());
-
     }
-
 
     @Override
     protected void tearDown() throws Exception {
         // System.out.println("Running: tearDown");
     }
-
 }
 
 /* original message from Atos
@@ -292,7 +257,5 @@ public class TestPV1 extends TestCase {
 // An example Atos-provided message
         String hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|||201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
             + "ZUK|Q12|5CF|1|||||||N  N||12||||||||||||||||B83035^2.16.840.1.113883.2.1.4.3|G9014646^2.16.840.1.113883.2.1.4.2|U439966^2.16.840.1.113883.2.1.3.2.4.11||41008\r";
-
-
 
 */

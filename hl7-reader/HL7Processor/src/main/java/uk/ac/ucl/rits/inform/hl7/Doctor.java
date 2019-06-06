@@ -31,7 +31,6 @@ public class Doctor {
     }
 
     /**
-     * 
      * @return PV1-7.2 and PV-8.2 Consultant surname Eg. CASSONI
      */
     public String getSurname() {
@@ -39,7 +38,6 @@ public class Doctor {
     }
 
     /**
-     * 
      * @return PV1-7.3 or PV1-8.3 Consultant firstname/initial
      */
     public String getFirstname() {
@@ -47,7 +45,6 @@ public class Doctor {
     }
 
     /**
-     * 
      * @return PV1-7.4/PV1-8.4 consultant middle name or initial
      */
     public String getMiddlenameOrInitial() {
@@ -55,7 +52,6 @@ public class Doctor {
     }
 
     /**
-     * 
      * @return PV1-7.6/PV1-8.6 consultant title e.g. Dr
      */
     public String getTitle() {

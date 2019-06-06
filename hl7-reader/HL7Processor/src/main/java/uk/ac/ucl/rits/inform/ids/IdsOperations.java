@@ -46,9 +46,8 @@ public class IdsOperations {
         }
         idsFactory = null;
     }
-    
+
     /**
-     * 
      * @return Was the IDS empty when this object was initialised?
      */
     public boolean getIdsEmptyOnInit() {
@@ -68,7 +67,7 @@ public class IdsOperations {
         idsSession.close();
         return idsIsEmpty;
     }
-    
+
     /**
      * create a session factory from the given config file, overwriting configurable
      * values from the environment, if specified

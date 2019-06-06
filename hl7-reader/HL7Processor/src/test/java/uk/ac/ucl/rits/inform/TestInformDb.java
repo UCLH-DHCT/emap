@@ -1,6 +1,3 @@
-/**
- * 
- */
 package uk.ac.ucl.rits.inform;
 
 import static org.junit.Assert.*;
@@ -63,7 +60,7 @@ public class TestInformDb {
 
     /**
      * Add N encounters, then check that the encounter count has increased by N
-     * @throws HL7Exception 
+     * @throws HL7Exception
      */
     @Test
     public void testAddEncounters() throws HL7Exception {
