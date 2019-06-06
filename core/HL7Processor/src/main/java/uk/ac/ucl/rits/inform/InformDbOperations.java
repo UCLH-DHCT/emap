@@ -86,7 +86,9 @@ public class InformDbOperations {
      * Blocks until there are new messages.
      *
      * @param parser the HAPI parser to be used
+     * @param parsingErrors out param for parsing errors encountered
      * @return number of messages processes
+     * @throws HL7Exception in some cases where HAPI does
      */
     @Transactional(rollbackFor = HL7Exception.class)
     public int processNextHl7(PipeParser parser, List<String> parsingErrors) throws HL7Exception {
@@ -111,8 +113,7 @@ public class InformDbOperations {
         Message msgFromIds;
         try {
             msgFromIds = parser.parse(hl7msg);
-        }
-        catch (HL7Exception hl7e) {
+        } catch (HL7Exception hl7e) {
             String errString = "[" + idsMsg.getUnid() + "]  HL7 parsing error";
             hl7e.printStackTrace();
             // Mark the message as processed even though we couldn't parse it,
@@ -124,8 +125,7 @@ public class InformDbOperations {
             idsLog.setProcessingEndTime(processingEnd);
             setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
             return processed;
-        }
-        finally {
+        } finally {
             idsLog = idsEffectLoggingRepository.save(idsLog);
         }
 
@@ -136,8 +136,7 @@ public class InformDbOperations {
                 Encounter enc = addEncounter(adtWrap);
                 logger.info("[" + idsMsg.getUnid() + "] Done A01, encounter: " + enc.toString());
                 processed += 1;
-            }
-            else if (adtWrap.getTriggerEvent().equals("A02")) {
+            } else if (adtWrap.getTriggerEvent().equals("A02")) {
                 logger.info("[" + idsMsg.getUnid() + "] A02, transfer");
                 transferPatient(adtWrap);
                 processed += 1;
@@ -150,35 +149,27 @@ public class InformDbOperations {
                 updatePatientInfo(adtWrap);
                 processed += 1;
             } else if (adtWrap.getTriggerEvent().equals("A40")) {
-                // this feature is not ready yet
-                boolean a40_enabled = true;
-                if (a40_enabled) {
-                    logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
-                    mergeById(adtWrap);
-                    processed += 1;
-                }
+                logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
+                mergeById(adtWrap);
+                processed += 1;
             } else {
                 logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
                         + msgFromIds.getClass() + ")");
                 idsLog.setMessage("Skipping due to message type");
             }
-        }
-        catch (HL7Exception e) {
+        } catch (HL7Exception e) {
             String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
                     + ")";
             idsLog.setMessage(errMsg);
             logger.warn(errMsg);
-        }
-        catch (InvalidMrnException e) {
+        } catch (InvalidMrnException e) {
             String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass()
             + ")";
             idsLog.setMessage(errMsg);
             logger.warn(errMsg);
-        }
-        catch (MessageIgnoredException e) {
+        } catch (MessageIgnoredException e) {
             idsLog.setMessage(e.getClass() + " " + e.getMessage());
-        }
-        finally {
+        } finally {
             idsLog = idsEffectLoggingRepository.save(idsLog);
         }
         Instant processingEnd = Instant.now();
@@ -190,7 +181,7 @@ public class InformDbOperations {
     }
 
     @Transactional
-    public int getLatestProcessedId() {
+    private int getLatestProcessedId() {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
         if (onlyRow == null) {
             onlyRow = new IdsProgress();
@@ -201,7 +192,7 @@ public class InformDbOperations {
     }
 
     @Transactional
-    public void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
+    private void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
         onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
         onlyRow.setLastProcessedMessageDatetime(messageDatetime);
@@ -832,7 +823,7 @@ public class InformDbOperations {
      * which (if the source system is behaving) we'd hope would be the surviving MRN.
      * The best we could do is flag it as an error if new data is put against a non-surviving MRN.
      * @param adtWrap message containing merge info
-     * @throws HL7Exception
+     * @throws HL7Exception when HAPI does or merge time in message is blank
      */
     @Transactional
     private void mergeById(AdtWrap adtWrap) throws HL7Exception {
@@ -900,7 +891,7 @@ public class InformDbOperations {
     }
 
     /**
-     *  Find an existing Mrn by its string representation, optionally creating it first if it doesn't exist
+     * Find an existing Mrn by its string representation, optionally creating it first if it doesn't exist.
      * @param mrnStr The mrn
      * @param startTime If createIfNotExist, when did the Mrn first come into existence (valid from). Ignored if !createIfNotExist
      * @param createIfNotExist whether to create if it doesn't exist
