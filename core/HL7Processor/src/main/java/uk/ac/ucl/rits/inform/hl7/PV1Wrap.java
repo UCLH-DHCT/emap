@@ -11,6 +11,9 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
  * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
  */
 public interface PV1Wrap {
+    /**
+     * @return the PV1 object
+     */
     PV1 getPV1();
 
     /**
@@ -19,6 +22,9 @@ public interface PV1Wrap {
      */
     boolean isTest();
 
+    /**
+     * @return whether the PV1 segment exists
+     */
     default boolean pv1SegmentExists() {
         return getPV1() != null;
     }
@@ -77,7 +83,7 @@ public interface PV1Wrap {
     /**
      * Get all the location components concatenated together.
      * We may need to canonicalise these to remove duplicate info.
-     * @return
+     * @return the location string
      * @throws HL7Exception if HAPI does
      */
     default String getFullLocationString() throws HL7Exception {
@@ -104,7 +110,7 @@ public interface PV1Wrap {
     }
 
     /**
-     * Get the attending doctor(s) PV1-7.1 to PV1-7.7
+     * Get the attending doctor(s) PV1-7.1 to PV1-7.7.
      * @return Vector of Doctor objects
      * @throws HL7Exception if HAPI does
      */
@@ -141,7 +147,7 @@ public interface PV1Wrap {
     }
 
     /**
-     * @return PV1-10	Hospital Service	Specialty eg. 31015
+     * @return PV1-10 Hospital Service Specialty eg. 31015
      * @throws HL7Exception if HAPI does
      */
     default String getHospitalService() throws HL7Exception {
@@ -149,7 +155,7 @@ public interface PV1Wrap {
     }
 
     /**
-     * @return PV1-14	Admission Source. NB Carecast says ZLC8.1	Source of admission
+     * @return PV1-14 Admission Source. NB Carecast says ZLC8.1 Source of admission
      * @throws HL7Exception if HAPI does
      */
     default String getAdmitSource() throws HL7Exception {

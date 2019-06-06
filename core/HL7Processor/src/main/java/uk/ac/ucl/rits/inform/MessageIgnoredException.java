@@ -9,6 +9,9 @@ package uk.ac.ucl.rits.inform;
  */
 public class MessageIgnoredException extends RuntimeException {
 
+    /**
+     * @param string a message
+     */
     public MessageIgnoredException(String string) {
         super(string);
     }

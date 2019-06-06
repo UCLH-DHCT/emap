@@ -1,5 +1,3 @@
-// PD1Wrap.java
-
 package uk.ac.ucl.rits.inform.hl7;
 
 import ca.uhn.hl7v2.HL7Exception;
@@ -12,13 +10,13 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
  */
 
  public class PD1Wrap {
-    private PD1 _pd1;
+    private PD1 pd1;
 
     /**
      * @param myPD1 PD1 segment, obtained by parsing the message to which this segment relates (msg.getPD1())
      */
     public PD1Wrap(PD1 myPD1) {
-        _pd1 = myPD1;
+        pd1 = myPD1;
     }
 
     /**
@@ -26,6 +24,6 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
      * @throws HL7Exception if HAPI does
      */
     public String getDisability() throws HL7Exception {
-        return _pd1.getHandicap().getText().toString();
+        return pd1.getHandicap().getText().toString();
     }
 }

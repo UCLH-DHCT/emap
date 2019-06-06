@@ -11,6 +11,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+/**
+ * Operations that can be performed on the IDS.
+ */
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.ids")
 public class IdsOperations {
@@ -18,6 +21,10 @@ public class IdsOperations {
     private SessionFactory idsFactory;
     private boolean idsEmptyOnInit;
 
+    /**
+     * @param idsCfgXml injected param
+     * @param environment injected param
+     */
     public IdsOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
             @Autowired Environment environment) {
@@ -33,13 +40,16 @@ public class IdsOperations {
     }
 
     /**
-     * You must close the returned Session after you're done
+     * You must close the returned Session after you're done.
      * @return the Session
      */
     public Session openSession() {
         return idsFactory.openSession();
     }
 
+    /**
+     * Call to close when you're finished with the object.
+     */
     public void close() {
         if (idsFactory != null) {
             idsFactory.close();
@@ -55,7 +65,7 @@ public class IdsOperations {
     }
 
     /**
-     * Is the IDS currently empty?
+     * @return Is the IDS currently empty?
      */
     private boolean getIdsIsEmpty() {
         Session idsSession = idsFactory.openSession();
@@ -69,8 +79,8 @@ public class IdsOperations {
     }
 
     /**
-     * create a session factory from the given config file, overwriting configurable
-     * values from the environment, if specified
+     * Create a session factory from the given config file, overwriting configurable
+     * values from the environment, if specified.
      *
      * @param configFile the hibernate xml config file
      * @param envPrefix  the prefix for environment variable names, or null if no
@@ -106,6 +116,15 @@ public class IdsOperations {
         return cfg.buildSessionFactory();
     }
 
+    /**
+     * Write a message into the IDS. For test IDS instances only!
+     * @param hl7message the HL7 message text
+     * @param id the IDS unique ID
+     * @param triggerEvent aka the message type
+     * @param mrn the patient MRN
+     * @param patientClass the patient class
+     * @param patientLocation the patient location
+     */
     public void writeToIds(String hl7message, int id, String triggerEvent, String mrn, String patientClass, String patientLocation) {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly
