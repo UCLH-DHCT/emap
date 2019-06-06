@@ -64,7 +64,7 @@ public class PIDWrap {
      * NB Epic also has Suffix, Prefix, Academic degree, Name Type
      *
      * @return PID-5.1 family name
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getPatientFamilyName() throws HL7Exception {
         return pid.getPatientName(0).getFamilyName().getSurname().getValue();
@@ -145,43 +145,43 @@ public class PIDWrap {
     }
 
     /**
-     * May be different for Epic
+     * May be different for Epic.
      * @return Carecast - PID-13.1 (1st repeat) home phone
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getCarecastPatientHomePhoneNumber() throws HL7Exception {
         return pid.getPhoneNumberHome(0).getTelephoneNumber().getValue();
     }
 
     /**
-     * May be different for Epic
+     * May be different for Epic.
      * @return Carecast - PID-13.1 (2nd repeat) mobile
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getCarecastPatientMobilePhoneNumber() throws HL7Exception {
         return pid.getPhoneNumberHome(1).getTelephoneNumber().getValue();
     }
 
     /**
-     * May be different for Epic
+     * May be different for Epic.
      * @return Carecast - PID-13.1 (3rd repeat) email
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getCarecastPatientEmail() throws HL7Exception {
         return pid.getPhoneNumberHome(2).getTelephoneNumber().getValue();
     }
 
     /**
-     * @return
-     * @throws HL7Exception
+     * @return patient home phone number
+     * @throws HL7Exception if HAPI does
      */
     public String getEpicPatientHomePhoneNumber() throws HL7Exception {
         return "Not yet implemented";
     }
 
     /**
-     * @return
-     * @throws HL7Exception
+     * @return patient email
+     * @throws HL7Exception if HAPI does
      */
     public String getEpicPatientEmail() throws HL7Exception {
         return "Not yet implemented";

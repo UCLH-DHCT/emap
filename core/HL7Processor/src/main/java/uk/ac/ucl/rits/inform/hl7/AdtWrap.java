@@ -16,48 +16,38 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
 
+/**
+ * Wrapper for an ADT message so we can find what we need more easily.
+ */
 public class AdtWrap implements PV1Wrap, EVNWrap {
-    private final static Logger logger = LoggerFactory.getLogger(AdtWrap.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdtWrap.class);
 
     private String administrativeSex; // PID-8
     private String familyName; // PID-5.1
     private String givenName; // PID-5.2
     private String middleName; // PID-5.3 middle name or initial
     private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
-    private String NHSNumber; // patient ID PID-3.1[2]
+    private String nhsNumber; // patient ID PID-3.1[2]
     private String triggerEvent;
     private Instant dob;
     private String postcode;
 
     private MSHWrap mshwrap;
-    private PV1 _pv1;
+    private PV1 pv1;
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
-    private EVN _evn;
-    private MRG _mrg;
+    private EVN evn;
+    private MRG mrg;
     private boolean isTest;
-
-
-    public MSHWrap getMSHWrap () {
-        return mshwrap;
-    }
 
     @Override
     public PV1 getPV1() {
-        return _pv1;
-    }
-
-    public PIDWrap getPIDWrap() {
-        return pidwrap;
-    }
-
-    public PD1Wrap getPD1Wrap() {
-        return pd1wrap;
+        return pv1;
     }
 
     @Override
     public EVN getEVN() {
-        return _evn;
+        return evn;
     }
 
     /**
@@ -67,7 +57,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         isTest = true;
         HL7Random random = new HL7Random();
         mrn = random.randomString();
-        NHSNumber = random.randomNHSNumber();
+        nhsNumber = random.randomNHSNumber();
         postcode = random.randomString();
         familyName = random.randomString();
         givenName = random.randomString();
@@ -78,8 +68,8 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     /**
      * Populate the data from an HL7 message.
      *
-     * @param fromMsg the passed in HL7 message
-     * @throws HL7Exception
+     * @param adtMsg the passed in HL7 message
+     * @throws HL7Exception if HAPI does
      */
     public AdtWrap(Message adtMsg) throws HL7Exception {
         isTest = false;
@@ -99,7 +89,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         triggerEvent = mshwrap.getTriggerEvent();
 
         try {
-            _pv1 = (PV1) adtMsg.get("PV1");
+            pv1 = (PV1) adtMsg.get("PV1");
         } catch (HL7Exception e) {
             // sections are allowed not to exist
         }
@@ -109,10 +99,9 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         // a different way for an A39/A40 message?
         if (adtMsg instanceof ADT_A39) {
             ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) adtMsg.get("PATIENT");
-            _mrg = a39Patient.getMRG();
+            mrg = a39Patient.getMRG();
             pidwrap = new PIDWrap(a39Patient.getPID());
-        }
-        else {
+        } else {
             pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
         }
 
@@ -123,8 +112,8 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
             familyName = pidwrap.getPatientFamilyName();
             givenName = pidwrap.getPatientGivenName();
             middleName = pidwrap.getPatientMiddleName();
-            mrn = pidwrap.getPatientFirstIdentifier(); // patient ID PID-3.1[1] // internal UCLH hospital number
-            NHSNumber = pidwrap.getPatientSecondIdentifier(); // patient ID PID-3.1[2]
+            mrn = pidwrap.getPatientFirstIdentifier();
+            nhsNumber = pidwrap.getPatientSecondIdentifier();
         } catch (HL7Exception e) {
         }
 
@@ -133,12 +122,16 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         } catch (HL7Exception e) {
         }
         try {
-            _evn = (EVN) adtMsg.get("EVN");
+            evn = (EVN) adtMsg.get("EVN");
         } catch (HL7Exception e) {
             // EVN is allowed not to exist
         }
     }
 
+    /**
+     * Print some basic things in the HL7 message.
+     * @throws HL7Exception if HAPI does
+     */
     private void prettyPrint() throws HL7Exception {
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
@@ -148,17 +141,17 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         // Sending
         // Application
         // (“CARECAST”)
-        System.out.println("sending facility = " + mshwrap.getSendingFacility()); //.getComponent(0).toString()); // MSH-4
+        System.out.println("sending facility = " + mshwrap.getSendingFacility());
         // Sending
         // Facility
         // (“UCLH”)
         // MSH-5 Receiving Application (“Receiving system”)
-        System.out.println("messageTimestamp = " + mshwrap.getMessageTimestamp());//msh.getDateTimeOfMessage().toString()); // MSH-7 Date/Time Of
+        System.out.println("messageTimestamp = " + mshwrap.getMessageTimestamp());
         // Message
         // YYYYMMDDHHMM
         System.out.println("message type = " + mshwrap.getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
         // Type (ADT)
-        System.out.println("trigger event = " + mshwrap.getTriggerEvent());//msh.getMessageType().getTriggerEvent().getValue()); // MSH-9.2
+        System.out.println("trigger event = " + mshwrap.getTriggerEvent());
         // Trigger
 
         System.out.println("current bed = " + getCurrentBed());
@@ -169,44 +162,68 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         System.out.println("admission time = " + getAdmissionDateTime());
     }
 
+    /**
+     * @return PID-8 sex
+     * @throws HL7Exception
+     */
     public String getAdministrativeSex() {
         return administrativeSex;
     }
 
+    /**
+     * @return PID-5.1 family name
+     */
     public String getFamilyName() {
         return familyName;
     }
 
+    /**
+     * @return PID-5.2 family name
+     */
     public String getGivenName() {
         return givenName;
     }
 
+    /**
+     * @return PID-5.3 family name
+     */
     public String getMiddleName() {
         return middleName;
     }
 
+    /**
+     * @return PID-3.1[1]
+     */
     public String getMrn() {
         return mrn;
     }
 
+    /**
+     * @return PID-3.1[2]
+     */
     public String getNHSNumber() {
-        return NHSNumber;
+        return nhsNumber;
     }
 
-    public void setAdministrativeSex(String administrativeSex) {
-        this.administrativeSex = administrativeSex;
-    }
-
+    /**
+     * @return MSH-9.2
+     */
     public String getTriggerEvent() {
         return triggerEvent;
     }
 
+    /**
+     * @return PID-7.1
+     */
     public Instant getDob() {
         return dob;
     }
 
+    /**
+     * @return the non-surviving patient ID from a merge message
+     */
     public String getMergedPatientId() {
-        return _mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
+        return mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
     }
 
     @Override
@@ -214,6 +231,9 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         return isTest;
     }
 
+    /**
+     * @return the patient postcode (PID-11, first rep, component 5)
+     */
     public String getPatientZipOrPostalCode() {
         return postcode;
     }
