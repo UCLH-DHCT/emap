@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform;
 
-import ca.uhn.hl7v2.model.v27.segment.EVN;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.DefaultHapiContext;
@@ -8,7 +7,6 @@ import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 
 import java.time.Instant;
 
@@ -18,6 +16,9 @@ import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.EVNWrap;
 
+/**
+ * Test the EVN wrapper.
+ */
 //@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestEVN extends TestCase {
 
@@ -54,57 +55,51 @@ public class TestEVN extends TestCase {
         }
     }
 
+    /**
+     * Test EVN-1.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // EVN-1
-    public void testGetEventType1() {
-        String result = "";
-        try {
-            result = wrapper.getEventType();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetEventType1()");
-            e.printStackTrace();
-        }
+    public void testGetEventType1() throws HL7Exception {
+        String result = wrapper.getEventType();
         assertEquals("A01", result);
     }
 
+    /**
+     * Test EVN-2.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // EVN-2
     public void testGetRecordedDateTime1() throws HL7Exception {
         Instant result = wrapper.getRecordedDateTime();
         assertEquals(Instant.parse("2012-09-21T17:43:00.00Z"), result);
     }
 
+    /**
+     * Test EVN-4.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // EVN-4
-    public void testGetEventReasonCode1() {
-        String result = "";
-        try {
-            result = wrapper.getEventReasonCode();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetEventReasonCode1()");
-            e.printStackTrace();
-        }
+    public void testGetEventReasonCode1() throws HL7Exception {
+        String result = wrapper.getEventReasonCode();
         assertEquals("ADM", result);
     }
 
+    /**
+     * Test EVN-5.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // EVN-5
-    public void testGetOperatorID1() {
-        String result = "";
-        try {
-            result = wrapper.getOperatorID();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetOperatorID1()");
-            e.printStackTrace();
-        }
+    public void testGetOperatorID1() throws HL7Exception {
+        String result = wrapper.getOperatorID();
         assertEquals("U439966", result);
     }
 
+    /**
+     * Test EVN-6 EventOccurred - for Epic only, A02 messages.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // EVN-6 EventOccurred - for Epic only, A02 messages
     public void testGetEventOccurred1() throws HL7Exception {
         Instant result = wrapper.getEventOccurred();
         assertEquals(Instant.parse("2012-01-01T12:00:00.00Z"), result);

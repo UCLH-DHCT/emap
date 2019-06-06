@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform;
 
-
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.HapiContext;
@@ -16,10 +15,10 @@ import org.junit.Test;
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.PIDWrap;
 
-// NB despite the @Test annotation each test method name must begin with "test"
 
-
-// parameterised tests https://www.tutorialspoint.com/junit/junit_parameterized_test.htm
+/**
+ * Test the PID wrapper.
+ */
 //@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestPID extends TestCase {
 
@@ -47,119 +46,79 @@ public class TestPID extends TestCase {
         context.setModelClassFactory(mcf);
         parser = context.getPipeParser(); //getGenericParser();
 
-        try {
-            ADT_A01 adt_01 = (ADT_A01) parser.parse(generic_hl7);
-            pid = adt_01.getPID();
-            wrapper = new PIDWrap(pid);
-        }
-        catch (HL7Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
+        ADT_A01 adtA01 = (ADT_A01) parser.parse(generic_hl7);
+        pid = adtA01.getPID();
+        wrapper = new PIDWrap(pid);
     }
 
+    /**
+     * PID-3.1[1] - in Carecast this is the MRN. Will Epic follow this convention?
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // PID-3.1[1] - in Carecast this is the MRN. Will Epic follow this convention?
-    public void testGetPatientFirstIdentifier1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientFirstIdentifier();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientFirstIdentifier1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientFirstIdentifier1() throws HL7Exception {
+        String result = wrapper.getPatientFirstIdentifier();
         assertEquals("50032556", result);
     }
 
+    /**
+     *  PID-3.1[2] - in Carecast this is the NHS number. Will Epic follow this convention?
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // PID-3.1[2] - in Carecast this is the NHS number. Will Epic follow this convention?
-    public void testGetPatientSecondIdentifier1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientSecondIdentifier();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientSecondIdentifier1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientSecondIdentifier1() throws HL7Exception {
+        String result = wrapper.getPatientSecondIdentifier();
         assertEquals("this is a test NHS number", result);
     }
 
+    /**
+     * PID-5.1.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // PID-5.1
-    public void testGetPatientFamilyName1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientFamilyName();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientFamilyName1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientFamilyName1() throws HL7Exception {
+        String result = wrapper.getPatientFamilyName();
         assertEquals("INTERFACES", result);
     }
 
+    /**
+     * PID-5.2.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // PID-5.2
-    public void testGetPatientGivenName1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientGivenName();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientGivenName1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientGivenName1() throws HL7Exception {
+        String result = wrapper.getPatientGivenName();
         assertEquals("Amendadmission", result);
     }
 
+    /**
+     * PID-5.3 Middle name or initial.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // PID-5.3 Middle name or initial
-    public void testGetPatientMiddleName1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientMiddleName();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientMiddleName1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientMiddleName1() throws HL7Exception {
+        String result = wrapper.getPatientMiddleName();
         assertEquals("Longforenamesecondfn", result);
     }
 
+    /**
+     * PID-5.5 Title.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // PID-5.5 Title
-    public void testGetPatientTitle1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientTitle();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientTitle1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientTitle1() throws HL7Exception {
+        String result = wrapper.getPatientTitle();
         assertEquals("LADY", result);
     }
 
+    /**
+     * Test full name.
+     * @throws HL7Exception if HAPI does
+     */
     @Test
-    // Convenience method
-    public void testGetPatientFullName1() {
-        String result = "";
-        try {
-            result = wrapper.getPatientFullName();
-        }
-        catch (HL7Exception e) {
-            System.out.println("Got exception in testGetPatientFullName1()");
-            e.printStackTrace();
-        }
+    public void testGetPatientFullName1() throws HL7Exception {
+        String result = wrapper.getPatientFullName();
         assertEquals("LADY Amendadmission Longforenamesecondfn INTERFACES", result);
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        // System.out.println("Running: tearDown");
     }
 }
 
