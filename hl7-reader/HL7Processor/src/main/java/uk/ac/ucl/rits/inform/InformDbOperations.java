@@ -688,6 +688,12 @@ public class InformDbOperations {
         visit.addProperty(visProp);
     }
 
+    /**
+     * Return a persisted Attribute object with the given enum value,
+     * creating it first if necessary.
+     * @param attrKM the enum value of the attribute
+     * @return the Attribute object
+     */
     @Transactional
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
         Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
@@ -705,6 +711,12 @@ public class InformDbOperations {
         }
     }
 
+    /**
+     * Add a property (key-value pair) to a pre-existing fact.
+     * @param fact the fact to add to
+     * @param attrKM the property key
+     * @param factValue the property value
+     */
     private void addPropertyToFact(PatientDemographicFact fact, AttributeKeyMap attrKM, Object factValue) {
         if (factValue != null) {
             Attribute attr = getCreateAttribute(attrKM);
