@@ -112,7 +112,7 @@ public class PIDWrap {
 
     /**
      * @return PID-8 sex
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getPatientSex() throws HL7Exception {
         return pid.getAdministrativeSex().getIdentifier().getValue();
@@ -196,7 +196,7 @@ public class PIDWrap {
 
     /**
      * @return Carecast - PID-14.1 business phone
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getCarecastPatientBusinessPhoneNumber() throws HL7Exception {
         return pid.getPhoneNumberBusiness(0).getTelephoneNumber().getValue();
@@ -214,7 +214,7 @@ public class PIDWrap {
      * I don't know how HAPI will deal with this. Need to see real messages.
      *
      * @return
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getEpicPatientBusinessPhoneNumber() throws HL7Exception {
         return "Not yet implemented";
@@ -234,7 +234,7 @@ public class PIDWrap {
 
     /**
      * @return PID-17 Religion - or should this be PID-17.1?
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getPatientReligion() throws HL7Exception {
         return pid.getReligion().getComponent(0).toString();
@@ -242,7 +242,7 @@ public class PIDWrap {
 
     /**
      * @return PID-18.1 (or PID-18?) Patient Account Number.
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getPatientAccountNumber() throws HL7Exception {
         return pid.getPatientAccountNumber().getComponent(0).toString();
@@ -260,7 +260,7 @@ public class PIDWrap {
     /**
      * getEthnicGroup. Looks like Carecast and Epic may be the same (need to see real data to check)
      * @return
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getEthnicGroup() throws HL7Exception {
         return pid.getPid22_EthnicGroup(0).getText().toString(); // ???need data to check this is correct.
@@ -286,7 +286,7 @@ public class PIDWrap {
 
     /**
      * @return PID-29 (or PID-29.1?) Patient Death Date and Time. Carecast: YYYYMMDDHHmm format though hhmm is mainly 0000
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getPatientDeathDateTime() throws HL7Exception {
         return pid.getPatientDeathDateAndTime().toString();
@@ -294,7 +294,7 @@ public class PIDWrap {
 
     /**
      * @return PID-30 Patient Death Indicator. Carcast: Y = dead, N = alive.
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public String getPatientDeathIndicator() throws HL7Exception {
         return pid.getPatientDeathIndicator().getValue();

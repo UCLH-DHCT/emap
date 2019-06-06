@@ -7,7 +7,14 @@ import java.util.TimeZone;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v27.datatype.DTM;
 
+/**
+ * Utilities for interpreting HL7 messages.
+ */
 public class HL7Utils {
+    /**
+     * Can't instantiate a util class.
+     */
+    private HL7Utils() {}
 
     /**
      * HL7 messages may or may not specify a timezone, according to the spec. In
@@ -18,7 +25,7 @@ public class HL7Utils {
      * @param hl7DTM the hl7 DTM object as it comes from the message
      * @return an Instant representing this same point in time, or null if no time
      *         is specified in the DTM
-     * @throws DataTypeException
+     * @throws DataTypeException if HAPI does
      */
     public static Instant interpretLocalTime(DTM hl7DTM) throws DataTypeException {
         Calendar valueAsCal = hl7DTM.getValueAsCalendar();
