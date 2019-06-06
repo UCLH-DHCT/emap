@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,33 +16,39 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
-import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 
+/**
+ */
 @SpringBootApplication
 public class App {
-    private final static Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
 
+    /**
+     * @param args command line args
+     */
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
 
+    /**
+     * Entry point for populating a test IDS from a file specified on the command line.
+     * @param ids IDS operations objects
+     * @return .
+     */
     @Bean
     @Profile("populate")
     public CommandLineRunner populateIDS(IdsOperations ids) {
         return (args) -> {
-            HapiContext context = InitializeHapiContext();
+            HapiContext context = initializeHapiContext();
             String hl7fileSource = args[0];
             File file = new File(hl7fileSource);
             logger.info("populating the IDS from file " + file.getAbsolutePath() + " exists = " + file.exists());
@@ -68,7 +73,11 @@ public class App {
         };
     }
 
-    private HapiContext InitializeHapiContext() {
+    /**
+     * Initalise the HAPI parser.
+     * @return the HapiContext
+     */
+    private HapiContext initializeHapiContext() {
         HapiContext context = new DefaultHapiContext();
 
         ValidationContext vc = ValidationContextFactory.noValidation();
@@ -80,41 +89,44 @@ public class App {
         return context;
     }
 
+    /**
+     * The main entry point for processing HL7 messages and writing to Inform-db.
+     * @param dbOps Inform-db operations object
+     * @return .
+     */
     @Bean
     @Profile("default")
-    public CommandLineRunner mainLoop(InformDbOperations dbt) {
+    public CommandLineRunner mainLoop(InformDbOperations dbOps) {
         return (args) -> {
             logger.info("Initialising HAPI...");
             long startTimeMillis = System.currentTimeMillis();
-            HapiContext context = InitializeHapiContext();
+            HapiContext context = initializeHapiContext();
             PipeParser parser = context.getPipeParser(); // getGenericParser();
             logger.info("Done initialising HAPI");
             int count = 0;
             List<String> parsingErrors = new ArrayList<String>();
             while (true) {
-                int processed = dbt.processNextHl7(parser, parsingErrors);
+                int processed = dbOps.processNextHl7(parser, parsingErrors);
                 if (processed == -1) {
                     break;
                 }
                 count += processed;
                 if (count % 1000 == 0) {
-                    printErrorSummary(parsingErrors);
+                    logger.debug("There are " + parsingErrors.size() + " parsing errors");
                 }
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
             logger.info(String.format("processed %d messages in %.0f secs", count, (endCurrentTimeMillis - startTimeMillis) / 1000.0));
             context.close();
-            dbt.close();
+            dbOps.close();
         };
     }
 
-    private void printErrorSummary(List<String> errors) {
-        logger.debug("There are " + errors.size() + " parsing errors");
-    }
-
     /**
-     * Don't want to do any normal HL7 message processing if running test profile
+     * Don't want to do any normal HL7 message processing if running test profile.
+     * @param dbt .
+     * @return .
      */
     @Bean
     @Profile("test")
