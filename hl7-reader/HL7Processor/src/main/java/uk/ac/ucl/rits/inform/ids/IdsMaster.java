@@ -9,6 +9,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Representation of the main IDS table. Usually for reading but we can create a test IDS.
+ */
 @Entity
 @Table(name = "tbl_ids_master")
 public class IdsMaster {
@@ -30,82 +33,139 @@ public class IdsMaster {
     private String messageformat;
     private String messageversion;
     private Timestamp messagedatetime;
-    @Column(columnDefinition="text")
+    @Column(columnDefinition = "text")
     private String hl7message;
     private Timestamp persistdatetime;
 
+    /**
+     * @return the IDS unique ID
+     */
     public int getUnid() {
         return unid;
     }
 
+    /**
+     * @return patient name
+     */
     public String getPatientname() {
         return patientname;
     }
 
+    /**
+     * @return patient middle name
+     */
     public String getPatientmiddlename() {
         return patientmiddlename;
     }
 
+    /**
+     * @return patient surname
+     */
     public String getPatientsurname() {
         return patientsurname;
     }
 
+    /**
+     * @return patient dob
+     */
     public Timestamp getDateofbirth() {
         return dateofbirth;
     }
 
+    /**
+     * @return patient NHS number
+     */
     public String getNhsnumber() {
         return nhsnumber;
     }
 
+    /**
+     * @return patient MRN
+     */
     public String getHospitalnumber() {
         return hospitalnumber;
     }
 
+    /**
+     * @return patient class
+     */
     public String getPatientclass() {
         return patientclass;
     }
 
+    /**
+     * @return patient location
+     */
     public String getPatientlocation() {
         return patientlocation;
     }
 
+    /**
+     * @return patient admission date
+     */
     public Timestamp getAdmissiondate() {
         return admissiondate;
     }
 
+    /**
+     * @return patient discharge date
+     */
     public Timestamp getDischargedate() {
         return dischargedate;
     }
 
+    /**
+     * @return message type (aka trigger event)
+     */
     public String getMessagetype() {
         return messagetype;
     }
 
+    /**
+     * @return sender application
+     */
     public String getSenderapplication() {
         return senderapplication;
     }
 
+    /**
+     * @return message identifier
+     */
     public String getMessageidentifier() {
         return messageidentifier;
     }
 
+    /**
+     * @return message format
+     */
     public String getMessageformat() {
         return messageformat;
     }
 
+    /**
+     * @return message version
+     */
     public String getMessageversion() {
         return messageversion;
     }
 
+    /**
+     * @return message timestamp
+     */
     public Timestamp getMessagedatetime() {
         return messagedatetime;
     }
 
+    /**
+     * @return the HL7 message text
+     */
     public String getHl7message() {
         return hl7message;
     }
 
+    /**
+     * @return timestamp the message was persisted to the IDS
+     */
     public Timestamp getPersistdatetime() {
         return persistdatetime;
     }

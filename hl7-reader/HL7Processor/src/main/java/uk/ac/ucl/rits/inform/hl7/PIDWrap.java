@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.hl7;
 
 import java.time.Instant;
-import java.util.Vector;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v27.segment.PID;
@@ -70,22 +69,34 @@ public class PIDWrap {
         return pid.getPatientName(0).getFamilyName().getSurname().getValue();
     }
 
-    // PID-5.2 given name
+    /**
+     * @return PID-5.2 family name
+     * @throws HL7Exception if HAPI does
+     */
     public String getPatientGivenName() throws HL7Exception {
         return pid.getPatientName(0).getGivenName().getValue();
     }
 
-    // PID-5.3 middle name or initial
+    /**
+     * @return PID-5.3 family name
+     * @throws HL7Exception if HAPI does
+     */
     public String getPatientMiddleName() throws HL7Exception {
         return pid.getPatientName(0).getSecondAndFurtherGivenNamesOrInitialsThereof().getValue();
     }
 
-    // PID-5.5 title
+    /**
+     * @return PID-5.5 family name
+     * @throws HL7Exception if HAPI does
+     */
     public String getPatientTitle() throws HL7Exception {
         return pid.getPatientName(0).getPrefixEgDR().getValue();
     }
 
-    // convenience method - title + firstname + middlename + surname
+    /**
+     * @return full name
+     * @throws HL7Exception if HAPI does
+     */
     public String getPatientFullName() throws HL7Exception {
         String result = this.getPatientTitle() + " " + this.getPatientGivenName() + " "
             + this.getPatientMiddleName() + " " + this.getPatientFamilyName();
@@ -103,7 +114,7 @@ public class PIDWrap {
      * We could probably use the HAPI functions to obtain the different components of this result,
      * e.g. for easier conversion to Postgres timestamp format.
      * @return PID-7.1 birthdatetime
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     public Instant getPatientBirthDate() throws HL7Exception {
         return HL7Utils.interpretLocalTime(pid.getDateTimeOfBirth());
@@ -187,13 +198,6 @@ public class PIDWrap {
         return "Not yet implemented";
     }
 
-    public Vector<String> getEpicPatientMultipleEmailAddresses() throws HL7Exception {
-        Vector v = new Vector(1,1);
-        String s = "Not yet implemented";
-        v.add(s);
-        return v;
-    }
-
     /**
      * @return Carecast - PID-14.1 business phone
      * @throws HL7Exception if HAPI does
@@ -213,7 +217,7 @@ public class PIDWrap {
      *
      * I don't know how HAPI will deal with this. Need to see real messages.
      *
-     * @return
+     * @return the patient business phone number
      * @throws HL7Exception if HAPI does
      */
     public String getEpicPatientBusinessPhoneNumber() throws HL7Exception {
@@ -258,8 +262,8 @@ public class PIDWrap {
     // CWE[] getPid22_EthnicGroup() Returns all repetitions of Ethnic Group (PID-22).
     // Epic: Patient ethnic group. Only the first component is used. Format: <ethnic group>^^^^^^^^~
     /**
-     * getEthnicGroup. Looks like Carecast and Epic may be the same (need to see real data to check)
-     * @return
+     * Looks like Carecast and Epic may be the same (need to see real data to check).
+     * @return the ethnic group
      * @throws HL7Exception if HAPI does
      */
     public String getEthnicGroup() throws HL7Exception {
@@ -267,13 +271,17 @@ public class PIDWrap {
     }
 
     // PID-23 Birth Place This is not mapped in the Carecast spec.
-    // Epic: Birth city and state. HL7 address format is used rather than the string format defined in the standard. State can be mapped using a translation table
+    // Epic: Birth city and state. HL7 address format is used rather than the string format defined in the standard.
+    // State can be mapped using a translation table
     // Need to see real messages to understand what they mean in line above.
     // Possibly pid.getPid23_BirthPlace() [ST]
 
-    // PID-24 Multiple Birth Indicator. This is not mapped in the Carecast spec.
-    // Epic: This field can be set to "Y" or "N" to denote whether the patient was born as part of a multiple birth (twins, triplets, etc.).
-    // ID getPid24_MultipleBirthIndicator()
+    /**
+     * PID-24 Multiple Birth Indicator. This is not mapped in the Carecast spec.
+     * Epic: This field can be set to "Y" or "N" to denote whether the patient was born as part of a multiple birth (twins, triplets, etc.).
+     * @return PID-24 Multiple Birth Indicator
+     * @throws HL7Exception if HAPI does
+     */
     public String getMultipleBirthIndicator() throws HL7Exception {
         return pid.getPid24_MultipleBirthIndicator().toString(); // ??? need to see data to check
     }

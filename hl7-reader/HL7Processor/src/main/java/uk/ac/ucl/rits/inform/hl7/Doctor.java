@@ -11,6 +11,9 @@ public class Doctor {
 
     private String consultantCode, surname, firstname, middlename, title;
 
+    /**
+     * @param xcnDoc the XCN component of an HL7 message
+     */
     public Doctor(XCN xcnDoc) {
         consultantCode = xcnDoc.getPersonIdentifier().toString(); // PV1-7.1
         surname = xcnDoc.getFamilyName().getSurname().toString(); // PV1-7.2
@@ -24,7 +27,7 @@ public class Doctor {
      * PV1-8.1 Registered GP user pointer, Referring doctor GMC Code
      * NB this is Carecast usage.
      *
-     * @return
+     * @return consultant code
      */
     public String getConsultantCode() {
         return consultantCode;

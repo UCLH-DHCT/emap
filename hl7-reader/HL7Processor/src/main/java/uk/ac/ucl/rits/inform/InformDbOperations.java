@@ -353,7 +353,8 @@ public class InformDbOperations {
      * Create a new encounter using the details given in the A01 message. This may
      * also entail creating a new Mrn and Person if these don't already exist.
      *
-     * @param encounterDetails
+     * @param encounterDetails msg containing encounter details
+     * @return the created Encounter
      * @throws HL7Exception if HAPI does
      */
     @Transactional
@@ -417,7 +418,7 @@ public class InformDbOperations {
      * @throws HL7Exception if HAPI does
      */
     private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
-        Map<String,PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
+        Map<String, PatientDemographicFact> demogs = buildPatientDemographics(msgDetails);
         demogs.forEach((k, v) -> enc.addDemographic(v));
     }
 
@@ -428,7 +429,7 @@ public class InformDbOperations {
      * @return Attribute->Fact key-value pairs
      * @throws HL7Exception if HAPI does
      */
-    private Map<String,PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
+    private Map<String, PatientDemographicFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
         Map<String, PatientDemographicFact> demographics = new HashMap<>();
         Instant validFrom = msgDetails.getEventOccurred();
         if (validFrom == null) {
@@ -773,7 +774,7 @@ public class InformDbOperations {
         }
 
         // Compare new demographics with old
-        Map<String,PatientDemographicFact> newDemographics = buildPatientDemographics(adtWrap);
+        Map<String, PatientDemographicFact> newDemographics = buildPatientDemographics(adtWrap);
         Map<String, PatientDemographicFact> currentDemographics = encounter.getDemographicsAsHashMap();
         updateDemographics(encounter, currentDemographics, newDemographics);
 

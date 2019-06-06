@@ -6,6 +6,9 @@ package uk.ac.ucl.rits.inform;
  */
 public class InformDbIntegrityException extends RuntimeException {
 
+    /**
+     * @param string the message
+     */
     public InformDbIntegrityException(String string) {
         super(string);
     }
