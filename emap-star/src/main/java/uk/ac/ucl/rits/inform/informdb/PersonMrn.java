@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,15 +20,21 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "person_mrn")
 public class PersonMrn extends TemporalCore implements Serializable {
+
+    /**
+     * UID for serialisation.
+     */
+    private static final long serialVersionUID = 7019692664925413320L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "person", nullable = false)
     private Person person;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "mrn", nullable = false)
     private Mrn mrn;
 
@@ -54,9 +61,14 @@ public class PersonMrn extends TemporalCore implements Serializable {
         return person;
     }
 
-//    public void setPerson(Person person) {
-//        this.person = person;
-//    }
+    /**
+     * Set the person.
+     *
+     * @param person The new person.
+     */
+    public void setPerson(Person person) {
+        this.person = person;
+    }
 
     /**
      * @return the MRN in the association
@@ -65,9 +77,14 @@ public class PersonMrn extends TemporalCore implements Serializable {
         return mrn;
     }
 
-//    public void setMrn(Mrn mrn) {
-//        this.mrn = mrn;
-//    }
+    /**
+     * Set the Mrn.
+     *
+     * @param mrn The mrn
+     */
+    public void setMrn(Mrn mrn) {
+        this.mrn = mrn;
+    }
 
     /**
      * @return the Id

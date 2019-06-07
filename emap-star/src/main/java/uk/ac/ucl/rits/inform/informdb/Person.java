@@ -85,6 +85,7 @@ public class Person {
         perMrn.setValidFrom(validFrom);
         perMrn.setStoredFrom(storedFrom);
         this.mrns.add(perMrn);
+        mrn.addPerson(perMrn);
     }
 
     @Override

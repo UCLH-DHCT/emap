@@ -155,4 +155,16 @@ public class Mrn implements Serializable {
     public List<PersonMrn> getPersons() {
         return persons;
     }
+
+    /**
+     * Add a backlink to a person.
+     *
+     * @param p The person mrn relationship.
+     */
+    public void addPerson(PersonMrn p) {
+        if (this.persons == null) {
+            this.persons = new ArrayList<>();
+        }
+        this.persons.add(p);
+    }
 }
