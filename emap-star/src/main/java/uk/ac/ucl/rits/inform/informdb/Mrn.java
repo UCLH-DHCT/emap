@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
 @JsonIgnoreProperties("persons")
-public class Mrn implements Serializable {
-
-    private static final long  serialVersionUID = 939614930197714827L;
+public class Mrn {
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
@@ -46,7 +43,7 @@ public class Mrn implements Serializable {
     private List<MrnEncounter> encounters;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn", cascade = CascadeType.ALL)
-    private List<PersonMrn>    persons          = new ArrayList<>();
+    private List<PersonMrn>    persons = new ArrayList<>();
 
     /**
      * The value of the MRN identifier.
@@ -143,7 +140,7 @@ public class Mrn implements Serializable {
 
     @Override
     public String toString() {
-        return "Mrn [mrnId=" + mrnId + ", mrn=" + mrn + ", sourceSystem=" + sourceSystem + "]";
+        return String.format("Mrn [mrnId=%d, mrn=%s, sourceSystem=%s]", mrnId, mrn, sourceSystem);
     }
 
     /**

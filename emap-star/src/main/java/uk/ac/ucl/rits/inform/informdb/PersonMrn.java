@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.io.Serializable;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,24 +12,22 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * One Person can have many MRNs, and one MRN can, over time,
- * be associated with multiple Persons.
+ * One Person can have many MRNs, and one MRN can, over time, be associated with
+ * multiple Persons. Each PersonMrn represents a single instance of a
+ * relationship between a given person id and a specific Mrn. These change over
+ * time as new people, mrns and merges occur.
+ *
  * @author UCL RITS
  *
  */
 @Entity
 @Table(name = "person_mrn")
 @JsonIgnoreProperties("person")
-public class PersonMrn extends TemporalCore implements Serializable {
-
-    /**
-     * UID for serialisation.
-     */
-    private static final long serialVersionUID = 7019692664925413320L;
+public class PersonMrn extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private int    id;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "person", nullable = false)
@@ -39,18 +35,18 @@ public class PersonMrn extends TemporalCore implements Serializable {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "mrn", nullable = false)
-    private Mrn mrn;
+    private Mrn    mrn;
 
     /**
-     * .
+     * Create a new person/mrn association.
      */
-    public PersonMrn() {
-    }
+    public PersonMrn() {}
 
     /**
-     * create a new person/mrn association.
+     * Create a new person/mrn association.
+     *
      * @param person the person
-     * @param mrn the mrn
+     * @param mrn    the mrn
      */
     public PersonMrn(Person person, Mrn mrn) {
         this.person = person;

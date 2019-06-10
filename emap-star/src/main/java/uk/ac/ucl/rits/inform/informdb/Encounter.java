@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +30,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  */
 @Entity
-@Table(indexes = { @Index(name = "validUntilIndex", columnList = "validUntil", unique = false),
-        @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
+@Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
 @JsonIgnoreProperties("mrns")
-public class Encounter extends TemporalCore implements Serializable {
-
-    private static final long            serialVersionUID = -915410794459512129L;
+public class Encounter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -56,7 +53,7 @@ public class Encounter extends TemporalCore implements Serializable {
     private List<VisitFact>              visits;
 
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter", cascade = CascadeType.ALL)
-    private List<MrnEncounter> mrns;
+    private List<MrnEncounter>           mrns;
 
     /**
      * @return the encounterId
@@ -226,9 +223,8 @@ public class Encounter extends TemporalCore implements Serializable {
 
     @Override
     public String toString() {
-        return "Encounter [encounter_id=" + encounterId + ", encounter=" + encounter
-                + ", store_datetime=" + this.getStoredFrom() + ", end_datetime=" + this.getValidUntil()
-                + ", source_system=" + sourceSystem + ", event_time=" + this.getValidFrom() + "]";
+        return String.format("Encounter [encounter_id=%d, encounter=%s, source_system=%s]", encounterId, encounter,
+                sourceSystem);
     }
 
 }

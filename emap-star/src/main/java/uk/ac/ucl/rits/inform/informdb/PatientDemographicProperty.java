@@ -212,14 +212,14 @@ public class PatientDemographicProperty extends TemporalCore implements Property
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((attribute == null) ? 0 : attribute.hashCode());
-        result = prime * result + ((valueAsAttribute == null) ? 0 : valueAsAttribute.hashCode());
-        result = prime * result + ((valueAsBoolean == null) ? 0 : valueAsBoolean.hashCode());
-        result = prime * result + ((valueAsDatetime == null) ? 0 : valueAsDatetime.hashCode());
-        result = prime * result + ((valueAsInteger == null) ? 0 : valueAsInteger.hashCode());
-        result = prime * result + ((valueAsLink == null) ? 0 : valueAsLink.hashCode());
-        result = prime * result + ((valueAsReal == null) ? 0 : valueAsReal.hashCode());
-        result = prime * result + ((valueAsString == null) ? 0 : valueAsString.hashCode());
+        result = prime * result + (attribute == null ? 0 : attribute.hashCode());
+        result = prime * result + (valueAsAttribute == null ? 0 : valueAsAttribute.hashCode());
+        result = prime * result + (valueAsBoolean == null ? 0 : valueAsBoolean.hashCode());
+        result = prime * result + (valueAsDatetime == null ? 0 : valueAsDatetime.hashCode());
+        result = prime * result + (valueAsInteger == null ? 0 : valueAsInteger.hashCode());
+        result = prime * result + (valueAsLink == null ? 0 : valueAsLink.hashCode());
+        result = prime * result + (valueAsReal == null ? 0 : valueAsReal.hashCode());
+        result = prime * result + (valueAsString == null ? 0 : valueAsString.hashCode());
         return result;
     }
 

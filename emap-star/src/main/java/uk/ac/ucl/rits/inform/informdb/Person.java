@@ -27,10 +27,10 @@ public class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int       personId;
+    private int             personId;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant   createDatetime;
+    private Instant         createDatetime;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "person", cascade = CascadeType.ALL)
     private List<PersonMrn> mrns;
@@ -64,7 +64,9 @@ public class Person {
     }
 
     /**
-     * @return the mrns
+     * Get the list of PersonMrn relationships.
+     *
+     * @return The list of PersonMrns
      */
     public List<PersonMrn> getMrns() {
         return mrns;
@@ -74,8 +76,8 @@ public class Person {
      * Add an Person <-> MRN to this person. This will set up the links in both
      * directions.
      *
-     * @param mrn The mrn to add
-     * @param validFrom when the association became true
+     * @param mrn        The mrn to add
+     * @param validFrom  when the association became true
      * @param storedFrom when the association was stored
      */
     public void addMrn(Mrn mrn, Instant validFrom, Instant storedFrom) {
@@ -100,6 +102,6 @@ public class Person {
 
     @Override
     public String toString() {
-        return "Person [person_id=" + personId + ", create_datetime=" + createDatetime + "]";
+        return String.format("Person [person_id=%d, create_datetime=%s]", personId, createDatetime.toString());
     }
 }

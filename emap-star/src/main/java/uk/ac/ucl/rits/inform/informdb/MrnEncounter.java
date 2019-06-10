@@ -12,10 +12,11 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * An MRN has multiple encounters,
- * and an encounter may (over time) be associated
- * with several MRNs.
- * @author jeremystein
+ * An MRN has multiple encounters, and an encounter may (over time) be
+ * associated with several MRNs. Each MrnEncounter represents a single temporary
+ * instance of such a relationship.
+ *
+ * @author Jeremy Stein
  *
  */
 @Entity
@@ -25,24 +26,24 @@ public class MrnEncounter extends TemporalCore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer mrnEncounterid;
+    private Integer   mrnEncounterId;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "mrn", nullable = false)
-    private Mrn mrn;
+    private Mrn       mrn;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "encounter", nullable = false)
     private Encounter encounter;
 
     /**
-     * .
+     * Create a new Mrn/Encounter association.
      */
-    public MrnEncounter() {
-    }
+    public MrnEncounter() {}
 
     /**
-     * create a new MRN/Encounter association.
+     * Create a new MRN/Encounter association.
+     *
      * @param mrn the MRN
      * @param enc the Encounter
      */
@@ -65,9 +66,37 @@ public class MrnEncounter extends TemporalCore {
         return encounter;
     }
 
+    /**
+     * @return the mrnEncounterId
+     */
+    public Integer getMrnEncounterId() {
+        return mrnEncounterId;
+    }
+
+    /**
+     * @param mrnEncounterId the mrnEncounterId to set
+     */
+    public void setMrnEncounterId(Integer mrnEncounterId) {
+        this.mrnEncounterId = mrnEncounterId;
+    }
+
+    /**
+     * @param mrn the mrn to set
+     */
+    public void setMrn(Mrn mrn) {
+        this.mrn = mrn;
+    }
+
+    /**
+     * @param encounter the encounter to set
+     */
+    public void setEncounter(Encounter encounter) {
+        this.encounter = encounter;
+    }
+
     @Override
     public String toString() {
-        return "MrnEncounter [mrnEncounterid=" + mrnEncounterid + ", mrn=" + mrn.getMrnId() + ", encounter=" + encounter.getEncounterId()
-                + "]";
+        return String.format("MrnEncounter [mrnEncounterId=%d, mrn=%d, encounter=%d]", mrnEncounterId, mrn.getMrnId(),
+                encounter.getEncounterId());
     }
 }

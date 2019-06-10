@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 /**
  * Properties in the Fact->Property system must support certain things.
- * @author jeremystein
+ * @author Jeremy Stein
  *
  */
 public interface Property {

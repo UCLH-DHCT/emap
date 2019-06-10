@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Handle the common parts of the Fact->Property relationship
  * as this appears in several places.
- * @author jeremystein
+ * @author Jeremy Stein
  *
  * @param <PropertyType> the type of the Property that this Fact contains
  */
