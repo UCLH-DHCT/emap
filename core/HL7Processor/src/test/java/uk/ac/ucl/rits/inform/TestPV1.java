@@ -20,7 +20,6 @@ import uk.ac.ucl.rits.inform.hl7.Doctor;
 /**
  * Test the PV1 wrapper.
  */
-//@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestPV1 extends TestCase {
 
     private PipeParser parser;

@@ -5,11 +5,14 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
 
 /**
  * Operations that can be performed on the IDS.
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.ids")
 public class IdsOperations {
+    private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
 
     private SessionFactory idsFactory;
     private boolean idsEmptyOnInit;
@@ -32,11 +36,10 @@ public class IdsOperations {
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
         }
-        System.out.println("DBTester() 1 - opening config file " + idsCfgXml);
+        logger.info("IdsOperations() opening config file " + idsCfgXml);
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
-        System.out.println("DBTester() 2");
         idsEmptyOnInit = getIdsIsEmpty();
-        System.out.println("DBTester() : idsEmptyOnInit = " + idsEmptyOnInit);
+        logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
     }
 
     /**

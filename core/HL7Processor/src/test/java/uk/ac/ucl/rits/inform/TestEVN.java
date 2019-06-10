@@ -19,7 +19,6 @@ import uk.ac.ucl.rits.inform.hl7.EVNWrap;
 /**
  * Test the EVN wrapper.
  */
-//@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestEVN extends TestCase {
 
     private PipeParser parser;
