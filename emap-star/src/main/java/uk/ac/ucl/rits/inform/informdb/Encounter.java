@@ -115,16 +115,26 @@ public class Encounter extends TemporalCore implements Serializable {
     }
 
     /**
-     * Add a patient demographic fact to this encounter.
+     * Add a patient demographic fact to this encounter. Creating back links in the
+     * fact.
      *
      * @param fact The fact to add
      */
     public void addDemographic(PatientDemographicFact fact) {
+        this.linkDemographic(fact);
+        fact.setEncounter(this);
+    }
+
+    /**
+     * Add a demographic fact to the demographics.
+     *
+     * @param fact The fact to add.
+     */
+    public void linkDemographic(PatientDemographicFact fact) {
         if (this.demographics == null) {
             this.demographics = new ArrayList<>();
         }
         this.demographics.add(fact);
-        fact.setEncounter(this);
     }
 
     /**
@@ -133,11 +143,20 @@ public class Encounter extends TemporalCore implements Serializable {
      * @param fact The fact to add
      */
     public void addVisit(VisitFact fact) {
+        this.linkVisit(fact);
+        fact.setEncounter(this);
+    }
+
+    /**
+     * Add a visit fact to the visits array.
+     *
+     * @param fact The VisitFact to add.
+     */
+    public void linkVisit(VisitFact fact) {
         if (this.visits == null) {
             this.visits = new ArrayList<>();
         }
         this.visits.add(fact);
-        fact.setEncounter(this);
     }
 
     /**
@@ -175,6 +194,34 @@ public class Encounter extends TemporalCore implements Serializable {
      */
     public void setVisits(List<VisitFact> visits) {
         this.visits = visits;
+    }
+
+    /**
+     * Add a Mrn Encounter relationship to this encounter and link it back to the
+     * MRN.
+     *
+     * @param mrn        The Mrn to link to
+     * @param validFrom  The time this relationship came into effect
+     * @param storedFrom The time we stored this
+     */
+    public void addMrn(Mrn mrn, Instant validFrom, Instant storedFrom) {
+        MrnEncounter mrnEncounter = new MrnEncounter(mrn, this);
+        mrnEncounter.setValidFrom(validFrom);
+        mrnEncounter.setStoredFrom(storedFrom);
+        mrn.linkEncounter(mrnEncounter);
+        this.linkMrn(mrnEncounter);
+    }
+
+    /**
+     * Add an MrnEncounter to the mrns list.
+     *
+     * @param mrnEnc The MrnEncounter to add.
+     */
+    public void linkMrn(MrnEncounter mrnEnc) {
+        if (this.mrns == null) {
+            this.mrns = new ArrayList<>();
+        }
+        this.mrns.add(mrnEnc);
     }
 
     @Override

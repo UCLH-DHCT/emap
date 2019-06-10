@@ -108,13 +108,23 @@ public class Mrn implements Serializable {
      * @param storedFrom when the association was stored
      */
     public void addEncounter(Encounter enc, Instant validFrom, Instant storedFrom) {
-        if (this.encounters == null) {
-            this.encounters = new ArrayList<>();
-        }
         MrnEncounter mrnEncounter = new MrnEncounter(this, enc);
         mrnEncounter.setValidFrom(validFrom);
         mrnEncounter.setStoredFrom(storedFrom);
-        this.encounters.add(mrnEncounter);
+        enc.linkMrn(mrnEncounter);
+        this.linkEncounter(mrnEncounter);
+    }
+
+    /**
+     * Add an MrnEncounter to the encounters list.
+     *
+     * @param mrnEnc The MrnEncouter to add.
+     */
+    public void linkEncounter(MrnEncounter mrnEnc) {
+        if (this.encounters == null) {
+            this.encounters = new ArrayList<>();
+        }
+        this.encounters.add(mrnEnc);
     }
 
     /**
@@ -162,10 +172,26 @@ public class Mrn implements Serializable {
      *
      * @param p The person mrn relationship.
      */
-    public void addPerson(PersonMrn p) {
+    public void linkPerson(PersonMrn p) {
         if (this.persons == null) {
             this.persons = new ArrayList<>();
         }
         this.persons.add(p);
+    }
+
+    /**
+     * Add a Mrn / person association. This will create all the necessary backlinks
+     * in the person.
+     *
+     * @param p          The person to link to.
+     * @param validFrom  When this link was created.
+     * @param storedFrom When we saved this link to the database.
+     */
+    public void addPerson(Person p, Instant validFrom, Instant storedFrom) {
+        PersonMrn perMrn = new PersonMrn(p, this);
+        perMrn.setValidFrom(validFrom);
+        perMrn.setStoredFrom(storedFrom);
+        p.linkMrn(perMrn);
+        this.linkPerson(perMrn);
     }
 }

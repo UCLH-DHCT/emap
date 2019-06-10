@@ -71,21 +71,31 @@ public class Person {
     }
 
     /**
-     * Add an MRN to this person.
+     * Add an Person <-> MRN to this person. This will set up the links in both
+     * directions.
      *
      * @param mrn The mrn to add
      * @param validFrom when the association became true
      * @param storedFrom when the association was stored
      */
     public void addMrn(Mrn mrn, Instant validFrom, Instant storedFrom) {
-        if (this.mrns == null) {
-            this.mrns = new ArrayList<>();
-        }
         PersonMrn perMrn = new PersonMrn(this, mrn);
         perMrn.setValidFrom(validFrom);
         perMrn.setStoredFrom(storedFrom);
-        this.mrns.add(perMrn);
-        mrn.addPerson(perMrn);
+        mrn.linkPerson(perMrn);
+        this.linkMrn(perMrn);
+    }
+
+    /**
+     * Insert a PersonMrn into the mrns list. Does not create any other links.
+     *
+     * @param personMrn The PersonMrn to insert.
+     */
+    public void linkMrn(PersonMrn personMrn) {
+        if (this.mrns == null) {
+            this.mrns = new ArrayList<>();
+        }
+        this.mrns.add(personMrn);
     }
 
     @Override
