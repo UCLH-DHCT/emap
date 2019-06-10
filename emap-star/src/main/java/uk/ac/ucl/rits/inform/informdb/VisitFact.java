@@ -13,8 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.hibernate.annotations.Sort;
-import org.hibernate.annotations.SortType;
+import org.hibernate.annotations.SortNatural;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -43,7 +42,7 @@ public class VisitFact extends TemporalCore implements FactToProperty<VisitPrope
     private Attribute           visitType;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "visit")
-    @Sort(type = SortType.NATURAL)
+    @SortNatural
     private SortedSet<VisitProperty> visitProperties;
 
     /**
@@ -91,6 +90,7 @@ public class VisitFact extends TemporalCore implements FactToProperty<VisitPrope
     /**
      * @return the visitProperties for this fact
      */
+    @Override
     public SortedSet<VisitProperty> getFactProperties() {
         return visitProperties;
     }

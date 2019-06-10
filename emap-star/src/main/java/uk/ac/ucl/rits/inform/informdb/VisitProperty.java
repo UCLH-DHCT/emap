@@ -78,6 +78,7 @@ public class VisitProperty extends TemporalCore implements Property, Comparable<
     /**
      * @return the attribute
      */
+    @Override
     public Attribute getAttribute() {
         return attribute;
     }

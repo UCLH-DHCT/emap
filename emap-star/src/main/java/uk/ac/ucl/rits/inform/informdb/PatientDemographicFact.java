@@ -13,8 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.hibernate.annotations.Sort;
-import org.hibernate.annotations.SortType;
+import org.hibernate.annotations.SortNatural;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -41,7 +40,7 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
     private Attribute                        factType;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
-    @Sort(type = SortType.NATURAL)
+    @SortNatural
     private SortedSet<PatientDemographicProperty> factProperties;
 
     /**
@@ -89,6 +88,7 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
     /**
      * @return the factProperties
      */
+    @Override
     public SortedSet<PatientDemographicProperty> getFactProperties() {
         return factProperties;
     }

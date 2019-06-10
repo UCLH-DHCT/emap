@@ -79,6 +79,7 @@ public class PatientDemographicProperty extends TemporalCore implements Property
     /**
      * @return the attribute
      */
+    @Override
     public Attribute getAttribute() {
         return attribute;
     }
