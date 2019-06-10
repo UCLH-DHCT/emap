@@ -11,6 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * One Person can have many MRNs, and one MRN can, over time,
  * be associated with multiple Persons.
@@ -19,6 +21,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "person_mrn")
+@JsonIgnoreProperties("person")
 public class PersonMrn extends TemporalCore implements Serializable {
 
     /**

@@ -15,6 +15,8 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * This class represents the association of Medical Resource Identifier (MRN) to
  * an individual patient (a Person).
@@ -27,34 +29,34 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(indexes = {
-        @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
+@Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
+@JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
-    private static final long serialVersionUID = 939614930197714827L;
+    private static final long  serialVersionUID = 939614930197714827L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer             mrnId;
+    private Integer            mrnId;
 
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
     private List<MrnEncounter> encounters;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn", cascade = CascadeType.ALL)
-    private List<PersonMrn> persons = new ArrayList<>();
+    private List<PersonMrn>    persons          = new ArrayList<>();
 
     /**
      * The value of the MRN identifier.
      */
     @Column(unique = false, nullable = false)
-    private String          mrn;
-    private String          sourceSystem;
+    private String             mrn;
+    private String             sourceSystem;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant   createDatetime;
+    private Instant            createDatetime;
 
     /**
      * @return the mrnId
@@ -101,8 +103,8 @@ public class Mrn implements Serializable {
     /**
      * Add a new encounter to this MRN.
      *
-     * @param enc the encounter to add
-     * @param validFrom when the association became true
+     * @param enc        the encounter to add
+     * @param validFrom  when the association became true
      * @param storedFrom when the association was stored
      */
     public void addEncounter(Encounter enc, Instant validFrom, Instant storedFrom) {
@@ -131,8 +133,7 @@ public class Mrn implements Serializable {
 
     @Override
     public String toString() {
-        return "Mrn [mrnId=" + mrnId + ", mrn=" + mrn + ", sourceSystem=" + sourceSystem
-                + "]";
+        return "Mrn [mrnId=" + mrnId + ", mrn=" + mrn + ", sourceSystem=" + sourceSystem + "]";
     }
 
     /**

@@ -18,6 +18,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * This is an association of a single encounter with a MRN.
  * <p>
@@ -30,6 +32,7 @@ import javax.persistence.Table;
 @Entity
 @Table(indexes = { @Index(name = "validUntilIndex", columnList = "validUntil", unique = false),
         @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
+@JsonIgnoreProperties("mrns")
 public class Encounter extends TemporalCore implements Serializable {
 
     private static final long            serialVersionUID = -915410794459512129L;

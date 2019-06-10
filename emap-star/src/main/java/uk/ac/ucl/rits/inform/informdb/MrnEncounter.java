@@ -9,6 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * An MRN has multiple encounters,
  * and an encounter may (over time) be associated
@@ -18,6 +20,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mrn_encounter")
+@JsonIgnoreProperties("mrn")
 public class MrnEncounter extends TemporalCore {
 
     @Id

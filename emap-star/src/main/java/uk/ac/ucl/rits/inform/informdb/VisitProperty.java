@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * A visit property is a single property of a visit.
  *
@@ -17,6 +19,7 @@ import javax.persistence.ManyToOne;
  *
  */
 @Entity
+@JsonIgnoreProperties("visit")
 public class VisitProperty extends TemporalCore implements Property, Comparable<VisitProperty> {
 
     @Id

@@ -16,6 +16,8 @@ import javax.persistence.OneToMany;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * This represents a grouper for a fact about a patient.
  *
@@ -23,6 +25,7 @@ import org.hibernate.annotations.SortType;
  *
  */
 @Entity
+@JsonIgnoreProperties("encounter")
 public class PatientDemographicFact extends TemporalCore implements FactToProperty<PatientDemographicProperty> {
 
     @Id

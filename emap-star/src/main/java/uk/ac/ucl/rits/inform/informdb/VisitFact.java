@@ -16,6 +16,8 @@ import javax.persistence.OneToMany;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * This represents a grouper for a visit. A visit can either be either a
  * hospital visit, or just visit to a bed. Visits themselves form a hierarchy
@@ -25,6 +27,7 @@ import org.hibernate.annotations.SortType;
  *
  */
 @Entity
+@JsonIgnoreProperties("encounter")
 public class VisitFact extends TemporalCore implements FactToProperty<VisitProperty> {
 
     @Id

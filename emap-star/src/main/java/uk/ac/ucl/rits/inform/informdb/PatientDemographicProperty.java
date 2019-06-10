@@ -11,6 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.xml.bind.TypeConstraintException;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * A patient demographic property is a single property of a fact.
  *
@@ -18,6 +20,7 @@ import javax.xml.bind.TypeConstraintException;
  *
  */
 @Entity
+@JsonIgnoreProperties("fact")
 public class PatientDemographicProperty extends TemporalCore implements Property, Comparable<PatientDemographicProperty> {
 
     @Id
