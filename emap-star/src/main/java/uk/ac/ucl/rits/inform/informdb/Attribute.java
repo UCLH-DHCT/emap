@@ -27,7 +27,7 @@ public class Attribute {
     private String          shortName;
     @Column(nullable = false)
     private String          description;
-    //@Column(nullable = false)
+    @Column(nullable = false)
     private ResultType      resultType;
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant         addedTime;

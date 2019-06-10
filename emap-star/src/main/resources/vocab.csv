@@ -1,0 +1,18 @@
+attribute_id,short_name,description,result_type,added_time
+1,F_NAME,First name,String,2019-03-04T17:00:00Z
+2,M_NAME,Middles names separated by spaces,String,2019-03-04T17:00:00Z
+3,L_NAME,Family name,String,2019-03-04T17:00:00Z
+4,NAMING,Fact group containing name data,None,2019-03-04T17:00:00Z
+5,HOSP_VISIT,Fact group about a hospital visit,None,2019-03-05T11:33:00Z
+6,BED_VISIT,Fact group about a bed visit,None,2019-03-19T16:40:00Z
+7,ARRIVAL_TIME,Time of arrival,Datetime,2019-03-05T11:33:00Z
+8,DISCH_TIME,Time of departure,Datetime,2019-03-05T11:33:00Z
+9,LOCATION,Location,String,2019-03-19T16:40:00Z
+10,VISIT_PAREN,Parent visit,Link,2019-03-20T11:56:00Z
+11,GENERAL_DEMO,General Demographics that are single key value pairs,None,2019-04-11T10:00:00Z
+12,DOB,Date of Birth,Datetime,2019-04-11T10:00:00Z
+13,SEX,Sex,Attribute,2019-04-11T10:00:00Z
+14,MALE,Male,None,2019-04-11T10:00:00Z
+15,FEMALE,Female,None,2019-04-11T10:00:00Z
+15,OTHER,Other,None,2019-04-11T10:00:00Z
+16,UNKNOWN,Unknown,None,2019-04-11T10:00:00Z
