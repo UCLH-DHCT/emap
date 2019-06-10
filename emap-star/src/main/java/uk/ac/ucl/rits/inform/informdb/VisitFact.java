@@ -1,19 +1,13 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.time.Instant;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.io.Serializable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import org.hibernate.annotations.SortNatural;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -27,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties("encounter")
-public class VisitFact extends TemporalCore implements FactToProperty<VisitProperty> {
+public class VisitFact extends Fact<VisitFact, VisitProperty> implements Serializable {
+
+    private static final long serialVersionUID = 1049579732074975826L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,13 +33,6 @@ public class VisitFact extends TemporalCore implements FactToProperty<VisitPrope
     @JoinColumn(name = "encounter", referencedColumnName = "encounter")
     private Encounter           encounter;
 
-    @ManyToOne
-    @JoinColumn(name = "attributeId")
-    private Attribute           visitType;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "visit")
-    @SortNatural
-    private SortedSet<VisitProperty> visitProperties;
 
     /**
      * @return the visitId
@@ -73,55 +62,9 @@ public class VisitFact extends TemporalCore implements FactToProperty<VisitPrope
         this.encounter = encounter;
     }
 
-    /**
-     * @return the visitType
-     */
-    public Attribute getVisitType() {
-        return visitType;
-    }
-
-    /**
-     * @param visitType the visitType to set
-     */
-    public void setVisitType(Attribute visitType) {
-        this.visitType = visitType;
-    }
-
-    /**
-     * @return the visitProperties for this fact
-     */
     @Override
-    public SortedSet<VisitProperty> getFactProperties() {
-        return visitProperties;
-    }
-
-    /**
-     * @param visitProperties the visitProperties to set
-     */
-    public void setVisitProperties(SortedSet<VisitProperty> visitProperties) {
-        this.visitProperties = visitProperties;
-    }
-
-    /**
-     * Add a property to a visit.
-     *
-     * @param prop A single property to append.
-     */
     public void addProperty(VisitProperty prop) {
-        if (this.visitProperties == null) {
-            this.visitProperties = new TreeSet<>();
-        }
-        this.visitProperties.add(prop);
-        prop.setVisit(this);
+        super.addProperty(prop, this);
     }
-
-    @Override
-    public void invalidateAll(Instant invalidationDate) {
-        setValidUntil(invalidationDate);
-        for (VisitProperty vp: getFactProperties()) {
-            vp.setValidUntil(invalidationDate);
-        }
-    }
-
 
 }

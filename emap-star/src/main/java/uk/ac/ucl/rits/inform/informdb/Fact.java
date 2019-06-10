@@ -1,0 +1,178 @@
+package uk.ac.ucl.rits.inform.informdb;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.persistence.CascadeType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.OneToMany;
+
+import org.hibernate.annotations.SortNatural;
+
+/**
+ * Handle the common parts of the Fact->Property relationship as this appears in
+ * several places.
+ *
+ * @author Jeremy Stein
+ *
+ * @param <PropertyType> the type of the Property that this Fact contains
+ * @param <F> Self type
+ */
+@MappedSuperclass
+public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends Property<F>> extends TemporalCore {
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
+    @SortNatural
+    private List<PropertyType> properties;
+
+    @ManyToOne
+    @JoinColumn(name = "attributeId")
+    private Attribute          factType;
+
+    /**
+     * @param attrKey the attribute
+     * @return the property(ies) in this fact with the given attribute (key)
+     */
+    public List<PropertyType> getPropertyByAttribute(AttributeKeyMap attrKey) {
+        return getPropertyByAttribute(attrKey.getShortname());
+    }
+
+    /**
+     * @param attrKey the attribute
+     * @return the property(ies) in this fact with the given attribute (key)
+     */
+    public List<PropertyType> getPropertyByAttribute(Attribute attrKey) {
+        return getPropertyByAttribute(attrKey.getShortName());
+    }
+
+    /**
+     * @param attrKey the attribute
+     * @return the property(ies) in this fact with the given attribute (key)
+     */
+    public List<PropertyType> getPropertyByAttribute(String attrKey) {
+        // Might want to cache this as K->[V,V',V'',...] pairs.
+        // Many properties have logical constraints on the number of elements that
+        // should exist - consider enforcing this here?
+        if (properties == null) {
+            return new ArrayList<PropertyType>();
+        }
+        List<PropertyType> propsWithAttr = properties.stream()
+                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey)).collect(Collectors.toList());
+        return propsWithAttr;
+    }
+
+    /**
+     * @return the factType
+     */
+    public Attribute getFactType() {
+        return factType;
+    }
+
+    /**
+     * @param factType the factType to set
+     */
+    public void setFactType(Attribute factType) {
+        this.factType = factType;
+    }
+
+    /**
+     * @return the properties for the fact
+     */
+    public List<PropertyType> getProperties() {
+        return this.properties;
+    }
+
+    /**
+     * Set the properties for this fact.
+     *
+     * @param properties The properties to set.
+     */
+    public void setProperties(List<PropertyType> properties) {
+        this.properties = properties;
+    }
+
+    /**
+     * Invalidate the fact and all its properties.
+     *
+     * @param invalidationDate the instant at which this fact became invalid
+     */
+    public void invalidateAll(Instant invalidationDate) {
+        setValidUntil(invalidationDate);
+        for (PropertyType prop : properties) {
+            prop.setValidUntil(invalidationDate);
+        }
+    }
+
+    /**
+     * Add a property to a Fact with backlinks.
+     *
+     * @param prop A single property to append.
+     * @param fact the parent fact
+     */
+    protected void addProperty(PropertyType prop, F fact) {
+        this.linkProperty(prop);
+        prop.setParentFact(fact);
+    }
+
+    /**
+     * Add a property to a Fact with backlinks.
+     *
+     * @param prop A single property to append.
+     */
+    public abstract void addProperty(PropertyType prop);
+
+    /**
+     * Append a properties to the properties list.
+     *
+     * @param prop The property to append.
+     */
+    public void linkProperty(PropertyType prop) {
+        if (this.properties == null) {
+            this.properties = new ArrayList<>();
+        }
+        properties.add(prop);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (properties == null ? 0 : properties.hashCode());
+        result = prime * result + (factType == null ? 0 : factType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Fact<?, ?> other = (Fact<?, ?>) obj;
+        if (properties == null) {
+            if (other.properties != null) {
+                return false;
+            }
+        } else if (!properties.equals(other.properties)) {
+            return false;
+        }
+        if (factType == null) {
+            if (other.factType != null) {
+                return false;
+            }
+        } else if (!factType.equals(other.factType)) {
+            return false;
+        }
+        return true;
+    }
+
+}

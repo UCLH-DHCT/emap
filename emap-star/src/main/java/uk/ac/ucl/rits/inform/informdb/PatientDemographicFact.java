@@ -1,19 +1,13 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.time.Instant;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.io.Serializable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import org.hibernate.annotations.SortNatural;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -25,7 +19,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties("encounter")
-public class PatientDemographicFact extends TemporalCore implements FactToProperty<PatientDemographicProperty> {
+public class PatientDemographicFact extends Fact<PatientDemographicFact, PatientDemographicProperty> implements Serializable {
+
+    private static final long serialVersionUID = -5867434510066589366L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,13 +31,6 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
     @JoinColumn(name = "encounter", referencedColumnName = "encounter")
     private Encounter                        encounter;
 
-    @ManyToOne
-    @JoinColumn(name = "attributeId")
-    private Attribute                        factType;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
-    @SortNatural
-    private SortedSet<PatientDemographicProperty> factProperties;
 
     /**
      * @return the factId
@@ -71,92 +60,9 @@ public class PatientDemographicFact extends TemporalCore implements FactToProper
         this.encounter = encounter;
     }
 
-    /**
-     * @return the factType
-     */
-    public Attribute getFactType() {
-        return factType;
-    }
-
-    /**
-     * @param factType the factType to set
-     */
-    public void setFactType(Attribute factType) {
-        this.factType = factType;
-    }
-
-    /**
-     * @return the factProperties
-     */
     @Override
-    public SortedSet<PatientDemographicProperty> getFactProperties() {
-        return factProperties;
-    }
-
-    /**
-     * @param factProperties the factProperties to set
-     */
-    public void setFactProperties(SortedSet<PatientDemographicProperty> factProperties) {
-        this.factProperties = factProperties;
-    }
-
-    /**
-     * Add a property to a fact.
-     *
-     * @param prop A single property to append.
-     */
     public void addProperty(PatientDemographicProperty prop) {
-        if (this.factProperties == null) {
-            this.factProperties = new TreeSet<>();
-        }
-        this.factProperties.add(prop);
-        prop.setFact(this);
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (factProperties == null ? 0 : factProperties.hashCode());
-        result = prime * result + (factType == null ? 0 : factType.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        PatientDemographicFact other = (PatientDemographicFact) obj;
-        if (factProperties == null) {
-            if (other.factProperties != null) {
-                return false;
-            }
-        } else if (!factProperties.equals(other.factProperties)) {
-            return false;
-        }
-        if (factType == null) {
-            if (other.factType != null) {
-                return false;
-            }
-        } else if (!factType.equals(other.factType)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void invalidateAll(Instant invalidationDate) {
-        setValidUntil(invalidationDate);
-        for (PatientDemographicProperty pdp: getFactProperties()) {
-            pdp.setValidUntil(invalidationDate);
-        }
+        super.addProperty(prop, this);
     }
 
 }

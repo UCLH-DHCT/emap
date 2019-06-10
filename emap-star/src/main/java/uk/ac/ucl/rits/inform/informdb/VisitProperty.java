@@ -1,8 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.time.Instant;
+import java.io.Serializable;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,32 +19,33 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties("visit")
-public class VisitProperty extends TemporalCore implements Property, Comparable<VisitProperty> {
+public class VisitProperty extends Property<VisitFact> implements Serializable {
+
+    private static final long serialVersionUID = 6078510171794243662L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int       propertyId;
 
-    @ManyToOne
-    @JoinColumn(name = "visit")
-    private VisitFact visit;
+    @JoinColumn(name = "parent_fact")
+    @ManyToOne()
+    private VisitFact parentFact;
 
-    @ManyToOne
-    @JoinColumn(name = "attribute")
-    private Attribute attribute;
+    /**
+     * @return the parentFact
+     */
+    @Override
+    public VisitFact getParentFact() {
+        return parentFact;
+    }
 
-    private String    valueAsString;
-    private Long      valueAsInteger;
-    private Boolean   valueAsBoolean;
-    private Double    valueAsReal;
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant   valueAsDatetime;
-
-    @ManyToOne
-    @JoinColumn(name = "value_as_attribute")
-    private Attribute valueAsAttribute;
-
-    private Long      valueAsLink;
+    /**
+     * @param parentFact the parentFact to set
+     */
+    @Override
+    public void setParentFact(VisitFact parentFact) {
+        this.parentFact = parentFact;
+    }
 
     /**
      * @return the propertyId
@@ -59,139 +59,6 @@ public class VisitProperty extends TemporalCore implements Property, Comparable<
      */
     public void setPropertyId(int propertyId) {
         this.propertyId = propertyId;
-    }
-
-    /**
-     * @return the visit
-     */
-    public VisitFact getVisit() {
-        return visit;
-    }
-
-    /**
-     * @param visit the visit to set
-     */
-    public void setVisit(VisitFact visit) {
-        this.visit = visit;
-    }
-
-    /**
-     * @return the attribute
-     */
-    @Override
-    public Attribute getAttribute() {
-        return attribute;
-    }
-
-    /**
-     * @param attribute the attribute to set
-     */
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
-    }
-
-    /**
-     * @return the valueAsString
-     */
-    public String getValueAsString() {
-        return valueAsString;
-    }
-
-    /**
-     * @param valueAsString the valueAsString to set
-     */
-    public void setValueAsString(String valueAsString) {
-        this.valueAsString = valueAsString;
-    }
-
-    /**
-     * @return the valueAsDatetime
-     */
-    public Instant getValueAsDatetime() {
-        return valueAsDatetime;
-    }
-
-    /**
-     * @param valueAsDatetime the valueAsDatetime to set
-     */
-    public void setValueAsDatetime(Instant valueAsDatetime) {
-        this.valueAsDatetime = valueAsDatetime;
-    }
-
-    /**
-     * @return the valueAsAttribute
-     */
-    public Attribute getValueAsAttribute() {
-        return valueAsAttribute;
-    }
-
-    /**
-     * @param valueAsAttribute the valueAsAttribute to set
-     */
-    public void setValueAsAttribute(Attribute valueAsAttribute) {
-        this.valueAsAttribute = valueAsAttribute;
-    }
-
-    /**
-     * @return the valueAsInteger
-     */
-    public Long getValueAsInteger() {
-        return valueAsInteger;
-    }
-
-    /**
-     * @param valueAsInteger the valueAsInteger to set
-     */
-    public void setValueAsInteger(Long valueAsInteger) {
-        this.valueAsInteger = valueAsInteger;
-    }
-
-    /**
-     * @return the valueAsBoolean
-     */
-    public Boolean getValueAsBoolean() {
-        return valueAsBoolean;
-    }
-
-    /**
-     * @param valueAsBoolean the valueAsBoolean to set
-     */
-    public void setValueAsBoolean(Boolean valueAsBoolean) {
-        this.valueAsBoolean = valueAsBoolean;
-    }
-
-    /**
-     * @return the valueAsReal
-     */
-    public Double getValueAsReal() {
-        return valueAsReal;
-    }
-
-    /**
-     * @param valueAsReal the valueAsReal to set
-     */
-    public void setValueAsReal(Double valueAsReal) {
-        this.valueAsReal = valueAsReal;
-    }
-
-    /**
-     * @return the valueAsLink
-     */
-    public Long getValueAsLink() {
-        return valueAsLink;
-    }
-
-    /**
-     * @param valueAsLink the valueAsLink to set
-     */
-    public void setValueAsLink(Long valueAsLink) {
-        this.valueAsLink = valueAsLink;
-    }
-
-    @Override
-    public int compareTo(VisitProperty o) {
-        return getAttribute().getShortName().compareTo(
-                o.getAttribute().getShortName());
     }
 
 }
