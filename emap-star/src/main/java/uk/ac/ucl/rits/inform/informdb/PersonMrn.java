@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,7 +25,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(name = "person_mrn")
 @JsonIgnoreProperties("person")
-public class PersonMrn extends TemporalCore {
+public class PersonMrn extends TemporalCore implements Serializable {
+
+    private static final long serialVersionUID = 7019692664925413320L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

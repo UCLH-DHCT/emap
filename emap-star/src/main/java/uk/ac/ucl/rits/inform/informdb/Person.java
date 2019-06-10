@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,9 @@ import javax.persistence.OneToMany;
  *
  */
 @Entity
-public class Person {
+public class Person implements Serializable {
+
+    private static final long serialVersionUID = -5035980881179437384L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

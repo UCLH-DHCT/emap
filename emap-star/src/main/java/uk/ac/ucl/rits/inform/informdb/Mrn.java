@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
 @JsonIgnoreProperties("persons")
-public class Mrn {
+public class Mrn implements Serializable {
+
+    private static final long serialVersionUID = -4125275916062604528L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.

@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import javax.persistence.Column;
@@ -17,7 +18,9 @@ import javax.persistence.Transient;
  *
  */
 @Entity
-public class Attribute {
+public class Attribute implements Serializable {
+
+    private static final long serialVersionUID = -3151350347466393547L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +33,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
 @JsonIgnoreProperties("mrns")
-public class Encounter {
+public class Encounter implements Serializable {
+
+    private static final long serialVersionUID = -6495238097074592105L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
