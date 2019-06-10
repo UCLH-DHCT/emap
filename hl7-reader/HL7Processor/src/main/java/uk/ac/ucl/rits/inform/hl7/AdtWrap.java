@@ -163,56 +163,56 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     }
 
     /**
-     * @return PID-8 sex
+     * @return sex (PID-8)
      */
     public String getAdministrativeSex() {
         return administrativeSex;
     }
 
     /**
-     * @return PID-5.1 family name
+     * @return family name (PID-5.1)
      */
     public String getFamilyName() {
         return familyName;
     }
 
     /**
-     * @return PID-5.2 family name
+     * @return family name (PID-5.2)
      */
     public String getGivenName() {
         return givenName;
     }
 
     /**
-     * @return PID-5.3 family name
+     * @return family name (PID-5.3)
      */
     public String getMiddleName() {
         return middleName;
     }
 
     /**
-     * @return PID-3.1[1]
+     * @return MRN (PID-3.1[1])
      */
     public String getMrn() {
         return mrn;
     }
 
     /**
-     * @return PID-3.1[2]
+     * @return NHS number (PID-3.1[2])
      */
     public String getNHSNumber() {
         return nhsNumber;
     }
 
     /**
-     * @return MSH-9.2
+     * @return trigger event (MSH-9.2)
      */
     public String getTriggerEvent() {
         return triggerEvent;
     }
 
     /**
-     * @return PID-7.1
+     * @return date of birth (PID-7.1)
      */
     public Instant getDob() {
         return dob;

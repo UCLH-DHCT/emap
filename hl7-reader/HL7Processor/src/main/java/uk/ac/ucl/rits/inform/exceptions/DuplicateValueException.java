@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.exceptions;
 
 /**
  * Multiple values/items were found in a situation where there should

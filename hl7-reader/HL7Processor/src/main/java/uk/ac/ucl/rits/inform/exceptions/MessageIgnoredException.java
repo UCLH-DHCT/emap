@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.exceptions;
 
 /**
  * During processing this HL7 message, we have decided not to make

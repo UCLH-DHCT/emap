@@ -101,7 +101,7 @@ public class App {
             logger.info("Initialising HAPI...");
             long startTimeMillis = System.currentTimeMillis();
             HapiContext context = initializeHapiContext();
-            PipeParser parser = context.getPipeParser(); // getGenericParser();
+            PipeParser parser = context.getPipeParser();
             logger.info("Done initialising HAPI");
             int count = 0;
             List<String> parsingErrors = new ArrayList<String>();

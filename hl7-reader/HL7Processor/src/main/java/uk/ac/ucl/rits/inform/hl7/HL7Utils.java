@@ -48,7 +48,6 @@ public class HL7Utils {
         valueAsCal.setTimeZone(TimeZone.getTimeZone("Europe/London"));
         TimeZone after = valueAsCal.getTimeZone();
         Instant result = valueAsCal.toInstant();
-        //System.out.println("before: " + hl7DTM + "|" + before + ", after: " + result + "|" + after);
         return result;
     }
 }

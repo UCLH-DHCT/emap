@@ -19,7 +19,6 @@ import uk.ac.ucl.rits.inform.hl7.PIDWrap;
 /**
  * Test the PID wrapper.
  */
-//@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestPID extends TestCase {
 
     private PipeParser parser;

@@ -18,7 +18,6 @@ import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 /**
  * Test MSH wrapper.
  */
-//@RunWith(Parameterized.class) // <- doesn't work with our version of junit (4.10)
 public class TestMSH extends TestCase {
 
     private PipeParser parser;
