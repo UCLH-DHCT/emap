@@ -106,22 +106,26 @@ public abstract class TemporalCore {
      * This is subtly different from calling isValidAsOf
      * and passing in the current time, which can give unexpected
      * results due to clock mismatches.
+     *
      * @return whether this row is valid as of now
      */
     public boolean isValid() {
-        return getValidUntil() == null;
+        return validUntil == null && storedUntil == null;
     }
 
     /**
      * Time-travel validity. If you want validity as of now,
      * do not use this method, use the parameter-free method.
+     * Note that this assumes the current state of the database..
+     *
      * @param asOfTime The time to test validity at,
      * ie. the simulated "now" point. Cannot be null.
+     *
      * @return whether this row was valid as of the given time
      */
     public boolean isValidAsOf(Instant asOfTime) {
-        return (asOfTime.compareTo(getValidFrom()) >= 0
-                && (getValidUntil() == null
-                        || asOfTime.compareTo(getValidUntil()) < 0));
+        return storedUntil == null && asOfTime.compareTo(validFrom) >= 0
+                && (validUntil == null
+                        || asOfTime.compareTo(validUntil) < 0);
     }
 }
