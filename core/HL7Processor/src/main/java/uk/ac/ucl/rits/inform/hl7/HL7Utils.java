@@ -1,7 +1,12 @@
 package uk.ac.ucl.rits.inform.hl7;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import ca.uhn.hl7v2.model.DataTypeException;
@@ -49,5 +54,20 @@ public class HL7Utils {
         TimeZone after = valueAsCal.getTimeZone();
         Instant result = valueAsCal.toInstant();
         return result;
+    }
+
+    /**
+     * Read text from the given resource file and make its line endings
+     * HL7 friendly (ie. CR).
+     * @param fileName The name of the resource file that's in the resource directory
+     * @return string of the entire file contents with line endings converted to carriage returns
+     * @throws IOException when reading file
+     */
+    public static String readHl7FromResource(String fileName) throws IOException {
+        // the class used here doesn't seem to matter
+        ClassLoader classLoader = HL7Utils.class.getClassLoader();
+        URL url = classLoader.getResource("TestForJunit.txt");
+        List<String> readAllLines = Files.readAllLines(Paths.get(url.getPath()));
+        return String.join("\r", readAllLines) + "\r";
     }
 }

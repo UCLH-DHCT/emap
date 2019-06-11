@@ -13,6 +13,7 @@ import ca.uhn.hl7v2.model.v27.message.ADT_A01;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 
 /**
@@ -32,9 +33,7 @@ public class TestMSH extends TestCase {
         // An example message, adapted from one provided by Atos
         // NB This is a generic string for testing. Atos A01 example messages, for instance, do not have field MSH-5 populated.
         // So there will likely be content in fields below which, for a given message type, would actually be blank.
-        String generic_hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|UCLH|ZZ|201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
-            + "ZUK|Q12|5CF|1|||||||N  N||12||||||||||||||||B83035^2.16.840.1.113883.2.1.4.3|G9014646^2.16.840.1.113883.2.1.4.2|U439966^2.16.840.1.113883.2.1.3.2.4.11||41008\r";
-
+        String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
         context = new DefaultHapiContext();
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
@@ -42,9 +41,9 @@ public class TestMSH extends TestCase {
         // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
         CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
         context.setModelClassFactory(mcf);
-        parser = context.getPipeParser(); //getGenericParser();
+        parser = context.getPipeParser();
 
-        ADT_A01 adtA01 = (ADT_A01) parser.parse(generic_hl7);
+        ADT_A01 adtA01 = (ADT_A01) parser.parse(hl7);
         msh = adtA01.getMSH();
         wrapper = new MSHWrap(msh);
     }
