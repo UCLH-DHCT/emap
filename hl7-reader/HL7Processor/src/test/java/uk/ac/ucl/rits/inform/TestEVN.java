@@ -15,6 +15,7 @@ import org.junit.Test;
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.EVNWrap;
+import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 
 /**
  * Test the EVN wrapper.
@@ -33,8 +34,7 @@ public class TestEVN extends TestCase {
         // NB This is a generic string for testing. Atos A01 example messages, for instance, do not have field MSH-5 populated.
         // And it wouldn't have a timestamp in EVN-6.
         // So there will likely be content in fields below which, for a given message type, would actually be blank.
-        String generic_hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|UCLH|ZZ|201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
-            + "ZUK|Q12|5CF|1|||||||N  N||12||||||||||||||||B83035^2.16.840.1.113883.2.1.4.3|G9014646^2.16.840.1.113883.2.1.4.2|U439966^2.16.840.1.113883.2.1.3.2.4.11||41008\r";
+        String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
 
         context = new DefaultHapiContext();
         ValidationContext vc = ValidationContextFactory.noValidation();
@@ -43,10 +43,10 @@ public class TestEVN extends TestCase {
         // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
         CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
         context.setModelClassFactory(mcf);
-        parser = context.getPipeParser(); //getGenericParser();
+        parser = context.getPipeParser();
 
         try {
-            wrapper = new AdtWrap(parser.parse(generic_hl7));
+            wrapper = new AdtWrap(parser.parse(hl7));
         }
         catch (HL7Exception e) {
             e.printStackTrace();
