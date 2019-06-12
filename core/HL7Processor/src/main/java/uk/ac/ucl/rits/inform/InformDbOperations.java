@@ -327,7 +327,7 @@ public class InformDbOperations {
      * @return whether the visit fact vf is of the type visitTypeAttr
      */
     private boolean visitFactIsOfType(VisitFact vf, AttributeKeyMap visitTypeAttr) {
-        return visitTypeAttr.getShortname().equals(vf.getVisitType().getShortName());
+        return visitTypeAttr.getShortname().equals(vf.getFactType().getShortName());
     }
 
     /**
@@ -369,10 +369,8 @@ public class InformDbOperations {
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
             Instant storedFrom = Instant.now();
-            enc.setStoredFrom(storedFrom);
             enc.setEncounter(encounter);
             Instant validFrom = encounterDetails.getEventOccurred();
-            enc.setValidFrom(validFrom);
             mrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         } else if (existingEncs.size() > 1) {
@@ -537,7 +535,7 @@ public class InformDbOperations {
         visitFact.setValidFrom(visitBeginTime);
         visitFact.setStoredFrom(Instant.now());
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
-        visitFact.setVisitType(hosp);
+        visitFact.setFactType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
         enc.addVisit(visitFact);
         return visitFact;
@@ -556,7 +554,7 @@ public class InformDbOperations {
         visitFact.setStoredFrom(Instant.now());
         visitFact.setValidFrom(visitBeginTime);
         Attribute hosp = getCreateAttribute(AttributeKeyMap.BED_VISIT);
-        visitFact.setVisitType(hosp);
+        visitFact.setFactType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
         addLocationToVisit(visitFact, currentBed, visitBeginTime);
         addParentVisitToVisit(visitFact, parentVisit, visitBeginTime);
