@@ -109,10 +109,10 @@ public class InformDbOperations {
         try (Reader in = new InputStreamReader(this.vocabFile.getInputStream())) {
             Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
             for (CSVRecord record : records) {
-                long id = Long.parseLong(record.get("attribute_id"));
-                logger.trace("Testing " + id);
+                long attributeId = Long.parseLong(record.get("attribute_id"));
+                logger.trace("Testing " + attributeId);
                 Attribute newAttr = new Attribute();
-                newAttr.setAttributeId(id);
+                newAttr.setAttributeId(attributeId);
                 String shortname = record.get("short_name");
                 newAttr.setShortName(shortname);
                 String description = record.get("description");
@@ -121,15 +121,19 @@ public class InformDbOperations {
                 newAttr.setResultType(ResultType.valueOf(resultType));
                 String addedTime = record.get("added_time");
                 newAttr.setAddedTime(Instant.parse(addedTime));
-                Optional<Attribute> findExistingAttr = attributeRepo.findByAttributeId(id);
+                Optional<Attribute> findExistingAttr = attributeRepo.findByAttributeId(attributeId);
                 if (findExistingAttr.isPresent()) {
                     // If there is pre-existing data check everything matches
                     Attribute existingAttr = findExistingAttr.get();
                     if (!existingAttr.getShortName().equals(newAttr.getShortName())) {
-                        throw new AttributeError("Short name for attribute has changed");
+                        throw new AttributeError(
+                                String.format("Attribute id %d: Short name for attribute has changed from %s to %s",
+                                        attributeId, existingAttr.getShortName(), newAttr.getShortName()));
                     }
                     if (!existingAttr.getResultType().equals(newAttr.getResultType())) {
-                        throw new AttributeError("Result type for attribute has changed");
+                        throw new AttributeError(
+                                String.format("Attribute id %d: Result type for attribute has changed from %s to %s",
+                                        attributeId, existingAttr.getResultType(), newAttr.getResultType()));
                     }
                 } else {
                     newAttr = attributeRepo.save(newAttr);
