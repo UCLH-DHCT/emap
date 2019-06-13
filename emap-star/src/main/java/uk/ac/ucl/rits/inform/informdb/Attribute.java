@@ -5,8 +5,6 @@ import java.time.Instant;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
@@ -23,7 +21,6 @@ public class Attribute implements Serializable {
     private static final long serialVersionUID = -3151350347466393547L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long            attributeId;
 
     @Column(unique = true, nullable = false, length = 15)

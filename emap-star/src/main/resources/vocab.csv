@@ -16,3 +16,5 @@ attribute_id,short_name,description,result_type,added_time
 15,FEMALE,Female,None,2019-04-11T10:00:00Z
 15,OTHER,Other,None,2019-04-11T10:00:00Z
 16,UNKNOWN,Unknown,None,2019-04-11T10:00:00Z
+17,POST_CODE,Postcode,String,2019-04-11T10:00:00Z
+18,NHS_NUMBER,NHS number,String,2019-04-11T10:00:00Z
