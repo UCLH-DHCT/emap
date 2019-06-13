@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,13 +13,17 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.hibernate.Session;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +56,7 @@ import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.PersonMrnRepository;
 import uk.ac.ucl.rits.inform.informdb.PersonRepository;
+import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.VisitFact;
 import uk.ac.ucl.rits.inform.informdb.VisitFactRepository;
 import uk.ac.ucl.rits.inform.informdb.VisitProperty;
@@ -60,7 +68,7 @@ import uk.ac.ucl.rits.inform.informdb.VisitProperty;
 @EntityScan("uk.ac.ucl.rits.inform.informdb")
 public class InformDbOperations {
     @Autowired
-    private AttributeRepository attributeRepository;
+    private AttributeRepository attributeRepo;
     @Autowired
     private PersonRepository personRepo;
     @Autowired
@@ -83,11 +91,44 @@ public class InformDbOperations {
     @Autowired
     private IdsOperations idsOperations;
 
+    @Value("${:classpath:vocab.csv}")
+    private Resource vocabFile;
+
     /**
      * Call when you are finished with this object.
      */
     public void close() {
     }
+
+    /**
+     * Load in attributes (vocab) from CSV file, if they don't already exist in DB.
+     */
+    public void ensureVocabLoaded() {
+        try (Reader in = new InputStreamReader(this.vocabFile.getInputStream())) {
+            Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+            for (CSVRecord record : records) {
+                long id = Long.parseLong(record.get("attribute_id"));
+                logger.trace("Testing " + id);
+                if (this.attributeRepo.existsByAttributeId(id)) {
+                    continue;
+                }
+                Attribute a = new Attribute();
+                a.setAttributeId(id);
+                String shortname = record.get("short_name");
+                a.setShortName(shortname);
+                String description = record.get("description");
+                a.setDescription(description);
+                String resultType = record.get("result_type");
+                a.setResultType(ResultType.valueOf(resultType));
+                String addedTime = record.get("added_time");
+                a.setAddedTime(Instant.parse(addedTime));
+                this.attributeRepo.save(a);
+            }
+        } catch (IOException e) {
+            logger.error(e.toString());
+            throw new RuntimeException("Failed to load vocab file");
+        }
+}
 
     /**
      * Wrapper for the entire transaction that performs: - read latest processed ID
@@ -735,18 +776,11 @@ public class InformDbOperations {
      */
     @Transactional
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
-        Optional<Attribute> attropt = attributeRepository.findByShortName(attrKM.getShortname());
+        Optional<Attribute> attropt = attributeRepo.findByShortName(attrKM.getShortname());
         if (attropt.isPresent()) {
             return attropt.get();
         } else {
-            // In future we will have a more orderly list of Attributes, but am
-            // creating them on the fly for now
-            Attribute attr = new Attribute();
-            attr.setAddedTime(Instant.now());
-            attr.setShortName(attrKM.getShortname());
-            attr.setDescription(attrKM.toString()); // just assume a description from the name for now
-            attr = attributeRepository.save(attr);
-            return attr;
+            throw new RuntimeException("NO!" + attrKM.getShortname());
         }
     }
 

@@ -15,6 +15,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <checkstyle.version>8.19</checkstyle.version>
     <checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
+    <apache.commons.csv.version>1.6</apache.commons.csv.version>
   </properties>
 
   <parent>
@@ -78,6 +79,12 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>${apache.commons.csv.version}</version>
     </dependency>
 
     <dependency>
