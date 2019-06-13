@@ -105,29 +105,39 @@ public class InformDbOperations {
      * Load in attributes (vocab) from CSV file, if they don't already exist in DB.
      */
     public void ensureVocabLoaded() {
+        logger.info("Loading vocab from csv");
         try (Reader in = new InputStreamReader(this.vocabFile.getInputStream())) {
             Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
             for (CSVRecord record : records) {
                 long id = Long.parseLong(record.get("attribute_id"));
                 logger.trace("Testing " + id);
-                if (this.attributeRepo.existsByAttributeId(id)) {
-                    continue;
-                }
-                Attribute a = new Attribute();
-                a.setAttributeId(id);
+                Attribute newAttr = new Attribute();
+                newAttr.setAttributeId(id);
                 String shortname = record.get("short_name");
-                a.setShortName(shortname);
+                newAttr.setShortName(shortname);
                 String description = record.get("description");
-                a.setDescription(description);
+                newAttr.setDescription(description);
                 String resultType = record.get("result_type");
-                a.setResultType(ResultType.valueOf(resultType));
+                newAttr.setResultType(ResultType.valueOf(resultType));
                 String addedTime = record.get("added_time");
-                a.setAddedTime(Instant.parse(addedTime));
-                this.attributeRepo.save(a);
+                newAttr.setAddedTime(Instant.parse(addedTime));
+                Optional<Attribute> findExistingAttr = attributeRepo.findByAttributeId(id);
+                if (findExistingAttr.isPresent()) {
+                    // If there is pre-existing data check everything matches
+                    Attribute existingAttr = findExistingAttr.get();
+                    if (!existingAttr.getShortName().equals(newAttr.getShortName())) {
+                        throw new AttributeError("Short name for attribute has changed");
+                    }
+                    if (!existingAttr.getResultType().equals(newAttr.getResultType())) {
+                        throw new AttributeError("Result type for attribute has changed");
+                    }
+                } else {
+                    newAttr = attributeRepo.save(newAttr);
+                }
             }
         } catch (IOException e) {
             logger.error(e.toString());
-            throw new RuntimeException("Failed to load vocab file");
+            throw new AttributeError("Failed to load vocab file: " + this.vocabFile.getFilename());
         }
 }
 
