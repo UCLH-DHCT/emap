@@ -98,6 +98,7 @@ public class App {
     @Profile("default")
     public CommandLineRunner mainLoop(InformDbOperations dbOps) {
         return (args) -> {
+            dbOps.ensureVocabLoaded();
             logger.info("Initialising HAPI...");
             long startTimeMillis = System.currentTimeMillis();
             HapiContext context = initializeHapiContext();
@@ -125,13 +126,14 @@ public class App {
 
     /**
      * Don't want to do any normal HL7 message processing if running test profile.
-     * @param dbt .
+     * @param dbOps .
      * @return .
      */
     @Bean
     @Profile("test")
-    public CommandLineRunner mainLoopTest(InformDbOperations dbt) {
+    public CommandLineRunner mainLoopTest(InformDbOperations dbOps) {
         return (args) -> {
+            dbOps.ensureVocabLoaded();
             logger.info("Running test CommandLineRunner, which does nothing");
         };
     }
