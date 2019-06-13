@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -106,5 +107,43 @@ public class Person implements Serializable {
     @Override
     public String toString() {
         return String.format("Person [person_id=%d, create_datetime=%s]", personId, createDatetime.toString());
+    }
+
+    /**
+     * Apply a function to each valid MRN and collate the results.
+     *
+     * @param func The function to apply
+     * @return List of results
+     * @param <R> The return type of the function
+     */
+    public <R> List<R> mapMrn(Function<Mrn, R> func) {
+        List<R> results = new ArrayList<R>();
+        for (PersonMrn pm : mrns) {
+            if (!pm.isValid()) {
+                continue;
+            }
+            Mrn mrn = pm.getMrn();
+            results.add(mrn.map(func));
+        }
+        return results;
+    }
+
+    /**
+     * Apply a function to each valid Encounter and collate the results.
+     *
+     * @param func The function to apply
+     * @return List of results
+     * @param <R> The return type of the function
+     */
+    public <R> List<R> mapEncounter(Function<Encounter, R> func) {
+        List<R> results = new ArrayList<R>();
+        for (PersonMrn pm : mrns) {
+            if (!pm.isValid()) {
+                continue;
+            }
+            Mrn mrn = pm.getMrn();
+            results.addAll(mrn.mapEncounter(func));
+        }
+        return results;
     }
 }

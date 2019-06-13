@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -33,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
-    private static final long serialVersionUID = -4125275916062604528L;
+    private static final long  serialVersionUID = -4125275916062604528L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
@@ -46,7 +47,7 @@ public class Mrn implements Serializable {
     private List<MrnEncounter> encounters;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn", cascade = CascadeType.ALL)
-    private List<PersonMrn>    persons = new ArrayList<>();
+    private List<PersonMrn>    persons          = new ArrayList<>();
 
     /**
      * The value of the MRN identifier.
@@ -193,5 +194,36 @@ public class Mrn implements Serializable {
         perMrn.setStoredFrom(storedFrom);
         p.linkMrn(perMrn);
         this.linkPerson(perMrn);
+    }
+
+    /**
+     * Apply a function to all currently valid encounters connected to this mrn and
+     * collect the results.
+     *
+     * @param func The function to apply
+     * @return List of results
+     * @param <R> return type of each function
+     */
+    public <R> List<R> mapEncounter(Function<Encounter, R> func) {
+        List<R> results = new ArrayList<R>();
+        for (MrnEncounter me : encounters) {
+            if (!me.isValid()) {
+                continue;
+            }
+            Encounter e = me.getEncounter();
+            results.add(e.map(func));
+        }
+        return results;
+    }
+
+    /**
+     * Apply a function to to this mrn.
+     *
+     * @param func The function to apply
+     * @return The results
+     * @param <R> return type of the function
+     */
+    public <R> R map(Function<Mrn, R> func) {
+        return func.apply(this);
     }
 }

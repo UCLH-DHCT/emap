@@ -2,7 +2,9 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -135,6 +137,25 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             this.properties = new ArrayList<>();
         }
         properties.add(prop);
+    }
+
+    /**
+     * Make a short name to Property map for convenience.
+     *
+     * @return The map.
+     */
+    public Map<String, List<PropertyType>> toMap() {
+        Map<String, List<PropertyType>> results = new HashMap<String, List<PropertyType>>();
+        for (PropertyType p: properties) {
+            String key = p.getAttribute().getShortName();
+            List<PropertyType> l = results.get(key);
+            if (l == null) {
+                l = new ArrayList<>();
+                results.put(key, l);
+            }
+            l.add(p);
+        }
+        return results;
     }
 
     @Override
