@@ -74,12 +74,12 @@ public class TestAttributes extends TestCase {
      */
     @Test
     public void testAllPresent() {
-        Set<Attribute> knownAlsoInDb = attributeRepo.findByShortNameIn(enumShortNames);
-        SortedSet<String> shortNamesInDb = new TreeSet<>(knownAlsoInDb.stream().map(attr -> attr.getShortName()).collect(Collectors.toSet()));
+        Set<Attribute> inDb = attributeRepo.findAll();
+        SortedSet<String> shortNamesInDb = new TreeSet<>(inDb.stream().map(attr -> attr.getShortName()).collect(Collectors.toSet()));
 
         Collection<Serializable> enumOnly = CollectionUtils.subtract(enumShortNames, shortNamesInDb);
         Collection<Serializable> dbOnly = CollectionUtils.subtract(shortNamesInDb, enumShortNames);
-        assertEquals("All enum attributes should be in the DB. In enum only: " + enumOnly + "  In db only: " + dbOnly,
+        assertEquals("All enum attributes should be in the DB, and vice versa. In enum only: " + enumOnly + "  In db only: " + dbOnly,
                 shortNamesInDb, enumShortNames);
     }
 }
