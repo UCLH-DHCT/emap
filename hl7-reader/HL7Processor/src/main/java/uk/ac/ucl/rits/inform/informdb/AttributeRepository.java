@@ -1,6 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.SortedSet;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -17,7 +19,13 @@ public interface AttributeRepository extends CrudRepository<Attribute, String> {
 
     /**
      * @param attributeId the attr id
-     * @return Whether the attribute with the given Id exists
+     * @return Attribute with the given Id
      */
-    boolean existsByAttributeId(long attributeId);
+    Optional<Attribute> findByAttributeId(long attributeId);
+
+    /**
+     * @param shortName list of shortnames
+     * @return all Attributes matching one in list
+     */
+    Set<Attribute> findByShortNameIn(SortedSet<String> shortName);
 }
