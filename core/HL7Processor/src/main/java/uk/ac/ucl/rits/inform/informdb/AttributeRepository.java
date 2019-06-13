@@ -28,4 +28,9 @@ public interface AttributeRepository extends CrudRepository<Attribute, String> {
      * @return all Attributes matching one in list
      */
     Set<Attribute> findByShortNameIn(SortedSet<String> shortName);
+
+    /**
+     * @return all Attributes
+     */
+    Set<Attribute> findAll();
 }
