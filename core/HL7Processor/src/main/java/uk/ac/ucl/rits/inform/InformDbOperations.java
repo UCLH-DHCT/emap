@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.PipeParser;
+import uk.ac.ucl.rits.inform.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.exceptions.InformDbIntegrityException;
 import uk.ac.ucl.rits.inform.exceptions.InvalidMrnException;
@@ -780,7 +781,7 @@ public class InformDbOperations {
         if (attropt.isPresent()) {
             return attropt.get();
         } else {
-            throw new RuntimeException("NO!" + attrKM.getShortname());
+            throw new AttributeError("Tried to use attribute but wasn't found in db: " + attrKM.getShortname());
         }
     }
 
