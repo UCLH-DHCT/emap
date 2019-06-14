@@ -19,7 +19,7 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
 /**
  * Wrapper for an ADT message so we can find what we need more easily.
  */
-public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap {
+public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     private static final Logger logger = LoggerFactory.getLogger(AdtWrap.class);
 
     private String administrativeSex; // PID-8
@@ -34,7 +34,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap {
 
     private MSH msh;
     private PV1 pv1;
-    private PIDWrap pidwrap;
+    private PID pid;
     private PD1Wrap pd1wrap;
     private EVN evn;
     private MRG mrg;
@@ -53,6 +53,11 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap {
     @Override
     public MSH getMSH() {
         return msh;
+    }
+
+    @Override
+    public PID getPID() {
+        return pid;
     }
 
     /**
@@ -93,20 +98,20 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap {
         if (adtMsg instanceof ADT_A39) {
             ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) adtMsg.get("PATIENT");
             mrg = a39Patient.getMRG();
-            pidwrap = new PIDWrap(a39Patient.getPID());
+            pid = a39Patient.getPID();
         } else {
-            pidwrap = new PIDWrap((PID) adtMsg.get("PID"));
+            pid = (PID) adtMsg.get("PID");
         }
 
         try {
-            administrativeSex = pidwrap.getPatientSex();
-            dob = pidwrap.getPatientBirthDate();
-            postcode = pidwrap.getPatientZipOrPostalCode();
-            familyName = pidwrap.getPatientFamilyName();
-            givenName = pidwrap.getPatientGivenName();
-            middleName = pidwrap.getPatientMiddleName();
-            mrn = pidwrap.getPatientFirstIdentifier();
-            nhsNumber = pidwrap.getPatientSecondIdentifier();
+            administrativeSex = getPatientSex();
+            dob = getPatientBirthDate();
+            postcode = getPatientZipOrPostalCode();
+            familyName = getPatientFamilyName();
+            givenName = getPatientGivenName();
+            middleName = getPatientMiddleName();
+            mrn = getPatientFirstIdentifier();
+            nhsNumber = getPatientSecondIdentifier();
         } catch (HL7Exception e) {
         }
 
@@ -150,8 +155,8 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap {
         System.out.println("current bed = " + getCurrentBed());
 
         //// Minimal info needed //////
-        System.out.println("patient name = " + pidwrap.getPatientFullName());
-        System.out.println("patient MRN = " + pidwrap.getPatientFirstIdentifier());
+        System.out.println("patient name = " + getPatientFullName());
+        System.out.println("patient MRN = " + getPatientFirstIdentifier());
         System.out.println("admission time = " + getAdmissionDateTime());
     }
 
