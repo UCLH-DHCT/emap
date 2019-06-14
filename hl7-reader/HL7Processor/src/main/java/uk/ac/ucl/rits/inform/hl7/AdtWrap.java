@@ -19,7 +19,7 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
 /**
  * Wrapper for an ADT message so we can find what we need more easily.
  */
-public class AdtWrap implements PV1Wrap, EVNWrap {
+public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap {
     private static final Logger logger = LoggerFactory.getLogger(AdtWrap.class);
 
     private String administrativeSex; // PID-8
@@ -32,7 +32,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     private Instant dob;
     private String postcode;
 
-    private MSHWrap mshwrap;
+    private MSH msh;
     private PV1 pv1;
     private PIDWrap pidwrap;
     private PD1Wrap pd1wrap;
@@ -48,6 +48,11 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     @Override
     public EVN getEVN() {
         return evn;
+    }
+
+    @Override
+    public MSH getMSH() {
+        return msh;
     }
 
     /**
@@ -74,19 +79,7 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
     public AdtWrap(Message adtMsg) throws HL7Exception {
         isTest = false;
 
-        /**
-         * NOTE: MSH-9.2 Trigger Event is an important field.
-         * The HAPI parser uses some object types to represent other messages,
-         * due to the similarities in the message structure. e.g. An A01 object
-         * can represent an A01 message but can also be used to represent
-         * A04, A08 and A13 messages. Thus it is always necessary to check
-         * the Trigger Event field to see what message type we are dealing with.
-         *
-         */
-
-        // Populate the class fields. They may be null if the information is not held in the message.
-        mshwrap = new MSHWrap((MSH) adtMsg.get("MSH"));
-        triggerEvent = mshwrap.getTriggerEvent();
+        msh = (MSH) adtMsg.get("MSH");
 
         try {
             pv1 = (PV1) adtMsg.get("PV1");
@@ -136,22 +129,22 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
         System.out.println("\n************** MSH segment **************************");
         // MSH-1 Field Separator
         // MSH-2 Encoding Characters
-        System.out.println("sending application = " + mshwrap.getSendingApplication());
+        System.out.println("sending application = " + getSendingApplication());
         //+ msh.getSendingApplication().getComponent(0).toString());// MSH-3
         // Sending
         // Application
         // (“CARECAST”)
-        System.out.println("sending facility = " + mshwrap.getSendingFacility());
+        System.out.println("sending facility = " + getSendingFacility());
         // Sending
         // Facility
         // (“UCLH”)
         // MSH-5 Receiving Application (“Receiving system”)
-        System.out.println("messageTimestamp = " + mshwrap.getMessageTimestamp());
+        System.out.println("messageTimestamp = " + getMessageTimestamp());
         // Message
         // YYYYMMDDHHMM
-        System.out.println("message type = " + mshwrap.getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
+        System.out.println("message type = " + getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
         // Type (ADT)
-        System.out.println("trigger event = " + mshwrap.getTriggerEvent());
+        System.out.println("trigger event = " + getTriggerEvent());
         // Trigger
 
         System.out.println("current bed = " + getCurrentBed());
@@ -202,13 +195,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap {
      */
     public String getNHSNumber() {
         return nhsNumber;
-    }
-
-    /**
-     * @return trigger event (MSH-9.2)
-     */
-    public String getTriggerEvent() {
-        return triggerEvent;
     }
 
     /**

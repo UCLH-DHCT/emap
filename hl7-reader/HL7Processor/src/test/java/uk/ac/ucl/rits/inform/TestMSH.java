@@ -1,18 +1,17 @@
 package uk.ac.ucl.rits.inform;
 
-import ca.uhn.hl7v2.model.v27.segment.MSH;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
-
 import org.junit.Test;
 
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.v27.message.ADT_A01;
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.validation.ValidationContext;
+import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 
@@ -23,7 +22,6 @@ public class TestMSH extends TestCase {
 
     private PipeParser parser;
     private HapiContext context;
-    private MSH msh;
     private MSHWrap wrapper;
 
     @Override
@@ -44,8 +42,7 @@ public class TestMSH extends TestCase {
         parser = context.getPipeParser();
 
         ADT_A01 adtA01 = (ADT_A01) parser.parse(hl7);
-        msh = adtA01.getMSH();
-        wrapper = new MSHWrap(msh);
+        wrapper = new AdtWrap(adtA01);
     }
 
     /**
