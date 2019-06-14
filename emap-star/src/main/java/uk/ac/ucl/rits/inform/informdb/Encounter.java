@@ -36,28 +36,25 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties("mrns")
 public class Encounter implements Serializable {
 
-    private static final long serialVersionUID = -6495238097074592105L;
+    private static final long  serialVersionUID = -6495238097074592105L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int                          encounterId;
+    private int                encounterId;
 
     @Column(unique = false, nullable = false)
-    private String                       encounter;
-    private String                       sourceSystem;
+    private String             encounter;
+    private String             sourceSystem;
 
     @ManyToOne(targetEntity = Encounter.class)
     @JoinColumn(name = "parent_encounter")
-    private Encounter                    parentEncounter;
+    private Encounter          parentEncounter;
 
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
-    private List<PatientDemographicFact> demographics;
-
-    @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
-    private List<VisitFact>              visits;
+    private List<PatientFact>  facts;
 
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter", cascade = CascadeType.ALL)
-    private List<MrnEncounter>           mrns;
+    private List<MrnEncounter> mrns;
 
     /**
      * @return the encounterId
@@ -116,85 +113,48 @@ public class Encounter implements Serializable {
     }
 
     /**
-     * Add a patient demographic fact to this encounter. Creating back links in the
-     * fact.
+     * Add a patient fact to this encounter. Creating back links in the fact.
      *
      * @param fact The fact to add
      */
-    public void addDemographic(PatientDemographicFact fact) {
-        this.linkDemographic(fact);
+    public void addFact(PatientFact fact) {
+        this.linkFact(fact);
         fact.setEncounter(this);
     }
 
     /**
-     * Add a demographic fact to the demographics.
+     * Add a patient fact to the demographics.
      *
      * @param fact The fact to add.
      */
-    public void linkDemographic(PatientDemographicFact fact) {
-        if (this.demographics == null) {
-            this.demographics = new ArrayList<>();
+    public void linkFact(PatientFact fact) {
+        if (this.facts == null) {
+            this.facts = new ArrayList<>();
         }
-        this.demographics.add(fact);
+        this.facts.add(fact);
     }
 
     /**
-     * Add a visit fact to this encounter.
-     *
-     * @param fact The fact to add
+     * @return the facts
      */
-    public void addVisit(VisitFact fact) {
-        this.linkVisit(fact);
-        fact.setEncounter(this);
+    public List<PatientFact> getFacts() {
+        return facts;
     }
 
     /**
-     * Add a visit fact to the visits array.
-     *
-     * @param fact The VisitFact to add.
+     * @return the facts as a Map, indexed by fact short name
      */
-    public void linkVisit(VisitFact fact) {
-        if (this.visits == null) {
-            this.visits = new ArrayList<>();
-        }
-        this.visits.add(fact);
+    public Map<String, PatientFact> getFactsAsMap() {
+        Map<String, PatientFact> map = new HashMap<>();
+        facts.forEach(d -> map.put(d.getFactType().getShortName(), d));
+        return map;
     }
 
     /**
-     * @return the demographics
+     * @param facts the facts to set
      */
-    public List<PatientDemographicFact> getDemographics() {
-        return demographics;
-    }
-
-    /**
-     * @return the demographics as a HashMap, indexed by fact short name
-     */
-    public Map<String, PatientDemographicFact> getDemographicsAsHashMap() {
-        Map<String, PatientDemographicFact> demographicsHM = new HashMap<>();
-        demographics.forEach(d -> demographicsHM.put(d.getFactType().getShortName(), d));
-        return demographicsHM;
-    }
-
-    /**
-     * @param demographics the demographics to set
-     */
-    public void setDemographics(List<PatientDemographicFact> demographics) {
-        this.demographics = demographics;
-    }
-
-    /**
-     * @return the visits
-     */
-    public List<VisitFact> getVisits() {
-        return visits;
-    }
-
-    /**
-     * @param visits the visits to set
-     */
-    public void setVisits(List<VisitFact> visits) {
-        this.visits = visits;
+    public void setFacts(List<PatientFact> facts) {
+        this.facts = facts;
     }
 
     /**
@@ -229,6 +189,17 @@ public class Encounter implements Serializable {
     public String toString() {
         return String.format("Encounter [encounter_id=%d, encounter=%s, source_system=%s]", encounterId, encounter,
                 sourceSystem);
+    }
+
+    /**
+     * Apply a function on this encounter and get a result.
+     *
+     * @param func The function to apply
+     * @return The result of the function
+     * @param <R> The return type of the function
+     */
+    public <R> R map(Function<Encounter, R> func) {
+        return func.apply(this);
     }
 
 }

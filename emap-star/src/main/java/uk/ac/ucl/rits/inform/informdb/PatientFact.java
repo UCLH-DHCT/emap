@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties("encounter")
-public class PatientDemographicFact extends Fact<PatientDemographicFact, PatientDemographicProperty> implements Serializable {
+public class PatientFact extends Fact<PatientFact, PatientProperty> implements Serializable {
 
     private static final long serialVersionUID = -5867434510066589366L;
 
@@ -61,8 +61,13 @@ public class PatientDemographicFact extends Fact<PatientDemographicFact, Patient
     }
 
     @Override
-    public void addProperty(PatientDemographicProperty prop) {
+    public void addProperty(PatientProperty prop) {
         super.addProperty(prop, this);
+    }
+
+    @Override
+    public String toString() {
+        return this.getFactType().getShortName();
     }
 
 }

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties("fact")
-public class PatientDemographicProperty extends Property<PatientDemographicFact> implements Serializable {
+public class PatientProperty extends Property<PatientFact> implements Serializable {
 
     private static final long serialVersionUID = 9035602294475836526L;
 
@@ -29,13 +29,13 @@ public class PatientDemographicProperty extends Property<PatientDemographicFact>
 
     @JoinColumn(name = "parent_fact")
     @ManyToOne
-    private PatientDemographicFact parentFact;
+    private PatientFact parentFact;
 
     /**
      * @return the parentFact
      */
     @Override
-    public PatientDemographicFact getParentFact() {
+    public PatientFact getParentFact() {
         return parentFact;
     }
 
@@ -43,7 +43,7 @@ public class PatientDemographicProperty extends Property<PatientDemographicFact>
      * @param parentFact the parentFact to set
      */
     @Override
-    public void setParentFact(PatientDemographicFact parentFact) {
+    public void setParentFact(PatientFact parentFact) {
         this.parentFact = parentFact;
     }
 
