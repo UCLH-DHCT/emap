@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.exceptions.DuplicateValueException;
@@ -36,6 +37,7 @@ import uk.ac.ucl.rits.inform.exceptions.InformDbIntegrityException;
 import uk.ac.ucl.rits.inform.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
@@ -196,33 +198,7 @@ public class InformDbOperations {
         }
 
         try {
-            AdtWrap adtWrap = new AdtWrap(msgFromIds);
-            if (adtWrap.getTriggerEvent().equals("A01")) {
-                logger.info("[" + idsMsg.getUnid() + "] A01, admission ");
-                Encounter enc = addEncounter(adtWrap);
-                logger.info("[" + idsMsg.getUnid() + "] Done A01, encounter: " + enc.toString());
-                processed += 1;
-            } else if (adtWrap.getTriggerEvent().equals("A02")) {
-                logger.info("[" + idsMsg.getUnid() + "] A02, transfer");
-                transferPatient(adtWrap);
-                processed += 1;
-            } else if (adtWrap.getTriggerEvent().equals("A03")) {
-                logger.info("[" + idsMsg.getUnid() + "] A03, discharge");
-                dischargePatient(adtWrap);
-                processed += 1;
-            } else if (adtWrap.getTriggerEvent().equals("A08")) {
-                logger.info("[" + idsMsg.getUnid() + "] A08, update patient info");
-                updatePatientInfo(adtWrap);
-                processed += 1;
-            } else if (adtWrap.getTriggerEvent().equals("A40")) {
-                logger.info("[" + idsMsg.getUnid() + "] A40, merge IDs");
-                mergeById(adtWrap);
-                processed += 1;
-            } else {
-                logger.debug("[" + idsMsg.getUnid() + "] Skipping " + adtWrap.getTriggerEvent() + " ("
-                        + msgFromIds.getClass() + ")");
-                idsLog.setMessage("Skipping due to message type");
-            }
+            processed = processHl7Message(msgFromIds, idsMsg, idsLog, processed);
         } catch (HL7Exception e) {
             String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
                     + ")";
@@ -243,6 +219,54 @@ public class InformDbOperations {
         idsLog = idsEffectLoggingRepository.save(idsLog);
         setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
 
+        return processed;
+    }
+
+    /**
+     * Determine the message type (ADT/ORU/etc) and
+     * use the appropriate wrapper class to process the wrapper.
+     *
+     * @param msgFromIds the message
+     * @param idsMsg the full IDS record for the message
+     * @param idsLog the IDS-oriented log
+     * @param processed the current message processed count
+     * @return the updated message processed count
+     * @throws HL7Exception if HAPI does
+     */
+    private int processHl7Message(Message msgFromIds, IdsMaster idsMsg, IdsEffectLogging idsLog, int processed)
+            throws HL7Exception {
+        // every message type has an MSH
+        MSHWrap mshwrap = new MSHWrap((MSH) msgFromIds.get("MSH"));
+        String messageType = mshwrap.getMessageType();
+        String triggerEvent = mshwrap.getTriggerEvent();
+
+        logger.info(String.format("[%s] %s^%s", idsMsg.getUnid(), messageType, triggerEvent));
+
+        if (messageType.equals("ADT")) {
+            AdtWrap adtWrap = new AdtWrap(msgFromIds);
+            if (triggerEvent.equals("A01")) {
+                Encounter enc = addEncounter(adtWrap);
+                processed += 1;
+            } else if (triggerEvent.equals("A02")) {
+                transferPatient(adtWrap);
+                processed += 1;
+            } else if (triggerEvent.equals("A03")) {
+                dischargePatient(adtWrap);
+                processed += 1;
+            } else if (triggerEvent.equals("A08")) {
+                updatePatientInfo(adtWrap);
+                processed += 1;
+            } else if (triggerEvent.equals("A40")) {
+                mergeById(adtWrap);
+                processed += 1;
+            } else {
+                logger.debug("[" + idsMsg.getUnid() + "] Skipping " + triggerEvent + " ("
+                        + msgFromIds.getClass() + ")");
+                idsLog.setMessage("Skipping ADT due to message type");
+            }
+        } else if (messageType.equals("ORU")) {
+            logger.info("ORU");
+        }
         return processed;
     }
 
@@ -477,7 +501,7 @@ public class InformDbOperations {
             hospitalVisit = allHospitalVisits.get(0);
             // We have received an A01 but there was already an
             // open hospital visit, so invalidate the existing bed visit and its properties
-            logger.info("Invalidating previoud bed visit");
+            logger.info("Invalidating previous bed visit");
             List<VisitFact> allOpenBedVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.BED_VISIT);
             if (allOpenBedVisits.size() != 1) {
                 throw new InformDbIntegrityException(
@@ -498,6 +522,7 @@ public class InformDbOperations {
                 hospitalVisit,
                 encounterDetails.getFullLocationString());
         enc = encounterRepo.save(enc);
+        logger.info("Encounter: " + enc.toString());
         return enc;
     }
 
