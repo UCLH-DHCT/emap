@@ -29,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.exceptions.DuplicateValueException;
@@ -235,8 +234,8 @@ public class InformDbOperations {
      */
     private int processHl7Message(Message msgFromIds, IdsMaster idsMsg, IdsEffectLogging idsLog, int processed)
             throws HL7Exception {
-        // every message type has an MSH
-        MSHWrap mshwrap = new MSHWrap((MSH) msgFromIds.get("MSH"));
+        // it's ok to give any message to an AdtWrap if we're only looking at the MSH
+        MSHWrap mshwrap = new AdtWrap(msgFromIds);
         String messageType = mshwrap.getMessageType();
         String triggerEvent = mshwrap.getTriggerEvent();
 
