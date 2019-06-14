@@ -25,7 +25,7 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int                              factId;
+    private Long                              factId;
 
     @ManyToOne
     @JoinColumn(name = "encounter", referencedColumnName = "encounter")
@@ -35,14 +35,14 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
     /**
      * @return the factId
      */
-    public int getFactId() {
+    public Long getFactId() {
         return factId;
     }
 
     /**
      * @param factId the factId to set
      */
-    public void setFactId(int factId) {
+    public void setFactId(Long factId) {
         this.factId = factId;
     }
 
