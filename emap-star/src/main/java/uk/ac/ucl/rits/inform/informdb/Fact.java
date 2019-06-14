@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -27,6 +30,10 @@ import org.hibernate.annotations.SortNatural;
 @MappedSuperclass
 public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends Property<F>> extends TemporalCore {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long               factId;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
     @SortNatural
     private List<PropertyType> properties;
@@ -34,6 +41,20 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     @ManyToOne
     @JoinColumn(name = "attributeId")
     private Attribute          factType;
+
+    /**
+     * @return the factId
+     */
+    public Long getFactId() {
+        return factId;
+    }
+
+    /**
+     * @param factId the factId to set
+     */
+    public void setFactId(Long factId) {
+        this.factId = factId;
+    }
 
     /**
      * @param attrKey the attribute
@@ -146,7 +167,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      */
     public Map<String, List<PropertyType>> toMap() {
         Map<String, List<PropertyType>> results = new HashMap<String, List<PropertyType>>();
-        for (PropertyType p: properties) {
+        for (PropertyType p : properties) {
             String key = p.getAttribute().getShortName();
             List<PropertyType> l = results.get(key);
             if (l == null) {
