@@ -2,14 +2,9 @@ package uk.ac.ucl.rits.inform;
 
 import org.junit.Test;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.HL7Utils;
@@ -26,23 +21,8 @@ public class TestMSH extends TestCase {
 
     @Override
     public void setUp() throws Exception {
-        System.out.println("**Setting it up in TestMSH!");
-
-        // An example message, adapted from one provided by Atos
-        // NB This is a generic string for testing. Atos A01 example messages, for instance, do not have field MSH-5 populated.
-        // So there will likely be content in fields below which, for a given message type, would actually be blank.
         String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
-        context = new DefaultHapiContext();
-        ValidationContext vc = ValidationContextFactory.noValidation();
-        context.setValidationContext(vc);
-
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
-        context.setModelClassFactory(mcf);
-        parser = context.getPipeParser();
-
-        ADT_A01 adtA01 = (ADT_A01) parser.parse(hl7);
-        wrapper = new AdtWrap(adtA01);
+        wrapper = new AdtWrap(HL7Utils.parseHl7String(hl7));
     }
 
     /**

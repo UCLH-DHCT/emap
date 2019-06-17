@@ -1,17 +1,10 @@
 package uk.ac.ucl.rits.inform;
 
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
-import ca.uhn.hl7v2.validation.ValidationContext;
-
 import java.time.Instant;
 
 import org.junit.Test;
 
+import ca.uhn.hl7v2.HL7Exception;
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.EVNWrap;
@@ -21,37 +14,12 @@ import uk.ac.ucl.rits.inform.hl7.HL7Utils;
  * Test the EVN wrapper.
  */
 public class TestEVN extends TestCase {
-
-    private PipeParser parser;
-    private HapiContext context;
     private EVNWrap wrapper;
 
     @Override
     public void setUp() throws Exception {
-        System.out.println("**Setting it up in TestEVN!");
-
-        // An example message, adapted from one provided by Atos
-        // NB This is a generic string for testing. Atos A01 example messages, for instance, do not have field MSH-5 populated.
-        // And it wouldn't have a timestamp in EVN-6.
-        // So there will likely be content in fields below which, for a given message type, would actually be blank.
         String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
-
-        context = new DefaultHapiContext();
-        ValidationContext vc = ValidationContextFactory.noValidation();
-        context.setValidationContext(vc);
-
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
-        context.setModelClassFactory(mcf);
-        parser = context.getPipeParser();
-
-        try {
-            wrapper = new AdtWrap(parser.parse(hl7));
-        }
-        catch (HL7Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+        wrapper = new AdtWrap(HL7Utils.parseHl7String(hl7));
     }
 
     /**
