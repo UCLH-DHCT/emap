@@ -126,13 +126,3 @@ public class TestMSH extends TestCase {
         assertEquals("2.2", result);
     }
 }
-
-/* original message from Atos
-
-// An example Atos-provided message
-        String hl7 = "MSH|^~\\&|UCLH4^PMGL^ADTOUT|RRV30|||201209211843||ADT^A01|PLW21221500942883310|P|2.2|||AL|NE\r"
-            + "ZUK|Q12|5CF|1|||||||N  N||12||||||||||||||||B83035^2.16.840.1.113883.2.1.4.3|G9014646^2.16.840.1.113883.2.1.4.2|U439966^2.16.840.1.113883.2.1.3.2.4.11||41008\r";
-
-
-
-*/
