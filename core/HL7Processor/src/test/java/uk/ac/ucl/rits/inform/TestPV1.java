@@ -5,14 +5,9 @@ import java.util.Vector;
 
 import org.junit.Test;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.v27.message.ADT_A01;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.Doctor;
@@ -30,16 +25,7 @@ public class TestPV1 extends TestCase {
     @Override
     public void setUp() throws Exception {
         String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
-        context = new DefaultHapiContext();
-        ValidationContext vc = ValidationContextFactory.noValidation();
-        context.setValidationContext(vc);
-
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
-        context.setModelClassFactory(mcf);
-        parser = context.getPipeParser();
-
-        ADT_A01 adtA01 = (ADT_A01) parser.parse(hl7);
-        wrapper = new AdtWrap(adtA01);
+        wrapper = new AdtWrap(HL7Utils.parseHl7String(hl7));
     }
 
     /**
