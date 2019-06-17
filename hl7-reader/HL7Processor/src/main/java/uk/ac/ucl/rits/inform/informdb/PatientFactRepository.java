@@ -4,5 +4,5 @@ import org.springframework.data.repository.CrudRepository;
 
 /**
  */
-public interface PatientDemographicFactRepository extends CrudRepository<PatientDemographicFact, Integer> {
+public interface PatientFactRepository extends CrudRepository<PatientFact, Integer> {
 }
