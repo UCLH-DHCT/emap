@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  compile:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8-jdk
@@ -29,7 +29,6 @@ jobs:
               cd Inform-DB
               git checkout more_demo
               mvn install -Dmaven.test.skip=true
-
       - run:
           command: |
              cd HL7Processor
