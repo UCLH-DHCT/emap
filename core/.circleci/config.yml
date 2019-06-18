@@ -24,92 +24,18 @@ jobs:
       - checkout
 
       - run:
-          name: a merge PR
           command: |
-            if [[ -n "${CIRCLE_PR_NUMBER}" ]]; then
-              git fetch origin +refs/pull/$CIRCLE_PR_NUMBER/merge:pr/$CIRCLE_PR_NUMBER/merge
-              git checkout -qf pr/$CIRCLE_PR_NUMBER/merge
-            fi
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "HL7Processor/pom.xml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
+              git clone git@github.com:inform-health-informatics/Inform-DB.git
+              cd Inform-DB
+              git checkout more_demo
+              mvn install -Dmaven.test.skip=true
       - run:
           command: |
              cd HL7Processor
              mvn dependency:go-offline
 
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "HL7Processor/pom.xml" }}
-        
-      # run tests!
       - run:
           command: |
              cd HL7Processor
-             mvn integration-test   #mvn integration-test
-
-  # Following the example given at 
-  # https://circleci.com/blog/deploying-documentation-to-github-pages-with-continuous-integration/
-  docs-build:
-    docker:
-      - image: circleci/openjdk:8-jdk
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run:
-          name: Build docs
-          command: cd HL7Processor && mkdir -p HL7Processor/target/site/apidocs && mvn javadoc:javadoc
-      - persist_to_workspace:
-          root: HL7Processor/target/site/apidocs
-          paths: .
-
-  docs-deploy:
-    docker:
-      - image: node:8.10.0
-    steps:
-      - checkout
-      - attach_workspace:
-          at: HL7Processor/target/site/apidocs
-      - run:
-          name: Install and configure dependencies
-          command: |
-            npm install -g --silent gh-pages@2.0.1
-            git config user.email "ci-build@ucl.ac.uk"
-            git config user.name "ci-build"
-      - add_ssh_keys:
-          # NB CircleCI adding ssh key error - see this post: 
-          # https://discuss.circleci.com/t/cant-add-an-ssh-key-in-ssh-permissions/26344/3
-          fingerprints:
-            - "b7:8e:62:38:9f:d7:32:d3:85:21:24:2d:1e:23:30:39"
-           # - "d8:fa:9c:19:e2:ba:a0:1d:a6:95:31:1a:22:95:54:52"
-           # - "ef:03:7c:0c:d9:45:d0:17:df:84:32:65:a4:aa:a5:46"
-           #- "ee:f4:37:fc:e6:3a:6c:78:79:fe:bc:e8:94:e6:d6:2f"
-           #- "07:8a:e8:b5:b7:0b:f3:fa:8d:eb:9d:91:8b:eb:95:d7"
-
-      - run:
-          name: Deploy docs to gh-pages branch
-          command: |
-            ls ~/.ssh
-            gh-pages --message "[skip ci] Updates" -d HL7Processor/target/site/apidocs -u "ci-build <ci-build@ucl.ac.uk>"  # -s '{*.html,*.css,*.txt,*.js,uk/**}'
-
-
-workflows:
-  version: 2
-  build:
-    jobs:
-      - compile
-      - docs-build
-      - docs-deploy:
-          requires:
-            - compile
-            - docs-build
-          filters:
-            branches:
-              only: master
-
+             TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test
+             TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test

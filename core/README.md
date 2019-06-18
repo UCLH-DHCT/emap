@@ -1,18 +1,29 @@
 # HL7_java
 
-[![CircleCI](https://circleci.com/gh/inform-health-informatics/HL7store.svg?style=svg)](https://circleci.com/gh/inform-health-informatics/HL7store)
 
-This contains two related sets of code, both to do with HL7 messages.
+# HAPI
 
-Consumer.java and Engine.java parse HL7 messages using the open-source HAPI parser. They handle
-possibly different versions of HL7 by using HAPI's ability to set them to the same version (2.7).
-See  https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+ See https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+ for how we handkle multiple versions of HL7.
+ 
+ From HAPI FAQ: https://hapifhir.github.io/hapi-hl7v2/hapi-faq.html 
+ Q. Why are some message classes missing? For example, I can find
+ the class ADT_A01, but not the class ADT_A04.
+ A. HL7 defines that some message triggers reuse the same structure. So, for example,
+ the ADT^A04 message has the exact same structure as an ADT^A01 message. Therefore,
+ when an ADT^A04 message is parsed, or when you want to create one, you will actually
+ use the ADT_A01 message class, but the "triggerEvent" property of MSH-9 will be set to A04.
 
-HL7Processor.java (formerly JDBCTest.java) was originally written (but sadly never used) for the internal D-Day (14/11/18). It pulls
-data from the IDS, but for the demo did not perform any HL7 parsing as some of that was already
-been done by Atos and relevant data fields extracted to IDS columns. However, moving forward we may well be extracting
-all the data items ourselves by parsing. HL7Processor then updates the UDS database.
-
-Now we need to combine Comsumer/Engine with HL7Processor. We also need to use JPA/Hibernate etc. instead of JDBC.  
-
-Basic instructions for running the code are in [instructions.md](./instructions.md). Please also refer to the Github wiki pages. 
+ The full list is documented in 2.7.properties file:
+ A01 also handles A04, A08, A13
+ A05 also handles A14, A28, A31
+ A06 handles A07
+ A09 handles A10, A11
+ A21 handles A22, A23, A25, A26, A27, A29, A32, A33
+ ADT_A39 handles A40, A41, A42
+ ADT_A43 handles A49
+ ADT_A44 handles A47
+ ADT_A50 handles A51
+ ADT_A52 handles A53
+ ADT_A54 handles A55
+ ADT_A61 handles A62
