@@ -2,8 +2,6 @@ version: '3.2'
 services:
   hl7:
     container_name: hl7processor
-    networks:
-      - fakeudsnet
     environment:
       NODE_ENV: test
     build:
@@ -18,8 +16,3 @@ services:
       - ~/secrets/hl7-envs
     logging:
       driver: "json-file"
-
-networks:
-  fakeudsnet:
-    external:
-      name: icip-fetch_default
