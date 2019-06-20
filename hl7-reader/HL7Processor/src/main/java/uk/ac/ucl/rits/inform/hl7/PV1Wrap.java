@@ -17,12 +17,6 @@ public interface PV1Wrap {
     PV1 getPV1();
 
     /**
-     * @return Is this a test object which should generate synthetic data instead
-     * of using the HL7 message data?
-     */
-    boolean isTest();
-
-    /**
      * @return whether the PV1 segment exists
      */
     default boolean pv1SegmentExists() {
@@ -34,10 +28,6 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getPatientClass() throws HL7Exception {
-        if (isTest()) {
-            // Need to come up with a better way of generating test data
-            return "??";
-        }
         if (!pv1SegmentExists()) {
             return null;
         }
@@ -49,10 +39,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getCurrentWardCode() throws HL7Exception {
-        if (isTest()) {
-            // Need to come up with a better way of generating test data
-            return "Test poc location";
-        }
+
         return getPV1().getAssignedPatientLocation().getPl1_PointOfCare().getComponent(0).toString();
     }
 
@@ -61,10 +48,6 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getCurrentRoomCode() throws HL7Exception {
-        if (isTest()) {
-            // Need to come up with a better way of generating test data
-            return "Test room location";
-        }
         return getPV1().getAssignedPatientLocation().getPl2_Room().getComponent(0).toString();
     }
 
@@ -73,10 +56,6 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getCurrentBed() throws HL7Exception {
-        if (isTest()) {
-            // Need to come up with a better way of generating test data
-            return "Test bed location";
-        }
         return getPV1().getAssignedPatientLocation().getPl3_Bed().getComponent(0).toString();
     }
 
@@ -116,15 +95,11 @@ public interface PV1Wrap {
      */
     default Vector<Doctor> getAttendingDoctors() throws HL7Exception {
         Vector<Doctor> v = new Vector<Doctor>();
-        if (isTest()) {
-            return v;
-        }
         int reps = getPV1().getAttendingDoctorReps();
         for (int i = 0; i < reps; i++) {
             Doctor dr = new Doctor(getPV1().getAttendingDoctor(i));
             v.add(dr);
         }
-
         return v;
     }
 
@@ -175,10 +150,6 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getVisitNumber() throws HL7Exception {
-        if (isTest()) {
-            // Need to come up with a better way of generating test data
-            return HL7Random.randomNumericSeeded(System.identityHashCode(this), 8);
-        }
         return getPV1().getVisitNumber().getComponent(0).toString();
     }
 
@@ -190,10 +161,6 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default Instant getAdmissionDateTime() throws HL7Exception {
-        if (isTest()) {
-            // this is not a good way of doing test data
-            return Instant.parse("2014-05-06T07:08:09Z");
-        }
         return HL7Utils.interpretLocalTime(getPV1().getAdmitDateTime());
     }
 
@@ -202,10 +169,6 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default Instant getDischargeDateTime() throws HL7Exception {
-        if (isTest()) {
-            // this is not a good way of doing test data
-            return Instant.parse("2014-05-06T12:34:56Z");
-        }
         return HL7Utils.interpretLocalTime(getPV1().getDischargeDateTime());
     }
 }
