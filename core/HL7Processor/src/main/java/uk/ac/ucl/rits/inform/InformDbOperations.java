@@ -369,7 +369,7 @@ public class InformDbOperations {
      */
     private static boolean factIsVisitFact(PatientFact pf) {
         String shortName = pf.getFactType().getShortName();
-        return (shortName.equals(AttributeKeyMap.BED_VISIT) || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT));
+        return (shortName.equals(AttributeKeyMap.BED_VISIT.getShortname()) || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT.getShortname()));
     }
 
     /**
