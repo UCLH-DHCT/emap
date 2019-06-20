@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.hl7;
 
-import java.time.Instant;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,16 +19,6 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
  */
 public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     private static final Logger logger = LoggerFactory.getLogger(AdtWrap.class);
-
-    private String administrativeSex; // PID-8
-    private String familyName; // PID-5.1
-    private String givenName; // PID-5.2
-    private String middleName; // PID-5.3 middle name or initial
-    private String mrn; // patient ID PID-3.1[1] // internal UCLH hospital number
-    private String nhsNumber; // patient ID PID-3.1[2]
-    private String triggerEvent;
-    private Instant dob;
-    private String postcode;
 
     private MSH msh;
     private PV1 pv1;
@@ -89,21 +77,11 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
             mrg = a39Patient.getMRG();
             pid = a39Patient.getPID();
         } else {
-            pid = (PID) adtMsg.get("PID");
+            try {
+                pid = (PID) adtMsg.get("PID");
+            } catch (HL7Exception e) {
+            }
         }
-
-        try {
-            administrativeSex = getPatientSex();
-            dob = getPatientBirthDate();
-            postcode = getPatientZipOrPostalCode();
-            familyName = getPatientFamilyName();
-            givenName = getPatientGivenName();
-            middleName = getPatientMiddleName();
-            mrn = getPatientFirstIdentifier();
-            nhsNumber = getPatientSecondIdentifier();
-        } catch (HL7Exception e) {
-        }
-
         try {
             pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
         } catch (HL7Exception e) {
@@ -145,57 +123,8 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
 
         //// Minimal info needed //////
         System.out.println("patient name = " + getPatientFullName());
-        System.out.println("patient MRN = " + getPatientFirstIdentifier());
+        System.out.println("patient MRN = " + getMrn());
         System.out.println("admission time = " + getAdmissionDateTime());
-    }
-
-    /**
-     * @return sex (PID-8)
-     */
-    public String getAdministrativeSex() {
-        return administrativeSex;
-    }
-
-    /**
-     * @return family name (PID-5.1)
-     */
-    public String getFamilyName() {
-        return familyName;
-    }
-
-    /**
-     * @return family name (PID-5.2)
-     */
-    public String getGivenName() {
-        return givenName;
-    }
-
-    /**
-     * @return family name (PID-5.3)
-     */
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    /**
-     * @return MRN (PID-3.1[1])
-     */
-    public String getMrn() {
-        return mrn;
-    }
-
-    /**
-     * @return NHS number (PID-3.1[2])
-     */
-    public String getNHSNumber() {
-        return nhsNumber;
-    }
-
-    /**
-     * @return date of birth (PID-7.1)
-     */
-    public Instant getDob() {
-        return dob;
     }
 
     /**
@@ -203,13 +132,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
      */
     public String getMergedPatientId() {
         return mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
-    }
-
-    /**
-     * @return the patient postcode (PID-11, first rep, component 5)
-     */
-    public String getPatientZipOrPostalCode() {
-        return postcode;
     }
 
 }

@@ -15,15 +15,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 
 /**
@@ -48,7 +45,7 @@ public class App {
     @Profile("populate")
     public CommandLineRunner populateIDS(IdsOperations ids) {
         return (args) -> {
-            HapiContext context = initializeHapiContext();
+            HapiContext context = HL7Utils.initializeHapiContext();
             String hl7fileSource = args[0];
             File file = new File(hl7fileSource);
             logger.info("populating the IDS from file " + file.getAbsolutePath() + " exists = " + file.exists());
@@ -74,22 +71,6 @@ public class App {
     }
 
     /**
-     * Initalise the HAPI parser.
-     * @return the HapiContext
-     */
-    private HapiContext initializeHapiContext() {
-        HapiContext context = new DefaultHapiContext();
-
-        ValidationContext vc = ValidationContextFactory.noValidation();
-        context.setValidationContext(vc);
-
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
-        context.setModelClassFactory(mcf);
-        return context;
-    }
-
-    /**
      * The main entry point for processing HL7 messages and writing to Inform-db.
      * @param dbOps Inform-db operations object
      * @return .
@@ -101,7 +82,7 @@ public class App {
             dbOps.ensureVocabLoaded();
             logger.info("Initialising HAPI...");
             long startTimeMillis = System.currentTimeMillis();
-            HapiContext context = initializeHapiContext();
+            HapiContext context = HL7Utils.initializeHapiContext();
             PipeParser parser = context.getPipeParser();
             logger.info("Done initialising HAPI");
             int count = 0;

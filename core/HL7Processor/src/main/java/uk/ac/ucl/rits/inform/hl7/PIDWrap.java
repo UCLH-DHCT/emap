@@ -36,7 +36,7 @@ public interface PIDWrap {
      * @return PID-3.1[1] - in Carecast this is the MRN. Will Epic follow this convention?
      * @throws HL7Exception if HAPI does
      */
-    default String getPatientFirstIdentifier() throws HL7Exception {
+    default String getMrn() throws HL7Exception {
         return getPID().getPatientIdentifierList(0).getComponent(0).toString();
     }
 
@@ -44,7 +44,7 @@ public interface PIDWrap {
      * @return PID-3.1[2] - in Carecast this is the NHS number. Will Epic follow this convention?
      * @throws HL7Exception if HAPI does
      */
-    default String getPatientSecondIdentifier() throws HL7Exception {
+    default String getNHSNumber() throws HL7Exception {
         return getPID().getPatientIdentifierList(1).getComponent(0).toString();
     }
 

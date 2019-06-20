@@ -31,8 +31,8 @@ public class TestPID extends TestCase {
      * @throws HL7Exception if HAPI does
      */
     @Test
-    public void testGetPatientFirstIdentifier1() throws HL7Exception {
-        String result = wrapper.getPatientFirstIdentifier();
+    public void testGetPatientMrn() throws HL7Exception {
+        String result = wrapper.getMrn();
         assertEquals("50032556", result);
     }
 
@@ -41,8 +41,8 @@ public class TestPID extends TestCase {
      * @throws HL7Exception if HAPI does
      */
     @Test
-    public void testGetPatientSecondIdentifier1() throws HL7Exception {
-        String result = wrapper.getPatientSecondIdentifier();
+    public void testGetPatientNHSNumber() throws HL7Exception {
+        String result = wrapper.getNHSNumber();
         assertEquals("this is a test NHS number", result);
     }
 

@@ -37,6 +37,8 @@ import uk.ac.ucl.rits.inform.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.hl7.MSHWrap;
+import uk.ac.ucl.rits.inform.hl7.OruWrap;
+import uk.ac.ucl.rits.inform.hl7.PathologyResult;
 import uk.ac.ucl.rits.inform.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
@@ -75,7 +77,7 @@ public class InformDbOperations {
     @Autowired
     private EncounterRepository encounterRepo;
     @Autowired
-    private PatientFactRepository patientDemographicFactRepository;
+    private PatientFactRepository patientFactRepository;
     @Autowired
     private PersonMrnRepository personMrnRepo;
     @Autowired
@@ -192,7 +194,7 @@ public class InformDbOperations {
         }
 
         try {
-            processed = processHl7Message(msgFromIds, idsMsg, idsLog, processed);
+            processed = processHl7Message(msgFromIds, idsMsg.getUnid(), idsLog, processed);
         } catch (HL7Exception e) {
             String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
                     + ")";
@@ -221,20 +223,20 @@ public class InformDbOperations {
      * use the appropriate wrapper class to process the wrapper.
      *
      * @param msgFromIds the message
-     * @param idsMsg the full IDS record for the message
-     * @param idsLog the IDS-oriented log
+     * @param idsUnid the IDS unique ID (or similar unique ID if not from IDS)
+     * @param idsLog the IDS-oriented log, or null if you don't want to log
      * @param processed the current message processed count
      * @return the updated message processed count
      * @throws HL7Exception if HAPI does
      */
-    private int processHl7Message(Message msgFromIds, IdsMaster idsMsg, IdsEffectLogging idsLog, int processed)
+    public int processHl7Message(Message msgFromIds, int idsUnid, IdsEffectLogging idsLog, int processed)
             throws HL7Exception {
         // it's ok to give any message to an AdtWrap if we're only looking at the MSH
         MSHWrap mshwrap = new AdtWrap(msgFromIds);
         String messageType = mshwrap.getMessageType();
         String triggerEvent = mshwrap.getTriggerEvent();
 
-        logger.info(String.format("[%s] %s^%s", idsMsg.getUnid(), messageType, triggerEvent));
+        logger.info(String.format("[%s] %s^%s", idsUnid, messageType, triggerEvent));
 
         if (messageType.equals("ADT")) {
             AdtWrap adtWrap = new AdtWrap(msgFromIds);
@@ -254,12 +256,16 @@ public class InformDbOperations {
                 mergeById(adtWrap);
                 processed += 1;
             } else {
-                logger.debug("[" + idsMsg.getUnid() + "] Skipping " + triggerEvent + " ("
+                logger.debug("[" + idsUnid + "] Skipping " + triggerEvent + " ("
                         + msgFromIds.getClass() + ")");
-                idsLog.setMessage("Skipping ADT due to message type");
+                if (idsLog != null) {
+                    idsLog.setMessage("Skipping ADT due to message type");
+                }
             }
         } else if (messageType.equals("ORU")) {
-            logger.info("ORU");
+            OruWrap oruWrap = new OruWrap(msgFromIds);
+            addPathologyResults(oruWrap);
+            processed += 1;
         }
         return processed;
     }
@@ -542,7 +548,6 @@ public class InformDbOperations {
             // Need to save here so the hospital visit can be created (and thus assigned an ID),
             // so we can refer to that ID in the bed visit.
             // (Bed visits refer to hosp visits explicitly by their IDs).
-            enc = encounterRepo.save(enc);
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
@@ -602,9 +607,9 @@ public class InformDbOperations {
         nameFact.setStoredFrom(Instant.now());
         Attribute nameAttr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
         nameFact.setFactType(nameAttr);
-        addPropertyToFact(nameFact, AttributeKeyMap.FIRST_NAME, msgDetails.getGivenName());
-        addPropertyToFact(nameFact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getMiddleName());
-        addPropertyToFact(nameFact, AttributeKeyMap.FAMILY_NAME, msgDetails.getFamilyName());
+        addPropertyToFact(nameFact, AttributeKeyMap.FIRST_NAME, msgDetails.getPatientGivenName());
+        addPropertyToFact(nameFact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getPatientMiddleName());
+        addPropertyToFact(nameFact, AttributeKeyMap.FAMILY_NAME, msgDetails.getPatientFamilyName());
         demographics.put(AttributeKeyMap.NAME_FACT.getShortname(), nameFact);
 
         PatientFact generalDemoFact = new PatientFact();
@@ -613,9 +618,9 @@ public class InformDbOperations {
         generalDemoFact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
 
         // will we have to worry about Instants and timezones shifting the date?
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.DOB, msgDetails.getDob());
+        addPropertyToFact(generalDemoFact, AttributeKeyMap.DOB, msgDetails.getPatientBirthDate());
 
-        String hl7Sex = msgDetails.getAdministrativeSex();
+        String hl7Sex = msgDetails.getPatientSex();
         Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
         addPropertyToFact(generalDemoFact, AttributeKeyMap.SEX, sexAttrValue);
 
@@ -1065,6 +1070,83 @@ public class InformDbOperations {
     }
 
     /**
+     * Build a patient property given the key/value pair.
+     * @param storedFrom the stored from temporal field
+     * @param validFrom the valid from temporal field
+     * @param attrKM the attribute key value
+     * @param value the actual value
+     * @return the constructed PatientProperty
+     */
+    private PatientProperty buildPatientProperty(Instant storedFrom, Instant validFrom, AttributeKeyMap attrKM, Object value) {
+        PatientProperty prop = new PatientProperty();
+        prop.setValidFrom(validFrom);
+        prop.setStoredFrom(storedFrom);
+        prop.setAttribute(getCreateAttribute(attrKM));
+        prop.setValue(value);
+        return prop;
+    }
+
+    /**
+     * Make a PatientFact from each pathology result.
+     * Return in an indexed collection for easy diffing (we expect
+     * to get partial results and final results at different times and this might be useful).
+     * @param pathResults the pathology results
+     * @return PatientFacts indexed by a unique identifier
+     * @throws HL7Exception if HAPI does
+     */
+    private Map<String, PatientFact> buildPathologyFacts(List<PathologyResult> pathResults) throws HL7Exception {
+        Map<String, PatientFact> facts = new HashMap<>();
+        Instant storedFrom = Instant.now();
+        for (PathologyResult pr : pathResults) {
+            Instant validFrom = pr.getResultTime();
+            PatientFact fact = new PatientFact();
+            fact.setStoredFrom(storedFrom);
+            fact.setValidFrom(validFrom);
+            fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
+
+            String key = pr.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
+
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
+                    AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+                    pr.getTestBatteryLocalCode()));
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
+                    AttributeKeyMap.PATHOLOGY_TEST_CODE,
+                    pr.getTestItemLocalCode()));
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
+                    AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
+                    pr.getNumericValue()));
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
+                    AttributeKeyMap.PATHOLOGY_UNITS,
+                    pr.getUnits()));
+
+            facts.put(key, fact);
+        }
+        return facts;
+    }
+
+    /**
+     * Add all the pathology results in an ORU message
+     * to the specified encounter.
+     * @param oruWrap the ORU wrapper
+     * @throws HL7Exception when HAPI does
+     */
+    private void addPathologyResults(OruWrap oruWrap) throws HL7Exception {
+        String visitNumber = oruWrap.getVisitNumber();
+        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+        if (encounter == null) {
+            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+        }
+        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(oruWrap.getAllPathologyResults());
+        // in future we might do some diffing here to check we don't already have some of the results
+        for (PatientFact fact : allPathologyFacts.values()) {
+            encounter.addFact(fact);
+            // hmm...
+            fact = patientFactRepository.save(fact);
+        }
+        encounter = encounterRepo.save(encounter);
+    }
+
+    /**
      * @return how many encounters there are in total
      */
     public long countEncounters() {
@@ -1096,7 +1178,6 @@ public class InformDbOperations {
             Instant storedFrom = Instant.now();
             mrn.setCreateDatetime(storedFrom);
             mrn.setMrn(mrnStr);
-            mrn = mrnRepo.save(mrn);
             Person pers = new Person();
             pers.setCreateDatetime(storedFrom);
             pers.addMrn(mrn, startTime, storedFrom);
@@ -1107,7 +1188,6 @@ public class InformDbOperations {
             logger.info("Reusing an existing MRN");
             mrn = allMrns.get(0);
         }
-        mrn = mrnRepo.save(mrn);
         return mrn;
     }
 
