@@ -1,6 +1,11 @@
 package uk.ac.ucl.rits.inform.hl7;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,6 +22,7 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v27.datatype.DTM;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
@@ -65,6 +71,22 @@ public class HL7Utils {
     }
 
     /**
+     * Initalise the HAPI parser.
+     * @return the HapiContext
+     */
+    public static HapiContext initializeHapiContext() {
+        HapiContext context = new DefaultHapiContext();
+
+        ValidationContext vc = ValidationContextFactory.noValidation();
+        context.setValidationContext(vc);
+
+        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        context.setModelClassFactory(mcf);
+        return context;
+    }
+
+    /**
      * Read text from the given resource file and make its line endings
      * HL7 friendly (ie. CR).
      * @param fileName The name of the resource file that's in the resource directory
@@ -72,15 +94,24 @@ public class HL7Utils {
      * @throws IOException when reading file
      */
     public static String readHl7FromResource(String fileName) throws IOException {
-        // the class used here doesn't seem to matter
-        ClassLoader classLoader = HL7Utils.class.getClassLoader();
-        URL url = classLoader.getResource("TestForJunit.txt");
-        List<String> readAllLines = Files.readAllLines(Paths.get(url.getPath()));
+        String path = getPathFromResource(fileName);
+        List<String> readAllLines = Files.readAllLines(Paths.get(path));
         return String.join("\r", readAllLines) + "\r";
     }
 
     /**
-     * .
+     * @param fileName the relative filename of the resource
+     * @return the filename in the resource directory
+     */
+    public static String getPathFromResource(String fileName) {
+        // the class used here doesn't seem to matter
+        ClassLoader classLoader = HL7Utils.class.getClassLoader();
+        URL url = classLoader.getResource(fileName);
+        String path = url.getPath();
+        return path;
+    }
+
+    /**
      * @param hl7Message string containing the hl7 message
      * @return the parsed message
      * @throws HL7Exception if HAPI does
@@ -96,5 +127,18 @@ public class HL7Utils {
         PipeParser parser = context.getPipeParser();
 
         return parser.parse(hl7Message);
+    }
+
+    /**
+     * @param multiHl7File file containing one or more HL7 messages sequentially
+     * @return an Hl7InputStreamMessageIterator that allows the caller to get the messages one by one
+     * @throws FileNotFoundException if file doesn't exist
+     */
+    public static Hl7InputStreamMessageIterator hl7Iterator(File multiHl7File) throws FileNotFoundException {
+        HapiContext context = initializeHapiContext();
+        InputStream is = new BufferedInputStream(new FileInputStream(multiHl7File));
+        Hl7InputStreamMessageIterator hl7iter = new Hl7InputStreamMessageIterator(is, context);
+        hl7iter.setIgnoreComments(true);
+        return hl7iter;
     }
 }

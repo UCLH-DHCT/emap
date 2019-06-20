@@ -120,4 +120,34 @@ public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap,
     public String getPatientClass() throws HL7Exception {
         return "??";
     }
+
+    @Override
+    public String getPatientGivenName() throws HL7Exception {
+        return "Rutabaga";
+    }
+
+    @Override
+    public String getPatientMiddleName() throws HL7Exception {
+        return "L";
+    }
+
+    @Override
+    public String getPatientFamilyName() throws HL7Exception {
+        return "Turnip";
+    }
+
+    @Override
+    public Instant getPatientBirthDate() throws HL7Exception {
+        return Instant.parse("1944-05-06T12:34:56Z");
+    }
+
+    @Override
+    public String getPatientZipOrPostalCode() {
+        return "ZZ99 9AB";
+    }
+
+    @Override
+    public String getPatientSex() throws HL7Exception {
+        return "F";
+    }
 }
