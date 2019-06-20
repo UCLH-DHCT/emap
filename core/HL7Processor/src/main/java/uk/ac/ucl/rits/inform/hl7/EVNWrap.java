@@ -17,12 +17,6 @@ public interface EVNWrap {
     EVN getEVN();
 
     /**
-     * @return Is this a test object which should generate synthetic data instead
-     * of using the HL7 message data?
-     */
-    boolean isTest();
-
-    /**
      * @return whether the EVN segment exists
      */
     default boolean evnSegmentExists() {
@@ -71,9 +65,6 @@ public interface EVNWrap {
      * @throws HL7Exception if HAPI does
      */
     default Instant getEventOccurred() throws HL7Exception {
-        if (isTest()) {
-            return Instant.now();
-        }
         return HL7Utils.interpretLocalTime(getEVN().getEvn6_EventOccurred());
     }
 

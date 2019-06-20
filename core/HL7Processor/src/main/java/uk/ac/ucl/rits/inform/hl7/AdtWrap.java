@@ -38,7 +38,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     private PD1Wrap pd1wrap;
     private EVN evn;
     private MRG mrg;
-    private boolean isTest;
 
     @Override
     public PV1 getPV1() {
@@ -61,18 +60,10 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     }
 
     /**
-     * Populate the data by generating it randomly.
+     * Make a random data generating version of the object.
+     * Override this.
      */
-    public AdtWrap() {
-        isTest = true;
-        HL7Random random = new HL7Random();
-        mrn = random.randomString();
-        nhsNumber = random.randomNHSNumber();
-        postcode = random.randomString();
-        familyName = random.randomString();
-        givenName = random.randomString();
-        middleName = random.randomString();
-        administrativeSex = random.randomString();
+    protected AdtWrap() {
     }
 
     /**
@@ -82,8 +73,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
      * @throws HL7Exception if HAPI does
      */
     public AdtWrap(Message adtMsg) throws HL7Exception {
-        isTest = false;
-
         msh = (MSH) adtMsg.get("MSH");
 
         try {
@@ -214,11 +203,6 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
      */
     public String getMergedPatientId() {
         return mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
-    }
-
-    @Override
-    public boolean isTest() {
-        return isTest;
     }
 
     /**
