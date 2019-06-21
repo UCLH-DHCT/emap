@@ -53,7 +53,7 @@ public class Encounter implements Serializable {
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
     private List<PatientFact>  facts;
 
-    @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter", cascade = CascadeType.ALL)
+    @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter")
     private List<MrnEncounter> mrns;
 
     /**

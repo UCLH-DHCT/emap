@@ -32,7 +32,7 @@ public class MrnEncounter extends TemporalCore implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer   mrnEncounterId;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "mrn", nullable = false)
     private Mrn       mrn;
 

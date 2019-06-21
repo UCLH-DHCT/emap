@@ -46,7 +46,7 @@ public class Mrn implements Serializable {
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
     private List<MrnEncounter> encounters;
 
-    @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn", cascade = CascadeType.ALL)
+    @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn")
     private List<PersonMrn>    persons          = new ArrayList<>();
 
     /**
