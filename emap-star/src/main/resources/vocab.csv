@@ -18,3 +18,11 @@ attribute_id,short_name,description,result_type,added_time
 17,UNKNOWN,Unknown,None,2019-04-11T10:00:00Z
 18,POST_CODE,Postcode,String,2019-04-11T10:00:00Z
 19,NHS_NUMBER,NHS number,String,2019-04-11T10:00:00Z
+20,PATH_RESULT,Fact type,None,2019-06-20T16:00:00Z
+21,PATH_BATT_COD,Local code for the battery of tests,String,2019-06-20T16:00:00Z
+22,PATH_BATT_DESC,Local description for the battery of tests,String,2019-06-20T16:00:00Z
+23,PATH_TEST_COD,Local code for the single test item,String,2019-06-20T16:00:00Z
+24,PATH_TEST_DESC,Local description for the single test item,String,2019-06-20T16:00:00Z
+25,PATH_COD_SYS,Coding system (aka vocab) for the test code,String,2019-06-20T16:00:00Z
+26,PATH_NUM_VALUE,Pathology result numerical value,Float,2019-06-20T16:00:00Z
+27,PATH_NUM_UNITS,Pathology result numerical value units,String,2019-06-20T16:00:00Z

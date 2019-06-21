@@ -87,7 +87,39 @@ public enum AttributeKeyMap {
     /**
      * Date item is known to exist, but its value is unknown.
      */
-    UNKNOWN("UNKNOWN");
+    UNKNOWN("UNKNOWN"),
+    /**
+     * Fact type - is a path test result.
+     */
+    PATHOLOGY_TEST_RESULT("PATH_RESULT"),
+    /**
+     * Local code for the battery of tests (eg. FBCY)
+     */
+    PATHOLOGY_TEST_BATTERY_CODE("PATH_BATT_COD"),
+    /**
+     * Local description for the battery of tests.
+     */
+    PATHOLOGY_TEST_BATTERY_DESCRIPTION("PATH_BATT_DESC"),
+    /**
+     * Local code for the individual test.
+     */
+    PATHOLOGY_TEST_CODE("PATH_TEST_COD"),
+    /**
+     * Local description for the individual test.
+     */
+    PATHOLOGY_TEST_DESCRIPTION("PATH_TEST_DESC"),
+    /**
+     * The coding system (vocabulary) that we are using (eg. WinPath).
+     */
+    PATHOLOGY_CODING_SYSTEM("PATH_COD_SYS"),
+    /**
+     * The numeric value for a pathology result.
+     */
+    PATHOLOGY_NUMERIC_VALUE("PATH_NUM_VALUE"),
+    /**
+     * The units for a pathology result.
+     */
+    PATHOLOGY_UNITS("PATH_NUM_UNITS");
 
     private String shortname;
 
