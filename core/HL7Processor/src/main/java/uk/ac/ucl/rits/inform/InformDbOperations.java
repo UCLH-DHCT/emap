@@ -379,6 +379,17 @@ public class InformDbOperations {
     }
 
     /**
+     * Filter for facts that are related to pathology.
+     *
+     * @param pf the patient fact
+     * @return true if this is a pathology fact
+     */
+    private static boolean factIsPathFact(PatientFact pf) {
+        String shortName = pf.getFactType().getShortName();
+        return (shortName.equals(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname()));
+    }
+
+    /**
      * @param encounter the Encounter to search in
      * @param pred the predicate to check against each visit fact
      * @return all PatientFact objects in encounter which are visit facts AND match predicate pred
@@ -422,7 +433,7 @@ public class InformDbOperations {
          * but we are going to need some richer type information for Attributes
          * to do this properly.
          */
-        return getFactWhere(encounter, (f -> !factIsVisitFact(f) && pred.test(f)));
+        return getFactWhere(encounter, (f -> !factIsVisitFact(f) && !factIsPathFact(f) && pred.test(f)));
     }
 
     /**
