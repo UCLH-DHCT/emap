@@ -10,6 +10,9 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 
 /**
+ * Respository to connect to Attributes.
+ *
+ * @author Jeremy Stein
  */
 public interface AttributeRepository extends CrudRepository<Attribute, String> {
     /**
@@ -34,5 +37,6 @@ public interface AttributeRepository extends CrudRepository<Attribute, String> {
     /**
      * @return all Attributes
      */
+    @Override
     Set<Attribute> findAll();
 }

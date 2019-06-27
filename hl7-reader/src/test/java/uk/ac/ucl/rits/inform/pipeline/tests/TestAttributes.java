@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.pipeline.tests;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;

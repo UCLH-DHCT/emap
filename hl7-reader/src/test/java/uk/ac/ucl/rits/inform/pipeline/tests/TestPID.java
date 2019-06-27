@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.pipeline.tests;
 
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
