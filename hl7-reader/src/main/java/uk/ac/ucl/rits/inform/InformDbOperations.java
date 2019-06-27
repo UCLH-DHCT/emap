@@ -241,7 +241,7 @@ public class InformDbOperations {
         if (messageType.equals("ADT")) {
             AdtWrap adtWrap = new AdtWrap(msgFromIds);
             if (triggerEvent.equals("A01")) {
-                Encounter enc = addEncounter(adtWrap);
+                addEncounter(adtWrap);
                 processed += 1;
             } else if (triggerEvent.equals("A02")) {
                 transferPatient(adtWrap);
