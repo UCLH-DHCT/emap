@@ -5,4 +5,4 @@
  * @author Jeremy Stein
  *
  */
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.pipeline.tests;

@@ -66,38 +66,37 @@ import uk.ac.ucl.rits.inform.pipeline.informdb.PersonRepository;
  * All the operations that can be performed on Inform-db.
  */
 @Component
-@EntityScan("uk.ac.ucl.rits.inform.pipeline.informdb")
+@EntityScan({ "uk.ac.ucl.rits.inform.pipeline.informdb", "uk.ac.ucl.rits.inform.informdb" })
 public class InformDbOperations {
     @Autowired
-    private AttributeRepository attributeRepo;
+    private AttributeRepository        attributeRepo;
     @Autowired
-    private PersonRepository personRepo;
+    private PersonRepository           personRepo;
     @Autowired
-    private MrnRepository mrnRepo;
+    private MrnRepository              mrnRepo;
     @Autowired
-    private EncounterRepository encounterRepo;
+    private EncounterRepository        encounterRepo;
     @Autowired
-    private PatientFactRepository patientFactRepository;
+    private PatientFactRepository      patientFactRepository;
     @Autowired
-    private PersonMrnRepository personMrnRepo;
+    private PersonMrnRepository        personMrnRepo;
     @Autowired
-    private IdsProgressRepository idsProgressRepository;
+    private IdsProgressRepository      idsProgressRepository;
     @Autowired
     private IdsEffectLoggingRepository idsEffectLoggingRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
+    private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     @Autowired
-    private IdsOperations idsOperations;
+    private IdsOperations              idsOperations;
 
     @Value("${:classpath:vocab.csv}")
-    private Resource vocabFile;
+    private Resource                   vocabFile;
 
     /**
      * Call when you are finished with this object.
      */
-    public void close() {
-    }
+    public void close() {}
 
     /**
      * Load in attributes (vocab) from CSV file, if they don't already exist in DB.
@@ -141,15 +140,15 @@ public class InformDbOperations {
             logger.error(e.toString());
             throw new AttributeError("Failed to load vocab file: " + this.vocabFile.getFilename());
         }
-}
+    }
 
     /**
      * Wrapper for the entire transaction that performs: - read latest processed ID
      * from Inform-db (ETL metadata) - process the message and write to Inform-db -
-     * write the latest processed ID to reflect the above message.
-     * Blocks until there are new messages.
+     * write the latest processed ID to reflect the above message. Blocks until
+     * there are new messages.
      *
-     * @param parser the HAPI parser to be used
+     * @param parser        the HAPI parser to be used
      * @param parsingErrors out param for parsing errors encountered
      * @return number of messages processes
      * @throws HL7Exception in some cases where HAPI does
@@ -196,13 +195,13 @@ public class InformDbOperations {
         try {
             processed = processHl7Message(msgFromIds, idsMsg.getUnid(), idsLog, processed);
         } catch (HL7Exception e) {
-            String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass()
-                    + ")";
+            String errMsg =
+                    "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass() + ")";
             idsLog.setMessage(errMsg);
             logger.warn(errMsg);
         } catch (InvalidMrnException e) {
-            String errMsg = "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass()
-            + ")";
+            String errMsg =
+                    "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass() + ")";
             idsLog.setMessage(errMsg);
             logger.warn(errMsg);
         } catch (MessageIgnoredException e) {
@@ -219,13 +218,13 @@ public class InformDbOperations {
     }
 
     /**
-     * Determine the message type (ADT/ORU/etc) and
-     * use the appropriate wrapper class to process the wrapper.
+     * Determine the message type (ADT/ORU/etc) and use the appropriate wrapper
+     * class to process the wrapper.
      *
      * @param msgFromIds the message
-     * @param idsUnid the IDS unique ID (or similar unique ID if not from IDS)
-     * @param idsLog the IDS-oriented log, or null if you don't want to log
-     * @param processed the current message processed count
+     * @param idsUnid    the IDS unique ID (or similar unique ID if not from IDS)
+     * @param idsLog     the IDS-oriented log, or null if you don't want to log
+     * @param processed  the current message processed count
      * @return the updated message processed count
      * @throws HL7Exception if HAPI does
      */
@@ -256,8 +255,7 @@ public class InformDbOperations {
                 mergeById(adtWrap);
                 processed += 1;
             } else {
-                logger.debug("[" + idsUnid + "] Skipping " + triggerEvent + " ("
-                        + msgFromIds.getClass() + ")");
+                logger.debug("[" + idsUnid + "] Skipping " + triggerEvent + " (" + msgFromIds.getClass() + ")");
                 if (idsLog != null) {
                     idsLog.setMessage("Skipping ADT due to message type");
                 }
@@ -286,9 +284,11 @@ public class InformDbOperations {
 
     /**
      * Record that we have processed all messages up to the specified message.
-     * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have processed
-     * @param messageDatetime the timestamp of this message
-     * @param processingEnd the time this message was actually processed
+     *
+     * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
+     *                             processed
+     * @param messageDatetime      the timestamp of this message
+     * @param processingEnd        the time this message was actually processed
      */
     @Transactional
     private void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
@@ -300,7 +300,9 @@ public class InformDbOperations {
     }
 
     /**
-     * Return the next HL7 message in the IDS. If there are no more, block until there are.
+     * Return the next HL7 message in the IDS. If there are no more, block until
+     * there are.
+     *
      * @param lastProcessedId the latest unique ID that has already been processed
      * @return the next HL7 message record
      */
@@ -310,10 +312,11 @@ public class InformDbOperations {
         while (true) {
             idsMsg = getNextHL7IdsRecord(lastProcessedId);
             if (idsMsg == null) {
-                logger.info("No more messages, retrying in " + secondsSleep + " seconds");
+                logger.info(String.format("No more messages, retrying in %ld seconds", secondsSleep));
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException ie) {
+                    logger.trace("Sleep was interrupted");
                 }
             } else {
                 break;
@@ -324,18 +327,21 @@ public class InformDbOperations {
 
     /**
      * Get next entry in the IDS, if it exists.
+     *
      * @param lastProcessedId the last one we have successfully processed
      *
-     * @return the first message that comes after lastProcessedId, or null if there isn't one
+     * @return the first message that comes after lastProcessedId, or null if there
+     *         isn't one
      */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
-        // consider changing to "get next N messages" for more efficient database performance
+        // consider changing to "get next N messages" for more efficient database
+        // performance
         // when doing large "catch-up" operations
         // (handle the batching in the caller)
         Session idsSession = idsOperations.openSession();
         idsSession.setDefaultReadOnly(true);
-        Query<IdsMaster> qnext = idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid",
-                IdsMaster.class);
+        Query<IdsMaster> qnext =
+                idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
         qnext.setParameter("lastProcessedId", lastProcessedId);
         qnext.setMaxResults(1);
         List<IdsMaster> nextMsgOrEmpty = qnext.list();
@@ -351,7 +357,8 @@ public class InformDbOperations {
 
     /**
      * Search for encounters in the Mrn with a given encounter number.
-     * @param mrn the Mrn to search
+     *
+     * @param mrn       the Mrn to search
      * @param encounter the encounter ID to search for
      * @return all encounters that match
      */
@@ -360,22 +367,21 @@ public class InformDbOperations {
         if (existingMrnEncs == null) {
             return null;
         }
-        List<Encounter> matchingEncs = existingMrnEncs
-                .stream()
-                .map(mrnE -> mrnE.getEncounter())
-                .filter(e -> encounter.equals(e.getEncounter()))
-                .collect(Collectors.toList());
+        List<Encounter> matchingEncs = existingMrnEncs.stream().map(mrnE -> mrnE.getEncounter())
+                .filter(e -> encounter.equals(e.getEncounter())).collect(Collectors.toList());
         return matchingEncs;
     }
 
     /**
      * All patient facts are in one table so some filtering is needed.
+     *
      * @param pf the patient fact
      * @return whether it is a visit fact (ie. what used to be the VisitFact class)
      */
     private static boolean factIsVisitFact(PatientFact pf) {
         String shortName = pf.getFactType().getShortName();
-        return shortName.equals(AttributeKeyMap.BED_VISIT.getShortname()) || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT.getShortname());
+        return shortName.equals(AttributeKeyMap.BED_VISIT.getShortname())
+                || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT.getShortname());
     }
 
     /**
@@ -391,8 +397,9 @@ public class InformDbOperations {
 
     /**
      * @param encounter the Encounter to search in
-     * @param pred the predicate to check against each visit fact
-     * @return all PatientFact objects in encounter which are visit facts AND match predicate pred
+     * @param pred      the predicate to check against each visit fact
+     * @return all PatientFact objects in encounter which are visit facts AND match
+     *         predicate pred
      */
     private List<PatientFact> getVisitFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
         return getFactWhere(encounter, f -> factIsVisitFact(f) && pred.test(f));
@@ -400,7 +407,7 @@ public class InformDbOperations {
 
     /**
      * @param encounter the Encounter to search in
-     * @param pred the predicate to check for each PatientFact
+     * @param pred      the predicate to check for each PatientFact
      * @return all PatientFact objects in encounter which match predicate pred
      */
     private List<PatientFact> getFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
@@ -408,16 +415,14 @@ public class InformDbOperations {
         if (facts == null) {
             return new ArrayList<PatientFact>();
         }
-        List<PatientFact> matchingFacts = facts
-                .stream()
-                .filter(pred)
-                .collect(Collectors.toList());
+        List<PatientFact> matchingFacts = facts.stream().filter(pred).collect(Collectors.toList());
         return matchingFacts;
     }
 
     /**
      * @param encounter the Encounter to search in
-     * @return all PatientFact objects in encounter which are NOT visit facts and match pred
+     * @return all PatientFact objects in encounter which are NOT visit facts and
+     *         match pred
      */
     private List<PatientFact> getValidDemographicFacts(Encounter encounter) {
         return getDemographicFactsWhere(encounter, f -> factIsValid(f));
@@ -425,24 +430,27 @@ public class InformDbOperations {
 
     /**
      * @param encounter the Encounter to search in
-     * @param pred the predicate to check against each demographic fact
-     * @return all PatientFact objects in encounter which are NOT visit facts and match pred
+     * @param pred      the predicate to check against each demographic fact
+     * @return all PatientFact objects in encounter which are NOT visit facts and
+     *         match pred
      */
     private List<PatientFact> getDemographicFactsWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
-        /* Currently we assume that all non-visit facts are demographic facts,
-         * but we are going to need some richer type information for Attributes
-         * to do this properly.
+        /*
+         * Currently we assume that all non-visit facts are demographic facts, but we
+         * are going to need some richer type information for Attributes to do this
+         * properly.
          */
         return getFactWhere(encounter, f -> !factIsVisitFact(f) && !factIsPathFact(f) && pred.test(f));
     }
 
     /**
-     * Check whether PatientFact has no discharge time property, indicating it's still open,
-     * and its valid until column is null, indicating that it has never been
-     * invalidated.
-     * Note: this does not perform time travel (ie. check whether validuntil is null or in the future)
-     * Note: the validity of the underlying visit properties is not checked - what would it mean to have
-     * a mismatch in validity between a Fact and its underlying properties?
+     * Check whether PatientFact has no discharge time property, indicating it's
+     * still open, and its valid until column is null, indicating that it has never
+     * been invalidated. Note: this does not perform time travel (ie. check whether
+     * validuntil is null or in the future) Note: the validity of the underlying
+     * visit properties is not checked - what would it mean to have a mismatch in
+     * validity between a Fact and its underlying properties?
+     *
      * @param vf the visit fact to check
      * @return whether visit is still open and valid as of the present moment
      */
@@ -453,10 +461,11 @@ public class InformDbOperations {
     }
 
     /**
-     * Check whether PatientFact's valid until column is null, indicating that it has never been
-     * invalidated.
-     * Note: this does not perform time travel (ie. check whether validuntil is null or in the future)
-     * Note: the validity of the underlying properties is not checked
+     * Check whether PatientFact's valid until column is null, indicating that it
+     * has never been invalidated. Note: this does not perform time travel (ie.
+     * check whether validuntil is null or in the future) Note: the validity of the
+     * underlying properties is not checked
+     *
      * @param pf the patient fact to check
      * @return whether fact is valid as of the present moment
      */
@@ -466,7 +475,7 @@ public class InformDbOperations {
     }
 
     /**
-     * @param vf the visit fact to check
+     * @param vf            the visit fact to check
      * @param visitTypeAttr the visit type to compare to
      * @return whether the visit fact vf is of the type visitTypeAttr
      */
@@ -475,32 +484,32 @@ public class InformDbOperations {
     }
 
     /**
-     * Get all PatientFact objects on this encounter with the given visit type, or null if none.
+     * Get all PatientFact objects on this encounter with the given visit type, or
+     * null if none.
+     *
      * @param encounter where to look for PatientFact objects
-     * @param attr the visit type (as an attribute)
+     * @param attr      the visit type (as an attribute)
      * @return all PatientFact objects of the specified type
      */
     private List<PatientFact> getVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
         return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr));
     }
 
-
     /**
      * @param encounter the Encounter to search in
-     * @param attr the type to match against
-     * @return all open and valid Visit objects of the specified type for the Encounter
+     * @param attr      the type to match against
+     * @return all open and valid Visit objects of the specified type for the
+     *         Encounter
      */
     private List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
         logger.info("getOpenVisitFactWhereVisitType: " + encounter + " " + attr);
-        return getVisitFactWhere(encounter,
-                vf -> visitFactIsOfType(vf, attr)
-                && visitFactIsOpenAndValid(vf)
-                );
+        return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && visitFactIsOpenAndValid(vf));
     }
 
     /**
      * Get existing encounter or create a new one if it doesn't exist.
-     * @param mrn the MRN to search/create in
+     *
+     * @param mrn              the MRN to search/create in
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
      * @throws HL7Exception if HAPI does
@@ -518,7 +527,8 @@ public class InformDbOperations {
             mrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         } else if (existingEncs.size() > 1) {
-            throw new MessageIgnoredException("More than one encounter with this ID, not sure how to handle this yet: " + encounter);
+            throw new MessageIgnoredException(
+                    "More than one encounter with this ID, not sure how to handle this yet: " + encounter);
         } else {
             // return the only element
             logger.info("getCreateEncounter RETURNING EXISTING");
@@ -546,18 +556,21 @@ public class InformDbOperations {
         // Encounter is usually a new one for an A01, but it is
         // possible to get a second A01 if the first admission gets deleted
         // and re-made. (User corrected an error in Epic we assume).
-        // Therefore need to reuse the existing encounter and the open visit if it exists.
+        // Therefore need to reuse the existing encounter and the open visit if it
+        // exists.
         // (Better to move the hosp visit creation to the actual "new Encounter"?)
         Encounter enc = getCreateEncounter(newOrExistingMrn, encounterDetails);
         List<PatientFact> allHospitalVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.HOSPITAL_VISIT);
 
-        // This perhaps belongs in a getCreateHospitalVisit method, with an InformDbDataIntegrity exception
+        // This perhaps belongs in a getCreateHospitalVisit method, with an
+        // InformDbDataIntegrity exception
         PatientFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
             hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
             addDemographicsToEncounter(enc, encounterDetails);
-            // Need to save here so the hospital visit can be created (and thus assigned an ID),
+            // Need to save here so the hospital visit can be created (and thus assigned an
+            // ID),
             // so we can refer to that ID in the bed visit.
             // (Bed visits refer to hosp visits explicitly by their IDs).
             break;
@@ -572,7 +585,8 @@ public class InformDbOperations {
                         "Found an open hospital visit with open bed visit count != 1 - hosp visit = "
                                 + hospitalVisit.getFactId());
             }
-            // Need to check whether it's the bed visit that corresponds to the existing hospital visit?
+            // Need to check whether it's the bed visit that corresponds to the existing
+            // hospital visit?
             PatientFact openBedVisit = allOpenBedVisits.get(0);
             Instant invalidTime = encounterDetails.getEventOccurred();
             openBedVisit.invalidateAll(invalidTime);
@@ -582,8 +596,7 @@ public class InformDbOperations {
                     + ") hospital visits in encounter " + encounterDetails.getVisitNumber());
         }
         // create a new bed visit with the new (or updated) location
-        addOpenBedVisit(enc, encounterDetails.getAdmissionDateTime(),
-                hospitalVisit,
+        addOpenBedVisit(enc, encounterDetails.getAdmissionDateTime(), hospitalVisit,
                 encounterDetails.getFullLocationString());
         enc = encounterRepo.save(enc);
         logger.info("Encounter: " + enc.toString());
@@ -591,7 +604,7 @@ public class InformDbOperations {
     }
 
     /**
-     * @param enc the encounter to add to
+     * @param enc        the encounter to add to
      * @param msgDetails the message details to use
      * @throws HL7Exception if HAPI does
      */
@@ -601,8 +614,9 @@ public class InformDbOperations {
     }
 
     /**
-     * Build the demographics objects from a message but don't actually do
-     * anything with them.
+     * Build the demographics objects from a message but don't actually do anything
+     * with them.
+     *
      * @param msgDetails the msg to build demographics from
      * @return Attribute->Fact key-value pairs
      * @throws HL7Exception if HAPI does
@@ -646,6 +660,7 @@ public class InformDbOperations {
 
     /**
      * A little mapping table to convert HL7 sex to Inform-db sex.
+     *
      * @param hl7Sex hl7 sex
      * @return Inform-db sex
      */
@@ -669,8 +684,10 @@ public class InformDbOperations {
     }
 
     /**
-     * Add a hospital visit fact to the specified Encounter. This visit is open, ie. ongoing.
-     * @param enc the Encounter to add to
+     * Add a hospital visit fact to the specified Encounter. This visit is open, ie.
+     * ongoing.
+     *
+     * @param enc            the Encounter to add to
      * @param visitBeginTime The start time of the visit
      * @return the hospital visit fact object
      */
@@ -688,10 +705,12 @@ public class InformDbOperations {
 
     /**
      * Add a new open bed visit to an existing higher-level (hospital) visit.
-     * @param enc the encounter to add the Visit to
+     *
+     * @param enc            the encounter to add the Visit to
      * @param visitBeginTime when the Visit began, which could be an admission
-     * @param parentVisit the (hospital?) visit that is a parent of the new bed visit
-     * @param currentBed bed location
+     * @param parentVisit    the (hospital?) visit that is a parent of the new bed
+     *                       visit
+     * @param currentBed     bed location
      */
     @Transactional
     private void addOpenBedVisit(Encounter enc, Instant visitBeginTime, PatientFact parentVisit, String currentBed) {
@@ -707,9 +726,9 @@ public class InformDbOperations {
     }
 
     /**
-     * @param visitFact the visit fact to add to
+     * @param visitFact   the visit fact to add to
      * @param parentVisit the parent visit fact to add
-     * @param validFrom the valid from timestamp to use
+     * @param validFrom   the valid from timestamp to use
      */
     private void addParentVisitToVisit(PatientFact visitFact, PatientFact parentVisit, Instant validFrom) {
         Attribute attr = getCreateAttribute(AttributeKeyMap.PARENT_VISIT);
@@ -722,9 +741,9 @@ public class InformDbOperations {
     }
 
     /**
-     * @param visitFact the visit fact to add to
+     * @param visitFact  the visit fact to add to
      * @param currentBed the current bed location
-     * @param validFrom the valid from timestamp to use
+     * @param validFrom  the valid from timestamp to use
      */
     private void addLocationToVisit(PatientFact visitFact, String currentBed, Instant validFrom) {
         Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
@@ -737,7 +756,7 @@ public class InformDbOperations {
     }
 
     /**
-     * @param visitFact the visit fact to add to
+     * @param visitFact        the visit fact to add to
      * @param visitArrivalTime the arrival time to add
      */
     private void addArrivalTimeToVisit(PatientFact visitFact, Instant visitArrivalTime) {
@@ -752,6 +771,7 @@ public class InformDbOperations {
 
     /**
      * Close off the existing Visit and open a new one.
+     *
      * @param transferDetails usually an A02 message but can be an A08
      * @throws HL7Exception if HAPI does
      */
@@ -782,21 +802,26 @@ public class InformDbOperations {
         Instant eventOccurred = transferDetails.getEventOccurred();
         if (transferDetails.getTriggerEvent().equals("A08")) {
             // A08 doesn't have an event time, so use the recorded time instead
-            // Downside: recorded time is later than event time, so subsequent discharge time
-            // for this visit can be *earlier* than the arrival time if it's a very short visit
+            // Downside: recorded time is later than event time, so subsequent discharge
+            // time
+            // for this visit can be *earlier* than the arrival time if it's a very short
+            // visit
             // or there was a big gap between A08 event + recorded time.
             eventOccurred = transferDetails.getRecordedDateTime();
         }
         if (latestOpenBedVisits.isEmpty()) {
-            throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
+            throw new MessageIgnoredException(
+                    "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
         String newTransferLocation = transferDetails.getFullLocationString();
-        String currentKnownLocation = getOnlyElement(
-                latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION)).getValueAsString();
+        String currentKnownLocation =
+                getOnlyElement(latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION)).getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
-            // If we get an A02 with a new location that matches where we already thought the patient was,
-            // don't perform an actual transfer. In the test data, this happens in a minority of cases
+            // If we get an A02 with a new location that matches where we already thought
+            // the patient was,
+            // don't perform an actual transfer. In the test data, this happens in a
+            // minority of cases
             // following an A08 implied transfer. Let's see what it does in the real data...
             String err = "[mrn " + mrnStr + "] REDUNDANT transfer, location has not changed: " + currentKnownLocation;
             logger.warn(err);
@@ -810,7 +835,8 @@ public class InformDbOperations {
         String admitSource = transferDetails.getAdmitSource();
         logger.info("TRANSFERRING: MRN = " + mrnStr);
         logger.info("    A02 details: adm " + admissionDateTime);
-        logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/" + recordedDateTime);
+        logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/"
+                + recordedDateTime);
 
         // add a new visit to the current encounter
         Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
@@ -824,6 +850,7 @@ public class InformDbOperations {
 
     /**
      * Mark the patient's most recent Visit as finished.
+     *
      * @param adtWrap the A03 message detailing the discharge
      * @throws HL7Exception if HAPI does
      */
@@ -838,7 +865,8 @@ public class InformDbOperations {
         }
         List<PatientFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
         if (latestOpenBedVisits.isEmpty()) {
-            throw new MessageIgnoredException("No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
+            throw new MessageIgnoredException(
+                    "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         Instant eventOccurred = adtWrap.getEventOccurred();
         Instant dischargeDateTime = adtWrap.getDischargeDateTime();
@@ -850,7 +878,8 @@ public class InformDbOperations {
             PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
             // Discharge from the bed visit and the hospital visit
             addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
-            List<PatientFact> hospVisit = getOpenVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT);
+            List<PatientFact> hospVisit =
+                    getOpenVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT);
             // There *should* be exactly 1...
             addDischargeToVisit(hospVisit.get(0), dischargeDateTime);
         }
@@ -859,7 +888,8 @@ public class InformDbOperations {
     /**
      * Mark a Visit as finished, which can happen either when transferring or
      * discharging a patient.
-     * @param visit the visit to mark as finished
+     *
+     * @param visit             the visit to mark as finished
      * @param dischargeDateTime the discharge/transfer time
      */
     private void addDischargeToVisit(PatientFact visit, Instant dischargeDateTime) {
@@ -873,8 +903,9 @@ public class InformDbOperations {
     }
 
     /**
-     * Return a persisted Attribute object with the given enum value,
-     * creating it first if necessary.
+     * Return a persisted Attribute object with the given enum value, creating it
+     * first if necessary.
+     *
      * @param attrKM the enum value of the attribute
      * @return the Attribute object
      */
@@ -890,8 +921,9 @@ public class InformDbOperations {
 
     /**
      * Add a property (key-value pair) to a pre-existing fact.
-     * @param fact the fact to add to
-     * @param attrKM the property key
+     *
+     * @param fact      the fact to add to
+     * @param attrKM    the property key
      * @param factValue the property value
      */
     private void addPropertyToFact(PatientFact fact, AttributeKeyMap attrKM, Object factValue) {
@@ -908,22 +940,20 @@ public class InformDbOperations {
 
     /**
      * Filter on a predicate where at most one element should satisfy it.
-     * @param <E> the type of the list elements
+     *
+     * @param      <E> the type of the list elements
      * @param list the list to look in
      * @param pred the predicate to test with
      * @return the only element that satisfies it, or null if there are none that do
      * @throws DuplicateValueException if more than one element satisfies pred
      */
     private <E> E getOnlyElementWhere(List<E> list, Predicate<? super E> pred) {
-        List<E> persons = list
-                .stream()
-                .filter(pred)
-                .collect(Collectors.toList());
+        List<E> persons = list.stream().filter(pred).collect(Collectors.toList());
         return getOnlyElement(persons);
     }
 
     /**
-     * @param <E> the type of the list elements
+     * @param      <E> the type of the list elements
      * @param list the given list
      * @return the only element in the given list, or null if empty, throws if >1
      * @throws DuplicateValueException if >1 element in list
@@ -940,8 +970,9 @@ public class InformDbOperations {
     }
 
     /**
-     * Handle an A08 message. This is supposed to be about patient info changes (ie. demographics,
-     * but we also see changes to location (ie. transfers) communicated only via an A08)
+     * Handle an A08 message. This is supposed to be about patient info changes (ie.
+     * demographics, but we also see changes to location (ie. transfers)
+     * communicated only via an A08)
      *
      * @param adtWrap the message with the patient info
      * @throws HL7Exception if HAPI does
@@ -968,10 +999,11 @@ public class InformDbOperations {
         if (onlyOpenBedVisit == null) {
             throw new MessageIgnoredException("Got A08 but no open bed visit for visit " + visitNumber);
         }
-        PatientProperty knownlocation = getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION));
+        PatientProperty knownlocation =
+                getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION));
         if (!newLocation.equals(knownlocation.getValueAsString())) {
-            logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|",
-                    adtWrap.getMrn(), visitNumber, knownlocation.getValueAsString(), newLocation));
+            logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtWrap.getMrn(),
+                    visitNumber, knownlocation.getValueAsString(), newLocation));
             transferPatient(adtWrap);
         }
 
@@ -980,13 +1012,13 @@ public class InformDbOperations {
 
     /**
      * If demographics have changed, update them and invalidate the old.
-     * @param encounter the existing encounter that we may need to modify demographics of
+     *
+     * @param encounter           the existing encounter that we may need to modify
+     *                            demographics of
      * @param currentDemographics existing demographics (eg. from the db)
-     * @param newDemographics new demographics (eg. from the current message)
+     * @param newDemographics     new demographics (eg. from the current message)
      */
-    private void updateDemographics(
-            Encounter encounter,
-            Map<String, PatientFact> currentDemographics,
+    private void updateDemographics(Encounter encounter, Map<String, PatientFact> currentDemographics,
             Map<String, PatientFact> newDemographics) {
         logger.info(String.format("A08 comparing %d existing demographic facts to %s new facts",
                 currentDemographics.size(), newDemographics.size()));
@@ -1003,7 +1035,8 @@ public class InformDbOperations {
                     // Just invalidate the entire fact and write in the new one.
                     // May try this on a per-property basis in future.
                     Instant invalidationDate = newFact.getValidFrom();
-                    logger.info("fact exists but does not match, replacing: " + currentFact.getFactType().getShortName());
+                    logger.info(
+                            "fact exists but does not match, replacing: " + currentFact.getFactType().getShortName());
                     currentFact.invalidateAll(invalidationDate);
                     encounter.addFact(newFact);
                 }
@@ -1012,11 +1045,13 @@ public class InformDbOperations {
     }
 
     /**
-     * Indicate in the DB that two MRNs now belong to the same person.
-     * One MRN is designated the surviving MRN, although we can't really enforce this as
-     * we'll continue to add further data to whichever MRN is specified in future,
-     * which (if the source system is behaving) we'd hope would be the surviving MRN.
-     * The best we could do is flag it as an error if new data is put against a non-surviving MRN.
+     * Indicate in the DB that two MRNs now belong to the same person. One MRN is
+     * designated the surviving MRN, although we can't really enforce this as we'll
+     * continue to add further data to whichever MRN is specified in future, which
+     * (if the source system is behaving) we'd hope would be the surviving MRN. The
+     * best we could do is flag it as an error if new data is put against a
+     * non-surviving MRN.
+     *
      * @param adtWrap message containing merge info
      * @throws HL7Exception when HAPI does or merge time in message is blank
      */
@@ -1025,7 +1060,8 @@ public class InformDbOperations {
         String oldMrnStr = adtWrap.getMergedPatientId();
         String survivingMrnStr = adtWrap.getMrn();
         Instant mergeTime = adtWrap.getRecordedDateTime();
-        logger.info("MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
+        logger.info(
+                "MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
         if (mergeTime == null) {
             throw new HL7Exception("event occurred null");
         }
@@ -1036,28 +1072,19 @@ public class InformDbOperations {
         Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
         Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
         if (survivingMrn == null || oldMrn == null) {
-            throw new InvalidMrnException(String.format(
-                    "MRNs %s or %s (%s or %s) are not previously known, do nothing",
-                    oldMrnStr, survivingMrnStr,
-                    oldMrn, survivingMrn
-                    ));
+            throw new InvalidMrnException(String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
+                    oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
         }
         Instant now = Instant.now();
 
-        PersonMrn oldPersonMrn = getOnlyElementWhere(
-                oldMrn.getPersons(),
-                pm -> pm.isValidAsOf(now));
+        PersonMrn oldPersonMrn = getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValidAsOf(now));
 
-        PersonMrn survivingPersonMrn = getOnlyElementWhere(
-                survivingMrn.getPersons(),
-                pm -> pm.isValidAsOf(now));
+        PersonMrn survivingPersonMrn = getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValidAsOf(now));
 
         if (survivingPersonMrn == null || oldPersonMrn == null) {
             throw new InvalidMrnException(String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
-                    oldMrnStr, survivingMrnStr,
-                    oldPersonMrn, survivingPersonMrn
-                    ));
+                    oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
         }
 
         // Invalidate the old person<->mrn association
@@ -1072,7 +1099,8 @@ public class InformDbOperations {
         }
 
         // Create a new person<->mrn association that tells us that as of the merge time
-        // the old MRN is believed to belong to the person associated with the surviving Mrn
+        // the old MRN is believed to belong to the person associated with the surviving
+        // Mrn
         PersonMrn newOldPersonMrn = new PersonMrn(survivingPersonMrn.getPerson(), oldMrn);
         newOldPersonMrn.setStoredFrom(Instant.now());
         newOldPersonMrn.setValidFrom(mergeTime);
@@ -1083,13 +1111,15 @@ public class InformDbOperations {
 
     /**
      * Build a patient property given the key/value pair.
+     *
      * @param storedFrom the stored from temporal field
-     * @param validFrom the valid from temporal field
-     * @param attrKM the attribute key value
-     * @param value the actual value
+     * @param validFrom  the valid from temporal field
+     * @param attrKM     the attribute key value
+     * @param value      the actual value
      * @return the constructed PatientProperty
      */
-    private PatientProperty buildPatientProperty(Instant storedFrom, Instant validFrom, AttributeKeyMap attrKM, Object value) {
+    private PatientProperty buildPatientProperty(Instant storedFrom, Instant validFrom, AttributeKeyMap attrKM,
+            Object value) {
         PatientProperty prop = new PatientProperty();
         prop.setValidFrom(validFrom);
         prop.setStoredFrom(storedFrom);
@@ -1099,9 +1129,10 @@ public class InformDbOperations {
     }
 
     /**
-     * Make a PatientFact from each pathology result.
-     * Return in an indexed collection for easy diffing (we expect
-     * to get partial results and final results at different times and this might be useful).
+     * Make a PatientFact from each pathology result. Return in an indexed
+     * collection for easy diffing (we expect to get partial results and final
+     * results at different times and this might be useful).
+     *
      * @param pathResults the pathology results
      * @return PatientFacts indexed by a unique identifier
      * @throws HL7Exception if HAPI does
@@ -1118,18 +1149,14 @@ public class InformDbOperations {
 
             String key = pr.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
 
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
-                    AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
                     pr.getTestBatteryLocalCode()));
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
-                    AttributeKeyMap.PATHOLOGY_TEST_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
-                    AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
+            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
                     pr.getNumericValue()));
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom,
-                    AttributeKeyMap.PATHOLOGY_UNITS,
-                    pr.getUnits()));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
 
             facts.put(key, fact);
         }
@@ -1137,8 +1164,8 @@ public class InformDbOperations {
     }
 
     /**
-     * Add all the pathology results in an ORU message
-     * to the specified encounter.
+     * Add all the pathology results in an ORU message to the specified encounter.
+     *
      * @param oruWrap the ORU wrapper
      * @throws HL7Exception when HAPI does
      */
@@ -1149,7 +1176,8 @@ public class InformDbOperations {
             throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
         }
         Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(oruWrap.getAllPathologyResults());
-        // in future we might do some diffing here to check we don't already have some of the results
+        // in future we might do some diffing here to check we don't already have some
+        // of the results
         for (PatientFact fact : allPathologyFacts.values()) {
             encounter.addFact(fact);
             // hmm...
@@ -1166,11 +1194,15 @@ public class InformDbOperations {
     }
 
     /**
-     * Find an existing Mrn by its string representation, optionally creating it first if it doesn't exist.
-     * @param mrnStr The mrn
-     * @param startTime If createIfNotExist, when did the Mrn first come into existence (valid from). Ignored if !createIfNotExist
+     * Find an existing Mrn by its string representation, optionally creating it
+     * first if it doesn't exist.
+     *
+     * @param mrnStr           The mrn
+     * @param startTime        If createIfNotExist, when did the Mrn first come into
+     *                         existence (valid from). Ignored if !createIfNotExist
      * @param createIfNotExist whether to create if it doesn't exist
-     * @return the Mrn, pre-existing or newly created, or null if it doesn't exist and !createIfNotExist
+     * @return the Mrn, pre-existing or newly created, or null if it doesn't exist
+     *         and !createIfNotExist
      */
     // Mrn record if it doesn't exist.
     private Mrn findOrAddMrn(String mrnStr, Instant startTime, boolean createIfNotExist) {
