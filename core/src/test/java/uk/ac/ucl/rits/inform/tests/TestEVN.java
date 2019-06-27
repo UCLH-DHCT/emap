@@ -1,8 +1,9 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.tests;
 
 import java.time.Instant;
 
 import org.junit.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.HL7Exception;
 import junit.framework.TestCase;
@@ -13,6 +14,7 @@ import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 /**
  * Test the EVN wrapper.
  */
+@ActiveProfiles("test")
 public class TestEVN extends TestCase {
     private EVNWrap wrapper;
 

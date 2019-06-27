@@ -539,7 +539,8 @@ public class InformDbOperations {
         String mrnStr = encounterDetails.getMrn();
         Instant admissionTime = encounterDetails.getAdmissionDateTime();
         if (mrnStr == null) {
-            throw new InvalidMrnException(String.format("Missing mrn in message from %s", encounterDetails.getMSH().getSendingApplication().encode()));
+            throw new InvalidMrnException(String.format("Missing mrn in message from %s",
+                    encounterDetails.getMSH().getSendingApplication().encode()));
         }
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr, admissionTime, true);
         // Encounter is usually a new one for an A01, but it is

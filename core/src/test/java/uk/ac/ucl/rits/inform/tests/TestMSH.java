@@ -1,6 +1,7 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.tests;
 
 import org.junit.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
@@ -13,6 +14,7 @@ import uk.ac.ucl.rits.inform.hl7.MSHWrap;
 /**
  * Test MSH wrapper.
  */
+@ActiveProfiles("test")
 public class TestMSH extends TestCase {
 
     private PipeParser parser;

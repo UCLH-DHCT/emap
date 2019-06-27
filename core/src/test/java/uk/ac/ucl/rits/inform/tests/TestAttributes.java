@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.tests;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
@@ -12,9 +12,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import junit.framework.TestCase;
+import uk.ac.ucl.rits.inform.InformDbOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
@@ -27,6 +29,7 @@ import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@ActiveProfiles("test")
 public class TestAttributes extends TestCase {
     @Autowired
     private InformDbOperations dbOps;
@@ -39,6 +42,7 @@ public class TestAttributes extends TestCase {
     /**
      * Store short names from the attributes enum.
      */
+    @Override
     @Before
     public void setUp() {
         enumShortNames = new TreeSet<>();

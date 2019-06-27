@@ -16,6 +16,8 @@ import ca.uhn.hl7v2.model.v27.segment.PV1;
 
 /**
  * Wrapper for an ADT message so we can find what we need more easily.
+ *
+ * @author Jeremy Stein
  */
 public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     private static final Logger logger = LoggerFactory.getLogger(AdtWrap.class);
@@ -94,37 +96,21 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     }
 
     /**
-     * Print some basic things in the HL7 message.
+     * Print some basic debug information about the HL7 message.
+     *
      * @throws HL7Exception if HAPI does
      */
-    private void prettyPrint() throws HL7Exception {
-        System.out.println("\n************** MSH segment **************************");
-        // MSH-1 Field Separator
-        // MSH-2 Encoding Characters
-        System.out.println("sending application = " + getSendingApplication());
-        //+ msh.getSendingApplication().getComponent(0).toString());// MSH-3
-        // Sending
-        // Application
-        // (“CARECAST”)
-        System.out.println("sending facility = " + getSendingFacility());
-        // Sending
-        // Facility
-        // (“UCLH”)
-        // MSH-5 Receiving Application (“Receiving system”)
-        System.out.println("messageTimestamp = " + getMessageTimestamp());
-        // Message
-        // YYYYMMDDHHMM
-        System.out.println("message type = " + getMessageType()); //.getMessageCode().toString()); // MSH-9.1 Message
-        // Type (ADT)
-        System.out.println("trigger event = " + getTriggerEvent());
-        // Trigger
-
-        System.out.println("current bed = " + getCurrentBed());
-
-        //// Minimal info needed //////
-        System.out.println("patient name = " + getPatientFullName());
-        System.out.println("patient MRN = " + getMrn());
-        System.out.println("admission time = " + getAdmissionDateTime());
+    public void debug() throws HL7Exception {
+        logger.debug("\n************** MSH segment **************************");
+        logger.debug("sending application = " + getSendingApplication());
+        logger.debug("sending facility = " + getSendingFacility());
+        logger.debug("messageTimestamp = " + getMessageTimestamp());
+        logger.debug("message type = " + getMessageType()); // MSH-9.1 Message
+        logger.debug("trigger event = " + getTriggerEvent());
+        logger.debug("current bed = " + getCurrentBed());
+        logger.debug("patient name = " + getPatientFullName());
+        logger.debug("patient MRN = " + getMrn());
+        logger.debug("admission time = " + getAdmissionDateTime());
     }
 
     /**

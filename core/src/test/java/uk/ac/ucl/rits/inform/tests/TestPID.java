@@ -1,6 +1,7 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.tests;
 
 import org.junit.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
@@ -14,6 +15,7 @@ import uk.ac.ucl.rits.inform.hl7.PIDWrap;
 /**
  * Test the PID wrapper.
  */
+@ActiveProfiles("test")
 public class TestPID extends TestCase {
 
     private PipeParser parser;

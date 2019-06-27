@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.hl7;
+package uk.ac.ucl.rits.inform.tests;
 
 import java.time.Instant;
 import java.util.Vector;
@@ -8,14 +8,17 @@ import ca.uhn.hl7v2.model.v27.segment.EVN;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
+import uk.ac.ucl.rits.inform.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.hl7.Doctor;
 
 /**
  * Generates random data while pretending to be an ADT parser.
  * Ideally we would generate more plausible data.
+ *
  * @author Jeremy Stein
  *
  */
-public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap*/ {
+public class AdtWrapMock extends AdtWrap {
     private String postcode;
     private String familyName;
     private String givenName;
@@ -24,6 +27,7 @@ public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap,
     private String nhsNumber;
     private String mrn;
     private Instant eventOccurred;
+    private String visitNumber;
 
     /**
      * Generate the synthetic data once so it's the same for the life of this object.
@@ -36,8 +40,10 @@ public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap,
         middleName = random.randomString();
         nhsNumber = random.randomNHSNumber();
         mrn = random.randomString();
-        administrativeSex = random.randomString();
+        administrativeSex = random.randomSex();
         eventOccurred = Instant.now();
+        visitNumber = random.randomString(8);
+
     }
 
     @Override
@@ -97,7 +103,7 @@ public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap,
 
     @Override
     public String getVisitNumber() throws HL7Exception {
-        return HL7Random.randomNumericSeeded(System.identityHashCode(this), 8);
+        return this.visitNumber;
     }
 
     @Override
@@ -123,17 +129,17 @@ public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap,
 
     @Override
     public String getPatientGivenName() throws HL7Exception {
-        return "Rutabaga";
+        return givenName;
     }
 
     @Override
     public String getPatientMiddleName() throws HL7Exception {
-        return "L";
+        return middleName;
     }
 
     @Override
     public String getPatientFamilyName() throws HL7Exception {
-        return "Turnip";
+        return familyName;
     }
 
     @Override
@@ -143,11 +149,11 @@ public class AdtWrapMock extends AdtWrap /*implements PV1Wrap, EVNWrap, MSHWrap,
 
     @Override
     public String getPatientZipOrPostalCode() {
-        return "ZZ99 9AB";
+        return postcode;
     }
 
     @Override
     public String getPatientSex() throws HL7Exception {
-        return "F";
+        return administrativeSex;
     }
 }
