@@ -5,7 +5,7 @@
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>HL7Processor</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.5-ALPHA</version>
   <name>HL7Processor</name>
   <url>http://maven.apache.org</url>
 
