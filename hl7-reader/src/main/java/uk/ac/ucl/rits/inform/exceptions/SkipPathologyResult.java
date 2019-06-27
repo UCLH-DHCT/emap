@@ -1,12 +1,18 @@
 package uk.ac.ucl.rits.inform.exceptions;
 
 /**
- * Not an error but a pathology result that we don't handle yet.
+ * An ignored pathology message.
+ *
  * @author Jeremy Stein
  *
  */
-public class SkipPathologyResult extends RuntimeException {
+public class SkipPathologyResult extends MessageIgnoredException {
+
+    private static final long serialVersionUID = 2923902031304532480L;
+
     /**
+     * Create a new SkipPathologyResult.
+     *
      * @param string the message
      */
     public SkipPathologyResult(String string) {

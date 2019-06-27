@@ -375,7 +375,7 @@ public class InformDbOperations {
      */
     private static boolean factIsVisitFact(PatientFact pf) {
         String shortName = pf.getFactType().getShortName();
-        return (shortName.equals(AttributeKeyMap.BED_VISIT.getShortname()) || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT.getShortname()));
+        return shortName.equals(AttributeKeyMap.BED_VISIT.getShortname()) || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT.getShortname());
     }
 
     /**
@@ -386,7 +386,7 @@ public class InformDbOperations {
      */
     private static boolean factIsPathFact(PatientFact pf) {
         String shortName = pf.getFactType().getShortName();
-        return (shortName.equals(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname()));
+        return shortName.equals(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname());
     }
 
     /**
@@ -395,7 +395,7 @@ public class InformDbOperations {
      * @return all PatientFact objects in encounter which are visit facts AND match predicate pred
      */
     private List<PatientFact> getVisitFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
-        return getFactWhere(encounter, (f -> factIsVisitFact(f) && pred.test(f)));
+        return getFactWhere(encounter, f -> factIsVisitFact(f) && pred.test(f));
     }
 
     /**
@@ -420,7 +420,7 @@ public class InformDbOperations {
      * @return all PatientFact objects in encounter which are NOT visit facts and match pred
      */
     private List<PatientFact> getValidDemographicFacts(Encounter encounter) {
-        return getDemographicFactsWhere(encounter, (f -> factIsValid(f)));
+        return getDemographicFactsWhere(encounter, f -> factIsValid(f));
     }
 
     /**
@@ -433,7 +433,7 @@ public class InformDbOperations {
          * but we are going to need some richer type information for Attributes
          * to do this properly.
          */
-        return getFactWhere(encounter, (f -> !factIsVisitFact(f) && !factIsPathFact(f) && pred.test(f)));
+        return getFactWhere(encounter, f -> !factIsVisitFact(f) && !factIsPathFact(f) && pred.test(f));
     }
 
     /**
@@ -449,7 +449,7 @@ public class InformDbOperations {
     private boolean visitFactIsOpenAndValid(PatientFact vf) {
         List<PatientProperty> vpEnd = vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
         Instant validUntil = vf.getValidUntil();
-        return vpEnd.isEmpty() && (validUntil == null);
+        return vpEnd.isEmpty() && validUntil == null;
     }
 
     /**
@@ -462,7 +462,7 @@ public class InformDbOperations {
      */
     private boolean factIsValid(PatientFact pf) {
         Instant validUntil = pf.getValidUntil();
-        return (validUntil == null);
+        return validUntil == null;
     }
 
     /**
@@ -539,7 +539,7 @@ public class InformDbOperations {
         String mrnStr = encounterDetails.getMrn();
         Instant admissionTime = encounterDetails.getAdmissionDateTime();
         if (mrnStr == null) {
-            throw new InvalidMrnException();
+            throw new InvalidMrnException(String.format("Missing mrn in message from %s", encounterDetails.getMSH().getSendingApplication().encode()));
         }
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr, admissionTime, true);
         // Encounter is usually a new one for an A01, but it is
@@ -934,7 +934,7 @@ public class InformDbOperations {
         case 1:
             return list.get(0);
         default:
-            throw new DuplicateValueException();
+            throw new DuplicateValueException(String.format("List contained %d elements instead of 0-1", list.size()));
         }
     }
 
