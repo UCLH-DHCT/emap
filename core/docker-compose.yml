@@ -13,6 +13,6 @@ services:
         HTTPS_PROXY: ${HTTPS_PROXY}
         https_proxy: ${https_proxy}
     env_file:
-      - ../hl7-envs
+      - hl7-envs
     logging:
       driver: "json-file"
