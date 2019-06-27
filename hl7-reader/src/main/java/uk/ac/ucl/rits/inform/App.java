@@ -24,6 +24,9 @@ import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.ids.IdsOperations;
 
 /**
+ * Entry point class for the HL7 pipeline.
+ *
+ * @author Jeremy Stein
  */
 @SpringBootApplication
 public class App {
@@ -37,9 +40,11 @@ public class App {
     }
 
     /**
-     * Entry point for populating a test IDS from a file specified on the command line.
+     * Entry point for populating a test IDS from a file specified on the command
+     * line.
+     *
      * @param ids IDS operations objects
-     * @return .
+     * @return The CommandLineRunner
      */
     @Bean
     @Profile("populate")
@@ -72,8 +77,9 @@ public class App {
 
     /**
      * The main entry point for processing HL7 messages and writing to Inform-db.
+     *
      * @param dbOps Inform-db operations object
-     * @return .
+     * @return The CommandLineRunner
      */
     @Bean
     @Profile("default")
@@ -99,7 +105,8 @@ public class App {
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
-            logger.info(String.format("processed %d messages in %.0f secs", count, (endCurrentTimeMillis - startTimeMillis) / 1000.0));
+            logger.info(String.format("processed %d messages in %.0f secs", count,
+                    (endCurrentTimeMillis - startTimeMillis) / 1000.0));
             context.close();
             dbOps.close();
         };
@@ -107,15 +114,16 @@ public class App {
 
     /**
      * Don't want to do any normal HL7 message processing if running test profile.
-     * @param dbOps .
-     * @return .
+     *
+     * @param dbOps Database operations functions.
+     * @return The CommandLineRunner
      */
     @Bean
     @Profile("test")
     public CommandLineRunner mainLoopTest(InformDbOperations dbOps) {
         return (args) -> {
             dbOps.ensureVocabLoaded();
-            logger.info("Running test CommandLineRunner, which does nothing");
+            logger.info("Running test CommandLineRunner, to ensure the vocab is loaded.");
         };
     }
 
