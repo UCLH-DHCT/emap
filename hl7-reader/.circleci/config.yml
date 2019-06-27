@@ -31,11 +31,9 @@ jobs:
               mvn install -Dmaven.test.skip=true
       - run:
           command: |
-             cd HL7Processor
              mvn dependency:go-offline
 
       - run:
           command: |
-             cd HL7Processor
              TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test
              TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test
