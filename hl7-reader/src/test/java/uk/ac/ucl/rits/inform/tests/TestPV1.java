@@ -1,9 +1,10 @@
-package uk.ac.ucl.rits.inform;
+package uk.ac.ucl.rits.inform.tests;
 
 import java.time.Instant;
 import java.util.Vector;
 
 import org.junit.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
@@ -16,6 +17,7 @@ import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 /**
  * Test the PV1 wrapper.
  */
+@ActiveProfiles("test")
 public class TestPV1 extends TestCase {
 
     private PipeParser parser;
