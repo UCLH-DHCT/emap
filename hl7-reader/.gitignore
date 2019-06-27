@@ -1,7 +1,19 @@
-*.class
-/target/
-.DS_Store
-.classpath
+# Temporary files
 *.swp
+*.swo
+*~
+*#
+
+# Editor files
+.classpath
 .project
 .settings/
+.checkstyle
+
+# Outputs
+*.class
+/target/
+
+# OS files
+.DS_Store
+
