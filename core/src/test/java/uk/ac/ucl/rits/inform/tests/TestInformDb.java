@@ -10,8 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import ca.uhn.hl7v2.HL7Exception;
-import uk.ac.ucl.rits.inform.InformDbOperations;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.pipeline.InformDbOperations;
 
 /**
  * @author Jeremy Stein
