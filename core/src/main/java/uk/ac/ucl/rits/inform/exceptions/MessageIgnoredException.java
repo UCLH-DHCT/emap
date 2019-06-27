@@ -3,17 +3,21 @@ package uk.ac.ucl.rits.inform.exceptions;
 /**
  * During processing this HL7 message, we have decided not to make
  * any changes to the database. Not necessarily an error.
- * The meaning of this will likely evolve over time...
- * @author jeremystein
+ *
+ * @author Jeremy Stein
  *
  */
 public class MessageIgnoredException extends RuntimeException {
 
+    private static final long serialVersionUID = 3654478669545317495L;
+
     /**
-     * @param string a message
+     * Create a new MessageIgnoredException.
+     *
+     * @param message the message
      */
-    public MessageIgnoredException(String string) {
-        super(string);
+    public MessageIgnoredException(String message) {
+        super(message);
     }
 
 }

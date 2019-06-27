@@ -1,18 +1,21 @@
 package uk.ac.ucl.rits.inform.exceptions;
 
 /**
- * MRN was blank or couldn't be found when it really should have been.
+ * MRN was blank or couldn't be found.
+ *
+ * @author Jeremy Stein
  */
 public class InvalidMrnException extends RuntimeException {
-    /**
-     * @param string the message
-     */
-    public InvalidMrnException(String string) {
-        super(string);
-    }
+
+    private static final long serialVersionUID = 8164692590305671393L;
 
     /**
+     * Create a new InvalidMrnException.
+     *
+     * @param message the message
      */
-    public InvalidMrnException() {
+    public InvalidMrnException(String message) {
+        super(message);
     }
+
 }
