@@ -16,10 +16,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import junit.framework.TestCase;
-import uk.ac.ucl.rits.inform.InformDbOperations;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
-import uk.ac.ucl.rits.inform.informdb.AttributeRepository;
+import uk.ac.ucl.rits.inform.pipeline.InformDbOperations;
+import uk.ac.ucl.rits.inform.pipeline.informdb.AttributeRepository;
 
 /**
  * Test that our attributes are consistent between the enum (AttributeKeyMap) and the

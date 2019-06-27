@@ -20,13 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import uk.ac.ucl.rits.inform.InformDbOperations;
-import uk.ac.ucl.rits.inform.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.informdb.EncounterRepository;
-import uk.ac.ucl.rits.inform.informdb.MrnRepository;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
+import uk.ac.ucl.rits.inform.pipeline.InformDbOperations;
+import uk.ac.ucl.rits.inform.pipeline.hl7.HL7Utils;
+import uk.ac.ucl.rits.inform.pipeline.informdb.EncounterRepository;
+import uk.ac.ucl.rits.inform.pipeline.informdb.MrnRepository;
 
 /**
  * Test processing of an ORU message that refers to an open admission

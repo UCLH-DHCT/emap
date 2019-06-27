@@ -8,8 +8,8 @@ import ca.uhn.hl7v2.model.v27.segment.EVN;
 import ca.uhn.hl7v2.model.v27.segment.MSH;
 import ca.uhn.hl7v2.model.v27.segment.PID;
 import ca.uhn.hl7v2.model.v27.segment.PV1;
-import uk.ac.ucl.rits.inform.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.hl7.Doctor;
+import uk.ac.ucl.rits.inform.pipeline.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.pipeline.hl7.Doctor;
 
 /**
  * Generates random data while pretending to be an ADT parser.

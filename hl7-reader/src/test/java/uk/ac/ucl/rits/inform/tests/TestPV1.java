@@ -10,9 +10,9 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.parser.PipeParser;
 import junit.framework.TestCase;
-import uk.ac.ucl.rits.inform.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.hl7.Doctor;
-import uk.ac.ucl.rits.inform.hl7.HL7Utils;
+import uk.ac.ucl.rits.inform.pipeline.hl7.AdtWrap;
+import uk.ac.ucl.rits.inform.pipeline.hl7.Doctor;
+import uk.ac.ucl.rits.inform.pipeline.hl7.HL7Utils;
 
 /**
  * Test the PV1 wrapper.
