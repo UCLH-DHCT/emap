@@ -16,6 +16,7 @@
     <checkstyle.version>8.19</checkstyle.version>
     <checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
     <apache.commons.csv.version>1.6</apache.commons.csv.version>
+    <inform-db.version>0.0.1-SNAPSHOT</inform-db.version>
   </properties>
 
   <parent>
@@ -29,7 +30,7 @@
     <dependency>
       <groupId>uk.ac.ucl.rits.inform</groupId>
       <artifactId>inform-db</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${inform-db.version}</version>
     </dependency>
 
     <dependency>
