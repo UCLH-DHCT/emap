@@ -17,3 +17,6 @@
 # OS files
 .DS_Store
 
+# Secrets files
+hl7-envs
+
