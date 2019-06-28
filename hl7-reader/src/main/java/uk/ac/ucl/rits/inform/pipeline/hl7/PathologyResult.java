@@ -33,6 +33,7 @@ public class PathologyResult {
     private String testItemCodingSystem;
 
     private double numericValue;
+    private String stringValue;
     private String units;
 
     private Instant resultTime;
@@ -76,7 +77,12 @@ public class PathologyResult {
 
         Varies data = obx.getObx5_ObservationValue(0);
         Type data2 = data.getData();
-        numericValue = Double.parseDouble(data2.toString());
+        this.stringValue = data2.toString();
+        try {
+            numericValue = Double.parseDouble(this.stringValue);
+        } catch (NumberFormatException e) {
+            logger.debug(String.format("Non numeric result %s", this.stringValue));
+        }
         units = obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty();
     }
 
@@ -143,6 +149,15 @@ public class PathologyResult {
      */
     public double getNumericValue() {
         return numericValue;
+    }
+
+    /**
+     * Get the String representation of the result.
+     *
+     * @return the String representation of the results.
+     */
+    public String getStringValue() {
+        return this.stringValue;
     }
 
     /**
