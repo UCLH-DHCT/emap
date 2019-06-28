@@ -1153,8 +1153,10 @@ public class InformDbOperations {
                     pr.getTestBatteryLocalCode()));
             fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
-                    pr.getNumericValue()));
+            PatientProperty result = buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
+                    pr.getNumericValue());
+            result.setValueAsString(pr.getStringValue());
+            fact.addProperty(result);
             fact.addProperty(
                     buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
 
