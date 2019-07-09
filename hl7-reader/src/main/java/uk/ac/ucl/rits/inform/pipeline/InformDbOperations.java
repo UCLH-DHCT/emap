@@ -312,7 +312,7 @@ public class InformDbOperations {
         while (true) {
             idsMsg = getNextHL7IdsRecord(lastProcessedId);
             if (idsMsg == null) {
-                logger.info(String.format("No more messages, retrying in %ld seconds", secondsSleep));
+                logger.info(String.format("No more messages, retrying in %d seconds", secondsSleep));
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException ie) {
