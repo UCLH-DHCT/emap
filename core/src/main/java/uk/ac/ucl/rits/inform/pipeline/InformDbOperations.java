@@ -40,6 +40,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.ResultType;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.InformDbIntegrityException;
@@ -422,10 +423,10 @@ public class InformDbOperations {
     /**
      * @param encounter the Encounter to search in
      * @return all PatientFact objects in encounter which are NOT visit facts and
-     *         match pred
+     *         are valid and stored as of the present moment
      */
-    private List<PatientFact> getValidDemographicFacts(Encounter encounter) {
-        return getDemographicFactsWhere(encounter, f -> factIsValid(f));
+    private List<PatientFact> getValidStoredDemographicFacts(Encounter encounter) {
+        return getDemographicFactsWhere(encounter, f -> factIsValid(f) && factIsStored(f));
     }
 
     /**
@@ -461,17 +462,31 @@ public class InformDbOperations {
     }
 
     /**
-     * Check whether PatientFact's valid until column is null, indicating that it
+     * Check whether PatientFact's valid_until column is null, indicating that it
      * has never been invalidated. Note: this does not perform time travel (ie.
-     * check whether validuntil is null or in the future) Note: the validity of the
+     * check whether valid_until is null or in the future) Note: the validity of the
      * underlying properties is not checked
      *
      * @param pf the patient fact to check
      * @return whether fact is valid as of the present moment
      */
-    private boolean factIsValid(PatientFact pf) {
+    private boolean factIsValid(TemporalCore pf) {
         Instant validUntil = pf.getValidUntil();
         return validUntil == null;
+    }
+
+    /**
+     * Check whether PatientFact's stored_until column is null, indicating that it
+     * has not been unstored (deleted). Note: this does not perform time travel (ie.
+     * check whether stored_until is null or in the future) Note: the storedness of the
+     * underlying properties is not checked
+     *
+     * @param pf the patient fact to check
+     * @return whether fact is stored as of the present moment
+     */
+    private boolean factIsStored(TemporalCore pf) {
+        Instant storedUntil = pf.getStoredUntil();
+        return storedUntil == null;
     }
 
     /**
@@ -989,7 +1004,7 @@ public class InformDbOperations {
 
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = buildPatientDemographics(adtWrap);
-        Map<String, PatientFact> currentDemographics = getValidDemographicFacts(encounter).stream()
+        Map<String, PatientFact> currentDemographics = getValidStoredDemographicFacts(encounter).stream()
                 .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
         updateDemographics(encounter, currentDemographics, newDemographics);
 
