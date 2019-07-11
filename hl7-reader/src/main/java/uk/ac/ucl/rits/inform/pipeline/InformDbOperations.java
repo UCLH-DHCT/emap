@@ -864,7 +864,7 @@ public class InformDbOperations {
     }
 
     /**
-     * Mark the patient's most recent Visit as finished.
+     * Mark the specified visit as finished.
      *
      * @param adtWrap the A03 message detailing the discharge
      * @throws HL7Exception if HAPI does
@@ -878,8 +878,8 @@ public class InformDbOperations {
         if (encounter == null) {
             throw new MessageIgnoredException("Cannot discharge for a visit that doesn't exist: " + visitNumber);
         }
-        List<PatientFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
-        if (latestOpenBedVisits.isEmpty()) {
+        PatientFact latestOpenBedVisit = getOnlyElement(getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT));
+        if (latestOpenBedVisit == null) {
             throw new MessageIgnoredException(
                     "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
@@ -890,13 +890,12 @@ public class InformDbOperations {
         if (dischargeDateTime == null) {
             throw new MessageIgnoredException("Trying to discharge but the discharge date is null");
         } else {
-            PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
             // Discharge from the bed visit and the hospital visit
             addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
-            List<PatientFact> hospVisit =
-                    getOpenVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT);
+            PatientFact hospVisit = getOnlyElement(
+                    getOpenVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT));
             // There *should* be exactly 1...
-            addDischargeToVisit(hospVisit.get(0), dischargeDateTime);
+            addDischargeToVisit(hospVisit, dischargeDateTime);
         }
     }
 
