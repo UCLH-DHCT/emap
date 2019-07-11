@@ -448,17 +448,16 @@ public class InformDbOperations {
      * Check whether PatientFact has no discharge time property, indicating it's
      * still open, and its valid until column is null, indicating that it has never
      * been invalidated. Note: this does not perform time travel (ie. check whether
-     * validuntil is null or in the future) Note: the validity of the underlying
-     * visit properties is not checked - what would it mean to have a mismatch in
-     * validity between a Fact and its underlying properties?
+     * validuntil is null or in the future)
      *
      * @param vf the visit fact to check
      * @return whether visit is still open and valid as of the present moment
      */
     private boolean visitFactIsOpenAndValid(PatientFact vf) {
-        List<PatientProperty> vpEnd = vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
+        PatientProperty validDischargeTime = getOnlyElement(vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
+                .filter(p -> p.isValid()).collect(Collectors.toList()));
         Instant validUntil = vf.getValidUntil();
-        return vpEnd.isEmpty() && validUntil == null;
+        return validDischargeTime == null && validUntil == null;
     }
 
     /**
@@ -881,7 +880,7 @@ public class InformDbOperations {
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT));
         if (latestOpenBedVisit == null) {
             throw new MessageIgnoredException(
-                    "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
+                    "No open bed visit, cannot discharge, did you miss an A13? visit " + visitNumber);
         }
         Instant eventOccurred = adtWrap.getEventOccurred();
         Instant dischargeDateTime = adtWrap.getDischargeDateTime();
