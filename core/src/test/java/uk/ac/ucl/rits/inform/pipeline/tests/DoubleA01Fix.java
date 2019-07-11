@@ -15,11 +15,21 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
+/**
+ * Check that if we get a second A01 for the same encounter where a discharge has not happened in between,
+ * that we treat it as a correction to the first one instead of a new admission (which would fail).
+ * This is needed because we're not currently receiving A11 (cancel admission) messages, so we have to imply their presence.
+ *
+ * @author Jeremy Stein
+ */
 public class DoubleA01Fix extends Hl7StreamTestCase {
-
     public DoubleA01Fix() {
         super();
-        hl7StreamFileNames.add("DoubleA01.txt");
+        hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
+        hl7StreamFileNames.add("DoubleA01WithA13/SecondA01.txt");
+        // For extra robustness check that demographics can be changed
+        // (this is needed to trigger at least one bug)
+        hl7StreamFileNames.add("DoubleA01WithA13/A08.txt");
     }
 
     /**
