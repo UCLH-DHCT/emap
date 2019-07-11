@@ -72,12 +72,13 @@ public class OruTest {
     }
 
     /**
-     * All test messages got processed.
+     * All test messages got processed and there was at least one message.
      */
     @Test
     @Transactional
     public void testAllProcessed() {
         assertEquals(totalMessages, processedMessages);
+        assertTrue("No messages got processed", totalMessages > 0);
     }
 
     /**
