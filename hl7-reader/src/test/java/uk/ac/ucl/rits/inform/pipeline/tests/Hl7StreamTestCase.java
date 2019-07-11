@@ -27,7 +27,7 @@ import uk.ac.ucl.rits.inform.pipeline.informdb.EncounterRepository;
 import uk.ac.ucl.rits.inform.pipeline.informdb.MrnRepository;
 
 /**
- * A test case that first loads in a stream of HL7 messages from one or more text files.
+ * A test case that first loads in and processes a stream of HL7 messages from one or more text files.
  * @author Jeremy Stein
  *
  */
