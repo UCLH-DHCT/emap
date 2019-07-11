@@ -1,32 +1,20 @@
 package uk.ac.ucl.rits.inform.pipeline.tests;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
-import uk.ac.ucl.rits.inform.pipeline.InformDbOperations;
-import uk.ac.ucl.rits.inform.pipeline.hl7.HL7Utils;
-import uk.ac.ucl.rits.inform.pipeline.informdb.EncounterRepository;
-import uk.ac.ucl.rits.inform.pipeline.informdb.MrnRepository;
 
 /**
  * Test processing of an ORU message that refers to an open admission
@@ -38,50 +26,18 @@ import uk.ac.ucl.rits.inform.pipeline.informdb.MrnRepository;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
-public class OruTest {
-    @Autowired
-    private InformDbOperations dbOps;
-    @Autowired
-    private EncounterRepository encounterRepo;
-    @Autowired
-    private MrnRepository mrnRepo;
-
-    private int totalMessages;
-    private int processedMessages;
-
+public class OruTest extends Hl7StreamTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.
-     * @throws IOException if trouble reading the test messages
-     * @throws HL7Exception if HAPI does
      */
-    @Before
-    @Transactional
-    public void setup() throws IOException, HL7Exception {
-        Hl7InputStreamMessageIterator hl7Iter = HL7Utils.hl7Iterator(new File(HL7Utils.getPathFromResource("ORU_R01.txt")));
-        totalMessages = 0;
-        processedMessages = 0;
-        // populate the database once only
-        if (mrnRepo.count() == 0) {
-            while (hl7Iter.hasNext()) {
-                totalMessages++;
-                Message msg = hl7Iter.next();
-                processedMessages = dbOps.processHl7Message(msg, totalMessages, null, processedMessages);
-            }
-        }
+    public OruTest() {
+        super();
+        hl7StreamFileNames.add("ORU_R01.txt");
     }
 
     /**
-     * All test messages got processed and there was at least one message.
-     */
-    @Test
-    @Transactional
-    public void testAllProcessed() {
-        assertEquals(totalMessages, processedMessages);
-        assertTrue("No messages got processed", totalMessages > 0);
-    }
-
-    /**
+     * Check that the encounter contains some pathology data now.
      */
     @Test
     @Transactional
