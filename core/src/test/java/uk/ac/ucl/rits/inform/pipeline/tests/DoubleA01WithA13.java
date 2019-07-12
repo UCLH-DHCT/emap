@@ -34,12 +34,12 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-@Ignore
 public class DoubleA01WithA13 extends Hl7StreamTestCase {
     public DoubleA01WithA13() {
         super();
         hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
         hl7StreamFileNames.add("DoubleA01WithA13/A03.txt");
+        hl7StreamFileNames.add("DoubleA01WithA13/A13.txt");
         hl7StreamFileNames.add("DoubleA01WithA13/SecondA01.txt");
         // bug is not triggered until you then tried to change the demographics again
         hl7StreamFileNames.add("DoubleA01WithA13/A08.txt");

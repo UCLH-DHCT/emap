@@ -80,7 +80,7 @@ public abstract class Hl7StreamTestCase {
     @Transactional
     public void testAllProcessed() {
         assertTrue("You must specify some HL7 containing files", !hl7StreamFileNames.isEmpty());
-        assertEquals(totalMessages, processedMessages);
+        assertEquals("not all messages were processed - some were ignored", totalMessages, processedMessages);
         assertTrue("No messages got processed", totalMessages > 0);
     }
 }
