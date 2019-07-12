@@ -9,5 +9,5 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
  *
  * @author Jeremy Stein
  */
-public interface PatientFactRepository extends CrudRepository<PatientFact, Integer> {
+public interface PatientFactRepository extends CrudRepository<PatientFact, Long> {
 }

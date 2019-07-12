@@ -252,6 +252,9 @@ public class InformDbOperations {
             } else if (triggerEvent.equals("A08")) {
                 updatePatientInfo(adtWrap);
                 processed += 1;
+            } else if (triggerEvent.equals("A13")) {
+                cancelDischargePatient(adtWrap);
+                processed += 1;
             } else if (triggerEvent.equals("A40")) {
                 mergeById(adtWrap);
                 processed += 1;
@@ -446,18 +449,26 @@ public class InformDbOperations {
 
     /**
      * Check whether PatientFact has no discharge time property, indicating it's
-     * still open, and its valid until column is null, indicating that it has never
-     * been invalidated. Note: this does not perform time travel (ie. check whether
-     * validuntil is null or in the future)
+     * still open.
+     *
+     * @param vf the visit fact to check
+     * @return whether visit is still open (ie. not discharged)
+     */
+    private boolean visitFactIsOpen(PatientFact vf) {
+        PatientProperty validDischargeTime = getOnlyElement(vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
+                .filter(p -> p.isValid()).collect(Collectors.toList()));
+        return validDischargeTime == null;
+    }
+
+    /**
+     * Check whether PatientFact is still open, and its valid until column is null, indicating that it has never
+     * been invalidated.
      *
      * @param vf the visit fact to check
      * @return whether visit is still open and valid as of the present moment
      */
     private boolean visitFactIsOpenAndValid(PatientFact vf) {
-        PatientProperty validDischargeTime = getOnlyElement(vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
-                .filter(p -> p.isValid()).collect(Collectors.toList()));
-        Instant validUntil = vf.getValidUntil();
-        return validDischargeTime == null && validUntil == null;
+        return visitFactIsOpen(vf) && vf.isValid();
     }
 
     /**
@@ -518,6 +529,17 @@ public class InformDbOperations {
     private List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
         logger.info("getOpenVisitFactWhereVisitType: " + encounter + " " + attr);
         return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && visitFactIsOpenAndValid(vf));
+    }
+
+    /**
+     * @param encounter the Encounter to search in
+     * @param attr      the type to match against
+     * @return all open and valid Visit objects of the specified type for the
+     *         Encounter
+     */
+    private List<PatientFact> getClosedVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
+        logger.info("getClosedVisitFactWhereVisitType: " + encounter + " " + attr);
+        return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && !visitFactIsOpen(vf) && vf.isValid());
     }
 
     /**
@@ -583,9 +605,8 @@ public class InformDbOperations {
         case 0:
             hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
             addDemographicsToEncounter(enc, encounterDetails);
-            // Need to save here so the hospital visit can be created (and thus assigned an
-            // ID),
-            // so we can refer to that ID in the bed visit.
+            // Need to save here so the hospital visit can be created (and thus
+            // assigned an ID), so we can refer to that ID in the bed visit.
             // (Bed visits refer to hosp visits explicitly by their IDs).
             break;
         case 1:
@@ -896,6 +917,61 @@ public class InformDbOperations {
             // There *should* be exactly 1...
             addDischargeToVisit(hospVisit, dischargeDateTime);
         }
+    }
+
+    /**
+     * Compare function for closed visits. Discharge time property must exist.
+     * @param v1 visit to compare 1
+     * @param v2 visit to compare 2
+     * @return result of compareTo called on the discharge timestamps, ie. dischV1.compareTo(dischV2)
+     */
+    private int sortVisitByDischargeTime(PatientFact v1, PatientFact v2) {
+        Instant dischV1 = getOnlyElement(v1.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME)).getValueAsDatetime();
+        Instant dischV2 = getOnlyElement(v2.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME)).getValueAsDatetime();
+        return dischV1.compareTo(dischV2);
+    }
+
+    /**
+     * Mark the visit specified by visit number as not discharged any more. Can either mean a discharge was
+     * erroneously entered, or a decision to discharge was reversed.
+     *
+     * @param adtWrap the A13 message detailing the cancel discharge
+     * @throws HL7Exception if HAPI does
+     */
+    @Transactional
+    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception {
+        String visitNumber = adtWrap.getVisitNumber();
+        // event occurred field seems to be populated despite the Epic example message showing it blank.
+        Instant invalidationDate = adtWrap.getEventOccurred();
+        // this must be non-null or the invalidation won't work
+        if (invalidationDate == null) {
+            throw new MessageIgnoredException("Trying to cancel discharge but the event occurred date is null");
+        }
+
+        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+        if (encounter == null) {
+            throw new MessageIgnoredException("Cannot cancel discharge for a visit that doesn't exist: " + visitNumber);
+        }
+        // get closed bed visits, sorted by descending discharge time
+        List<PatientFact> closedVisitFactWhereVisitType = getClosedVisitFactWhereVisitType(encounter,
+                AttributeKeyMap.BED_VISIT).stream().sorted((vf1, vf2) -> -sortVisitByDischargeTime(vf1, vf2))
+                        .collect(Collectors.toList());
+        PatientFact mostRecentClosedBedVisit = closedVisitFactWhereVisitType.get(0);
+        PatientProperty bedDischargeTime = getOnlyElement(mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME));
+        // Find the hospital visit corresponding to the bed visit
+        Long hospitalVisitId = getOnlyElement(mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.PARENT_VISIT)).getValueAsLink();
+        PatientFact hospitalVisit = patientFactRepository.findById(hospitalVisitId).get();
+        PatientProperty hospDischargeTime = getOnlyElement(hospitalVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME));
+        // Do the actual cancel by invalidating the discharge time properties.
+        bedDischargeTime.setValidUntil(invalidationDate);
+        hospDischargeTime.setValidUntil(invalidationDate);
+
+        // The Epic spec for receiving an A13 says you can be put in a different place than the last one you were in,
+        // ie. an implicit transfer. Does this ever happen for messages that Epic emits? Currently ignoring
+        // the location field.
+
+        mostRecentClosedBedVisit = patientFactRepository.save(mostRecentClosedBedVisit);
+        hospitalVisit = patientFactRepository.save(hospitalVisit);
     }
 
     /**
