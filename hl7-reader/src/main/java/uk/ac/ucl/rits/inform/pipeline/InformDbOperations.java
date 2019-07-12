@@ -851,7 +851,7 @@ public class InformDbOperations {
         PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
         String newTransferLocation = transferDetails.getFullLocationString();
         String currentKnownLocation =
-                getOnlyElement(latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION)).getValueAsString();
+                getOnlyElement(latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid())).getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
             // If we get an A02 with a new location that matches where we already thought
             // the patient was,
@@ -926,8 +926,8 @@ public class InformDbOperations {
      * @return result of compareTo called on the discharge timestamps, ie. dischV1.compareTo(dischV2)
      */
     private int sortVisitByDischargeTime(PatientFact v1, PatientFact v2) {
-        Instant dischV1 = getOnlyElement(v1.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME)).getValueAsDatetime();
-        Instant dischV2 = getOnlyElement(v2.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME)).getValueAsDatetime();
+        Instant dischV1 = getOnlyElement(v1.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid())).getValueAsDatetime();
+        Instant dischV2 = getOnlyElement(v2.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid())).getValueAsDatetime();
         return dischV1.compareTo(dischV2);
     }
 
@@ -957,11 +957,14 @@ public class InformDbOperations {
                 AttributeKeyMap.BED_VISIT).stream().sorted((vf1, vf2) -> -sortVisitByDischargeTime(vf1, vf2))
                         .collect(Collectors.toList());
         PatientFact mostRecentClosedBedVisit = closedVisitFactWhereVisitType.get(0);
-        PatientProperty bedDischargeTime = getOnlyElement(mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME));
+        PatientProperty bedDischargeTime = getOnlyElement(
+                mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         // Find the hospital visit corresponding to the bed visit
-        Long hospitalVisitId = getOnlyElement(mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.PARENT_VISIT)).getValueAsLink();
+        Long hospitalVisitId = getOnlyElement(
+                mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.PARENT_VISIT, p -> p.isValid()))
+                        .getValueAsLink();
         PatientFact hospitalVisit = patientFactRepository.findById(hospitalVisitId).get();
-        PatientProperty hospDischargeTime = getOnlyElement(hospitalVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME));
+        PatientProperty hospDischargeTime = getOnlyElement(hospitalVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         // Do the actual cancel by invalidating the discharge time properties.
         bedDischargeTime.setValidUntil(invalidationDate);
         hospDischargeTime.setValidUntil(invalidationDate);
@@ -1089,7 +1092,7 @@ public class InformDbOperations {
             throw new MessageIgnoredException("Got A08 but no open bed visit for visit " + visitNumber);
         }
         PatientProperty knownlocation =
-                getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION));
+                getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
         if (!newLocation.equals(knownlocation.getValueAsString())) {
             logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtWrap.getMrn(),
                     visitNumber, knownlocation.getValueAsString(), newLocation));

@@ -54,7 +54,7 @@ public class DoubleA01WithA13 extends Hl7StreamTestCase {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
         PatientFact generalDemo = factsAsMap.get(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname());
-        List<PatientProperty> dob = generalDemo.getPropertyByAttribute(AttributeKeyMap.DOB);
+        List<PatientProperty> dob = generalDemo.getPropertyByAttribute(AttributeKeyMap.DOB, p -> p.isValid());
         assertEquals("There should be exactly one dob property", 1, dob.size());
         PatientProperty d = dob.get(0);
         assertTrue(d.isValid());
