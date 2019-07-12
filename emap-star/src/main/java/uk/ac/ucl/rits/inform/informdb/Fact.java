@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -61,22 +62,33 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      * @return the property(ies) in this fact with the given attribute (key)
      */
     public List<PropertyType> getPropertyByAttribute(AttributeKeyMap attrKey) {
-        return getPropertyByAttribute(attrKey.getShortname());
+        return getPropertyByAttribute(attrKey.getShortname(), p -> true);
     }
 
     /**
      * @param attrKey the attribute
-     * @return the property(ies) in this fact with the given attribute (key)
+     * @param pred predicate to test prop against
+     * @return the property(ies) in this fact with the given attribute (key) and that match pred
      */
-    public List<PropertyType> getPropertyByAttribute(Attribute attrKey) {
-        return getPropertyByAttribute(attrKey.getShortName());
+    public List<PropertyType> getPropertyByAttribute(AttributeKeyMap attrKey, Predicate<? super PropertyType> pred) {
+        return getPropertyByAttribute(attrKey.getShortname(), pred);
     }
 
     /**
      * @param attrKey the attribute
-     * @return the property(ies) in this fact with the given attribute (key)
+     * @param pred predicate to test prop against
+     * @return the property(ies) in this fact with the given attribute (key) and that match pred
      */
-    public List<PropertyType> getPropertyByAttribute(String attrKey) {
+    public List<PropertyType> getPropertyByAttribute(Attribute attrKey, Predicate<? super PropertyType> pred) {
+        return getPropertyByAttribute(attrKey.getShortName(), pred);
+    }
+
+    /**
+     * @param attrKey the attribute
+     * @param pred predicate to test prop against
+     * @return the property(ies) in this fact with the given attribute (key) and that match pred
+     */
+    public List<PropertyType> getPropertyByAttribute(String attrKey, Predicate<? super PropertyType> pred) {
         // Might want to cache this as K->[V,V',V'',...] pairs.
         // Many properties have logical constraints on the number of elements that
         // should exist - consider enforcing this here?
@@ -84,7 +96,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             return new ArrayList<PropertyType>();
         }
         List<PropertyType> propsWithAttr = properties.stream()
-                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey)).collect(Collectors.toList());
+                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey) && pred.test(prop)).collect(Collectors.toList());
         return propsWithAttr;
     }
 
