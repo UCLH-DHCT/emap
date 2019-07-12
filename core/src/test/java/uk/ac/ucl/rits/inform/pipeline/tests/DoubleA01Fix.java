@@ -43,7 +43,7 @@ public class DoubleA01Fix extends Hl7StreamTestCase {
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
         assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
         PatientFact bedVisit = factsAsMap.get(AttributeKeyMap.BED_VISIT.getShortname());
-        List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION);
+        List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid());
         assertEquals("There should be exactly one location property for an inpatient bed visit", 1, location.size());
         PatientProperty loca = location.get(0);
         assertTrue(loca.isValid());
