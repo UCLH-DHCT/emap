@@ -6,8 +6,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties("parentFact")
+@Table(indexes = { @Index(name = "parent_fact_index", columnList = "parent_fact", unique = false) })
 public class PatientProperty extends Property<PatientFact> implements Serializable {
 
     private static final long serialVersionUID = 9035602294475836526L;
