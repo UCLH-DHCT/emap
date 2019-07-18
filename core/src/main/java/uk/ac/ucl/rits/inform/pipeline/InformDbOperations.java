@@ -43,6 +43,7 @@ import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.DuplicateValueException;
+import uk.ac.ucl.rits.inform.pipeline.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.InformDbIntegrityException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
@@ -207,6 +208,8 @@ public class InformDbOperations {
             logger.warn(errMsg);
         } catch (MessageIgnoredException e) {
             idsLog.setMessage(e.getClass() + " " + e.getMessage());
+        } catch (Hl7InconsistencyException e) {
+            idsLog.setMessage(e.getClass() + " " + e.getMessage());
         } finally {
             idsLog = idsEffectLoggingRepository.save(idsLog);
         }
@@ -228,9 +231,10 @@ public class InformDbOperations {
      * @param processed  the current message processed count
      * @return the updated message processed count
      * @throws HL7Exception if HAPI does
+     * @throws Hl7InconsistencyException if there seems to be something wrong in the HL7 stream that should be logged and investigated
      */
     public int processHl7Message(Message msgFromIds, int idsUnid, IdsEffectLogging idsLog, int processed)
-            throws HL7Exception {
+            throws HL7Exception, Hl7InconsistencyException {
         // it's ok to give any message to an AdtWrap if we're only looking at the MSH
         MSHWrap mshwrap = new AdtWrap(msgFromIds);
         String messageType = mshwrap.getMessageType();
@@ -920,14 +924,22 @@ public class InformDbOperations {
     }
 
     /**
-     * Compare function for closed visits. Discharge time property must exist.
+     * Compare function for visits by discharge time. Missing discharge time sorts as "high", ie. it is considered the most recent.
      * @param v1 visit to compare 1
      * @param v2 visit to compare 2
      * @return result of compareTo called on the discharge timestamps, ie. dischV1.compareTo(dischV2)
      */
     private int sortVisitByDischargeTime(PatientFact v1, PatientFact v2) {
-        Instant dischV1 = getOnlyElement(v1.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid())).getValueAsDatetime();
-        Instant dischV2 = getOnlyElement(v2.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid())).getValueAsDatetime();
+        PatientProperty dischProp1 = getOnlyElement(v1.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
+        Instant dischV1 = Instant.MAX;
+        if (dischProp1 != null) {
+            dischV1 = dischProp1.getValueAsDatetime();
+        }
+        PatientProperty dischProp2 = getOnlyElement(v2.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
+        Instant dischV2 = Instant.MAX;
+        if (dischProp2 != null) {
+            dischV2 = dischProp2.getValueAsDatetime();
+        }
         return dischV1.compareTo(dischV2);
     }
 
@@ -937,9 +949,10 @@ public class InformDbOperations {
      *
      * @param adtWrap the A13 message detailing the cancel discharge
      * @throws HL7Exception if HAPI does
+     * @throws Hl7InconsistencyException if this message can't be matched to an existing discharge
      */
     @Transactional
-    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception {
+    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception, Hl7InconsistencyException {
         String visitNumber = adtWrap.getVisitNumber();
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtWrap.getEventOccurred();
@@ -952,16 +965,23 @@ public class InformDbOperations {
         if (encounter == null) {
             throw new MessageIgnoredException("Cannot cancel discharge for a visit that doesn't exist: " + visitNumber);
         }
-        // get closed bed visits, sorted by descending discharge time
-        List<PatientFact> closedVisitFactWhereVisitType = getClosedVisitFactWhereVisitType(encounter,
-                AttributeKeyMap.BED_VISIT).stream().sorted((vf1, vf2) -> -sortVisitByDischargeTime(vf1, vf2))
-                        .collect(Collectors.toList());
-        PatientFact mostRecentClosedBedVisit = closedVisitFactWhereVisitType.get(0);
+        // Get the most recent bed visit.
+        PatientFact mostRecentBedVisit = getVisitFactWhere(encounter,
+                vf -> visitFactIsOfType(vf, AttributeKeyMap.BED_VISIT) && vf.isValid()).stream()
+                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2)).get();
+
+        // Encounters should always have at least one visit.
+        if (visitFactIsOpen(mostRecentBedVisit)) {
+            // This is an error. The most recent bed visit is still open. Ie. the patient
+            // has not been discharged, so we cannot cancel the discharge.
+            // Possible cause is that we never received the A03.
+            throw new Hl7InconsistencyException(visitNumber + " Cannot process A13 - most recent bed visit is still open");
+        }
         PatientProperty bedDischargeTime = getOnlyElement(
-                mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
+                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         // Find the hospital visit corresponding to the bed visit
         Long hospitalVisitId = getOnlyElement(
-                mostRecentClosedBedVisit.getPropertyByAttribute(AttributeKeyMap.PARENT_VISIT, p -> p.isValid()))
+                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.PARENT_VISIT, p -> p.isValid()))
                         .getValueAsLink();
         PatientFact hospitalVisit = patientFactRepository.findById(hospitalVisitId).get();
         PatientProperty hospDischargeTime = getOnlyElement(hospitalVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
@@ -973,7 +993,7 @@ public class InformDbOperations {
         // ie. an implicit transfer. Does this ever happen for messages that Epic emits? Currently ignoring
         // the location field.
 
-        mostRecentClosedBedVisit = patientFactRepository.save(mostRecentClosedBedVisit);
+        mostRecentBedVisit = patientFactRepository.save(mostRecentBedVisit);
         hospitalVisit = patientFactRepository.save(hospitalVisit);
     }
 
