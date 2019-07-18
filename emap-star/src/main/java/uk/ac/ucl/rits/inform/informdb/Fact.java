@@ -68,7 +68,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     /**
      * @param attrKey the attribute
      * @param pred predicate to test prop against
-     * @return the property(ies) in this fact with the given attribute (key) and that match pred
+     * @return the property(ies) in this fact with the given attribute (key) and that match pred. Can be empty list.
      */
     public List<PropertyType> getPropertyByAttribute(AttributeKeyMap attrKey, Predicate<? super PropertyType> pred) {
         return getPropertyByAttribute(attrKey.getShortname(), pred);
