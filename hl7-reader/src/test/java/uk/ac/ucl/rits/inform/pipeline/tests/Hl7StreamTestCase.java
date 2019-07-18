@@ -22,6 +22,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import uk.ac.ucl.rits.inform.pipeline.InformDbOperations;
+import uk.ac.ucl.rits.inform.pipeline.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.pipeline.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.pipeline.informdb.EncounterRepository;
 import uk.ac.ucl.rits.inform.pipeline.informdb.MrnRepository;
@@ -54,10 +55,11 @@ public abstract class Hl7StreamTestCase {
      * Load in a sequence of HL7 message(s) in preparation for the tests.
      * @throws IOException if trouble reading the test messages
      * @throws HL7Exception if HAPI does
+     * @throws Hl7InconsistencyException if sequence of HL7 data does not make sense
      */
     @Before
     @Transactional
-    public void setup() throws IOException, HL7Exception {
+    public void setup() throws IOException, HL7Exception, Hl7InconsistencyException {
         totalMessages = 0;
         processedMessages = 0;
         if (mrnRepo.count() == 0) {
