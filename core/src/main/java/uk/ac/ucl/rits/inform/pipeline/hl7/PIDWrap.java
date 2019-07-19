@@ -3,7 +3,7 @@ package uk.ac.ucl.rits.inform.pipeline.hl7;
 import java.time.Instant;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v27.segment.PID;
+import ca.uhn.hl7v2.model.v26.segment.PID;
 
 /**
  * Wrapper around the HAPI parser's PID segment object, to make it easier to use.
@@ -120,7 +120,7 @@ public interface PIDWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getPatientSex() throws HL7Exception {
-        return getPID().getAdministrativeSex().getIdentifier().getValue();
+        return getPID().getAdministrativeSex().getValue();
     }
 
 
@@ -146,7 +146,7 @@ public interface PIDWrap {
      * @return the patient postcode (PID-11, first rep, component 5)
      */
     default String getPatientZipOrPostalCode() {
-        return getPID().getPatientAddress(0).getZipOrPostalCode().getValueOrEmpty();
+        return getPID().getPatientAddress(0).getZipOrPostalCode().getValue();
     }
 
     /**

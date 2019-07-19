@@ -63,7 +63,7 @@
 
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-structures-v27</artifactId>
+      <artifactId>hapi-structures-v26</artifactId>
       <version>2.3</version>
     </dependency>
 
