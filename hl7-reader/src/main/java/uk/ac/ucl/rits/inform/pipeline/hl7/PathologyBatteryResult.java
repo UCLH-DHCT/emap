@@ -8,16 +8,16 @@ import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.group.ORU_R01_OBSERVATION;
-import ca.uhn.hl7v2.model.v27.group.ORU_R01_ORDER_OBSERVATION;
-import ca.uhn.hl7v2.model.v27.group.ORU_R01_PATIENT;
-import ca.uhn.hl7v2.model.v27.group.ORU_R01_PATIENT_RESULT;
-import ca.uhn.hl7v2.model.v27.message.ORU_R01;
-import ca.uhn.hl7v2.model.v27.segment.MSH;
-import ca.uhn.hl7v2.model.v27.segment.OBR;
-import ca.uhn.hl7v2.model.v27.segment.OBX;
-import ca.uhn.hl7v2.model.v27.segment.PID;
-import ca.uhn.hl7v2.model.v27.segment.PV1;
+import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
+import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
+import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT;
+import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.model.v26.segment.OBR;
+import ca.uhn.hl7v2.model.v26.segment.OBX;
+import ca.uhn.hl7v2.model.v26.segment.PID;
+import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
 
 /**
@@ -25,12 +25,12 @@ import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
  * @author Jeremy Stein
  *
  */
-public class OruWrap implements PV1Wrap, PIDWrap, MSHWrap {
-    private static final Logger logger = LoggerFactory.getLogger(OruWrap.class);
+public class PathologyBatteryResult implements PV1Wrap, PIDWrap, MSHWrap {
+    private static final Logger logger = LoggerFactory.getLogger(PathologyBatteryResult.class);
     private MSH msh;
     private PV1 pv1;
     private PID pid;
-    private List<PathologyResult> allPath = new ArrayList<>();
+    private List<PathologyResult> pathologyResults = new ArrayList<>();
 
     @Override
     public PV1 getPV1() {
@@ -88,7 +88,7 @@ public class OruWrap implements PV1Wrap, PIDWrap, MSHWrap {
      * @param oruMsg the HL7 message
      * @throws HL7Exception if HAPI does
      */
-    public OruWrap(Message oruMsg) throws HL7Exception {
+    public PathologyBatteryResult(Message oruMsg) throws HL7Exception {
         ORU_R01 oruR01 = (ORU_R01) oruMsg;
         msh = (MSH) oruMsg.get("MSH");
 
@@ -108,7 +108,7 @@ public class OruWrap implements PV1Wrap, PIDWrap, MSHWrap {
                     OBX obx = obs.getOBX();
                     try {
                         PathologyResult pathologyResult = new PathologyResult(obx, obr);
-                        allPath.add(pathologyResult);
+                        pathologyResults.add(pathologyResult);
                     } catch (SkipPathologyResult sk) {
                     }
                 }
@@ -120,7 +120,7 @@ public class OruWrap implements PV1Wrap, PIDWrap, MSHWrap {
      * @return all pathology results in this message
      */
     public List<PathologyResult> getAllPathologyResults() {
-        return allPath;
+        return pathologyResults;
     }
 
 }

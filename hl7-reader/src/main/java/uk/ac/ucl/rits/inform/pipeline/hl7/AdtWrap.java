@@ -5,14 +5,14 @@ import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.group.ADT_A39_PATIENT;
-import ca.uhn.hl7v2.model.v27.message.ADT_A39;
-import ca.uhn.hl7v2.model.v27.segment.EVN;
-import ca.uhn.hl7v2.model.v27.segment.MRG;
-import ca.uhn.hl7v2.model.v27.segment.MSH;
-import ca.uhn.hl7v2.model.v27.segment.PD1;
-import ca.uhn.hl7v2.model.v27.segment.PID;
-import ca.uhn.hl7v2.model.v27.segment.PV1;
+import ca.uhn.hl7v2.model.v26.group.ADT_A39_PATIENT;
+import ca.uhn.hl7v2.model.v26.message.ADT_A39;
+import ca.uhn.hl7v2.model.v26.segment.EVN;
+import ca.uhn.hl7v2.model.v26.segment.MRG;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.model.v26.segment.PD1;
+import ca.uhn.hl7v2.model.v26.segment.PID;
+import ca.uhn.hl7v2.model.v26.segment.PV1;
 
 /**
  * Wrapper for an ADT message so we can find what we need more easily.

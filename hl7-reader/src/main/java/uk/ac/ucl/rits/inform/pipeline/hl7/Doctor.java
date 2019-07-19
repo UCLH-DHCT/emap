@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.pipeline.hl7;
 
-import ca.uhn.hl7v2.model.v27.datatype.XCN;
+import ca.uhn.hl7v2.model.v26.datatype.XCN;
 
 /**
  * Store information for GPs and consultants etc - fields PV1-7 and PV1-8
@@ -15,11 +15,11 @@ public class Doctor {
      * @param xcnDoc the XCN component of an HL7 message
      */
     public Doctor(XCN xcnDoc) {
-        consultantCode = xcnDoc.getPersonIdentifier().toString(); // PV1-7.1
-        surname = xcnDoc.getFamilyName().getSurname().toString(); // PV1-7.2
-        firstname = xcnDoc.getGivenName().toString(); // PV1-7.3
-        middlename = xcnDoc.getSecondAndFurtherGivenNamesOrInitialsThereof().toString(); // PV1-7.4
-        title = xcnDoc.getPrefixEgDR().toString(); // PV1-7.6
+        consultantCode = xcnDoc.getXcn1_IDNumber().getValue(); // PV1-7.1
+        surname = xcnDoc.getFamilyName().getSurname().getValue(); // PV1-7.2
+        firstname = xcnDoc.getGivenName().getValue(); // PV1-7.3
+        middlename = xcnDoc.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue(); // PV1-7.4
+        title = xcnDoc.getPrefixEgDR().getValue(); // PV1-7.6
     }
 
     /**

@@ -1,6 +1,8 @@
 package uk.ac.ucl.rits.inform.pipeline.hl7;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
-import ca.uhn.hl7v2.model.v27.datatype.CWE;
-import ca.uhn.hl7v2.model.v27.segment.OBR;
-import ca.uhn.hl7v2.model.v27.segment.OBX;
+import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.segment.OBR;
+import ca.uhn.hl7v2.model.v26.segment.OBX;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
 
 /**
@@ -37,6 +39,8 @@ public class PathologyResult {
     private String units;
 
     private Instant resultTime;
+
+    private List<PathologySensitivity> pathologySensitivities = new ArrayList<>();
 
     /**
      * This class stores an individual result (ie. OBX segment)

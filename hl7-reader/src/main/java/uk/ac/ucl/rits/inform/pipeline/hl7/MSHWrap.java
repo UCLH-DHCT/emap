@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.pipeline.hl7;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v27.segment.MSH;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
 
 /**
  * Wrapper around the HAPI parser's MSH segment object, to make it easier to use.

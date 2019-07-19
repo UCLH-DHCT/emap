@@ -49,7 +49,8 @@ import uk.ac.ucl.rits.inform.pipeline.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.pipeline.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.pipeline.hl7.MSHWrap;
-import uk.ac.ucl.rits.inform.pipeline.hl7.OruWrap;
+import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyBatteryResult;
+import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyOrder;
 import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyResult;
 import uk.ac.ucl.rits.inform.pipeline.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.pipeline.ids.IdsOperations;
@@ -269,8 +270,11 @@ public class InformDbOperations {
                 }
             }
         } else if (messageType.equals("ORU")) {
-            OruWrap oruWrap = new OruWrap(msgFromIds);
+            PathologyBatteryResult oruWrap = new PathologyBatteryResult(msgFromIds);
             addPathologyResults(oruWrap);
+            processed += 1;
+        } else if (messageType.equals("ORM")) {
+            new PathologyOrder(msgFromIds);
             processed += 1;
         }
         return processed;
@@ -1283,7 +1287,7 @@ public class InformDbOperations {
      * @param oruWrap the ORU wrapper
      * @throws HL7Exception when HAPI does
      */
-    private void addPathologyResults(OruWrap oruWrap) throws HL7Exception {
+    private void addPathologyResults(PathologyBatteryResult oruWrap) throws HL7Exception {
         String visitNumber = oruWrap.getVisitNumber();
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {

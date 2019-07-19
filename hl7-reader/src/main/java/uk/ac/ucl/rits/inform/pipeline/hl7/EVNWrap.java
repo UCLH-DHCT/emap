@@ -3,7 +3,7 @@ package uk.ac.ucl.rits.inform.pipeline.hl7;
 import java.time.Instant;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v27.segment.EVN;
+import ca.uhn.hl7v2.model.v26.segment.EVN;
 
 /**
  * Wrapper around the HAPI parser's EVN segment object, to make it easier to use.
@@ -44,7 +44,7 @@ public interface EVNWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getEventReasonCode() throws HL7Exception {
-        return getEVN().getEvn4_EventReasonCode().getComponent(0).toString();
+        return getEVN().getEvn4_EventReasonCode().getValue();
     }
 
      /**
@@ -55,7 +55,7 @@ public interface EVNWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getOperatorID() throws HL7Exception {
-        return getEVN().getEvn5_OperatorID(0).getPersonIdentifier().toString();
+        return getEVN().getEvn5_OperatorID(0).getXcn1_IDNumber().getValue();
     }
 
 
