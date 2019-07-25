@@ -35,6 +35,7 @@ public class PathologyOrder {
     private String orderControlId;
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
+    private String labSpecimenNumberOCS;
     private Instant orderDateTime;
     private String orderType;
     private String visitNumber;
@@ -84,7 +85,8 @@ public class PathologyOrder {
             throw new SkipPathologyResult("Only processing new orders (ORC-1 = SC), not \"" + orderControlId + "\"");
         }
         epicCareOrderNumber = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        labSpecimenNumber = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValue();
+        labSpecimenNumber = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        labSpecimenNumberOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         orderDateTime = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
         orderType = orc.getOrc29_OrderType().getCwe1_Identifier().getValue();
         OBR obr = order.getORDER_DETAIL().getOBR();
@@ -123,10 +125,17 @@ public class PathologyOrder {
     }
 
     /**
-     * @return the lab number for this order
+     * @return the lab number for this order (known as the accession number by Epic)
      */
     public String getLabSpecimenNumber() {
         return labSpecimenNumber;
+    }
+
+    /**
+     * @return the lab number with an extra character appended (known as the OCS number in WinPath)
+     */
+    public String getLabSpecimenNumberOCS() {
+        return labSpecimenNumberOCS;
     }
 
     /**
