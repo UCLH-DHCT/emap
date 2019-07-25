@@ -408,7 +408,9 @@ public class InformDbOperations {
      */
     private static boolean factIsPathFact(PatientFact pf) {
         String shortName = pf.getFactType().getShortName();
-        return shortName.equals(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname());
+        // The only (current) use for this is to define demographic facts in terms of what they are not.
+        // Identifying demographic facts positively would be a better approach.
+        return shortName.startsWith("PATH_");
     }
 
     /**
