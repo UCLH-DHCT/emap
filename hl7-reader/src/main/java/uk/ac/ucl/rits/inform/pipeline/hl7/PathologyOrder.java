@@ -19,6 +19,7 @@ import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
 
 /**
  * The top level of the pathology tree, the order.
@@ -71,9 +72,17 @@ public class PathologyOrder {
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         visitNumber = patientHl7.getVisitNumber();
+        String sendingApplication = patientHl7.getSendingApplication();
+        if (!sendingApplication.equals("WinPath")) {
+            throw new SkipPathologyResult("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
+        }
         ORC orc = order.getORC();
         // NA/NW/CA/CR/OC/XO
         orderControlId = orc.getOrc1_OrderControl().getValue();
+        if (!orderControlId.equals("NW")) {
+            // can multiple order control IDs
+            throw new SkipPathologyResult("Only processing new orders (ORC-1 = NW), not \"" + orderControlId + "\"");
+        }
         epicCareOrderNumber = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumber = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValue();
         orderDateTime = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
