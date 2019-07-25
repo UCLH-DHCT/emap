@@ -7,7 +7,7 @@ package uk.ac.ucl.rits.inform.pipeline.hl7;
 public class PathologySensitivity {
 
     /**
-     * Build a sensitivity structure from the path results message.
+     * Build a sensitivity structure from the pathology results message.
      */
     public PathologySensitivity() {
     }

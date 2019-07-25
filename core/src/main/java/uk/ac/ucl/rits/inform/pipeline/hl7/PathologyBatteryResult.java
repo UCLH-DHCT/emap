@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
+import ca.uhn.hl7v2.model.v26.datatype.EI;
+import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT;
@@ -25,27 +28,10 @@ import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
  * @author Jeremy Stein
  *
  */
-public class PathologyBatteryResult implements PV1Wrap, PIDWrap, MSHWrap {
+public class PathologyBatteryResult {
     private static final Logger logger = LoggerFactory.getLogger(PathologyBatteryResult.class);
-    private MSH msh;
-    private PV1 pv1;
-    private PID pid;
     private List<PathologyResult> pathologyResults = new ArrayList<>();
-
-    @Override
-    public PV1 getPV1() {
-        return pv1;
-    }
-
-    @Override
-    public MSH getMSH() {
-        return msh;
-    }
-
-    @Override
-    public PID getPID() {
-        return pid;
-    }
+    private String visitNumber;
 
     /*
      * ORU_R01_PATIENT_RESULT repeating
@@ -90,7 +76,7 @@ public class PathologyBatteryResult implements PV1Wrap, PIDWrap, MSHWrap {
      */
     public PathologyBatteryResult(Message oruMsg) throws HL7Exception {
         ORU_R01 oruR01 = (ORU_R01) oruMsg;
-        msh = (MSH) oruMsg.get("MSH");
+        MSH msh = (MSH) oruMsg.get("MSH");
 
         List<ORU_R01_PATIENT_RESULT> allPatientResults = oruR01.getPATIENT_RESULTAll();
         if (allPatientResults.size() != 1) {
@@ -98,11 +84,20 @@ public class PathologyBatteryResult implements PV1Wrap, PIDWrap, MSHWrap {
         }
         for (ORU_R01_PATIENT_RESULT res : allPatientResults) {
             ORU_R01_PATIENT patient = res.getPATIENT();
-            pid = patient.getPID();
-            pv1 = patient.getVISIT().getPV1();
+            PID pid = patient.getPID();
+            PV1 pv1 = patient.getVISIT().getPV1();
+            // Can only seem to get these segments at the ORU_R01_PATIENT_RESULT level.
+            // Could there really be more than one patient per message?
+            PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
+            visitNumber = patientHl7.getVisitNumber();
             List<ORU_R01_ORDER_OBSERVATION> orderObservations = res.getORDER_OBSERVATIONAll();
             for (ORU_R01_ORDER_OBSERVATION oo : orderObservations) {
                 OBR obr = oo.getOBR();
+                EI epicOrderNum = obr.getObr2_PlacerOrderNumber();
+                DTM collectionTime = obr.getObr7_ObservationDateTime();
+                ST labSpecimenNum = obr.getObr20_FillerField1();
+                // good for knowing if we need to update?
+                DTM statusChangeTime = obr.getObr22_ResultsRptStatusChngDateTime();
                 List<ORU_R01_OBSERVATION> observationAll = oo.getOBSERVATIONAll();
                 for (ORU_R01_OBSERVATION obs : observationAll) {
                     OBX obx = obs.getOBX();
@@ -121,6 +116,13 @@ public class PathologyBatteryResult implements PV1Wrap, PIDWrap, MSHWrap {
      */
     public List<PathologyResult> getAllPathologyResults() {
         return pathologyResults;
+    }
+
+    /**
+     * @return the visit number (CSN) of the results
+     */
+    public String getVisitNumber() {
+        return visitNumber;
     }
 
 }
