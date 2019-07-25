@@ -79,9 +79,9 @@ public class PathologyOrder {
         ORC orc = order.getORC();
         // NA/NW/CA/CR/OC/XO
         orderControlId = orc.getOrc1_OrderControl().getValue();
-        if (!orderControlId.equals("NW")) {
+        if (!orderControlId.equals("SC")) {
             // can multiple order control IDs
-            throw new SkipPathologyResult("Only processing new orders (ORC-1 = NW), not \"" + orderControlId + "\"");
+            throw new SkipPathologyResult("Only processing new orders (ORC-1 = SC), not \"" + orderControlId + "\"");
         }
         epicCareOrderNumber = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumber = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValue();
