@@ -20,7 +20,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getSendingApplication() throws HL7Exception {
-        return getMSH().getSendingApplication().getComponent(0).toString();
+        return getMSH().getSendingApplication().getHd1_NamespaceID().getValueOrEmpty();
     }
 
     /**
@@ -28,7 +28,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getSendingFacility() throws HL7Exception {
-        return getMSH().getSendingFacility().getComponent(0).toString();
+        return getMSH().getSendingFacility().getHd1_NamespaceID().getValueOrEmpty();
     }
 
     /**
@@ -36,7 +36,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getReceivingApplication() throws HL7Exception {
-        return getMSH().getMsh5_ReceivingApplication().getComponent(0).toString();
+        return getMSH().getMsh5_ReceivingApplication().getHd1_NamespaceID().getValueOrEmpty();
     }
 
     /**
@@ -44,7 +44,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getReceivingFacility() throws HL7Exception {
-        return getMSH().getMsh6_ReceivingFacility().getComponent(0).toString();
+        return getMSH().getMsh6_ReceivingFacility().getHd1_NamespaceID().getValueOrEmpty();
     }
 
     /**
@@ -53,7 +53,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getMessageTimestamp() throws HL7Exception {
-        return getMSH().getDateTimeOfMessage().toString();
+        return getMSH().getDateTimeOfMessage().getValue();
     }
 
     /**
@@ -61,7 +61,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getMessageType() throws HL7Exception {
-        return getMSH().getMessageType().getMessageCode().toString();
+        return getMSH().getMessageType().getMessageCode().getValueOrEmpty();
     }
 
     /**
@@ -69,7 +69,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getTriggerEvent() throws HL7Exception {
-        return getMSH().getMessageType().getTriggerEvent().getValue();
+        return getMSH().getMessageType().getTriggerEvent().getValueOrEmpty();
     }
 
     /**
@@ -77,7 +77,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getMessageControlID() throws HL7Exception {
-        return getMSH().getMsh10_MessageControlID().toString();
+        return getMSH().getMsh10_MessageControlID().getValueOrEmpty();
     }
 
     /**
@@ -85,7 +85,7 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getProcessingID() throws HL7Exception {
-        return getMSH().getMsh11_ProcessingID().getProcessingID().toString();
+        return getMSH().getMsh11_ProcessingID().getProcessingID().getValueOrEmpty();
     }
 
     /**
@@ -93,48 +93,6 @@ public interface MSHWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getVersionID() throws HL7Exception {
-        return getMSH().getMsh12_VersionID().getVersionID().toString();
-    }
-
-    /**
-     * @return MSH-13 Sequence Number. NB Format is Numeric so might not be an int. Epic only.
-     * HAPI NM class: A NM contains a single String value.
-     * @throws HL7Exception if HAPI does
-     */
-    default String /*int*/ getSequenceNumber() throws HL7Exception {
-        return getMSH().getMsh13_SequenceNumber().toString(); // to be verified
-    }
-
-    /**
-     * @return MSH-14 Continuation Pointer. Epic only.
-     * @throws HL7Exception if HAPI does
-     */
-    default String getContinuationPointer() throws HL7Exception {
-        return getMSH().getMsh14_ContinuationPointer().toString(); // to be verified
-    }
-
-    /**
-     * @return MSH-15 Accept Acknowledgement Type e.g. AL, NE, ER, SU.
-     * @throws HL7Exception if HAPI does
-     */
-    default String getAcceptAcknowledgementType() throws HL7Exception {
-        return getMSH().getMsh15_AcceptAcknowledgmentType().toString(); // to be verified
-    }
-
-    /**
-     * @return MSH-16 Application Acknowledgement Type e.g. AL, NE, ER, SU. Carecast only
-     * @throws HL7Exception if HAPI does
-     */
-    default String getApplicationAcknowledgementType() throws HL7Exception {
-        return getMSH().getMsh16_ApplicationAcknowledgmentType().toString(); // to be verified
-    }
-
-    /**
-     * @return MSH-18 Character Set. Epic only. I've assumed we only want the first one,
-     * but this field can contain multiple character sets
-     * @throws HL7Exception if HAPI does
-     */
-    default String getCharacterSet() throws HL7Exception {
-        return getMSH().getCharacterSet(0).toString(); // to be verified
+        return getMSH().getMsh12_VersionID().getVersionID().getValueOrEmpty();
     }
 }
