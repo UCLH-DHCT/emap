@@ -270,11 +270,15 @@ public class InformDbOperations {
                 }
             }
         } else if (messageType.equals("ORU")) {
-            PathologyBatteryResult oruWrap = new PathologyBatteryResult(msgFromIds);
-            addPathologyResults(oruWrap);
+            PathologyBatteryResult pathologyResults = new PathologyBatteryResult(msgFromIds);
+            addPathologyResults(pathologyResults);
             processed += 1;
         } else if (messageType.equals("ORM")) {
-            new PathologyOrder(msgFromIds);
+            // get all orders in the message
+            List<PathologyOrder> pathologyOrders = PathologyOrder.buildPathologyOrders(msgFromIds);
+            for (PathologyOrder order : pathologyOrders) {
+                addOrUpdatePathologyOrder(order);
+            }
             processed += 1;
         }
         return processed;
@@ -1226,6 +1230,57 @@ public class InformDbOperations {
     }
 
     /**
+     * Convert the simplified data from the HL7 message into Inform-db structures,
+     * and merge with existing data depending on whether it's a new order or changes to an existing one.
+     * @param pathologyOrder the pathology order details
+     * @throws HL7Exception if HAPI does
+     */
+    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception {
+        String visitNumber = pathologyOrder.getVisitNumber();
+        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+        if (encounter == null) {
+            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+        }
+        String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
+        List<PatientFact> existingPathologyOrders = patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber);
+        logger.info("existing pathology orders with order number " + epicCareOrderNumber + ": ");
+        for (PatientFact o : existingPathologyOrders) {
+            logger.info(o.toString());
+        }
+        Map<String, PatientFact> allPathologyFacts = buildPathologyOrderFacts(pathologyOrder);
+        // in future we might do some diffing here to check we don't already have some
+        // of the results
+        logger.info("new pathology order facts: ");
+        for (PatientFact fact : allPathologyFacts.values()) {
+            logger.info(fact.toString());
+            encounter.addFact(fact);
+            fact = patientFactRepository.save(fact);
+        }
+        encounter = encounterRepo.save(encounter);
+    }
+
+    /**
+     * Convert order details to Inform-db structures.
+     * @param order the pathology order details
+     * @return a collection of PatientFact objects that represent the order (is there ever more than one? I think not)
+     */
+    private Map<String, PatientFact> buildPathologyOrderFacts(PathologyOrder order) {
+        Instant storedFrom = Instant.now();
+        Instant validFrom = order.getOrderDateTime();
+        Map<String, PatientFact> facts = new HashMap<>();
+        PatientFact pathFact = new PatientFact();
+        pathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_ORDER));
+        pathFact.setValidFrom(validFrom);
+        pathFact.setStoredFrom(storedFrom);
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_CONTROL_ID,
+                order.getOrderControlId()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_NUMBER,
+                order.getEpicCareOrderNumber()));
+        facts.put(pathFact.getFactType().getShortName(), pathFact);
+        return facts;
+    }
+
+    /**
      * Build a patient property given the key/value pair.
      *
      * @param storedFrom the stored from temporal field
@@ -1284,16 +1339,18 @@ public class InformDbOperations {
     /**
      * Add all the pathology results in an ORU message to the specified encounter.
      *
-     * @param oruWrap the ORU wrapper
+     * @param batteryResult the ORU wrapper
      * @throws HL7Exception when HAPI does
      */
-    private void addPathologyResults(PathologyBatteryResult oruWrap) throws HL7Exception {
-        String visitNumber = oruWrap.getVisitNumber();
+    private void addPathologyResults(PathologyBatteryResult batteryResult) throws HL7Exception {
+        String visitNumber = batteryResult.getVisitNumber();
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
             throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
         }
-        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(oruWrap.getAllPathologyResults());
+        // XXX: need to use this to look up the right order to add to (or create if not exist)
+        //batteryResult.getEpicCareOrderNumber();
+        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(batteryResult.getAllPathologyResults());
         // in future we might do some diffing here to check we don't already have some
         // of the results
         for (PatientFact fact : allPathologyFacts.values()) {
