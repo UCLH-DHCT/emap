@@ -31,6 +31,6 @@ public interface PatientFactRepository extends CrudRepository<PatientFact, Long>
      * @return matching pathology orders as PatientFacts
      */
     default List<PatientFact> findAllPathologyOrdersByOrderNumber(String orderNumber) {
-        return findAllWithProperty(AttributeKeyMap.PATHOLOGY_ORDER_NUMBER.getShortname(), orderNumber);
+        return findAllWithProperty(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER.getShortname(), orderNumber);
     }
 }

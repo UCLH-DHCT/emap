@@ -1276,8 +1276,12 @@ public class InformDbOperations {
         pathFact.setStoredFrom(storedFrom);
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_CONTROL_ID,
                 order.getOrderControlId()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_NUMBER,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER,
                 order.getEpicCareOrderNumber()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_NUMBER,
+                order.getLabSpecimenNumber()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_OCS_NUMBER,
+                order.getLabSpecimenNumberOCS()));
         facts.put(pathFact.getFactType().getShortName(), pathFact);
         return facts;
     }
