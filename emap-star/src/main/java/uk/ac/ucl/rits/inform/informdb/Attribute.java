@@ -105,4 +105,9 @@ public class Attribute implements Serializable {
         this.addedTime = addedTime;
     }
 
+    @Override
+    public String toString() {
+        return shortName + "[" + attributeId + "]";
+    }
+
 }

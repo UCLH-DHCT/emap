@@ -26,3 +26,6 @@ attribute_id,short_name,description,result_type,added_time
 25,PATH_COD_SYS,Coding system (aka vocab) for the test code,String,2019-06-20T16:00:00Z
 26,PATH_NUM_VALUE,Pathology result numerical value,Float,2019-06-20T16:00:00Z
 27,PATH_NUM_UNITS,Pathology result numerical value units,String,2019-06-20T16:00:00Z
+28,PATH_ORDER,Pathology order fact type,None,2019-07-23T15:00:00Z
+29,PATH_ORD_CTL_ID,Pathology order control ID,String,2019-07-23T15:00:00Z
+30,PATH_ORDER_NUM,Pathology order number,String,2019-07-23T15:00:00Z

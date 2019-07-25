@@ -117,9 +117,21 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_NUMERIC_VALUE("PATH_NUM_VALUE"),
     /**
-     * The units for a pathology result.
+     * The units for a numerical pathology result.
      */
-    PATHOLOGY_UNITS("PATH_NUM_UNITS");
+    PATHOLOGY_UNITS("PATH_NUM_UNITS"),
+    /**
+     * Pathology order fact type.
+     */
+    PATHOLOGY_ORDER("PATH_ORDER"),
+    /**
+     * Pathology order control ID.
+     */
+    PATHOLOGY_ORDER_CONTROL_ID("PATH_ORD_CTL_ID"),
+    /**
+     * Pathology order number (Epic order number).
+     */
+    PATHOLOGY_ORDER_NUMBER("PATH_ORDER_NUM");
 
     private String shortname;
 

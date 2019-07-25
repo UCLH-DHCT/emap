@@ -45,7 +45,14 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
 
     @Override
     public String toString() {
-        return this.getFactType().getShortName();
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getFactType().getShortName());
+        sb.append("[id=" + getFactType().getAttributeId() + "]");
+        sb.append(" --- ");
+        for (PatientProperty p : getProperties()) {
+            sb.append("  " + p.toString() + ",  ");
+        }
+        return sb.toString();
     }
 
 }

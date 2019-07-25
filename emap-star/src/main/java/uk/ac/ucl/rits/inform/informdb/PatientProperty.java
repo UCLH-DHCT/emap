@@ -1,6 +1,9 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -62,6 +65,29 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
      */
     public void setPropertyId(int propertyId) {
         this.propertyId = propertyId;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Prop " + this.getAttribute().getShortName() + " = ");
+        SortedMap<String, Object> ret = new TreeMap<>();
+        // properties can have more than one type filled in
+        ret.put("valueAsAttribute", getValueAsAttribute());
+        ret.put("valueAsBoolean", getValueAsBoolean());
+        ret.put("valueAsDatetime", getValueAsDatetime());
+        ret.put("valueAsInteger", getValueAsInteger());
+        ret.put("valueAsLink", getValueAsLink());
+        ret.put("valueAsReal", getValueAsReal());
+        ret.put("valueAsString", getValueAsString());
+
+        for (Entry<String, Object> foo : ret.entrySet()) {
+            if (foo.getValue() != null) {
+                sb.append("[" + foo.getKey() + "]" + foo.getValue() + " ");
+            }
+        }
+
+        return sb.toString();
     }
 
 }
