@@ -28,4 +28,6 @@ attribute_id,short_name,description,result_type,added_time
 27,PATH_NUM_UNITS,Pathology result numerical value units,String,2019-06-20T16:00:00Z
 28,PATH_ORDER,Pathology order fact type,None,2019-07-23T15:00:00Z
 29,PATH_ORD_CTL_ID,Pathology order control ID,String,2019-07-23T15:00:00Z
-30,PATH_ORDER_NUM,Pathology order number,String,2019-07-23T15:00:00Z
+30,PATH_EPIC_NUM,Pathology Epic order number,String,2019-07-23T15:00:00Z
+31,PATH_LAB_NUM,Pathology order lab/specimen number aka accession number,String,2019-07-25T18:00:00Z
+32,PATH_OCS_NUM,Pathology order lab/specimen number with extra appended character aka OCS number,String,2019-07-25T18:00:00Z

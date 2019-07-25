@@ -131,7 +131,15 @@ public enum AttributeKeyMap {
     /**
      * Pathology order number (Epic order number).
      */
-    PATHOLOGY_ORDER_NUMBER("PATH_ORDER_NUM");
+    PATHOLOGY_EPIC_ORDER_NUMBER("PATH_EPIC_NUM"),
+    /**
+     * Pathology order lab/specimen number, aka accession number.
+     */
+    PATHOLOGY_LAB_NUMBER("PATH_LAB_NUM"),
+    /**
+     * Pathology order lab/specimen number with extra appended character, aka OCS number.
+     */
+    PATHOLOGY_OCS_NUMBER("PATH_OCS_NUM");
 
     private String shortname;
 
