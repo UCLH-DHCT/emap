@@ -74,13 +74,13 @@ public class PathologyOrder {
         ORC orc = order.getORC();
         // NA/NW/CA/CR/OC/XO
         orderControlId = orc.getOrc1_OrderControl().getValue();
-        epicCareOrderNumber = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValue();
+        epicCareOrderNumber = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumber = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValue();
         orderDateTime = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
         orderType = orc.getOrc29_OrderType().getCwe1_Identifier().getValue();
         OBR obr = order.getORDER_DETAIL().getOBR();
-        // check we're not confused and these order numbers match
-        String obrOrderNumber = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValue();
+        // check we're not confused and these order numbers match - they can be empty though (eg. for "SN" ORC-1 value)
+        String obrOrderNumber = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         if (!epicCareOrderNumber.equals(obrOrderNumber)) {
             throw new Hl7InconsistencyException(String.format("ORC-2 %s does not match OBR-2 %s", epicCareOrderNumber, obrOrderNumber));
         }
