@@ -26,10 +26,6 @@ public class PathologyResult {
 
     private String valueType;
 
-    private String testBatteryLocalCode;
-    private String testBatteryLocalDescription;
-    private String testBatteryCodingSystem;
-
     private String testItemLocalCode;
     private String testItemLocalDescription;
     private String testItemCodingSystem;
@@ -50,29 +46,19 @@ public class PathologyResult {
      * @param obx the OBX segment for this result
      * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
      */
-
     public PathologyResult(OBX obx, OBR obr) {
         valueType = obx.getObx2_ValueType().getValueOrEmpty();
         if (!valueType.equals("NM")) {
             // ignore free text (FT), etc, for now
             throw new SkipPathologyResult("only handling numeric (NM), got " + valueType);
         }
-
         try {
             resultTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
         } catch (DataTypeException e) {
             resultTime = null;
             logger.error("resultTime parsing error", e);
         }
-        // identifies the battery of tests that has been performed (eg. FBC)
-        CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
-        testBatteryLocalCode = obr4.getCwe1_Identifier().getValueOrEmpty();
-        testBatteryLocalDescription = obr4.getCwe2_Text().getValueOrEmpty();
-        testBatteryCodingSystem = obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty();
 
-        if (!testBatteryLocalCode.equals("FBC") && !testBatteryLocalCode.equals("FBCE") && !testBatteryLocalCode.equals("FBCY")) {
-            throw new SkipPathologyResult("ignoring all but FBCY, got " + valueType);
-        }
         // identifies the particular test (eg. red cell count)
         CWE obx3 = obx.getObx3_ObservationIdentifier();
         testItemLocalCode = obx3.getCwe1_Identifier().getValueOrEmpty();
@@ -90,41 +76,11 @@ public class PathologyResult {
         units = obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty();
     }
 
-    @Override
-    public String toString() {
-        return "PathologyResult [testLocalCode=" + testBatteryLocalCode + ", testLocalDescription=" + testBatteryLocalDescription
-                + ", testCodingSystem=" + testBatteryCodingSystem + ", valueType=" + valueType + ", numericValue="
-                + numericValue + ", units=" + units + ", resultLocalCode=" + testItemLocalCode
-                + ", resultLocalDescription=" + testItemLocalDescription + ", resultCodingSystem=" + testItemCodingSystem
-                + "]";
-    }
-
     /**
      * @return value type for the observation line (eg. NM)
      */
     public String getValueType() {
         return valueType;
-    }
-
-    /**
-     * @return the local code for the suite of tests
-     */
-    public String getTestBatteryLocalCode() {
-        return testBatteryLocalCode;
-    }
-
-    /**
-     * @return the description for the suite of tests
-     */
-    public String getTestBatteryLocalDescription() {
-        return testBatteryLocalDescription;
-    }
-
-    /**
-     * @return the coding system (eg. WinPath)
-     */
-    public String getTestBatteryCodingSystem() {
-        return testBatteryCodingSystem;
     }
 
     /**
