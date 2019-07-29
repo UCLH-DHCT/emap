@@ -1371,7 +1371,15 @@ public class InformDbOperations {
         String epicCareOrderNumber = orderWithResults.getEpicCareOrderNumber();
         PatientFact existingPathologyOrder = getOnlyElement(
                 patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
-        Encounter encounter = existingPathologyOrder.getEncounter();
+        Encounter encounter;
+        if (existingPathologyOrder != null) {
+            encounter = existingPathologyOrder.getEncounter();
+        } else {
+            // If getting a result for a previously unknown order, that should be logged as
+            // an error, but for now allow it as our test depends on this...
+            logger.error("Couldn't find order with order number " + epicCareOrderNumber + ", searching by visit number instead");
+            encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+        }
         if (!encounter.getEncounter().equals(visitNumber)) {
             throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
                     + encounter.getEncounter() + ", expecting " + visitNumber);
