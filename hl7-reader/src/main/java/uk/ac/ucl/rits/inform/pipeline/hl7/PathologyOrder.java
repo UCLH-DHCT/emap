@@ -27,7 +27,7 @@ import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
+import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
 
 /**
  * The top level of the pathology tree, the order.
@@ -52,6 +52,7 @@ public class PathologyOrder {
     private String testBatteryCodingSystem;
     private Instant statusChangeTime;
 
+    private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
@@ -64,8 +65,18 @@ public class PathologyOrder {
         List<PathologyOrder> orders = new ArrayList<>();
         List<ORM_O01_ORDER> orderAll = ormO01.getORDERAll();
         for (ORM_O01_ORDER order : orderAll) {
-            PathologyOrder pathologyOrder = new PathologyOrder(order, ormO01);
-            orders.add(pathologyOrder);
+            PathologyOrder pathologyOrder;
+            try {
+                pathologyOrder = new PathologyOrder(order, ormO01);
+                if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
+                    logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
+                } else {
+                    orders.add(pathologyOrder);
+                }
+            } catch (MessageIgnoredException e) {
+                // if the entire message is being skipped, stop now
+                return orders;
+            }
         }
         return orders;
     }
@@ -87,9 +98,17 @@ public class PathologyOrder {
         MSH msh = (MSH) oruR01.get("MSH");
         PID pid = patientResults.getPATIENT().getPID();
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
+
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             PathologyOrder pathologyOrder = new PathologyOrder(obs, msh, pid, pv1);
-            orders.add(pathologyOrder);
+            String testBatteryLocalCode = pathologyOrder.getTestBatteryLocalCode();
+            if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
+                logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
+            } else if (!testBatteryLocalCode.equals("FBC") && !testBatteryLocalCode.equals("FBCE") && !testBatteryLocalCode.equals("FBCY")) {
+                logger.warn("ignoring all but FBC, got " + testBatteryLocalCode);
+            } else {
+                orders.add(pathologyOrder);
+            }
         }
         return orders;
     }
@@ -100,8 +119,9 @@ public class PathologyOrder {
      * @param ormO01 the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
+     * @throws MessageIgnoredException if the entire message should be ignored
      */
-    public PathologyOrder(ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
+    public PathologyOrder(ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
         PID pid = patient.getPID();
@@ -110,7 +130,7 @@ public class PathologyOrder {
         visitNumber = patientHl7.getVisitNumber();
         String sendingApplication = patientHl7.getSendingApplication();
         if (!sendingApplication.equals("WinPath")) {
-            throw new SkipPathologyResult("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
+            throw new MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
         }
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
@@ -179,10 +199,12 @@ public class PathologyOrder {
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
-            try {
-                PathologyResult pathologyResult = new PathologyResult(obx, obr);
+            PathologyResult pathologyResult = new PathologyResult(obx, obr);
+            if (!pathologyResult.getValueType().equals("NM")) {
+                // ignore free text (FT), etc, for now
+                logger.warn("only handling numeric (NM), got " + pathologyResult.getValueType());
+            } else {
                 pathologyResults.add(pathologyResult);
-            } catch (SkipPathologyResult sk) {
             }
         }
     }
@@ -195,11 +217,6 @@ public class PathologyOrder {
     private void populateFromOrc(ORC orc) throws DataTypeException {
         // NA/NW/CA/CR/OC/XO
         orderControlId = orc.getOrc1_OrderControl().getValue();
-        Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
-        if (!allowedOCIDs.contains(orderControlId)) {
-            // can multiple order control IDs
-            throw new SkipPathologyResult("Only processing new orders (ORC-1 = SC), not \"" + orderControlId + "\"");
-        }
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumber = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumberOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
@@ -231,10 +248,6 @@ public class PathologyOrder {
         testBatteryLocalCode = obr4.getCwe1_Identifier().getValueOrEmpty();
         testBatteryLocalDescription = obr4.getCwe2_Text().getValueOrEmpty();
         testBatteryCodingSystem = obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty();
-
-        if (!testBatteryLocalCode.equals("FBC") && !testBatteryLocalCode.equals("FBCE") && !testBatteryLocalCode.equals("FBCY")) {
-            throw new SkipPathologyResult("ignoring all but FBC, got " + testBatteryLocalCode);
-        }
     }
 
     /**
