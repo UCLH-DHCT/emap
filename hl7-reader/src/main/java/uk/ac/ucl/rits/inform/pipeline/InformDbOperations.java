@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -49,7 +51,6 @@ import uk.ac.ucl.rits.inform.pipeline.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.pipeline.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.pipeline.hl7.MSHWrap;
-import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyBatteryResult;
 import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyOrder;
 import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyResult;
 import uk.ac.ucl.rits.inform.pipeline.ids.IdsMaster;
@@ -270,16 +271,24 @@ public class InformDbOperations {
                 }
             }
         } else if (messageType.equals("ORU")) {
-            PathologyBatteryResult pathologyResults = new PathologyBatteryResult(msgFromIds);
-            addPathologyResults(pathologyResults);
-            processed += 1;
-        } else if (messageType.equals("ORM")) {
-            // get all orders in the message
-            List<PathologyOrder> pathologyOrders = PathologyOrder.buildPathologyOrders(msgFromIds);
-            for (PathologyOrder order : pathologyOrders) {
-                addOrUpdatePathologyOrder(order);
+            if (triggerEvent.equals("R01")) {
+                List<PathologyOrder> pathologyOrdersWithResults = PathologyOrder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
+                // XXX: move code from addOrUpdatePathologyResults into addOrUpdatePathologyOrder?
+                // addOrUpdatePathologyResults(pathologyResults);
+                for (PathologyOrder order : pathologyOrdersWithResults) {
+                    addOrUpdatePathologyResults(order);
+                }
+                processed += 1;
             }
-            processed += 1;
+        } else if (messageType.equals("ORM")) {
+            if (triggerEvent.equals("O01")) {
+                // get all orders in the message
+                List<PathologyOrder> pathologyOrders = PathologyOrder.buildPathologyOrders((ORM_O01) msgFromIds);
+                for (PathologyOrder order : pathologyOrders) {
+                    addOrUpdatePathologyOrder(order);
+                }
+                processed += 1;
+            }
         }
         return processed;
     }
@@ -1244,11 +1253,10 @@ public class InformDbOperations {
             throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
         }
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
-        List<PatientFact> existingPathologyOrders = patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber);
-        logger.info("existing pathology orders with order number " + epicCareOrderNumber + ": ");
-        for (PatientFact o : existingPathologyOrders) {
-            logger.info(o.toString());
-        }
+        PatientFact existingPathologyOrder = getOnlyElement(patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
+        logger.info("existing pathology order " + epicCareOrderNumber + ": ");
+        logger.info(existingPathologyOrder.toString());
+
         Map<String, PatientFact> allPathologyFacts = buildPathologyOrderFacts(pathologyOrder);
         // in future we might do some diffing here to check we don't already have some
         // of the results
@@ -1310,11 +1318,12 @@ public class InformDbOperations {
      * collection for easy diffing (we expect to get partial results and final
      * results at different times and this might be useful).
      *
-     * @param pathResults the pathology results
-     * @return PatientFacts indexed by a unique identifier
+     * @param order the pathology results
+     * @return multiple PatientFact objects indexed by a unique identifier
      * @throws HL7Exception if HAPI does
      */
-    private Map<String, PatientFact> buildPathologyFacts(List<PathologyResult> pathResults) throws HL7Exception {
+    private Map<String, PatientFact> buildPathologyFacts(PathologyOrder order) throws HL7Exception {
+        List<PathologyResult> pathResults = order.getPathologyResults();
         Map<String, PatientFact> facts = new HashMap<>();
         Instant storedFrom = Instant.now();
         for (PathologyResult pr : pathResults) {
@@ -1324,10 +1333,10 @@ public class InformDbOperations {
             fact.setValidFrom(validFrom);
             fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
-            String key = pr.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
+            String key = order.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
 
             fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
-                    pr.getTestBatteryLocalCode()));
+                    order.getTestBatteryLocalCode()));
             fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
             PatientProperty result = buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
@@ -1345,18 +1354,26 @@ public class InformDbOperations {
     /**
      * Add all the pathology results in an ORU message to the specified encounter.
      *
-     * @param batteryResult the ORU wrapper
+     * @param orderWithResults the ORU wrapper
      * @throws HL7Exception when HAPI does
      */
-    private void addPathologyResults(PathologyBatteryResult batteryResult) throws HL7Exception {
-        String visitNumber = batteryResult.getVisitNumber();
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        if (encounter == null) {
-            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+    private void addOrUpdatePathologyResults(PathologyOrder orderWithResults) throws HL7Exception {
+        String visitNumber = orderWithResults.getVisitNumber();
+        String epicCareOrderNumber = orderWithResults.getEpicCareOrderNumber();
+        PatientFact existingPathologyOrder = getOnlyElement(
+                patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
+        Encounter encounter = existingPathologyOrder.getEncounter();
+        if (!encounter.getEncounter().equals(visitNumber)) {
+            throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
+                    + encounter.getEncounter() + ", expecting " + visitNumber);
         }
-        // XXX: need to use this to look up the right order to add to (or create if not exist)
-        //batteryResult.getEpicCareOrderNumber();
-        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(batteryResult.getAllPathologyResults());
+        // check the status code to see whether this is a results update, and
+        // act accordingly
+
+        String orderControlId = orderWithResults.getOrderControlId();
+        logger.info("Is it an RE? " + orderControlId);
+
+        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(orderWithResults);
         // in future we might do some diffing here to check we don't already have some
         // of the results
         for (PatientFact fact : allPathologyFacts.values()) {
