@@ -234,9 +234,10 @@ public class InformDbOperations {
      * @return the updated message processed count
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if there seems to be something wrong in the HL7 stream that should be logged and investigated
+     * @throws MessageIgnoredException if message can't be processed
      */
     public int processHl7Message(Message msgFromIds, int idsUnid, IdsEffectLogging idsLog, int processed)
-            throws HL7Exception, Hl7InconsistencyException {
+            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
         // it's ok to give any message to an AdtWrap if we're only looking at the MSH
         MSHWrap mshwrap = new AdtWrap(msgFromIds);
         String messageType = mshwrap.getMessageType();
@@ -572,8 +573,9 @@ public class InformDbOperations {
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
-    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception {
+    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception, MessageIgnoredException {
         logger.info("getCreateEncounter");
         String encounter = encounterDetails.getVisitNumber();
         List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
@@ -602,9 +604,10 @@ public class InformDbOperations {
      * @param encounterDetails msg containing encounter details
      * @return the created Encounter
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
+    public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception, MessageIgnoredException {
         String mrnStr = encounterDetails.getMrn();
         Instant admissionTime = encounterDetails.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -832,9 +835,10 @@ public class InformDbOperations {
      *
      * @param transferDetails usually an A02 message but can be an A08
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void transferPatient(AdtWrap transferDetails) throws HL7Exception {
+    public void transferPatient(AdtWrap transferDetails) throws HL7Exception, MessageIgnoredException {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
@@ -911,9 +915,10 @@ public class InformDbOperations {
      *
      * @param adtWrap the A03 message detailing the discharge
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void dischargePatient(AdtWrap adtWrap) throws HL7Exception {
+    public void dischargePatient(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
         String mrnStr = adtWrap.getMrn();
         String visitNumber = adtWrap.getVisitNumber();
 
@@ -969,9 +974,10 @@ public class InformDbOperations {
      * @param adtWrap the A13 message detailing the cancel discharge
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if this message can't be matched to an existing discharge
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception, Hl7InconsistencyException {
+    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
         String visitNumber = adtWrap.getVisitNumber();
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtWrap.getEventOccurred();
@@ -1107,9 +1113,10 @@ public class InformDbOperations {
      *
      * @param adtWrap the message with the patient info
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception {
+    private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
         String visitNumber = adtWrap.getVisitNumber();
         String newLocation = adtWrap.getFullLocationString();
 
@@ -1185,9 +1192,10 @@ public class InformDbOperations {
      *
      * @param adtWrap message containing merge info
      * @throws HL7Exception when HAPI does or merge time in message is blank
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void mergeById(AdtWrap adtWrap) throws HL7Exception {
+    private void mergeById(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
         String oldMrnStr = adtWrap.getMergedPatientId();
         String survivingMrnStr = adtWrap.getMrn();
         Instant mergeTime = adtWrap.getRecordedDateTime();
@@ -1245,8 +1253,9 @@ public class InformDbOperations {
      * and merge with existing data depending on whether it's a new order or changes to an existing one.
      * @param pathologyOrder the pathology order details
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
-    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception {
+    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception, MessageIgnoredException {
         String visitNumber = pathologyOrder.getVisitNumber();
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {

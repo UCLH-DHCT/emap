@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.pipeline.InformDbOperations;
+import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
 
 /**
  * @author Jeremy Stein
@@ -27,9 +28,10 @@ public class TestInformDb {
     /**
      * Add N encounters, then check that the encounter count has increased by N.
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException probably never since the message parser is a mock
      */
     @Test
-    public void testAddEncounters() throws HL7Exception {
+    public void testAddEncounters() throws HL7Exception, MessageIgnoredException {
         long beforeEncounters = dbt.countEncounters();
         long numEncounters = 100;
         for (int i = 0; i < numEncounters; i++) {

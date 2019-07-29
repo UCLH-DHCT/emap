@@ -13,7 +13,6 @@ import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
-import uk.ac.ucl.rits.inform.pipeline.exceptions.SkipPathologyResult;
 
 /**
  * Turn part of an HL7 pathology result message into a (flatter) structure
@@ -48,10 +47,6 @@ public class PathologyResult {
      */
     public PathologyResult(OBX obx, OBR obr) {
         valueType = obx.getObx2_ValueType().getValueOrEmpty();
-        if (!valueType.equals("NM")) {
-            // ignore free text (FT), etc, for now
-            throw new SkipPathologyResult("only handling numeric (NM), got " + valueType);
-        }
         try {
             resultTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
         } catch (DataTypeException e) {
