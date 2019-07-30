@@ -63,6 +63,10 @@ public class PathologyResult {
         Varies data = obx.getObx5_ObservationValue(0);
         Type data2 = data.getData();
         this.stringValue = data2.toString();
+        // HAPI can return null from toString, fix this
+        if (this.stringValue == null) {
+            this.stringValue = "";
+        }
         try {
             numericValue = Double.parseDouble(this.stringValue);
         } catch (NumberFormatException e) {
