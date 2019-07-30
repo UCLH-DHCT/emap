@@ -1365,8 +1365,9 @@ public class InformDbOperations {
      *
      * @param orderWithResults the ORU wrapper
      * @throws HL7Exception when HAPI does
+     * @throws MessageIgnoredException if we haven't seen the encounter (visit number) before
      */
-    private void addOrUpdatePathologyResults(PathologyOrder orderWithResults) throws HL7Exception {
+    private void addOrUpdatePathologyResults(PathologyOrder orderWithResults) throws HL7Exception, MessageIgnoredException {
         String visitNumber = orderWithResults.getVisitNumber();
         String epicCareOrderNumber = orderWithResults.getEpicCareOrderNumber();
         PatientFact existingPathologyOrder = getOnlyElement(
@@ -1379,6 +1380,9 @@ public class InformDbOperations {
             // an error, but for now allow it as our test depends on this...
             logger.error("Couldn't find order with order number " + epicCareOrderNumber + ", searching by visit number instead");
             encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+            if (encounter == null) {
+                throw new MessageIgnoredException("Can't find encounter to attach results to: " + visitNumber);
+            }
         }
         if (!encounter.getEncounter().equals(visitNumber)) {
             throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
