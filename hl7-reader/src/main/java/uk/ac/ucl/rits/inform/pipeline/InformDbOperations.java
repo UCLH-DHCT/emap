@@ -1263,8 +1263,11 @@ public class InformDbOperations {
         }
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
         PatientFact existingPathologyOrder = getOnlyElement(patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
-        logger.info("existing pathology order " + epicCareOrderNumber + ": ");
-        logger.info(existingPathologyOrder.toString());
+        // order may or may not exist already
+        if (existingPathologyOrder != null) {
+            logger.info("existing pathology order " + epicCareOrderNumber + ": ");
+            logger.info(existingPathologyOrder.toString());
+        }
 
         Map<String, PatientFact> allPathologyFacts = buildPathologyOrderFacts(pathologyOrder);
         // in future we might do some diffing here to check we don't already have some
