@@ -121,6 +121,18 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_UNITS("PATH_NUM_UNITS"),
     /**
+     * Reference range for the result.
+     */
+    PATHOLOGY_REFERENCE_RANGE("PATH_REF_RANGE"),
+    /**
+     * When the result was last updated.
+     */
+    PATHOLOGY_RESULT_TIME("PATH_RES_TIME"),
+    /**
+     * The status of the result (final, etc.)
+     */
+    PATHOLOGY_RESULT_STATUS("PATH_RES_STS"),
+    /**
      * Pathology order fact type.
      */
     PATHOLOGY_ORDER("PATH_ORDER"),
@@ -139,7 +151,24 @@ public enum AttributeKeyMap {
     /**
      * Pathology order lab/specimen number with extra appended character, aka OCS number.
      */
-    PATHOLOGY_OCS_NUMBER("PATH_OCS_NUM");
+    PATHOLOGY_OCS_NUMBER("PATH_OCS_NUM"),
+    /**
+     * When the sample was collected (observation time).
+     */
+    PATHOLOGY_COLLECTION_TIME("PATH_COLL_TIME"),
+    /**
+     * When the order was originally made.
+     */
+    PATHOLOGY_ORDER_TIME("PATH_ORDER_TIME"),
+    /**
+     * The type of the patient that the order relates to (inpatient, outpatient)
+     */
+    PATHOLOGY_ORDER_PATIENT_TYPE("PATH_ORDER_TYPE"),
+    /**
+     * Time of last change of status for the order.
+     * If this is for results, PATHOLOGY_RESULT_TIME should be used instead.
+     */
+    PATHOLOGY_STATUS_CHANGE_TIME("PATH_STS_TIME");
 
     private String shortname;
 

@@ -26,8 +26,15 @@ attribute_id,short_name,description,result_type,added_time
 25,PATH_COD_SYS,Coding system (aka vocab) for the test code,String,2019-06-20T16:00:00Z
 26,PATH_NUM_VALUE,Pathology result numerical value,Float,2019-06-20T16:00:00Z
 27,PATH_NUM_UNITS,Pathology result numerical value units,String,2019-06-20T16:00:00Z
-28,PATH_ORDER,Pathology order fact type,None,2019-07-23T15:00:00Z
-29,PATH_ORD_CTL_ID,Pathology order control ID,String,2019-07-23T15:00:00Z
-30,PATH_EPIC_NUM,Pathology Epic order number,String,2019-07-23T15:00:00Z
-31,PATH_LAB_NUM,Pathology order lab/specimen number aka accession number,String,2019-07-25T18:00:00Z
-32,PATH_OCS_NUM,Pathology order lab/specimen number with extra appended character aka OCS number,String,2019-07-25T18:00:00Z
+28,PATH_REF_RANGE,Reference range for the result,String,2019-07-13T17:00:00Z
+29,PATH_RES_TIME,When the result was last updated,Datetime,2019-07-13T17:00:00Z
+30,PATH_RES_STS,The status of the result (final etc),String,2019-07-13T17:00:00Z
+31,PATH_ORDER,Pathology order fact type,None,2019-07-23T15:00:00Z
+32,PATH_ORD_CTL_ID,Pathology order control ID,String,2019-07-23T15:00:00Z
+33,PATH_EPIC_NUM,Pathology Epic order number,String,2019-07-23T15:00:00Z
+34,PATH_LAB_NUM,Pathology order lab/specimen number aka accession number,String,2019-07-25T18:00:00Z
+35,PATH_OCS_NUM,Pathology order lab/specimen number with extra appended character aka OCS number,String,2019-07-25T18:00:00Z
+36,PATH_COLL_TIME,Sample collection/observation time,Datetime,2019-07-31T17:00:00Z
+37,PATH_ORDER_TIME,When the order was originally made,Datetime,2019-07-31T17:00:00Z
+38,PATH_ORDER_TYPE,The type of the patient that the order relates to,String,2019-07-31T17:00:00Z
+39,PATH_STS_TIME,Time of last change of status for the order,Datetime,2019-07-31T17:00:00Z
