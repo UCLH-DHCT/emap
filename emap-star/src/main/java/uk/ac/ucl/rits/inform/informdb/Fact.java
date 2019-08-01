@@ -39,9 +39,17 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     @SortNatural
     private List<PropertyType> properties;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
+    @SortNatural
+    protected final List<F> childFacts = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "attributeId")
     private Attribute          factType;
+
+    @JoinColumn(name = "parent_fact")
+    @ManyToOne
+    private F parentFact;
 
     /**
      * @return the factId
@@ -229,4 +237,32 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
         return true;
     }
 
+    /**
+     * Facts, as well as having properties, can have other child facts.
+     * Add them here.
+     * @param fact the child fact to add
+     */
+    public abstract void addChildFact(F fact);
+
+    /**
+     * @return the child facts of this fact
+     */
+    public List<F> getChildFacts() {
+        return childFacts;
+    }
+
+    /**
+     * @return The parent fact of this fact
+     */
+    public F getParentFact() {
+        return parentFact;
+    }
+
+    /**
+     * Set this fact's parent fact.
+     * @param parentFact the parent fact
+     */
+    public void setParentFact(F parentFact) {
+        this.parentFact = parentFact;
+    }
 }
