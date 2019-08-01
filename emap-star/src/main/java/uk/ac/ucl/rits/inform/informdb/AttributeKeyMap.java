@@ -129,7 +129,7 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_RESULT_TIME("PATH_RES_TIME"),
     /**
-     * The status of the result (final, etc.)
+     * The status of the result (final, etc.).
      */
     PATHOLOGY_RESULT_STATUS("PATH_RES_STS"),
     /**
@@ -161,7 +161,7 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_ORDER_TIME("PATH_ORDER_TIME"),
     /**
-     * The type of the patient that the order relates to (inpatient, outpatient)
+     * The type of the patient that the order relates to (inpatient, outpatient).
      */
     PATHOLOGY_ORDER_PATIENT_TYPE("PATH_ORDER_TYPE"),
     /**
