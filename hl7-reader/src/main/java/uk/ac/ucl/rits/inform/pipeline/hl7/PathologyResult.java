@@ -11,6 +11,7 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.datatype.IS;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 
@@ -32,6 +33,8 @@ public class PathologyResult {
     private double numericValue;
     private String stringValue;
     private String units;
+    private String referenceRange;
+    private String resultStatus;
 
     private Instant resultTime;
 
@@ -44,15 +47,11 @@ public class PathologyResult {
      * message (ORC + OBR), this is flattened here.
      * @param obx the OBX segment for this result
      * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
+     * @throws DataTypeException if required datetime fields cannot be parsed
      */
-    public PathologyResult(OBX obx, OBR obr) {
+    public PathologyResult(OBX obx, OBR obr) throws DataTypeException {
         valueType = obx.getObx2_ValueType().getValueOrEmpty();
-        try {
-            resultTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
-        } catch (DataTypeException e) {
-            resultTime = null;
-            logger.error("resultTime parsing error", e);
-        }
+        resultTime = HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
 
         // identifies the particular test (eg. red cell count)
         CWE obx3 = obx.getObx3_ObservationIdentifier();
@@ -73,6 +72,10 @@ public class PathologyResult {
             logger.debug(String.format("Non numeric result %s", this.stringValue));
         }
         units = obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty();
+        referenceRange = obx.getObx7_ReferencesRange().getValueOrEmpty();
+        // how many abnormal flags can we get in practice?
+        IS[] abnormalFlags = obx.getObx8_AbnormalFlags();
+        resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
     }
 
     /**
@@ -127,9 +130,31 @@ public class PathologyResult {
     }
 
     /**
-     * @return the observation time for the test
+     * @return the time the result was reported. Can differ within
+     * a test battery if results are delivered bit by bit.
      */
     public Instant getResultTime() {
         return resultTime;
+    }
+
+    /**
+     * @return the reference range for the numerical result
+     */
+    public String getReferenceRange() {
+        return referenceRange;
+    }
+
+    /**
+     * @return the result status
+     */
+    public String getResultStatus() {
+        return resultStatus;
+    }
+
+    /**
+     * @return all sensitivities
+     */
+    public List<PathologySensitivity> getPathologySensitivities() {
+        return pathologySensitivities;
     }
 }

@@ -1269,27 +1269,24 @@ public class InformDbOperations {
             logger.info(existingPathologyOrder.toString());
         }
 
-        Map<String, PatientFact> allPathologyFacts = buildPathologyOrderFacts(pathologyOrder);
+        PatientFact pathologyOrderFact = buildPathologyOrderFacts(pathologyOrder);
         // in future we might do some diffing here to check we don't already have some
         // of the results
         logger.info("new pathology order facts: ");
-        for (PatientFact fact : allPathologyFacts.values()) {
-            logger.info(fact.toString());
-            encounter.addFact(fact);
-            fact = patientFactRepository.save(fact);
-        }
+        logger.info(pathologyOrderFact.toString());
+        encounter.addFact(pathologyOrderFact);
+        pathologyOrderFact = patientFactRepository.save(pathologyOrderFact);
         encounter = encounterRepo.save(encounter);
     }
 
     /**
      * Convert order details to Inform-db structures.
      * @param order the pathology order details
-     * @return a collection of PatientFact objects that represent the order (is there ever more than one? I think not)
+     * @return a PatientFact object that represents the order
      */
-    private Map<String, PatientFact> buildPathologyOrderFacts(PathologyOrder order) {
+    private PatientFact buildPathologyOrderFacts(PathologyOrder order) {
         Instant storedFrom = Instant.now();
         Instant validFrom = order.getOrderDateTime();
-        Map<String, PatientFact> facts = new HashMap<>();
         PatientFact pathFact = new PatientFact();
         pathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_ORDER));
         pathFact.setValidFrom(validFrom);
@@ -1302,8 +1299,27 @@ public class InformDbOperations {
                 order.getLabSpecimenNumber()));
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_OCS_NUMBER,
                 order.getLabSpecimenNumberOCS()));
-        facts.put(pathFact.getFactType().getShortName(), pathFact);
-        return facts;
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_COLLECTION_TIME,
+                order.getObservationDateTime()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_TIME,
+                order.getOrderDateTime()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_PATIENT_TYPE,
+                order.getOrderType()));
+
+        // Status change time is only given to us once per order/battery result, but we apply it
+        // to each result within the order and call it the result time, because results can be returned bit by bit
+        // so results within a battery may have different times.
+        // Here, we also save it as the generic last status change time.
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_STATUS_CHANGE_TIME,
+                order.getStatusChangeTime()));
+
+        // Will be empty if there are no results (eg. this is just an order).
+        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(order);
+        for (PatientFact child : resultFactsFromOrder.values()) {
+            pathFact.addChildFact(child);
+        }
+
+        return pathFact;
     }
 
     /**
@@ -1330,33 +1346,38 @@ public class InformDbOperations {
      * collection for easy diffing (we expect to get partial results and final
      * results at different times and this might be useful).
      *
-     * @param order the pathology results
+     * @param orderWithResults the pathology results
      * @return multiple PatientFact objects indexed by a unique identifier
-     * @throws HL7Exception if HAPI does
      */
-    private Map<String, PatientFact> buildPathologyFacts(PathologyOrder order) throws HL7Exception {
-        List<PathologyResult> pathResults = order.getPathologyResults();
+    private Map<String, PatientFact> buildPathologyResultsFacts(PathologyOrder orderWithResults) {
+        List<PathologyResult> pathResults = orderWithResults.getPathologyResults();
         Map<String, PatientFact> facts = new HashMap<>();
         Instant storedFrom = Instant.now();
         for (PathologyResult pr : pathResults) {
-            Instant validFrom = pr.getResultTime();
+            Instant resultTime = pr.getResultTime();
             PatientFact fact = new PatientFact();
             fact.setStoredFrom(storedFrom);
-            fact.setValidFrom(validFrom);
+            fact.setValidFrom(resultTime);
             fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
-            String key = order.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
+            String key = orderWithResults.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
 
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
-                    order.getTestBatteryLocalCode()));
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+                    orderWithResults.getTestBatteryLocalCode()));
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
-            PatientProperty result = buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
+            PatientProperty result = buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
                     pr.getNumericValue());
             result.setValueAsString(pr.getStringValue());
             fact.addProperty(result);
             fact.addProperty(
-                    buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_REFERENCE_RANGE, pr.getReferenceRange()));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_TIME, resultTime));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
 
             facts.put(key, fact);
         }
@@ -1394,10 +1415,7 @@ public class InformDbOperations {
         // check the status code to see whether this is a results update, and
         // act accordingly
 
-        String orderControlId = orderWithResults.getOrderControlId();
-        logger.info("Is it an RE? " + orderControlId);
-
-        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(orderWithResults);
+        Map<String, PatientFact> allPathologyFacts = buildPathologyResultsFacts(orderWithResults);
         // in future we might do some diffing here to check we don't already have some
         // of the results
         for (PatientFact fact : allPathologyFacts.values()) {

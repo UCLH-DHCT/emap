@@ -44,6 +44,7 @@ public class PathologyOrder {
     private String labSpecimenNumber;
     private String labSpecimenNumberOCS;
     private Instant orderDateTime;
+    private Instant sampleEnteredTime;
     private String orderType;
     private String visitNumber;
     private Instant observationDateTime;
@@ -51,6 +52,7 @@ public class PathologyOrder {
     private String testBatteryLocalDescription;
     private String testBatteryCodingSystem;
     private Instant statusChangeTime;
+
 
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
@@ -134,8 +136,7 @@ public class PathologyOrder {
         }
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
-        populateFromOrc(orc);
-        populateFromObr(obr);
+        populateFromOrcObr(orc, obr);
         validateRedundantFields();
     }
 
@@ -192,8 +193,7 @@ public class PathologyOrder {
         visitNumber = patientHl7.getVisitNumber();
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
-        populateFromOrc(orc);
-        populateFromObr(obr);
+        populateFromOrcObr(orc, obr);
         validateRedundantFields();
 
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
@@ -210,34 +210,43 @@ public class PathologyOrder {
     }
 
     /**
-     * Extract the fields found in the ORC segment, of which there is one per object.
+     * Extract the fields found in the ORC+OBR segments, of which there is one of each per object.
      * @param orc the ORC segment
+     * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
      */
-    private void populateFromOrc(ORC orc) throws DataTypeException {
+    private void populateFromOrcObr(ORC orc, OBR obr) throws DataTypeException {
         // NA/NW/CA/CR/OC/XO
         orderControlId = orc.getOrc1_OrderControl().getValue();
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumber = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumberOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        orderDateTime = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
-        orderType = orc.getOrc29_OrderType().getCwe1_Identifier().getValue();
-    }
 
-    /**
-     * Extract the fields found in the OBR segment, of which there is one per object.
-     * @param obr the OBR segment
-     * @throws DataTypeException if HAPI does
-     */
-    private void populateFromObr(OBR obr) throws DataTypeException {
-        try {
-            // Presumably empty in an order since the collection hasn't happened yet?
-            observationDateTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
-        } catch (DataTypeException e) {
-            observationDateTime = null;
-            logger.error("orderTime parsing error", e);
+        String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
+
+        // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
+        // in a status change (SC) message.
+        Instant orc9 = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
+        if (orderControlId.equals("NW")) {
+            orderDateTime = orc9;
+        } else if (orderControlId.equals("SC")) {
+            // possibly need to check for other result status codes that signify "in progress"?
+            if (resultStatus.equals("I")) {
+                // ORC-9 = time sample entered onto WinPath
+                sampleEnteredTime = orc9;
+            }
         }
+        orderType = orc.getOrc29_OrderType().getCwe1_Identifier().getValue();
+
+        // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
+        // which is the closest we get to a "collection" time. The actual collection will happen some point
+        // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
+        // This field is consistent throughout the workflow.
+        observationDateTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
+
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+
+        // this is the "last updated" field for results as well as changing to order "in progress"
         statusChangeTime = HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
 
         // only present in Epic -> WinPath msg
@@ -299,7 +308,14 @@ public class PathologyOrder {
     }
 
     /**
-     * @return order type (inpatient or outpatient)
+     * @return date the sample was entered onto WinPath
+     */
+    public Instant getSampleEnteredTime() {
+        return sampleEnteredTime;
+    }
+
+    /**
+     * @return (patient) type for order (inpatient or outpatient)
      */
     public String getOrderType() {
         return orderType;
