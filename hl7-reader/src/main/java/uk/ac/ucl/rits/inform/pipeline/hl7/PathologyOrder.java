@@ -47,6 +47,7 @@ public class PathologyOrder {
     private Instant sampleEnteredTime;
     private String orderType;
     private String visitNumber;
+    private Instant requestedDateTime;
     private Instant observationDateTime;
     private String testBatteryLocalCode;
     private String testBatteryLocalDescription;
@@ -243,6 +244,7 @@ public class PathologyOrder {
         // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
         observationDateTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
+        requestedDateTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
@@ -368,5 +370,12 @@ public class PathologyOrder {
      */
     public Instant getStatusChangeTime() {
         return statusChangeTime;
+    }
+
+    /**
+     * @return the requested date/time - how is this different to order time?
+     */
+    public Instant getRequestedDateTime() {
+        return requestedDateTime;
     }
 }
