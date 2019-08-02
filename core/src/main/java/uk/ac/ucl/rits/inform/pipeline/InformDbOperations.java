@@ -1288,6 +1288,7 @@ public class InformDbOperations {
         // add the child facts to the correct parent fact
         for (PatientFact child : resultFactsFromOrder.values()) {
             parent.addChildFact(child);
+            encounter.addFact(child);
         }
         // We will need to do some more diffing here to check whether the results have changed.
 
