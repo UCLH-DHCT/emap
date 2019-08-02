@@ -49,7 +49,11 @@ public class OruTest extends Hl7StreamTestCase {
         assertTrue(!factsAsMap.isEmpty());
         PatientFact pathOrder = factsAsMap.get(AttributeKeyMap.PATHOLOGY_ORDER.getShortname());
         assertNotNull(pathOrder);
-        Map<String, PatientFact> childFactsAsMap = pathOrder.getChildFactsAsMap();
-        assertTrue(childFactsAsMap.containsKey(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname()));
+        List<PatientFact> childFactsAsMap = pathOrder.getChildFacts();
+        // the order must have a child of type test result that has a battery code value of FBCY
+        assertTrue(childFactsAsMap.stream().anyMatch(
+                pf -> pf.getFactType().getShortName().equals(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname())
+                        && pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE).get(0)
+                                .getValueAsString().equals("FBCY")));
     }
 }

@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hibernate.Session;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.query.Query;
@@ -1258,16 +1260,37 @@ public class InformDbOperations {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
 
-        Encounter encounter = getEncounterForOrder(epicCareOrderNumber, visitNumber);
+        Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber);
+        Encounter encounter = encounterOrderPair.getLeft();
+        PatientFact existingOrderRootFact = encounterOrderPair.getRight();
 
-        // build the entire fact hierarchy from the message data
+        // build the order fact from the message data
         PatientFact pathologyOrderRootFact = buildPathologyOrderFacts(pathologyOrder);
-        // We will need to do some diffing here to check whether we already have some
-        // of the results or order details.
+
         logger.info("new pathology order facts: ");
         logger.info(pathologyOrderRootFact.toString());
-        encounter.addFact(pathologyOrderRootFact);
-        pathologyOrderRootFact = patientFactRepository.save(pathologyOrderRootFact);
+
+        // Build the results fact(s) from the message data, if any.
+        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(pathologyOrder);
+
+        // If we already know about the order, use the existing order from the DB as the parent,
+        // otherwise use the newly created one.
+        PatientFact parent;
+        if (existingOrderRootFact == null) {
+            // no existing, use new fact and add it to the encounter
+            parent = pathologyOrderRootFact;
+            encounter.addFact(pathologyOrderRootFact);
+        } else {
+            // use existing fact from DB (is already added to encounter), but will need to see if anything has changed
+            parent = existingOrderRootFact;
+            // updateFact(existingFact, newFact);
+        }
+        // add the child facts to the correct parent fact
+        for (PatientFact child : resultFactsFromOrder.values()) {
+            parent.addChildFact(child);
+        }
+        // We will need to do some more diffing here to check whether the results have changed.
+
         encounter = encounterRepo.save(encounter);
     }
 
@@ -1307,12 +1330,6 @@ public class InformDbOperations {
         // Here, we also save it as the generic last status change time.
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_STATUS_CHANGE_TIME,
                 order.getStatusChangeTime()));
-
-        // Will be empty if there are no results (eg. this is just an order).
-        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(order);
-        for (PatientFact child : resultFactsFromOrder.values()) {
-            pathFact.addChildFact(child);
-        }
 
         return pathFact;
     }
@@ -1387,10 +1404,11 @@ public class InformDbOperations {
      * Move to repo?
      * @param epicCareOrderNumber the Epic order number to search by
      * @param visitNumber the encounter/visit number to search by
-     * @return the Encounter object that this order is attached to
+     * @return Pair containing the Encounter object that this order is attached to and the PatientFact object that is the root
+     * object representing the order, if it exists (else null).
      * @throws MessageIgnoredException if the Encounter can't be found by any method
      */
-    private Encounter getEncounterForOrder(String epicCareOrderNumber, String visitNumber) throws MessageIgnoredException {
+    private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber) throws MessageIgnoredException {
         PatientFact existingPathologyOrder = getOnlyElement(
                 patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
         Encounter encounter;
@@ -1414,7 +1432,7 @@ public class InformDbOperations {
             throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
                     + encounter.getEncounter() + ", expecting " + visitNumber);
         }
-        return encounter;
+        return new ImmutablePair<>(encounter, existingPathologyOrder);
     }
 
     /**
