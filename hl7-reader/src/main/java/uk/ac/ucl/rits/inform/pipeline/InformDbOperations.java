@@ -1286,7 +1286,10 @@ public class InformDbOperations {
      */
     private PatientFact buildPathologyOrderFacts(PathologyOrder order) {
         Instant storedFrom = Instant.now();
-        Instant validFrom = order.getOrderDateTime();
+        // the valid from date should be the order time, when this fact became true.
+        // however we are currently not getting this time, so use the next earliest
+        // time we have, the collection/observation time
+        Instant validFrom = order.getObservationDateTime();
         PatientFact pathFact = new PatientFact();
         pathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_ORDER));
         pathFact.setValidFrom(validFrom);
