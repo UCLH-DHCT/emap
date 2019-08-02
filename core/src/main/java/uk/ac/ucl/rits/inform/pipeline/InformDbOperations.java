@@ -1337,7 +1337,9 @@ public class InformDbOperations {
         prop.setValidFrom(validFrom);
         prop.setStoredFrom(storedFrom);
         prop.setAttribute(getCreateAttribute(attrKM));
-        prop.setValue(value);
+        if (value != null) {
+            prop.setValue(value);
+        }
         return prop;
     }
 
