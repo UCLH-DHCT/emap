@@ -1,7 +1,9 @@
 package uk.ac.ucl.rits.inform.pipeline.tests;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -45,6 +47,9 @@ public class OruTest extends Hl7StreamTestCase {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
         assertTrue(!factsAsMap.isEmpty());
-        assertTrue(factsAsMap.containsKey(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname()));
+        PatientFact pathOrder = factsAsMap.get(AttributeKeyMap.PATHOLOGY_ORDER.getShortname());
+        assertNotNull(pathOrder);
+        Map<String, PatientFact> childFactsAsMap = pathOrder.getChildFactsAsMap();
+        assertTrue(childFactsAsMap.containsKey(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname()));
     }
 }
