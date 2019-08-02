@@ -273,11 +273,10 @@ public class InformDbOperations {
             }
         } else if (messageType.equals("ORU")) {
             if (triggerEvent.equals("R01")) {
+                // get all result batteries in the message
                 List<PathologyOrder> pathologyOrdersWithResults = PathologyOrder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
-                // XXX: move code from addOrUpdatePathologyResults into addOrUpdatePathologyOrder?
-                // addOrUpdatePathologyResults(pathologyResults);
                 for (PathologyOrder order : pathologyOrdersWithResults) {
-                    addOrUpdatePathologyResults(order);
+                    addOrUpdatePathologyOrder(order);
                 }
                 processed += 1;
             }
@@ -1251,31 +1250,24 @@ public class InformDbOperations {
     /**
      * Convert the simplified data from the HL7 message into Inform-db structures,
      * and merge with existing data depending on whether it's a new order or changes to an existing one.
-     * @param pathologyOrder the pathology order details
+     * @param pathologyOrder the pathology order details, may contain results
      * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception, MessageIgnoredException {
         String visitNumber = pathologyOrder.getVisitNumber();
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        if (encounter == null) {
-            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
-        }
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
-        PatientFact existingPathologyOrder = getOnlyElement(patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
-        // order may or may not exist already
-        if (existingPathologyOrder != null) {
-            logger.info("existing pathology order " + epicCareOrderNumber + ": ");
-            logger.info(existingPathologyOrder.toString());
-        }
 
-        PatientFact pathologyOrderFact = buildPathologyOrderFacts(pathologyOrder);
-        // in future we might do some diffing here to check we don't already have some
-        // of the results
+        Encounter encounter = getEncounterForOrder(epicCareOrderNumber, visitNumber);
+
+        // build the entire fact hierarchy from the message data
+        PatientFact pathologyOrderRootFact = buildPathologyOrderFacts(pathologyOrder);
+        // We will need to do some diffing here to check whether we already have some
+        // of the results or order details.
         logger.info("new pathology order facts: ");
-        logger.info(pathologyOrderFact.toString());
-        encounter.addFact(pathologyOrderFact);
-        pathologyOrderFact = patientFactRepository.save(pathologyOrderFact);
+        logger.info(pathologyOrderRootFact.toString());
+        encounter.addFact(pathologyOrderRootFact);
+        pathologyOrderRootFact = patientFactRepository.save(pathologyOrderRootFact);
         encounter = encounterRepo.save(encounter);
     }
 
@@ -1390,23 +1382,28 @@ public class InformDbOperations {
     }
 
     /**
-     * Add all the pathology results in an ORU message to the specified encounter.
-     *
-     * @param orderWithResults the ORU wrapper
-     * @throws HL7Exception when HAPI does
-     * @throws MessageIgnoredException if we haven't seen the encounter (visit number) before
+     * Look up an encounter by an existing order number, or by the encounter number if
+     * the order is previously unknown.
+     * Move to repo?
+     * @param epicCareOrderNumber the Epic order number to search by
+     * @param visitNumber the encounter/visit number to search by
+     * @return the Encounter object that this order is attached to
+     * @throws MessageIgnoredException if the Encounter can't be found by any method
      */
-    private void addOrUpdatePathologyResults(PathologyOrder orderWithResults) throws HL7Exception, MessageIgnoredException {
-        String visitNumber = orderWithResults.getVisitNumber();
-        String epicCareOrderNumber = orderWithResults.getEpicCareOrderNumber();
+    private Encounter getEncounterForOrder(String epicCareOrderNumber, String visitNumber) throws MessageIgnoredException {
         PatientFact existingPathologyOrder = getOnlyElement(
                 patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
         Encounter encounter;
+        // order may or may not exist already
         if (existingPathologyOrder != null) {
             encounter = existingPathologyOrder.getEncounter();
+            logger.info("existing pathology order " + epicCareOrderNumber + ": ");
+            logger.info(existingPathologyOrder.toString());
         } else {
-            // If getting a result for a previously unknown order, that should be logged as
-            // an error, but for now allow it as our test depends on this...
+            // If seeing a result message for a previously unknown order, it should be allowed but logged as
+            // a potential error, although when starting mid-HL7 stream there will always be
+            // results for orders you haven't seen.
+            // (also our test depends on this being allowed)
             logger.error("Couldn't find order with order number " + epicCareOrderNumber + ", searching by visit number instead");
             encounter = encounterRepo.findEncounterByEncounter(visitNumber);
             if (encounter == null) {
@@ -1417,18 +1414,7 @@ public class InformDbOperations {
             throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
                     + encounter.getEncounter() + ", expecting " + visitNumber);
         }
-        // check the status code to see whether this is a results update, and
-        // act accordingly
-
-        Map<String, PatientFact> allPathologyFacts = buildPathologyResultsFacts(orderWithResults);
-        // in future we might do some diffing here to check we don't already have some
-        // of the results
-        for (PatientFact fact : allPathologyFacts.values()) {
-            encounter.addFact(fact);
-            // hmm...
-            fact = patientFactRepository.save(fact);
-        }
-        encounter = encounterRepo.save(encounter);
+        return encounter;
     }
 
     /**
