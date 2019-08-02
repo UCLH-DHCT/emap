@@ -1416,8 +1416,14 @@ public class InformDbOperations {
      * @throws MessageIgnoredException if the Encounter can't be found by any method
      */
     private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber) throws MessageIgnoredException {
-        PatientFact existingPathologyOrder = getOnlyElement(
-                patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
+        // We do get messages with blank Epic order numbers,
+        // however searching on a blank order number will never do the right
+        // thing, so in this case behave as if the order was not found.
+        PatientFact existingPathologyOrder = null;
+        if (!epicCareOrderNumber.isEmpty()) {
+            existingPathologyOrder = getOnlyElement(
+                    patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
+        }
         Encounter encounter;
         // order may or may not exist already
         if (existingPathologyOrder != null) {
