@@ -1437,12 +1437,18 @@ public class InformDbOperations {
             // results for orders you haven't seen.
             // (also our test depends on this being allowed)
             logger.error("Couldn't find order with order number " + epicCareOrderNumber + ", searching by visit number instead");
-            encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-            if (encounter == null) {
-                throw new MessageIgnoredException("Can't find encounter to attach results to: " + visitNumber);
+            if (!visitNumber.isEmpty()) {
+                encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+                if (encounter == null) {
+                    throw new MessageIgnoredException("Can't find encounter to attach results to: " + visitNumber);
+                }
+            } else {
+                throw new MessageIgnoredException("Can't find encounter - can't search on empty visit number");
             }
         }
-        if (!encounter.getEncounter().equals(visitNumber)) {
+        if (!visitNumber.isEmpty() && !encounter.getEncounter().equals(visitNumber)) {
+            // the visit number of the encounter for the existing order disagrees with the visit number
+            // in the HL7 message.
             throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
                     + encounter.getEncounter() + ", expecting " + visitNumber);
         }
