@@ -110,4 +110,30 @@ public class Attribute implements Serializable {
         return shortName + "[" + attributeId + "]";
     }
 
+    @Override
+    public int hashCode() {
+        // The short name is  what you  are most likely to have
+        return this.shortName.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        // The short name is  what you  are most likely to have
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Attribute other = (Attribute) obj;
+        if (!this.shortName.equals(other.shortName)) {
+            return false;
+        }
+        return true;
+    }
+
+
 }
