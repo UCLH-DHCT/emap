@@ -24,7 +24,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties({"parentFact", "valid"})
-@Table(indexes = { @Index(name = "parent_fact_index", columnList = "parent_fact", unique = false) })
+@Table(indexes = { @Index(name = "parent_fact_index", columnList = "parent_fact", unique = false),
+        @Index(name = "attribute_index", columnList = "attribute", unique = false)})
 public class PatientProperty extends Property<PatientFact> implements Serializable {
 
     private static final long serialVersionUID = 9035602294475836526L;
