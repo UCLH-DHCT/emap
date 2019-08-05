@@ -120,7 +120,7 @@ public class TestPV1 extends TestCase {
     @Test
     public void testGetVisitNumber1() throws HL7Exception {
         String result = wrapper.getVisitNumber();
-        assertEquals(null, result);
+        assertEquals("1234TESTVISITNUM", result);
     }
 
     /**

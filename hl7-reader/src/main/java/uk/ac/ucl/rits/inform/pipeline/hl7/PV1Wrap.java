@@ -133,7 +133,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getVisitNumber() throws HL7Exception {
-        return getPV1().getVisitNumber().getComponent(0).toString();
+        return getPV1().getVisitNumber().getCx1_IDNumber().getValueOrEmpty();
     }
 
     /**
