@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
-@JsonIgnoreProperties("mrns")
+@JsonIgnoreProperties({"mrns", "factsAsMap"})
 public class Encounter implements Serializable {
 
     private static final long  serialVersionUID = -6495238097074592105L;

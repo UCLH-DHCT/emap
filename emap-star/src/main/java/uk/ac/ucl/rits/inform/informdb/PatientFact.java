@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  */
 @Entity
-@JsonIgnoreProperties("encounter")
+@JsonIgnoreProperties({"encounter", "valid", "childFacts", "childFactsAsMap", "parentFact"})
 public class PatientFact extends Fact<PatientFact, PatientProperty> implements Serializable {
 
     private static final long serialVersionUID = -5867434510066589366L;

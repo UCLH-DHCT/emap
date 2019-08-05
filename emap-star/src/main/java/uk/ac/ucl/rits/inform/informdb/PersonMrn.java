@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "person_mrn")
-@JsonIgnoreProperties("person")
+@JsonIgnoreProperties({"person", "valid"})
 public class PersonMrn extends TemporalCore implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
