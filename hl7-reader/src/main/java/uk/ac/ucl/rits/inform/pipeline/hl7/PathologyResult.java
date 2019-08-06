@@ -54,6 +54,10 @@ public class PathologyResult {
      * @throws DataTypeException if required datetime fields cannot be parsed
      */
     public PathologyResult(OBX obx, OBR obr, List<NTE> notes) throws DataTypeException {
+        // see HL7 Table 0125 for value types
+        // In addition to NM (Numeric), we get (descending popularity):
+        //     ED (Encapsulated Data), ST (String), FT (Formatted text - display),
+        //     TX (Text data - display), DT (Date), CE (deprecated and replaced by CNE or CWE, coded entry with or without exceptions)
         valueType = obx.getObx2_ValueType().getValueOrEmpty();
         resultTime = HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
 
@@ -63,6 +67,15 @@ public class PathologyResult {
         testItemLocalDescription = obx3.getCwe2_Text().getValueOrEmpty();
         testItemCodingSystem = obx3.getCwe3_NameOfCodingSystem().getValueOrEmpty();
 
+        populateNumeric(obx);
+        populateNotes(notes);
+    }
+
+    /**
+     * Populate OBX fields assuming the value type is NM - numeric.
+     * @param obx the OBX segment
+     */
+    private void populateNumeric(OBX obx) {
         Varies data = obx.getObx5_ObservationValue(0);
         Type data2 = data.getData();
         this.stringValue = data2.toString();
@@ -80,7 +93,6 @@ public class PathologyResult {
         // how many abnormal flags can we get in practice?
         IS[] abnormalFlags = obx.getObx8_AbnormalFlags();
         resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
-        populateNotes(notes);
     }
 
     /**
