@@ -108,8 +108,6 @@ public class PathologyOrder {
             String testBatteryLocalCode = pathologyOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
                 logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
-            } else if (!testBatteryLocalCode.equals("FBC") && !testBatteryLocalCode.equals("FBCE") && !testBatteryLocalCode.equals("FBCY")) {
-                logger.warn("ignoring all but FBC, got " + testBatteryLocalCode);
             } else {
                 orders.add(pathologyOrder);
             }
