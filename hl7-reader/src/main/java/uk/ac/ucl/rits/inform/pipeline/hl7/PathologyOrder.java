@@ -21,6 +21,7 @@ import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
@@ -200,7 +201,8 @@ public class PathologyOrder {
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
-            PathologyResult pathologyResult = new PathologyResult(obx, obr);
+            List<NTE> notes = ob.getNTEAll();
+            PathologyResult pathologyResult = new PathologyResult(obx, obr, notes);
             if (!pathologyResult.getValueType().equals("NM")) {
                 // ignore free text (FT), etc, for now
                 logger.warn("only handling numeric (NM), got " + pathologyResult.getValueType());

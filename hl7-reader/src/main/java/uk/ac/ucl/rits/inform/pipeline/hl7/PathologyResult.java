@@ -11,7 +11,9 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.IS;
+import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 
@@ -37,6 +39,7 @@ public class PathologyResult {
     private String resultStatus;
 
     private Instant resultTime;
+    private String notes;
 
     private List<PathologySensitivity> pathologySensitivities = new ArrayList<>();
 
@@ -47,9 +50,10 @@ public class PathologyResult {
      * message (ORC + OBR), this is flattened here.
      * @param obx the OBX segment for this result
      * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
+     * @param notes list of NTE segments for this result
      * @throws DataTypeException if required datetime fields cannot be parsed
      */
-    public PathologyResult(OBX obx, OBR obr) throws DataTypeException {
+    public PathologyResult(OBX obx, OBR obr, List<NTE> notes) throws DataTypeException {
         valueType = obx.getObx2_ValueType().getValueOrEmpty();
         resultTime = HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
 
@@ -76,6 +80,22 @@ public class PathologyResult {
         // how many abnormal flags can we get in practice?
         IS[] abnormalFlags = obx.getObx8_AbnormalFlags();
         resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
+        populateNotes(notes);
+    }
+
+    /**
+     * Gather all the NTE segments that relate to this OBX and save as concatenated value.
+     * @param notes all NTE segments for the observation
+     */
+    private void populateNotes(List<NTE> notes) {
+        List<String> allNotes = new ArrayList<>();
+        for (NTE nt : notes) {
+            FT[] fts = nt.getNte3_Comment();
+            for (FT ft : fts) {
+                allNotes.add(ft.getValueOrEmpty());
+            }
+        }
+        this.notes = String.join(" ", allNotes);
     }
 
     /**
@@ -149,6 +169,13 @@ public class PathologyResult {
      */
     public String getResultStatus() {
         return resultStatus;
+    }
+
+    /**
+     * @return the notes accompanying the result, if any
+     */
+    public String getNotes() {
+        return notes;
     }
 
     /**
