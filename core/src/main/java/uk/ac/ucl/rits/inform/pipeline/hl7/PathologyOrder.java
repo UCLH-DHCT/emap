@@ -46,6 +46,7 @@ public class PathologyOrder {
     private String labSpecimenNumberOCS;
     private Instant orderDateTime;
     private Instant sampleEnteredTime;
+    private String orderStatus;
     private String orderType;
     private String visitNumber;
     private Instant requestedDateTime;
@@ -223,6 +224,7 @@ public class PathologyOrder {
         labSpecimenNumber = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         labSpecimenNumberOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
+        orderStatus = orc.getOrc5_OrderStatus().getValueOrEmpty();
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
 
         // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
@@ -377,5 +379,13 @@ public class PathologyOrder {
      */
     public Instant getRequestedDateTime() {
         return requestedDateTime;
+    }
+
+    /**
+     * @return Order status (final, incomplete, etc.).
+     * A,CA,CM,DC,ER,HD,IP,RP,SC (HL7 Table 0038)
+     */
+    public String getOrderStatus() {
+        return orderStatus;
     }
 }
