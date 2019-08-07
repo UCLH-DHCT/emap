@@ -66,6 +66,7 @@ public class PathologyResult {
         testItemLocalCode = obx3.getCwe1_Identifier().getValueOrEmpty();
         testItemLocalDescription = obx3.getCwe2_Text().getValueOrEmpty();
         testItemCodingSystem = obx3.getCwe3_NameOfCodingSystem().getValueOrEmpty();
+        resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
 
         populateNumeric(obx);
         populateNotes(notes);
@@ -92,7 +93,6 @@ public class PathologyResult {
         referenceRange = obx.getObx7_ReferencesRange().getValueOrEmpty();
         // how many abnormal flags can we get in practice?
         IS[] abnormalFlags = obx.getObx8_AbnormalFlags();
-        resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
     }
 
     /**
@@ -177,7 +177,7 @@ public class PathologyResult {
     }
 
     /**
-     * @return the result status
+     * @return the result status. See HL7 Table 0085.
      */
     public String getResultStatus() {
         return resultStatus;
