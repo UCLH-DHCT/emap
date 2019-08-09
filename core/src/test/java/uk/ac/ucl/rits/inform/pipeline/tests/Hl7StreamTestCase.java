@@ -27,6 +27,7 @@ import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.pipeline.hl7.HL7Utils;
 import uk.ac.ucl.rits.inform.pipeline.informdb.EncounterRepository;
 import uk.ac.ucl.rits.inform.pipeline.informdb.MrnRepository;
+import uk.ac.ucl.rits.inform.pipeline.informdb.PatientFactRepository;
 
 /**
  * A test case that first loads in and processes a stream of HL7 messages from one or more text files.
@@ -44,6 +45,8 @@ public abstract class Hl7StreamTestCase {
     protected EncounterRepository encounterRepo;
     @Autowired
     protected MrnRepository mrnRepo;
+    @Autowired
+    protected PatientFactRepository patientFactRepo;
 
     // Specify which hl7 message containing files you want to be loaded for the test case by adding
     // to this list in order.
