@@ -151,6 +151,31 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     }
 
     /**
+     * Recursively fill in null validFrom values for all properties
+     * of this fact and do the same for all descendant facts.
+     *
+     * @param validFrom the validFrom value to use if this fact has a null value,
+     * ok to be null if you know this fact's validFrom is non-null
+     */
+    public void cascadeValidFrom(Instant validFrom) {
+        // Favour the current fact's validFrom if it exists,
+        // otherwise use the one cascaded from above.
+        if (this.getValidFrom() != null) {
+            validFrom = this.getValidFrom();
+        } else {
+            this.setValidFrom(validFrom);
+        }
+        for (PropertyType prop : properties) {
+            if (prop.getValidFrom() == null) {
+                prop.setValidFrom(validFrom);
+            }
+        }
+        for (F child : childFacts) {
+            child.cascadeValidFrom(validFrom);
+        }
+    }
+
+    /**
      * Add a property to a Fact with backlinks.
      *
      * @param prop A single property to append.
