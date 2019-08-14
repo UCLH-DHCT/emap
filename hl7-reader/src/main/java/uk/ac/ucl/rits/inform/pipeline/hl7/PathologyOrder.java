@@ -3,8 +3,11 @@ package uk.ac.ucl.rits.inform.pipeline.hl7;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -13,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_ORDER;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
@@ -56,6 +60,8 @@ public class PathologyOrder {
     private String testBatteryCodingSystem;
     private Instant statusChangeTime;
 
+    private String parentObservationIdentifier;
+    private String parentSubId;
 
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
@@ -113,7 +119,42 @@ public class PathologyOrder {
                 orders.add(pathologyOrder);
             }
         }
+        reparentOrders(orders);
         return orders;
+    }
+
+    /**
+     * Re-parent the (sensitivity) orders in this list so they point to the results
+     * that they apply to. Parents and children must all be in the list supplied.
+     *
+     * @param orders the list of all orders (usually with results(?)). This list
+     *               will have items modified and/or deleted.
+     */
+    private static void reparentOrders(List<PathologyOrder> orders) {
+        // we may have multiple orders that are unrelated to each other (apart from
+        // being for the same patient).
+        for (int i = 0; i < orders.size(); i++) {
+            PathologyOrder orderToReparent = orders.get(i);
+            if (!orderToReparent.getParentSubId().isEmpty()) {
+                // The order has a parent, let's find it.
+                // Not many elements, a linear search should be fine.
+                // Assuming that the parent always appears before the child in the list.
+                for (int j = 0; j < i; j++) {
+                    List<PathologyResult> possibleParents = orders.get(j).getPathologyResults();
+                    try {
+                        PathologyResult foundParent = possibleParents.stream().filter(par -> orderToReparent.isChildOf(par))
+                                .findFirst().get();
+                        // add the order to the list of sensitivities and delete from the original list
+                        logger.info("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
+                        foundParent.getPathologySensitivities().add(orderToReparent);
+                        orders.set(i, null);
+                        break;
+                    } catch (NoSuchElementException e) {
+                    }
+                }
+            }
+        }
+        orders.removeIf(o -> o == null);
     }
 
     /**
@@ -202,13 +243,44 @@ public class PathologyOrder {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
             PathologyResult pathologyResult = new PathologyResult(obx, obr, notes);
-            if (!pathologyResult.getValueType().equals("NM")) {
-                // ignore free text (FT), etc, for now
-                logger.warn("only handling numeric (NM), got " + pathologyResult.getValueType());
-            } else {
-                pathologyResults.add(pathologyResult);
+            pathologyResults.add(pathologyResult);
+        }
+        // join some of the observations under this fact together (or ignore some of them)
+        mergeOrFilterResults(this.pathologyResults);
+    }
+
+    /**
+     * Use the sub IDs to see which observations (results) belong together
+     * and should be combined. Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments,
+     * linked by a sub ID.
+     * @param pathologyResults the list of pathology results to merge. This elements of the list will be modified and/or removed.
+     */
+    private static void mergeOrFilterResults(List<PathologyResult> pathologyResults) {
+        Map<String, PathologyResult> subIdMapping = new HashMap<>();
+        for (int i = 0; i < pathologyResults.size(); i++) {
+            // can this "result" be ignored altogether?
+            if (pathologyResults.get(i).isIgnorable()) {
+                pathologyResults.set(i, null);
+                break;
+            }
+            // must this line of a result be merged with a previous line to give the
+            // full result?
+            String subId = pathologyResults.get(i).getObservationSubId();
+            if (!subId.isEmpty()) {
+                PathologyResult existing = subIdMapping.get(subId);
+                if (existing == null) {
+                    // save it for future results that will need to refer back to it
+                    subIdMapping.put(subId, pathologyResults.get(i));
+                } else {
+                    // the sub ID has already been seen, so merge this result
+                    // into the existing result, and delete this result
+                    existing.mergeResult(pathologyResults.get(i));
+                    pathologyResults.set(i, null);
+                }
             }
         }
+        // remove those which have been merged in and marked as null (all their data should have been incorporated in the merge)
+        pathologyResults.removeIf(pr -> pr == null);
     }
 
     /**
@@ -261,6 +333,28 @@ public class PathologyOrder {
         testBatteryLocalCode = obr4.getCwe1_Identifier().getValueOrEmpty();
         testBatteryLocalDescription = obr4.getCwe2_Text().getValueOrEmpty();
         testBatteryCodingSystem = obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty();
+
+        PRL parent = obr.getObr26_ParentResult();
+
+        // eg. "ISOLATE"
+        // match to OBX-3.1
+        parentObservationIdentifier = parent.getPrl1_ParentObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
+
+        // match to OBX-4
+        parentSubId = parent.getPrl2_ParentObservationSubIdentifier().getValueOrEmpty();
+    }
+
+    /**
+     * @param possibleParent the result to test whether "this" is a child of it
+     * @return whether "this" is a child (ie. a sensitivity order/result) of possibleParent
+     */
+    public boolean isChildOf(PathologyResult possibleParent) {
+        return !getEpicCareOrderNumber().isEmpty()
+                && getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
+                && !parentObservationIdentifier.isEmpty()
+                && parentObservationIdentifier.equals(possibleParent.getTestItemLocalCode())
+                && !parentSubId.isEmpty()
+                && parentSubId.equals(possibleParent.getObservationSubId());
     }
 
     /**
@@ -387,5 +481,35 @@ public class PathologyOrder {
      */
     public String getOrderStatus() {
         return orderStatus;
+    }
+
+    /**
+     * Try to infer whether this order is a sensitivity order.
+     * @return is this order a sensitivity order?
+     */
+    public boolean isSensitivity() {
+        // a better test might be the test ID = "Micro^Sensitivities^WinPath"
+        boolean emptyOrc5 = getOrderStatus().isEmpty();
+        return emptyOrc5;
+    }
+
+    /**
+     * @return the HL7 field to indicate the test identifier of the parent order for
+     *         this order, if it has one. Arguably this shouldn't be stored in the
+     *         JSON as it's a temporary value we use for building the structure and
+     *         is HL7 specific.
+     */
+    public String getParentObservationIdentifier() {
+        return parentObservationIdentifier;
+    }
+
+    /**
+     * @return the HL7 field to indicate the sub ID of the parent order for this
+     *         order, if it has one. Arguably this shouldn't be stored in the JSON
+     *         as it's a temporary value we use for building the structure and is
+     *         HL7 specific.
+     */
+    public String getParentSubId() {
+        return parentSubId;
     }
 }
