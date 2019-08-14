@@ -1290,6 +1290,10 @@ public class InformDbOperations {
             parent.addChildFact(child);
             encounter.addFact(child);
         }
+        // Some child facts - eg. sensitivities are unable to work out their
+        // valid from time because status change time is missing, fill
+        // this in here.
+        parent.cascadeValidFrom(null);
         // We will need to do some more diffing here to check whether the results have changed.
 
         encounter = encounterRepo.save(encounter);
@@ -1402,6 +1406,8 @@ public class InformDbOperations {
                     buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
 
             facts.put(key, fact);
+            // each result can have zero or more sensitivities, which are actually just another type of order
+            List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
         }
         return facts;
     }
@@ -1425,6 +1431,7 @@ public class InformDbOperations {
             existingPathologyOrder = getOnlyElement(
                     patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
         }
+        // If this fails, try the lab number + order type because epic order num may be blank for lab initiated orders
         Encounter encounter;
         // order may or may not exist already
         if (existingPathologyOrder != null) {
