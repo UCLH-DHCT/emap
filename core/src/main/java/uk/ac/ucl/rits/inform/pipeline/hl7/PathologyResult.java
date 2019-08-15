@@ -103,6 +103,7 @@ public class PathologyResult {
     private void populateObx(OBX obx) {
         Varies dataVaries = obx.getObx5_ObservationValue(0);
         Type data = dataVaries.getData();
+        this.stringValue = "";
         if (data instanceof ST
                 || data instanceof FT
                 || data instanceof TX
@@ -285,5 +286,26 @@ public class PathologyResult {
      */
     public String getEpicCareOrderNumber() {
         return epicCareOrderNumber;
+    }
+
+    /**
+     * @return local code of the isolate
+     */
+    public String getIsolateLocalCode() {
+        return isolateLocalCode;
+    }
+
+    /**
+     * @return local description of the isolate
+     */
+    public String getIsolateLocalDescription() {
+        return isolateLocalDescription;
+    }
+
+    /**
+     * @return coding system of the isolate (eg. WinPath)
+     */
+    public String getIsolateCodingSystem() {
+        return isolateCodingSystem;
     }
 }
