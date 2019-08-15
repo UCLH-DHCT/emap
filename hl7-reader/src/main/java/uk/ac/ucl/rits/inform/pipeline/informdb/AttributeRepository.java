@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import uk.ac.ucl.rits.inform.informdb.Attribute;
@@ -16,11 +15,10 @@ import uk.ac.ucl.rits.inform.informdb.Attribute;
  */
 public interface AttributeRepository extends CrudRepository<Attribute, String> {
     /**
-     * @param shortname shortname of the attribute to look up
+     * @param shortName short name of the attribute to look up
      * @return the Attribute object if it exists
      */
-    @Query("select a from Attribute a where a.shortName=?1")
-    Optional<Attribute> findByShortName(String shortname);
+    Optional<Attribute> findByShortName(String shortName);
 
     /**
      * @param attributeId the attr id
