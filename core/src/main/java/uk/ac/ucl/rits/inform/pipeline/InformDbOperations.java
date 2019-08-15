@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -635,6 +636,7 @@ public class InformDbOperations {
             // Need to save here so the hospital visit can be created (and thus
             // assigned an ID), so we can refer to that ID in the bed visit.
             // (Bed visits refer to hosp visits explicitly by their IDs).
+            enc = encounterRepo.save(enc);
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
@@ -1040,18 +1042,26 @@ public class InformDbOperations {
         visit.addProperty(visProp);
     }
 
+    private Map<String, Attribute> attributeCache = null;
+
     /**
-     * Return a persisted Attribute object with the given enum value, creating it
-     * first if necessary.
+     * Return a cached, persisted Attribute object with the given enum value.
      *
      * @param attrKM the enum value of the attribute
-     * @return the Attribute object
+     * @return the Attribute object from the cache
      */
     @Transactional
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
-        Optional<Attribute> attropt = attributeRepo.findByShortName(attrKM.getShortname());
-        if (attropt.isPresent()) {
-            return attropt.get();
+        if (attributeCache == null) {
+            attributeCache = new HashMap<>();
+            Set<Attribute> allAttrs = attributeRepo.findAll();
+            for (Attribute a : allAttrs) {
+                attributeCache.put(a.getShortName(), a);
+            }
+        }
+        Attribute attribute = attributeCache.get(attrKM.getShortname());
+        if (attribute != null) {
+            return attribute;
         } else {
             throw new AttributeError("Tried to use attribute but wasn't found in db: " + attrKM.getShortname());
         }
