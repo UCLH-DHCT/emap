@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.pipeline.hl7;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,9 +167,16 @@ public class PathologyResult {
      * to be human-readable.
      */
     public boolean isIgnorable() {
-        return stringValue.equals("URINE CULTURE REPORT")
-                // XXX: this needs some pattern matching and better rules
-                || stringValue.equals("COMPLETE: 14/07/19");
+        // this will need expanding as we discover new cases
+        if (stringValue.equals("URINE CULTURE REPORT")) {
+            return true;
+        }
+        String pattern = "COMPLETE: \\d\\d/\\d\\d/\\d\\d";
+        Pattern p = Pattern.compile(pattern);
+        if (p.matcher(stringValue).matches()) {
+            return true;
+        }
+        return false;
     }
 
     /**
