@@ -38,3 +38,4 @@ attribute_id,short_name,description,result_type,added_time
 37,PATH_ORDER_TIME,When the order was originally made,Datetime,2019-07-31T17:00:00Z
 38,PATH_ORDER_TYPE,The type of the patient that the order relates to,String,2019-07-31T17:00:00Z
 39,PATH_STS_TIME,Time of last change of status for the order,Datetime,2019-07-31T17:00:00Z
+40,PATH_ISOL_CODE,Local code of the isolate,String,2019-08-15T17:00:00Z

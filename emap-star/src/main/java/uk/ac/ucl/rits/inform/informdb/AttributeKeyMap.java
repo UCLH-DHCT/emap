@@ -157,6 +157,10 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_COLLECTION_TIME("PATH_COLL_TIME"),
     /**
+     * Local code of the isolate (microbiology).
+     */
+    PATHOLOGY_ISOLATE_CODE("PATH_ISOL_CODE"),
+    /**
      * When the order was originally made.
      */
     PATHOLOGY_ORDER_TIME("PATH_ORDER_TIME"),
