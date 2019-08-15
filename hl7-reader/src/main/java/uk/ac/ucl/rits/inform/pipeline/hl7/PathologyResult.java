@@ -161,6 +161,33 @@ public class PathologyResult {
     }
 
     /**
+     * @return Does this observation contain only redundant information
+     * that can be ignored? Eg. header and footer of a report intended
+     * to be human-readable.
+     */
+    public boolean isIgnorable() {
+        return stringValue.equals("URINE CULTURE REPORT")
+                // XXX: this needs some pattern matching and better rules
+                || stringValue.equals("COMPLETE: 14/07/19");
+    }
+
+    /**
+     * Merge another pathology result into this one.
+     * Eg. an adjacent OBX segment that is linked by a sub ID.
+     * @param pathologyResult the other pathology result to merge in
+     */
+    public void mergeResult(PathologyResult pathologyResult) {
+        // Will need to identify HOW to merge results.
+        // Eg. identify that pathologyResult contains an isolate,
+        // so only copy the isolate fields from it.
+        if (!pathologyResult.isolateLocalCode.isEmpty()) {
+            this.isolateLocalCode = pathologyResult.isolateLocalCode;
+            this.isolateLocalDescription = pathologyResult.isolateLocalDescription;
+            this.isolateCodingSystem = pathologyResult.isolateCodingSystem;
+        }
+    }
+
+    /**
      * @return value type for the observation line (eg. NM)
      */
     public String getValueType() {
@@ -252,33 +279,6 @@ public class PathologyResult {
      */
     public String getObservationSubId() {
         return observationSubId;
-    }
-
-    /**
-     * @return Does this observation contain only redundant information
-     * that can be ignored? Eg. header and footer of a report intended
-     * to be human-readable.
-     */
-    public boolean isIgnorable() {
-        return stringValue.equals("URINE CULTURE REPORT")
-                // XXX: this needs some pattern matching and better rules
-                || stringValue.equals("COMPLETE: 14/07/19");
-    }
-
-    /**
-     * Merge another pathology result into this one.
-     * Eg. an adjacent OBX segment that is linked by a sub ID.
-     * @param pathologyResult the other pathology result to merge in
-     */
-    public void mergeResult(PathologyResult pathologyResult) {
-        // Will need to identify HOW to merge results.
-        // Eg. identify that pathologyResult contains an isolate,
-        // so only copy the isolate fields from it.
-        if (!pathologyResult.isolateLocalCode.isEmpty()) {
-            this.isolateLocalCode = pathologyResult.isolateLocalCode;
-            this.isolateLocalDescription = pathologyResult.isolateLocalDescription;
-            this.isolateCodingSystem = pathologyResult.isolateCodingSystem;
-        }
     }
 
     /**
