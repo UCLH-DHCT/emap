@@ -1280,9 +1280,6 @@ public class InformDbOperations {
         logger.info("new pathology order facts: ");
         logger.info(pathologyOrderRootFact.toString());
 
-        // Build the results fact(s) from the message data, if any.
-        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(pathologyOrder);
-
         // If we already know about the order, use the existing order from the DB as the parent,
         // otherwise use the newly created one.
         PatientFact parent;
@@ -1291,19 +1288,26 @@ public class InformDbOperations {
             parent = pathologyOrderRootFact;
             encounter.addFact(pathologyOrderRootFact);
         } else {
-            // use existing fact from DB (is already added to encounter), but will need to see if anything has changed
+            // use existing fact from DB (is already added to encounter)
             parent = existingOrderRootFact;
+            // will need to see if anything has changed (do orders change much?)
             // updateFact(existingFact, newFact);
         }
-        // add the child facts to the correct parent fact
-        for (PatientFact child : resultFactsFromOrder.values()) {
-            parent.addChildFact(child);
-            encounter.addFact(child);
-        }
+
+        parent = patientFactRepository.save(parent);
+        // Build the results fact(s) from the message data, if any.
+        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(parent,
+                pathologyOrder.getPathologyResults(), encounter, pathologyOrder.getTestBatteryLocalCode());
+
         // Some child facts - eg. sensitivities are unable to work out their
         // valid from time because status change time is missing, fill
         // this in here.
         parent.cascadeValidFrom(null);
+
+        // Add the child (and grandchild etc) facts directly to the encounter.
+        for (PatientFact child : resultFactsFromOrder.values()) {
+            encounter.addFact(child);
+        }
         // We will need to do some more diffing here to check whether the results have changed.
 
         encounter = encounterRepo.save(encounter);
@@ -1335,6 +1339,8 @@ public class InformDbOperations {
                 order.getOrderControlId()));
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER,
                 order.getEpicCareOrderNumber()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+                order.getTestBatteryLocalCode()));
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_NUMBER,
                 order.getLabSpecimenNumber()));
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_OCS_NUMBER,
@@ -1382,11 +1388,14 @@ public class InformDbOperations {
      * collection for easy diffing (we expect to get partial results and final
      * results at different times and this might be useful).
      *
-     * @param orderWithResults the pathology results
-     * @return multiple PatientFact objects indexed by a unique identifier
+     * @param parent the parent PatientFact, either from the DB or newly constructed
+     * @param pathResults the pathology results
+     * @param encounter encounter to add each fact to
+     * @param testBatteryLocalCode the battery local code for the order
+     * @return all descendant PatientFact objects indexed by a unique identifier
      */
-    private Map<String, PatientFact> buildPathologyResultsFacts(PathologyOrder orderWithResults) {
-        List<PathologyResult> pathResults = orderWithResults.getPathologyResults();
+    private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, List<PathologyResult> pathResults,
+            Encounter encounter, String testBatteryLocalCode) {
         Map<String, PatientFact> facts = new HashMap<>();
         Instant storedFrom = Instant.now();
         for (PathologyResult pr : pathResults) {
@@ -1396,12 +1405,14 @@ public class InformDbOperations {
             fact.setValidFrom(resultTime);
             fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
-            String key = orderWithResults.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
+            String key = testBatteryLocalCode + "_" + pr.getTestItemLocalCode();
 
             fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
-                    orderWithResults.getTestBatteryLocalCode()));
+                    testBatteryLocalCode));
             fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_ISOLATE_CODE,
+                    pr.getIsolateLocalCode()));
             PatientProperty result = buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
                     pr.getNumericValue());
             result.setValueAsString(pr.getStringValue());
@@ -1415,9 +1426,16 @@ public class InformDbOperations {
             fact.addProperty(
                     buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
 
+            parent.addChildFact(fact);
             facts.put(key, fact);
             // each result can have zero or more sensitivities, which are actually just another type of order
             List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
+            for (PathologyOrder sensOrder : pathologySensitivities) {
+                // each sensitivity needs to be built as an order
+                List<PathologyResult> sensResults = sensOrder.getPathologyResults();
+                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, sensResults, encounter, sensOrder.getTestBatteryLocalCode());
+                facts.putAll(sensFacts);
+            }
         }
         return facts;
     }

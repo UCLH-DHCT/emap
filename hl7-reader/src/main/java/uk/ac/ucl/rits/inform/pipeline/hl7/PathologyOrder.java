@@ -261,7 +261,7 @@ public class PathologyOrder {
             // can this "result" be ignored altogether?
             if (pathologyResults.get(i).isIgnorable()) {
                 pathologyResults.set(i, null);
-                break;
+                continue;
             }
             // must this line of a result be merged with a previous line to give the
             // full result?

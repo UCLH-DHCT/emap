@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -16,7 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
-@Ignore
+/**
+ * Test adding results with antibiotic sensitivities included.
+ * @author Jeremy Stein
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -38,6 +40,10 @@ public class Sensitivity extends Hl7StreamTestCase {
         List<PatientFact> results = ord.getChildFacts();
         // should be 2 results, each with 1 sensitivity order with 5 results
         assertEquals(2, results.size());
+        List<PatientFact> sens1 = results.get(0).getChildFacts();
+        List<PatientFact> sens2 = results.get(1).getChildFacts();
+        assertEquals(5, sens1.size());
+        assertEquals(5, sens2.size());
     }
 
     @Test
