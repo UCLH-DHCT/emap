@@ -140,7 +140,12 @@ public class PathologyOrder {
                 // Not many elements, a linear search should be fine.
                 // Assuming that the parent always appears before the child in the list.
                 for (int j = 0; j < i; j++) {
-                    List<PathologyResult> possibleParents = orders.get(j).getPathologyResults();
+                    PathologyOrder possibleOrder = orders.get(j);
+                    if (possibleOrder == null) {
+                        // we already re-parented this one, skip
+                        continue;
+                    }
+                    List<PathologyResult> possibleParents = possibleOrder.getPathologyResults();
                     try {
                         PathologyResult foundParent = possibleParents.stream().filter(par -> orderToReparent.isChildOf(par))
                                 .findFirst().get();
