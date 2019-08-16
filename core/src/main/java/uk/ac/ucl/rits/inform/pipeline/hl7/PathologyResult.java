@@ -32,27 +32,27 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 public class PathologyResult {
     private static final Logger logger = LoggerFactory.getLogger(PathologyResult.class);
 
-    private String valueType;
+    private String valueType = "";
 
-    private String testItemLocalCode;
-    private String testItemLocalDescription;
-    private String testItemCodingSystem;
+    private String testItemLocalCode = "";
+    private String testItemLocalDescription = "";
+    private String testItemCodingSystem = "";
 
-    private String observationSubId;
+    private String observationSubId = "";
     private Double numericValue;
-    private String stringValue;
+    private String stringValue = "";
 
     // fields of the CE data type
-    private String isolateLocalCode;
-    private String isolateLocalDescription;
-    private String isolateCodingSystem;
+    private String isolateLocalCode = "";
+    private String isolateLocalDescription = "";
+    private String isolateCodingSystem = "";
 
-    private String units;
-    private String referenceRange;
-    private String resultStatus;
+    private String units = "";
+    private String referenceRange = "";
+    private String resultStatus = "";
 
     private Instant resultTime;
-    private String notes;
+    private String notes = "";
 
     /**
      * A sensitivity is just a nested pathology order with results.
@@ -61,7 +61,7 @@ public class PathologyResult {
      */
     private List<PathologyOrder> pathologySensitivities = new ArrayList<>();
 
-    private String epicCareOrderNumber;
+    private String epicCareOrderNumber = "";
 
     /**
      * This class stores an individual result (ie. OBX segment)
@@ -104,7 +104,6 @@ public class PathologyResult {
     private void populateObx(OBX obx) {
         Varies dataVaries = obx.getObx5_ObservationValue(0);
         Type data = dataVaries.getData();
-        this.stringValue = "";
         if (data instanceof ST
                 || data instanceof FT
                 || data instanceof TX
