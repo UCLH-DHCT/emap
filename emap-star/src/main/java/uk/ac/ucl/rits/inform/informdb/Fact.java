@@ -48,7 +48,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     private Attribute          factType;
 
     @JoinColumn(name = "parent_fact")
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private F parentFact;
 
     /**
