@@ -167,7 +167,7 @@ public class PathologyResult {
      */
     public boolean isIgnorable() {
         // this will need expanding as we discover new cases
-        if (stringValue.equals("URINE CULTURE REPORT")) {
+        if (stringValue.equals("URINE CULTURE REPORT") || stringValue.equals("FLUID CULTURE REPORT")) {
             return true;
         }
         String pattern = "COMPLETE: \\d\\d/\\d\\d/\\d\\d";
