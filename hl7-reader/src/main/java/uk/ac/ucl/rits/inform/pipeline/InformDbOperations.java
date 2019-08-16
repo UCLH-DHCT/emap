@@ -1266,6 +1266,7 @@ public class InformDbOperations {
      * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
+    @Transactional
     private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception, MessageIgnoredException {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
