@@ -140,7 +140,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     /**
      * @param attrKM the attribute enum to check against
-     * @returns whether this Fact is of the given fact type
+     * @return whether this Fact is of the given fact type
      */
     public boolean isOfType(AttributeKeyMap attrKM) {
         return factType.getShortName().equals(attrKM.getShortname());
