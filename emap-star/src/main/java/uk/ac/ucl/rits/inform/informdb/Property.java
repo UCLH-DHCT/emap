@@ -23,6 +23,7 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     @JoinColumn(name = "attribute")
     private Attribute attribute;
 
+    @Column(columnDefinition = "text")
     private String    valueAsString;
     private Long      valueAsInteger;
     private Boolean   valueAsBoolean;
