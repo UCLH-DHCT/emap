@@ -24,24 +24,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "person_mrn")
-@JsonIgnoreProperties({"person", "valid"})
+@JsonIgnoreProperties({ "person", "valid" })
 public class PersonMrn extends TemporalCore implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int    id;
+    private int               id;
 
     @ManyToOne
     @JoinColumn(name = "person", nullable = false)
-    private Person person;
+    private Person            person;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "mrn", nullable = false)
-    private Mrn    mrn;
+    private Mrn               mrn;
 
-    private boolean live;
+    private Boolean           live;
 
     /**
      * Create a new person/mrn association.
@@ -108,14 +108,14 @@ public class PersonMrn extends TemporalCore implements Serializable {
     /**
      * @return the live
      */
-    public boolean isLive() {
+    public Boolean isLive() {
         return live;
     }
 
     /**
      * @param live the live to set
      */
-    public void setLive(boolean live) {
+    public void setLive(Boolean live) {
         this.live = live;
     }
 
