@@ -41,6 +41,8 @@ public class PersonMrn extends TemporalCore implements Serializable {
     @JoinColumn(name = "mrn", nullable = false)
     private Mrn    mrn;
 
+    private boolean live;
+
     /**
      * Create a new person/mrn association.
      */
@@ -102,4 +104,19 @@ public class PersonMrn extends TemporalCore implements Serializable {
     public void setId(int id) {
         this.id = id;
     }
+
+    /**
+     * @return the live
+     */
+    public boolean isLive() {
+        return live;
+    }
+
+    /**
+     * @param live the live to set
+     */
+    public void setLive(boolean live) {
+        this.live = live;
+    }
+
 }
