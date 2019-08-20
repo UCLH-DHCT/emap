@@ -3,7 +3,9 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.CascadeType;
@@ -31,13 +33,13 @@ public class Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int             personId;
+    private int               personId;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant         createDatetime;
+    private Instant           createDatetime;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "person", cascade = CascadeType.ALL)
-    private List<PersonMrn> mrns;
+    private Set<PersonMrn>    mrns;
 
     /**
      * @return the personId
@@ -72,7 +74,7 @@ public class Person implements Serializable {
      *
      * @return The list of PersonMrns
      */
-    public List<PersonMrn> getMrns() {
+    public Set<PersonMrn> getMrns() {
         return mrns;
     }
 
@@ -99,7 +101,7 @@ public class Person implements Serializable {
      */
     public void linkMrn(PersonMrn personMrn) {
         if (this.mrns == null) {
-            this.mrns = new ArrayList<>();
+            this.mrns = new HashSet<>();
         }
         this.mrns.add(personMrn);
     }
