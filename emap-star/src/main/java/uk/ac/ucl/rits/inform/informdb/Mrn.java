@@ -3,9 +3,7 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.CascadeType;
@@ -36,30 +34,30 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
-    private static final long serialVersionUID = -4125275916062604528L;
+    private static final long  serialVersionUID = -4125275916062604528L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer           mrnId;
+    private Integer            mrnId;
 
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
-    private Set<MrnEncounter> encounters;
+    private List<MrnEncounter> encounters;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn")
-    private Set<PersonMrn>    persons;
+    private List<PersonMrn>    persons          = new ArrayList<>();
 
     /**
      * The value of the MRN identifier.
      */
     @Column(unique = false, nullable = false)
-    private String            mrn;
-    private String            sourceSystem;
+    private String             mrn;
+    private String             sourceSystem;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant           createDatetime;
+    private Instant            createDatetime;
 
     /**
      * @return the mrnId
@@ -125,7 +123,7 @@ public class Mrn implements Serializable {
      */
     public void linkEncounter(MrnEncounter mrnEnc) {
         if (this.encounters == null) {
-            this.encounters = new HashSet<>();
+            this.encounters = new ArrayList<>();
         }
         this.encounters.add(mrnEnc);
     }
@@ -133,14 +131,14 @@ public class Mrn implements Serializable {
     /**
      * @return the encounters
      */
-    public Set<MrnEncounter> getEncounters() {
+    public List<MrnEncounter> getEncounters() {
         return encounters;
     }
 
     /**
      * @param encounters the encounters to set
      */
-    public void setEncounters(Set<MrnEncounter> encounters) {
+    public void setEncounters(List<MrnEncounter> encounters) {
         this.encounters = encounters;
     }
 
@@ -166,7 +164,7 @@ public class Mrn implements Serializable {
     /**
      * @return all Persons that are or have ever been associated with this Mrn
      */
-    public Set<PersonMrn> getPersons() {
+    public List<PersonMrn> getPersons() {
         return persons;
     }
 
@@ -177,7 +175,7 @@ public class Mrn implements Serializable {
      */
     public void linkPerson(PersonMrn p) {
         if (this.persons == null) {
-            this.persons = new HashSet<>();
+            this.persons = new ArrayList<>();
         }
         this.persons.add(p);
     }

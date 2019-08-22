@@ -2,10 +2,10 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.CascadeType;
@@ -33,28 +33,28 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
-@JsonIgnoreProperties({ "mrns", "factsAsMap" })
+@JsonIgnoreProperties({"mrns", "factsAsMap"})
 public class Encounter implements Serializable {
 
-    private static final long serialVersionUID = -6495238097074592105L;
+    private static final long  serialVersionUID = -6495238097074592105L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int               encounterId;
+    private int                encounterId;
 
     @Column(unique = false, nullable = false)
-    private String            encounter;
-    private String            sourceSystem;
+    private String             encounter;
+    private String             sourceSystem;
 
     @ManyToOne(targetEntity = Encounter.class)
     @JoinColumn(name = "parent_encounter")
-    private Encounter         parentEncounter;
+    private Encounter          parentEncounter;
 
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
-    private Set<PatientFact>  facts;
+    private List<PatientFact>  facts;
 
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter")
-    private Set<MrnEncounter> mrns;
+    private List<MrnEncounter> mrns;
 
     /**
      * @return the encounterId
@@ -129,7 +129,7 @@ public class Encounter implements Serializable {
      */
     public void linkFact(PatientFact fact) {
         if (this.facts == null) {
-            this.facts = new HashSet<>();
+            this.facts = new ArrayList<>();
         }
         this.facts.add(fact);
     }
@@ -137,7 +137,7 @@ public class Encounter implements Serializable {
     /**
      * @return the facts
      */
-    public Set<PatientFact> getFacts() {
+    public List<PatientFact> getFacts() {
         return facts;
     }
 
@@ -153,7 +153,7 @@ public class Encounter implements Serializable {
     /**
      * @param facts the facts to set
      */
-    public void setFacts(Set<PatientFact> facts) {
+    public void setFacts(List<PatientFact> facts) {
         this.facts = facts;
     }
 
@@ -180,7 +180,7 @@ public class Encounter implements Serializable {
      */
     public void linkMrn(MrnEncounter mrnEnc) {
         if (this.mrns == null) {
-            this.mrns = new HashSet<>();
+            this.mrns = new ArrayList<>();
         }
         this.mrns.add(mrnEnc);
     }

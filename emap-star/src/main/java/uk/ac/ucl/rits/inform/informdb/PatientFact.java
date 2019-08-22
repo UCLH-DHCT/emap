@@ -45,7 +45,7 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
 
     @Override
     public void addChildFact(PatientFact fact) {
-        getChildFacts().add(fact);
+        childFacts.add(fact);
         fact.setParentFact(this);
     }
 

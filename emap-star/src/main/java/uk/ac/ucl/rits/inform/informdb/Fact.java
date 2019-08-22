@@ -3,10 +3,8 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -18,6 +16,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
+
+import org.hibernate.annotations.SortNatural;
 
 /**
  * Handle the common parts of the Fact->Property relationship as this appears in
@@ -36,10 +36,12 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     private Long               factId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
-    private Set<PropertyType> properties;
+    @SortNatural
+    private List<PropertyType> properties;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
-    private Set<F> childFacts;
+    @SortNatural
+    protected final List<F> childFacts = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "attributeId")
@@ -123,7 +125,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     /**
      * @return the properties for the fact
      */
-    public Set<PropertyType> getProperties() {
+    public List<PropertyType> getProperties() {
         return this.properties;
     }
 
@@ -132,7 +134,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      *
      * @param properties The properties to set.
      */
-    public void setProperties(Set<PropertyType> properties) {
+    public void setProperties(List<PropertyType> properties) {
         this.properties = properties;
     }
 
@@ -206,7 +208,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      */
     public void linkProperty(PropertyType prop) {
         if (this.properties == null) {
-            this.properties = new HashSet<>();
+            this.properties = new ArrayList<>();
         }
         properties.add(prop);
     }
@@ -278,16 +280,8 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     /**
      * @return the child facts of this fact
      */
-    public Set<F> getChildFacts() {
+    public List<F> getChildFacts() {
         return childFacts;
-    }
-
-    /**
-     * Set child  facts.
-     * @param childFacts The set of child facts to use.
-     */
-    public void setChildFacts(Set<F> childFacts) {
-        this.childFacts = childFacts;
     }
 
     /**
