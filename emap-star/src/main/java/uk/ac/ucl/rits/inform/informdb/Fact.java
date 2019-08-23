@@ -41,7 +41,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
     @SortNatural
-    protected final List<F> childFacts = new ArrayList<>();
+    protected final List<F>    childFacts = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "attributeId")
@@ -49,7 +49,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     @JoinColumn(name = "parent_fact")
     @ManyToOne(cascade = CascadeType.ALL)
-    private F parentFact;
+    private F                  parentFact;
 
     /**
      * @return the factId
@@ -75,8 +75,9 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     /**
      * @param attrKey the attribute
-     * @param pred predicate to test prop against
-     * @return the property(ies) in this fact with the given attribute (key) and that match pred. Can be empty list.
+     * @param pred    predicate to test prop against
+     * @return the property(ies) in this fact with the given attribute (key) and
+     *         that match pred. Can be empty list.
      */
     public List<PropertyType> getPropertyByAttribute(AttributeKeyMap attrKey, Predicate<? super PropertyType> pred) {
         return getPropertyByAttribute(attrKey.getShortname(), pred);
@@ -84,8 +85,9 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     /**
      * @param attrKey the attribute
-     * @param pred predicate to test prop against
-     * @return the property(ies) in this fact with the given attribute (key) and that match pred
+     * @param pred    predicate to test prop against
+     * @return the property(ies) in this fact with the given attribute (key) and
+     *         that match pred
      */
     public List<PropertyType> getPropertyByAttribute(Attribute attrKey, Predicate<? super PropertyType> pred) {
         return getPropertyByAttribute(attrKey.getShortName(), pred);
@@ -93,8 +95,9 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     /**
      * @param attrKey the attribute
-     * @param pred predicate to test prop against
-     * @return the property(ies) in this fact with the given attribute (key) and that match pred
+     * @param pred    predicate to test prop against
+     * @return the property(ies) in this fact with the given attribute (key) and
+     *         that match pred
      */
     public List<PropertyType> getPropertyByAttribute(String attrKey, Predicate<? super PropertyType> pred) {
         // Might want to cache this as K->[V,V',V'',...] pairs.
@@ -104,7 +107,8 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             return new ArrayList<PropertyType>();
         }
         List<PropertyType> propsWithAttr = properties.stream()
-                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey) && pred.test(prop)).collect(Collectors.toList());
+                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey) && pred.test(prop))
+                .collect(Collectors.toList());
         return propsWithAttr;
     }
 
@@ -159,11 +163,11 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     }
 
     /**
-     * Recursively fill in null validFrom values for all properties
-     * of this fact and do the same for all descendant facts.
+     * Recursively fill in null validFrom values for all properties of this fact and
+     * do the same for all descendant facts.
      *
-     * @param validFrom the validFrom value to use if this fact has a null value,
-     * ok to be null if you know this fact's validFrom is non-null
+     * @param validFrom the validFrom value to use if this fact has a null value, ok
+     *                  to be null if you know this fact's validFrom is non-null
      */
     public void cascadeValidFrom(Instant validFrom) {
         // Favour the current fact's validFrom if it exists,
@@ -271,8 +275,9 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     }
 
     /**
-     * Facts, as well as having properties, can have other child facts.
-     * Add them here.
+     * Facts, as well as having properties, can have other child facts. Add them
+     * here.
+     *
      * @param fact the child fact to add
      */
     public abstract void addChildFact(F fact);
@@ -302,9 +307,23 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
 
     /**
      * Set this fact's parent fact.
+     *
      * @param parentFact the parent fact
      */
     public void setParentFact(F parentFact) {
         this.parentFact = parentFact;
+    }
+
+    /**
+     * Get the id of the parent fact.
+     * Returns null if there isn't a parent fact, or it doesn't have an id.
+     *
+     * @return Id of parent fact or null.
+     */
+    public Long getParentFactId() {
+        if (this.parentFact == null) {
+            return null;
+        }
+        return this.parentFact.getFactId();
     }
 }
