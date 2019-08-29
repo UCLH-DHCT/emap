@@ -19,7 +19,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v27.datatype.DTM;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
@@ -81,7 +81,7 @@ public class HL7Utils {
         context.setValidationContext(vc);
 
         // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
         context.setModelClassFactory(mcf);
         return context;
     }
@@ -122,7 +122,7 @@ public class HL7Utils {
         context.setValidationContext(vc);
 
         // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.7");
+        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
         context.setModelClassFactory(mcf);
         PipeParser parser = context.getPipeParser();
 

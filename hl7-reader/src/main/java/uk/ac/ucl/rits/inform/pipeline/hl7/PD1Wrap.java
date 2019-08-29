@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.pipeline.hl7;
 
 import ca.uhn.hl7v2.HL7Exception;
 
-import ca.uhn.hl7v2.model.v27.segment.PD1;
+import ca.uhn.hl7v2.model.v26.segment.PD1;
 
 /**
  * Wrapper around the HAPI parser's PD1 segment object, to make it easier to use.
@@ -24,6 +24,6 @@ import ca.uhn.hl7v2.model.v27.segment.PD1;
      * @throws HL7Exception if HAPI does
      */
     public String getDisability() throws HL7Exception {
-        return pd1.getHandicap().getText().toString();
+        return pd1.getHandicap().getValue();
     }
 }

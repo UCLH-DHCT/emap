@@ -7,7 +7,7 @@ package uk.ac.ucl.rits.inform.pipeline.exceptions;
  * @author Jeremy Stein
  *
  */
-public class MessageIgnoredException extends RuntimeException {
+public class MessageIgnoredException extends Exception {
 
     private static final long serialVersionUID = 3654478669545317495L;
 

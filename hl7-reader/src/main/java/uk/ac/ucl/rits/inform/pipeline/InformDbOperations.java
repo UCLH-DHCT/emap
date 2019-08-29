@@ -10,11 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hibernate.Session;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.query.Query;
@@ -29,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -49,7 +54,7 @@ import uk.ac.ucl.rits.inform.pipeline.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.pipeline.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.pipeline.hl7.AdtWrap;
 import uk.ac.ucl.rits.inform.pipeline.hl7.MSHWrap;
-import uk.ac.ucl.rits.inform.pipeline.hl7.OruWrap;
+import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyOrder;
 import uk.ac.ucl.rits.inform.pipeline.hl7.PathologyResult;
 import uk.ac.ucl.rits.inform.pipeline.ids.IdsMaster;
 import uk.ac.ucl.rits.inform.pipeline.ids.IdsOperations;
@@ -232,9 +237,10 @@ public class InformDbOperations {
      * @return the updated message processed count
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if there seems to be something wrong in the HL7 stream that should be logged and investigated
+     * @throws MessageIgnoredException if message can't be processed
      */
     public int processHl7Message(Message msgFromIds, int idsUnid, IdsEffectLogging idsLog, int processed)
-            throws HL7Exception, Hl7InconsistencyException {
+            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
         // it's ok to give any message to an AdtWrap if we're only looking at the MSH
         MSHWrap mshwrap = new AdtWrap(msgFromIds);
         String messageType = mshwrap.getMessageType();
@@ -269,9 +275,23 @@ public class InformDbOperations {
                 }
             }
         } else if (messageType.equals("ORU")) {
-            OruWrap oruWrap = new OruWrap(msgFromIds);
-            addPathologyResults(oruWrap);
-            processed += 1;
+            if (triggerEvent.equals("R01")) {
+                // get all result batteries in the message
+                List<PathologyOrder> pathologyOrdersWithResults = PathologyOrder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
+                for (PathologyOrder order : pathologyOrdersWithResults) {
+                    addOrUpdatePathologyOrder(order);
+                }
+                processed += 1;
+            }
+        } else if (messageType.equals("ORM")) {
+            if (triggerEvent.equals("O01")) {
+                // get all orders in the message
+                List<PathologyOrder> pathologyOrders = PathologyOrder.buildPathologyOrders((ORM_O01) msgFromIds);
+                for (PathologyOrder order : pathologyOrders) {
+                    addOrUpdatePathologyOrder(order);
+                }
+                processed += 1;
+            }
         }
         return processed;
     }
@@ -400,7 +420,9 @@ public class InformDbOperations {
      */
     private static boolean factIsPathFact(PatientFact pf) {
         String shortName = pf.getFactType().getShortName();
-        return shortName.equals(AttributeKeyMap.PATHOLOGY_TEST_RESULT.getShortname());
+        // The only (current) use for this is to define demographic facts in terms of what they are not.
+        // Identifying demographic facts positively would be a better approach.
+        return shortName.startsWith("PATH_");
     }
 
     /**
@@ -553,8 +575,9 @@ public class InformDbOperations {
      * @param encounterDetails contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
-    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception {
+    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception, MessageIgnoredException {
         logger.info("getCreateEncounter");
         String encounter = encounterDetails.getVisitNumber();
         List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
@@ -583,9 +606,10 @@ public class InformDbOperations {
      * @param encounterDetails msg containing encounter details
      * @return the created Encounter
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception {
+    public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception, MessageIgnoredException {
         String mrnStr = encounterDetails.getMrn();
         Instant admissionTime = encounterDetails.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -612,6 +636,7 @@ public class InformDbOperations {
             // Need to save here so the hospital visit can be created (and thus
             // assigned an ID), so we can refer to that ID in the bed visit.
             // (Bed visits refer to hosp visits explicitly by their IDs).
+            enc = encounterRepo.save(enc);
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
@@ -813,9 +838,10 @@ public class InformDbOperations {
      *
      * @param transferDetails usually an A02 message but can be an A08
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void transferPatient(AdtWrap transferDetails) throws HL7Exception {
+    public void transferPatient(AdtWrap transferDetails) throws HL7Exception, MessageIgnoredException {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
@@ -892,9 +918,10 @@ public class InformDbOperations {
      *
      * @param adtWrap the A03 message detailing the discharge
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void dischargePatient(AdtWrap adtWrap) throws HL7Exception {
+    public void dischargePatient(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
         String mrnStr = adtWrap.getMrn();
         String visitNumber = adtWrap.getVisitNumber();
 
@@ -950,9 +977,10 @@ public class InformDbOperations {
      * @param adtWrap the A13 message detailing the cancel discharge
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if this message can't be matched to an existing discharge
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception, Hl7InconsistencyException {
+    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
         String visitNumber = adtWrap.getVisitNumber();
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtWrap.getEventOccurred();
@@ -1014,18 +1042,26 @@ public class InformDbOperations {
         visit.addProperty(visProp);
     }
 
+    private Map<String, Attribute> attributeCache = null;
+
     /**
-     * Return a persisted Attribute object with the given enum value, creating it
-     * first if necessary.
+     * Return a cached, persisted Attribute object with the given enum value.
      *
      * @param attrKM the enum value of the attribute
-     * @return the Attribute object
+     * @return the Attribute object from the cache
      */
     @Transactional
     private Attribute getCreateAttribute(AttributeKeyMap attrKM) {
-        Optional<Attribute> attropt = attributeRepo.findByShortName(attrKM.getShortname());
-        if (attropt.isPresent()) {
-            return attropt.get();
+        if (attributeCache == null) {
+            attributeCache = new HashMap<>();
+            Set<Attribute> allAttrs = attributeRepo.findAll();
+            for (Attribute a : allAttrs) {
+                attributeCache.put(a.getShortName(), a);
+            }
+        }
+        Attribute attribute = attributeCache.get(attrKM.getShortname());
+        if (attribute != null) {
+            return attribute;
         } else {
             throw new AttributeError("Tried to use attribute but wasn't found in db: " + attrKM.getShortname());
         }
@@ -1088,9 +1124,10 @@ public class InformDbOperations {
      *
      * @param adtWrap the message with the patient info
      * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception {
+    private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
         String visitNumber = adtWrap.getVisitNumber();
         String newLocation = adtWrap.getFullLocationString();
 
@@ -1166,9 +1203,10 @@ public class InformDbOperations {
      *
      * @param adtWrap message containing merge info
      * @throws HL7Exception when HAPI does or merge time in message is blank
+     * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void mergeById(AdtWrap adtWrap) throws HL7Exception {
+    private void mergeById(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
         String oldMrnStr = adtWrap.getMergedPatientId();
         String survivingMrnStr = adtWrap.getMrn();
         Instant mergeTime = adtWrap.getRecordedDateTime();
@@ -1222,6 +1260,110 @@ public class InformDbOperations {
     }
 
     /**
+     * Convert the simplified data from the HL7 message into Inform-db structures,
+     * and merge with existing data depending on whether it's a new order or changes to an existing one.
+     * @param pathologyOrder the pathology order details, may contain results
+     * @throws HL7Exception if HAPI does
+     * @throws MessageIgnoredException if message can't be processed
+     */
+    @Transactional
+    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception, MessageIgnoredException {
+        String visitNumber = pathologyOrder.getVisitNumber();
+        String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
+
+        Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber);
+        Encounter encounter = encounterOrderPair.getLeft();
+        PatientFact existingOrderRootFact = encounterOrderPair.getRight();
+
+        // build the order fact from the message data
+        PatientFact pathologyOrderRootFact = buildPathologyOrderFacts(pathologyOrder);
+
+        logger.info("new pathology order facts: ");
+        logger.info(pathologyOrderRootFact.toString());
+
+        // If we already know about the order, use the existing order from the DB as the parent,
+        // otherwise use the newly created one.
+        PatientFact parent;
+        if (existingOrderRootFact == null) {
+            // no existing, use new fact and add it to the encounter
+            parent = pathologyOrderRootFact;
+            encounter.addFact(pathologyOrderRootFact);
+        } else {
+            // use existing fact from DB (is already added to encounter)
+            parent = existingOrderRootFact;
+            // will need to see if anything has changed (do orders change much?)
+            // updateFact(existingFact, newFact);
+        }
+
+        parent = patientFactRepository.save(parent);
+        // Build the results fact(s) from the message data, if any.
+        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(parent,
+                pathologyOrder.getPathologyResults(), encounter, pathologyOrder.getTestBatteryLocalCode());
+
+        // Some child facts - eg. sensitivities are unable to work out their
+        // valid from time because status change time is missing, fill
+        // this in here.
+        parent.cascadeValidFrom(null);
+
+        // Add the child (and grandchild etc) facts directly to the encounter.
+        for (PatientFact child : resultFactsFromOrder.values()) {
+            encounter.addFact(child);
+        }
+        // We will need to do some more diffing here to check whether the results have changed.
+
+        encounter = encounterRepo.save(encounter);
+    }
+
+    /**
+     * Convert order details to Inform-db structures.
+     * @param order the pathology order details
+     * @return a PatientFact object that represents the order
+     */
+    private PatientFact buildPathologyOrderFacts(PathologyOrder order) {
+        Instant storedFrom = Instant.now();
+        // The valid from date should be the order time, when this fact became true.
+        // However we are currently not getting this time, so try to find
+        // another non-null time: the requested or collection/observation time
+        Instant validFrom = order.getOrderDateTime();
+        if (validFrom == null) {
+            validFrom = order.getRequestedDateTime();
+        }
+        if (validFrom == null) {
+            validFrom = order.getObservationDateTime();
+        }
+
+        PatientFact pathFact = new PatientFact();
+        pathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_ORDER));
+        pathFact.setValidFrom(validFrom);
+        pathFact.setStoredFrom(storedFrom);
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_CONTROL_ID,
+                order.getOrderControlId()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER,
+                order.getEpicCareOrderNumber()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+                order.getTestBatteryLocalCode()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_NUMBER,
+                order.getLabSpecimenNumber()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_OCS_NUMBER,
+                order.getLabSpecimenNumberOCS()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_COLLECTION_TIME,
+                order.getObservationDateTime()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_TIME,
+                order.getOrderDateTime()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_PATIENT_TYPE,
+                order.getOrderType()));
+
+        // Status change time is only given to us once per order/battery result, but we apply it
+        // to each result within the order and call it the result time, because results can be returned bit by bit
+        // so results within a battery may have different times.
+        // Here, we also save it as the generic last status change time.
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_STATUS_CHANGE_TIME,
+                order.getStatusChangeTime()));
+
+        return pathFact;
+    }
+
+    /**
      * Build a patient property given the key/value pair.
      *
      * @param storedFrom the stored from temporal field
@@ -1236,7 +1378,9 @@ public class InformDbOperations {
         prop.setValidFrom(validFrom);
         prop.setStoredFrom(storedFrom);
         prop.setAttribute(getCreateAttribute(attrKM));
-        prop.setValue(value);
+        if (value != null) {
+            prop.setValue(value);
+        }
         return prop;
     }
 
@@ -1245,59 +1389,106 @@ public class InformDbOperations {
      * collection for easy diffing (we expect to get partial results and final
      * results at different times and this might be useful).
      *
+     * @param parent the parent PatientFact, either from the DB or newly constructed
      * @param pathResults the pathology results
-     * @return PatientFacts indexed by a unique identifier
-     * @throws HL7Exception if HAPI does
+     * @param encounter encounter to add each fact to
+     * @param testBatteryLocalCode the battery local code for the order
+     * @return all descendant PatientFact objects indexed by a unique identifier
      */
-    private Map<String, PatientFact> buildPathologyFacts(List<PathologyResult> pathResults) throws HL7Exception {
+    private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, List<PathologyResult> pathResults,
+            Encounter encounter, String testBatteryLocalCode) {
         Map<String, PatientFact> facts = new HashMap<>();
         Instant storedFrom = Instant.now();
         for (PathologyResult pr : pathResults) {
-            Instant validFrom = pr.getResultTime();
+            Instant resultTime = pr.getResultTime();
             PatientFact fact = new PatientFact();
             fact.setStoredFrom(storedFrom);
-            fact.setValidFrom(validFrom);
+            fact.setValidFrom(resultTime);
             fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
-            String key = pr.getTestBatteryLocalCode() + "_" + pr.getTestItemLocalCode();
+            String key = testBatteryLocalCode + "_" + pr.getTestItemLocalCode();
 
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
-                    pr.getTestBatteryLocalCode()));
-            fact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+                    testBatteryLocalCode));
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
-            PatientProperty result = buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_ISOLATE_CODE,
+                    pr.getIsolateLocalCode()));
+            PatientProperty result = buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
                     pr.getNumericValue());
             result.setValueAsString(pr.getStringValue());
             fact.addProperty(result);
             fact.addProperty(
-                    buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_REFERENCE_RANGE, pr.getReferenceRange()));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_TIME, resultTime));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
 
+            parent.addChildFact(fact);
             facts.put(key, fact);
+            // each result can have zero or more sensitivities, which are actually just another type of order
+            List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
+            for (PathologyOrder sensOrder : pathologySensitivities) {
+                // each sensitivity needs to be built as an order
+                List<PathologyResult> sensResults = sensOrder.getPathologyResults();
+                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, sensResults, encounter, sensOrder.getTestBatteryLocalCode());
+                facts.putAll(sensFacts);
+            }
         }
         return facts;
     }
 
     /**
-     * Add all the pathology results in an ORU message to the specified encounter.
-     *
-     * @param oruWrap the ORU wrapper
-     * @throws HL7Exception when HAPI does
+     * Look up an encounter by an existing order number, or by the encounter number if
+     * the order is previously unknown.
+     * Move to repo?
+     * @param epicCareOrderNumber the Epic order number to search by
+     * @param visitNumber the encounter/visit number to search by
+     * @return Pair containing the Encounter object that this order is attached to and the PatientFact object that is the root
+     * object representing the order, if it exists (else null).
+     * @throws MessageIgnoredException if the Encounter can't be found by any method
      */
-    private void addPathologyResults(OruWrap oruWrap) throws HL7Exception {
-        String visitNumber = oruWrap.getVisitNumber();
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        if (encounter == null) {
-            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+    private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber) throws MessageIgnoredException {
+        // We do get messages with blank Epic order numbers,
+        // however searching on a blank order number will never do the right
+        // thing, so in this case behave as if the order was not found.
+        PatientFact existingPathologyOrder = null;
+        if (!epicCareOrderNumber.isEmpty()) {
+            existingPathologyOrder = getOnlyElement(
+                    patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
         }
-        Map<String, PatientFact> allPathologyFacts = buildPathologyFacts(oruWrap.getAllPathologyResults());
-        // in future we might do some diffing here to check we don't already have some
-        // of the results
-        for (PatientFact fact : allPathologyFacts.values()) {
-            encounter.addFact(fact);
-            // hmm...
-            fact = patientFactRepository.save(fact);
+        // If this fails, try the lab number + order type because epic order num may be blank for lab initiated orders
+        Encounter encounter;
+        // order may or may not exist already
+        if (existingPathologyOrder != null) {
+            encounter = existingPathologyOrder.getEncounter();
+            logger.info("existing pathology order " + epicCareOrderNumber + ": ");
+            logger.info(existingPathologyOrder.toString());
+        } else {
+            // If seeing a result message for a previously unknown order, it should be allowed but logged as
+            // a potential error, although when starting mid-HL7 stream there will always be
+            // results for orders you haven't seen.
+            // (also our test depends on this being allowed)
+            logger.error("Couldn't find order with order number " + epicCareOrderNumber + ", searching by visit number instead");
+            if (!visitNumber.isEmpty()) {
+                encounter = encounterRepo.findEncounterByEncounter(visitNumber);
+                if (encounter == null) {
+                    throw new MessageIgnoredException("Can't find encounter to attach results to: " + visitNumber);
+                }
+            } else {
+                throw new MessageIgnoredException("Can't find encounter - can't search on empty visit number");
+            }
         }
-        encounter = encounterRepo.save(encounter);
+        if (!visitNumber.isEmpty() && !encounter.getEncounter().equals(visitNumber)) {
+            // the visit number of the encounter for the existing order disagrees with the visit number
+            // in the HL7 message.
+            throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
+                    + encounter.getEncounter() + ", expecting " + visitNumber);
+        }
+        return new ImmutablePair<>(encounter, existingPathologyOrder);
     }
 
     /**
