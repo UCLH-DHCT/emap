@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Vector;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v27.segment.PV1;
+import ca.uhn.hl7v2.model.v26.segment.PV1;
 
 /**
  * Wrapper around the HAPI parser's PV1 segment object, to make it easier to use.
@@ -31,7 +31,7 @@ public interface PV1Wrap {
         if (!pv1SegmentExists()) {
             return null;
         }
-        return getPV1().getPatientClass().getComponent(0).toString();
+        return getPV1().getPatientClass().getValue();
     }
 
     /**
@@ -39,8 +39,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getCurrentWardCode() throws HL7Exception {
-
-        return getPV1().getAssignedPatientLocation().getPl1_PointOfCare().getComponent(0).toString();
+        return getPV1().getAssignedPatientLocation().getPl1_PointOfCare().getValue();
     }
 
     /**
@@ -48,7 +47,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getCurrentRoomCode() throws HL7Exception {
-        return getPV1().getAssignedPatientLocation().getPl2_Room().getComponent(0).toString();
+        return getPV1().getAssignedPatientLocation().getPl2_Room().getValue();
     }
 
     /**
@@ -56,7 +55,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getCurrentBed() throws HL7Exception {
-        return getPV1().getAssignedPatientLocation().getPl3_Bed().getComponent(0).toString();
+        return getPV1().getAssignedPatientLocation().getPl3_Bed().getValue();
     }
 
     /**
@@ -70,22 +69,6 @@ public interface PV1Wrap {
             return null;
         }
         return String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
-    }
-
-    /**
-     * @return PV1-4.1 1st repeat (admit priority) e.g. I
-     * @throws HL7Exception if HAPI does
-     */
-    default String getAdmitPriority() throws HL7Exception {
-        return getPV1().getAdmissionType().getComponent(0).toString();
-    }
-
-    /**
-     * @return PV1-4.1 2nd repeat (admit type) e.g. A
-     * @throws HL7Exception if HAPI does
-     */
-    default String getAdmitType() throws HL7Exception {
-        return getPV1().getAdmissionType().getComponent(1).toString();
     }
 
     /**
@@ -126,7 +109,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getHospitalService() throws HL7Exception {
-        return getPV1().getHospitalService().getComponent(0).toString();
+        return getPV1().getHospitalService().getValue();
     }
 
     /**
@@ -134,7 +117,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getAdmitSource() throws HL7Exception {
-        return getPV1().getAdmitSource().getComponent(0).toString();
+        return getPV1().getAdmitSource().getValue();
     }
 
     /**
@@ -142,7 +125,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getPatientType() throws HL7Exception {
-        return getPV1().getPatientType().getComponent(0).toString();
+        return getPV1().getPatientType().getValue();
     }
 
     /**
@@ -150,7 +133,7 @@ public interface PV1Wrap {
      * @throws HL7Exception if HAPI does
      */
     default String getVisitNumber() throws HL7Exception {
-        return getPV1().getVisitNumber().getComponent(0).toString();
+        return getPV1().getVisitNumber().getCx1_IDNumber().getValueOrEmpty();
     }
 
     /**
