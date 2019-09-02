@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -7,9 +7,9 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.parser.PipeParser;
 import junit.framework.TestCase;
-import uk.ac.ucl.rits.inform.datasources.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.HL7Utils;
-import uk.ac.ucl.rits.inform.datasources.hl7.PIDWrap;
+import uk.ac.ucl.rits.inform.datasources.ids.AdtWrap;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.PIDWrap;
 
 
 /**

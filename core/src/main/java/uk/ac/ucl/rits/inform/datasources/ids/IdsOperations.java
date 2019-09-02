@@ -1,5 +1,14 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -7,20 +16,50 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InvalidMrnException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
+import uk.ac.ucl.rits.inform.interchange.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 
 /**
  * Operations that can be performed on the IDS.
  */
 @Component
-@EntityScan("uk.ac.ucl.rits.inform.pipeline.ids")
+//@ComponentScan(basePackages= {
+//        "uk.ac.ucl.rits.inform.datasources.ids",
+//        "uk.ac.ucl.rits.inform.datasources.hl7",
+//        "uk.ac.ucl.rits.inform.datasources",
+//        "uk.ac.ucl.rits.inform.informdb" })
+//@EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
+
 
     private SessionFactory idsFactory;
     private boolean idsEmptyOnInit;
@@ -40,6 +79,26 @@ public class IdsOperations {
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
         logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
+    }
+
+    @Autowired
+    private IdsProgressRepository      idsProgressRepository;
+
+    @Autowired
+    private AmqpTemplate rabbitTemplate;
+
+    private static final String queueName = "hl7Queue";
+
+    @Bean
+    public static Jackson2JsonMessageConverter jsonMessageConverter() {
+        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+        return new Jackson2JsonMessageConverter(mapper);
+    }
+
+    @Bean
+    Queue queue() {
+        logger.warn("Queue BEAN");
+        return new Queue(queueName, false);
     }
 
     /**
@@ -118,6 +177,39 @@ public class IdsOperations {
 
         return cfg.buildSessionFactory();
     }
+    
+
+    /**
+     * @return the unique ID for the last IDS message we have successfully processed
+     */
+    @Transactional
+    private int getLatestProcessedId() {
+        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+        if (onlyRow == null) {
+            onlyRow = new IdsProgress();
+            // Is it wrong to set in a get?
+            onlyRow = idsProgressRepository.save(onlyRow);
+        }
+        return onlyRow.getLastProcessedIdsUnid();
+    }
+
+    /**
+     * Record that we have processed all messages up to the specified message.
+     *
+     * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
+     *                             processed
+     * @param messageDatetime      the timestamp of this message
+     * @param processingEnd        the time this message was actually processed
+     */
+    @Transactional
+    private void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
+        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+        onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
+        onlyRow.setLastProcessedMessageDatetime(messageDatetime);
+        onlyRow.setLastProcessingDatetime(processingEnd);
+        idsProgressRepository.save(onlyRow);
+    }
+
 
     /**
      * Write a message into the IDS. For test IDS instances only!
@@ -156,4 +248,235 @@ public class IdsOperations {
         }
     }
 
+    /**
+     * Entry point for populating a test IDS from a file specified on the command
+     * line.
+     *
+     * @param ids IDS operations objects
+     * @return The CommandLineRunner
+     */
+    @Bean
+    @Profile("populate")
+    public CommandLineRunner populateIDS(IdsOperations ids) {
+        return (args) -> {
+            HapiContext context = HL7Utils.initializeHapiContext();
+            String hl7fileSource = args[0];
+            File file = new File(hl7fileSource);
+            logger.info("populating the IDS from file " + file.getAbsolutePath() + " exists = " + file.exists());
+            InputStream is = new BufferedInputStream(new FileInputStream(file));
+            Hl7InputStreamMessageIterator hl7iter = new Hl7InputStreamMessageIterator(is, context);
+            hl7iter.setIgnoreComments(true);
+            int count = 0;
+            while (hl7iter.hasNext()) {
+                count++;
+                Message msg = hl7iter.next();
+                String singleMessageText = msg.encode();
+                AdtWrap adtWrap = new AdtWrap(msg);
+                String triggerEvent = adtWrap.getTriggerEvent();
+                String mrn = adtWrap.getMrn();
+                String patientClass = adtWrap.getPatientClass();
+                String patientLocation = adtWrap.getFullLocationString();
+                ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation);
+            }
+            logger.info("Wrote " + count + " messages to IDS");
+            ids.close();
+            context.close();
+        };
+    }
+
+    /**
+     * Get next entry in the IDS, if it exists.
+     *
+     * @param lastProcessedId the last one we have successfully processed
+     *
+     * @return the first message that comes after lastProcessedId, or null if there
+     *         isn't one
+     */
+    public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
+        // consider changing to "get next N messages" for more efficient database
+        // performance
+        // when doing large "catch-up" operations
+        // (handle the batching in the caller)
+        Session idsSession = openSession();
+        idsSession.setDefaultReadOnly(true);
+        Query<IdsMaster> qnext =
+                idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
+        qnext.setParameter("lastProcessedId", lastProcessedId);
+        qnext.setMaxResults(1);
+        List<IdsMaster> nextMsgOrEmpty = qnext.list();
+        idsSession.close();
+        if (nextMsgOrEmpty.isEmpty()) {
+            return null;
+        } else if (nextMsgOrEmpty.size() == 1) {
+            return nextMsgOrEmpty.get(0);
+        } else {
+            throw new InternalError();
+        }
+    }
+
+    /**
+     * Return the next HL7 message in the IDS. If there are no more, block until
+     * there are.
+     *
+     * @param lastProcessedId the latest unique ID that has already been processed
+     * @return the next HL7 message record
+     */
+    public IdsMaster getNextHL7IdsRecordBlocking(int lastProcessedId) {
+        long secondsSleep = 10;
+        IdsMaster idsMsg = null;
+        while (true) {
+            idsMsg = getNextHL7IdsRecord(lastProcessedId);
+            if (idsMsg == null) {
+                logger.info(String.format("No more messages in IDS, retrying in %d seconds", secondsSleep));
+                try {
+                    Thread.sleep(secondsSleep * 1000);
+                } catch (InterruptedException ie) {
+                    logger.trace("Sleep was interrupted");
+                }
+            } else {
+                break;
+            }
+        }
+        return idsMsg;
+    }
+
+    /**
+     * Wrapper for the entire transaction that performs: - read latest processed ID
+     * from Inform-db (ETL metadata) - process the message and write to Inform-db -
+     * write the latest processed ID to reflect the above message. Blocks until
+     * there are new messages.
+     *
+     * @param parser        the HAPI parser to be used
+     * @param parsingErrors out param for parsing errors encountered
+     * @return number of messages processes
+     * @throws HL7Exception in some cases where HAPI does
+     */
+    @Transactional(rollbackFor = HL7Exception.class)
+    public int parseAndSendNextHl7(PipeParser parser) throws HL7Exception {
+        int lastProcessedId = getLatestProcessedId();
+        logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
+        IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
+        
+        Timestamp messageDatetime = idsMsg.getMessagedatetime();
+        Instant messageDatetimeInstant = null;
+        if (messageDatetime != null) {
+            
+            messageDatetimeInstant = messageDatetime.toInstant();
+        }
+        int processed = 0;
+        String hl7msg = idsMsg.getHl7message();
+        // HL7 is supposed to use \r for line endings, but
+        // the IDS uses \n
+        hl7msg = hl7msg.replace("\n", "\r");
+        Message msgFromIds;
+        try {
+            msgFromIds = parser.parse(hl7msg);
+        } catch (HL7Exception hl7e) {
+            return processed;
+        }
+
+        try {
+            List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
+            for (EmapOperationMessage msg : messagesFromHl7Message) {
+                logger.info("sending message to RabbitMQ ");
+                rabbitTemplate.convertAndSend(queueName, msg);
+            }
+            // not possible to express that some messages were sent but some failed
+            Instant processingEnd = Instant.now();
+            setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
+        } catch (HL7Exception e) {
+            String errMsg =
+                    "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass() + ")";
+            logger.warn(errMsg);
+        } catch (InvalidMrnException e) {
+            String errMsg =
+                    "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass() + ")";
+            logger.warn(errMsg);
+        } catch (MessageIgnoredException e) {
+            logger.warn(e.getClass() + " " + e.getMessage());
+        } catch (Hl7InconsistencyException e) {
+            logger.warn(e.getClass() + " " + e.getMessage());
+        }
+        
+        return processed;
+    }
+    
+    // IDS-oriented logging code that perhaps belongs in the processor now?
+//    private void _idsEffectLoggingStuff(IdsMaster idsMsg) {
+//        IdsEffectLogging idsLog = new IdsEffectLogging();
+//        idsLog.setProcessingStartTime(Instant.now());
+//        idsLog.setIdsUnid(idsMsg.getUnid());
+//        idsLog.setMrn(idsMsg.getHospitalnumber());
+//        idsLog.setMessageType(idsMsg.getMessagetype());
+//        
+//        Timestamp messageDatetime = idsMsg.getMessagedatetime();
+//        Instant messageDatetimeInstant = null;
+//        if (messageDatetime != null) {
+//            idsLog.setMessageDatetime(messageDatetime.toInstant());
+//        }
+//        
+//        String errString = "[" + idsMsg.getUnid() + "]  HL7 parsing error";
+//        // Mark the message as processed even though we couldn't parse it,
+//        // but record it for later debugging.
+//        logger.info(errString);
+//        idsLog.setMessage(errString);
+//        Instant processingEnd = Instant.now();
+//        idsLog.setProcessingEndTime(processingEnd);
+//        setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
+//        //idsLog = idsEffectLoggingRepository.save(idsLog);
+//    }
+
+    /**
+     * Using the type+trigger event of the HL7 message, create the correct type of
+     * interchange message. One HL7 message can give rise to multiple interchange messages.
+     * @param msgFromIds
+     * @param idsUnid
+     * @param idsLog
+     * @param processed
+     * @return
+     * @throws HL7Exception
+     * @throws Hl7InconsistencyException
+     * @throws MessageIgnoredException
+     */
+    /**
+     * Construct the appropriate type of interchange object(s) depending on the HL7 message type/event.
+     * @param msgFromIds
+     * @return
+     * @throws HL7Exception 
+     * @throws Hl7InconsistencyException 
+     */
+    public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
+            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+        MSH msh = (MSH) msgFromIds.get("MSH");
+        String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
+        String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
+
+        logger.info(String.format("%s^%s", messageType, triggerEvent));
+
+        if (messageType.equals("ADT")) {
+            List<AdtMessage> adtMsg = new ArrayList<>();
+            try {
+                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds);
+                adtMsg.add(msgBuilder.getAdtMessage());
+            }
+            catch (Hl7MessageNotImplementedException e) {
+                logger.warn("Ignoring message: " + e.toString());
+            }
+            return adtMsg;
+        } else if (messageType.equals("ORU")) {
+            if (triggerEvent.equals("R01")) {
+                // get all result batteries in the message
+                return PathologyOrderBuilder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
+            }
+        } else if (messageType.equals("ORM")) {
+            if (triggerEvent.equals("O01")) {
+                // get all orders in the message
+                return PathologyOrderBuilder.buildPathologyOrders((ORM_O01) msgFromIds);
+            }
+        }
+        logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
+        return null;
+    }
+    
+    
 }

@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.hl7;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
 import java.util.Vector;
@@ -10,7 +10,7 @@ import ca.uhn.hl7v2.model.v26.segment.PV1;
  * Wrapper around the HAPI parser's PV1 segment object, to make it easier to use.
  * Reference page: https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PV1.html
  */
-public interface PV1Wrap {
+interface PV1Wrap {
     /**
      * @return the PV1 object
      */

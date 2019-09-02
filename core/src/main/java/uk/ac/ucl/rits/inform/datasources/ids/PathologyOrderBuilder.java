@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.hl7;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,40 +32,33 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 
 /**
- * The top level of the pathology tree, the order.
- * The HL7 parsing interfaces perhaps belong in their own parser class.
+ * Build a PathologyOrder object from HL7.
+ * 
  * @author Jeremy Stein
  */
-public class PathologyOrder {
-    private static final Logger logger = LoggerFactory.getLogger(PathologyOrder.class);
-
-    private List<PathologyResult> pathologyResults = new ArrayList<>();
-    private String orderControlId;
-    private String epicCareOrderNumberOrc;
-    private String epicCareOrderNumberObr;
-    private String labSpecimenNumber;
-    private String labSpecimenNumberOCS;
-    private Instant orderDateTime;
-    private Instant sampleEnteredTime;
-    private String orderStatus;
-    private String orderType;
-    private String visitNumber;
-    private Instant requestedDateTime;
-    private Instant observationDateTime;
-    private String testBatteryLocalCode;
-    private String testBatteryLocalDescription;
-    private String testBatteryCodingSystem;
-    private Instant statusChangeTime;
-
-    private String parentObservationIdentifier;
-    private String parentSubId;
-
+public class PathologyOrderBuilder {
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
+    private static final Logger logger = LoggerFactory.getLogger(PathologyOrderBuilder.class);
+
+    private String epicCareOrderNumberOrc;
+    private String epicCareOrderNumberObr;
+
+    private PathologyOrder msg = new PathologyOrder();
+    
+    /**
+     * @return the underlying message we have now built
+     */
+    public PathologyOrder getMessage() {
+        return msg;
+    }
+    
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param ormO01 the ORM message
@@ -78,7 +72,7 @@ public class PathologyOrder {
         for (ORM_O01_ORDER order : orderAll) {
             PathologyOrder pathologyOrder;
             try {
-                pathologyOrder = new PathologyOrder(order, ormO01);
+                pathologyOrder = new PathologyOrderBuilder(order, ormO01).getMessage();
                 if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
                     logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
                 } else {
@@ -111,7 +105,7 @@ public class PathologyOrder {
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
 
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
-            PathologyOrder pathologyOrder = new PathologyOrder(obs, msh, pid, pv1);
+            PathologyOrder pathologyOrder = new PathologyOrderBuilder(obs, msh, pid, pv1).getMessage();
             String testBatteryLocalCode = pathologyOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
                 logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
@@ -124,7 +118,7 @@ public class PathologyOrder {
     }
 
     /**
-     * Re-parent the (sensitivity) orders in this list so they point to the results
+     * Use the HL7 fields to re-parent the (sensitivity) orders in this list so they point to the results
      * that they apply to. Parents and children must all be in the list supplied.
      *
      * @param orders the list of all orders (usually with results(?)). This list
@@ -138,16 +132,18 @@ public class PathologyOrder {
             if (!orderToReparent.getParentSubId().isEmpty()) {
                 // The order has a parent, let's find it.
                 // Not many elements, a linear search should be fine.
-                // Assuming that the parent always appears before the child in the list.
+                // I'm assuming that the parent always appears before the child in the list.
                 for (int j = 0; j < i; j++) {
                     PathologyOrder possibleOrder = orders.get(j);
                     if (possibleOrder == null) {
                         // we already re-parented this one, skip
                         continue;
                     }
+                    // An HL7 PathologyOrderBuilder will always contain HL7 PathologyResultBuilder objects for its results,
+                    // so downcast will be safe. Find a better way of encoding this in the type system. 
                     List<PathologyResult> possibleParents = possibleOrder.getPathologyResults();
                     try {
-                        PathologyResult foundParent = possibleParents.stream().filter(par -> orderToReparent.isChildOf(par))
+                        PathologyResult foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
                                 .findFirst().get();
                         // add the order to the list of sensitivities and delete from the original list
                         logger.info("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
@@ -170,13 +166,13 @@ public class PathologyOrder {
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      * @throws MessageIgnoredException if the entire message should be ignored
      */
-    public PathologyOrder(ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+    public PathologyOrderBuilder(ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
         PID pid = patient.getPID();
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
-        visitNumber = patientHl7.getVisitNumber();
+        msg.setVisitNumber(patientHl7.getVisitNumber());
         String sendingApplication = patientHl7.getSendingApplication();
         if (!sendingApplication.equals("WinPath")) {
             throw new MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
@@ -233,25 +229,27 @@ public class PathologyOrder {
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public PathologyOrder(ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1) throws HL7Exception, Hl7InconsistencyException {
+    public PathologyOrderBuilder(ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1) throws HL7Exception, Hl7InconsistencyException {
         // Can only seem to get these segments at the ORU_R01_PATIENT_RESULT level.
         // Could there really be more than one patient per message?
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
-        visitNumber = patientHl7.getVisitNumber();
+        msg.setVisitNumber(patientHl7.getVisitNumber());
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
         populateFromOrcObr(orc, obr);
         validateRedundantFields();
 
+        List<PathologyResultBuilder> tempResults = new ArrayList<>();
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            PathologyResult pathologyResult = new PathologyResult(obx, obr, notes);
-            pathologyResults.add(pathologyResult);
+            PathologyResultBuilder pathologyResult = new PathologyResultBuilder(obx, obr, notes);
+            tempResults.add(pathologyResult);
         }
         // join some of the observations under this fact together (or ignore some of them)
-        mergeOrFilterResults(this.pathologyResults);
+        mergeOrFilterResults(tempResults);
+        msg.setPathologyResults(tempResults.stream().map(b -> b.getMessage()).collect(Collectors.toList()));
     }
 
     /**
@@ -260,8 +258,8 @@ public class PathologyOrder {
      * linked by a sub ID.
      * @param pathologyResults the list of pathology results to merge. This elements of the list will be modified and/or removed.
      */
-    private static void mergeOrFilterResults(List<PathologyResult> pathologyResults) {
-        Map<String, PathologyResult> subIdMapping = new HashMap<>();
+    private static void mergeOrFilterResults(List<PathologyResultBuilder> pathologyResults) {
+        Map<String, PathologyResultBuilder> subIdMapping = new HashMap<>();
         for (int i = 0; i < pathologyResults.size(); i++) {
             // can this "result" be ignored altogether?
             if (pathologyResults.get(i).isIgnorable()) {
@@ -270,16 +268,16 @@ public class PathologyOrder {
             }
             // must this line of a result be merged with a previous line to give the
             // full result?
-            String subId = pathologyResults.get(i).getObservationSubId();
+            String subId = pathologyResults.get(i).getMessage().getObservationSubId();
             if (!subId.isEmpty()) {
-                PathologyResult existing = subIdMapping.get(subId);
+                PathologyResultBuilder existing = subIdMapping.get(subId);
                 if (existing == null) {
                     // save it for future results that will need to refer back to it
                     subIdMapping.put(subId, pathologyResults.get(i));
                 } else {
                     // the sub ID has already been seen, so merge this result
                     // into the existing result, and delete this result
-                    existing.mergeResult(pathologyResults.get(i));
+                    existing.mergeResult(pathologyResults.get(i).getMessage());
                     pathologyResults.set(i, null);
                 }
             }
@@ -296,70 +294,73 @@ public class PathologyOrder {
      */
     private void populateFromOrcObr(ORC orc, OBR obr) throws DataTypeException {
         // NA/NW/CA/CR/OC/XO
-        orderControlId = orc.getOrc1_OrderControl().getValue();
+        msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        labSpecimenNumber = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        labSpecimenNumberOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        msg.setLabSpecimenNumber(orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        msg.setLabSpecimenNumberOCS(orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty());
 
-        orderStatus = orc.getOrc5_OrderStatus().getValueOrEmpty();
+        msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
 
         // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
         // in a status change (SC) message.
         Instant orc9 = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
-        if (orderControlId.equals("NW")) {
-            orderDateTime = orc9;
-        } else if (orderControlId.equals("SC")) {
+        if (msg.getOrderControlId().equals("NW")) {
+            msg.setOrderDateTime(orc9);
+        } else if (msg.getOrderControlId().equals("SC")) {
             // possibly need to check for other result status codes that signify "in progress"?
             if (resultStatus.equals("I")) {
                 // ORC-9 = time sample entered onto WinPath
-                sampleEnteredTime = orc9;
+                msg.setSampleEnteredTime(orc9);
             }
         }
-        orderType = orc.getOrc29_OrderType().getCwe1_Identifier().getValue();
+        msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
 
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
         // which is the closest we get to a "collection" time. The actual collection will happen some point
         // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
-        observationDateTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
-        requestedDateTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
+        msg.setObservationDateTime(HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime()));
+        msg.setRequestedDateTime(HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime()));
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"
-        statusChangeTime = HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
+        msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         // only present in Epic -> WinPath msg
         String labSpecimenNum = obr.getObr20_FillerField1().getValueOrEmpty();
 
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
-        testBatteryLocalCode = obr4.getCwe1_Identifier().getValueOrEmpty();
-        testBatteryLocalDescription = obr4.getCwe2_Text().getValueOrEmpty();
-        testBatteryCodingSystem = obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty();
+        msg.setTestBatteryLocalCode(obr4.getCwe1_Identifier().getValueOrEmpty());
+        msg.setTestBatteryLocalDescription(obr4.getCwe2_Text().getValueOrEmpty());
+        msg.setTestBatteryCodingSystem(obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty());
 
         PRL parent = obr.getObr26_ParentResult();
 
         // eg. "ISOLATE"
         // match to OBX-3.1
-        parentObservationIdentifier = parent.getPrl1_ParentObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
+        msg.setParentObservationIdentifier(parent.getPrl1_ParentObservationIdentifier().getCwe1_Identifier().getValueOrEmpty());
 
         // match to OBX-4
-        parentSubId = parent.getPrl2_ParentObservationSubIdentifier().getValueOrEmpty();
+        msg.setParentSubId(parent.getPrl2_ParentObservationSubIdentifier().getValueOrEmpty());
     }
 
     /**
-     * @param possibleParent the result to test whether "this" is a child of it
-     * @return whether "this" is a child (ie. a sensitivity order/result) of possibleParent
+     * HL7-specific way of determining parentage. The workings of this shouldn't be
+     * exposed to the interchange format (ie. PathologyOrder).
+     * @param possibleChild the order to test whether possibleParent is a parent of it
+     * @param possibleParent the result to test whether possibleChild is a child of it
+     * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent
      */
-    public boolean isChildOf(PathologyResult possibleParent) {
-        return !getEpicCareOrderNumber().isEmpty()
-                && getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
-                && !parentObservationIdentifier.isEmpty()
-                && parentObservationIdentifier.equals(possibleParent.getTestItemLocalCode())
-                && !parentSubId.isEmpty()
-                && parentSubId.equals(possibleParent.getObservationSubId());
+    public static boolean isChildOf(PathologyOrder possibleChild, PathologyResult possibleParent) {
+        return !possibleChild.getEpicCareOrderNumber().isEmpty()
+                && possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
+                && !possibleChild.getParentObservationIdentifier().isEmpty()
+                && possibleChild.getParentObservationIdentifier().equals(possibleParent.getTestItemLocalCode())
+                && !possibleChild.getParentSubId().isEmpty()
+                && possibleChild.getParentSubId().equals(possibleParent.getObservationSubId());
     }
 
     /**
@@ -373,119 +374,8 @@ public class PathologyOrder {
         if (!epicCareOrderNumberOrc.equals(epicCareOrderNumberObr)) {
             throw new Hl7InconsistencyException(String.format("ORC-2 %s does not match OBR-2 %s", epicCareOrderNumberOrc, epicCareOrderNumberObr));
         }
-    }
-
-    /**
-     * @return the order control ID in the message
-     */
-    public String getOrderControlId() {
-        return orderControlId;
-    }
-
-    /**
-     * @return the EpicCare order number for this order
-     */
-    public String getEpicCareOrderNumber() {
-        return epicCareOrderNumberOrc;
-    }
-
-    /**
-     * @return the lab number for this order (known as the accession number by Epic)
-     */
-    public String getLabSpecimenNumber() {
-        return labSpecimenNumber;
-    }
-
-    /**
-     * @return the lab number with an extra character appended (known as the OCS number in WinPath)
-     */
-    public String getLabSpecimenNumberOCS() {
-        return labSpecimenNumberOCS;
-    }
-
-    /**
-     * @return date the order was originally made
-     */
-    public Instant getOrderDateTime() {
-        return orderDateTime;
-    }
-
-    /**
-     * @return date the sample was entered onto WinPath
-     */
-    public Instant getSampleEnteredTime() {
-        return sampleEnteredTime;
-    }
-
-    /**
-     * @return (patient) type for order (inpatient or outpatient)
-     */
-    public String getOrderType() {
-        return orderType;
-    }
-
-    /**
-     * @return the visit number (CSN) of the patient
-     */
-    public String getVisitNumber() {
-        return visitNumber;
-    }
-
-    /**
-     * @return The results for this order (will be empty if constructed from an ORM message)
-     */
-    public List<PathologyResult> getPathologyResults() {
-        return pathologyResults;
-    }
-
-    /**
-     * @return when the sample was taken
-     */
-    public Instant getObservationDateTime() {
-        return observationDateTime;
-    }
-
-    /**
-     * @return the local code (eg. WinPath code) for the test battery
-     */
-    public String getTestBatteryLocalCode() {
-        return testBatteryLocalCode;
-    }
-
-    /**
-     * @return the local description (eg. in WinPath) of the test battery
-     */
-    public String getTestBatteryLocalDescription() {
-        return testBatteryLocalDescription;
-    }
-
-    /**
-     * @return The local coding system in use (eg. WinPath)
-     */
-    public String getTestBatteryCodingSystem() {
-        return testBatteryCodingSystem;
-    }
-
-    /**
-     * @return the time the status of the results last changed
-     */
-    public Instant getStatusChangeTime() {
-        return statusChangeTime;
-    }
-
-    /**
-     * @return the requested date/time - how is this different to order time?
-     */
-    public Instant getRequestedDateTime() {
-        return requestedDateTime;
-    }
-
-    /**
-     * @return Order status (final, incomplete, etc.).
-     * A,CA,CM,DC,ER,HD,IP,RP,SC (HL7 Table 0038)
-     */
-    public String getOrderStatus() {
-        return orderStatus;
+        //once we've established they're identical, set the definitive value to be one of them
+        msg.setEpicCareOrderNumber(epicCareOrderNumberOrc);
     }
 
     /**
@@ -494,27 +384,8 @@ public class PathologyOrder {
      */
     public boolean isSensitivity() {
         // a better test might be the test ID = "Micro^Sensitivities^WinPath"
-        boolean emptyOrc5 = getOrderStatus().isEmpty();
+        boolean emptyOrc5 = msg.getOrderStatus().isEmpty();
         return emptyOrc5;
     }
 
-    /**
-     * @return the HL7 field to indicate the test identifier of the parent order for
-     *         this order, if it has one. Arguably this shouldn't be stored in the
-     *         JSON as it's a temporary value we use for building the structure and
-     *         is HL7 specific.
-     */
-    public String getParentObservationIdentifier() {
-        return parentObservationIdentifier;
-    }
-
-    /**
-     * @return the HL7 field to indicate the sub ID of the parent order for this
-     *         order, if it has one. Arguably this shouldn't be stored in the JSON
-     *         as it's a temporary value we use for building the structure and is
-     *         HL7 specific.
-     */
-    public String getParentSubId() {
-        return parentSubId;
-    }
 }

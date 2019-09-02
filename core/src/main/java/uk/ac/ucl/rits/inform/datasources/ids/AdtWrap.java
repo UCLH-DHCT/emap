@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.hl7;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +19,12 @@ import ca.uhn.hl7v2.model.v26.segment.PV1;
  *
  * @author Jeremy Stein
  */
-public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
+class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     private static final Logger logger = LoggerFactory.getLogger(AdtWrap.class);
 
     private MSH msh;
     private PV1 pv1;
     private PID pid;
-    private PD1Wrap pd1wrap;
     private EVN evn;
     private MRG mrg;
 
@@ -63,36 +62,36 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
      * @throws HL7Exception if HAPI does
      */
     public AdtWrap(Message adtMsg) throws HL7Exception {
-        msh = (MSH) adtMsg.get("MSH");
-
-        try {
-            pv1 = (PV1) adtMsg.get("PV1");
-        } catch (HL7Exception e) {
-            // sections are allowed not to exist
-        }
-
-        // I want the "MRG" segment for A40 messages, is this really
-        // the best way to get it? Why do we have to get the PID segment in
-        // a different way for an A39/A40 message?
-        if (adtMsg instanceof ADT_A39) {
-            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) adtMsg.get("PATIENT");
-            mrg = a39Patient.getMRG();
-            pid = a39Patient.getPID();
-        } else {
-            try {
-                pid = (PID) adtMsg.get("PID");
-            } catch (HL7Exception e) {
-            }
-        }
-        try {
-            pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
-        } catch (HL7Exception e) {
-        }
-        try {
-            evn = (EVN) adtMsg.get("EVN");
-        } catch (HL7Exception e) {
-            // EVN is allowed not to exist
-        }
+//        msh = (MSH) adtMsg.get("MSH");
+//
+//        try {
+//            pv1 = (PV1) adtMsg.get("PV1");
+//        } catch (HL7Exception e) {
+//            // sections are allowed not to exist
+//        }
+//
+//        // I want the "MRG" segment for A40 messages, is this really
+//        // the best way to get it? Why do we have to get the PID segment in
+//        // a different way for an A39/A40 message?
+//        if (adtMsg instanceof ADT_A39) {
+//            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) adtMsg.get("PATIENT");
+//            mrg = a39Patient.getMRG();
+//            pid = a39Patient.getPID();
+//        } else {
+//            try {
+//                pid = (PID) adtMsg.get("PID");
+//            } catch (HL7Exception e) {
+//            }
+//        }
+//        try {
+//            pd1wrap = new PD1Wrap((PD1) adtMsg.get("PD1"));
+//        } catch (HL7Exception e) {
+//        }
+//        try {
+//            evn = (EVN) adtMsg.get("EVN");
+//        } catch (HL7Exception e) {
+//            // EVN is allowed not to exist
+//        }
     }
 
     /**
@@ -116,8 +115,8 @@ public class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
     /**
      * @return the non-surviving patient ID from a merge message
      */
-    public String getMergedPatientId() {
-        return mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
-    }
+//    public String getMergedPatientId() {
+//        return mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString();
+//    }
 
 }

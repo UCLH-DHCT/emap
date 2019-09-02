@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.hl7;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -8,7 +8,7 @@ import ca.uhn.hl7v2.model.v26.segment.MSH;
  * Other methods could be added: see https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/MSH.html
  * e.g. MSH-5 Receiving Application (“Receiving system”)
  */
-public interface MSHWrap {
+interface MSHWrap {
     /**
      * How to get the MSH segment.
      * @return the MSH segment

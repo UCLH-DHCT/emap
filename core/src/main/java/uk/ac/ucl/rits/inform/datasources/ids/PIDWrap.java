@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.hl7;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
 
@@ -26,7 +26,7 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
     Escape Character (normally \)
 
  */
-public interface PIDWrap {
+interface PIDWrap {
     /**
      * @return the PID segment
      */

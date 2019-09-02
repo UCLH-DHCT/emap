@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions;
+package uk.ac.ucl.rits.inform.datasources.ids.exceptions;
 
 /**
  * There's an anomaly which looks likely to be caused by

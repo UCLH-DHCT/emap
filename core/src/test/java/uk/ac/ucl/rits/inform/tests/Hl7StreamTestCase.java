@@ -22,12 +22,12 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
-import uk.ac.ucl.rits.inform.datasources.hl7.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 
 /**
  * A test case that first loads in and processes a stream of HL7 messages from one or more text files.
@@ -74,7 +74,7 @@ public abstract class Hl7StreamTestCase {
                 while (hl7Iter.hasNext()) {
                     totalMessages++;
                     Message msg = hl7Iter.next();
-                    processedMessages = dbOps.processHl7Message(msg, totalMessages, null, processedMessages);
+//                    processedMessages = dbOps.parseAndSendNextHl7(msg, totalMessages, null, processedMessages);
                 }
             }
         }

@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
 import java.util.Vector;
@@ -8,8 +8,9 @@ import ca.uhn.hl7v2.model.v26.segment.EVN;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
-import uk.ac.ucl.rits.inform.datasources.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.Doctor;
+import uk.ac.ucl.rits.inform.datasources.ids.AdtWrap;
+import uk.ac.ucl.rits.inform.datasources.ids.Doctor;
+import uk.ac.ucl.rits.inform.tests.HL7Random;
 
 /**
  * Generates random data while pretending to be an ADT parser.
@@ -18,7 +19,7 @@ import uk.ac.ucl.rits.inform.datasources.hl7.Doctor;
  * @author Jeremy Stein
  *
  */
-public class AdtWrapMock extends AdtWrap {
+class AdtWrapMock extends AdtWrap {
     private String postcode;
     private String familyName;
     private String givenName;
