@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
 import java.util.Vector;
@@ -10,9 +10,9 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.parser.PipeParser;
 import junit.framework.TestCase;
-import uk.ac.ucl.rits.inform.datasources.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.Doctor;
-import uk.ac.ucl.rits.inform.datasources.hl7.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.AdtWrap;
+import uk.ac.ucl.rits.inform.datasources.ids.Doctor;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 
 /**
  * Test the PV1 wrapper.

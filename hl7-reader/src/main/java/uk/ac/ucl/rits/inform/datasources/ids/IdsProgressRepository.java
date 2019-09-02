@@ -1,12 +1,10 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-
 /**
  */
-@EntityScan("uk.ac.ucl.rits.inform.datasinks.emapstar.repos")
 public interface IdsProgressRepository extends CrudRepository<IdsProgress, Integer> {
 
     /**

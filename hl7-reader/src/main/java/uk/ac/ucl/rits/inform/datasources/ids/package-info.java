@@ -1,7 +1,5 @@
 /**
-* This package reads from the IDS and can write too in test configurations.
-*
-* @author Jeremy Stein
+* This package relates to parsing HL7 messages.
 */
 
 package uk.ac.ucl.rits.inform.datasources.ids;

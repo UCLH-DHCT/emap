@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
 
@@ -7,9 +7,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.HL7Exception;
 import junit.framework.TestCase;
-import uk.ac.ucl.rits.inform.datasources.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.EVNWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.AdtWrap;
+import uk.ac.ucl.rits.inform.datasources.ids.EVNWrap;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 
 /**
  * Test the EVN wrapper.

@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,11 +15,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.hibernate.Session;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.cfg.NotYetImplementedException;
-import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,32 +28,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v26.message.ORM_O01;
-import ca.uhn.hl7v2.model.v26.message.ORU_R01;
-import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InformDbIntegrityException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsProgress;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsProgressRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
-import uk.ac.ucl.rits.inform.datasources.hl7.AdtWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.MSHWrap;
-import uk.ac.ucl.rits.inform.datasources.hl7.PathologyOrder;
-import uk.ac.ucl.rits.inform.datasources.hl7.PathologyResult;
-import uk.ac.ucl.rits.inform.datasources.ids.IdsMaster;
-import uk.ac.ucl.rits.inform.datasources.ids.IdsOperations;
+import uk.ac.ucl.rits.inform.datasources.ids.AdtOperationType;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
@@ -68,6 +53,11 @@ import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.interchange.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 
 /**
  * All the operations that can be performed on Inform-db.
@@ -75,7 +65,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 @Component
 @EntityScan({ "uk.ac.ucl.rits.inform.datasources.ids", "uk.ac.ucl.rits.inform.datasinks.emapstar.repos",
         "uk.ac.ucl.rits.inform.informdb" })
-public class InformDbOperations {
+public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private AttributeRepository        attributeRepo;
     @Autowired
@@ -88,15 +78,11 @@ public class InformDbOperations {
     private PatientFactRepository      patientFactRepository;
     @Autowired
     private PersonMrnRepository        personMrnRepo;
-    @Autowired
-    private IdsProgressRepository      idsProgressRepository;
-    @Autowired
-    private IdsEffectLoggingRepository idsEffectLoggingRepository;
 
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
-    @Autowired
-    private IdsOperations              idsOperations;
+//    @Autowired
+//    private IdsEffectLoggingRepository idsEffectLoggingRepository;
 
     @Value("${:classpath:vocab.csv}")
     private Resource                   vocabFile;
@@ -149,238 +135,45 @@ public class InformDbOperations {
             throw new AttributeError("Failed to load vocab file: " + this.vocabFile.getFilename());
         }
     }
-
-    /**
-     * Wrapper for the entire transaction that performs: - read latest processed ID
-     * from Inform-db (ETL metadata) - process the message and write to Inform-db -
-     * write the latest processed ID to reflect the above message. Blocks until
-     * there are new messages.
-     *
-     * @param parser        the HAPI parser to be used
-     * @param parsingErrors out param for parsing errors encountered
-     * @return number of messages processes
-     * @throws HL7Exception in some cases where HAPI does
-     */
-    @Transactional(rollbackFor = HL7Exception.class)
-    public int processNextHl7(PipeParser parser, List<String> parsingErrors) throws HL7Exception {
-        int lastProcessedId = getLatestProcessedId();
-        IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
-        IdsEffectLogging idsLog = new IdsEffectLogging();
-        idsLog.setProcessingStartTime(Instant.now());
-        idsLog.setIdsUnid(idsMsg.getUnid());
-        idsLog.setMrn(idsMsg.getHospitalnumber());
-        idsLog.setMessageType(idsMsg.getMessagetype());
-        Timestamp messageDatetime = idsMsg.getMessagedatetime();
-        Instant messageDatetimeInstant = null;
-        if (messageDatetime != null) {
-            idsLog.setMessageDatetime(messageDatetime.toInstant());
-            messageDatetimeInstant = messageDatetime.toInstant();
-        }
-        int processed = 0;
-        String hl7msg = idsMsg.getHl7message();
-        // HL7 is supposed to use \r for line endings, but
-        // the IDS uses \n
-        hl7msg = hl7msg.replace("\n", "\r");
-        Message msgFromIds;
+    
+    public void processMessage(PathologyOrder pathologyOrder) {
+        logger.info("PathologyOrder processor!");
         try {
-            msgFromIds = parser.parse(hl7msg);
-        } catch (HL7Exception hl7e) {
-            String errString = "[" + idsMsg.getUnid() + "]  HL7 parsing error";
-            hl7e.printStackTrace();
-            // Mark the message as processed even though we couldn't parse it,
-            // but record it for later debugging.
-            parsingErrors.add(errString);
-            logger.info(errString);
-            idsLog.setMessage(errString);
-            Instant processingEnd = Instant.now();
-            idsLog.setProcessingEndTime(processingEnd);
-            setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
-            return processed;
-        } finally {
-            idsLog = idsEffectLoggingRepository.save(idsLog);
+            addOrUpdatePathologyOrder(pathologyOrder);
+        } catch (HL7Exception | MessageIgnoredException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+    }
 
+    @Transactional
+    public void processMessage(AdtMessage adtMsg) {
+        logger.info("AdtMessage processor!");
         try {
-            processed = processHl7Message(msgFromIds, idsMsg.getUnid(), idsLog, processed);
-        } catch (HL7Exception e) {
-            String errMsg =
-                    "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass() + ")";
-            idsLog.setMessage(errMsg);
-            logger.warn(errMsg);
-        } catch (InvalidMrnException e) {
-            String errMsg =
-                    "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass() + ")";
-            idsLog.setMessage(errMsg);
-            logger.warn(errMsg);
-        } catch (MessageIgnoredException e) {
-            idsLog.setMessage(e.getClass() + " " + e.getMessage());
-        } catch (Hl7InconsistencyException e) {
-            idsLog.setMessage(e.getClass() + " " + e.getMessage());
-        } finally {
-            idsLog = idsEffectLoggingRepository.save(idsLog);
-        }
-        Instant processingEnd = Instant.now();
-        idsLog.setProcessingEndTime(processingEnd);
-        idsLog = idsEffectLoggingRepository.save(idsLog);
-        setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
-
-        return processed;
-    }
-
-    /**
-     * Determine the message type (ADT/ORU/etc) and use the appropriate wrapper
-     * class to process the wrapper.
-     *
-     * @param msgFromIds the message
-     * @param idsUnid    the IDS unique ID (or similar unique ID if not from IDS)
-     * @param idsLog     the IDS-oriented log, or null if you don't want to log
-     * @param processed  the current message processed count
-     * @return the updated message processed count
-     * @throws HL7Exception if HAPI does
-     * @throws Hl7InconsistencyException if there seems to be something wrong in the HL7 stream that should be logged and investigated
-     * @throws MessageIgnoredException if message can't be processed
-     */
-    public int processHl7Message(Message msgFromIds, int idsUnid, IdsEffectLogging idsLog, int processed)
-            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
-        // it's ok to give any message to an AdtWrap if we're only looking at the MSH
-        MSHWrap mshwrap = new AdtWrap(msgFromIds);
-        String messageType = mshwrap.getMessageType();
-        String triggerEvent = mshwrap.getTriggerEvent();
-
-        logger.info(String.format("[%s] %s^%s", idsUnid, messageType, triggerEvent));
-
-        if (messageType.equals("ADT")) {
-            AdtWrap adtWrap = new AdtWrap(msgFromIds);
-            if (triggerEvent.equals("A01")) {
-                addEncounter(adtWrap);
-                processed += 1;
-            } else if (triggerEvent.equals("A02")) {
-                transferPatient(adtWrap);
-                processed += 1;
-            } else if (triggerEvent.equals("A03")) {
-                dischargePatient(adtWrap);
-                processed += 1;
-            } else if (triggerEvent.equals("A08")) {
-                updatePatientInfo(adtWrap);
-                processed += 1;
-            } else if (triggerEvent.equals("A13")) {
-                cancelDischargePatient(adtWrap);
-                processed += 1;
-            } else if (triggerEvent.equals("A40")) {
-                mergeById(adtWrap);
-                processed += 1;
-            } else {
-                logger.debug("[" + idsUnid + "] Skipping " + triggerEvent + " (" + msgFromIds.getClass() + ")");
-                if (idsLog != null) {
-                    idsLog.setMessage("Skipping ADT due to message type");
-                }
-            }
-        } else if (messageType.equals("ORU")) {
-            if (triggerEvent.equals("R01")) {
-                // get all result batteries in the message
-                List<PathologyOrder> pathologyOrdersWithResults = PathologyOrder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
-                for (PathologyOrder order : pathologyOrdersWithResults) {
-                    addOrUpdatePathologyOrder(order);
-                }
-                processed += 1;
-            }
-        } else if (messageType.equals("ORM")) {
-            if (triggerEvent.equals("O01")) {
-                // get all orders in the message
-                List<PathologyOrder> pathologyOrders = PathologyOrder.buildPathologyOrders((ORM_O01) msgFromIds);
-                for (PathologyOrder order : pathologyOrders) {
-                    addOrUpdatePathologyOrder(order);
-                }
-                processed += 1;
-            }
-        }
-        return processed;
-    }
-
-    /**
-     * @return the unique ID for the last IDS message we have successfully processed
-     */
-    @Transactional
-    private int getLatestProcessedId() {
-        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
-        if (onlyRow == null) {
-            onlyRow = new IdsProgress();
-            // Is it wrong to set in a get?
-            onlyRow = idsProgressRepository.save(onlyRow);
-        }
-        return onlyRow.getLastProcessedIdsUnid();
-    }
-
-    /**
-     * Record that we have processed all messages up to the specified message.
-     *
-     * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
-     *                             processed
-     * @param messageDatetime      the timestamp of this message
-     * @param processingEnd        the time this message was actually processed
-     */
-    @Transactional
-    private void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
-        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
-        onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
-        onlyRow.setLastProcessedMessageDatetime(messageDatetime);
-        onlyRow.setLastProcessingDatetime(processingEnd);
-        idsProgressRepository.save(onlyRow);
-    }
-
-    /**
-     * Return the next HL7 message in the IDS. If there are no more, block until
-     * there are.
-     *
-     * @param lastProcessedId the latest unique ID that has already been processed
-     * @return the next HL7 message record
-     */
-    public IdsMaster getNextHL7IdsRecordBlocking(int lastProcessedId) {
-        long secondsSleep = 10;
-        IdsMaster idsMsg = null;
-        while (true) {
-            idsMsg = getNextHL7IdsRecord(lastProcessedId);
-            if (idsMsg == null) {
-                logger.info(String.format("No more messages, retrying in %d seconds", secondsSleep));
-                try {
-                    Thread.sleep(secondsSleep * 1000);
-                } catch (InterruptedException ie) {
-                    logger.trace("Sleep was interrupted");
-                }
-            } else {
+            switch (adtMsg.getOperationType()) {
+            case ADMIT_PATIENT:
+                addEncounter(adtMsg);
+                break;
+            case TRANSFER_PATIENT:
+                transferPatient(adtMsg);
+                break;
+            case DISCHARGE_PATIENT:
+                dischargePatient(adtMsg);
+                break;
+            case UPDATE_PATIENT_INFO:
+                updatePatientInfo(adtMsg);
+                break;
+            case CANCEL_DISCHARGE_PATIENT:
+                cancelDischargePatient(adtMsg);
+                break;
+            case MERGE_BY_ID:
+                mergeById(adtMsg);
                 break;
             }
-        }
-        return idsMsg;
-    }
-
-    /**
-     * Get next entry in the IDS, if it exists.
-     *
-     * @param lastProcessedId the last one we have successfully processed
-     *
-     * @return the first message that comes after lastProcessedId, or null if there
-     *         isn't one
-     */
-    public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
-        // consider changing to "get next N messages" for more efficient database
-        // performance
-        // when doing large "catch-up" operations
-        // (handle the batching in the caller)
-        Session idsSession = idsOperations.openSession();
-        idsSession.setDefaultReadOnly(true);
-        Query<IdsMaster> qnext =
-                idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
-        qnext.setParameter("lastProcessedId", lastProcessedId);
-        qnext.setMaxResults(1);
-        List<IdsMaster> nextMsgOrEmpty = qnext.list();
-        idsSession.close();
-        if (nextMsgOrEmpty.isEmpty()) {
-            return null;
-        } else if (nextMsgOrEmpty.size() == 1) {
-            return nextMsgOrEmpty.get(0);
-        } else {
-            throw new InternalError();
+        } catch (HL7Exception e) {
+        } catch (Hl7InconsistencyException e) {
+        } catch (MessageIgnoredException e) {
+            logger.error("Message ignored due to MessageIgnoredException: " + e.getMessage());
         }
     }
 
@@ -432,6 +225,7 @@ public class InformDbOperations {
      * @return all PatientFact objects in encounter which are visit facts AND match
      *         predicate pred
      */
+    @Transactional
     private List<PatientFact> getVisitFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
         return getFactWhere(encounter, f -> factIsVisitFact(f) && pred.test(f));
     }
@@ -441,6 +235,7 @@ public class InformDbOperations {
      * @param pred      the predicate to check for each PatientFact
      * @return all PatientFact objects in encounter which match predicate pred
      */
+    @Transactional
     private List<PatientFact> getFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
         List<PatientFact> facts = encounter.getFacts();
         if (facts == null) {
@@ -553,6 +348,7 @@ public class InformDbOperations {
      * @return all open and valid Visit objects of the specified type for the
      *         Encounter
      */
+    @Transactional
     private List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
         logger.info("getOpenVisitFactWhereVisitType: " + encounter + " " + attr);
         return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && visitFactIsOpenAndValid(vf));
@@ -573,21 +369,21 @@ public class InformDbOperations {
      * Get existing encounter or create a new one if it doesn't exist.
      *
      * @param mrn              the MRN to search/create in
-     * @param encounterDetails contains encounter ID (visit ID) to search for
+     * @param adtMsg contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
      * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
-    private Encounter getCreateEncounter(Mrn mrn, AdtWrap encounterDetails) throws HL7Exception, MessageIgnoredException {
+    private Encounter getCreateEncounter(Mrn mrn, AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
         logger.info("getCreateEncounter");
-        String encounter = encounterDetails.getVisitNumber();
+        String encounter = adtMsg.getVisitNumber();
         List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
         if (existingEncs == null || existingEncs.isEmpty()) {
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
             Instant storedFrom = Instant.now();
             enc.setEncounter(encounter);
-            Instant validFrom = encounterDetails.getEventOccurred();
+            Instant validFrom = adtMsg.getEventOccurredDateTime();
             mrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         } else if (existingEncs.size() > 1) {
@@ -604,18 +400,17 @@ public class InformDbOperations {
      * Create a new encounter using the details given in the A01 message. This may
      * also entail creating a new Mrn and Person if these don't already exist.
      *
-     * @param encounterDetails msg containing encounter details
+     * @param adtMsg msg containing encounter details
      * @return the created Encounter
      * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public Encounter addEncounter(AdtWrap encounterDetails) throws HL7Exception, MessageIgnoredException {
-        String mrnStr = encounterDetails.getMrn();
-        Instant admissionTime = encounterDetails.getAdmissionDateTime();
+    public Encounter addEncounter(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+        String mrnStr = adtMsg.getMrn();
+        Instant admissionTime = adtMsg.getAdmissionDateTime();
         if (mrnStr == null) {
-            throw new InvalidMrnException(String.format("Missing mrn in message from %s",
-                    encounterDetails.getMSH().getSendingApplication().encode()));
+            throw new InvalidMrnException(String.format("Missing mrn in message"));
         }
         Mrn newOrExistingMrn = findOrAddMrn(mrnStr, admissionTime, true);
         // Encounter is usually a new one for an A01, but it is
@@ -624,7 +419,7 @@ public class InformDbOperations {
         // Therefore need to reuse the existing encounter and the open visit if it
         // exists.
         // (Better to move the hosp visit creation to the actual "new Encounter"?)
-        Encounter enc = getCreateEncounter(newOrExistingMrn, encounterDetails);
+        Encounter enc = getCreateEncounter(newOrExistingMrn, adtMsg);
         List<PatientFact> allHospitalVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.HOSPITAL_VISIT);
 
         // This perhaps belongs in a getCreateHospitalVisit method, with an
@@ -633,7 +428,7 @@ public class InformDbOperations {
         switch (allHospitalVisits.size()) {
         case 0:
             hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
-            addDemographicsToEncounter(enc, encounterDetails);
+            addDemographicsToEncounter(enc, adtMsg);
             // Need to save here so the hospital visit can be created (and thus
             // assigned an ID), so we can refer to that ID in the bed visit.
             // (Bed visits refer to hosp visits explicitly by their IDs).
@@ -653,16 +448,16 @@ public class InformDbOperations {
             // Need to check whether it's the bed visit that corresponds to the existing
             // hospital visit?
             PatientFact openBedVisit = allOpenBedVisits.get(0);
-            Instant invalidTime = encounterDetails.getEventOccurred();
+            Instant invalidTime = adtMsg.getEventOccurredDateTime();
             openBedVisit.invalidateAll(invalidTime);
             break;
         default:
             throw new MessageIgnoredException("More than 1 (count = " + allHospitalVisits.size()
-                    + ") hospital visits in encounter " + encounterDetails.getVisitNumber());
+                    + ") hospital visits in encounter " + adtMsg.getVisitNumber());
         }
         // create a new bed visit with the new (or updated) location
-        addOpenBedVisit(enc, encounterDetails.getAdmissionDateTime(), hospitalVisit,
-                encounterDetails.getFullLocationString());
+        addOpenBedVisit(enc, adtMsg.getAdmissionDateTime(), hospitalVisit,
+                adtMsg.getFullLocationString());
         enc = encounterRepo.save(enc);
         logger.info("Encounter: " + enc.toString());
         return enc;
@@ -670,11 +465,11 @@ public class InformDbOperations {
 
     /**
      * @param enc        the encounter to add to
-     * @param msgDetails the message details to use
+     * @param adtMsg the message details to use
      * @throws HL7Exception if HAPI does
      */
-    private void addDemographicsToEncounter(Encounter enc, AdtWrap msgDetails) throws HL7Exception {
-        Map<String, PatientFact> demogs = buildPatientDemographics(msgDetails);
+    private void addDemographicsToEncounter(Encounter enc, AdtMessage adtMsg) throws HL7Exception {
+        Map<String, PatientFact> demogs = buildPatientDemographics(adtMsg);
         demogs.forEach((k, v) -> enc.addFact(v));
     }
 
@@ -682,25 +477,25 @@ public class InformDbOperations {
      * Build the demographics objects from a message but don't actually do anything
      * with them.
      *
-     * @param msgDetails the msg to build demographics from
+     * @param adtMsg the msg to build demographics from
      * @return Attribute->Fact key-value pairs
      * @throws HL7Exception if HAPI does
      */
-    private Map<String, PatientFact> buildPatientDemographics(AdtWrap msgDetails) throws HL7Exception {
+    private Map<String, PatientFact> buildPatientDemographics(AdtMessage adtMsg) throws HL7Exception {
         Map<String, PatientFact> demographics = new HashMap<>();
-        Instant validFrom = msgDetails.getEventOccurred();
+        Instant validFrom = adtMsg.getEventOccurredDateTime();
         if (validFrom == null) {
             // some messages (eg. A08) don't have an event occurred field
-            validFrom = msgDetails.getRecordedDateTime();
+            validFrom = adtMsg.getRecordedDateTime();
         }
         PatientFact nameFact = new PatientFact();
         nameFact.setValidFrom(validFrom);
         nameFact.setStoredFrom(Instant.now());
         Attribute nameAttr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
         nameFact.setFactType(nameAttr);
-        addPropertyToFact(nameFact, AttributeKeyMap.FIRST_NAME, msgDetails.getPatientGivenName());
-        addPropertyToFact(nameFact, AttributeKeyMap.MIDDLE_NAMES, msgDetails.getPatientMiddleName());
-        addPropertyToFact(nameFact, AttributeKeyMap.FAMILY_NAME, msgDetails.getPatientFamilyName());
+        addPropertyToFact(nameFact, AttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
+        addPropertyToFact(nameFact, AttributeKeyMap.MIDDLE_NAMES, adtMsg.getPatientMiddleName());
+        addPropertyToFact(nameFact, AttributeKeyMap.FAMILY_NAME, adtMsg.getPatientFamilyName());
         demographics.put(AttributeKeyMap.NAME_FACT.getShortname(), nameFact);
 
         PatientFact generalDemoFact = new PatientFact();
@@ -709,15 +504,15 @@ public class InformDbOperations {
         generalDemoFact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
 
         // will we have to worry about Instants and timezones shifting the date?
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.DOB, msgDetails.getPatientBirthDate());
+        addPropertyToFact(generalDemoFact, AttributeKeyMap.DOB, adtMsg.getPatientBirthDate());
 
-        String hl7Sex = msgDetails.getPatientSex();
+        String hl7Sex = adtMsg.getPatientSex();
         Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
         addPropertyToFact(generalDemoFact, AttributeKeyMap.SEX, sexAttrValue);
 
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.NHS_NUMBER, msgDetails.getNHSNumber());
+        addPropertyToFact(generalDemoFact, AttributeKeyMap.NHS_NUMBER, adtMsg.getNhsNumber());
 
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.POST_CODE, msgDetails.getPatientZipOrPostalCode());
+        addPropertyToFact(generalDemoFact, AttributeKeyMap.POST_CODE, adtMsg.getPatientZipOrPostalCode());
 
         demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname(), generalDemoFact);
         return demographics;
@@ -837,20 +632,20 @@ public class InformDbOperations {
     /**
      * Close off the existing Visit and open a new one.
      *
-     * @param transferDetails usually an A02 message but can be an A08
+     * @param adtMsg usually an A02 message but can be an A08
      * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void transferPatient(AdtWrap transferDetails) throws HL7Exception, MessageIgnoredException {
+    public void transferPatient(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
 
         // Find the current PatientFact, close it off, and start a new one with its own
         // admit time + location.
-        String mrnStr = transferDetails.getMrn();
-        String visitNumber = transferDetails.getVisitNumber();
+        String mrnStr = adtMsg.getMrn();
+        String visitNumber = adtMsg.getVisitNumber();
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
 
         if (encounter == null) {
@@ -865,22 +660,22 @@ public class InformDbOperations {
         // Definition: This field contains the date/time that the event actually
         // occurred. For example, on a transfer (A02 transfer a patient), this field
         // would contain the date/time the patient was actually transferred."
-        Instant eventOccurred = transferDetails.getEventOccurred();
-        if (transferDetails.getTriggerEvent().equals("A08")) {
+        Instant eventOccurred = adtMsg.getEventOccurredDateTime();
+        if (adtMsg.getOperationType().equals(AdtOperationType.UPDATE_PATIENT_INFO)) {
             // A08 doesn't have an event time, so use the recorded time instead
             // Downside: recorded time is later than event time, so subsequent discharge
             // time
             // for this visit can be *earlier* than the arrival time if it's a very short
             // visit
             // or there was a big gap between A08 event + recorded time.
-            eventOccurred = transferDetails.getRecordedDateTime();
+            eventOccurred = adtMsg.getRecordedDateTime();
         }
         if (latestOpenBedVisits.isEmpty()) {
             throw new MessageIgnoredException(
                     "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
-        String newTransferLocation = transferDetails.getFullLocationString();
+        String newTransferLocation = adtMsg.getFullLocationString();
         String currentKnownLocation =
                 getOnlyElement(latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid())).getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
@@ -895,10 +690,10 @@ public class InformDbOperations {
         }
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
 
-        Instant admissionDateTime = transferDetails.getAdmissionDateTime();
-        Instant recordedDateTime = transferDetails.getRecordedDateTime();
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+        Instant recordedDateTime = adtMsg.getRecordedDateTime();
 
-        String admitSource = transferDetails.getAdmitSource();
+        String admitSource = adtMsg.getAdmitSource();
         logger.info("TRANSFERRING: MRN = " + mrnStr);
         logger.info("    A02 details: adm " + admissionDateTime);
         logger.info("    A02 details: admitsrc/event/recorded " + admitSource + "/" + eventOccurred + "/"
@@ -922,7 +717,7 @@ public class InformDbOperations {
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void dischargePatient(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
+    public void dischargePatient(AdtMessage adtWrap) throws HL7Exception, MessageIgnoredException {
         String mrnStr = adtWrap.getMrn();
         String visitNumber = adtWrap.getVisitNumber();
 
@@ -935,7 +730,7 @@ public class InformDbOperations {
             throw new MessageIgnoredException(
                     "No open bed visit, cannot discharge, did you miss an A13? visit " + visitNumber);
         }
-        Instant eventOccurred = adtWrap.getEventOccurred();
+        Instant eventOccurred = adtWrap.getEventOccurredDateTime();
         Instant dischargeDateTime = adtWrap.getDischargeDateTime();
         logger.info("DISCHARGE: MRN " + mrnStr);
         logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
@@ -975,16 +770,16 @@ public class InformDbOperations {
      * Mark the visit specified by visit number as not discharged any more. Can either mean a discharge was
      * erroneously entered, or a decision to discharge was reversed.
      *
-     * @param adtWrap the A13 message detailing the cancel discharge
+     * @param adtMsg the A13 message detailing the cancel discharge
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if this message can't be matched to an existing discharge
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void cancelDischargePatient(AdtWrap adtWrap) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
-        String visitNumber = adtWrap.getVisitNumber();
+    private void cancelDischargePatient(AdtMessage adtMsg) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+        String visitNumber = adtMsg.getVisitNumber();
         // event occurred field seems to be populated despite the Epic example message showing it blank.
-        Instant invalidationDate = adtWrap.getEventOccurred();
+        Instant invalidationDate = adtMsg.getEventOccurredDateTime();
         // this must be non-null or the invalidation won't work
         if (invalidationDate == null) {
             throw new MessageIgnoredException("Trying to cancel discharge but the event occurred date is null");
@@ -1123,14 +918,14 @@ public class InformDbOperations {
      * demographics, but we also see changes to location (ie. transfers)
      * communicated only via an A08)
      *
-     * @param adtWrap the message with the patient info
+     * @param adtMsg the message with the patient info
      * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void updatePatientInfo(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
-        String visitNumber = adtWrap.getVisitNumber();
-        String newLocation = adtWrap.getFullLocationString();
+    private void updatePatientInfo(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+        String visitNumber = adtMsg.getVisitNumber();
+        String newLocation = adtMsg.getFullLocationString();
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
@@ -1138,7 +933,7 @@ public class InformDbOperations {
         }
 
         // Compare new demographics with old
-        Map<String, PatientFact> newDemographics = buildPatientDemographics(adtWrap);
+        Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg);
         Map<String, PatientFact> currentDemographics = getValidStoredDemographicFacts(encounter).stream()
                 .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
         updateDemographics(encounter, currentDemographics, newDemographics);
@@ -1152,9 +947,9 @@ public class InformDbOperations {
         PatientProperty knownlocation =
                 getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
         if (!newLocation.equals(knownlocation.getValueAsString())) {
-            logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtWrap.getMrn(),
+            logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtMsg.getMrn(),
                     visitNumber, knownlocation.getValueAsString(), newLocation));
-            transferPatient(adtWrap);
+            transferPatient(adtMsg);
         }
 
         encounter = encounterRepo.save(encounter);
@@ -1202,15 +997,15 @@ public class InformDbOperations {
      * best we could do is flag it as an error if new data is put against a
      * non-surviving MRN.
      *
-     * @param adtWrap message containing merge info
+     * @param adtMsg message containing merge info
      * @throws HL7Exception when HAPI does or merge time in message is blank
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void mergeById(AdtWrap adtWrap) throws HL7Exception, MessageIgnoredException {
-        String oldMrnStr = adtWrap.getMergedPatientId();
-        String survivingMrnStr = adtWrap.getMrn();
-        Instant mergeTime = adtWrap.getRecordedDateTime();
+    private void mergeById(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+        String oldMrnStr = adtMsg.getMergedPatientId();
+        String survivingMrnStr = adtMsg.getMrn();
+        Instant mergeTime = adtMsg.getRecordedDateTime();
         logger.info(
                 "MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
         if (mergeTime == null) {
@@ -1396,7 +1191,7 @@ public class InformDbOperations {
      * @param testBatteryLocalCode the battery local code for the order
      * @return all descendant PatientFact objects indexed by a unique identifier
      */
-    private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, List<PathologyResult> pathResults,
+    private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, List<? extends PathologyResult> pathResults,
             Encounter encounter, String testBatteryLocalCode) {
         Map<String, PatientFact> facts = new HashMap<>();
         Instant storedFrom = Instant.now();
@@ -1434,7 +1229,7 @@ public class InformDbOperations {
             List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
             for (PathologyOrder sensOrder : pathologySensitivities) {
                 // each sensitivity needs to be built as an order
-                List<PathologyResult> sensResults = sensOrder.getPathologyResults();
+                List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
                 Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, sensResults, encounter, sensOrder.getTestBatteryLocalCode());
                 facts.putAll(sensFacts);
             }
@@ -1540,5 +1335,6 @@ public class InformDbOperations {
         }
         return mrn;
     }
+
 
 }

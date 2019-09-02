@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasources.ids;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,7 +35,7 @@ public class TestInformDb {
         long beforeEncounters = dbt.countEncounters();
         long numEncounters = 100;
         for (int i = 0; i < numEncounters; i++) {
-            Encounter enc = dbt.addEncounter(new AdtWrapMock());
+            //Encounter enc = dbt.addEncounter(new AdtWrapMock());
         }
         long afterEncounters = dbt.countEncounters();
         long actualNewEncounters = afterEncounters - beforeEncounters;
