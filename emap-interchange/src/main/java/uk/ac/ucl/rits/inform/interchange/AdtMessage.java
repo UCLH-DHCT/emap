@@ -12,14 +12,12 @@ public class AdtMessage implements EmapOperationMessage, Serializable {
     private static final long serialVersionUID = -3352058605994102510L;
     public AdtMessage() {
     }
-    
-    private AdtOperationType operationType;
-    Instant recordedDateTime;
-    String eventReasonCode;
-    Instant eventOccurredDateTime;
-    
-    private Instant admissionDateTime;
 
+    private AdtOperationType operationType;
+    private Instant recordedDateTime;
+    private String eventReasonCode;
+    private Instant eventOccurredDateTime;
+    private Instant admissionDateTime;
     private String admitSource;
     private String currentBed;
     private String currentRoomCode;
@@ -45,7 +43,7 @@ public class AdtMessage implements EmapOperationMessage, Serializable {
     private String patientType;
     private String patientZipOrPostalCode;
     private String visitNumber;
-    
+
     public AdtOperationType getOperationType() {
         return operationType;
     }
