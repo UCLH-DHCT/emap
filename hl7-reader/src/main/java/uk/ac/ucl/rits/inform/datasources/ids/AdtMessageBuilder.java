@@ -22,7 +22,7 @@ public class AdtMessageBuilder {
     private static final long serialVersionUID = 2925921017121050081L;
     private static final Logger logger = LoggerFactory.getLogger(AdtMessageBuilder.class);
 
-    private static final Map<String, AdtOperationType> hl7TriggerEventToOperationType = new HashMap<String, AdtOperationType>() {
+    private static final Map<String, AdtOperationType> HL7_TRIGGER_EVENT_TO_OPERATION_TYPE = new HashMap<String, AdtOperationType>() {
         {
             put("A01", AdtOperationType.ADMIT_PATIENT);
             put("A02", AdtOperationType.TRANSFER_PATIENT);
@@ -40,7 +40,7 @@ public class AdtMessageBuilder {
     private EVN evn;
 
     private AdtMessage msg = new AdtMessage();
-    
+
     public AdtMessageBuilder(Message hl7Msg) throws HL7Exception, Hl7MessageNotImplementedException {
         msh = (MSH) hl7Msg.get("MSH");
 
@@ -68,9 +68,9 @@ public class AdtMessageBuilder {
         } catch (HL7Exception e) {
             // EVN is allowed not to exist
         }
-        
+
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
-        AdtOperationType adtOperationType = hl7TriggerEventToOperationType.get(triggerEvent);
+        AdtOperationType adtOperationType = HL7_TRIGGER_EVENT_TO_OPERATION_TYPE.get(triggerEvent);
         if (adtOperationType == null) {
             throw new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
         }
@@ -112,7 +112,7 @@ public class AdtMessageBuilder {
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
         }
-        
+
         if (mrg != null) {
             msg.setMergedPatientId(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
         }
@@ -124,5 +124,4 @@ public class AdtMessageBuilder {
     public AdtMessage getAdtMessage() {
         return msg;
     }
-
 }

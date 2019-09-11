@@ -44,7 +44,6 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 
 /**
@@ -177,7 +176,6 @@ public class IdsOperations {
 
         return cfg.buildSessionFactory();
     }
-    
 
     /**
      * @return the unique ID for the last IDS message we have successfully processed
@@ -356,11 +354,10 @@ public class IdsOperations {
         int lastProcessedId = getLatestProcessedId();
         logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
-        
+
         Timestamp messageDatetime = idsMsg.getMessagedatetime();
         Instant messageDatetimeInstant = null;
         if (messageDatetime != null) {
-            
             messageDatetimeInstant = messageDatetime.toInstant();
         }
         int processed = 0;
@@ -397,10 +394,9 @@ public class IdsOperations {
         } catch (Hl7InconsistencyException e) {
             logger.warn(e.getClass() + " " + e.getMessage());
         }
-        
         return processed;
     }
-    
+
     // IDS-oriented logging code that perhaps belongs in the processor now?
 //    private void _idsEffectLoggingStuff(IdsMaster idsMsg) {
 //        IdsEffectLogging idsLog = new IdsEffectLogging();
@@ -429,21 +425,12 @@ public class IdsOperations {
     /**
      * Using the type+trigger event of the HL7 message, create the correct type of
      * interchange message. One HL7 message can give rise to multiple interchange messages.
-     * @param msgFromIds
-     * @param idsUnid
-     * @param idsLog
-     * @param processed
-     * @return
-     * @throws HL7Exception
-     * @throws Hl7InconsistencyException
+     * @param msgFromIds the HL7 message
+     * @param idsUnid the sequential ID number from the IDS (unid) 
+     * @return list of Emap interchange messages
+     * @throws HL7Exception if HAPI does
+     * @throws Hl7InconsistencyException  
      * @throws MessageIgnoredException
-     */
-    /**
-     * Construct the appropriate type of interchange object(s) depending on the HL7 message type/event.
-     * @param msgFromIds
-     * @return
-     * @throws HL7Exception 
-     * @throws Hl7InconsistencyException 
      */
     public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
             throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
@@ -458,8 +445,7 @@ public class IdsOperations {
             try {
                 AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds);
                 adtMsg.add(msgBuilder.getAdtMessage());
-            }
-            catch (Hl7MessageNotImplementedException e) {
+            } catch (Hl7MessageNotImplementedException e) {
                 logger.warn("Ignoring message: " + e.toString());
             }
             return adtMsg;
@@ -477,6 +463,4 @@ public class IdsOperations {
         logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
         return null;
     }
-    
-    
 }

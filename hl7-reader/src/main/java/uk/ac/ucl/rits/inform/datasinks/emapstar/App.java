@@ -32,14 +32,21 @@ public class App {
 
     @Autowired
     private AmqpTemplate rabbitTemplate;
-    
-    private static final String queueName = "hl7Queue";
-    
+
+    private static final String QUEUE_NAME = "hl7Queue";
+
+    /**
+     * @return our Queue
+     */
     @Bean
-    Queue queue() {
-        return new Queue(queueName, false);
+    public Queue queue() {
+        return new Queue(QUEUE_NAME, false);
     }
 
+    /**
+     * Added this to get Instant objects (de)serialising properly.
+     * @return our message converter
+     */
     @Bean
     public static Jackson2JsonMessageConverter jsonMessageConverter() {
         ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
@@ -69,7 +76,7 @@ public class App {
             List<String> parsingErrors = new ArrayList<String>();
             while (true) {
                 // read from rabbit
-                EmapOperationMessage msg = (EmapOperationMessage) rabbitTemplate.receiveAndConvert(queueName);
+                EmapOperationMessage msg = (EmapOperationMessage) rabbitTemplate.receiveAndConvert(QUEUE_NAME);
                 if (msg == null) {
                     int secondsSleep = 5;
                     logger.info(String.format("No more messages in RabbitMQ, retrying in %d seconds", secondsSleep));
