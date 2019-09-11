@@ -38,8 +38,8 @@ import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 
 /**
- * Build a PathologyOrder object from HL7.
- * 
+ * Build one or more PathologyOrder object(s) from an HL7 message.
+ *
  * @author Jeremy Stein
  */
 public class PathologyOrderBuilder {
@@ -51,14 +51,14 @@ public class PathologyOrderBuilder {
     private String epicCareOrderNumberObr;
 
     private PathologyOrder msg = new PathologyOrder();
-    
+
     /**
      * @return the underlying message we have now built
      */
     public PathologyOrder getMessage() {
         return msg;
     }
-    
+
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param ormO01 the ORM message
@@ -140,7 +140,7 @@ public class PathologyOrderBuilder {
                         continue;
                     }
                     // An HL7 PathologyOrderBuilder will always contain HL7 PathologyResultBuilder objects for its results,
-                    // so downcast will be safe. Find a better way of encoding this in the type system. 
+                    // so downcast will be safe. Find a better way of encoding this in the type system.
                     List<PathologyResult> possibleParents = possibleOrder.getPathologyResults();
                     try {
                         PathologyResult foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))

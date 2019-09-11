@@ -31,7 +31,7 @@ import uk.ac.ucl.rits.inform.interchange.PathologyResult;
  */
 public class PathologyResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(PathologyResultBuilder.class);
-    
+
     private PathologyResult msg = new PathologyResult();
 
     /**
@@ -40,7 +40,7 @@ public class PathologyResultBuilder {
     public PathologyResult getMessage() {
         return msg;
     }
-    
+
     /**
      * This class stores an individual result (ie. OBX segment)
      * because this maps 1:1 with a patient fact in Inform-db.

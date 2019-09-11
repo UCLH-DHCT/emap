@@ -58,5 +58,4 @@ public class AppHl7 {
             idsOps.close();
         };
     }
-    
 }

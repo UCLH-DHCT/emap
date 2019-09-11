@@ -1,6 +1,5 @@
 /**
- * This package holds the different exceptions created for the HL7 processing
- * pipeline.
+ * Various exceptions for the Emap Star processor.
  *
  * @author Jeremy Stein
  */

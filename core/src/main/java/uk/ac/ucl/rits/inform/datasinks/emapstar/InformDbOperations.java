@@ -27,7 +27,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InformDbIntegrityException;
@@ -35,13 +34,11 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.datasources.ids.AdtOperationType;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
@@ -54,7 +51,6 @@ import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
@@ -135,14 +131,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throw new AttributeError("Failed to load vocab file: " + this.vocabFile.getFilename());
         }
     }
-    
+
     public void processMessage(PathologyOrder pathologyOrder) {
         logger.info("PathologyOrder processor!");
         try {
             addOrUpdatePathologyOrder(pathologyOrder);
-        } catch (HL7Exception | MessageIgnoredException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (MessageIgnoredException e) {
+            logger.warn("Pathology order message ignored due to: " + e);
         }
     }
 
@@ -169,9 +164,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             case MERGE_BY_ID:
                 mergeById(adtMsg);
                 break;
+            default:
+                break;
             }
-        } catch (HL7Exception e) {
-        } catch (Hl7InconsistencyException e) {
         } catch (MessageIgnoredException e) {
             logger.error("Message ignored due to MessageIgnoredException: " + e.getMessage());
         }
@@ -371,10 +366,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param mrn              the MRN to search/create in
      * @param adtMsg contains encounter ID (visit ID) to search for
      * @return the Encounter, existing or newly created
-     * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
-    private Encounter getCreateEncounter(Mrn mrn, AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+    private Encounter getCreateEncounter(Mrn mrn, AdtMessage adtMsg) throws MessageIgnoredException {
         logger.info("getCreateEncounter");
         String encounter = adtMsg.getVisitNumber();
         List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
@@ -402,11 +396,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param adtMsg msg containing encounter details
      * @return the created Encounter
-     * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public Encounter addEncounter(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+    public Encounter addEncounter(AdtMessage adtMsg) throws MessageIgnoredException {
         String mrnStr = adtMsg.getMrn();
         Instant admissionTime = adtMsg.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -466,9 +459,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * @param enc        the encounter to add to
      * @param adtMsg the message details to use
-     * @throws HL7Exception if HAPI does
      */
-    private void addDemographicsToEncounter(Encounter enc, AdtMessage adtMsg) throws HL7Exception {
+    private void addDemographicsToEncounter(Encounter enc, AdtMessage adtMsg) {
         Map<String, PatientFact> demogs = buildPatientDemographics(adtMsg);
         demogs.forEach((k, v) -> enc.addFact(v));
     }
@@ -479,9 +471,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param adtMsg the msg to build demographics from
      * @return Attribute->Fact key-value pairs
-     * @throws HL7Exception if HAPI does
      */
-    private Map<String, PatientFact> buildPatientDemographics(AdtMessage adtMsg) throws HL7Exception {
+    private Map<String, PatientFact> buildPatientDemographics(AdtMessage adtMsg) {
         Map<String, PatientFact> demographics = new HashMap<>();
         Instant validFrom = adtMsg.getEventOccurredDateTime();
         if (validFrom == null) {
@@ -633,11 +624,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Close off the existing Visit and open a new one.
      *
      * @param adtMsg usually an A02 message but can be an A08
-     * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void transferPatient(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+    public void transferPatient(AdtMessage adtMsg) throws MessageIgnoredException {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
@@ -713,11 +703,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Mark the specified visit as finished.
      *
      * @param adtWrap the A03 message detailing the discharge
-     * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    public void dischargePatient(AdtMessage adtWrap) throws HL7Exception, MessageIgnoredException {
+    public void dischargePatient(AdtMessage adtWrap) throws MessageIgnoredException {
         String mrnStr = adtWrap.getMrn();
         String visitNumber = adtWrap.getVisitNumber();
 
@@ -771,12 +760,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * erroneously entered, or a decision to discharge was reversed.
      *
      * @param adtMsg the A13 message detailing the cancel discharge
-     * @throws HL7Exception if HAPI does
-     * @throws Hl7InconsistencyException if this message can't be matched to an existing discharge
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void cancelDischargePatient(AdtMessage adtMsg) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+    private void cancelDischargePatient(AdtMessage adtMsg) throws MessageIgnoredException {
         String visitNumber = adtMsg.getVisitNumber();
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtMsg.getEventOccurredDateTime();
@@ -799,7 +786,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // This is an error. The most recent bed visit is still open. Ie. the patient
             // has not been discharged, so we cannot cancel the discharge.
             // Possible cause is that we never received the A03.
-            throw new Hl7InconsistencyException(visitNumber + " Cannot process A13 - most recent bed visit is still open");
+            throw new MessageIgnoredException(visitNumber + " Cannot process A13 - most recent bed visit is still open");
         }
         PatientProperty bedDischargeTime = getOnlyElement(
                 mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
@@ -919,11 +906,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * communicated only via an A08)
      *
      * @param adtMsg the message with the patient info
-     * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void updatePatientInfo(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+    private void updatePatientInfo(AdtMessage adtMsg) throws MessageIgnoredException {
         String visitNumber = adtMsg.getVisitNumber();
         String newLocation = adtMsg.getFullLocationString();
 
@@ -998,18 +984,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * non-surviving MRN.
      *
      * @param adtMsg message containing merge info
-     * @throws HL7Exception when HAPI does or merge time in message is blank
-     * @throws MessageIgnoredException if message can't be processed
+     * @throws MessageIgnoredException if merge time in message is blank or message can't be processed
      */
     @Transactional
-    private void mergeById(AdtMessage adtMsg) throws HL7Exception, MessageIgnoredException {
+    private void mergeById(AdtMessage adtMsg) throws MessageIgnoredException {
         String oldMrnStr = adtMsg.getMergedPatientId();
         String survivingMrnStr = adtMsg.getMrn();
         Instant mergeTime = adtMsg.getRecordedDateTime();
         logger.info(
                 "MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
         if (mergeTime == null) {
-            throw new HL7Exception("event occurred null");
+            throw new MessageIgnoredException("event occurred null");
         }
 
         // The non-surviving Mrn is invalidated but still points to the old person
@@ -1056,14 +1041,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Convert the simplified data from the HL7 message into Inform-db structures,
+     * Convert the simplified data from the pathology message into Inform-db structures,
      * and merge with existing data depending on whether it's a new order or changes to an existing one.
      * @param pathologyOrder the pathology order details, may contain results
-     * @throws HL7Exception if HAPI does
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws HL7Exception, MessageIgnoredException {
+    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws MessageIgnoredException {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
 

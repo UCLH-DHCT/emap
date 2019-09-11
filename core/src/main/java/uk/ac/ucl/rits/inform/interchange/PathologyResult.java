@@ -4,28 +4,11 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import ca.uhn.hl7v2.model.DataTypeException;
-import ca.uhn.hl7v2.model.Type;
-import ca.uhn.hl7v2.model.Varies;
-import ca.uhn.hl7v2.model.v26.datatype.CE;
-import ca.uhn.hl7v2.model.v26.datatype.CWE;
-import ca.uhn.hl7v2.model.v26.datatype.ED;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
-import ca.uhn.hl7v2.model.v26.datatype.IS;
-import ca.uhn.hl7v2.model.v26.datatype.NM;
-import ca.uhn.hl7v2.model.v26.datatype.ST;
-import ca.uhn.hl7v2.model.v26.datatype.TX;
-import ca.uhn.hl7v2.model.v26.segment.NTE;
-import ca.uhn.hl7v2.model.v26.segment.OBR;
-import ca.uhn.hl7v2.model.v26.segment.OBX;
-import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 
 /**
  * Represent a pathology result message.
