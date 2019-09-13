@@ -14,7 +14,7 @@ import javax.persistence.Id;
  * Useful for debugging, seeing why a particular message didn't have the
  * intended effect, etc
  *
- * @author jeremystein
+ * @author Jeremy Stein
  */
 @Entity
 public class IdsEffectLogging {

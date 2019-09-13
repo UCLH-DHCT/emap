@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Emap interchange message classes must implement this interface.
- * @author jeremystein
+ *
+ * @author Jeremy Stein
  *
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")

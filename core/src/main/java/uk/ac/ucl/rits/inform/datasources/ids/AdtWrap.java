@@ -58,7 +58,7 @@ class AdtWrap implements PV1Wrap, EVNWrap, MSHWrap, PIDWrap {
      * @param adtMsg the passed in HL7 message
      * @throws HL7Exception if HAPI does
      */
-    public AdtWrap(Message adtMsg) throws HL7Exception {
+     AdtWrap(Message adtMsg) throws HL7Exception {
 //        msh = (MSH) adtMsg.get("MSH");
 //
 //        try {

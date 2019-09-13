@@ -132,8 +132,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
     }
 
+    /**
+     * Process a pathology order message.
+     * @param pathologyOrder the message
+     */
     public void processMessage(PathologyOrder pathologyOrder) {
-        logger.info("PathologyOrder processor!");
         try {
             addOrUpdatePathologyOrder(pathologyOrder);
         } catch (MessageIgnoredException e) {
@@ -141,6 +144,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
     }
 
+    /**
+     * Process a patient movement (ADT) message.
+     * @param adtMsg the message
+     */
     @Transactional
     public void processMessage(AdtMessage adtMsg) {
         logger.info("AdtMessage processor!");
@@ -167,8 +174,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             default:
                 break;
             }
-        } catch (MessageIgnoredException e) {
-            logger.error("Message ignored due to MessageIgnoredException: " + e.getMessage());
+        } catch (MessageIgnoredException | InvalidMrnException e) {
+            logger.error("Message ignored due to: " + e.toString());
         }
     }
 
@@ -397,9 +404,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param adtMsg msg containing encounter details
      * @return the created Encounter
      * @throws MessageIgnoredException if message can't be processed
+     * @throws InvalidMrnException if Mrn field is empty
      */
     @Transactional
-    public Encounter addEncounter(AdtMessage adtMsg) throws MessageIgnoredException {
+    public Encounter addEncounter(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException {
         String mrnStr = adtMsg.getMrn();
         Instant admissionTime = adtMsg.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -1003,7 +1011,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
         Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
         if (survivingMrn == null || oldMrn == null) {
-            throw new InvalidMrnException(String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
+            throw new MessageIgnoredException(String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
         }
         Instant now = Instant.now();
@@ -1013,7 +1021,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PersonMrn survivingPersonMrn = getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValidAsOf(now));
 
         if (survivingPersonMrn == null || oldPersonMrn == null) {
-            throw new InvalidMrnException(String.format(
+            throw new MessageIgnoredException(String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
                     oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
         }

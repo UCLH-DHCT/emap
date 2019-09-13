@@ -5,7 +5,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions;
  *
  * @author Jeremy Stein
  */
-public class InvalidMrnException extends RuntimeException {
+public class InvalidMrnException extends Exception {
 
     private static final long serialVersionUID = 8164692590305671393L;
 

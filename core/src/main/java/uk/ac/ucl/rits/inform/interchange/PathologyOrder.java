@@ -43,17 +43,17 @@ public class PathologyOrder implements EmapOperationMessage, Serializable {
     private String parentSubId;
 
     /**
-     * @return the order control ID in the message
-     */
-    public String getOrderControlId() {
-        return orderControlId;
-    }
-
-    /**
      * @return the EpicCare order number for this order
      */
     public String getEpicCareOrderNumber() {
         return epicCareOrderNumber;
+    }
+
+    /**
+     * @param epicCareOrderNumber the epicCareOrderNumber to set
+     */
+    public void setEpicCareOrderNumber(String epicCareOrderNumber) {
+        this.epicCareOrderNumber = epicCareOrderNumber;
     }
 
     /**
@@ -64,10 +64,53 @@ public class PathologyOrder implements EmapOperationMessage, Serializable {
     }
 
     /**
-     * @return the lab number with an extra character appended (known as the OCS number in WinPath)
+     * @param labSpecimenNumber the labSpecimenNumber to set
+     */
+    public void setLabSpecimenNumber(String labSpecimenNumber) {
+        this.labSpecimenNumber = labSpecimenNumber;
+    }
+
+    /**
+     * @return the lab number with an extra character appended (known as the OCS
+     *         number in WinPath)
      */
     public String getLabSpecimenNumberOCS() {
         return labSpecimenNumberOCS;
+    }
+
+    /**
+     * @param labSpecimenNumberOCS the labSpecimenNumberOCS to set
+     */
+    public void setLabSpecimenNumberOCS(String labSpecimenNumberOCS) {
+        this.labSpecimenNumberOCS = labSpecimenNumberOCS;
+    }
+
+    /**
+     * @return when the sample was taken
+     */
+    public Instant getObservationDateTime() {
+        return observationDateTime;
+    }
+
+    /**
+     * @param observationDateTime the observationDateTime to set
+     */
+    public void setObservationDateTime(Instant observationDateTime) {
+        this.observationDateTime = observationDateTime;
+    }
+
+    /**
+     * @return the order control ID in the message
+     */
+    public String getOrderControlId() {
+        return orderControlId;
+    }
+
+    /**
+     * @param orderControlId the orderControlId to set
+     */
+    public void setOrderControlId(String orderControlId) {
+        this.orderControlId = orderControlId;
     }
 
     /**
@@ -78,10 +121,25 @@ public class PathologyOrder implements EmapOperationMessage, Serializable {
     }
 
     /**
-     * @return date the sample was entered onto WinPath
+     * @param orderDateTime the orderDateTime to set
      */
-    public Instant getSampleEnteredTime() {
-        return sampleEnteredTime;
+    public void setOrderDateTime(Instant orderDateTime) {
+        this.orderDateTime = orderDateTime;
+    }
+
+    /**
+     * @return Order status (final, incomplete, etc.). A,CA,CM,DC,ER,HD,IP,RP,SC
+     *         (HL7 Table 0038)
+     */
+    public String getOrderStatus() {
+        return orderStatus;
+    }
+
+    /**
+     * @param orderStatus the orderStatus to set
+     */
+    public void setOrderStatus(String orderStatus) {
+        this.orderStatus = orderStatus;
     }
 
     /**
@@ -92,24 +150,122 @@ public class PathologyOrder implements EmapOperationMessage, Serializable {
     }
 
     /**
-     * @return the visit number (CSN) of the patient
+     * @param orderType the orderType to set
      */
-    public String getVisitNumber() {
-        return visitNumber;
+    public void setOrderType(String orderType) {
+        this.orderType = orderType;
     }
 
     /**
-     * @return The results for this order (will be empty if constructed from an ORM message)
+     * @return the HL7 field to indicate the test identifier of the parent order for
+     *         this order, if it has one. Arguably this shouldn't be stored in the
+     *         JSON as it's a temporary value we use for building the structure and
+     *         is HL7 specific.
+     */
+    public String getParentObservationIdentifier() {
+        return parentObservationIdentifier;
+    }
+
+    /**
+     * @param parentObservationIdentifier the parentObservationIdentifier to set
+     */
+    public void setParentObservationIdentifier(String parentObservationIdentifier) {
+        this.parentObservationIdentifier = parentObservationIdentifier;
+    }
+
+    /**
+     * @return the HL7 field to indicate the sub ID of the parent order for this
+     *         order, if it has one. Arguably this shouldn't be stored in the JSON
+     *         as it's a temporary value we use for building the structure and is
+     *         HL7 specific.
+     */
+    public String getParentSubId() {
+        return parentSubId;
+    }
+
+    /**
+     * @param parentSubId the parentSubId to set
+     */
+    public void setParentSubId(String parentSubId) {
+        this.parentSubId = parentSubId;
+    }
+
+    /**
+     * @return The results for this order (will be empty if constructed from an ORM
+     *         message)
      */
     public List<PathologyResult> getPathologyResults() {
         return pathologyResults;
     }
 
     /**
-     * @return when the sample was taken
+     * @param pathologyResults the pathologyResults to set
      */
-    public Instant getObservationDateTime() {
-        return observationDateTime;
+    public void setPathologyResults(List<PathologyResult> pathologyResults) {
+        this.pathologyResults = pathologyResults;
+    }
+
+    /**
+     * @return the requested date/time - how is this different to order time?
+     */
+    public Instant getRequestedDateTime() {
+        return requestedDateTime;
+    }
+
+    /**
+     * @param requestedDateTime the requestedDateTime to set
+     */
+    public void setRequestedDateTime(Instant requestedDateTime) {
+        this.requestedDateTime = requestedDateTime;
+    }
+
+    /**
+     * @return date the sample was entered onto WinPath
+     */
+    public Instant getSampleEnteredTime() {
+        return sampleEnteredTime;
+    }
+
+    /**
+     * @param sampleEnteredTime the sampleEnteredTime to set
+     */
+    public void setSampleEnteredTime(Instant sampleEnteredTime) {
+        this.sampleEnteredTime = sampleEnteredTime;
+    }
+
+    /**
+     * @return the time the status of the results last changed
+     */
+    public Instant getStatusChangeTime() {
+        return statusChangeTime;
+    }
+
+    /**
+     * @param statusChangeTime the statusChangeTime to set
+     */
+    public void setStatusChangeTime(Instant statusChangeTime) {
+        this.statusChangeTime = statusChangeTime;
+    }
+
+    /**
+     * @return The local coding system in use (eg. WinPath)
+     */
+    public String getTestBatteryCodingSystem() {
+        return testBatteryCodingSystem;
+    }
+
+    /**
+     * @param testBatteryCodingSystem the testBatteryCodingSystem to set
+     */
+    public void setTestBatteryCodingSystem(String testBatteryCodingSystem) {
+        this.testBatteryCodingSystem = testBatteryCodingSystem;
+    }
+
+    /**
+     * @param testBatteryLocalCode the testBatteryLocalCode to set
+     */
+    public void setTestBatteryLocalCode(String testBatteryLocalCode) {
+        this.testBatteryLocalCode = testBatteryLocalCode;
     }
 
     /**
@@ -127,126 +283,30 @@ public class PathologyOrder implements EmapOperationMessage, Serializable {
     }
 
     /**
-     * @return The local coding system in use (eg. WinPath)
+     * @param testBatteryLocalDescription the testBatteryLocalDescription to set
      */
-    public String getTestBatteryCodingSystem() {
-        return testBatteryCodingSystem;
-    }
-
-    /**
-     * @return the time the status of the results last changed
-     */
-    public Instant getStatusChangeTime() {
-        return statusChangeTime;
-    }
-
-    /**
-     * @return the requested date/time - how is this different to order time?
-     */
-    public Instant getRequestedDateTime() {
-        return requestedDateTime;
-    }
-
-    /**
-     * @return Order status (final, incomplete, etc.).
-     * A,CA,CM,DC,ER,HD,IP,RP,SC (HL7 Table 0038)
-     */
-    public String getOrderStatus() {
-        return orderStatus;
-    }
-
-    /**
-     * @return the HL7 field to indicate the test identifier of the parent order for
-     *         this order, if it has one. Arguably this shouldn't be stored in the
-     *         JSON as it's a temporary value we use for building the structure and
-     *         is HL7 specific.
-     */
-    public String getParentObservationIdentifier() {
-        return parentObservationIdentifier;
-    }
-
-    /**
-     * @return the HL7 field to indicate the sub ID of the parent order for this
-     *         order, if it has one. Arguably this shouldn't be stored in the JSON
-     *         as it's a temporary value we use for building the structure and is
-     *         HL7 specific.
-     */
-    public String getParentSubId() {
-        return parentSubId;
-    }
-
-    public void setPathologyResults(List<PathologyResult> pathologyResults) {
-        this.pathologyResults = pathologyResults;
-    }
-
-    public void setOrderControlId(String orderControlId) {
-        this.orderControlId = orderControlId;
-    }
-
-    public void setEpicCareOrderNumber(String epicCareOrderNumber) {
-        this.epicCareOrderNumber = epicCareOrderNumber;
-    }
-
-    public void setLabSpecimenNumber(String labSpecimenNumber) {
-        this.labSpecimenNumber = labSpecimenNumber;
-    }
-
-    public void setLabSpecimenNumberOCS(String labSpecimenNumberOCS) {
-        this.labSpecimenNumberOCS = labSpecimenNumberOCS;
-    }
-
-    public void setOrderDateTime(Instant orderDateTime) {
-        this.orderDateTime = orderDateTime;
-    }
-
-    public void setSampleEnteredTime(Instant sampleEnteredTime) {
-        this.sampleEnteredTime = sampleEnteredTime;
-    }
-
-    public void setOrderStatus(String orderStatus) {
-        this.orderStatus = orderStatus;
-    }
-
-    public void setOrderType(String orderType) {
-        this.orderType = orderType;
-    }
-
-    public void setVisitNumber(String visitNumber) {
-        this.visitNumber = visitNumber;
-    }
-
-    public void setRequestedDateTime(Instant requestedDateTime) {
-        this.requestedDateTime = requestedDateTime;
-    }
-
-    public void setObservationDateTime(Instant observationDateTime) {
-        this.observationDateTime = observationDateTime;
-    }
-
-    public void setTestBatteryLocalCode(String testBatteryLocalCode) {
-        this.testBatteryLocalCode = testBatteryLocalCode;
-    }
-
     public void setTestBatteryLocalDescription(String testBatteryLocalDescription) {
         this.testBatteryLocalDescription = testBatteryLocalDescription;
     }
 
-    public void setTestBatteryCodingSystem(String testBatteryCodingSystem) {
-        this.testBatteryCodingSystem = testBatteryCodingSystem;
+    /**
+     * @return the visit number (CSN) of the patient
+     */
+    public String getVisitNumber() {
+        return visitNumber;
     }
 
-    public void setStatusChangeTime(Instant statusChangeTime) {
-        this.statusChangeTime = statusChangeTime;
+    /**
+     * @param visitNumber the visitNumber to set
+     */
+    public void setVisitNumber(String visitNumber) {
+        this.visitNumber = visitNumber;
     }
 
-    public void setParentObservationIdentifier(String parentObservationIdentifier) {
-        this.parentObservationIdentifier = parentObservationIdentifier;
-    }
-
-    public void setParentSubId(String parentSubId) {
-        this.parentSubId = parentSubId;
-    }
-
+    /**
+     * Call back to the processor so it knows what type this object is (ie. double dispatch).
+     * @param processor the processor to call back to
+     */
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) {
         processor.processMessage(this);
