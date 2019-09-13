@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * Represent a pathology result message.
+ * Represent a pathology result. Note that this doesn't implement
+ * EmapOperationMessage because it's not a message type
+ * by itself, it is owned by a message type (PathologyOrder).
  *
  * @author Jeremy Stein
  */
@@ -57,10 +59,24 @@ public class PathologyResult implements Serializable {
     }
 
     /**
+     * @param valueType the valueType to set
+     */
+    public void setValueType(String valueType) {
+        this.valueType = valueType;
+    }
+
+    /**
      * @return the local code for the particular test
      */
     public String getTestItemLocalCode() {
         return testItemLocalCode;
+    }
+
+    /**
+     * @param testItemLocalCode the testItemLocalCode to set
+     */
+    public void setTestItemLocalCode(String testItemLocalCode) {
+        this.testItemLocalCode = testItemLocalCode;
     }
 
     /**
@@ -71,10 +87,38 @@ public class PathologyResult implements Serializable {
     }
 
     /**
+     * @param testItemLocalDescription the testItemLocalDescription to set
+     */
+    public void setTestItemLocalDescription(String testItemLocalDescription) {
+        this.testItemLocalDescription = testItemLocalDescription;
+    }
+
+    /**
      * @return the coding system (eg. WinPath)
      */
     public String getTestItemCodingSystem() {
         return testItemCodingSystem;
+    }
+
+    /**
+     * @param testItemCodingSystem the testItemCodingSystem to set
+     */
+    public void setTestItemCodingSystem(String testItemCodingSystem) {
+        this.testItemCodingSystem = testItemCodingSystem;
+    }
+
+    /**
+     * @return the sub-ID that links observations together
+     */
+    public String getObservationSubId() {
+        return observationSubId;
+    }
+
+    /**
+     * @param observationSubId the observationSubId to set
+     */
+    public void setObservationSubId(String observationSubId) {
+        this.observationSubId = observationSubId;
     }
 
     /**
@@ -85,12 +129,66 @@ public class PathologyResult implements Serializable {
     }
 
     /**
-     * Get the String representation of the result.
-     *
+     * @param numericValue the numericValue to set
+     */
+    public void setNumericValue(Double numericValue) {
+        this.numericValue = numericValue;
+    }
+
+    /**
      * @return the String representation of the results.
      */
     public String getStringValue() {
-        return this.stringValue;
+        return stringValue;
+    }
+
+    /**
+     * @param stringValue the stringValue to set
+     */
+    public void setStringValue(String stringValue) {
+        this.stringValue = stringValue;
+    }
+
+    /**
+     * @return local code of the isolate
+     */
+    public String getIsolateLocalCode() {
+        return isolateLocalCode;
+    }
+
+    /**
+     * @param isolateLocalCode the isolateLocalCode to set
+     */
+    public void setIsolateLocalCode(String isolateLocalCode) {
+        this.isolateLocalCode = isolateLocalCode;
+    }
+
+    /**
+     * @return local description of the isolate
+     */
+    public String getIsolateLocalDescription() {
+        return isolateLocalDescription;
+    }
+
+    /**
+     * @param isolateLocalDescription the isolateLocalDescription to set
+     */
+    public void setIsolateLocalDescription(String isolateLocalDescription) {
+        this.isolateLocalDescription = isolateLocalDescription;
+    }
+
+    /**
+     * @return coding system of the isolate (eg. WinPath)
+     */
+    public String getIsolateCodingSystem() {
+        return isolateCodingSystem;
+    }
+
+    /**
+     * @param isolateCodingSystem the isolateCodingSystem to set
+     */
+    public void setIsolateCodingSystem(String isolateCodingSystem) {
+        this.isolateCodingSystem = isolateCodingSystem;
     }
 
     /**
@@ -98,6 +196,41 @@ public class PathologyResult implements Serializable {
      */
     public String getUnits() {
         return units;
+    }
+
+    /**
+     * @param units the units to set
+     */
+    public void setUnits(String units) {
+        this.units = units;
+    }
+
+    /**
+     * @return the reference range for the numerical result
+     */
+    public String getReferenceRange() {
+        return referenceRange;
+    }
+
+    /**
+     * @param referenceRange the referenceRange to set
+     */
+    public void setReferenceRange(String referenceRange) {
+        this.referenceRange = referenceRange;
+    }
+
+    /**
+     * @return the result status. See HL7 Table 0085.
+     */
+    public String getResultStatus() {
+        return resultStatus;
+    }
+
+    /**
+     * @param resultStatus the resultStatus to set
+     */
+    public void setResultStatus(String resultStatus) {
+        this.resultStatus = resultStatus;
     }
 
     /**
@@ -109,17 +242,10 @@ public class PathologyResult implements Serializable {
     }
 
     /**
-     * @return the reference range for the numerical result
+     * @param resultTime the resultTime to set
      */
-    public String getReferenceRange() {
-        return referenceRange;
-    }
-
-    /**
-     * @return the result status. See HL7 Table 0085.
-     */
-    public String getResultStatus() {
-        return resultStatus;
+    public void setResultTime(Instant resultTime) {
+        this.resultTime = resultTime;
     }
 
     /**
@@ -130,6 +256,13 @@ public class PathologyResult implements Serializable {
     }
 
     /**
+     * @param notes the notes to set
+     */
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    /**
      * @return all sensitivities
      */
     public List<PathologyOrder> getPathologySensitivities() {
@@ -137,10 +270,10 @@ public class PathologyResult implements Serializable {
     }
 
     /**
-     * @return the sub-ID that links observations together
+     * @param pathologySensitivities the pathologySensitivities to set
      */
-    public String getObservationSubId() {
-        return observationSubId;
+    public void setPathologySensitivities(List<PathologyOrder> pathologySensitivities) {
+        this.pathologySensitivities = pathologySensitivities;
     }
 
     /**
@@ -151,90 +284,8 @@ public class PathologyResult implements Serializable {
     }
 
     /**
-     * @return local code of the isolate
+     * @param epicCareOrderNumber the epicCareOrderNumber to set
      */
-    public String getIsolateLocalCode() {
-        return isolateLocalCode;
-    }
-
-    /**
-     * @return local description of the isolate
-     */
-    public String getIsolateLocalDescription() {
-        return isolateLocalDescription;
-    }
-
-    /**
-     * @return coding system of the isolate (eg. WinPath)
-     */
-    public String getIsolateCodingSystem() {
-        return isolateCodingSystem;
-    }
-
-    public void setValueType(String valueType) {
-        this.valueType = valueType;
-    }
-
-    public void setTestItemLocalCode(String testItemLocalCode) {
-        this.testItemLocalCode = testItemLocalCode;
-    }
-
-    public void setTestItemLocalDescription(String testItemLocalDescription) {
-        this.testItemLocalDescription = testItemLocalDescription;
-    }
-
-    public void setTestItemCodingSystem(String testItemCodingSystem) {
-        this.testItemCodingSystem = testItemCodingSystem;
-    }
-
-    public void setObservationSubId(String observationSubId) {
-        this.observationSubId = observationSubId;
-    }
-
-    public void setNumericValue(Double numericValue) {
-        this.numericValue = numericValue;
-    }
-
-    public void setStringValue(String stringValue) {
-        this.stringValue = stringValue;
-    }
-
-    public void setIsolateLocalCode(String isolateLocalCode) {
-        this.isolateLocalCode = isolateLocalCode;
-    }
-
-    public void setIsolateLocalDescription(String isolateLocalDescription) {
-        this.isolateLocalDescription = isolateLocalDescription;
-    }
-
-    public void setIsolateCodingSystem(String isolateCodingSystem) {
-        this.isolateCodingSystem = isolateCodingSystem;
-    }
-
-    public void setUnits(String units) {
-        this.units = units;
-    }
-
-    public void setReferenceRange(String referenceRange) {
-        this.referenceRange = referenceRange;
-    }
-
-    public void setResultStatus(String resultStatus) {
-        this.resultStatus = resultStatus;
-    }
-
-    public void setResultTime(Instant resultTime) {
-        this.resultTime = resultTime;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public void setPathologySensitivities(List<PathologyOrder> pathologySensitivities) {
-        this.pathologySensitivities = pathologySensitivities;
-    }
-
     public void setEpicCareOrderNumber(String epicCareOrderNumber) {
         this.epicCareOrderNumber = epicCareOrderNumber;
     }
