@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InformDbIntegrityException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.EmapStarIntegrityException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
@@ -141,6 +141,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             addOrUpdatePathologyOrder(pathologyOrder);
         } catch (MessageIgnoredException e) {
             logger.warn("Pathology order message ignored due to: " + e);
+        } catch (EmapStarIntegrityException e) {
+            logger.error(
+                    "Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -150,7 +154,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Transactional
     public void processMessage(AdtMessage adtMsg) {
-        logger.info("AdtMessage processor!");
         try {
             switch (adtMsg.getOperationType()) {
             case ADMIT_PATIENT:
@@ -176,6 +179,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             }
         } catch (MessageIgnoredException | InvalidMrnException e) {
             logger.error("Message ignored due to: " + e.toString());
+        } catch (EmapStarIntegrityException e) {
+            logger.error("Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -405,9 +411,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the created Encounter
      * @throws MessageIgnoredException if message can't be processed
      * @throws InvalidMrnException if Mrn field is empty
+     * @throws EmapStarIntegrityException if there's a contradiction in the DB
      */
     @Transactional
-    public Encounter addEncounter(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException {
+    public Encounter addEncounter(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtMsg.getMrn();
         Instant admissionTime = adtMsg.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -442,7 +449,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             logger.info("Invalidating previous bed visit");
             List<PatientFact> allOpenBedVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.BED_VISIT);
             if (allOpenBedVisits.size() != 1) {
-                throw new InformDbIntegrityException(
+                throw new EmapStarIntegrityException(
                         "Found an open hospital visit with open bed visit count != 1 - hosp visit = "
                                 + hospitalVisit.getFactId());
             }
@@ -1053,9 +1060,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * and merge with existing data depending on whether it's a new order or changes to an existing one.
      * @param pathologyOrder the pathology order details, may contain results
      * @throws MessageIgnoredException if message can't be processed
+     * @throws EmapStarIntegrityException contradiction in DB
      */
     @Transactional
-    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws MessageIgnoredException {
+    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws MessageIgnoredException, EmapStarIntegrityException {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
 
@@ -1238,8 +1246,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return Pair containing the Encounter object that this order is attached to and the PatientFact object that is the root
      * object representing the order, if it exists (else null).
      * @throws MessageIgnoredException if the Encounter can't be found by any method
+     * @throws EmapStarIntegrityException contradiction in DB
      */
-    private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber) throws MessageIgnoredException {
+    private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber)
+            throws MessageIgnoredException, EmapStarIntegrityException {
         // We do get messages with blank Epic order numbers,
         // however searching on a blank order number will never do the right
         // thing, so in this case behave as if the order was not found.
@@ -1273,7 +1283,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (!visitNumber.isEmpty() && !encounter.getEncounter().equals(visitNumber)) {
             // the visit number of the encounter for the existing order disagrees with the visit number
             // in the HL7 message.
-            throw new InformDbIntegrityException("parent encounter of existing order has encounter number "
+            throw new EmapStarIntegrityException("parent encounter of existing order has encounter number "
                     + encounter.getEncounter() + ", expecting " + visitNumber);
         }
         return new ImmutablePair<>(encounter, existingPathologyOrder);

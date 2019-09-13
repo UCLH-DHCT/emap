@@ -1,11 +1,11 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions;
 
 /**
- * Something bad and unexpected has been discovered in Inform-db.
+ * Something bad and unexpected has been discovered in Emap Star.
  *
  * @author Jeremy Stein
  */
-public class InformDbIntegrityException extends RuntimeException {
+public class EmapStarIntegrityException extends Exception {
 
     private static final long serialVersionUID = 8821191007846604963L;
 
@@ -14,7 +14,7 @@ public class InformDbIntegrityException extends RuntimeException {
      *
      * @param message the message
      */
-    public InformDbIntegrityException(String message) {
+    public EmapStarIntegrityException(String message) {
         super(message);
     }
 
