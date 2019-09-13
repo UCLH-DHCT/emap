@@ -38,8 +38,6 @@ import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InvalidMrnException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
@@ -86,18 +84,23 @@ public class IdsOperations {
     @Autowired
     private AmqpTemplate rabbitTemplate;
 
-    private static final String queueName = "hl7Queue";
+    private static final String QUEUE_NAME = "hl7Queue";
 
+    /**
+     * @return our converter which ensures Instant objects are handled properly
+     */
     @Bean
     public static Jackson2JsonMessageConverter jsonMessageConverter() {
         ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
         return new Jackson2JsonMessageConverter(mapper);
     }
 
+    /**
+     * @return our Queue
+     */
     @Bean
     Queue queue() {
-        logger.warn("Queue BEAN");
-        return new Queue(queueName, false);
+        return new Queue(QUEUE_NAME, false);
     }
 
     /**
@@ -345,7 +348,6 @@ public class IdsOperations {
      * there are new messages.
      *
      * @param parser        the HAPI parser to be used
-     * @param parsingErrors out param for parsing errors encountered
      * @return number of messages processes
      * @throws HL7Exception in some cases where HAPI does
      */
@@ -376,64 +378,30 @@ public class IdsOperations {
             List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
             for (EmapOperationMessage msg : messagesFromHl7Message) {
                 logger.info("sending message to RabbitMQ ");
-                rabbitTemplate.convertAndSend(queueName, msg);
+                rabbitTemplate.convertAndSend(QUEUE_NAME, msg);
             }
             // not possible to express that some messages were sent but some failed
             Instant processingEnd = Instant.now();
             setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
-        } catch (HL7Exception e) {
+        } catch (HL7Exception | Hl7InconsistencyException e) {
             String errMsg =
-                    "[" + idsMsg.getUnid() + "] Skipping due to HL7Exception " + e + " (" + msgFromIds.getClass() + ")";
+                    "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
             logger.warn(errMsg);
-        } catch (InvalidMrnException e) {
-            String errMsg =
-                    "[" + idsMsg.getUnid() + "] Skipping due to invalid Mrn " + e + " (" + msgFromIds.getClass() + ")";
-            logger.warn(errMsg);
-        } catch (MessageIgnoredException e) {
-            logger.warn(e.getClass() + " " + e.getMessage());
-        } catch (Hl7InconsistencyException e) {
-            logger.warn(e.getClass() + " " + e.getMessage());
         }
         return processed;
     }
-
-    // IDS-oriented logging code that perhaps belongs in the processor now?
-//    private void _idsEffectLoggingStuff(IdsMaster idsMsg) {
-//        IdsEffectLogging idsLog = new IdsEffectLogging();
-//        idsLog.setProcessingStartTime(Instant.now());
-//        idsLog.setIdsUnid(idsMsg.getUnid());
-//        idsLog.setMrn(idsMsg.getHospitalnumber());
-//        idsLog.setMessageType(idsMsg.getMessagetype());
-//        
-//        Timestamp messageDatetime = idsMsg.getMessagedatetime();
-//        Instant messageDatetimeInstant = null;
-//        if (messageDatetime != null) {
-//            idsLog.setMessageDatetime(messageDatetime.toInstant());
-//        }
-//        
-//        String errString = "[" + idsMsg.getUnid() + "]  HL7 parsing error";
-//        // Mark the message as processed even though we couldn't parse it,
-//        // but record it for later debugging.
-//        logger.info(errString);
-//        idsLog.setMessage(errString);
-//        Instant processingEnd = Instant.now();
-//        idsLog.setProcessingEndTime(processingEnd);
-//        setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
-//        //idsLog = idsEffectLoggingRepository.save(idsLog);
-//    }
 
     /**
      * Using the type+trigger event of the HL7 message, create the correct type of
      * interchange message. One HL7 message can give rise to multiple interchange messages.
      * @param msgFromIds the HL7 message
-     * @param idsUnid the sequential ID number from the IDS (unid) 
+     * @param idsUnid the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages
      * @throws HL7Exception if HAPI does
-     * @throws Hl7InconsistencyException  
-     * @throws MessageIgnoredException
+     * @throws Hl7InconsistencyException if the HL7 message contradicts itself
      */
     public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
-            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+            throws HL7Exception, Hl7InconsistencyException {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();

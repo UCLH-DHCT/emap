@@ -18,6 +18,10 @@ import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 
+/**
+ * Build an AdtMessage Emap interchange object from an HL7 message.
+ * @author Jeremy Stein
+ */
 public class AdtMessageBuilder {
     private static final long serialVersionUID = 2925921017121050081L;
     private static final Logger logger = LoggerFactory.getLogger(AdtMessageBuilder.class);
@@ -41,6 +45,12 @@ public class AdtMessageBuilder {
 
     private AdtMessage msg = new AdtMessage();
 
+    /**
+     * Construct from an HL7 message.
+     * @param hl7Msg the HL7 message
+     * @throws HL7Exception if HAPI does
+     * @throws Hl7MessageNotImplementedException if we haven't handled this message type yet.
+     */
     public AdtMessageBuilder(Message hl7Msg) throws HL7Exception, Hl7MessageNotImplementedException {
         msh = (MSH) hl7Msg.get("MSH");
 

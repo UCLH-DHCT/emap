@@ -22,15 +22,18 @@ import ca.uhn.hl7v2.parser.PipeParser;
 public class AppHl7 {
     private static final Logger logger = LoggerFactory.getLogger(AppHl7.class);
 
+    /**
+     * Launch spring.
+     * @param args command line args
+     */
     public static void main(String[] args) {
-        logger.info("STARTING HL7 READER");
         SpringApplication.run(AppHl7.class, args);
     }
 
     /**
      * The main entry point for processing HL7 messages and writing to Inform-db.
      *
-     * @param dbOps Inform-db operations object
+     * @param idsOps Inform-db operations object
      * @return The CommandLineRunner
      */
     @Bean
