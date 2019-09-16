@@ -16,8 +16,12 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +29,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,8 +105,25 @@ public class IdsOperations {
      * @return our Queue
      */
     @Bean
-    Queue queue() {
-        return new Queue(QUEUE_NAME, false);
+    public static AmqpTemplate rabbitTemp() {
+        CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(cachingConnectionFactory);
+        Queue q = new Queue(QUEUE_NAME, true);
+        rabbitAdmin.declareQueue(q);
+
+        RetryTemplate retryTemplate = new RetryTemplate();
+        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(500);
+        backOffPolicy.setMultiplier(10.0);
+        backOffPolicy.setMaxInterval(10000);
+        retryTemplate.setBackOffPolicy(backOffPolicy);
+
+        RabbitTemplate template = rabbitAdmin.getRabbitTemplate();
+        template.setRetryTemplate(retryTemplate);
+        template.setMandatory(true);
+
+        logger.info("queue props = " + rabbitAdmin.getQueueProperties(QUEUE_NAME));
+        return template;
     }
 
     /**
@@ -348,11 +371,10 @@ public class IdsOperations {
      * there are new messages.
      *
      * @param parser        the HAPI parser to be used
-     * @return number of messages processes
-     * @throws HL7Exception in some cases where HAPI does
+     * @throws AmqpException if rabbitmq write fails
      */
-    @Transactional(rollbackFor = HL7Exception.class)
-    public int parseAndSendNextHl7(PipeParser parser) throws HL7Exception {
+    @Transactional
+    public void parseAndSendNextHl7(PipeParser parser) throws AmqpException {
         int lastProcessedId = getLatestProcessedId();
         logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
@@ -362,7 +384,6 @@ public class IdsOperations {
         if (messageDatetime != null) {
             messageDatetimeInstant = messageDatetime.toInstant();
         }
-        int processed = 0;
         String hl7msg = idsMsg.getHl7message();
         // HL7 is supposed to use \r for line endings, but
         // the IDS uses \n
@@ -371,7 +392,7 @@ public class IdsOperations {
         try {
             msgFromIds = parser.parse(hl7msg);
         } catch (HL7Exception hl7e) {
-            return processed;
+            return;
         }
 
         try {
@@ -380,15 +401,14 @@ public class IdsOperations {
                 logger.info("sending message to RabbitMQ ");
                 rabbitTemplate.convertAndSend(QUEUE_NAME, msg);
             }
-            // not possible to express that some messages were sent but some failed
-            Instant processingEnd = Instant.now();
-            setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
         } catch (HL7Exception | Hl7InconsistencyException e) {
             String errMsg =
                     "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
-            logger.warn(errMsg);
+            logger.error(errMsg);
         }
-        return processed;
+        // not possible to express that some messages were sent but some failed
+        Instant processingEnd = Instant.now();
+        setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
     }
 
     /**

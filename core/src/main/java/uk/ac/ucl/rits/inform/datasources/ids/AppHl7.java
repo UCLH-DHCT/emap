@@ -31,7 +31,7 @@ public class AppHl7 {
     }
 
     /**
-     * The main entry point for processing HL7 messages and writing to Inform-db.
+     * The entry point for processing HL7 messages and writing interchange messages to the queue.
      *
      * @param idsOps Inform-db operations object
      * @return The CommandLineRunner
@@ -45,17 +45,21 @@ public class AppHl7 {
             HapiContext context = HL7Utils.initializeHapiContext();
             PipeParser parser = context.getPipeParser();
             logger.info("Done initialising HAPI");
-            int count = 0;
+
             while (true) {
-                int processed = idsOps.parseAndSendNextHl7(parser);
-                if (processed == -1) {
+                try {
+                    idsOps.parseAndSendNextHl7(parser);
+                } catch (Exception e) {
+                    // we may want to handle AmqpException specifically
+                    // we need to distinguish between situations where a retry will help
+                    // (eg. full queue) and where it won't.
+                    logger.error("Exiting because : " + e.toString());
                     break;
                 }
-                count += processed;
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
-            logger.info(String.format("processed %d messages in %.0f secs", count,
+            logger.info(String.format("processed messages for %.0f secs",
                     (endCurrentTimeMillis - startTimeMillis) / 1000.0));
             context.close();
             idsOps.close();
