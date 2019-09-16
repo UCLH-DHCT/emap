@@ -40,7 +40,8 @@ public class App {
      */
     @Bean
     public Queue queue() {
-        return new Queue(QUEUE_NAME, false);
+        Queue queue = new Queue(QUEUE_NAME, true);
+        return queue;
     }
 
     /**

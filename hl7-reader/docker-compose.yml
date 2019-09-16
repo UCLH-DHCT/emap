@@ -1,18 +1,41 @@
 version: '3.2'
 services:
-  hl7:
-    container_name: hl7processor
-    environment:
-      NODE_ENV: test
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        HTTP_PROXY: ${HTTP_PROXY}
-        http_proxy: ${http_proxy}
-        HTTPS_PROXY: ${HTTPS_PROXY}
-        https_proxy: ${https_proxy}
-    env_file:
-      - hl7-envs
-    logging:
-      driver: "json-file"
+    emapstar:
+        network_mode: host
+        container_name: emapstar
+        environment:
+            NODE_ENV: test
+        build:
+            context: .
+            dockerfile: Dockerfile.emapstar
+            args:
+                HTTP_PROXY: ${HTTP_PROXY}
+                http_proxy: ${http_proxy}
+                HTTPS_PROXY: ${HTTPS_PROXY}
+                https_proxy: ${https_proxy}
+        env_file:
+            - hl7-envs
+        logging:
+            driver: "json-file"
+    hl7source:
+        network_mode: host
+        container_name: hl7source
+        environment:
+            NODE_ENV: test
+        build:
+            context: .
+            dockerfile: Dockerfile.hl7source
+            args:
+                HTTP_PROXY: ${HTTP_PROXY}
+                http_proxy: ${http_proxy}
+                HTTPS_PROXY: ${HTTPS_PROXY}
+                https_proxy: ${https_proxy}
+        env_file:
+            - hl7-envs
+        logging:
+            driver: "json-file"
+    rabbitmq:
+        image: rabbitmq:management
+        ports:
+            - "5672:5672"
+            - "15672:15672"
