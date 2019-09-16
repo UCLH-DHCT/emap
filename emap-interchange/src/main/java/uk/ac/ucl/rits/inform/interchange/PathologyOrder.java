@@ -5,9 +5,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
@@ -19,8 +16,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class PathologyOrder implements EmapOperationMessage, Serializable {
     private static final long serialVersionUID = -8476559759815762054L;
-
-    protected static final Logger logger = LoggerFactory.getLogger(PathologyOrder.class);
 
     private List<PathologyResult> pathologyResults = new ArrayList<>();
     private String orderControlId;
