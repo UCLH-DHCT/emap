@@ -17,6 +17,7 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
 /**
  * Build an AdtMessage Emap interchange object from an HL7 message.

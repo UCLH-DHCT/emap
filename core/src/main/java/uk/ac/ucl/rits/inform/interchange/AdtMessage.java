@@ -5,8 +5,6 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import uk.ac.ucl.rits.inform.datasources.ids.AdtOperationType;
-
 /**
  * An interchange message describing patient movements or info. Closely corresponds
  * to the HL7 ADT message type.

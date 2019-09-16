@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.interchange;
 
 /**
  * The ADT operations possible in our interchange format.
