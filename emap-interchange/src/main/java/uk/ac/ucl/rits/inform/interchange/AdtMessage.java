@@ -25,6 +25,7 @@ public class AdtMessage implements EmapOperationMessage, Serializable {
     private Instant recordedDateTime;
     private String eventReasonCode;
     private Instant eventOccurredDateTime;
+    private String operatorId;
     private Instant admissionDateTime;
     private String admitSource;
     private String currentBed;
@@ -274,6 +275,20 @@ public class AdtMessage implements EmapOperationMessage, Serializable {
      */
     public void setNhsNumber(String nhsNumber) {
         this.nhsNumber = nhsNumber;
+    }
+
+    /**
+     * @return the operatorId - ie. person logged into the EHRS at the time this fact was entered.
+     */
+    public String getOperatorId() {
+        return operatorId;
+    }
+
+    /**
+     * @param operatorId the operatorId to set
+     */
+    public void setOperatorId(String operatorId) {
+        this.operatorId = operatorId;
     }
 
     /**
