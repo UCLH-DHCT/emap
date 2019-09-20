@@ -121,6 +121,7 @@ public class AdtMessageBuilder {
             // from EVNWrap
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
+            msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
         }
 
