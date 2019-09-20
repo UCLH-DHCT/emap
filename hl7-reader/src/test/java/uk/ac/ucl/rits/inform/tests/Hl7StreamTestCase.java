@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,9 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
 /**
  * A test case that first loads in and processes a stream of HL7 messages from one or more text files.
@@ -38,7 +41,13 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
+@ComponentScan(basePackages= {
+        "uk.ac.ucl.rits.inform.datasources.ids",
+        "uk.ac.ucl.rits.inform.tests",
+        "uk.ac.ucl.rits.inform.informdb" })
 public abstract class Hl7StreamTestCase {
+    @Autowired
+    protected IdsOperations idsOps;
     @Autowired
     protected InformDbOperations dbOps;
     @Autowired
@@ -73,8 +82,16 @@ public abstract class Hl7StreamTestCase {
                 // populate the database once only
                 while (hl7Iter.hasNext()) {
                     totalMessages++;
-                    Message msg = hl7Iter.next();
-//                    processedMessages = dbOps.parseAndSendNextHl7(msg, totalMessages, null, processedMessages);
+                    Message hl7Msg = hl7Iter.next();
+                    List<? extends EmapOperationMessage> messagesFromHl7Message = idsOps.messageFromHl7Message(hl7Msg, 0);
+                    // We are bypassing the queue and processing the message immediately, so
+                    // this is still an end-to-end test (for now).
+                    // This won't be possible when the HL7 reader is properly split off, then we'll have
+                    // to split the tests in two as well.
+                    for (EmapOperationMessage msg : messagesFromHl7Message) {
+                        msg.processMessage(dbOps);
+                    }
+                    processedMessages++;
                 }
             }
         }
