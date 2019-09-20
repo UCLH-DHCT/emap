@@ -2,8 +2,6 @@ package uk.ac.ucl.rits.inform.interchange;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -14,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class VitalSigns implements EmapOperationMessage, Serializable {
-    private static final long serialVersionUID = -8476559759815762054L;
+    private static final long serialVersionUID = -6678756549815762054L;
 
     private String mrn = "";
 
@@ -134,4 +132,14 @@ public class VitalSigns implements EmapOperationMessage, Serializable {
     public void setObservationTimeTaken(Instant taken) {
         this.observationTimeTaken = taken;
     }
+
+    /**
+     * Call back to the processor so it knows what type this object is (ie. double dispatch).
+     * @param processor the processor to call back to
+     */
+    @Override
+    public void processMessage(EmapOperationMessageProcessor processor) {
+        processor.processMessage(this);
+    }
+
 }
