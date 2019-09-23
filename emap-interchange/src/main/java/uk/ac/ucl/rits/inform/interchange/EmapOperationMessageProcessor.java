@@ -15,4 +15,8 @@ public interface EmapOperationMessageProcessor {
      * @param msg the ADT message to process
      */
     void processMessage(AdtMessage msg);
+    /**
+     * @param msg the vital signs message to process
+     */
+    void processMessage(VitalSigns msg);
 }
