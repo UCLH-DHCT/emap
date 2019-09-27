@@ -6,8 +6,8 @@ services:
         environment:
             NODE_ENV: test
         build:
-            context: .
-            dockerfile: Dockerfile.emapstar
+            context: ..
+            dockerfile: Emap-Core/Dockerfile.emapstar
             args:
                 HTTP_PROXY: ${HTTP_PROXY}
                 http_proxy: ${http_proxy}
@@ -23,8 +23,8 @@ services:
         environment:
             NODE_ENV: test
         build:
-            context: .
-            dockerfile: Dockerfile.hl7source
+            context: ..
+            dockerfile: Emap-Core/Dockerfile.hl7source
             args:
                 HTTP_PROXY: ${HTTP_PROXY}
                 http_proxy: ${http_proxy}
