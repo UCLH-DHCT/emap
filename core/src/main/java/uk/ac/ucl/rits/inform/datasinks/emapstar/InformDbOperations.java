@@ -54,6 +54,7 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
+import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 /**
  * All the operations that can be performed on Inform-db.
@@ -136,6 +137,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Process a pathology order message.
      * @param pathologyOrder the message
      */
+    @Override
+    @Transactional
     public void processMessage(PathologyOrder pathologyOrder) {
         try {
             addOrUpdatePathologyOrder(pathologyOrder);
@@ -152,6 +155,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Process a patient movement (ADT) message.
      * @param adtMsg the message
      */
+    @Override
     @Transactional
     public void processMessage(AdtMessage adtMsg) {
         try {
@@ -183,6 +187,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             logger.error("Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    @Transactional
+    public void processMessage(VitalSigns msg) {
+        logger.error("VitalSigns not implemented yet");
     }
 
     /**
