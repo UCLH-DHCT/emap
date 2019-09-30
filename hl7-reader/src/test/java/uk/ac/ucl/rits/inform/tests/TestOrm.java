@@ -22,12 +22,12 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
-public class OrmTest extends Hl7StreamTestCase {
+public class TestOrm extends Hl7StreamTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.
      */
-    public OrmTest() {
+    public TestOrm() {
         super();
         hl7StreamFileNames.add("PathologyWorkflow1.txt");
     }

@@ -31,8 +31,8 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
-public class DoubleA01Fix extends Hl7StreamTestCase {
-    public DoubleA01Fix() {
+public class TestDoubleA01Fix extends Hl7StreamTestCase {
+    public TestDoubleA01Fix() {
         super();
         hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
         hl7StreamFileNames.add("DoubleA01WithA13/SecondA01.txt");
