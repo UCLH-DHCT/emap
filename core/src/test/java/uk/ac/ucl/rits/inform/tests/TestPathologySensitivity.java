@@ -23,8 +23,8 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
-public class Sensitivity extends Hl7StreamTestCase {
-    public Sensitivity() {
+public class TestPathologySensitivity extends Hl7StreamTestCase {
+    public TestPathologySensitivity() {
         super();
         hl7StreamFileNames.add("PathologySensitivity.txt");
     }

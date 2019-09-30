@@ -28,12 +28,12 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
-public class OruTest extends Hl7StreamTestCase {
+public class TestOru extends Hl7StreamTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.
      */
-    public OruTest() {
+    public TestOru() {
         super();
         hl7StreamFileNames.add("ORU_R01.txt");
     }

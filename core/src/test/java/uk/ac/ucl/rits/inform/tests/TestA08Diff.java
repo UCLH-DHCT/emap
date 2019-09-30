@@ -32,8 +32,8 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
-public class A08Diff extends Hl7StreamTestCase {
-    public A08Diff() {
+public class TestA08Diff extends Hl7StreamTestCase {
+    public TestA08Diff() {
         super();
         hl7StreamFileNames.add("A08_diffing.txt");
     }
