@@ -105,6 +105,7 @@ public class IdsOperations {
      * @return our Queue
      */
     @Bean
+    @Profile("default")
     public static AmqpTemplate rabbitTemp() {
         CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
         RabbitAdmin rabbitAdmin = new RabbitAdmin(cachingConnectionFactory);
