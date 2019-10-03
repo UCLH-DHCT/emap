@@ -60,7 +60,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 //        "uk.ac.ucl.rits.inform.datasources",
 //        "uk.ac.ucl.rits.inform.informdb" })
 //@EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
-public class IdsOperations {
+public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
 
 
@@ -128,16 +128,9 @@ public class IdsOperations {
     }
 
     /**
-     * You must close the returned Session after you're done.
-     * @return the Session
-     */
-    public Session openSession() {
-        return idsFactory.openSession();
-    }
-
-    /**
      * Call to close when you're finished with the object.
      */
+    @Override
     public void close() {
         if (idsFactory != null) {
             idsFactory.close();
@@ -156,14 +149,14 @@ public class IdsOperations {
      * @return Is the IDS currently empty?
      */
     private boolean getIdsIsEmpty() {
-        Session idsSession = idsFactory.openSession();
-        idsSession.setDefaultReadOnly(true);
-        // check is empty
-        Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
-        qexists.setMaxResults(1);
-        boolean idsIsEmpty = qexists.list().isEmpty();
-        idsSession.close();
-        return idsIsEmpty;
+        try (Session idsSession = idsFactory.openSession();) {
+            idsSession.setDefaultReadOnly(true);
+            // check is empty
+            Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
+            qexists.setMaxResults(1);
+            boolean idsIsEmpty = qexists.list().isEmpty();
+            return idsIsEmpty;
+        }
     }
 
     /**
@@ -322,20 +315,20 @@ public class IdsOperations {
         // performance
         // when doing large "catch-up" operations
         // (handle the batching in the caller)
-        Session idsSession = openSession();
-        idsSession.setDefaultReadOnly(true);
-        Query<IdsMaster> qnext =
-                idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
-        qnext.setParameter("lastProcessedId", lastProcessedId);
-        qnext.setMaxResults(1);
-        List<IdsMaster> nextMsgOrEmpty = qnext.list();
-        idsSession.close();
-        if (nextMsgOrEmpty.isEmpty()) {
-            return null;
-        } else if (nextMsgOrEmpty.size() == 1) {
-            return nextMsgOrEmpty.get(0);
-        } else {
-            throw new InternalError();
+        try (Session idsSession = idsFactory.openSession();) {
+            idsSession.setDefaultReadOnly(true);
+            Query<IdsMaster> qnext =
+                    idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
+            qnext.setParameter("lastProcessedId", lastProcessedId);
+            qnext.setMaxResults(1);
+            List<IdsMaster> nextMsgOrEmpty = qnext.list();
+            if (nextMsgOrEmpty.isEmpty()) {
+                return null;
+            } else if (nextMsgOrEmpty.size() == 1) {
+                return nextMsgOrEmpty.get(0);
+            } else {
+                throw new InternalError();
+            }
         }
     }
 
