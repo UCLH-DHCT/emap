@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -101,14 +101,16 @@ public class IdsOperations implements AutoCloseable {
         return new Jackson2JsonMessageConverter(mapper);
     }
 
+    @Autowired
+    private ConnectionFactory connectionFactory;
+
     /**
      * @return our Queue
      */
     @Bean
     @Profile("default")
-    public static AmqpTemplate rabbitTemp() {
-        CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
-        RabbitAdmin rabbitAdmin = new RabbitAdmin(cachingConnectionFactory);
+    public AmqpTemplate rabbitTemp() {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         Queue q = new Queue(QUEUE_NAME, true);
         while (true) {
             try {
