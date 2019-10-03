@@ -1,7 +1,6 @@
 version: '3.2'
 services:
     emapstar:
-        network_mode: host
         container_name: emapstar
         environment:
             NODE_ENV: test
@@ -18,7 +17,6 @@ services:
         logging:
             driver: "json-file"
     hl7source:
-        network_mode: host
         container_name: hl7source
         environment:
             NODE_ENV: test
@@ -36,6 +34,7 @@ services:
             driver: "json-file"
     rabbitmq:
         image: rabbitmq:management
+        container_name: rabbitmq
         ports:
-            - "5672:5672"
-            - "15672:15672"
+            - "8672:5672"
+            - "8172:15672"
