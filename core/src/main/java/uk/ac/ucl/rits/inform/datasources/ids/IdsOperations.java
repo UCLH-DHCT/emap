@@ -110,7 +110,21 @@ public class IdsOperations implements AutoCloseable {
         CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
         RabbitAdmin rabbitAdmin = new RabbitAdmin(cachingConnectionFactory);
         Queue q = new Queue(QUEUE_NAME, true);
-        rabbitAdmin.declareQueue(q);
+        while (true) {
+            try {
+                rabbitAdmin.declareQueue(q);
+                break;
+            } catch (AmqpException e) {
+                int secondsSleep = 5;
+                logger.warn(String.format("Creating RabbitMQ queue failed with exception %s, retrying in %d seconds", e.toString(), secondsSleep));
+                try {
+                    Thread.sleep(secondsSleep * 1000);
+                } catch (InterruptedException e1) {
+                    logger.warn("Sleep interrupted");
+                }
+                continue;
+            }
+        }
 
         RetryTemplate retryTemplate = new RetryTemplate();
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
