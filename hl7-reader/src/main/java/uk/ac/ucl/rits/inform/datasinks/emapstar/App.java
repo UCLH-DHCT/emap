@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -77,7 +78,15 @@ public class App {
             List<String> parsingErrors = new ArrayList<String>();
             while (true) {
                 // read from rabbit
-                EmapOperationMessage msg = (EmapOperationMessage) rabbitTemplate.receiveAndConvert(QUEUE_NAME);
+                EmapOperationMessage msg;
+                try {
+                    msg = (EmapOperationMessage) rabbitTemplate.receiveAndConvert(QUEUE_NAME);
+                } catch (AmqpException e) {
+                    int secondsSleep = 5;
+                    logger.warn(String.format("Reading from RabbitMQ failed with exception %s, retrying in %d seconds", e.toString(), secondsSleep));
+                    Thread.sleep(secondsSleep * 1000);
+                    continue;
+                }
                 if (msg == null) {
                     int secondsSleep = 5;
                     logger.info(String.format("No more messages in RabbitMQ, retrying in %d seconds", secondsSleep));
