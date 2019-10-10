@@ -1,7 +1,24 @@
-# HL7_java
+# emapstar
 
+## `config-envs` file
 
-# HAPI
+These are the required envs for this file with example values.
+```
+IDS_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/ids
+IDS_USERNAME=someuser
+IDS_PASSWORD=redacted
+INFORMDB_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/informdb
+INFORMDB_USERNAME=someuser
+INFORMDB_PASSWORD=redacted
+SPRING_RABBITMQ_HOST=rabbitmq
+SPRING_RABBITMQ_PORT=8672
+SPRING_RABBITMQ_USERNAME=someuser
+SPRING_RABBITMQ_PASSWORD=redacted
+```
+
+# hl7source
+
+## HAPI
 
  See https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
  for how we handkle multiple versions of HL7.

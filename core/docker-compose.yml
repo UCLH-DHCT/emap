@@ -13,7 +13,7 @@ services:
                 HTTPS_PROXY: ${HTTPS_PROXY}
                 https_proxy: ${https_proxy}
         env_file:
-            - hl7-envs
+            - config-envs
         logging:
             driver: "json-file"
     hl7source:
@@ -29,7 +29,7 @@ services:
                 HTTPS_PROXY: ${HTTPS_PROXY}
                 https_proxy: ${https_proxy}
         env_file:
-            - hl7-envs
+            - config-envs
         logging:
             driver: "json-file"
     rabbitmq:
