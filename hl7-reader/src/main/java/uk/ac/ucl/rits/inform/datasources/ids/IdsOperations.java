@@ -25,6 +25,7 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
@@ -53,15 +54,9 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
  * Operations that can be performed on the IDS.
  */
 @Component
-//@ComponentScan(basePackages= {
-//        "uk.ac.ucl.rits.inform.datasources.ids",
-//        "uk.ac.ucl.rits.inform.datasources.hl7",
-//        "uk.ac.ucl.rits.inform.datasources",
-//        "uk.ac.ucl.rits.inform.informdb" })
-//@EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
+@EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
-
 
     private SessionFactory idsFactory;
     private boolean idsEmptyOnInit;
