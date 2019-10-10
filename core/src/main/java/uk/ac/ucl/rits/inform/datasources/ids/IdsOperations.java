@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -253,8 +252,10 @@ public class IdsOperations implements AutoCloseable {
      * @param mrn the patient MRN
      * @param patientClass the patient class
      * @param patientLocation the patient location
+     * @param messageTimestamp the timestamp of the message
      */
-    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn, String patientClass, String patientLocation) {
+    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn, String patientClass,
+            String patientLocation, Instant messageTimestamp) {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly
         // suggests that this is a test IDS.
@@ -275,6 +276,7 @@ public class IdsOperations implements AutoCloseable {
             idsrecord.setHospitalnumber(mrn);
             idsrecord.setPatientclass(patientClass);
             idsrecord.setPatientlocation(patientLocation);
+            idsrecord.setMessagedatetime(messageTimestamp);
             idsSession.save(idsrecord);
             tx.commit();
         } finally {
@@ -305,12 +307,15 @@ public class IdsOperations implements AutoCloseable {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                AdtWrap adtWrap = new AdtWrap(msg);
-                String triggerEvent = adtWrap.getTriggerEvent();
-                String mrn = adtWrap.getMrn();
-                String patientClass = adtWrap.getPatientClass();
-                String patientLocation = adtWrap.getFullLocationString();
-                ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation);
+                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg);
+                PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
+                        adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
+                String triggerEvent = patientInfoHl7.getTriggerEvent();
+                String mrn = patientInfoHl7.getMrn();
+                String patientClass = patientInfoHl7.getPatientClass();
+                String patientLocation = patientInfoHl7.getFullLocationString();
+                Instant messageTimestamp = patientInfoHl7.getMessageTimestamp();
+                ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation, messageTimestamp);
             }
             logger.info("Wrote " + count + " messages to IDS");
             ids.close();
@@ -389,11 +394,7 @@ public class IdsOperations implements AutoCloseable {
         logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
 
-        Timestamp messageDatetime = idsMsg.getMessagedatetime();
-        Instant messageDatetimeInstant = null;
-        if (messageDatetime != null) {
-            messageDatetimeInstant = messageDatetime.toInstant();
-        }
+        Instant messageDatetime = idsMsg.getMessagedatetime();
         String hl7msg = idsMsg.getHl7message();
         // HL7 is supposed to use \r for line endings, but
         // the IDS uses \n
@@ -418,7 +419,7 @@ public class IdsOperations implements AutoCloseable {
         }
         // not possible to express that some messages were sent but some failed
         Instant processingEnd = Instant.now();
-        setLatestProcessedId(idsMsg.getUnid(), messageDatetimeInstant, processingEnd);
+        setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
     }
 
     /**
