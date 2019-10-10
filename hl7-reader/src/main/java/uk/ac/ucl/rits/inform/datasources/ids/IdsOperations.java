@@ -302,7 +302,7 @@ public class IdsOperations implements AutoCloseable {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg);
+                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg, String.format("%010d", count));
                 PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
                         adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
                 String triggerEvent = patientInfoHl7.getTriggerEvent();
@@ -437,7 +437,7 @@ public class IdsOperations implements AutoCloseable {
         if (messageType.equals("ADT")) {
             List<AdtMessage> adtMsg = new ArrayList<>();
             try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds);
+                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, String.format("%010d", idsUnid));
                 adtMsg.add(msgBuilder.getAdtMessage());
             } catch (Hl7MessageNotImplementedException e) {
                 logger.warn("Ignoring message: " + e.toString());

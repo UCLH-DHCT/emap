@@ -77,9 +77,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
-//    @Autowired
-//    private IdsEffectLoggingRepository idsEffectLoggingRepository;
-
     @Value("${:classpath:vocab.csv}")
     private Resource                   vocabFile;
 
@@ -135,19 +132,26 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Process a pathology order message.
      * @param pathologyOrder the message
+     * @return the return code
      */
     @Override
     @Transactional
-    public void processMessage(PathologyOrder pathologyOrder) {
+    public String processMessage(PathologyOrder pathologyOrder) {
+        String returnCode;
         try {
             addOrUpdatePathologyOrder(pathologyOrder);
+            // be more specific about the type of OK in future
+            returnCode = "OK";
         } catch (MessageIgnoredException e) {
             logger.warn("Pathology order message ignored due to: " + e);
+            returnCode = e.getClass().getSimpleName();
         } catch (EmapStarIntegrityException e) {
             logger.error(
                     "Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
             e.printStackTrace();
+            returnCode = e.getClass().getSimpleName();
         }
+        return returnCode;
     }
 
     /**
@@ -156,8 +160,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     @Transactional
-    public void processMessage(AdtMessage adtMsg) {
+    public String processMessage(AdtMessage adtMsg) {
+        String returnCode;
         try {
+            returnCode = "OK";
             switch (adtMsg.getOperationType()) {
             case ADMIT_PATIENT:
                 addEncounter(adtMsg);
@@ -178,20 +184,27 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 mergeById(adtMsg);
                 break;
             default:
+                returnCode = "Not implemented";
+                logger.error(returnCode);
                 break;
             }
         } catch (MessageIgnoredException | InvalidMrnException e) {
             logger.error("Message ignored due to: " + e.toString());
+            returnCode = e.getClass().getSimpleName();
         } catch (EmapStarIntegrityException e) {
             logger.error("Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
             e.printStackTrace();
+            returnCode = e.getClass().getSimpleName();
         }
+        return returnCode;
     }
 
     @Override
     @Transactional
-    public void processMessage(VitalSigns msg) {
-        logger.error("VitalSigns not implemented yet");
+    public String processMessage(VitalSigns msg) {
+        String returnCode = "Not implemented";
+        logger.error(returnCode);
+        return returnCode;
     }
 
     /**
