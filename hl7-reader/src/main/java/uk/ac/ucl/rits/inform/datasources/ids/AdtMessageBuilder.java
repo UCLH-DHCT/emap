@@ -44,15 +44,16 @@ public class AdtMessageBuilder {
     private PID pid;
     private EVN evn;
 
+    private Hl7MessageNotImplementedException delayedException;
+
     private AdtMessage msg = new AdtMessage();
 
     /**
      * Construct from an HL7 message.
      * @param hl7Msg the HL7 message
      * @throws HL7Exception if HAPI does
-     * @throws Hl7MessageNotImplementedException if we haven't handled this message type yet.
      */
-    public AdtMessageBuilder(Message hl7Msg) throws HL7Exception, Hl7MessageNotImplementedException {
+    public AdtMessageBuilder(Message hl7Msg) throws HL7Exception {
         msh = (MSH) hl7Msg.get("MSH");
 
         try {
@@ -83,7 +84,7 @@ public class AdtMessageBuilder {
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
         AdtOperationType adtOperationType = HL7_TRIGGER_EVENT_TO_OPERATION_TYPE.get(triggerEvent);
         if (adtOperationType == null) {
-            throw new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
+            delayedException = new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
         }
         msg.setOperationType(adtOperationType);
 
@@ -132,8 +133,36 @@ public class AdtMessageBuilder {
 
     /**
      * @return the now-built AdtMessage
+     * @throws Hl7MessageNotImplementedException if we haven't implemented this message type yet.
      */
-    public AdtMessage getAdtMessage() {
+    public AdtMessage getAdtMessage() throws Hl7MessageNotImplementedException {
+        // Defer some error checking until the message is actually required.
+        // This allows client code that only wants to do certain simple tasks with the HL7
+        // message to still operate even if a valid message can't be produced (eg. the IDS filler).
+        if (delayedException != null) {
+            throw delayedException;
+        }
         return msg;
+    }
+
+    /**
+     * @return the HAPI MSH segment
+     */
+    public MSH getMsh() {
+        return msh;
+    }
+
+    /**
+     * @return the HAPI PV1 segment
+     */
+    public PV1 getPv1() {
+        return pv1;
+    }
+
+    /**
+     * @return the HAPI PID segment
+     */
+    public PID getPid() {
+        return pid;
     }
 }

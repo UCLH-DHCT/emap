@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import java.time.Instant;
+
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 
@@ -48,12 +50,11 @@ interface MSHWrap {
     }
 
     /**
-     * NB we might want to extract individual components of the timestamp too.
-     * @return MSH-7 Date/Time Of Message YYYYMMDDHHMM
+     * @return MSH-7 Date/Time Of Message as an Instant
      * @throws HL7Exception if HAPI does
      */
-    default String getMessageTimestamp() throws HL7Exception {
-        return getMSH().getDateTimeOfMessage().getValue();
+    default Instant getMessageTimestamp() throws HL7Exception {
+        return HL7Utils.interpretLocalTime(getMSH().getDateTimeOfMessage());
     }
 
     /**

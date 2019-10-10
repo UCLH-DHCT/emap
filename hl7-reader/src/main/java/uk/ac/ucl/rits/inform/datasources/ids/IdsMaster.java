@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,22 +18,22 @@ public class IdsMaster {
     private String patientname;
     private String patientmiddlename;
     private String patientsurname;
-    private Timestamp dateofbirth;
+    private Instant dateofbirth;
     private String nhsnumber;
     private String hospitalnumber;
     private String patientclass;
     private String patientlocation;
-    private Timestamp admissiondate;
-    private Timestamp dischargedate;
+    private Instant admissiondate;
+    private Instant dischargedate;
     private String messagetype;
     private String senderapplication;
     private String messageidentifier;
     private String messageformat;
     private String messageversion;
-    private Timestamp messagedatetime;
+    private Instant messagedatetime;
     @Column(columnDefinition = "text")
     private String hl7message;
-    private Timestamp persistdatetime;
+    private Instant persistdatetime;
 
     /**
      * @return the IDS unique ID
@@ -66,7 +66,7 @@ public class IdsMaster {
     /**
      * @return patient dob
      */
-    public Timestamp getDateofbirth() {
+    public Instant getDateofbirth() {
         return dateofbirth;
     }
 
@@ -101,14 +101,14 @@ public class IdsMaster {
     /**
      * @return patient admission date
      */
-    public Timestamp getAdmissiondate() {
+    public Instant getAdmissiondate() {
         return admissiondate;
     }
 
     /**
      * @return patient discharge date
      */
-    public Timestamp getDischargedate() {
+    public Instant getDischargedate() {
         return dischargedate;
     }
 
@@ -150,7 +150,7 @@ public class IdsMaster {
     /**
      * @return message timestamp
      */
-    public Timestamp getMessagedatetime() {
+    public Instant getMessagedatetime() {
         return messagedatetime;
     }
 
@@ -164,7 +164,7 @@ public class IdsMaster {
     /**
      * @return timestamp the message was persisted to the IDS
      */
-    public Timestamp getPersistdatetime() {
+    public Instant getPersistdatetime() {
         return persistdatetime;
     }
 
@@ -220,7 +220,7 @@ public class IdsMaster {
     /**
      * @param dateofbirth patient dob
      */
-    public void setDateofbirth(Timestamp dateofbirth) {
+    public void setDateofbirth(Instant dateofbirth) {
         this.dateofbirth = dateofbirth;
     }
 
@@ -248,14 +248,14 @@ public class IdsMaster {
     /**
      * @param admissiondate patient admission date
      */
-    public void setAdmissiondate(Timestamp admissiondate) {
+    public void setAdmissiondate(Instant admissiondate) {
         this.admissiondate = admissiondate;
     }
 
     /**
      * @param dischargedate patient discharge date
      */
-    public void setDischargedate(Timestamp dischargedate) {
+    public void setDischargedate(Instant dischargedate) {
         this.dischargedate = dischargedate;
     }
 
@@ -290,14 +290,14 @@ public class IdsMaster {
     /**
      * @param messagedatetime message timestamp
      */
-    public void setMessagedatetime(Timestamp messagedatetime) {
+    public void setMessagedatetime(Instant messagedatetime) {
         this.messagedatetime = messagedatetime;
     }
 
     /**
      * @param persistdatetime timestamp the message was persisted to the IDS
      */
-    public void setPersistdatetime(Timestamp persistdatetime) {
+    public void setPersistdatetime(Instant persistdatetime) {
         this.persistdatetime = persistdatetime;
     }
 }
