@@ -60,8 +60,7 @@ import uk.ac.ucl.rits.inform.interchange.VitalSigns;
  * All the operations that can be performed on Inform-db.
  */
 @Component
-@EntityScan({ "uk.ac.ucl.rits.inform.datasources.ids", "uk.ac.ucl.rits.inform.datasinks.emapstar.repos",
-        "uk.ac.ucl.rits.inform.informdb" })
+@EntityScan({ "uk.ac.ucl.rits.inform.datasinks.emapstar.repos", "uk.ac.ucl.rits.inform.informdb" })
 public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private AttributeRepository        attributeRepo;
