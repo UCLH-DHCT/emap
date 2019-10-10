@@ -12,7 +12,6 @@ import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CE;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
-import ca.uhn.hl7v2.model.v26.datatype.ED;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.IS;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
@@ -114,9 +113,9 @@ public class PathologyResultBuilder {
             if (msg.getIsolateCodingSystem() == null) {
                 msg.setIsolateCodingSystem("");
             }
-        } else if (data instanceof ED) {
-            logger.warn("ED not implemented yet");
         }
+        // also need to handle case where (data instanceof ED)
+
         msg.setUnits(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
         msg.setReferenceRange(obx.getObx7_ReferencesRange().getValueOrEmpty());
         // how many abnormal flags can we get in practice?
