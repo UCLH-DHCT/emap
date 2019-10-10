@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public class AdtMessage implements EmapOperationMessage, Serializable {
+public class AdtMessage extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -3352058605994102510L;
 
     /**
@@ -488,7 +488,16 @@ public class AdtMessage implements EmapOperationMessage, Serializable {
     }
 
     @Override
-    public void processMessage(EmapOperationMessageProcessor processor) {
-        processor.processMessage(this);
+    public String processMessage(EmapOperationMessageProcessor processor) {
+        return processor.processMessage(this);
+    }
+
+    /**
+     * Identify this as an ADT message + its subtype.
+     * @return the message type
+     */
+    @Override
+    public String getMessageType() {
+        return "Adt:" + getOperationType().toString();
     }
 }

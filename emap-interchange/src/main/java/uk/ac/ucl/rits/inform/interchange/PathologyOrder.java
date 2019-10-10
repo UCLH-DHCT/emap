@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public class PathologyOrder implements EmapOperationMessage, Serializable {
+public class PathologyOrder extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -8476559759815762054L;
 
     private List<PathologyResult> pathologyResults = new ArrayList<>();
@@ -303,7 +303,7 @@ public class PathologyOrder implements EmapOperationMessage, Serializable {
      * @param processor the processor to call back to
      */
     @Override
-    public void processMessage(EmapOperationMessageProcessor processor) {
-        processor.processMessage(this);
+    public String processMessage(EmapOperationMessageProcessor processor) {
+        return processor.processMessage(this);
     }
 }

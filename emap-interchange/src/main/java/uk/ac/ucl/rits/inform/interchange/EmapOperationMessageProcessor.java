@@ -9,14 +9,17 @@ package uk.ac.ucl.rits.inform.interchange;
 public interface EmapOperationMessageProcessor {
     /**
      * @param msg the pathology order message to process
+     * @return return code
      */
-    void processMessage(PathologyOrder msg);
+    String processMessage(PathologyOrder msg);
     /**
      * @param msg the ADT message to process
+     * @return return code
      */
-    void processMessage(AdtMessage msg);
+    String processMessage(AdtMessage msg);
     /**
      * @param msg the vital signs message to process
+     * @return return code
      */
-    void processMessage(VitalSigns msg);
+    String processMessage(VitalSigns msg);
 }
