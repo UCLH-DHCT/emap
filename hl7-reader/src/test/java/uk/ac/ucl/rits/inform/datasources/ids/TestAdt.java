@@ -161,28 +161,6 @@ public class TestAdt extends TestCase {
     }
 
     /**
-     * PV1-8.
-     */
-//    @Test
-//    public void testGetReferringDoctors1() {
-//        Doctor dr1 = null, dr2 = null;
-//        Vector<Doctor> vec = wrapper.getReferringDoctors();
-//        dr1 = vec.get(0);
-//        dr2 = vec.get(1);
-//        assertEquals("Wrong dr1 consultant code", "397982", dr1.getConsultantCode());
-//        assertEquals("Wrong dr2 consultant code", "392275", dr2.getConsultantCode());
-//        assertEquals("Wrong dr1 surname", "LAWSON", dr1.getSurname());
-//        assertEquals("Wrong dr2 surname", "ISENBERG", dr2.getSurname());
-//        assertEquals("Wrong dr1 firstname", "M", dr1.getFirstname());
-//        assertEquals("Wrong dr2 firstname", "DAVID", dr2.getFirstname());
-//        assertEquals("Wrong dr1 middlename", null, dr1.getMiddlenameOrInitial());
-//        assertEquals("Wrong dr2 middlename", "J", dr2.getMiddlenameOrInitial());
-//        assertEquals("Wrong dr1 title", "DR", dr1.getTitle());
-//        assertEquals("Wrong dr2 title", "PROF", dr2.getTitle());
-//        // assertEquals("")getLocalCode()
-//    }
-
-    /**
      * PV1-10.
      */
     @Test
