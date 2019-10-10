@@ -1,5 +1,22 @@
 # emapstar
 
+## Dependencies
+
+The Dockerfiles have to build the dependencies before building Emap-Core. Therefore your local directory structure has to be like this:
+
+```
+Emap [project dir, name doesn't actually matter]
+ |
+ +-- Emap-Core [git repo]
+ |  |
+ |  +-- docker-compose.yml [sets build directory to be .. (aka Emap)]
+ +-- Emap-Interchange [git repo]
+ +-- Inform-DB [git repo]
+```
+
+The `docker-compose.yml` file sets the build directory to be the project root directory, to allow the Emap-Core Dockerfiles
+to reference the code containing the dependencies.
+
 ## `config-envs` file
 
 These are the required envs for this file with example values.
