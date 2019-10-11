@@ -6,7 +6,10 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -243,14 +246,10 @@ public class IdsOperations implements AutoCloseable {
      * Write a message into the IDS. For test IDS instances only!
      * @param hl7message the HL7 message text
      * @param id the IDS unique ID
-     * @param triggerEvent aka the message type
-     * @param mrn the patient MRN
-     * @param patientClass the patient class
-     * @param patientLocation the patient location
-     * @param messageTimestamp the timestamp of the message
+     * @param patientInfoHl7 the parser to get various HL7 fields out of
+     * @throws HL7Exception if HAPI does
      */
-    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn, String patientClass,
-            String patientLocation, Instant messageTimestamp) {
+    private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly
         // suggests that this is a test IDS.
@@ -261,6 +260,14 @@ public class IdsOperations implements AutoCloseable {
         try {
             Transaction tx = idsSession.beginTransaction();
             IdsMaster idsrecord = new IdsMaster();
+
+            String triggerEvent = patientInfoHl7.getTriggerEvent();
+            String mrn = patientInfoHl7.getMrn();
+            String patientClass = patientInfoHl7.getPatientClass();
+            String patientLocation = patientInfoHl7.getFullLocationString();
+            Instant messageTimestamp = patientInfoHl7.getMessageTimestamp();
+            String sendingApplication = patientInfoHl7.getSendingApplication();
+
             // We can't use a sequence to assign ID because it won't exist on the
             // real IDS, so that will cause Hibernate validation to fail.
             // However, since we're starting with an empty IDS and populating it
@@ -272,6 +279,7 @@ public class IdsOperations implements AutoCloseable {
             idsrecord.setPatientclass(patientClass);
             idsrecord.setPatientlocation(patientLocation);
             idsrecord.setMessagedatetime(messageTimestamp);
+            idsrecord.setSenderapplication(sendingApplication);
             idsSession.save(idsrecord);
             tx.commit();
         } finally {
@@ -305,12 +313,8 @@ public class IdsOperations implements AutoCloseable {
                 AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg, String.format("%010d", count));
                 PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
                         adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
-                String triggerEvent = patientInfoHl7.getTriggerEvent();
-                String mrn = patientInfoHl7.getMrn();
-                String patientClass = patientInfoHl7.getPatientClass();
-                String patientLocation = patientInfoHl7.getFullLocationString();
-                Instant messageTimestamp = patientInfoHl7.getMessageTimestamp();
-                ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation, messageTimestamp);
+
+                ids.writeToIds(singleMessageText, count, patientInfoHl7);
             }
             logger.info("Wrote " + count + " messages to IDS");
             ids.close();
@@ -390,31 +394,51 @@ public class IdsOperations implements AutoCloseable {
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
 
         Instant messageDatetime = idsMsg.getMessagedatetime();
-        String hl7msg = idsMsg.getHl7message();
-        // HL7 is supposed to use \r for line endings, but
-        // the IDS uses \n
-        hl7msg = hl7msg.replace("\n", "\r");
-        Message msgFromIds;
-        try {
-            msgFromIds = parser.parse(hl7msg);
-        } catch (HL7Exception hl7e) {
-            return;
-        }
+        String sender = idsMsg.getSenderapplication();
+
+        boolean markAsProcessed = true;
+
+        final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
 
         try {
-            List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
-            for (EmapOperationMessage msg : messagesFromHl7Message) {
-                logger.info("sending message to RabbitMQ ");
-                rabbitTemplate.convertAndSend(QUEUE_NAME, msg);
+            if (!allowedSenders.contains(sender)) {
+                logger.warn(String.format("Skipping message with senderapplication=\"%s\"", sender));
+                return;
             }
-        } catch (HL7Exception | Hl7InconsistencyException e) {
-            String errMsg =
-                    "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
-            logger.error(errMsg);
+            String hl7msg = idsMsg.getHl7message();
+            // HL7 is supposed to use \r for line endings, but
+            // the IDS uses \n
+            hl7msg = hl7msg.replace("\n", "\r");
+            Message msgFromIds;
+            try {
+                msgFromIds = parser.parse(hl7msg);
+            } catch (HL7Exception hl7e) {
+                logger.error(hl7e.toString());
+                markAsProcessed = false;
+                return;
+            }
+
+            // One HL7 message can give rise to multiple interchange messages (pathology orders),
+            // but failure is only expressed on a per-HL7 message basis.
+            try {
+                List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
+                for (EmapOperationMessage msg : messagesFromHl7Message) {
+                    logger.info("sending message to RabbitMQ ");
+                    rabbitTemplate.convertAndSend(QUEUE_NAME, msg);
+                }
+            } catch (HL7Exception | Hl7InconsistencyException e) {
+                String errMsg =
+                        "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
+                logger.error(errMsg);
+            }
+        } finally {
+            // some errors are so bad that we want to stop processing the pipeline (ie. don't mark message as processed),
+            // but usually we just mark the message processed and carry on
+            if (markAsProcessed) {
+                Instant processingEnd = Instant.now();
+                setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
+            }
         }
-        // not possible to express that some messages were sent but some failed
-        Instant processingEnd = Instant.now();
-        setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
     }
 
     /**
