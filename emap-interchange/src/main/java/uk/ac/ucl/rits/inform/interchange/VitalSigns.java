@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @author Sarah Keating
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public class VitalSigns implements EmapOperationMessage, Serializable {
+public class VitalSigns extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -6678756549815762054L;
 
     private String mrn = "";
@@ -138,8 +138,7 @@ public class VitalSigns implements EmapOperationMessage, Serializable {
      * @param processor the processor to call back to
      */
     @Override
-    public void processMessage(EmapOperationMessageProcessor processor) {
-        processor.processMessage(this);
+    public String processMessage(EmapOperationMessageProcessor processor) {
+        return processor.processMessage(this);
     }
-
 }
