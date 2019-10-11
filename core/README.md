@@ -12,6 +12,7 @@ Emap [project dir, name doesn't actually matter]
  |  +-- docker-compose.yml [sets build directory to be .. (aka Emap)]
  +-- Emap-Interchange [git repo]
  +-- Inform-DB [git repo]
+ +-- Some-Other-Repo [your repo goes here, eg. Caboodle]
 ```
 
 The `docker-compose.yml` file sets the build directory to be the project root directory, to allow the Emap-Core Dockerfiles
