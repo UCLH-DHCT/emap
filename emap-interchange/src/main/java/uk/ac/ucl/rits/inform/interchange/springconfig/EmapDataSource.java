@@ -1,8 +1,15 @@
 package uk.ac.ucl.rits.inform.interchange.springconfig;
 
+/**
+ * All the data sources that can write into the core processor's message queue.
+ *
+ * @author Jeremy Stein
+ */
 public enum EmapDataSource {
-    HL7_QUEUE("hl7Queue")
-    ;
+    /**
+     * The message queue from the HL7 (IDS) feed.
+     */
+    HL7_QUEUE("hl7Queue");
 
     private String queueName;
 

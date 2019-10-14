@@ -50,7 +50,8 @@ public class DataSourceConfiguration {
     @Profile("default")
     public AmqpTemplate rabbitTemp() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
-        Queue q = new Queue(getEmapDataSource().getQueueName(), true);
+        String queueName = getEmapDataSource().getQueueName();
+        Queue q = new Queue(queueName, true);
         while (true) {
             try {
                 rabbitAdmin.declareQueue(q);
@@ -58,7 +59,7 @@ public class DataSourceConfiguration {
             } catch (AmqpException e) {
                 int secondsSleep = 5;
                 logger.warn(String.format("Creating RabbitMQ queue \"%s\" failed with exception %s, retrying in %d seconds",
-                        getEmapDataSource().getQueueName(), e.toString(), secondsSleep));
+                        queueName, e.toString(), secondsSleep));
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException e1) {
@@ -79,10 +80,13 @@ public class DataSourceConfiguration {
         template.setRetryTemplate(retryTemplate);
         template.setMandatory(true);
 
-        logger.info("Created queue " + getEmapDataSource().getQueueName() + ", properties = " + rabbitAdmin.getQueueProperties(getEmapDataSource().getQueueName()));
+        logger.info("Created queue " + queueName + ", properties = " + rabbitAdmin.getQueueProperties(queueName));
         return template;
     }
 
+    /**
+     * @return the data source
+     */
     public EmapDataSource getEmapDataSource() {
         return emapDataSource;
     }
