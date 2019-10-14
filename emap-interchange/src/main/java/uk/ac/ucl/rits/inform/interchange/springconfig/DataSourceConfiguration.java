@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +32,7 @@ public class DataSourceConfiguration {
      * @return a converter which ensures Instant objects are handled properly
      */
     @Bean
-    public static Jackson2JsonMessageConverter jsonMessageConverter() {
+    public MessageConverter jsonMessageConverter() {
         ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
         return new Jackson2JsonMessageConverter(mapper);
     }
@@ -39,8 +40,8 @@ public class DataSourceConfiguration {
     @Autowired
     private ConnectionFactory connectionFactory;
 
-    // will need to manage the different queues
-    private static final String QUEUE_NAME = "hl7Queue";
+    @Autowired
+    private EmapDataSource emapDataSource;
 
     /**
      * @return our rabbit template
@@ -49,7 +50,7 @@ public class DataSourceConfiguration {
     @Profile("default")
     public AmqpTemplate rabbitTemp() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
-        Queue q = new Queue(QUEUE_NAME, true);
+        Queue q = new Queue(getEmapDataSource().getQueueName(), true);
         while (true) {
             try {
                 rabbitAdmin.declareQueue(q);
@@ -57,7 +58,7 @@ public class DataSourceConfiguration {
             } catch (AmqpException e) {
                 int secondsSleep = 5;
                 logger.warn(String.format("Creating RabbitMQ queue \"%s\" failed with exception %s, retrying in %d seconds",
-                        QUEUE_NAME, e.toString(), secondsSleep));
+                        getEmapDataSource().getQueueName(), e.toString(), secondsSleep));
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException e1) {
@@ -78,8 +79,12 @@ public class DataSourceConfiguration {
         template.setRetryTemplate(retryTemplate);
         template.setMandatory(true);
 
-        logger.info("Created queue " + QUEUE_NAME + ", properties = " + rabbitAdmin.getQueueProperties(QUEUE_NAME));
+        logger.info("Created queue " + getEmapDataSource().getQueueName() + ", properties = " + rabbitAdmin.getQueueProperties(getEmapDataSource().getQueueName()));
         return template;
+    }
+
+    public EmapDataSource getEmapDataSource() {
+        return emapDataSource;
     }
 
 }
