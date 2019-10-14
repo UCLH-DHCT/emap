@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
 /**
  * Entry point class for the HL7 pipeline.
@@ -39,7 +40,7 @@ public class App {
     @Autowired
     private IdsEffectLoggingRepository idsEffectLoggingRepository;
 
-    private static final String QUEUE_NAME = "hl7Queue";
+    private static final String QUEUE_NAME = EmapDataSource.HL7_QUEUE.getQueueName();
 
     /**
      * @return our Queue
