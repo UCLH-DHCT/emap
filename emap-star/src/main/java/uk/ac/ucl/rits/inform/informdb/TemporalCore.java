@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
 
+import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 /**
@@ -21,9 +22,13 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class TemporalCore {
 
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant validFrom;
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant validUntil;
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant storedFrom;
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
     /**
@@ -91,4 +96,36 @@ public abstract class TemporalCore {
         this.storedUntil = storedUntil;
     }
 
+    /**
+     * Is this row valid now? We are assuming that from/until
+     * dates will never be in the future, or if they are it
+     * will only be due to system clocks being slightly adrift
+     * and nothing should be read into it.
+     * This means that you can check for validity as of
+     * the present by checking the nullness of the until date.
+     * This is subtly different from calling isValidAsOf
+     * and passing in the current time, which can give unexpected
+     * results due to clock mismatches.
+     *
+     * @return whether this row is valid as of now
+     */
+    public boolean isValid() {
+        return validUntil == null && storedUntil == null;
+    }
+
+    /**
+     * Time-travel validity. If you want validity as of now,
+     * do not use this method, use the parameter-free method.
+     * Note that this assumes the current state of the database..
+     *
+     * @param asOfTime The time to test validity at,
+     * ie. the simulated "now" point. Cannot be null.
+     *
+     * @return whether this row was valid as of the given time
+     */
+    public boolean isValidAsOf(Instant asOfTime) {
+        return storedUntil == null && asOfTime.compareTo(validFrom) >= 0
+                && (validUntil == null
+                        || asOfTime.compareTo(validUntil) < 0);
+    }
 }

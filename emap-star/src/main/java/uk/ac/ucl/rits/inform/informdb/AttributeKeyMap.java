@@ -50,7 +50,129 @@ public enum AttributeKeyMap {
     /**
      * Parent visit.
      */
-    PARENT_VISIT("VISIT_PAREN");
+    PARENT_VISIT("VISIT_PAREN"),
+    /**
+     * The NHS number associated with an encounter (and hopefully
+     * an entire MRN).
+     */
+    NHS_NUMBER("NHS_NUMBER"),
+    /**
+     * General demographic grouper.
+     */
+    GENERAL_DEMOGRAPHIC("GENERAL_DEMO"),
+    /**
+     * Date of Birth.
+     */
+    DOB("DOB"),
+    /**
+     * Patient home postcode.
+     */
+    POST_CODE("POST_CODE"),
+    /**
+     * Sex.
+     */
+    SEX("SEX"),
+    /**
+     * Male.
+     */
+    MALE("MALE"),
+    /**
+     * Female.
+     */
+    FEMALE("FEMALE"),
+    /**
+     * Other, i.e. not a category we have explicitly recorded.
+     */
+    OTHER("OTHER"),
+    /**
+     * Date item is known to exist, but its value is unknown.
+     */
+    UNKNOWN("UNKNOWN"),
+    /**
+     * Fact type - is a path test result.
+     */
+    PATHOLOGY_TEST_RESULT("PATH_RESULT"),
+    /**
+     * Local code for the battery of tests (eg. FBCY)
+     */
+    PATHOLOGY_TEST_BATTERY_CODE("PATH_BATT_COD"),
+    /**
+     * Local description for the battery of tests.
+     */
+    PATHOLOGY_TEST_BATTERY_DESCRIPTION("PATH_BATT_DESC"),
+    /**
+     * Local code for the individual test.
+     */
+    PATHOLOGY_TEST_CODE("PATH_TEST_COD"),
+    /**
+     * Local description for the individual test.
+     */
+    PATHOLOGY_TEST_DESCRIPTION("PATH_TEST_DESC"),
+    /**
+     * The coding system (vocabulary) that we are using (eg. WinPath).
+     */
+    PATHOLOGY_CODING_SYSTEM("PATH_COD_SYS"),
+    /**
+     * The numeric value for a pathology result.
+     */
+    PATHOLOGY_NUMERIC_VALUE("PATH_NUM_VALUE"),
+    /**
+     * The units for a numerical pathology result.
+     */
+    PATHOLOGY_UNITS("PATH_NUM_UNITS"),
+    /**
+     * Reference range for the result.
+     */
+    PATHOLOGY_REFERENCE_RANGE("PATH_REF_RANGE"),
+    /**
+     * When the result was last updated.
+     */
+    PATHOLOGY_RESULT_TIME("PATH_RES_TIME"),
+    /**
+     * The status of the result (final, etc.).
+     */
+    PATHOLOGY_RESULT_STATUS("PATH_RES_STS"),
+    /**
+     * Pathology order fact type.
+     */
+    PATHOLOGY_ORDER("PATH_ORDER"),
+    /**
+     * Pathology order control ID.
+     */
+    PATHOLOGY_ORDER_CONTROL_ID("PATH_ORD_CTL_ID"),
+    /**
+     * Pathology order number (Epic order number).
+     */
+    PATHOLOGY_EPIC_ORDER_NUMBER("PATH_EPIC_NUM"),
+    /**
+     * Pathology order lab/specimen number, aka accession number.
+     */
+    PATHOLOGY_LAB_NUMBER("PATH_LAB_NUM"),
+    /**
+     * Pathology order lab/specimen number with extra appended character, aka OCS number.
+     */
+    PATHOLOGY_OCS_NUMBER("PATH_OCS_NUM"),
+    /**
+     * When the sample was collected (observation time).
+     */
+    PATHOLOGY_COLLECTION_TIME("PATH_COLL_TIME"),
+    /**
+     * Local code of the isolate (microbiology).
+     */
+    PATHOLOGY_ISOLATE_CODE("PATH_ISOL_CODE"),
+    /**
+     * When the order was originally made.
+     */
+    PATHOLOGY_ORDER_TIME("PATH_ORDER_TIME"),
+    /**
+     * The type of the patient that the order relates to (inpatient, outpatient).
+     */
+    PATHOLOGY_ORDER_PATIENT_TYPE("PATH_ORDER_TYPE"),
+    /**
+     * Time of last change of status for the order.
+     * If this is for results, PATHOLOGY_RESULT_TIME should be used instead.
+     */
+    PATHOLOGY_STATUS_CHANGE_TIME("PATH_STS_TIME");
 
     private String shortname;
 

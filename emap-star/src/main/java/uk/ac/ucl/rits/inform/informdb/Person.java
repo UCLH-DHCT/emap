@@ -1,8 +1,10 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -23,17 +25,19 @@ import javax.persistence.OneToMany;
  *
  */
 @Entity
-public class Person {
+public class Person implements Serializable {
+
+    private static final long serialVersionUID = -5035980881179437384L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int       personId;
+    private int             personId;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant   createDatetime;
+    private Instant         createDatetime;
 
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL)
-    private List<Mrn> mrns;
+    @OneToMany(targetEntity = PersonMrn.class, mappedBy = "person", cascade = CascadeType.ALL)
+    private List<PersonMrn> mrns;
 
     /**
      * @return the personId
@@ -64,34 +68,82 @@ public class Person {
     }
 
     /**
-     * @return the mrns
+     * Get the list of PersonMrn relationships.
+     *
+     * @return The list of PersonMrns
      */
-    public List<Mrn> getMrns() {
+    public List<PersonMrn> getMrns() {
         return mrns;
     }
 
     /**
-     * @param mrns the mrns to set
+     * Add an Person <-> MRN to this person. This will set up the links in both
+     * directions.
+     *
+     * @param mrn        The mrn to add
+     * @param validFrom  when the association became true
+     * @param storedFrom when the association was stored
      */
-    public void setMrns(List<Mrn> mrns) {
-        this.mrns = mrns;
+    public void addMrn(Mrn mrn, Instant validFrom, Instant storedFrom) {
+        PersonMrn perMrn = new PersonMrn(this, mrn);
+        perMrn.setValidFrom(validFrom);
+        perMrn.setStoredFrom(storedFrom);
+        mrn.linkPerson(perMrn);
+        this.linkMrn(perMrn);
     }
 
     /**
-     * Add an MRN to this person.
+     * Insert a PersonMrn into the mrns list. Does not create any other links.
      *
-     * @param mrn The mrn to add
+     * @param personMrn The PersonMrn to insert.
      */
-    public void addMrn(Mrn mrn) {
+    public void linkMrn(PersonMrn personMrn) {
         if (this.mrns == null) {
             this.mrns = new ArrayList<>();
         }
-        this.mrns.add(mrn);
-        mrn.setPerson(this);
+        this.mrns.add(personMrn);
     }
 
     @Override
     public String toString() {
-        return "Person [person_id=" + personId + ", create_datetime=" + createDatetime + "]";
+        return String.format("Person [person_id=%d, create_datetime=%s]", personId, createDatetime.toString());
+    }
+
+    /**
+     * Apply a function to each valid MRN and collate the results.
+     *
+     * @param func The function to apply
+     * @return List of results
+     * @param <R> The return type of the function
+     */
+    public <R> List<R> mapMrn(Function<Mrn, R> func) {
+        List<R> results = new ArrayList<R>();
+        for (PersonMrn pm : mrns) {
+            if (!pm.isValid()) {
+                continue;
+            }
+            Mrn mrn = pm.getMrn();
+            results.add(mrn.map(func));
+        }
+        return results;
+    }
+
+    /**
+     * Apply a function to each valid Encounter and collate the results.
+     *
+     * @param func The function to apply
+     * @return List of results
+     * @param <R> The return type of the function
+     */
+    public <R> List<R> mapEncounter(Function<Encounter, R> func) {
+        List<R> results = new ArrayList<R>();
+        for (PersonMrn pm : mrns) {
+            if (!pm.isValid()) {
+                continue;
+            }
+            Mrn mrn = pm.getMrn();
+            results.addAll(mrn.mapEncounter(func));
+        }
+        return results;
     }
 }

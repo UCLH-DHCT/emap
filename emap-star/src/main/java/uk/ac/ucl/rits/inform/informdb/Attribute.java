@@ -1,15 +1,12 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
-
-import com.sun.istack.NotNull;
 
 /**
  * An attribute represents a vocabulary item. This may be a question, or answer
@@ -19,19 +16,20 @@ import com.sun.istack.NotNull;
  *
  */
 @Entity
-public class Attribute {
+public class Attribute implements Serializable {
+
+    private static final long serialVersionUID = -3151350347466393547L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long            attributeId;
 
     @Column(unique = true, nullable = false, length = 15)
     private String          shortName;
-    @NotNull
+    @Column(nullable = false)
     private String          description;
-    @NotNull
+    @Column(nullable = false)
     private ResultType      resultType;
-    @NotNull
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant         addedTime;
 
     @Transient
@@ -106,5 +104,36 @@ public class Attribute {
     public void setAddedTime(Instant addedTime) {
         this.addedTime = addedTime;
     }
+
+    @Override
+    public String toString() {
+        return shortName + "[" + attributeId + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        // The short name is  what you  are most likely to have
+        return this.shortName.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        // The short name is  what you  are most likely to have
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Attribute other = (Attribute) obj;
+        if (!this.shortName.equals(other.shortName)) {
+            return false;
+        }
+        return true;
+    }
+
 
 }

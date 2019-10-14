@@ -7,7 +7,6 @@ package uk.ac.ucl.rits.inform.informdb;
  *
  */
 public enum ResultType {
-
     /**
      * This attribute doesn't have a result.
      */
@@ -23,6 +22,13 @@ public enum ResultType {
     /**
      * This attribute is a foreign key to a table.
      */
-    Link
-
+    Link,
+    /**
+     * This result is stored as an attribute (i.e. categorical).
+     */
+    Attribute,
+    /**
+     * This is a numerical floating point result.
+     */
+    Float,
 }

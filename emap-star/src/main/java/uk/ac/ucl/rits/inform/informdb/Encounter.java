@@ -1,8 +1,12 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -16,6 +20,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * This is an association of a single encounter with a MRN.
  * <p>
@@ -26,33 +32,29 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(indexes = { @Index(name = "validUntilIndex", columnList = "validUntil", unique = false),
-        @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
-public class Encounter extends TemporalCore implements Serializable {
+@Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
+@JsonIgnoreProperties({"mrns", "factsAsMap"})
+public class Encounter implements Serializable {
 
-    private static final long            serialVersionUID = -915410794459512129L;
+    private static final long  serialVersionUID = -6495238097074592105L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int                          encounterId;
-
-    @ManyToOne
-    @JoinColumn(name = "mrn", referencedColumnName = "mrn")
-    private Mrn                          mrn;
+    private int                encounterId;
 
     @Column(unique = false, nullable = false)
-    private String                       encounter;
-    private String                       sourceSystem;
+    private String             encounter;
+    private String             sourceSystem;
 
-    @ManyToOne
+    @ManyToOne(targetEntity = Encounter.class)
     @JoinColumn(name = "parent_encounter")
-    private Encounter                    parentEncounter;
+    private Encounter          parentEncounter;
 
     @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
-    private List<PatientDemographicFact> demographics;
+    private List<PatientFact>  facts;
 
-    @OneToMany(mappedBy = "encounter", cascade = CascadeType.ALL)
-    private List<VisitFact>              visits;
+    @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "encounter")
+    private List<MrnEncounter> mrns;
 
     /**
      * @return the encounterId
@@ -66,20 +68,6 @@ public class Encounter extends TemporalCore implements Serializable {
      */
     public void setEncounterId(int encounterId) {
         this.encounterId = encounterId;
-    }
-
-    /**
-     * @return the mrn
-     */
-    public Mrn getMrn() {
-        return mrn;
-    }
-
-    /**
-     * @param mrn the mrn to set
-     */
-    public void setMrn(Mrn mrn) {
-        this.mrn = mrn;
     }
 
     /**
@@ -125,64 +113,93 @@ public class Encounter extends TemporalCore implements Serializable {
     }
 
     /**
-     * Add a patient demographic fact to this encounter.
+     * Add a patient fact to this encounter. Creating back links in the fact.
      *
      * @param fact The fact to add
      */
-    public void addDemographic(PatientDemographicFact fact) {
-        if (this.demographics == null) {
-            this.demographics = new ArrayList<>();
-        }
-        this.demographics.add(fact);
+    public void addFact(PatientFact fact) {
+        this.linkFact(fact);
         fact.setEncounter(this);
     }
 
     /**
-     * Add a visit fact to this encounter.
+     * Add a patient fact to the demographics.
      *
-     * @param fact The fact to add
+     * @param fact The fact to add.
      */
-    public void addVisit(VisitFact fact) {
-        if (this.visits == null) {
-            this.visits = new ArrayList<>();
+    public void linkFact(PatientFact fact) {
+        if (this.facts == null) {
+            this.facts = new ArrayList<>();
         }
-        this.visits.add(fact);
-        fact.setEncounter(this);
+        this.facts.add(fact);
     }
 
     /**
-     * @return the demographics
+     * @return the facts
      */
-    public List<PatientDemographicFact> getDemographics() {
-        return demographics;
+    public List<PatientFact> getFacts() {
+        return facts;
     }
 
     /**
-     * @param demographics the demographics to set
+     * @return the facts as a Map, indexed by fact short name
      */
-    public void setDemographics(List<PatientDemographicFact> demographics) {
-        this.demographics = demographics;
+    public Map<String, PatientFact> getFactsAsMap() {
+        Map<String, PatientFact> map = new HashMap<>();
+        facts.forEach(d -> map.put(d.getFactType().getShortName(), d));
+        return map;
     }
 
     /**
-     * @return the visits
+     * @param facts the facts to set
      */
-    public List<VisitFact> getVisits() {
-        return visits;
+    public void setFacts(List<PatientFact> facts) {
+        this.facts = facts;
     }
 
     /**
-     * @param visits the visits to set
+     * Add a Mrn Encounter relationship to this encounter and link it back to the
+     * MRN.
+     *
+     * @param mrn        The Mrn to link to
+     * @param validFrom  The time this relationship came into effect
+     * @param storedFrom The time we stored this
      */
-    public void setVisits(List<VisitFact> visits) {
-        this.visits = visits;
+    public void addMrn(Mrn mrn, Instant validFrom, Instant storedFrom) {
+        MrnEncounter mrnEncounter = new MrnEncounter(mrn, this);
+        mrnEncounter.setValidFrom(validFrom);
+        mrnEncounter.setStoredFrom(storedFrom);
+        mrn.linkEncounter(mrnEncounter);
+        this.linkMrn(mrnEncounter);
+    }
+
+    /**
+     * Add an MrnEncounter to the mrns list.
+     *
+     * @param mrnEnc The MrnEncounter to add.
+     */
+    public void linkMrn(MrnEncounter mrnEnc) {
+        if (this.mrns == null) {
+            this.mrns = new ArrayList<>();
+        }
+        this.mrns.add(mrnEnc);
     }
 
     @Override
     public String toString() {
-        return "Encounter [encounter_id=" + encounterId + ", mrn=" + mrn + ", encounter=" + encounter
-                + ", store_datetime=" + this.getStoredFrom() + ", end_datetime=" + this.getValidUntil()
-                + ", source_system=" + sourceSystem + ", event_time=" + this.getValidFrom() + "]";
+        return String.format("Encounter [encounter_id=%d, encounter=%s, source_system=%s]", encounterId, encounter,
+                sourceSystem);
+    }
+
+    /**
+     * Apply a function on this encounter and get a result.
+     *
+     * @param func The function to apply
+     * @return The result of the function
+     * @param <R> The return type of the function
+     */
+    public <R> R map(Function<Encounter, R> func) {
+        return func.apply(this);
     }
 
 }
