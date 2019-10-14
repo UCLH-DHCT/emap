@@ -27,6 +27,7 @@ public class IdsEffectLogging {
     private Instant processingEndTime;
     private double queueReadDurationSeconds;
     private double processMessageDurationSeconds;
+    @Column(columnDefinition = "text")
     private String returnStatus;
     private String mrn;
     private String messageType;
