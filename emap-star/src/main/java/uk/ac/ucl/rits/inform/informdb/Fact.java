@@ -44,7 +44,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     protected final List<F>    childFacts = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "attributeId")
+    @JoinColumn(name = "fact_type")
     private Attribute          factType;
 
     @JoinColumn(name = "parent_fact")
