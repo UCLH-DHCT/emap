@@ -16,7 +16,7 @@ public class AppHl7 {
 ```
 
 Then it will find and use this config. But you also need to supply a bean yourself that defines which queue you want to use.
-I've defined an enum (`EmapDataSource`) which lists all the queues. It currently only has the HL7 queue in it. The bean returns
+I've defined an enum (`EmapDataSource`) which lists all the queues. It currently only has the HL7 queue in it. The bean should return
 the enum value corresponding to the queue you want to use. Here is the version in the HL7 data source. The method name is not important.
 
 ```
@@ -28,4 +28,13 @@ the enum value corresponding to the queue you want to use. Here is the version i
 public EmapDataSource getHl7DataSource() {
     return EmapDataSource.HL7_QUEUE;
 }
+```
+
+Spring AMQP reads its user-settable config from the Spring properties, which can be set via environment variables as in the following example:
+
+```bash
+SPRING_RABBITMQ_HOST=rabbitmq
+SPRING_RABBITMQ_PORT=8672
+SPRING_RABBITMQ_USERNAME=someuser
+SPRING_RABBITMQ_PASSWORD=redacted
 ```
