@@ -21,7 +21,7 @@ public class TestAdt extends TestCase {
     public void setUp() throws Exception {
         String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        wrapper = new AdtMessageBuilder(hl7Msg).getAdtMessage();
+        wrapper = new AdtMessageBuilder(hl7Msg, "42").getAdtMessage();
     }
 
     /**

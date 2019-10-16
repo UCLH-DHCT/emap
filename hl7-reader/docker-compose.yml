@@ -35,6 +35,5 @@ services:
     rabbitmq:
         image: rabbitmq:management
         container_name: rabbitmq
-        ports:
-            - "8672:5672"
-            - "8172:15672"
+        env_file:
+            - rabbit-envs

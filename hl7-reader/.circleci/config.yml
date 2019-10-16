@@ -25,9 +25,8 @@ jobs:
 
       - run:
           command: |
-              git clone git@github.com:inform-health-informatics/Inform-DB.git
+              git clone --branch develop git@github.com:inform-health-informatics/Inform-DB.git
               cd Inform-DB
-              git checkout more_demo
               mvn install -Dmaven.test.skip=true
               git clone git@github.com:inform-health-informatics/Emap-Interchange.git
               cd Emap-Interchange

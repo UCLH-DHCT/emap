@@ -6,7 +6,10 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -17,11 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -29,12 +27,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
@@ -48,6 +42,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
 
 /**
@@ -84,57 +79,13 @@ public class IdsOperations implements AutoCloseable {
     @Autowired
     private AmqpTemplate rabbitTemplate;
 
-    private static final String QUEUE_NAME = "hl7Queue";
-
     /**
-     * @return our converter which ensures Instant objects are handled properly
+     * We are writing to the HL7 queue.
+     * @return the datasource enum for the hl7 queue
      */
     @Bean
-    public static Jackson2JsonMessageConverter jsonMessageConverter() {
-        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-        return new Jackson2JsonMessageConverter(mapper);
-    }
-
-    @Autowired
-    private ConnectionFactory connectionFactory;
-
-    /**
-     * @return our Queue
-     */
-    @Bean
-    @Profile("default")
-    public AmqpTemplate rabbitTemp() {
-        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
-        Queue q = new Queue(QUEUE_NAME, true);
-        while (true) {
-            try {
-                rabbitAdmin.declareQueue(q);
-                break;
-            } catch (AmqpException e) {
-                int secondsSleep = 5;
-                logger.warn(String.format("Creating RabbitMQ queue failed with exception %s, retrying in %d seconds", e.toString(), secondsSleep));
-                try {
-                    Thread.sleep(secondsSleep * 1000);
-                } catch (InterruptedException e1) {
-                    logger.warn("Sleep interrupted");
-                }
-                continue;
-            }
-        }
-
-        RetryTemplate retryTemplate = new RetryTemplate();
-        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-        backOffPolicy.setInitialInterval(500);
-        backOffPolicy.setMultiplier(10.0);
-        backOffPolicy.setMaxInterval(10000);
-        retryTemplate.setBackOffPolicy(backOffPolicy);
-
-        RabbitTemplate template = rabbitAdmin.getRabbitTemplate();
-        template.setRetryTemplate(retryTemplate);
-        template.setMandatory(true);
-
-        logger.info("queue props = " + rabbitAdmin.getQueueProperties(QUEUE_NAME));
-        return template;
+    public EmapDataSource getHl7DataSource() {
+        return EmapDataSource.HL7_QUEUE;
     }
 
     /**
@@ -243,14 +194,10 @@ public class IdsOperations implements AutoCloseable {
      * Write a message into the IDS. For test IDS instances only!
      * @param hl7message the HL7 message text
      * @param id the IDS unique ID
-     * @param triggerEvent aka the message type
-     * @param mrn the patient MRN
-     * @param patientClass the patient class
-     * @param patientLocation the patient location
-     * @param messageTimestamp the timestamp of the message
+     * @param patientInfoHl7 the parser to get various HL7 fields out of
+     * @throws HL7Exception if HAPI does
      */
-    public void writeToIds(String hl7message, int id, String triggerEvent, String mrn, String patientClass,
-            String patientLocation, Instant messageTimestamp) {
+    private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
         // To avoid the risk of accidentally attempting to write into the real
         // IDS, check that the IDS was empty when we started. Emptiness strongly
         // suggests that this is a test IDS.
@@ -261,6 +208,14 @@ public class IdsOperations implements AutoCloseable {
         try {
             Transaction tx = idsSession.beginTransaction();
             IdsMaster idsrecord = new IdsMaster();
+
+            String triggerEvent = patientInfoHl7.getTriggerEvent();
+            String mrn = patientInfoHl7.getMrn();
+            String patientClass = patientInfoHl7.getPatientClass();
+            String patientLocation = patientInfoHl7.getFullLocationString();
+            Instant messageTimestamp = patientInfoHl7.getMessageTimestamp();
+            String sendingApplication = patientInfoHl7.getSendingApplication();
+
             // We can't use a sequence to assign ID because it won't exist on the
             // real IDS, so that will cause Hibernate validation to fail.
             // However, since we're starting with an empty IDS and populating it
@@ -272,6 +227,7 @@ public class IdsOperations implements AutoCloseable {
             idsrecord.setPatientclass(patientClass);
             idsrecord.setPatientlocation(patientLocation);
             idsrecord.setMessagedatetime(messageTimestamp);
+            idsrecord.setSenderapplication(sendingApplication);
             idsSession.save(idsrecord);
             tx.commit();
         } finally {
@@ -302,15 +258,11 @@ public class IdsOperations implements AutoCloseable {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg);
+                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg, String.format("%010d", count));
                 PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
                         adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
-                String triggerEvent = patientInfoHl7.getTriggerEvent();
-                String mrn = patientInfoHl7.getMrn();
-                String patientClass = patientInfoHl7.getPatientClass();
-                String patientLocation = patientInfoHl7.getFullLocationString();
-                Instant messageTimestamp = patientInfoHl7.getMessageTimestamp();
-                ids.writeToIds(singleMessageText, count, triggerEvent, mrn, patientClass, patientLocation, messageTimestamp);
+
+                ids.writeToIds(singleMessageText, count, patientInfoHl7);
             }
             logger.info("Wrote " + count + " messages to IDS");
             ids.close();
@@ -390,31 +342,51 @@ public class IdsOperations implements AutoCloseable {
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
 
         Instant messageDatetime = idsMsg.getMessagedatetime();
-        String hl7msg = idsMsg.getHl7message();
-        // HL7 is supposed to use \r for line endings, but
-        // the IDS uses \n
-        hl7msg = hl7msg.replace("\n", "\r");
-        Message msgFromIds;
-        try {
-            msgFromIds = parser.parse(hl7msg);
-        } catch (HL7Exception hl7e) {
-            return;
-        }
+        String sender = idsMsg.getSenderapplication();
+
+        boolean markAsProcessed = true;
+
+        final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
 
         try {
-            List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
-            for (EmapOperationMessage msg : messagesFromHl7Message) {
-                logger.info("sending message to RabbitMQ ");
-                rabbitTemplate.convertAndSend(QUEUE_NAME, msg);
+            if (!allowedSenders.contains(sender)) {
+                logger.warn(String.format("Skipping message with senderapplication=\"%s\"", sender));
+                return;
             }
-        } catch (HL7Exception | Hl7InconsistencyException e) {
-            String errMsg =
-                    "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
-            logger.error(errMsg);
+            String hl7msg = idsMsg.getHl7message();
+            // HL7 is supposed to use \r for line endings, but
+            // the IDS uses \n
+            hl7msg = hl7msg.replace("\n", "\r");
+            Message msgFromIds;
+            try {
+                msgFromIds = parser.parse(hl7msg);
+            } catch (HL7Exception hl7e) {
+                logger.error(hl7e.toString());
+                markAsProcessed = false;
+                return;
+            }
+
+            // One HL7 message can give rise to multiple interchange messages (pathology orders),
+            // but failure is only expressed on a per-HL7 message basis.
+            try {
+                List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
+                for (EmapOperationMessage msg : messagesFromHl7Message) {
+                    logger.info("sending message to RabbitMQ ");
+                    rabbitTemplate.convertAndSend(getHl7DataSource().getQueueName(), msg);
+                }
+            } catch (HL7Exception | Hl7InconsistencyException e) {
+                String errMsg =
+                        "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
+                logger.error(errMsg);
+            }
+        } finally {
+            // some errors are so bad that we want to stop processing the pipeline (ie. don't mark message as processed),
+            // but usually we just mark the message processed and carry on
+            if (markAsProcessed) {
+                Instant processingEnd = Instant.now();
+                setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
+            }
         }
-        // not possible to express that some messages were sent but some failed
-        Instant processingEnd = Instant.now();
-        setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
     }
 
     /**
@@ -437,7 +409,7 @@ public class IdsOperations implements AutoCloseable {
         if (messageType.equals("ADT")) {
             List<AdtMessage> adtMsg = new ArrayList<>();
             try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds);
+                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, String.format("%010d", idsUnid));
                 adtMsg.add(msgBuilder.getAdtMessage());
             } catch (Hl7MessageNotImplementedException e) {
                 logger.warn("Ignoring message: " + e.toString());

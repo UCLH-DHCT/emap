@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Duration;
+import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,10 @@ import org.springframework.context.annotation.Profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
 /**
  * Entry point class for the HL7 pipeline.
@@ -34,7 +37,10 @@ public class App {
     @Autowired
     private AmqpTemplate rabbitTemplate;
 
-    private static final String QUEUE_NAME = "hl7Queue";
+    @Autowired
+    private IdsEffectLoggingRepository idsEffectLoggingRepository;
+
+    private static final String QUEUE_NAME = EmapDataSource.HL7_QUEUE.getQueueName();
 
     /**
      * @return our Queue
@@ -75,16 +81,28 @@ public class App {
             dbOps.ensureVocabLoaded();
             long startTimeMillis = System.currentTimeMillis();
             int count = 0;
-            List<String> parsingErrors = new ArrayList<String>();
             while (true) {
+                IdsEffectLogging idsEffectLogging = new IdsEffectLogging();
+                Instant startTime = Instant.now();
+                idsEffectLogging.setProcessingStartTime(startTime);
                 // read from rabbit
                 EmapOperationMessage msg;
+                Instant doneQueueReadTime;
                 try {
                     msg = (EmapOperationMessage) rabbitTemplate.receiveAndConvert(QUEUE_NAME);
+                    doneQueueReadTime = Instant.now();
+                    Duration queueReadDuration = Duration.between(startTime, doneQueueReadTime);
+                    idsEffectLogging.setQueueReadDuration(queueReadDuration.toMillis() / 1000.0);
                 } catch (AmqpException e) {
                     int secondsSleep = 5;
-                    logger.warn(String.format("Reading from RabbitMQ failed with exception %s, retrying in %d seconds", e.toString(), secondsSleep));
-                    Thread.sleep(secondsSleep * 1000);
+                    logger.warn(String.format("Read from RabbitMQ failed with exception %s, retrying in %d seconds", e.toString(), secondsSleep));
+                    try {
+                        Thread.sleep(secondsSleep * 1000);
+                    } catch (InterruptedException ie) {
+                        // respond to a Ctrl-C
+                        logger.warn("Sleep was interrupted, exiting");
+                        break;
+                    }
                     continue;
                 }
                 if (msg == null) {
@@ -93,21 +111,29 @@ public class App {
                     try {
                         Thread.sleep(secondsSleep * 1000);
                     } catch (InterruptedException ie) {
-                        // respond to a Ctrl-C, what is the right thing to do?
-                        logger.warn("Sleep was interrupted");
+                        // respond to a Ctrl-C
+                        logger.warn("Sleep was interrupted, exiting");
+                        break;
                     }
                     continue;
                 }
-                msg.processMessage(dbOps);
-                // This will still be needed! Turn it off for now while I get the message out.
-                int processed = 0;
-                // int processed = dbOps.processHl7Message(msgFromIds, idsUnid, idsLog, processed);
-                if (processed == -1) {
-                    break;
-                }
-                count += processed;
-                if (count % 1000 == 0) {
-                    logger.debug("There are " + parsingErrors.size() + " parsing errors");
+                idsEffectLogging.setMessageType(msg.getMessageType());
+                idsEffectLogging.setSourceId(msg.getSourceMessageId());
+                try {
+                    String returnCode = msg.processMessage(dbOps);
+                    Instant doneProcessMessageTime = Instant.now();
+                    Duration processMessageDuration = Duration.between(doneQueueReadTime, doneProcessMessageTime);
+                    idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
+                    idsEffectLogging.setReturnStatus(returnCode);
+                } catch (Throwable th) {
+                    // All errors that allow the message to be skipped should be logged
+                    // using the return code from processMessage.
+                    // For anything else, at least log it before exiting.
+                    idsEffectLogging.setReturnStatus("Unexpected exception: " + th.toString());
+                    throw th;
+                } finally {
+                    idsEffectLogging.setProcessingEndTime(Instant.now());
+                    idsEffectLoggingRepository.save(idsEffectLogging);
                 }
             }
 
