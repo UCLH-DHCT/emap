@@ -20,6 +20,7 @@
 # Secrets files
 hl7-envs
 config-envs
+*-envs
 
 # IntelliJ files
 .idea/
