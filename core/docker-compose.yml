@@ -37,6 +37,3 @@ services:
         container_name: rabbitmq
         env_file:
             - rabbit-envs
-        ports:
-            - "8672:5672"
-            - "8172:15672"
