@@ -1,7 +1,6 @@
 version: '3.2'
 services:
     emapstar:
-        container_name: emapstar
         environment:
             NODE_ENV: test
         build:
@@ -17,7 +16,6 @@ services:
         logging:
             driver: "json-file"
     hl7source:
-        container_name: hl7source
         environment:
             NODE_ENV: test
         build:
@@ -34,6 +32,5 @@ services:
             driver: "json-file"
     rabbitmq:
         image: rabbitmq:management
-        container_name: rabbitmq
         env_file:
             - rabbit-envs
