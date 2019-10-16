@@ -51,9 +51,11 @@ public class AdtMessageBuilder {
     /**
      * Construct from an HL7 message.
      * @param hl7Msg the HL7 message
+     * @param sourceId the unique source Id message
      * @throws HL7Exception if HAPI does
      */
-    public AdtMessageBuilder(Message hl7Msg) throws HL7Exception {
+    public AdtMessageBuilder(Message hl7Msg, String sourceId) throws HL7Exception {
+        msg.setSourceMessageId(sourceId);
         msh = (MSH) hl7Msg.get("MSH");
 
         try {

@@ -18,24 +18,27 @@ import javax.persistence.Id;
  */
 @Entity
 public class IdsEffectLogging {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    private int idsUnid;
+    private String sourceId;
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
+    private double queueReadDurationSeconds;
+    private double processMessageDurationSeconds;
+    @Column(columnDefinition = "text")
+    private String returnStatus;
     private String mrn;
     private String messageType;
     @Column(columnDefinition = "text")
     private String message;
 
     /**
-     * @param idsUnid the unique ID of the IDS message
+     * @param sourceId the unique ID from the source system (eg. IDS unid)
      */
-    public void setIdsUnid(int idsUnid) {
-        this.idsUnid = idsUnid;
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
     }
 
     /**
@@ -78,5 +81,27 @@ public class IdsEffectLogging {
      */
     public void setMessageDatetime(Instant messageDatetime) {
         this.messageDatetime = messageDatetime;
+    }
+
+    /**
+     * @param returnStatus the return code from the operation, which may indicate several types
+     * of success or several types of failure.
+     */
+    public void setReturnStatus(String returnStatus) {
+        this.returnStatus = returnStatus;
+    }
+
+    /**
+     * @param queueReadDurationSeconds how long it took to read from the queue
+     */
+    public void setQueueReadDuration(double queueReadDurationSeconds) {
+        this.queueReadDurationSeconds = queueReadDurationSeconds;
+    }
+
+    /**
+     * @param processMessageDurationSeconds how long it took to process the message
+     */
+    public void setProcessMessageDuration(double processMessageDurationSeconds) {
+        this.processMessageDurationSeconds = processMessageDurationSeconds;
     }
 }

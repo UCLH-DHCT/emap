@@ -4,8 +4,8 @@ COPY Emap-Core/set_mvn_proxy.sh /app/
 COPY Emap-Interchange/ /app/Emap-Interchange/
 WORKDIR /app/Emap-Interchange
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true
-COPY Inform-Db/ /app/Inform-Db/
-WORKDIR /app/Inform-Db
+COPY Inform-DB/ /app/Inform-DB/
+WORKDIR /app/Inform-DB
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true
 WORKDIR /app/Emap-Core
 COPY Emap-Core/pom.xml /app/Emap-Core/
