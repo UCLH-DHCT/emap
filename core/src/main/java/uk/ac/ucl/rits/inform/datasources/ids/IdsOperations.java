@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -350,7 +352,7 @@ public class IdsOperations implements AutoCloseable {
 
         try {
             if (!allowedSenders.contains(sender)) {
-                logger.warn(String.format("Skipping message with senderapplication=\"%s\"", sender));
+                logger.warn(String.format("[" + idsMsg.getUnid() + "] Skipping message with senderapplication=\"%s\"", sender));
                 return;
             }
             String hl7msg = idsMsg.getHl7message();
@@ -361,8 +363,9 @@ public class IdsOperations implements AutoCloseable {
             try {
                 msgFromIds = parser.parse(hl7msg);
             } catch (HL7Exception hl7e) {
-                logger.error(hl7e.toString());
-                markAsProcessed = false;
+                StringWriter st = new StringWriter();
+                hl7e.printStackTrace(new PrintWriter(st));
+                logger.error("[" + idsMsg.getUnid() + "] HL7 parsing error:\n" + st.toString());
                 return;
             }
 
@@ -370,18 +373,21 @@ public class IdsOperations implements AutoCloseable {
             // but failure is only expressed on a per-HL7 message basis.
             try {
                 List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
+                int subMessageCount = 0;
                 for (EmapOperationMessage msg : messagesFromHl7Message) {
-                    logger.info("sending message to RabbitMQ ");
+                    subMessageCount++;
+                    logger.info(String.format("[%d] sending message (%d/%d) to RabbitMQ ", idsMsg.getUnid(),
+                            subMessageCount, messagesFromHl7Message.size()));
                     rabbitTemplate.convertAndSend(getHl7DataSource().getQueueName(), msg);
                 }
             } catch (HL7Exception | Hl7InconsistencyException e) {
                 String errMsg =
-                        "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
+                        "[" + idsMsg.getUnid() + "] Skipping due to " + e.getStackTrace() + " (" + msgFromIds.getClass() + ")";
                 logger.error(errMsg);
             }
         } finally {
-            // some errors are so bad that we want to stop processing the pipeline (ie. don't mark message as processed),
-            // but usually we just mark the message processed and carry on
+            // Mark the message processed and carry on, regardless of errors.
+            // Could do with an in-database log for the HL7 parsing. (ids_effect_parsing is for the core processor)
             if (markAsProcessed) {
                 Instant processingEnd = Instant.now();
                 setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
