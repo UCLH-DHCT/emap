@@ -3,8 +3,10 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -16,6 +18,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties({"encounter", "valid", "childFacts", "childFactsAsMap", "parentFact"})
+@Table(indexes = {
+        @Index(name = "parent_fact_index", columnList = "parent_fact", unique = false),
+        @Index(name = "encounter_index", columnList = "encounter", unique = false),
+})
 public class PatientFact extends Fact<PatientFact, PatientProperty> implements Serializable {
 
     private static final long serialVersionUID = -5867434510066589366L;
