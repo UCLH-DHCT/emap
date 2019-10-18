@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +47,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
         "uk.ac.ucl.rits.inform.datasources.ids",
         "uk.ac.ucl.rits.inform.tests",
         "uk.ac.ucl.rits.inform.informdb" })
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class Hl7StreamTestCase {
     @Autowired
     protected IdsOperations idsOps;
