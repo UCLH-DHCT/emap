@@ -459,10 +459,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         case 0:
             hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
             addDemographicsToEncounter(enc, adtMsg);
-            // Need to save here so the hospital visit can be created (and thus
-            // assigned an ID), so we can refer to that ID in the bed visit.
-            // (Bed visits refer to hosp visits explicitly by their IDs).
-            enc = encounterRepo.save(enc);
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
@@ -609,23 +605,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         visitFact.setFactType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
         addLocationToVisit(visitFact, currentBed, visitBeginTime);
-        addParentVisitToVisit(visitFact, parentVisit, visitBeginTime);
+        visitFact.setParentFact(parentVisit);
         enc.addFact(visitFact);
-    }
-
-    /**
-     * @param visitFact   the visit fact to add to
-     * @param parentVisit the parent visit fact to add
-     * @param validFrom   the valid from timestamp to use
-     */
-    private void addParentVisitToVisit(PatientFact visitFact, PatientFact parentVisit, Instant validFrom) {
-        Attribute attr = getCreateAttribute(AttributeKeyMap.PARENT_VISIT);
-        PatientProperty prop = new PatientProperty();
-        prop.setValidFrom(validFrom);
-        prop.setStoredFrom(Instant.now());
-        prop.setAttribute(attr);
-        prop.setValueAsLink(parentVisit.getFactId());
-        visitFact.addProperty(prop);
     }
 
     /**
@@ -765,9 +746,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         } else {
             // Discharge from the bed visit and the hospital visit
             addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
-            PatientFact hospVisit = getOnlyElement(
-                    getOpenVisitFactWhereVisitType(latestOpenBedVisit.getEncounter(), AttributeKeyMap.HOSPITAL_VISIT));
-            // There *should* be exactly 1...
+            PatientFact hospVisit = latestOpenBedVisit.getParentFact();
             addDischargeToVisit(hospVisit, dischargeDateTime);
         }
     }
@@ -828,10 +807,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientProperty bedDischargeTime = getOnlyElement(
                 mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         // Find the hospital visit corresponding to the bed visit
-        Long hospitalVisitId = getOnlyElement(
-                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.PARENT_VISIT, p -> p.isValid()))
-                        .getValueAsLink();
-        PatientFact hospitalVisit = patientFactRepository.findById(hospitalVisitId).get();
+        PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
         PatientProperty hospDischargeTime = getOnlyElement(hospitalVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         // Do the actual cancel by invalidating the discharge time properties.
         bedDischargeTime.setValidUntil(invalidationDate);
