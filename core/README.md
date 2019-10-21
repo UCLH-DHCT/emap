@@ -38,11 +38,11 @@ You could also add `password = foobar` depending on how comfortable you are havi
 
 We use https because outgoing ssh is blocked from the GAE.
 
-Repositories must now be checked out to the correct branches. "Correct" will depend on what you're trying to deploy. Conventionally a live instance would all be deployed off master, but below is what I happened to want to run at the time I set this up.
+Repositories must be checked out to the correct branches. "Correct" will depend on what you're trying to do. Conventionally a live instance would all be deployed off master, but during the development phase `develop` is more likely to be the correct branch. Occasionally you may need to deploy off a feature branch - if in doubt ask the author of that code.
 
  * `git clone --branch idempotentise https://github.com/inform-health-informatics/Emap-Core.git`
  * `git clone --branch master https://github.com/inform-health-informatics/Emap-Interchange.git`
- * `git clone --branch tidyup https://github.com/inform-health-informatics/Inform-DB.git`
+ * `git clone --branch develop https://github.com/inform-health-informatics/Inform-DB.git`
 
 ## config
 
