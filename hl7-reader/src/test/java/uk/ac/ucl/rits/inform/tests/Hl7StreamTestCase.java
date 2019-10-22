@@ -1,12 +1,14 @@
 package uk.ac.ucl.rits.inform.tests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +34,10 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.PatientFact;
+import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
 /**
@@ -109,5 +115,25 @@ public abstract class Hl7StreamTestCase {
         assertTrue("You must specify some HL7 containing files", !hl7StreamFileNames.isEmpty());
         assertEquals("not all messages were processed - some were ignored", totalMessages, processedMessages);
         assertTrue("No messages got processed", totalMessages > 0);
+    }
+
+    /**
+     * Check that the encounter got loaded and has the right data associated with it.
+     *
+     * @param expectedEncounter the encounter ID to look for
+     * @param expectedLocation where the patient is expected to be
+     */
+    @Transactional
+    public void _testEncounterAndBasicLocation(String expectedEncounter, String expectedLocation) {
+        Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
+        assertNotNull("encounter did not exist", enc);
+        Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
+        assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
+        PatientFact bedVisit = factsAsMap.get(AttributeKeyMap.BED_VISIT.getShortname());
+        List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid());
+        assertEquals("There should be exactly one location property for an inpatient bed visit", 1, location.size());
+        PatientProperty loca = location.get(0);
+        assertTrue(loca.isValid());
+        assertEquals("Bedded location not correct", expectedLocation, loca.getValueAsString());
     }
 }
