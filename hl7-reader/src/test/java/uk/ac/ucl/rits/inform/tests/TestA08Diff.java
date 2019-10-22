@@ -38,7 +38,9 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 public class TestA08Diff extends Hl7StreamTestCase {
     public TestA08Diff() {
         super();
-        hl7StreamFileNames.add("A08_diffing.txt");
+        hl7StreamFileNames.add("GenericAdt/A01.txt");
+        hl7StreamFileNames.add("GenericAdt/A08_v1.txt");
+        hl7StreamFileNames.add("GenericAdt/A08_v2.txt");
     }
 
     /**
