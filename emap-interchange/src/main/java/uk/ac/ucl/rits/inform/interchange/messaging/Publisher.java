@@ -103,6 +103,14 @@ public class Publisher implements Runnable, Releasable {
         logger.info("submitted to batch");
     }
 
+    /**
+     * If a semaphore is available, adds message to the waitingMap and publishes message to rabbitmq.
+     *
+     * @param message       Emap message to be sent.
+     * @param correlationId Unique Id for the message. Must not contain a colon character.
+     * @param batchId       Unique Id for the batch, in most cases this can be the correlationId.
+     *                      Must not contain a colon character.
+     */
     private void publish(EmapOperationMessage message, String correlationId, String batchId) {
         logger.info("Sending message to RabbitMQ");
 

@@ -12,6 +12,9 @@ public class MessagesConfirmCallback implements RabbitTemplate.ConfirmCallback {
     private Releasable releasable;
     private Logger logger = LoggerFactory.getLogger(MessagesConfirmCallback.class);
 
+    /**
+     * @param releasable Implementation of releasable
+     */
     MessagesConfirmCallback(Releasable releasable) {
         this.releasable = releasable;
     }

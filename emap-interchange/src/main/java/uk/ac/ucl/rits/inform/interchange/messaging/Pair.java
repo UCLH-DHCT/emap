@@ -17,7 +17,10 @@ public final class Pair<T, U> {
      */
     public final U second;
 
-
+    /**
+     * @param first item
+     * @param second item
+     */
     public Pair(T first, U second) {
         this.second = second;
         this.first = first;

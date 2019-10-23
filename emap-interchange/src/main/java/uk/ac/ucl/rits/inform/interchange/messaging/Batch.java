@@ -25,6 +25,15 @@ public class Batch {
      */
     public final Runnable callback;
 
+    /**
+     *
+     * @param batchId  Unique Id for the batch, in most cases this can be the correlationId.
+     *                 Must not contain a colon character.
+     * @param batch    Batch of messages to be sent (pairs of Emap messages and their unique correlationIds)
+     *                 CorrelationIds should be unique within the batch and not contain a colon character.
+     * @param callback To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
+     *                 Most likely to update the state of progress.
+     */
     public Batch(String batchId, List<Pair<EmapOperationMessage, String>> batch, Runnable callback) {
         if (callback == null) {
             throw new NullPointerException("Runnable is null");
