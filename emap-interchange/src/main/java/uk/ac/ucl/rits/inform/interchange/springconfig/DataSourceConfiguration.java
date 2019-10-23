@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.interchange.springconfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -48,12 +47,19 @@ public class DataSourceConfiguration {
     @Autowired
     private ConnectionFactory connectionFactory;
 
-    private @Value("${rabbitmq.queue.length:100000}") int queueLength;
+    private @Value("${rabbitmq.queue.length:100000}")
+    int queueLength;
 
+    /**
+     * @return connectionFactory with publisherConfirms set to true
+     */
     @Bean
     @Profile("default")
     public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
+                System.getenv("SPRING_RABBITMQ_HOST"),
+                Integer.parseInt(System.getenv("SPRING_RABBITMQ_PORT"))
+        );
         connectionFactory.setPublisherConfirms(true);
         return connectionFactory;
     }
@@ -66,6 +72,10 @@ public class DataSourceConfiguration {
     public RabbitTemplate rabbitTemp() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         String queueName = getEmapDataSource().getQueueName();
+        System.out.printf("trying to create queue %s, %s, %s, %s\n", queueName,
+                System.getenv("SPRING_RABBITMQ_HOST"),
+                System.getenv("SPRING_RABBITMQ_PASSWORD"),
+                System.getenv("SPRING_RABBITMQ_USERNAME"));
         Map<String, Object> args = new HashMap<>();
         args.put("x-max-length", queueLength);
         args.put("x-overflow", "reject-publish");
