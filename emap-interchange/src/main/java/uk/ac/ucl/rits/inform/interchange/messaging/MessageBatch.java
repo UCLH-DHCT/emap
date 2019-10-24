@@ -7,9 +7,10 @@ import java.util.List;
 /**
  * Bundles a batch of messages, batchId and callback together.
  *
+ * @param <T> Any child of EmapOperationMessage so that you can pass in child class directly.
  * @author Stef Piatek
  */
-public class Batch {
+public class MessageBatch<T extends EmapOperationMessage> {
     /**
      * @param batchId Unique ID for an entire batch. In most cases this can be the callbackId of the last item in the batch.
      */
@@ -18,7 +19,7 @@ public class Batch {
     /**
      * @param batch List of paired messages and their callbackIds
      */
-    public final List<Pair<EmapOperationMessage, String>> batch;
+    public final List<Pair<T, String>> batch;
 
     /**
      * @param callback Runnable to update processing state after all messages in the queue being successfully published.
@@ -26,7 +27,6 @@ public class Batch {
     public final Runnable callback;
 
     /**
-     *
      * @param batchId  Unique Id for the batch, in most cases this can be the correlationId.
      *                 Must not contain a colon character.
      * @param batch    Batch of messages to be sent (pairs of Emap messages and their unique correlationIds)
@@ -34,7 +34,7 @@ public class Batch {
      * @param callback To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                 Most likely to update the state of progress.
      */
-    public Batch(String batchId, List<Pair<EmapOperationMessage, String>> batch, Runnable callback) {
+    public MessageBatch(String batchId, List<Pair<T, String>> batch, Runnable callback) {
         if (callback == null) {
             throw new NullPointerException("Runnable is null");
         }

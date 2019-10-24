@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class Publisher implements Runnable, Releasable {
     private RabbitTemplate rabbitTemplate;
     private Semaphore semaphore;
-    private final BlockingQueue<Batch> blockingQueue;
+    private final BlockingQueue<MessageBatch<? extends EmapOperationMessage>> blockingQueue;
     private Map<String, EmapOperationMessage> waitingMap;
     private Map<String, Pair<Integer, Runnable>> batchWaitingMap;
     private ScheduledThreadPoolExecutor executorService;
@@ -75,7 +75,6 @@ public class Publisher implements Runnable, Releasable {
      *                      Most likely to update the state of progress.
      */
     public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback) {
-        // don't bother with different ids here?
         Pair<EmapOperationMessage, String> pair = new Pair<>(message, correlationId);
         List<Pair<EmapOperationMessage, String>> list = new ArrayList<>();
         list.add(pair);
@@ -88,19 +87,24 @@ public class Publisher implements Runnable, Releasable {
      * @param batch    Batch of messages to be sent (pairs of Emap messages and their unique correlationIds)
      *                 CorrelationIds should be unique within the batch and not contain a colon character.
      * @param batchId  Unique Id for the batch, in most cases this can be the first correlationId of the batch.
-     *                 *          Must not contain a colon character.
+     *                 Must not contain a colon character.
      * @param callback To be run on receipt of a successful acknowledgement of publishing all messages in batch from rabbitmq
-     *                 *          Most likely to update the state of progress
+     *                 Most likely to update the state of progress
+     * @param <T>      Any child of EmapOperationMessage so that you can pass in child class directly.
      */
-    public void submit(List<Pair<EmapOperationMessage, String>> batch, String batchId, Runnable callback) {
-        logger.info("submitting to batch");
-        Batch submitBatch = new Batch(batchId, batch, callback);
+    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback) {
+        if (batchWaitingMap.containsKey(batchId)) {
+            logger.warn(String.format("Queue with a batchId of %s already exists", batchId));
+            return;
+        }
+
+        MessageBatch<T> submitBatch = new MessageBatch<>(batchId, batch, callback);
         try {
             blockingQueue.put(submitBatch);
         } catch (InterruptedException e) {
-            logger.error("Waiting to submit a batch was interrupted\n", e);
+            logger.error("Waiting to submit a batch was interrupted", e);
         }
-        logger.info("submitted to batch");
+        logger.info(String.format("BatchId %s was submitted to Publisher batches", batchId));
     }
 
     /**
@@ -118,7 +122,7 @@ public class Publisher implements Runnable, Releasable {
         try {
             semaphore.acquire();
         } catch (InterruptedException e) {
-            logger.error("Waiting to send message to rabbitmq was interrupted\n", e);
+            logger.error("Waiting to send message to rabbitmq was interrupted", e);
         }
         waitingMap.put(correlationId, message);
         rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
@@ -130,17 +134,15 @@ public class Publisher implements Runnable, Releasable {
     public void run() {
         while (true) {
             try {
-                Batch batch = blockingQueue.take();
-                System.out.println(batch);
-                batchWaitingMap.put(batch.batchId, new Pair<>(batch.batch.size(), batch.callback));
-                for (Pair<EmapOperationMessage, String> pair : batch.batch) {
-                    System.out.println(pair);
-                    publish(pair.first, pair.second, batch.batchId);
+                MessageBatch<? extends EmapOperationMessage> messageBatch = blockingQueue.take();
+                batchWaitingMap.put(messageBatch.batchId, new Pair<>(messageBatch.batch.size(), messageBatch.callback));
+                for (Pair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
+                    publish(pair.first, pair.second, messageBatch.batchId);
                 }
 
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Publisher thread interrupted", e);
             }
         }
     }
@@ -149,7 +151,7 @@ public class Publisher implements Runnable, Releasable {
     public void finishedSending(String correlationId) {
         String[] ids = correlationId.split(":");
         if (ids.length != 2) {
-            logger.error("Colon was present in correlationId or batchId provided\n");
+            logger.error("Colon was present in correlationId or batchId provided");
             throw new IllegalStateException("Colon was present in correlationId or batchId provided");
         }
 
@@ -176,7 +178,7 @@ public class Publisher implements Runnable, Releasable {
                 batchWaitingMap.put(ids[1], new Pair<>(count, batchState.second));
             }
         }
-        logger.info(String.format("Sent %s\n", correlationId));
+        logger.info(String.format("Sent %s", correlationId));
 
     }
 
@@ -188,7 +190,7 @@ public class Publisher implements Runnable, Releasable {
 
         String[] ids = correlationId.split(":");
         if (ids.length != 2) {
-            logger.error("Colon was present in correlationId or batchId provided\n");
+            logger.error("Colon was present in correlationId or batchId provided");
             throw new IllegalStateException("Colon was present in correlationId or batchId provided");
         }
         final EmapOperationMessage message = waitingMap.get(ids[0]);
@@ -197,7 +199,7 @@ public class Publisher implements Runnable, Releasable {
         executorService.schedule(new Runnable() {
             @Override
             public void run() {
-                logger.info(String.format("Resending message with correlationData: %s\n", correlationData));
+                logger.info(String.format("Resending message with correlationData: %s", correlationData));
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
             }
         }, 5, TimeUnit.SECONDS);

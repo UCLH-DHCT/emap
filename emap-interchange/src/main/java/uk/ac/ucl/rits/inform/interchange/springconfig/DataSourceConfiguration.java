@@ -72,10 +72,6 @@ public class DataSourceConfiguration {
     public RabbitTemplate rabbitTemp() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         String queueName = getEmapDataSource().getQueueName();
-        System.out.printf("trying to create queue %s, %s, %s, %s\n", queueName,
-                System.getenv("SPRING_RABBITMQ_HOST"),
-                System.getenv("SPRING_RABBITMQ_PASSWORD"),
-                System.getenv("SPRING_RABBITMQ_USERNAME"));
         Map<String, Object> args = new HashMap<>();
         args.put("x-max-length", queueLength);
         args.put("x-overflow", "reject-publish");
