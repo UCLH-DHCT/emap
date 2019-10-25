@@ -12,6 +12,7 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -43,6 +44,8 @@ public class DataSourceConfiguration {
 
     @Autowired
     private EmapDataSource emapDataSource;
+    @Autowired
+    private RabbitProperties props;
 
     @Autowired
     private ConnectionFactory connectionFactory;
@@ -56,12 +59,9 @@ public class DataSourceConfiguration {
     @Bean
     @Profile("default")
     public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
-                System.getenv("SPRING_RABBITMQ_HOST"),
-                Integer.parseInt(System.getenv("SPRING_RABBITMQ_PORT"))
-        );
-        connectionFactory.setUsername(System.getenv("SPRING_RABBITMQ_USERNAME"));
-        connectionFactory.setPassword(System.getenv("SPRING_RABBITMQ_PASSWORD"));
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(this.props.getHost(), this.props.getPort());
+        connectionFactory.setUsername(this.props.getUsername());
+        connectionFactory.setPassword(this.props.getPassword());
         connectionFactory.setPublisherConfirms(true);
         return connectionFactory;
     }
