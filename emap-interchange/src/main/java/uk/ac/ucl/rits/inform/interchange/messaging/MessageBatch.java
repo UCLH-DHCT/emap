@@ -12,17 +12,17 @@ import java.util.List;
  */
 public class MessageBatch<T extends EmapOperationMessage> {
     /**
-     * @param batchId Unique ID for an entire batch. In most cases this can be the callbackId of the last item in the batch.
+     * @param batchId Unique ID for an entire batch. In most cases this can be the correlationIDs of the last item in the batch.
      */
     public final String batchId;
 
     /**
-     * @param batch List of paired messages and their callbackIds
+     * @param batch List of paired messages and their correlationIDs
      */
     public final List<Pair<T, String>> batch;
 
     /**
-     * @param callback Runnable to update processing state after all messages in the queue being successfully published.
+     * @param callback Runnable to update processing state after all messages in the batch being successfully published.
      */
     public final Runnable callback;
 
@@ -43,6 +43,9 @@ public class MessageBatch<T extends EmapOperationMessage> {
         }
         if (batch.isEmpty()) {
             throw new IllegalArgumentException("Batch is empty ");
+        }
+        if (batchId.contains(":")) {
+            throw new IllegalArgumentException("batchId contains a colon character");
         }
         this.batchId = batchId;
         this.batch = batch;

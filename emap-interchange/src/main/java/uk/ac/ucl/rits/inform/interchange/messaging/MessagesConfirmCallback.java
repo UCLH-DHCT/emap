@@ -27,7 +27,7 @@ public class MessagesConfirmCallback implements RabbitTemplate.ConfirmCallback {
         if (ack) {
             releasable.finishedSending(correlationData.getId());
         } else {
-            logger.info(String.format("Message nack received cause: %s, %s", correlationData, cause));
+            logger.debug(String.format("Message nack received cause: %s, %s", correlationData, cause));
             releasable.failedSending(correlationData.getId());
         }
     }

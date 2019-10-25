@@ -112,7 +112,9 @@ public class Publisher implements Runnable, Releasable {
     }
 
     /**
-     * If a semaphore is available, adds message to the waitingMap and publishes message to rabbitmq.
+     * If the number of messages published to rabbitmq queue is less than the maximum number of elements in flight,
+     * then the message will be added to the waitingMap and published to rabbitmq.
+     * Otherwise the it will block here and keep on retrying until an acknowledgement of reciept from rabbitmq is received.
      *
      * @param message       Emap message to be sent.
      * @param correlationId Unique Id for the message. Must not contain a colon character.
@@ -133,7 +135,8 @@ public class Publisher implements Runnable, Releasable {
     }
 
     /**
-     *
+     * Takes batches of submitted messages from the blockingQueue, tracks the batch as waiting
+     * and attempts to sequentially publish the messages in the queue to rabbitmq.
      */
     public void run() {
         while (true) {
@@ -143,14 +146,23 @@ public class Publisher implements Runnable, Releasable {
                 for (Pair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
                     publish(pair.first, pair.second, messageBatch.batchId);
                 }
-                // remove the wait here?
-                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 logger.error("Publisher thread interrupted", e);
             }
         }
     }
 
+    /**
+     * On acknowledgement from rabbitmq allow new messages to be sent and run the batch's callback runnable
+     * (most likely to update the progress). If the entire batch has been successfully finished, then allow space
+     * for another batch to be added to the Publisher.
+     *
+     * There are two possible states that this is called from:
+     * - If there have been no nacks received: Free up a single space for a new message to be sent
+     * - If there has been a nack and this is the first ack: Free up all spaces for new messages to be published again.
+     *
+     * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
+     */
     @Override
     public void finishedSending(String correlationId) {
         String[] ids = correlationId.split(":");
@@ -186,6 +198,11 @@ public class Publisher implements Runnable, Releasable {
 
     }
 
+    /**
+     * On a nack response, no new messages will be sent, attempting to resend the messages that have failed to publish.
+     * TODO: parameterise delay and implement exponential backoff
+     * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
+     */
     @Override
     public void failedSending(final String correlationId) {
         // On first Nack, drain all permits so only retries will be republished
@@ -206,7 +223,7 @@ public class Publisher implements Runnable, Releasable {
                 logger.info(String.format("Resending message with correlationData: %s", correlationData));
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
             }
-        }, 5, TimeUnit.SECONDS); // parameterise the delay?
+        }, 5, TimeUnit.SECONDS); // parameterise the delay and have an exponential backoff
     }
 }
 
