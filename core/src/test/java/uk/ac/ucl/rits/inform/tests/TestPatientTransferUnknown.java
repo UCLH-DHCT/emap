@@ -1,11 +1,5 @@
-/**
- * 
- */
 package uk.ac.ucl.rits.inform.tests;
 
-import java.time.Instant;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -25,14 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class TestDischargeUnknown extends Hl7StreamTestCase {
+public class TestPatientTransferUnknown extends Hl7StreamTestCase {
     /**
-     * Discharging a patient we have not previously seen should create the patient and then discharge them.
-     * Transfer record won't be known but that could potentially be filled in later (from eg. Caboodle).
+     * Transferring a patient we have not previously seen should create the patient with the given info.
+     * Previous history won't be known but that could potentially be filled in later (from eg. Caboodle).
      */
-    public TestDischargeUnknown() {
+    public TestPatientTransferUnknown() {
         super();
-        hl7StreamFileNames.add("GenericAdt/A03.txt");
+        hl7StreamFileNames.add("GenericAdt/A02.txt");
     }
 
     /**
@@ -41,6 +35,6 @@ public class TestDischargeUnknown extends Hl7StreamTestCase {
     @Test
     @Transactional
     public void testEncounterExists() {
-        _testSingleEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17", Instant.parse("2013-02-11T10:00:00Z"));
+        _testSingleEncounterAndBasicLocation("123412341234", "T12S^T12S BY05^BY05-33", null);
     }
 }

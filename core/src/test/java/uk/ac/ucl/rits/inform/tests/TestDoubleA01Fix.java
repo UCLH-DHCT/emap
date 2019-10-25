@@ -39,6 +39,6 @@ public class TestDoubleA01Fix extends Hl7StreamTestCase {
     @Transactional
     public void testEncounterExists() {
         // the location of the second A01 (the correction) should be used
-        _testEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17");
+        _testSingleEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17", null);
     }
 }
