@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Publishes messages to rabbitmq, resending messages that receive a nack messaged.
+ *
+ * @ author Stef Piatek
  */
 @Component
 public class Publisher implements Runnable, Releasable {
@@ -93,12 +95,14 @@ public class Publisher implements Runnable, Releasable {
      * @param <T>      Any child of EmapOperationMessage so that you can pass in child class directly.
      */
     public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback) {
-        if (batchWaitingMap.containsKey(batchId)) {
+        MessageBatch<T> submitBatch = new MessageBatch<>(batchId, batch, callback);
+
+        // If queue is full for longer than the scan for new messages, then the progress would not have been updated
+        // so check ensure that we're not adding a duplicate batchId of one in progress or a waiting batch
+        if (batchWaitingMap.containsKey(batchId) | blockingQueue.contains(submitBatch)) {
             logger.warn(String.format("Queue with a batchId of %s already exists", batchId));
             return;
         }
-
-        MessageBatch<T> submitBatch = new MessageBatch<>(batchId, batch, callback);
         try {
             blockingQueue.put(submitBatch);
         } catch (InterruptedException e) {
@@ -139,7 +143,7 @@ public class Publisher implements Runnable, Releasable {
                 for (Pair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
                     publish(pair.first, pair.second, messageBatch.batchId);
                 }
-
+                // remove the wait here?
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 logger.error("Publisher thread interrupted", e);
@@ -169,13 +173,13 @@ public class Publisher implements Runnable, Releasable {
         }
         synchronized (batchWaitingMap) {
             Pair<Integer, Runnable> batchState = batchWaitingMap.get(ids[1]);
-            int count = batchState.first - 1;
-            if (count == 0) {
+            int countOfWaitingMessages = batchState.first - 1;
+            if (countOfWaitingMessages == 0) {
                 batchWaitingMap.remove(ids[1]);
                 // Real work done in a separate thread so that it doesn't block the event thread
                 executorService.execute(batchState.second);
             } else {
-                batchWaitingMap.put(ids[1], new Pair<>(count, batchState.second));
+                batchWaitingMap.put(ids[1], new Pair<>(countOfWaitingMessages, batchState.second));
             }
         }
         logger.info(String.format("Sent %s", correlationId));
@@ -202,7 +206,7 @@ public class Publisher implements Runnable, Releasable {
                 logger.info(String.format("Resending message with correlationData: %s", correlationData));
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
             }
-        }, 5, TimeUnit.SECONDS);
+        }, 5, TimeUnit.SECONDS); // parameterise the delay?
     }
 }
 
