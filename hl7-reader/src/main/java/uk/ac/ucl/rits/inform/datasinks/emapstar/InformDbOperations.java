@@ -937,9 +937,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
-            logger.warn("Couldn't find patient, creating...");
-            encounter = admitPatient(adtMsg);
-            return;
+            // Don't infer an admission with a patient update info message, because it seems
+            // these sometimes occur independently of a patient being present in hospital.
+            // They can have a null admission date, which causes a failed validFrom non-null constraint.
+            // We may have to be more selective about this, maybe the EVN-4 can tell us
+            // what the reason/circumstances were.
+            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
         }
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg);

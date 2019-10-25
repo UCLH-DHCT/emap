@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.tests;
 
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -9,6 +11,8 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import uk.ac.ucl.rits.inform.informdb.Encounter;
 
 /**
  *
@@ -21,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class TestPatientUpdateUnknown extends Hl7StreamTestCase {
     /**
-     * Updating info for a patient we have not previously seen should create the patient with the given info.
-     * Previous history won't be known but that could potentially be filled in later (from eg. Caboodle).
+     * Updating info for a patient we have not previously seen should NOT create a patient.
      */
     public TestPatientUpdateUnknown() {
         super();
@@ -34,7 +37,8 @@ public class TestPatientUpdateUnknown extends Hl7StreamTestCase {
      */
     @Test
     @Transactional
-    public void testEncounterExists() {
-        _testSingleEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17", null);
+    public void testEncounterNotExists() {
+        Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
+        assertNull("encounter exists", enc);
     }
 }
