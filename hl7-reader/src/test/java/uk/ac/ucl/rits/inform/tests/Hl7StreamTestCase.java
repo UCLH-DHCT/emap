@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -122,18 +123,29 @@ public abstract class Hl7StreamTestCase {
      *
      * @param expectedEncounter the encounter ID to look for
      * @param expectedLocation where the patient is expected to be
+     * @param expectedDischargeTime when this encounter should have been discharged, or null if it's expected to be still open
      */
     @Transactional
-    public void _testEncounterAndBasicLocation(String expectedEncounter, String expectedLocation) {
+    public void _testSingleEncounterAndBasicLocation(String expectedEncounter, String expectedLocation, Instant expectedDischargeTime) {
         Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
         assertNotNull("encounter did not exist", enc);
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
         assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
         PatientFact bedVisit = factsAsMap.get(AttributeKeyMap.BED_VISIT.getShortname());
+
         List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid());
         assertEquals("There should be exactly one location property for an inpatient bed visit", 1, location.size());
         PatientProperty loca = location.get(0);
         assertTrue(loca.isValid());
         assertEquals("Bedded location not correct", expectedLocation, loca.getValueAsString());
+
+        List<PatientProperty> dischargeTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid());
+        if (expectedDischargeTime == null) {
+            assertEquals("There is an unexpected discharge", 0, dischargeTimes.size());
+        } else {
+            PatientProperty disch = dischargeTimes.get(0);
+            assertEquals("Discharge time does not match", expectedDischargeTime, disch.getValueAsDatetime());
+
+        }
     }
 }

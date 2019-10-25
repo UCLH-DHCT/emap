@@ -166,7 +166,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             returnCode = "OK";
             switch (adtMsg.getOperationType()) {
             case ADMIT_PATIENT:
-                addEncounter(adtMsg);
+                admitPatient(adtMsg);
                 break;
             case TRANSFER_PATIENT:
                 transferPatient(adtMsg);
@@ -412,7 +412,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             Encounter enc = new Encounter();
             Instant storedFrom = Instant.now();
             enc.setEncounter(encounter);
-            Instant validFrom = adtMsg.getEventOccurredDateTime();
+            Instant validFrom = adtMsg.getAdmissionDateTime();
             mrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         } else if (existingEncs.size() > 1) {
@@ -436,7 +436,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapStarIntegrityException if there's a contradiction in the DB
      */
     @Transactional
-    public Encounter addEncounter(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+    public Encounter admitPatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtMsg.getMrn();
         Instant admissionTime = adtMsg.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -643,9 +643,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param adtMsg usually an A02 message but can be an A08
      * @throws MessageIgnoredException if message can't be processed
+     * @throws EmapStarIntegrityException if a contradiction between DB and the incoming message or itself
+     * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    public void transferPatient(AdtMessage adtMsg) throws MessageIgnoredException {
+    public void transferPatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
@@ -657,7 +659,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
 
         if (encounter == null) {
-            throw new MessageIgnoredException("Cannot transfer an encounter that doesn't exist: " + visitNumber);
+            logger.warn("Received transfer for patient we don't know about - admitting them");
+            encounter = admitPatient(adtMsg);
+            return;
         }
 
         List<PatientFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
@@ -722,15 +726,18 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param adtWrap the A03 message detailing the discharge
      * @throws MessageIgnoredException if message can't be processed
+     * @throws EmapStarIntegrityException contradiction in the DB
+     * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    public void dischargePatient(AdtMessage adtWrap) throws MessageIgnoredException {
+    public void dischargePatient(AdtMessage adtWrap) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtWrap.getMrn();
         String visitNumber = adtWrap.getVisitNumber();
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
-            throw new MessageIgnoredException("Cannot discharge for a visit that doesn't exist: " + visitNumber);
+            // If encounter was not known about, create it before discharging it
+            encounter = admitPatient(adtWrap);
         }
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT));
         if (latestOpenBedVisit == null) {
@@ -920,17 +927,20 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param adtMsg the message with the patient info
      * @throws MessageIgnoredException if message can't be processed
+     * @throws EmapStarIntegrityException if there's a contradiction in the DB
+     * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    private void updatePatientInfo(AdtMessage adtMsg) throws MessageIgnoredException {
+    private void updatePatientInfo(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String visitNumber = adtMsg.getVisitNumber();
         String newLocation = adtMsg.getFullLocationString();
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
-            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+            logger.warn("Couldn't find patient, creating...");
+            encounter = admitPatient(adtMsg);
+            return;
         }
-
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg);
         Map<String, PatientFact> currentDemographics = getValidStoredDemographicFacts(encounter).stream()
@@ -950,8 +960,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                     visitNumber, knownlocation.getValueAsString(), newLocation));
             transferPatient(adtMsg);
         }
-
-        encounter = encounterRepo.save(encounter);
     }
 
     /**
