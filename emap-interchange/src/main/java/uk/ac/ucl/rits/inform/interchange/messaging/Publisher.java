@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Publishes messages to rabbitmq, resending messages that receive a nack messaged.
  *
- * @ author Stef Piatek
+ * @author Stef Piatek
  */
 @Component
 public class Publisher implements Runnable, Releasable {

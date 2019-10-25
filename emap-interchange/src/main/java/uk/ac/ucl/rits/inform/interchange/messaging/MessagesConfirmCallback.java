@@ -8,7 +8,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 /**
  * Receives callback acknowledgement and runs correct releasable method based on the ack.
  *
- * @ author Stef Piatek
+ * @author Stef Piatek
  */
 public class MessagesConfirmCallback implements RabbitTemplate.ConfirmCallback {
     private Releasable releasable;
