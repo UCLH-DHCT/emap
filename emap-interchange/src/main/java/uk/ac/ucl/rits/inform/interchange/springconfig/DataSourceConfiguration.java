@@ -60,6 +60,8 @@ public class DataSourceConfiguration {
                 System.getenv("SPRING_RABBITMQ_HOST"),
                 Integer.parseInt(System.getenv("SPRING_RABBITMQ_PORT"))
         );
+        connectionFactory.setUsername(System.getenv("SPRING_RABBITMQ_USERNAME"));
+        connectionFactory.setPassword(System.getenv("SPRING_RABBITMQ_PASSWORD"));
         connectionFactory.setPublisherConfirms(true);
         return connectionFactory;
     }
