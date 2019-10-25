@@ -737,7 +737,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
             // If encounter was not known about, create it before discharging it
-            encounter = admitPatient(adtWrap);
+            if (adtWrap.getAdmissionDateTime() == null) {
+                throw new MessageIgnoredException(
+                        "Cannot find the visit " + visitNumber + " and we don't know the admission date so can't create an admission");
+            } else {
+                encounter = admitPatient(adtWrap);
+            }
         }
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT));
         if (latestOpenBedVisit == null) {
