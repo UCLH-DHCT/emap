@@ -488,7 +488,7 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
     }
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) {
+    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         return processor.processMessage(this);
     }
 

@@ -10,16 +10,19 @@ public interface EmapOperationMessageProcessor {
     /**
      * @param msg the pathology order message to process
      * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(PathologyOrder msg);
+    String processMessage(PathologyOrder msg) throws EmapOperationMessageProcessingException;
     /**
      * @param msg the ADT message to process
      * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(AdtMessage msg);
+    String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException;
     /**
      * @param msg the vital signs message to process
      * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(VitalSigns msg);
+    String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException;
 }
