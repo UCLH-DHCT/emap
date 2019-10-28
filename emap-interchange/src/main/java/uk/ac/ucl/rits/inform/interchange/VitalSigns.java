@@ -136,9 +136,10 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) {
+    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         return processor.processMessage(this);
     }
 }
