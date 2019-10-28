@@ -1,8 +1,6 @@
 version: '3.2'
 services:
     emapstar:
-        environment:
-            NODE_ENV: test
         build:
             context: ..
             dockerfile: Emap-Core/Dockerfile.emapstar
@@ -16,8 +14,6 @@ services:
         logging:
             driver: "json-file"
     hl7source:
-        environment:
-            NODE_ENV: test
         build:
             context: ..
             dockerfile: Emap-Core/Dockerfile.hl7source
@@ -34,3 +30,6 @@ services:
         image: rabbitmq:management
         env_file:
             - rabbit-envs
+        ports:
+            - "${RABBITMQ_PORT}:5672"
+            - "${RABBITMQ_ADMIN_PORT}:15672"
