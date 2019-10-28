@@ -241,12 +241,11 @@ public class IdsOperations implements AutoCloseable {
      * Entry point for populating a test IDS from a file specified on the command
      * line.
      *
-     * @param ids IDS operations objects
      * @return The CommandLineRunner
      */
     @Bean
     @Profile("populate")
-    public CommandLineRunner populateIDS(IdsOperations ids) {
+    public CommandLineRunner populateIDS() {
         return (args) -> {
             HapiContext context = HL7Utils.initializeHapiContext();
             String hl7fileSource = args[0];
@@ -264,10 +263,9 @@ public class IdsOperations implements AutoCloseable {
                 PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
                         adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
 
-                ids.writeToIds(singleMessageText, count, patientInfoHl7);
+                this.writeToIds(singleMessageText, count, patientInfoHl7);
             }
             logger.info("Wrote " + count + " messages to IDS");
-            ids.close();
             context.close();
         };
     }
