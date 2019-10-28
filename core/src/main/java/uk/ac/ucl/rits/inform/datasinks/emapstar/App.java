@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
 /**
@@ -125,11 +126,17 @@ public class App {
                     Duration processMessageDuration = Duration.between(doneQueueReadTime, doneProcessMessageTime);
                     idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
                     idsEffectLogging.setReturnStatus(returnCode);
-                } catch (Throwable th) {
+                } catch (EmapOperationMessageProcessingException e) {
                     // All errors that allow the message to be skipped should be logged
                     // using the return code from processMessage.
+                    idsEffectLogging.setReturnStatus(e.getReturnCode());
+                    idsEffectLogging.setMessage(e.getMessage());
+                    idsEffectLogging.setStackTrace(e);
+                } catch (Throwable th) {
                     // For anything else, at least log it before exiting.
                     idsEffectLogging.setReturnStatus("Unexpected exception: " + th.toString());
+                    idsEffectLogging.setMessage(th.getMessage());
+                    idsEffectLogging.setStackTrace(th);
                     throw th;
                 } finally {
                     idsEffectLogging.setProcessingEndTime(Instant.now());
