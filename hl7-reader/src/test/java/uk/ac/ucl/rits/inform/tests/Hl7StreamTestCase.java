@@ -40,6 +40,7 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
  * A test case that first loads in and processes a stream of HL7 messages from one or more text files.
@@ -71,8 +72,8 @@ public abstract class Hl7StreamTestCase {
     // to this list in order.
     protected List<String> hl7StreamFileNames = new ArrayList<>();
 
-    private int totalMessages;
-    private int processedMessages;
+    protected int totalMessages;
+    protected int processedMessages;
 
     /**
      * Load in a sequence of HL7 message(s) in preparation for the tests.
@@ -83,7 +84,7 @@ public abstract class Hl7StreamTestCase {
      */
     @Before
     @Transactional
-    public void setup() throws IOException, HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+    public void setup() throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
         totalMessages = 0;
         processedMessages = 0;
         if (mrnRepo.count() == 0) {

@@ -51,6 +51,7 @@ import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
@@ -133,68 +134,49 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Process a pathology order message.
      * @param pathologyOrder the message
      * @return the return code
+     * @throws EmapOperationMessageProcessingException if message could not be processed
      */
     @Override
     @Transactional
-    public String processMessage(PathologyOrder pathologyOrder) {
-        String returnCode;
-        try {
-            addOrUpdatePathologyOrder(pathologyOrder);
-            // be more specific about the type of OK in future
-            returnCode = "OK";
-        } catch (MessageIgnoredException e) {
-            logger.warn("Pathology order message ignored due to: " + e);
-            returnCode = e.getClass().getSimpleName();
-        } catch (EmapStarIntegrityException e) {
-            logger.error(
-                    "Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
-            e.printStackTrace();
-            returnCode = e.getClass().getSimpleName();
-        }
-        return returnCode;
+    public String processMessage(PathologyOrder pathologyOrder) throws EmapOperationMessageProcessingException {
+        addOrUpdatePathologyOrder(pathologyOrder);
+        // be more specific about the type of OK in future
+        return "OK";
     }
 
     /**
      * Process a patient movement (ADT) message.
      * @param adtMsg the message
+     * @throws EmapOperationMessageProcessingException if message could not be processed
      */
     @Override
     @Transactional
-    public String processMessage(AdtMessage adtMsg) {
+    public String processMessage(AdtMessage adtMsg) throws EmapOperationMessageProcessingException {
         String returnCode;
-        try {
-            returnCode = "OK";
-            switch (adtMsg.getOperationType()) {
-            case ADMIT_PATIENT:
-                admitPatient(adtMsg);
-                break;
-            case TRANSFER_PATIENT:
-                transferPatient(adtMsg);
-                break;
-            case DISCHARGE_PATIENT:
-                dischargePatient(adtMsg);
-                break;
-            case UPDATE_PATIENT_INFO:
-                updatePatientInfo(adtMsg);
-                break;
-            case CANCEL_DISCHARGE_PATIENT:
-                cancelDischargePatient(adtMsg);
-                break;
-            case MERGE_BY_ID:
-                mergeById(adtMsg);
-                break;
-            default:
-                returnCode = "Not implemented";
-                logger.error(returnCode);
-                break;
-            }
-        } catch (MessageIgnoredException | InvalidMrnException e) {
-            logger.error("Message ignored due to: " + e.toString());
-            returnCode = e.getClass().getSimpleName();
-        } catch (EmapStarIntegrityException e) {
-            logger.error("Message cannot be ignored but we have yet to implement the right error handling: " + e.toString());
-            e.printStackTrace();
-            returnCode = e.getClass().getSimpleName();
+        returnCode = "OK";
+        switch (adtMsg.getOperationType()) {
+        case ADMIT_PATIENT:
+            admitPatient(adtMsg);
+            break;
+        case TRANSFER_PATIENT:
+            transferPatient(adtMsg);
+            break;
+        case DISCHARGE_PATIENT:
+            dischargePatient(adtMsg);
+            break;
+        case UPDATE_PATIENT_INFO:
+            updatePatientInfo(adtMsg);
+            break;
+        case CANCEL_DISCHARGE_PATIENT:
+            cancelDischargePatient(adtMsg);
+            break;
+        case MERGE_BY_ID:
+            mergeById(adtMsg);
+            break;
+        default:
+            returnCode = "Not implemented";
+            logger.error(returnCode);
+            break;
         }
         return returnCode;
     }
@@ -406,8 +388,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private Encounter getCreateEncounter(Mrn mrn, AdtMessage adtMsg) throws MessageIgnoredException {
         logger.info("getCreateEncounter");
         String encounter = adtMsg.getVisitNumber();
-        List<Encounter> existingEncs = getEncounterWhere(mrn, encounter);
-        if (existingEncs == null || existingEncs.isEmpty()) {
+        Encounter existingEnc = getOnlyElement(getEncounterWhere(mrn, encounter));
+        if (existingEnc == null) {
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
             Instant storedFrom = Instant.now();
@@ -415,13 +397,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             Instant validFrom = adtMsg.getAdmissionDateTime();
             mrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
-        } else if (existingEncs.size() > 1) {
-            throw new MessageIgnoredException(
-                    "More than one encounter with this ID, not sure how to handle this yet: " + encounter);
         } else {
             // return the only element
             logger.info("getCreateEncounter RETURNING EXISTING");
-            return existingEncs.get(0);
+            return existingEnc;
         }
     }
 
@@ -478,7 +457,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             openBedVisit.invalidateAll(invalidTime);
             break;
         default:
-            throw new MessageIgnoredException("More than 1 (count = " + allHospitalVisits.size()
+            throw new MessageIgnoredException(adtMsg, "More than 1 (count = " + allHospitalVisits.size()
                     + ") hospital visits in encounter " + adtMsg.getVisitNumber());
         }
         // create a new bed visit with the new (or updated) location
@@ -683,7 +662,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             eventOccurred = adtMsg.getRecordedDateTime();
         }
         if (latestOpenBedVisits.isEmpty()) {
-            throw new MessageIgnoredException(
+            throw new MessageIgnoredException(adtMsg,
                     "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
         }
         PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
@@ -698,7 +677,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // following an A08 implied transfer. Let's see what it does in the real data...
             String err = "[mrn " + mrnStr + "] REDUNDANT transfer, location has not changed: " + currentKnownLocation;
             logger.warn(err);
-            throw new MessageIgnoredException(err);
+            throw new MessageIgnoredException(adtMsg, err);
         }
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
 
@@ -714,7 +693,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // add a new visit to the current encounter
         Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
         if (encounter != encounterDoubleCheck) {
-            throw new MessageIgnoredException("Different encounter: " + encounter + " | " + encounterDoubleCheck);
+            throw new MessageIgnoredException(adtMsg, "Different encounter: " + encounter + " | " + encounterDoubleCheck);
         }
         List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
@@ -738,7 +717,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (encounter == null) {
             // If encounter was not known about, create it before discharging it
             if (adtWrap.getAdmissionDateTime() == null) {
-                throw new MessageIgnoredException(
+                throw new MessageIgnoredException(adtWrap,
                         "Cannot find the visit " + visitNumber + " and we don't know the admission date so can't create an admission");
             } else {
                 encounter = admitPatient(adtWrap);
@@ -746,7 +725,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT));
         if (latestOpenBedVisit == null) {
-            throw new MessageIgnoredException(
+            throw new MessageIgnoredException(adtWrap,
                     "No open bed visit, cannot discharge, did you miss an A13? visit " + visitNumber);
         }
         Instant eventOccurred = adtWrap.getEventOccurredDateTime();
@@ -754,7 +733,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         logger.info("DISCHARGE: MRN " + mrnStr);
         logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
         if (dischargeDateTime == null) {
-            throw new MessageIgnoredException("Trying to discharge but the discharge date is null");
+            throw new MessageIgnoredException(adtWrap, "Trying to discharge but the discharge date is null");
         } else {
             // Discharge from the bed visit and the hospital visit
             addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
@@ -797,12 +776,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant invalidationDate = adtMsg.getEventOccurredDateTime();
         // this must be non-null or the invalidation won't work
         if (invalidationDate == null) {
-            throw new MessageIgnoredException("Trying to cancel discharge but the event occurred date is null");
+            throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
         }
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
-            throw new MessageIgnoredException("Cannot cancel discharge for a visit that doesn't exist: " + visitNumber);
+            throw new MessageIgnoredException(adtMsg, "Cannot cancel discharge for a visit that doesn't exist: " + visitNumber);
         }
         // Get the most recent bed visit.
         PatientFact mostRecentBedVisit = getVisitFactWhere(encounter,
@@ -814,7 +793,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // This is an error. The most recent bed visit is still open. Ie. the patient
             // has not been discharged, so we cannot cancel the discharge.
             // Possible cause is that we never received the A03.
-            throw new MessageIgnoredException(visitNumber + " Cannot process A13 - most recent bed visit is still open");
+            throw new MessageIgnoredException(adtMsg, visitNumber + " Cannot process A13 - most recent bed visit is still open");
         }
         PatientProperty bedDischargeTime = getOnlyElement(
                 mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
@@ -911,10 +890,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * @param      <E> the type of the list elements
      * @param list the given list
-     * @return the only element in the given list, or null if empty, throws if >1
+     * @return the only element in the given list, or null if empty or null, throws if >1
      * @throws DuplicateValueException if >1 element in list
      */
     private <E> E getOnlyElement(List<E> list) {
+        if (list == null) {
+            return null;
+        }
         switch (list.size()) {
         case 0:
             return null;
@@ -947,7 +929,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // They can have a null admission date, which causes a failed validFrom non-null constraint.
             // We may have to be more selective about this, maybe the EVN-4 can tell us
             // what the reason/circumstances were.
-            throw new MessageIgnoredException("Cannot find the visit " + visitNumber);
+            throw new MessageIgnoredException(adtMsg, "Cannot find the visit " + visitNumber);
         }
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg);
@@ -959,7 +941,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         List<PatientFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
         PatientFact onlyOpenBedVisit = getOnlyElement(latestOpenBedVisits);
         if (onlyOpenBedVisit == null) {
-            throw new MessageIgnoredException("Got A08 but no open bed visit for visit " + visitNumber);
+            throw new MessageIgnoredException(adtMsg, "Got A08 but no open bed visit for visit " + visitNumber);
         }
         PatientProperty knownlocation =
                 getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
@@ -1023,7 +1005,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         logger.info(
                 "MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
         if (mergeTime == null) {
-            throw new MessageIgnoredException("event occurred null");
+            throw new MessageIgnoredException(adtMsg, "event occurred null");
         }
 
         // The non-surviving Mrn is invalidated but still points to the old person
@@ -1032,7 +1014,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
         Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
         if (survivingMrn == null || oldMrn == null) {
-            throw new MessageIgnoredException(String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
+            throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
         }
         Instant now = Instant.now();
@@ -1042,7 +1024,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PersonMrn survivingPersonMrn = getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValidAsOf(now));
 
         if (survivingPersonMrn == null || oldPersonMrn == null) {
-            throw new MessageIgnoredException(String.format(
+            throw new MessageIgnoredException(adtMsg, String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
                     oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
         }
@@ -1053,7 +1035,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // If we already thought they were the same person, do nothing further.
         // (Wait, I don't think this can happen, because they wouldn't both be valid)
         if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
-            throw new MessageIgnoredException(
+            throw new MessageIgnoredException(adtMsg,
                     String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
                             survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
         }

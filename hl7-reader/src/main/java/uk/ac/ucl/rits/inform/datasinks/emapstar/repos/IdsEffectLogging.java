@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Instant;
 
 import javax.persistence.Column;
@@ -33,6 +35,8 @@ public class IdsEffectLogging {
     private String messageType;
     @Column(columnDefinition = "text")
     private String message;
+    @Column(columnDefinition = "text")
+    private String stackTrace;
 
     /**
      * @param sourceId the unique ID from the source system (eg. IDS unid)
@@ -103,5 +107,23 @@ public class IdsEffectLogging {
      */
     public void setProcessMessageDuration(double processMessageDurationSeconds) {
         this.processMessageDurationSeconds = processMessageDurationSeconds;
+    }
+
+    /**
+     * @param stackTrace stack trace text if you have one
+     */
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+    }
+
+    /**
+     * Convert stack trace from exception to text.
+     *
+     * @param th throwable containing a stack trace
+     */
+    public void setStackTrace(Throwable th) {
+        StringWriter st = new StringWriter();
+        th.printStackTrace(new PrintWriter(st));
+        setStackTrace(st.toString());
     }
 }
