@@ -71,7 +71,7 @@ public class DataSourceConfiguration {
      */
     @Bean
     @Profile("default")
-    public RabbitTemplate rabbitTemp() {
+    public RabbitTemplate rabbitTemp(MessageConverter messageConverter) {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         String queueName = getEmapDataSource().getQueueName();
         Map<String, Object> args = new HashMap<>();
@@ -103,6 +103,7 @@ public class DataSourceConfiguration {
         retryTemplate.setBackOffPolicy(backOffPolicy);
 
         RabbitTemplate template = rabbitAdmin.getRabbitTemplate();
+        template.setMessageConverter(messageConverter);
         template.setRetryTemplate(retryTemplate);
         template.setMandatory(true);
 
