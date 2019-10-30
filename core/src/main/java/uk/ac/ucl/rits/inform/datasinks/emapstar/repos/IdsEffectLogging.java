@@ -33,6 +33,7 @@ public class IdsEffectLogging {
     private String returnStatus;
     private String mrn;
     private String messageType;
+    private String eventReasonCode;
     @Column(columnDefinition = "text")
     private String message;
     @Column(columnDefinition = "text")
@@ -125,5 +126,14 @@ public class IdsEffectLogging {
         StringWriter st = new StringWriter();
         th.printStackTrace(new PrintWriter(st));
         setStackTrace(st.toString());
+    }
+
+    /**
+     * Unclear what we'll use this field for so log it somewhere convenient for now.
+     *
+     * @param eventReasonCode the hl7 event reason code
+     */
+    public void setEventReasonCode(String eventReasonCode) {
+        this.eventReasonCode = eventReasonCode;
     }
 }

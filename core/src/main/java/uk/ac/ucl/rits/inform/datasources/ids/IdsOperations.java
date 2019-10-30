@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -21,7 +22,6 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -44,6 +44,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
 
@@ -79,7 +80,7 @@ public class IdsOperations implements AutoCloseable {
     private IdsProgressRepository      idsProgressRepository;
 
     @Autowired
-    private AmqpTemplate rabbitTemplate;
+    private Publisher publisher;
 
     /**
      * We are writing to the HL7 queue.
@@ -188,7 +189,7 @@ public class IdsOperations implements AutoCloseable {
         onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
         onlyRow.setLastProcessedMessageDatetime(messageDatetime);
         onlyRow.setLastProcessingDatetime(processingEnd);
-        idsProgressRepository.save(onlyRow);
+        onlyRow = idsProgressRepository.save(onlyRow);
     }
 
 
@@ -344,8 +345,6 @@ public class IdsOperations implements AutoCloseable {
         Instant messageDatetime = idsMsg.getMessagedatetime();
         String sender = idsMsg.getSenderapplication();
 
-        boolean markAsProcessed = true;
-
         final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
 
         try {
@@ -376,20 +375,31 @@ public class IdsOperations implements AutoCloseable {
                     subMessageCount++;
                     logger.info(String.format("[%d] sending message (%d/%d) to RabbitMQ ", idsMsg.getUnid(),
                             subMessageCount, messagesFromHl7Message.size()));
-                    rabbitTemplate.convertAndSend(getHl7DataSource().getQueueName(), msg);
+                    Semaphore semaphore = new Semaphore(0);
+                    publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
+                        // Successfully queued so mark as done.
+                        // Who is responsible for re-attempting in the case of a retry-able error like the
+                        // network is down?
+                        logger.warn("callback for " + msg.getSourceMessageId());
+                        semaphore.release();
+                    });
+                    try {
+                        semaphore.acquire();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             } catch (HL7Exception | Hl7InconsistencyException e) {
                 String errMsg =
                         "[" + idsMsg.getUnid() + "] Skipping due to " + e.getStackTrace() + " (" + msgFromIds.getClass() + ")";
                 logger.error(errMsg);
-            }
-        } finally {
-            // Mark the message processed and carry on, regardless of errors.
-            // Could do with an in-database log for the HL7 parsing. (ids_effect_parsing is for the core processor)
-            if (markAsProcessed) {
+                // If the error is unrecoverable then skip it by marking as done.
                 Instant processingEnd = Instant.now();
                 setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
             }
+        } finally {
+            Instant processingEnd = Instant.now();
+            setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
         }
     }
 

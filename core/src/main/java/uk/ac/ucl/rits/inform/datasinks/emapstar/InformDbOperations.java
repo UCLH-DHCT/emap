@@ -675,7 +675,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // don't perform an actual transfer. In the test data, this happens in a
             // minority of cases
             // following an A08 implied transfer. Let's see what it does in the real data...
-            String err = "[mrn " + mrnStr + "] REDUNDANT transfer, location has not changed: " + currentKnownLocation;
+            String err = "REDUNDANT transfer, location has not changed: " + currentKnownLocation;
             logger.warn(err);
             throw new MessageIgnoredException(adtMsg, err);
         }
