@@ -79,9 +79,6 @@ public class IdsOperations implements AutoCloseable {
     @Autowired
     private IdsProgressRepository      idsProgressRepository;
 
-    @Autowired
-    private Publisher publisher;
-
     /**
      * We are writing to the HL7 queue.
      * @return the datasource enum for the hl7 queue
@@ -333,11 +330,12 @@ public class IdsOperations implements AutoCloseable {
      * write the latest processed ID to reflect the above message. Blocks until
      * there are new messages.
      *
+     * @param publisher     the local AMQP handling class
      * @param parser        the HAPI parser to be used
      * @throws AmqpException if rabbitmq write fails
      */
     @Transactional
-    public void parseAndSendNextHl7(PipeParser parser) throws AmqpException {
+    public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException {
         int lastProcessedId = getLatestProcessedId();
         logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);

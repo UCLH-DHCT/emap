@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.parser.PipeParser;
+import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 
 /**
  * Entry point class for the HL7 reader application.
@@ -34,12 +35,13 @@ public class AppHl7 {
     /**
      * The entry point for processing HL7 messages and writing interchange messages to the queue.
      *
-     * @param idsOps Inform-db operations object
+     * @param publisher     the local AMQP handling class
+     * @param idsOps        Inform-db operations object
      * @return The CommandLineRunner
      */
     @Bean
     @Profile("default")
-    public CommandLineRunner mainLoop(IdsOperations idsOps) {
+    public CommandLineRunner mainLoop(Publisher publisher, IdsOperations idsOps) {
         return (args) -> {
             logger.info("Initialising HAPI...");
             long startTimeMillis = System.currentTimeMillis();
@@ -49,7 +51,7 @@ public class AppHl7 {
 
             while (true) {
                 try {
-                    idsOps.parseAndSendNextHl7(parser);
+                    idsOps.parseAndSendNextHl7(publisher, parser);
                 } catch (Exception e) {
                     // we may want to handle AmqpException specifically
                     // we need to distinguish between situations where a retry will help
