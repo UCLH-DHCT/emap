@@ -128,6 +128,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             logger.error(e.toString());
             throw new AttributeError("Failed to load vocab file: " + this.vocabFile.getFilename());
         }
+        logger.info("Done loading vocab from csv");
     }
 
     /**
