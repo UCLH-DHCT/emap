@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,11 @@ public class App {
     }
 
     /**
+     * For ensuring vocab gets loaded before any processing happens.
+     */
+    private CountDownLatch vocabLoaded = new CountDownLatch(1);
+
+    /**
      * The listener for processing messages and writing to Emap-Star.
      *
      * @param msg the message
@@ -73,7 +79,11 @@ public class App {
     @RabbitListener(queues = {"hl7Queue"})
     public void receiveMessage(EmapOperationMessage msg, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag)
             throws IOException {
-        dbOps.ensureVocabLoaded(); // don't want to do this every message!! put in a commandlinerunner?
+        try {
+            vocabLoaded.await();
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
         IdsEffectLogging idsEffectLogging = new IdsEffectLogging();
         Instant startTime = Instant.now();
         idsEffectLogging.setProcessingStartTime(startTime);
@@ -113,16 +123,16 @@ public class App {
     }
 
     /**
-     * The main entry point.
+     * Initialise vocab (attributes). Perform early in the init process.
      *
      * @return The CommandLineRunner
      */
     @Bean
     @Profile("default")
-    public CommandLineRunner mainLoop() {
+    public CommandLineRunner loadVocab() {
         return (args) -> {
-            // should do the ensure vocab loaded here
-            logger.info("init");
+            dbOps.ensureVocabLoaded();
+            vocabLoaded.countDown();
         };
     }
 
