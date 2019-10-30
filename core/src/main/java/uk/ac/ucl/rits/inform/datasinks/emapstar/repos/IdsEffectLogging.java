@@ -27,7 +27,6 @@ public class IdsEffectLogging {
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
-    private double queueReadDurationSeconds;
     private double processMessageDurationSeconds;
     @Column(columnDefinition = "text")
     private String returnStatus;
@@ -94,13 +93,6 @@ public class IdsEffectLogging {
      */
     public void setReturnStatus(String returnStatus) {
         this.returnStatus = returnStatus;
-    }
-
-    /**
-     * @param queueReadDurationSeconds how long it took to read from the queue
-     */
-    public void setQueueReadDuration(double queueReadDurationSeconds) {
-        this.queueReadDurationSeconds = queueReadDurationSeconds;
     }
 
     /**
