@@ -67,6 +67,7 @@ public class DataSourceConfiguration {
     }
 
     /**
+     * @param messageConverter the message converter
      * @return our rabbit template
      */
     @Bean
