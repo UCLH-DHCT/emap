@@ -89,6 +89,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Load in attributes (vocab) from CSV file, if they don't already exist in DB.
      */
+    @Transactional
     public void ensureVocabLoaded() {
         logger.info("Loading vocab from csv");
         try (Reader in = new InputStreamReader(this.vocabFile.getInputStream())) {
