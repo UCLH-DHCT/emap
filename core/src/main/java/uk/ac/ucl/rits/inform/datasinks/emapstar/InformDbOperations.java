@@ -490,9 +490,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // some messages (eg. A08) don't have an event occurred field
             validFrom = adtMsg.getRecordedDateTime();
         }
+        Instant storedFrom = Instant.now();
         PatientFact nameFact = new PatientFact();
         nameFact.setValidFrom(validFrom);
-        nameFact.setStoredFrom(Instant.now());
+        nameFact.setStoredFrom(storedFrom);
         Attribute nameAttr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
         nameFact.setFactType(nameAttr);
         addPropertyToFact(nameFact, AttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
@@ -502,7 +503,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
         PatientFact generalDemoFact = new PatientFact();
         generalDemoFact.setValidFrom(validFrom);
-        generalDemoFact.setStoredFrom(Instant.now());
+        generalDemoFact.setStoredFrom(storedFrom);
         generalDemoFact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
 
         // will we have to worry about Instants and timezones shifting the date?
