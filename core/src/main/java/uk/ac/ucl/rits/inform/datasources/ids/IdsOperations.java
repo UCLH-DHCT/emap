@@ -417,11 +417,11 @@ public class IdsOperations implements AutoCloseable {
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
 
         logger.info(String.format("%s^%s", messageType, triggerEvent));
-
+        String sourceId = String.format("%010d", idsUnid);
         if (messageType.equals("ADT")) {
             List<AdtMessage> adtMsg = new ArrayList<>();
             try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, String.format("%010d", idsUnid));
+                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, sourceId);
                 adtMsg.add(msgBuilder.getAdtMessage());
             } catch (Hl7MessageNotImplementedException e) {
                 logger.warn("Ignoring message: " + e.toString());
@@ -430,12 +430,12 @@ public class IdsOperations implements AutoCloseable {
         } else if (messageType.equals("ORU")) {
             if (triggerEvent.equals("R01")) {
                 // get all result batteries in the message
-                return PathologyOrderBuilder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
+                return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
             }
         } else if (messageType.equals("ORM")) {
             if (triggerEvent.equals("O01")) {
                 // get all orders in the message
-                return PathologyOrderBuilder.buildPathologyOrders((ORM_O01) msgFromIds);
+                return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
             }
         }
         logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
