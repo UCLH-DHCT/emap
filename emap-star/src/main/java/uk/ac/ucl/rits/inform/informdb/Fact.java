@@ -261,7 +261,10 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             if (other.properties != null) {
                 return false;
             }
-        } else if (!properties.equals(other.properties)) {
+        } else if (properties.size() != other.properties.size()) {
+            return false;
+        } else if (!properties.containsAll(other.properties)) {
+            // same elements in different order counts as equal
             return false;
         }
         if (factType == null) {
