@@ -98,7 +98,7 @@ public class App {
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
             idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
             idsEffectLogging.setReturnStatus(returnCode);
-            logger.info("Sending ACK");
+            logger.info("Sending ACK for " + msg.getSourceMessageId());
             channel.basicAck(tag, false);
         } catch (EmapOperationMessageProcessingException e) {
             // All errors that allow the message to be skipped should be logged
@@ -106,14 +106,14 @@ public class App {
             idsEffectLogging.setReturnStatus(e.getReturnCode());
             idsEffectLogging.setMessage(e.getMessage());
             idsEffectLogging.setStackTrace(e);
-            logger.info("Sending NACK no requeue then NOT throwing");
+            logger.info("Sending NACK no requeue then NOT throwing for " + msg.getSourceMessageId());
             channel.basicNack(tag, false, false);
         } catch (Throwable th) {
             // For anything else, at least log it before exiting.
             idsEffectLogging.setReturnStatus("Unexpected exception: " + th.toString());
             idsEffectLogging.setMessage(th.getMessage());
             idsEffectLogging.setStackTrace(th);
-            logger.info("Sending NACK with requeue then throwing");
+            logger.info("Sending NACK with requeue then throwing for " + msg.getSourceMessageId());
             channel.basicNack(tag, true, false);
             throw th;
         } finally {

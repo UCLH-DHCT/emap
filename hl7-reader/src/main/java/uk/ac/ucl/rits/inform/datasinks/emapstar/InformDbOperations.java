@@ -364,7 +364,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Transactional
     private List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        logger.info("getOpenVisitFactWhereVisitType: " + encounter + " " + attr);
         return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && visitFactIsOpenAndValid(vf));
     }
 
@@ -375,7 +374,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *         Encounter
      */
     private List<PatientFact> getClosedVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        logger.info("getClosedVisitFactWhereVisitType: " + encounter + " " + attr);
         return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && !visitFactIsOpen(vf) && vf.isValid());
     }
 
@@ -388,7 +386,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws MessageIgnoredException if message can't be processed
      */
     private Encounter getCreateEncounter(Mrn mrn, AdtMessage adtMsg) throws MessageIgnoredException {
-        logger.info("getCreateEncounter");
         String encounter = adtMsg.getVisitNumber();
         Encounter existingEnc = getOnlyElement(getEncounterWhere(mrn, encounter));
         if (existingEnc == null) {
