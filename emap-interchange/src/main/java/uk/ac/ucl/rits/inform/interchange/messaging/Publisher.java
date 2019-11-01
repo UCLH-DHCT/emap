@@ -200,7 +200,6 @@ public class Publisher implements Runnable, Releasable {
 
     /**
      * On a nack response, no new messages will be sent, attempting to resend the messages that have failed to publish.
-     * TODO: parameterise delay and implement exponential backoff
      * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
      */
     @Override
