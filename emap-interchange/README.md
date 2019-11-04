@@ -82,10 +82,12 @@ every message in the batch.
 - Autowire in the publisher 
 - Create your batch 
 - correlationId must be unique within the batch and must not contain a colon character
-- batchId must be unique within the system and must not contain a colon character. 
+- batchId must be globally unique and must not contain a colon character. 
     - If this batchId has already been submitted to the publisher and is awaiting publishing to rabbitmq
       then it will not be submitted in duplicate to the publisher. 
     - This can often just be the last correlationId of the batch
+- Here the callback is an instance of `ProgressUpdater`, a runnable class that will carry out an action 
+  (like updating a database) after all messages in a batch have been sent.
 
 ```java
 class CaboodleOperations {
