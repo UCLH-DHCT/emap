@@ -36,8 +36,13 @@ public class Publisher implements Runnable, Releasable {
     private Map<String, Pair<Integer, Runnable>> batchWaitingMap;
     private ScheduledThreadPoolExecutor executorService;
     private final int maxInTransit;
-
     private volatile boolean failedSend = false;
+    private int initialDelay;
+    private int currentDelay;
+    private int delayMultiplier = 2;
+    private @Value("${rabbitmq.retry.delay.maximum:600}")
+    int maximumDelay;
+
 
     private Logger logger = LoggerFactory.getLogger(Publisher.class);
 
@@ -53,7 +58,8 @@ public class Publisher implements Runnable, Releasable {
      */
     @Autowired
     public Publisher(RabbitTemplate rabbitTemplate, @Value("${rabbitmq.max.batches:1}") int maxBatches,
-                     @Value("${rabbitmq.max.intransit:1}") int maxInTransit) {
+                     @Value("${rabbitmq.max.intransit:1}") int maxInTransit,
+                     @Value("${rabbitmq.retry.delay.initial:1}") int initialDelay) {
         semaphore = new Semaphore(maxInTransit, true);
         rabbitTemplate.setConfirmCallback(new MessagesConfirmCallback(this));
         this.rabbitTemplate = rabbitTemplate;
@@ -62,6 +68,8 @@ public class Publisher implements Runnable, Releasable {
         batchWaitingMap = new ConcurrentHashMap<>();
         executorService = new ScheduledThreadPoolExecutor(2);
         this.maxInTransit = maxInTransit;
+        this.initialDelay = initialDelay;
+        currentDelay = initialDelay;
         new Thread(this).start();        // Should tidy up this thread?
 
     }
@@ -156,7 +164,7 @@ public class Publisher implements Runnable, Releasable {
      * On acknowledgement from rabbitmq allow new messages to be sent and run the batch's callback runnable
      * (most likely to update the progress). If the entire batch has been successfully finished, then allow space
      * for another batch to be added to the Publisher.
-     *
+     * <p>
      * There are two possible states that this is called from:
      * - If there have been no nacks received: Free up a single space for a new message to be sent
      * - If there has been a nack and this is the first ack: Free up all spaces for new messages to be published again.
@@ -175,6 +183,7 @@ public class Publisher implements Runnable, Releasable {
         synchronized (waitingMap) {
             waitingMap.remove(ids[0]);
             if (failedSend) {
+                currentDelay = initialDelay;
                 if (waitingMap.isEmpty()) {
                     failedSend = false;
                     semaphore.release(maxInTransit);
@@ -200,6 +209,7 @@ public class Publisher implements Runnable, Releasable {
 
     /**
      * On a nack response, no new messages will be sent, attempting to resend the messages that have failed to publish.
+     *
      * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
      */
     @Override
@@ -222,7 +232,13 @@ public class Publisher implements Runnable, Releasable {
                 logger.info(String.format("Resending message with correlationData: %s", correlationData));
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
             }
-        }, 5, TimeUnit.SECONDS); // parameterise the delay and have an exponential backoff
+        }, currentDelay, TimeUnit.SECONDS);
+
+        if (currentDelay < maximumDelay) {
+            currentDelay *= delayMultiplier;
+        } else {
+            currentDelay = maximumDelay;
+        }
     }
 }
 
