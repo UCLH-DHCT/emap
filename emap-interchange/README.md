@@ -11,8 +11,9 @@ You need to add the interchange package to your Spring app's component scan path
         "uk.ac.ucl.rits.inform.datasources.ids",
         "uk.ac.ucl.rits.inform.informdb",
         "uk.ac.ucl.rits.inform.interchange"})  //  <-------------------
-public class AppHl7 {
-...
+public class AppHl7 { 
+    // ...
+}
 ```
 
 Then it will find and use this config along with the Publisher. But you also need to supply a bean yourself that defines which queue you want to use.
@@ -61,6 +62,10 @@ rabbitmq queue and how publisher handles batches of messages:
 rabbitmq.queue.length=100000
 rabbitmq.max.batches=5
 rabbitmq.max.intransit=1
+
+# optional settings for exponential backoff for retrying a failed messages  
+rabbitmq.retry.delay.initial=1  # the initial delay period (seconds)
+rabbitmq.retry.delay.maximum=600  # maximum delay period (seconds)
 ```
 
 - The `rabbitmq.queue.length` is the maximum message limit for the rabbitmq queue.
