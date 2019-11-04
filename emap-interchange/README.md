@@ -109,8 +109,8 @@ class CaboodleOperations {
             ProgressUpdater progressUpdater = new ProgressUpdater(
                     lastCaboodleRow.get("lastUpdatedDate"),
                     lastCaboodleRow.get("measurementType"),
-                    correlationId);
-            publisher.submit(batch, correlationId, progressUpdater);
+                    lastCaboodleRow.get("uniqueId"));
+            publisher.submit(batch, lastCaboodleRow.get("uniqueId"), progressUpdater);
         }
     }
 }
