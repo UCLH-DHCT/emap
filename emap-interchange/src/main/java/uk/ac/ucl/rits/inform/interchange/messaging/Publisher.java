@@ -55,6 +55,7 @@ public class Publisher implements Runnable, Releasable {
      *                       Sets the maximum number of batches allowed before blocking
      * @param maxInTransit   Application properties value rabbitmq.max.batches
      *                       Sets the maximum number of messages that can be awaiting an acknowledgement by rabbitmq
+     * @param initialDelay   Initial delay for a failed message to be resent in seconds
      */
     @Autowired
     public Publisher(RabbitTemplate rabbitTemplate, @Value("${rabbitmq.max.batches:1}") int maxBatches,
