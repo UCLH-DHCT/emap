@@ -39,6 +39,7 @@ public class Publisher implements Runnable, Releasable {
     private volatile boolean failedSend = false;
     private int initialDelay;
     private int currentDelay;
+    private int countMessagesAtCurrentDelay = 0;
     private int delayMultiplier = 2;
     private @Value("${rabbitmq.retry.delay.maximum:600}")
     int maximumDelay;
@@ -230,13 +231,17 @@ public class Publisher implements Runnable, Releasable {
         executorService.schedule(new Runnable() {
             @Override
             public void run() {
-                logger.info(String.format("Resending message with correlationData: %s", correlationData));
+                logger.info(String.format("Failed message with correlationData %s will be resent in %s seconds",
+                        correlationData, currentDelay));
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
             }
         }, currentDelay, TimeUnit.SECONDS);
 
-        if (currentDelay < maximumDelay) {
+        if (currentDelay < maximumDelay & countMessagesAtCurrentDelay == maxInTransit) {
             currentDelay *= delayMultiplier;
+            countMessagesAtCurrentDelay = 1;
+        } else if (currentDelay < maximumDelay) {
+            countMessagesAtCurrentDelay += 1;
         } else {
             currentDelay = maximumDelay;
         }
