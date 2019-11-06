@@ -65,6 +65,8 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
         PatientFact parentFact = getParentFact();
         String factId;
         if (parentFact == null) {
+            factId = "[no parent]";
+        } else if (parentFact.getFactId() == null) {
             factId = "null";
         } else {
             factId = parentFact.getFactId().toString();

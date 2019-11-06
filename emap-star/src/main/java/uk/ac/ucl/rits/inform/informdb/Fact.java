@@ -163,11 +163,12 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     }
 
     /**
-     * Recursively fill in null validFrom values for all properties of this fact and
-     * do the same for all descendant facts.
+     * Recursively de-nullify validFrom values for all properties of this fact and
+     * descendant facts. Preferentially use the validFrom from the root fact, otherwise
+     * use the supplied alternative value.
      *
-     * @param validFrom the validFrom value to use if this fact has a null value, ok
-     *                  to be null if you know this fact's validFrom is non-null
+     * @param validFrom The alternative validFrom value to cascade downwards if this fact has a null value.
+     *                  Supply null if this fact's validFrom is non-null and you want to use it.
      */
     public void cascadeValidFrom(Instant validFrom) {
         // Favour the current fact's validFrom if it exists,
