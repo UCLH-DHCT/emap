@@ -251,7 +251,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Transactional
     private List<PatientFact> getFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
-        List<PatientFact> facts = encounter.getFacts();
+        return getFactWhere(encounter.getFacts(), pred);
+    }
+
+    /**
+     * @param facts the list of facts to search in
+     * @param pred      the predicate to check for each PatientFact
+     * @return all PatientFact objects which match predicate pred
+     */
+    @Transactional
+    private List<PatientFact> getFactWhere(List<PatientFact> facts, Predicate<? super PatientFact> pred) {
         if (facts == null) {
             return new ArrayList<PatientFact>();
         }
