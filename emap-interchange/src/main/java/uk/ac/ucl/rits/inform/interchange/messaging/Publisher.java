@@ -72,7 +72,7 @@ public class Publisher implements Runnable, Releasable {
         this.maxInTransit = maxInTransit;
         this.initialDelay = initialDelay;
         currentDelay = initialDelay;
-        new Thread(this).start();        // Should tidy up this thread?
+        new Thread(this).start();
 
     }
 
@@ -158,6 +158,7 @@ public class Publisher implements Runnable, Releasable {
                 }
             } catch (InterruptedException e) {
                 logger.error("Publisher thread interrupted", e);
+                return;
             }
         }
     }
