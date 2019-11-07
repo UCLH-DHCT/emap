@@ -9,7 +9,15 @@ public enum EmapDataSource {
     /**
      * The message queue from the HL7 (IDS) feed.
      */
-    HL7_QUEUE("hl7Queue");
+    HL7_QUEUE("hl7Queue"),
+    /**
+     * The message queue from Caboodle data.
+     */
+    CABOODLE("caboodleQueue"),
+    /**
+     * The message queue from Theme Hospital.
+     */
+    THEME_HOSPITAL_QUEUE("themeHospitalQueue");
 
     private String queueName;
 

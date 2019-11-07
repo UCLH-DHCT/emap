@@ -3,14 +3,16 @@ package uk.ac.ucl.rits.inform.interchange.springconfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -18,6 +20,9 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Spring configuration for data sources using the AMQP queue.
@@ -38,20 +43,42 @@ public class DataSourceConfiguration {
     }
 
     @Autowired
-    private ConnectionFactory connectionFactory;
+    private EmapDataSource emapDataSource;
+    @Autowired
+    private RabbitProperties props;
 
     @Autowired
-    private EmapDataSource emapDataSource;
+    private ConnectionFactory connectionFactory;
+
+    private @Value("${rabbitmq.queue.length:100000}")
+    int queueLength;
 
     /**
+     * @return connectionFactory with publisherConfirms set to true
+     */
+    @Bean
+    @Profile("default")
+    public ConnectionFactory connectionFactory() {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(this.props.getHost(), this.props.getPort());
+        connectionFactory.setUsername(this.props.getUsername());
+        connectionFactory.setPassword(this.props.getPassword());
+        connectionFactory.setPublisherConfirms(true);
+        return connectionFactory;
+    }
+
+    /**
+     * @param messageConverter the message converter
      * @return our rabbit template
      */
     @Bean
     @Profile("default")
-    public AmqpTemplate rabbitTemp() {
+    public RabbitTemplate rabbitTemp(MessageConverter messageConverter) {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         String queueName = getEmapDataSource().getQueueName();
-        Queue q = new Queue(queueName, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-max-length", queueLength);
+        args.put("x-overflow", "reject-publish");
+        Queue q = new Queue(queueName, true, false, false, args);
         while (true) {
             try {
                 rabbitAdmin.declareQueue(q);
@@ -77,6 +104,7 @@ public class DataSourceConfiguration {
         retryTemplate.setBackOffPolicy(backOffPolicy);
 
         RabbitTemplate template = rabbitAdmin.getRabbitTemplate();
+        template.setMessageConverter(messageConverter);
         template.setRetryTemplate(retryTemplate);
         template.setMandatory(true);
 
