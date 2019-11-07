@@ -6,8 +6,10 @@ import java.io.Reader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -1077,18 +1079,18 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact existingOrderRootFact = encounterOrderPair.getRight();
 
         // build the order fact from the message data
-        PatientFact pathologyOrderRootFact = buildPathologyOrderFacts(pathologyOrder);
+        PatientFact newPathologyOrder = buildPathologyOrderFacts(pathologyOrder);
 
         logger.info("new pathology order facts: ");
-        logger.info(pathologyOrderRootFact.toString());
+        logger.info(newPathologyOrder.toString());
 
         // If we already know about the order, use the existing order from the DB as the parent,
         // otherwise use the newly created one.
         PatientFact parent;
         if (existingOrderRootFact == null) {
             // no existing, use new fact and add it to the encounter
-            parent = pathologyOrderRootFact;
-            encounter.addFact(pathologyOrderRootFact);
+            parent = newPathologyOrder;
+            encounter.addFact(newPathologyOrder);
         } else {
             // use existing fact from DB (is already added to encounter)
             parent = existingOrderRootFact;
@@ -1096,23 +1098,75 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // updateFact(existingFact, newFact);
         }
 
-        parent = patientFactRepository.save(parent);
         // Build the results fact(s) from the message data, if any.
-        Map<String, PatientFact> resultFactsFromOrder = buildPathologyResultsFacts(parent,
-                pathologyOrder.getPathologyResults(), encounter, pathologyOrder.getTestBatteryLocalCode());
+        //
+        // UNTRUE: Note that the parent this is adding to ("parent") can be either a managed or transient object,
+        // which has implications when it comes to merging later.
+        Map<String, PatientFact> newPathologyResults = buildPathologyResultsFacts(newPathologyOrder,
+                pathologyOrder.getPathologyResults(), pathologyOrder.getTestBatteryLocalCode());
+
+
+        if (existingOrderRootFact != null) {
+            // (might also want to check if existingOrderRootFact itself has any changed properties)
+            //
+            // Which facts in resultFactsFromOrder are actually already present in existingOrderRootFact?
+            List<PatientFact> existingFacts = getFactWhere(existingOrderRootFact.getChildFacts(),
+                    f -> f.isValid()
+                    && f.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
+            existingFacts.forEach(ef -> logger.info("Existing fact: " + ef));
+            Map<String, PatientFact> existingFactsAsMap = existingFacts.stream()
+                    .collect(Collectors.toMap(ef -> uniqueKeyFromPathologyResultFact(ef), ef -> ef));
+            Iterator<Entry<String, PatientFact>> newFacts = newPathologyResults.entrySet().iterator();
+            int oldSize = newPathologyResults.size();
+            while (newFacts.hasNext()) {
+                Entry<String, PatientFact> newFactEntry = newFacts.next();
+                PatientFact newFact = newFactEntry.getValue();
+                String newFactKey = newFactEntry.getKey();
+                PatientFact existingResult = existingFactsAsMap.get(newFactKey);
+                if (existingResult != null) {
+                    logger.info(String.format("IGNORING NEW FACT %s because it's already present", existingResult.toString()));
+                    // Need to check for updates though.
+                    newFacts.remove();
+                } else {
+                    logger.info(String.format("USING NEW FACT %s", newFact.toString()));
+                }
+            }
+            int newSize = newPathologyResults.size();
+            logger.info(String.format("Out of %d facts: %d added, %d ignored, ? updated", oldSize, newSize,
+                    oldSize - newSize));
+            for (PatientFact pathResult : newPathologyResults.values()) {
+                existingOrderRootFact.addChildFact(pathResult);
+            }
+            logger.info(String.format("Disconnecting temporary pathology order fact, old num children = %d",
+                    newPathologyOrder.getChildFacts().size()));
+            newPathologyOrder.getChildFacts().clear();
+        }
 
         // Some child facts - eg. sensitivities are unable to work out their
         // valid from time because status change time is missing, fill
         // this in here.
         parent.cascadeValidFrom(null);
 
-        // Add the child (and grandchild etc) facts directly to the encounter.
-        for (PatientFact child : resultFactsFromOrder.values()) {
+
+        // Add the child (and grandchild etc) facts directly to the encounter,
+        // to allow them to be found by a single query knowing only the encounter.
+        for (PatientFact child : newPathologyResults.values()) {
             encounter.addFact(child);
         }
-        // We will need to do some more diffing here to check whether the results have changed.
 
         encounter = encounterRepo.save(encounter);
+    }
+
+    /**
+     * A key for identifying pathology results so updates can be compared with existing ones.
+     * @param pathologyResultFact the pathology result fact
+     * @return a key that is unique within the order
+     */
+    private String uniqueKeyFromPathologyResultFact(PatientFact pathologyResultFact) {
+        PatientFact orderFact = pathologyResultFact.getParentFact();
+        PatientProperty testCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE));
+        PatientProperty batteryCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE));
+        return batteryCode.getValueAsString() + "_" + testCode.getValueAsString();
     }
 
     /**
@@ -1192,12 +1246,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param parent the parent PatientFact, either from the DB or newly constructed
      * @param pathResults the pathology results
-     * @param encounter encounter to add each fact to
      * @param testBatteryLocalCode the battery local code for the order
      * @return all descendant PatientFact objects indexed by a unique identifier
      */
     private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, List<? extends PathologyResult> pathResults,
-            Encounter encounter, String testBatteryLocalCode) {
+            String testBatteryLocalCode) {
         Map<String, PatientFact> facts = new HashMap<>();
         Instant storedFrom = Instant.now();
         for (PathologyResult pr : pathResults) {
@@ -1235,7 +1288,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             for (PathologyOrder sensOrder : pathologySensitivities) {
                 // each sensitivity needs to be built as an order
                 List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
-                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, sensResults, encounter, sensOrder.getTestBatteryLocalCode());
+                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, sensResults, sensOrder.getTestBatteryLocalCode());
                 facts.putAll(sensFacts);
             }
         }
@@ -1306,14 +1359,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * first if it doesn't exist.
      *
      * @param mrnStr           The mrn
-     * @param startTime        If createIfNotExist, when did the Mrn first come into
+     * @param validFrom        If createIfNotExist, when did the Mrn first come into
      *                         existence (valid from). Ignored if !createIfNotExist
      * @param createIfNotExist whether to create if it doesn't exist
      * @return the Mrn, pre-existing or newly created, or null if it doesn't exist
      *         and !createIfNotExist
      */
     // Mrn record if it doesn't exist.
-    private Mrn findOrAddMrn(String mrnStr, Instant startTime, boolean createIfNotExist) {
+    private Mrn findOrAddMrn(String mrnStr, Instant validFrom, boolean createIfNotExist) {
         List<Mrn> allMrns = mrnRepo.findByMrnString(mrnStr);
         Mrn mrn;
         if (allMrns.isEmpty()) {
@@ -1332,7 +1385,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             mrn.setMrn(mrnStr);
             Person pers = new Person();
             pers.setCreateDatetime(storedFrom);
-            pers.addMrn(mrn, startTime, storedFrom);
+            pers.addMrn(mrn, validFrom, storedFrom);
             pers = personRepo.save(pers);
         } else if (allMrns.size() > 1) {
             throw new NotYetImplementedException("Does this even make sense?");
