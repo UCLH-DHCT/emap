@@ -242,7 +242,7 @@ public class Publisher implements Runnable, Releasable {
             }
         }, currentDelay, TimeUnit.SECONDS);
 
-        if (currentDelay < maximumDelay & countMessagesAtCurrentDelay == maxInTransit) {
+        if (currentDelay < maximumDelay && countMessagesAtCurrentDelay == maxInTransit) {
             currentDelay *= delayMultiplier;
             countMessagesAtCurrentDelay = 1;
         } else if (currentDelay < maximumDelay) {
