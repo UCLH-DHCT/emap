@@ -118,7 +118,7 @@ public class Publisher implements Runnable, Releasable {
         } catch (InterruptedException e) {
             logger.error("Waiting to submit a batch was interrupted", e);
         }
-        logger.info(String.format("BatchId %s was submitted to Publisher batches", batchId));
+        logger.info(String.format("BatchId %s with %s messages was submitted to Publisher batches", batchId, batch.size()));
     }
 
     /**
@@ -211,6 +211,10 @@ public class Publisher implements Runnable, Releasable {
 
     /**
      * On a nack response, no new messages will be sent, attempting to resend the messages that have failed to publish.
+     *
+     * Failed messages will be sent with an exponential backoff, using the 'rabbitmq.retry.delay.initial'
+     * and the 'rabbitmq.retry.delay.maximum' from application.properties as the seconds delay. The exponential backoff
+     * will double after every message in transit has received a nack.
      *
      * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
      */
