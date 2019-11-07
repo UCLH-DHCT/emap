@@ -236,9 +236,9 @@ public class Publisher implements Runnable, Releasable {
         executorService.schedule(new Runnable() {
             @Override
             public void run() {
-                logger.info(String.format("Failed message with correlationData %s will be resent in %s seconds",
-                        correlationData, currentDelay));
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
+                logger.info(String.format("Failed message (correlationData %s) was resent after a delay of %s seconds",
+                        correlationData, currentDelay));
             }
         }, currentDelay, TimeUnit.SECONDS);
 
