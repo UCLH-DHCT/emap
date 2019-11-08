@@ -93,7 +93,7 @@ public class AdtMessageBuilder {
         // PatientInfoHl7 uses mshwrap, pidwrap, pv1wrap - XXX: these wrappers could be combined and then moved into PatientInfoHl7?
         PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(msh, pid, pv1);
 
-        if (pid != null && pv1 != null) {
+        if (pv1 != null) {
             // will we want demographics to be included in pathology messages too?
             msg.setAdmissionDateTime(patientInfoHl7.getAdmissionDateTime());
             msg.setAdmitSource(patientInfoHl7.getAdmitSource());
@@ -101,13 +101,17 @@ public class AdtMessageBuilder {
             msg.setCurrentRoomCode(patientInfoHl7.getCurrentRoomCode());
             msg.setCurrentWardCode(patientInfoHl7.getCurrentWardCode());
             msg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
-            msg.setEthnicGroup(patientInfoHl7.getEthnicGroup());
             msg.setFullLocationString(patientInfoHl7.getFullLocationString());
             msg.setHospitalService(patientInfoHl7.getHospitalService());
+            msg.setPatientClass(patientInfoHl7.getPatientClass()); // make an enum
+            msg.setPatientType(patientInfoHl7.getPatientType());
+            msg.setVisitNumber(patientInfoHl7.getVisitNumber());
+        }
+        if (pid != null) {
+            msg.setEthnicGroup(patientInfoHl7.getEthnicGroup());
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
             msg.setPatientBirthDate(patientInfoHl7.getPatientBirthDate());
-            msg.setPatientClass(patientInfoHl7.getPatientClass()); // make an enum
             msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
             msg.setPatientDeathIndicator(patientInfoHl7.getPatientDeathIndicator());
             msg.setPatientFamilyName(patientInfoHl7.getPatientFamilyName());
@@ -117,17 +121,14 @@ public class AdtMessageBuilder {
             msg.setPatientReligion(patientInfoHl7.getPatientReligion());
             msg.setPatientSex(patientInfoHl7.getPatientSex());
             msg.setPatientTitle(patientInfoHl7.getPatientTitle());
-            msg.setPatientType(patientInfoHl7.getPatientType());
             msg.setPatientZipOrPostalCode(patientInfoHl7.getPatientZipOrPostalCode());
-            msg.setVisitNumber(patientInfoHl7.getVisitNumber());
-
-            // from EVNWrap
+        }
+        if (evn != null) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
             msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
         }
-
         if (mrg != null) {
             msg.setMergedPatientId(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
         }
