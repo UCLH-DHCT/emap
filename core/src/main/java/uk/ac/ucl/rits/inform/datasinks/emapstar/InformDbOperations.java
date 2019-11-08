@@ -390,22 +390,23 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Get existing encounter or create a new one if it doesn't exist.
+     * Also create the MRN and/or Person if necessary.
      *
-     * @param mrn              the MRN to search/create in
-     * @param adtMsg contains encounter ID (visit ID) to search for
+     * @param mrnStr            the MRN string to find/create
+     * @param encounterStr      encounter ID (visit ID) to find/create
+     * @param validFrom         validFrom times to use for newly created records - usually the admission time
      * @return the Encounter, existing or newly created
      * @throws MessageIgnoredException if message can't be processed
      */
-    private Encounter getCreateEncounter(Mrn mrn, AdtMessage adtMsg) throws MessageIgnoredException {
-        String encounter = adtMsg.getVisitNumber();
-        Encounter existingEnc = getOnlyElement(getEncounterWhere(mrn, encounter));
+    private Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant validFrom) throws MessageIgnoredException {
+        Instant storedFrom = Instant.now();
+        Mrn newOrExistingMrn = getCreateMrn(mrnStr, validFrom, storedFrom, true);
+        Encounter existingEnc = getOnlyElement(getEncounterWhere(newOrExistingMrn, encounterStr));
         if (existingEnc == null) {
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
-            Instant storedFrom = Instant.now();
-            enc.setEncounter(encounter);
-            Instant validFrom = adtMsg.getAdmissionDateTime();
-            mrn.addEncounter(enc, validFrom, storedFrom);
+            enc.setEncounter(encounterStr);
+            newOrExistingMrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         } else {
             // return the only element
@@ -431,14 +432,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (mrnStr == null) {
             throw new InvalidMrnException(String.format("Missing mrn in message"));
         }
-        Mrn newOrExistingMrn = findOrAddMrn(mrnStr, admissionTime, true);
         // Encounter is usually a new one for an A01, but it is
         // possible to get a second A01 if the first admission gets deleted
         // and re-made. (User corrected an error in Epic we assume).
         // Therefore need to reuse the existing encounter and the open visit if it
         // exists.
         // (Better to move the hosp visit creation to the actual "new Encounter"?)
-        Encounter enc = getCreateEncounter(newOrExistingMrn, adtMsg);
+        Encounter enc = getCreateEncounter(mrnStr, adtMsg.getVisitNumber(), adtMsg.getAdmissionDateTime());
         List<PatientFact> allHospitalVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.HOSPITAL_VISIT);
 
         // This perhaps belongs in a getCreateHospitalVisit method, with an
@@ -1022,8 +1022,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // The non-surviving Mrn is invalidated but still points to the old person
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person
-        Mrn oldMrn = findOrAddMrn(oldMrnStr, null, false);
-        Mrn survivingMrn = findOrAddMrn(survivingMrnStr, null, false);
+        Mrn oldMrn = getCreateMrn(oldMrnStr, null, null, false);
+        Mrn survivingMrn = getCreateMrn(survivingMrnStr, null, null, false);
         if (survivingMrn == null || oldMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
@@ -1073,13 +1073,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws MessageIgnoredException, EmapStarIntegrityException {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
-
-        Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber);
+        String mrnStr = pathologyOrder.getMrn();
+        PatientFact newPathologyOrder = buildPathologyOrderFacts(pathologyOrder);
+        Instant backupValidFrom = newPathologyOrder.getValidFrom();
+        // build the order fact from the message data
+        Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber, mrnStr, backupValidFrom);
         Encounter encounter = encounterOrderPair.getLeft();
         PatientFact existingOrderRootFact = encounterOrderPair.getRight();
 
-        // build the order fact from the message data
-        PatientFact newPathologyOrder = buildPathologyOrderFacts(pathologyOrder);
 
         logger.info("new pathology order facts: ");
         logger.info(newPathologyOrder.toString());
@@ -1094,17 +1095,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         } else {
             // use existing fact from DB (is already added to encounter)
             parent = existingOrderRootFact;
-            // will need to see if anything has changed (do orders change much?)
-            // updateFact(existingFact, newFact);
         }
 
         // Build the results fact(s) from the message data, if any.
         //
-        // UNTRUE: Note that the parent this is adding to ("parent") can be either a managed or transient object,
-        // which has implications when it comes to merging later.
+        // Add the results to the newly constructed order fact, although that fact may not
+        // be used if there is an existing order.
         Map<String, PatientFact> newPathologyResults = buildPathologyResultsFacts(newPathologyOrder,
                 pathologyOrder.getPathologyResults(), pathologyOrder.getTestBatteryLocalCode());
-
 
         if (existingOrderRootFact != null) {
             // (might also want to check if existingOrderRootFact itself has any changed properties)
@@ -1113,7 +1111,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             List<PatientFact> existingFacts = getFactWhere(existingOrderRootFact.getChildFacts(),
                     f -> f.isValid()
                     && f.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
-            existingFacts.forEach(ef -> logger.info("Existing fact: " + ef));
             Map<String, PatientFact> existingFactsAsMap = existingFacts.stream()
                     .collect(Collectors.toMap(ef -> uniqueKeyFromPathologyResultFact(ef), ef -> ef));
             Iterator<Entry<String, PatientFact>> newFacts = newPathologyResults.entrySet().iterator();
@@ -1124,15 +1121,22 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 String newFactKey = newFactEntry.getKey();
                 PatientFact existingResult = existingFactsAsMap.get(newFactKey);
                 if (existingResult != null) {
-                    logger.info(String.format("IGNORING NEW FACT %s because it's already present", existingResult.toString()));
-                    // Need to check for updates though.
+                    if (existingResult.equals(newFact)) {
+                        logger.info(
+                                String.format("Ignoring fact, is equal to existing: %s", existingResult.toString()));
+                    } else {
+                        logger.info(
+                                String.format(
+                                        "Ignoring fact, although needs updating.\n    Existing: %s\n    New: %s",
+                                        existingResult.toString(), newFact.toString()));
+                    }
                     newFacts.remove();
                 } else {
-                    logger.info(String.format("USING NEW FACT %s", newFact.toString()));
+                    logger.info(String.format("Using new fact: %s", newFact.toString()));
                 }
             }
             int newSize = newPathologyResults.size();
-            logger.info(String.format("Out of %d facts: %d added, %d ignored, ? updated", oldSize, newSize,
+            logger.info(String.format("From %d facts: %d added, %d ignored, ? updated", oldSize, newSize,
                     oldSize - newSize));
             for (PatientFact pathResult : newPathologyResults.values()) {
                 existingOrderRootFact.addChildFact(pathResult);
@@ -1301,12 +1305,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Move to repo?
      * @param epicCareOrderNumber the Epic order number to search by
      * @param visitNumber the encounter/visit number to search by
+     * @param mrnStr MRN string to use if an MRN record needs creating
+     * @param backupValidFrom validFrom time to use if encounter/mrn/person needs creating
      * @return Pair containing the Encounter object that this order is attached to and the PatientFact object that is the root
      * object representing the order, if it exists (else null).
      * @throws MessageIgnoredException if the Encounter can't be found by any method
      * @throws EmapStarIntegrityException contradiction in DB
      */
-    private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber)
+    private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber,
+            String mrnStr, Instant backupValidFrom)
             throws MessageIgnoredException, EmapStarIntegrityException {
         // We do get messages with blank Epic order numbers,
         // however searching on a blank order number will never do the right
@@ -1330,10 +1337,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // (also our test depends on this being allowed)
             logger.error("Couldn't find order with order number " + epicCareOrderNumber + ", searching by visit number instead");
             if (!visitNumber.isEmpty()) {
-                encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-                if (encounter == null) {
-                    throw new MessageIgnoredException("Can't find encounter to attach results to: " + visitNumber);
-                }
+                encounter = getCreateEncounter(mrnStr, visitNumber, backupValidFrom);
             } else {
                 throw new MessageIgnoredException("Can't find encounter - can't search on empty visit number");
             }
@@ -1361,12 +1365,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param mrnStr           The mrn
      * @param validFrom        If createIfNotExist, when did the Mrn first come into
      *                         existence (valid from). Ignored if !createIfNotExist
+     * @param storedFrom       the storedFrom time to use if an object needs to be newly created
      * @param createIfNotExist whether to create if it doesn't exist
      * @return the Mrn, pre-existing or newly created, or null if it doesn't exist
      *         and !createIfNotExist
      */
-    // Mrn record if it doesn't exist.
-    private Mrn findOrAddMrn(String mrnStr, Instant validFrom, boolean createIfNotExist) {
+    private Mrn getCreateMrn(String mrnStr, Instant validFrom, Instant storedFrom, boolean createIfNotExist) {
+        if (createIfNotExist && (storedFrom == null || validFrom == null)) {
+            throw new IllegalArgumentException(String.format(
+                    "if createIfNotExist, storedFrom (%s) and validFrom (%s) must be non-null", storedFrom, validFrom));
+        }
         List<Mrn> allMrns = mrnRepo.findByMrnString(mrnStr);
         Mrn mrn;
         if (allMrns.isEmpty()) {
@@ -1380,7 +1388,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
              */
             logger.info("Creating a new MRN");
             mrn = new Mrn();
-            Instant storedFrom = Instant.now();
             mrn.setCreateDatetime(storedFrom);
             mrn.setMrn(mrnStr);
             Person pers = new Person();
