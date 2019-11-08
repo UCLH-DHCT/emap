@@ -26,6 +26,8 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     private Instant sampleEnteredTime;
     private String orderStatus;
     private String orderType;
+    private String mrn;
+
     private String visitNumber;
     private Instant requestedDateTime;
     private Instant observationDateTime;
@@ -282,6 +284,20 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
      */
     public void setTestBatteryLocalDescription(String testBatteryLocalDescription) {
         this.testBatteryLocalDescription = testBatteryLocalDescription;
+    }
+
+    /**
+     * @return the patient's MRN
+     */
+    public String getMrn() {
+        return mrn;
+    }
+
+    /**
+     * @param mrn the patient's MRN
+     */
+    public void setMrn(String mrn) {
+        this.mrn = mrn;
     }
 
     /**
