@@ -132,7 +132,7 @@ public class Publisher implements Runnable, Releasable {
      *                      Must not contain a colon character.
      */
     private void publish(EmapOperationMessage message, String correlationId, String batchId) {
-        logger.info("Sending message to RabbitMQ");
+        logger.debug("Sending message to RabbitMQ");
 
         CorrelationData correlationData = new CorrelationData(correlationId + ":" + batchId);
         try {
@@ -206,7 +206,7 @@ public class Publisher implements Runnable, Releasable {
                 batchWaitingMap.put(ids[1], new Pair<>(countOfWaitingMessages, batchState.second));
             }
         }
-        logger.info(String.format("Sent %s", correlationId));
+        logger.debug(String.format("Sent message with correlationId: %s", correlationId));
 
     }
 
