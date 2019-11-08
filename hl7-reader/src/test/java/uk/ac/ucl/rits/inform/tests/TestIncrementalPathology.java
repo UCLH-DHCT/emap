@@ -1,29 +1,16 @@
 package uk.ac.ucl.rits.inform.tests;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
-import org.hibernate.query.NativeQuery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,6 +22,11 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
+/**
+ * Messages come through giving progressively more results.
+ * New results should be added taking care to avoid duplicating existing ones.
+ * @author Jeremy Stein
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
@@ -43,7 +35,6 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 public class TestIncrementalPathology extends Hl7StreamTestCase {
     public TestIncrementalPathology() {
         super();
-        hl7StreamFileNames.add("GenericAdt/A01.txt");
         hl7StreamFileNames.add("IncrementalPathology.txt");
     }
 
@@ -82,27 +73,13 @@ public class TestIncrementalPathology extends Hl7StreamTestCase {
         System.out.println("Keys: " + allOrders.keySet().toString());
         assertEquals(2, allOrders.size());
 
-        // .collect(Collectors.partitioningBy(f -> f.isValid()));
-
-        //PatientFact pathOrder = allFactsForEncounter.get(AttributeKeyMap.PATHOLOGY_ORDER.getShortname());
-        //assertNotNull(pathOrder);
-        // XXX:
         List<PatientFact> childFacts001 = allOrders.get("94000001").get(0).getChildFacts();
         List<PatientFact> childFacts002 = allOrders.get("94000002").get(0).getChildFacts();
 
-        // the order must have a child of type test result that has a battery code value of FBC
-        // assertTrue(
+        // check that pathology results have not been duplicated
         List<PatientFact> allTestResults001 = childFacts001.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
         List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
         assertEquals(2, allTestResults001.size());
         assertEquals(17, allTestResults002.size());
-        for (PatientFact pf : allTestResults001) {
-            System.out.println("JES001: " + pf.toString());
-        }
-        for (PatientFact pf : allTestResults002) {
-            System.out.println("JES002: " + pf.toString());
-        }
-                        
-                                //.getValueAsString().equals("FBC")));
     }
 }

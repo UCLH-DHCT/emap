@@ -186,6 +186,7 @@ public class PathologyOrderBuilder {
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         msg.setVisitNumber(patientHl7.getVisitNumber());
+        msg.setMrn(patientHl7.getMrn());
         String sendingApplication = patientHl7.getSendingApplication();
         if (!sendingApplication.equals("WinPath")) {
             throw new MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
@@ -250,6 +251,7 @@ public class PathologyOrderBuilder {
         // Could there really be more than one patient per message?
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         msg.setVisitNumber(patientHl7.getVisitNumber());
+        msg.setMrn(patientHl7.getMrn());
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
         populateFromOrcObr(orc, obr);
