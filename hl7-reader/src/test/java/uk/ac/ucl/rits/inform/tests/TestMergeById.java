@@ -51,16 +51,19 @@ public class TestMergeById extends Hl7StreamTestCase {
         // still valid person-mrn links
         List<PersonMrn> validRetiredMrnPersons = retiredMrnPersons.get(true);
 
-        // this fails but shouldn't
         assertEquals("retired mrn should still have a valid connection to a person", 1, validRetiredMrnPersons.size());
 
         List<PersonMrn> invalidRetiredMrnPersons = retiredMrnPersons.get(false);
         assertEquals(1, invalidRetiredMrnPersons.size());
-        // check the retired MRN is no longer marked live
+        // The retired MRN should have an invalidated link to the old person that is still marked live.
+        // But its new, valid link pointing to the new person should be marked as not live.
         PersonMrn invalidRetiredMrnPerson = invalidRetiredMrnPersons.get(0);
-        //assertFalse(invalidRetiredMrnPerson.isLive());
-        Person personForRetiredMrn = validRetiredMrnPersons.get(0).getPerson();
+        assertTrue(invalidRetiredMrnPerson.isLive());
+        PersonMrn validRetiredMrnPerson = validRetiredMrnPersons.get(0);
+        Person personForRetiredMrn = validRetiredMrnPerson.getPerson();
+        assertFalse(validRetiredMrnPerson.isLive());
 
+        // the surviving MRN should have a single, valid link to the person, which is marked as live
         Map<Boolean, List<PersonMrn>> survivingMrnPersons = survivingMrn.getPersons().stream()
                 .collect(Collectors.partitioningBy(p -> p.getValidUntil() == null));
         assertEquals(0, survivingMrnPersons.get(false).size());
@@ -71,27 +74,7 @@ public class TestMergeById extends Hl7StreamTestCase {
         assertTrue(validSurvivingMrnPerson.isLive());
         Person personForSurvivingMrn = validSurvivingMrnPerson.getPerson();
 
-        Iterable<PersonMrn> allPersonMrn = personMrnRepo.findAll();
-        for (PersonMrn pm : allPersonMrn) {
-            System.out.println(String.format("ALL PERSON_MRN: pm: %s", pm));
-            Mrn m = pm.getMrn();
-            System.out.println(String.format("     MRN: m: %s", m));
-            List<PersonMrn> persons = m.getPersons();
-            for (PersonMrn pm_reverse : persons) {
-                System.out.println(String.format("            PERSON_MRN: pm_reverse: %s", pm_reverse));
-            }
-        }
-
-        System.out.println(String.format("------"));
-
-        System.out.println(String.format("MRN: retiredMrn : %s", retiredMrn));
-        System.out.println(String.format("MRN: survivingMrn     : %s", survivingMrn));
-        System.out.println(String.format("PERSON_MRN: invalidRetiredMrnPerson: %s", invalidRetiredMrnPerson));
-        System.out.println(String.format("PERSON_MRN: validSurvivingMrnPerson: %s", validSurvivingMrnPerson));
-        System.out.println(String.format("PERSON: personForRetiredMrn      : %s", personForRetiredMrn));
-        System.out.println(String.format("PERSON: personForSurvivingMrn: %s", personForSurvivingMrn));
-
+        // the two MRNs should point to the same person
         assertEquals(personForRetiredMrn, personForSurvivingMrn);
-
     }
 }
