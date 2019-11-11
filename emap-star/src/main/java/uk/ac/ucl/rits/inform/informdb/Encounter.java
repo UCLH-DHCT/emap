@@ -144,6 +144,7 @@ public class Encounter implements Serializable {
     /**
      * @return the facts as a Map, indexed by fact short name
      */
+    @Deprecated
     public Map<String, PatientFact> getFactsAsMap() {
         Map<String, PatientFact> map = new HashMap<>();
         facts.forEach(d -> map.put(d.getFactType().getShortName(), d));
