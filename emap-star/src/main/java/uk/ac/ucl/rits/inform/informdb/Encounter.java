@@ -185,6 +185,13 @@ public class Encounter implements Serializable {
         this.mrns.add(mrnEnc);
     }
 
+    /**
+     * @return all MRNs that are/were associated with this encounter
+     */
+    public List<MrnEncounter> getMrns() {
+        return mrns;
+    }
+
     @Override
     public String toString() {
         return String.format("Encounter [encounter_id=%d, encounter=%s, source_system=%s]", encounterId, encounter,
