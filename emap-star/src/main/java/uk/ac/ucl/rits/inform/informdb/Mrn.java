@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  */
 @Entity
-@Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = false) })
+@Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = true) })
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
@@ -52,7 +52,7 @@ public class Mrn implements Serializable {
     /**
      * The value of the MRN identifier.
      */
-    @Column(unique = false, nullable = false)
+    @Column(unique = true, nullable = false)
     private String             mrn;
     private String             sourceSystem;
 
