@@ -119,4 +119,10 @@ public class PersonMrn extends TemporalCore implements Serializable {
         this.live = live;
     }
 
+    @Override
+    public String toString() {
+        return "PersonMrn [id=" + id + ", person=" + person.getPersonId() + ", mrn=" + mrn + ", validUntil="
+                + getValidUntil() + ", live=" + live + "]";
+    }
+
 }
