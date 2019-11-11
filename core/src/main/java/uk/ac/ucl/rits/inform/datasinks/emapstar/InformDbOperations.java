@@ -19,7 +19,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.cfg.NotYetImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1028,35 +1027,35 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
         }
-        Instant now = Instant.now();
-
-        PersonMrn oldPersonMrn = getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValidAsOf(now));
-
-        PersonMrn survivingPersonMrn = getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValidAsOf(now));
-
+        PersonMrn oldPersonMrn = getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValid());
+        PersonMrn survivingPersonMrn = getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
         if (survivingPersonMrn == null || oldPersonMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
                     oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
         }
 
-        // Invalidate the old person<->mrn association
-        oldPersonMrn.setValidUntil(mergeTime);
-
         // If we already thought they were the same person, do nothing further.
-        // (Wait, I don't think this can happen, because they wouldn't both be valid)
         if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
             throw new MessageIgnoredException(adtMsg,
                     String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
                             survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
         }
 
+        survivingPersonMrn.setLive(true);
+
+        // Invalidate the old person<->mrn association
+        oldPersonMrn.setValidUntil(mergeTime);
+
         // Create a new person<->mrn association that tells us that as of the merge time
-        // the old MRN is believed to belong to the person associated with the surviving
-        // Mrn
-        PersonMrn newOldPersonMrn = new PersonMrn(survivingPersonMrn.getPerson(), oldMrn);
+        // the old MRN is believed to belong to the person associated with the surviving MRN
+        Person survivingPerson = survivingPersonMrn.getPerson();
+        PersonMrn newOldPersonMrn = new PersonMrn(survivingPerson, oldMrn);
         newOldPersonMrn.setStoredFrom(Instant.now());
         newOldPersonMrn.setValidFrom(mergeTime);
+        newOldPersonMrn.setLive(false);
+        survivingPerson.linkMrn(newOldPersonMrn);
+        oldMrn.linkPerson(newOldPersonMrn);
 
         newOldPersonMrn = personMrnRepo.save(newOldPersonMrn);
         oldPersonMrn = personMrnRepo.save(oldPersonMrn);
@@ -1375,9 +1374,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throw new IllegalArgumentException(String.format(
                     "if createIfNotExist, storedFrom (%s) and validFrom (%s) must be non-null", storedFrom, validFrom));
         }
-        List<Mrn> allMrns = mrnRepo.findByMrnString(mrnStr);
-        Mrn mrn;
-        if (allMrns.isEmpty()) {
+        Mrn mrn = mrnRepo.findByMrnString(mrnStr);
+        if (mrn == null) {
             if (!createIfNotExist) {
                 return null;
             }
@@ -1394,11 +1392,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             pers.setCreateDatetime(storedFrom);
             pers.addMrn(mrn, validFrom, storedFrom);
             pers = personRepo.save(pers);
-        } else if (allMrns.size() > 1) {
-            throw new NotYetImplementedException("Does this even make sense?");
         } else {
             logger.info("Reusing an existing MRN");
-            mrn = allMrns.get(0);
         }
         return mrn;
     }
