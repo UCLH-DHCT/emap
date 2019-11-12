@@ -1012,6 +1012,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String oldMrnStr = adtMsg.getMergedPatientId();
         String survivingMrnStr = adtMsg.getMrn();
         Instant mergeTime = adtMsg.getRecordedDateTime();
+        Instant storedFrom = Instant.now();
         logger.info(
                 "MERGE: surviving mrn " + survivingMrnStr + ", oldMrn = " + oldMrnStr + ", merge time = " + mergeTime);
         if (mergeTime == null) {
@@ -1020,9 +1021,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
         // The non-surviving Mrn is invalidated but still points to the old person
         // (we are recording the fact that between these dates, the hospital believed
-        // that the mrn belonged to this person
-        Mrn oldMrn = getCreateMrn(oldMrnStr, null, null, false);
-        Mrn survivingMrn = getCreateMrn(survivingMrnStr, null, null, false);
+        // that the mrn belonged to this person)
+        Mrn oldMrn = getCreateMrn(oldMrnStr, mergeTime, storedFrom, true);
+        Mrn survivingMrn = getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true);
         if (survivingMrn == null || oldMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
@@ -1051,7 +1052,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // the old MRN is believed to belong to the person associated with the surviving MRN
         Person survivingPerson = survivingPersonMrn.getPerson();
         PersonMrn newOldPersonMrn = new PersonMrn(survivingPerson, oldMrn);
-        newOldPersonMrn.setStoredFrom(Instant.now());
+        newOldPersonMrn.setStoredFrom(storedFrom);
         newOldPersonMrn.setValidFrom(mergeTime);
         newOldPersonMrn.setLive(false);
         survivingPerson.linkMrn(newOldPersonMrn);

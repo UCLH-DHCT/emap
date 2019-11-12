@@ -20,12 +20,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.Mrn;
-import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 
+/**
+ * Set up two patients then merge them together.
+ *
+ * @author Jeremy Stein
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
