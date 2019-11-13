@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.io.Serializable;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -41,6 +42,7 @@ public class PersonMrn extends TemporalCore implements Serializable {
     @JoinColumn(name = "mrn", nullable = false)
     private Mrn               mrn;
 
+    @Column(nullable = false)
     private Boolean           live;
 
     /**
@@ -57,6 +59,7 @@ public class PersonMrn extends TemporalCore implements Serializable {
     public PersonMrn(Person person, Mrn mrn) {
         this.person = person;
         this.mrn = mrn;
+        this.live = true;
     }
 
     /**
@@ -117,6 +120,12 @@ public class PersonMrn extends TemporalCore implements Serializable {
      */
     public void setLive(Boolean live) {
         this.live = live;
+    }
+
+    @Override
+    public String toString() {
+        return "PersonMrn [id=" + id + ", person=" + person.getPersonId() + ", mrn=" + mrn + ", validUntil="
+                + getValidUntil() + ", live=" + live + "]";
     }
 
 }
