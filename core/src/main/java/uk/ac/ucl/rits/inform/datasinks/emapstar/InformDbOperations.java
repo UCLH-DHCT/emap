@@ -1074,7 +1074,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
         String mrnStr = pathologyOrder.getMrn();
-        PatientFact newPathologyOrder = buildPathologyOrderFacts(pathologyOrder);
+        PatientFact newPathologyOrder = buildPathologyOrderFact(pathologyOrder);
         Instant backupValidFrom = newPathologyOrder.getValidFrom();
         // build the order fact from the message data
         Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber, mrnStr, backupValidFrom);
@@ -1174,11 +1174,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Convert order details to Inform-db structures.
+     * Convert order details from an Emap-Interchange message to Emap-Star structures.
      * @param order the pathology order details
      * @return a PatientFact object that represents the order
      */
-    private PatientFact buildPathologyOrderFacts(PathologyOrder order) {
+    private PatientFact buildPathologyOrderFact(PathologyOrder order) {
         Instant storedFrom = Instant.now();
         // The valid from date should be the order time, when this fact became true.
         // However we are currently not getting this time, so try to find
