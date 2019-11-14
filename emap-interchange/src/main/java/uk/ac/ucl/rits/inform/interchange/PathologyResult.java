@@ -32,6 +32,7 @@ public class PathologyResult implements Serializable {
 
     private String units = "";
     private String referenceRange = "";
+    private String abnormalFlags = "";
     private String resultStatus = "";
 
     private Instant resultTime;
@@ -212,6 +213,20 @@ public class PathologyResult implements Serializable {
      */
     public void setReferenceRange(String referenceRange) {
         this.referenceRange = referenceRange;
+    }
+
+    /**
+     * @return the abnormal flags, concatenated together
+     */
+    public String getAbnormalFlags() {
+        return abnormalFlags;
+    }
+
+    /**
+     * @param abnormalFlags the abnormal flags, concatenated together
+     */
+    public void setAbnormalFlags(String abnormalFlags) {
+        this.abnormalFlags = abnormalFlags;
     }
 
     /**

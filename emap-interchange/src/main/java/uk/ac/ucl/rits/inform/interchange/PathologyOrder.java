@@ -8,9 +8,10 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * The top level of the pathology tree, the order.
- * Only the interchange format is declared here, for serialisation purposes.
- * Builder classes (eg. HL7 parser) construct this class.
+ * The top level of the pathology tree, the order. Only the interchange format
+ * is declared here, for serialisation purposes. Builder classes (eg. HL7
+ * parser) construct this class.
+ *
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
@@ -24,7 +25,9 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     private String labSpecimenNumberOCS;
     private Instant orderDateTime;
     private Instant sampleEnteredTime;
+    private String labDepartment;
     private String orderStatus;
+    private String resultStatus;
     private String orderType;
     private String mrn;
 
@@ -140,6 +143,20 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     }
 
     /**
+     * @return the resultStatus
+     */
+    public String getResultStatus() {
+        return resultStatus;
+    }
+
+    /**
+     * @param resultStatus the resultStatus to set
+     */
+    public void setResultStatus(String resultStatus) {
+        this.resultStatus = resultStatus;
+    }
+
+    /**
      * @return (patient) type for order (inpatient or outpatient)
      */
     public String getOrderType() {
@@ -231,6 +248,20 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     }
 
     /**
+     * @return the labDepartment code
+     */
+    public String getLabDepartment() {
+        return labDepartment;
+    }
+
+    /**
+     * @param labDepartment the labDepartment code to set
+     */
+    public void setLabDepartment(String labDepartment) {
+        this.labDepartment = labDepartment;
+    }
+
+    /**
      * @return the time the status of the results last changed
      */
     public Instant getStatusChangeTime() {
@@ -315,12 +346,16 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     }
 
     /**
-     * Call back to the processor so it knows what type this object is (ie. double dispatch).
+     * Call back to the processor so it knows what type this object is (ie. double
+     * dispatch).
+     *
      * @param processor the processor to call back to
-     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     * @throws EmapOperationMessageProcessingException if message cannot be
+     *                                                 processed
      */
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+    public String processMessage(EmapOperationMessageProcessor processor)
+            throws EmapOperationMessageProcessingException {
         return processor.processMessage(this);
     }
 }
