@@ -1211,6 +1211,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 order.getOrderDateTime()));
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_PATIENT_TYPE,
                 order.getOrderType()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS,
+                order.getOrderStatus()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS,
+                order.getResultStatus()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE,
+                order.getLabDepartment()));
 
         // Status change time is only given to us once per order/battery result, but we apply it
         // to each result within the order and call it the result time, because results can be returned bit by bit
