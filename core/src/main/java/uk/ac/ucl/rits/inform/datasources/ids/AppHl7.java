@@ -66,6 +66,10 @@ public class AppHl7 {
                     (endCurrentTimeMillis - startTimeMillis) / 1000.0));
             context.close();
             idsOps.close();
+            // Make sure all threads exit - it's an error exit code because something
+            // abnormal must have happened to get to this point. In the non-error case
+            // this program sits and processes messages until the end of time.
+            System.exit(1);
         };
     }
 }
