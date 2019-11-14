@@ -118,8 +118,12 @@ public class PathologyResultBuilder {
 
         msg.setUnits(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
         msg.setReferenceRange(obx.getObx7_ReferencesRange().getValueOrEmpty());
-        // how many abnormal flags can we get in practice?
-        IS[] abnormalFlags = obx.getObx8_AbnormalFlags();
+        String abnormalFlags = "";
+        // will there ever be more than one abnormal flag in practice?
+        for (IS flag : obx.getObx8_AbnormalFlags()) {
+            abnormalFlags += flag.getValueOrEmpty();
+        }
+        msg.setAbnormalFlags(abnormalFlags);
     }
 
     /**

@@ -52,7 +52,7 @@ public class TestOru extends Hl7StreamTestCase {
      */
     @Test
     @Transactional
-    public void testPathResultExists() {
+    public void testPathOrderAndResult() {
         List<PatientFact> orders = patientFactRepo.findAllPathologyOrdersByOrderNumber("12121218");
         assertEquals("should be exactly one order", 1, orders.size());
         PatientFact pathOrder = orders.get(0);
@@ -62,9 +62,16 @@ public class TestOru extends Hl7StreamTestCase {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
         assertEquals(enc, pathOrder.getEncounter());
 
+        // check some attributes of the order
         List<PatientProperty> collectionTimes = pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_COLLECTION_TIME);
         assertEquals(1, collectionTimes.size());
         assertEquals(Instant.parse("2013-07-24T15:41:00Z"), collectionTimes.get(0).getValueAsDatetime());
+        assertEquals("F",
+                pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS).get(0).getValueAsString());
+        assertEquals("H1",
+                pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE).get(0).getValueAsString());
+        assertEquals("CM",
+                pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS).get(0).getValueAsString());
 
         List<PatientFact> childFacts = pathOrder.getChildFacts();
         // the order must have a child of type test result that has a battery code value of FBCY
