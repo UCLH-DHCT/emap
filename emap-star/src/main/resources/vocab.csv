@@ -39,3 +39,6 @@ attribute_id,short_name,description,result_type,added_time
 38,PATH_ORDER_TYPE,The type of the patient that the order relates to,String,2019-07-31T17:00:00Z
 39,PATH_STS_TIME,Time of last change of status for the order,Datetime,2019-07-31T17:00:00Z
 40,PATH_ISOL_CODE,Local code of the isolate,String,2019-08-15T17:00:00Z
+41,PATH_LAB_DEPT,Lab department,String,2019-11-14T12:00:00Z
+42,PATH_ORDER_STS,Order status code,String,2019-11-14T12:00:00Z
+43,PATH_RESULT_STS,Result status code,String,2019-11-14T12:00:00Z

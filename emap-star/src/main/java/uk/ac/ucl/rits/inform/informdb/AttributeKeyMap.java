@@ -153,6 +153,10 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_OCS_NUMBER("PATH_OCS_NUM"),
     /**
+     * Code that identifies the lab department this order/result came from.
+     */
+    PATHOLOGY_LAB_DEPARTMENT_CODE("PATH_LAB_DEPT"),
+    /**
      * When the sample was collected (observation time).
      */
     PATHOLOGY_COLLECTION_TIME("PATH_COLL_TIME"),
@@ -168,6 +172,14 @@ public enum AttributeKeyMap {
      * The type of the patient that the order relates to (inpatient, outpatient).
      */
     PATHOLOGY_ORDER_PATIENT_TYPE("PATH_ORDER_TYPE"),
+    /**
+     * The pathology order status from WinPath.
+     */
+    PATHOLOGY_ORDER_ORDER_STATUS("PATH_ORDER_STS"),
+    /**
+     * The pathology result status from WinPath.
+     */
+    PATHOLOGY_ORDER_RESULT_STATUS("PATH_RESULT_STS"),
     /**
      * Time of last change of status for the order.
      * If this is for results, PATHOLOGY_RESULT_TIME should be used instead.
