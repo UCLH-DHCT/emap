@@ -184,7 +184,35 @@ public enum AttributeKeyMap {
      * Time of last change of status for the order.
      * If this is for results, PATHOLOGY_RESULT_TIME should be used instead.
      */
-    PATHOLOGY_STATUS_CHANGE_TIME("PATH_STS_TIME");
+    PATHOLOGY_STATUS_CHANGE_TIME("PATH_STS_TIME"),
+    /**
+     * Vital sign fact type.
+     */
+    VITAL_SIGN("VIT_SIGN"),
+    /**
+     * The local identifier (code) that tells us which vital sign it is.
+     */
+    VITAL_SIGNS_OBSERVATION_IDENTIFIER("VIT_OBS_ID"),
+    /**
+     * The coding system being used for VITAL_SIGNS_OBSERVATION_IDENTIFIER (eg. WinPath)
+     */
+    VITAL_SIGNS_OBSERVATION_CODING_SYSTEM("VIT_OBS_COD_SYS"),
+    /**
+     * The vital sign value if it's a string.
+     */
+    VITAL_SIGNS_STRING_VALUE("VIT_STR_VALUE"),
+    /**
+     * The vital sign value if it's a number.
+     */
+    VITAL_SIGNS_NUMERIC_VALUE("VIT_NUM_VALUE"),
+    /**
+     * The unit of the vital sign value.
+     */
+    VITAL_SIGNS_UNIT("VIT_UNIT"),
+    /**
+     * The time the vital sign was observed.
+     */
+    VITAL_SIGNS_OBSERVATION_TIME("VIT_OBS_TIME");
 
     private String shortname;
 

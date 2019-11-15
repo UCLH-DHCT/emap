@@ -42,3 +42,10 @@ attribute_id,short_name,description,result_type,added_time
 41,PATH_LAB_DEPT,Lab department,String,2019-11-14T12:00:00Z
 42,PATH_ORDER_STS,Order status code,String,2019-11-14T12:00:00Z
 43,PATH_RESULT_STS,Result status code,String,2019-11-14T12:00:00Z
+44,VIT_SIGN,Vital sign fact type,None,2019-11-14T16:00:00Z
+45,VIT_OBS_ID,Code to identify the vital sign,String,2019-11-14T16:00:00Z
+46,VIT_OBS_COD_SYS,Coding system being used for VIT_OBS_ID,String,2019-11-14T16:00:00Z
+47,VIT_STR_VALUE,Vital sign string value,String,2019-11-14T16:00:00Z
+48,VIT_NUM_VALUE,Vital sign numerical value,Float,2019-11-14T16:00:00Z
+49,VIT_UNIT,Unit of vital sign value,String,2019-11-14T16:00:00Z
+50,VIT_OBS_TIME,Vital sign observation time,Datetime,2019-11-14T16:00:00Z
