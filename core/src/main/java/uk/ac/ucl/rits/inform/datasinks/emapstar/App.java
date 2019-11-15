@@ -114,7 +114,7 @@ public class App {
             idsEffectLogging.setMessage(th.getMessage());
             idsEffectLogging.setStackTrace(th);
             logger.info("Sending NACK with requeue then throwing for " + msg.getSourceMessageId());
-            channel.basicNack(tag, true, false);
+            channel.basicNack(tag, false, true);
             throw th;
         } finally {
             idsEffectLogging.setProcessingEndTime(Instant.now());
