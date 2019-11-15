@@ -186,9 +186,32 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     @Override
     @Transactional
-    public String processMessage(VitalSigns msg) {
-        String returnCode = "Not implemented";
-        logger.error(returnCode);
+    public String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException {
+        String returnCode = "OK";
+        String visitNumber = msg.getVisitNumber();
+        String mrnStr = msg.getMrn();
+        Instant storedFrom = Instant.now();
+        Instant observationTime = msg.getObservationTimeTaken();
+        Encounter enc = getCreateEncounter(mrnStr, visitNumber, observationTime);
+
+        PatientFact vitalSign = new PatientFact();
+        vitalSign.setFactType(getCreateAttribute(AttributeKeyMap.VITAL_SIGN));
+        vitalSign.setValidFrom(observationTime);
+        vitalSign.setStoredFrom(storedFrom);
+
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER, msg.getVitalSignIdentifier()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_UNIT, msg.getUnit()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME, msg.getObservationTimeTaken()));
+
+        enc.addFact(vitalSign);
+        enc = encounterRepo.save(enc);
         return returnCode;
     }
 

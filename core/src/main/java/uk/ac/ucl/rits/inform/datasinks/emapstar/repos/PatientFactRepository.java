@@ -26,6 +26,33 @@ public interface PatientFactRepository extends CrudRepository<PatientFact, Long>
     List<PatientFact> findAllWithProperty(String propertyAttribute, String propertyValue);
 
     /**
+     * @param encounter the encounter string
+     * @return all facts for the encounter
+     */
+    @Query("from PatientFact pf inner join pf.encounter as enc where enc.encounter=?1")
+    List<PatientFact> findAllByEncounter(String encounter);
+
+    /**
+     * @param encounter the encounter string
+     * @param factType the shortName string of the fact type to search for
+     * @return all facts for the encounter that are of type factType
+     */
+    @Query("FROM PatientFact pf "
+            + " INNER JOIN pf.encounter enc "
+            + " INNER JOIN pf.factType attr "
+            + " WHERE enc.encounter=?1 AND attr.shortName=?2")
+    List<PatientFact> findAllByEncounterAndFactTypeString(String encounter, String factType);
+
+    /**
+     * @param encounter the encounter string
+     * @param factType the fact type to search for
+     * @return all facts for the encounter that are of type factType
+     */
+    default List<PatientFact> findAllByEncounterAndFactType(String encounter, AttributeKeyMap factType) {
+        return findAllByEncounterAndFactTypeString(encounter, factType.getShortname());
+    }
+
+    /**
      * Find all currently valid pathology orders with the given order number.
      * @param orderNumber the order number to search for
      * @return matching pathology orders as PatientFacts
