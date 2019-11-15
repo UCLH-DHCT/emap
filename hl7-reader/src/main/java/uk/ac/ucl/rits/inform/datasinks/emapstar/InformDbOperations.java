@@ -1400,9 +1400,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *         and !createIfNotExist
      */
     private Mrn getCreateMrn(String mrnStr, Instant validFrom, Instant storedFrom, boolean createIfNotExist) {
-        if (createIfNotExist && (storedFrom == null || validFrom == null)) {
+        if (createIfNotExist && (storedFrom == null || validFrom == null || mrnStr == null || mrnStr.isEmpty())) {
             throw new IllegalArgumentException(String.format(
-                    "if createIfNotExist, storedFrom (%s) and validFrom (%s) must be non-null", storedFrom, validFrom));
+                    "if createIfNotExist, storedFrom (%s) and validFrom (%s) and mrnStr (%s) must be non-null", storedFrom, validFrom, mrnStr));
         }
         Mrn mrn = mrnRepo.findByMrnString(mrnStr);
         if (mrn == null) {
