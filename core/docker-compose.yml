@@ -13,6 +13,7 @@ services:
             - config-envs
         logging:
             driver: "json-file"
+        restart: on-failure
     hl7source:
         build:
             context: ..
@@ -26,6 +27,7 @@ services:
             - config-envs
         logging:
             driver: "json-file"
+        restart: on-failure
     rabbitmq:
         image: rabbitmq:management
         env_file:
@@ -33,3 +35,4 @@ services:
         ports:
             - "${RABBITMQ_PORT}:5672"
             - "${RABBITMQ_ADMIN_PORT}:15672"
+        restart: on-failure
