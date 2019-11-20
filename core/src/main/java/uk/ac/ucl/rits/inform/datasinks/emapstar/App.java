@@ -115,8 +115,8 @@ public class App {
             idsEffectLogging.setReturnStatus("Unexpected exception: " + th.toString());
             idsEffectLogging.setMessage(th.getMessage());
             idsEffectLogging.setStackTrace(th);
-            logger.info("Sending NACK with requeue then throwing for " + msg.getSourceMessageId());
-            channel.basicNack(tag, false, true);
+            logger.info("Sending NACK no requeue then throwing for " + msg.getSourceMessageId());
+            channel.basicNack(tag, false, false);
             throw th;
         } finally {
             idsEffectLogging.setProcessingEndTime(Instant.now());
