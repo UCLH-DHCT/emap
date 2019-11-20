@@ -153,6 +153,10 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_OCS_NUMBER("PATH_OCS_NUM"),
     /**
+     * Code that identifies the lab department this order/result came from.
+     */
+    PATHOLOGY_LAB_DEPARTMENT_CODE("PATH_LAB_DEPT"),
+    /**
      * When the sample was collected (observation time).
      */
     PATHOLOGY_COLLECTION_TIME("PATH_COLL_TIME"),
@@ -169,10 +173,46 @@ public enum AttributeKeyMap {
      */
     PATHOLOGY_ORDER_PATIENT_TYPE("PATH_ORDER_TYPE"),
     /**
+     * The pathology order status from WinPath.
+     */
+    PATHOLOGY_ORDER_ORDER_STATUS("PATH_ORDER_STS"),
+    /**
+     * The pathology result status from WinPath.
+     */
+    PATHOLOGY_ORDER_RESULT_STATUS("PATH_RESULT_STS"),
+    /**
      * Time of last change of status for the order.
      * If this is for results, PATHOLOGY_RESULT_TIME should be used instead.
      */
-    PATHOLOGY_STATUS_CHANGE_TIME("PATH_STS_TIME");
+    PATHOLOGY_STATUS_CHANGE_TIME("PATH_STS_TIME"),
+    /**
+     * Vital sign fact type.
+     */
+    VITAL_SIGN("VIT_SIGN"),
+    /**
+     * The local identifier (code) that tells us which vital sign it is.
+     */
+    VITAL_SIGNS_OBSERVATION_IDENTIFIER("VIT_OBS_ID"),
+    /**
+     * The coding system being used for VITAL_SIGNS_OBSERVATION_IDENTIFIER (eg. WinPath)
+     */
+    VITAL_SIGNS_OBSERVATION_CODING_SYSTEM("VIT_OBS_COD_SYS"),
+    /**
+     * The vital sign value if it's a string.
+     */
+    VITAL_SIGNS_STRING_VALUE("VIT_STR_VALUE"),
+    /**
+     * The vital sign value if it's a number.
+     */
+    VITAL_SIGNS_NUMERIC_VALUE("VIT_NUM_VALUE"),
+    /**
+     * The unit of the vital sign value.
+     */
+    VITAL_SIGNS_UNIT("VIT_UNIT"),
+    /**
+     * The time the vital sign was observed.
+     */
+    VITAL_SIGNS_OBSERVATION_TIME("VIT_OBS_TIME");
 
     private String shortname;
 
