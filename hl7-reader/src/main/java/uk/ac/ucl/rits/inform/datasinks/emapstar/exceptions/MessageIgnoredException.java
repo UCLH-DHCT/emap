@@ -1,23 +1,41 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions;
 
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+
 /**
- * During processing this HL7 message, we have decided not to make
+ * During processing this message, we have decided not to make
  * any changes to the database. Not necessarily an error.
  *
  * @author Jeremy Stein
  *
  */
-public class MessageIgnoredException extends Exception {
+public class MessageIgnoredException extends EmapOperationMessageProcessingException {
 
     private static final long serialVersionUID = 3654478669545317495L;
 
     /**
      * Create a new MessageIgnoredException.
      *
-     * @param message the message
+     * @param errorMessage a string error message
      */
-    public MessageIgnoredException(String message) {
-        super(message);
+    @Deprecated
+    public MessageIgnoredException(String errorMessage) {
+        super(errorMessage);
     }
 
+    /**
+     * Create a new MessageIgnoredException with some extra info from the message.
+     *
+     * @param msg the interchange message
+     * @param errorMessage a string error message
+     */
+    public MessageIgnoredException(EmapOperationMessage msg, String errorMessage) {
+        super(errorMessage);
+    }
+
+    @Override
+    public String getExceptionDescription() {
+        return "Message can probably be skipped";
+    }
 }

@@ -1,5 +1,11 @@
+/**
+ * 
+ */
 package uk.ac.ucl.rits.inform.tests;
 
+import java.time.Instant;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -11,9 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Check that if we get a second A01 for the same encounter where a discharge has not happened in between,
- * that we treat it as a correction to the first one instead of a new admission (which would fail).
- * This is needed because we're not currently receiving A11 (cancel admission) messages, so we have to imply their presence.
  *
  * @author Jeremy Stein
  */
@@ -22,14 +25,14 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class TestDoubleA01Fix extends Hl7StreamTestCase {
-    public TestDoubleA01Fix() {
+public class TestDischargeUnknown extends Hl7StreamTestCase {
+    /**
+     * Discharging a patient we have not previously seen should create the patient and then discharge them.
+     * Transfer record won't be known but that could potentially be filled in later (from eg. Caboodle).
+     */
+    public TestDischargeUnknown() {
         super();
-        hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/SecondA01.txt");
-        // For extra robustness check that demographics can be changed
-        // (this is needed to trigger at least one bug)
-        hl7StreamFileNames.add("DoubleA01WithA13/A08.txt");
+        hl7StreamFileNames.add("GenericAdt/A03.txt");
     }
 
     /**
@@ -38,7 +41,6 @@ public class TestDoubleA01Fix extends Hl7StreamTestCase {
     @Test
     @Transactional
     public void testEncounterExists() {
-        // the location of the second A01 (the correction) should be used
-        _testSingleEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17", null);
+        _testSingleEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17", Instant.parse("2013-02-11T10:00:00Z"));
     }
 }
