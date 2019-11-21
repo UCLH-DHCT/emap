@@ -17,10 +17,11 @@
 # OS files
 .DS_Store
 
-# Secrets files
+# Secrets files and local config
 hl7-envs
 config-envs
 *-envs
+.env
 
 # IntelliJ files
 .idea/

@@ -4,12 +4,15 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,7 +22,6 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -42,6 +44,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
 
@@ -75,9 +78,6 @@ public class IdsOperations implements AutoCloseable {
 
     @Autowired
     private IdsProgressRepository      idsProgressRepository;
-
-    @Autowired
-    private AmqpTemplate rabbitTemplate;
 
     /**
      * We are writing to the HL7 queue.
@@ -186,7 +186,7 @@ public class IdsOperations implements AutoCloseable {
         onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
         onlyRow.setLastProcessedMessageDatetime(messageDatetime);
         onlyRow.setLastProcessingDatetime(processingEnd);
-        idsProgressRepository.save(onlyRow);
+        onlyRow = idsProgressRepository.save(onlyRow);
     }
 
 
@@ -239,12 +239,11 @@ public class IdsOperations implements AutoCloseable {
      * Entry point for populating a test IDS from a file specified on the command
      * line.
      *
-     * @param ids IDS operations objects
      * @return The CommandLineRunner
      */
     @Bean
     @Profile("populate")
-    public CommandLineRunner populateIDS(IdsOperations ids) {
+    public CommandLineRunner populateIDS() {
         return (args) -> {
             HapiContext context = HL7Utils.initializeHapiContext();
             String hl7fileSource = args[0];
@@ -262,10 +261,9 @@ public class IdsOperations implements AutoCloseable {
                 PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
                         adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
 
-                ids.writeToIds(singleMessageText, count, patientInfoHl7);
+                this.writeToIds(singleMessageText, count, patientInfoHl7);
             }
             logger.info("Wrote " + count + " messages to IDS");
-            ids.close();
             context.close();
         };
     }
@@ -332,11 +330,12 @@ public class IdsOperations implements AutoCloseable {
      * write the latest processed ID to reflect the above message. Blocks until
      * there are new messages.
      *
+     * @param publisher     the local AMQP handling class
      * @param parser        the HAPI parser to be used
      * @throws AmqpException if rabbitmq write fails
      */
     @Transactional
-    public void parseAndSendNextHl7(PipeParser parser) throws AmqpException {
+    public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException {
         int lastProcessedId = getLatestProcessedId();
         logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
@@ -344,13 +343,11 @@ public class IdsOperations implements AutoCloseable {
         Instant messageDatetime = idsMsg.getMessagedatetime();
         String sender = idsMsg.getSenderapplication();
 
-        boolean markAsProcessed = true;
-
         final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
 
         try {
             if (!allowedSenders.contains(sender)) {
-                logger.warn(String.format("Skipping message with senderapplication=\"%s\"", sender));
+                logger.warn(String.format("[" + idsMsg.getUnid() + "] Skipping message with senderapplication=\"%s\"", sender));
                 return;
             }
             String hl7msg = idsMsg.getHl7message();
@@ -361,8 +358,9 @@ public class IdsOperations implements AutoCloseable {
             try {
                 msgFromIds = parser.parse(hl7msg);
             } catch (HL7Exception hl7e) {
-                logger.error(hl7e.toString());
-                markAsProcessed = false;
+                StringWriter st = new StringWriter();
+                hl7e.printStackTrace(new PrintWriter(st));
+                logger.error("[" + idsMsg.getUnid() + "] HL7 parsing error:\n" + st.toString());
                 return;
             }
 
@@ -370,22 +368,36 @@ public class IdsOperations implements AutoCloseable {
             // but failure is only expressed on a per-HL7 message basis.
             try {
                 List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
+                int subMessageCount = 0;
                 for (EmapOperationMessage msg : messagesFromHl7Message) {
-                    logger.info("sending message to RabbitMQ ");
-                    rabbitTemplate.convertAndSend(getHl7DataSource().getQueueName(), msg);
+                    subMessageCount++;
+                    logger.info(String.format("[%d] sending message (%d/%d) to RabbitMQ ", idsMsg.getUnid(),
+                            subMessageCount, messagesFromHl7Message.size()));
+                    Semaphore semaphore = new Semaphore(0);
+                    publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
+                        // Successfully queued so mark as done.
+                        // Who is responsible for re-attempting in the case of a retry-able error like the
+                        // network is down?
+                        logger.warn("callback for " + msg.getSourceMessageId());
+                        semaphore.release();
+                    });
+                    try {
+                        semaphore.acquire();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             } catch (HL7Exception | Hl7InconsistencyException e) {
                 String errMsg =
-                        "[" + idsMsg.getUnid() + "] Skipping due to " + e + " (" + msgFromIds.getClass() + ")";
+                        "[" + idsMsg.getUnid() + "] Skipping due to " + e.getStackTrace() + " (" + msgFromIds.getClass() + ")";
                 logger.error(errMsg);
-            }
-        } finally {
-            // some errors are so bad that we want to stop processing the pipeline (ie. don't mark message as processed),
-            // but usually we just mark the message processed and carry on
-            if (markAsProcessed) {
+                // If the error is unrecoverable then skip it by marking as done.
                 Instant processingEnd = Instant.now();
                 setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
             }
+        } finally {
+            Instant processingEnd = Instant.now();
+            setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
         }
     }
 
@@ -405,11 +417,11 @@ public class IdsOperations implements AutoCloseable {
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
 
         logger.info(String.format("%s^%s", messageType, triggerEvent));
-
+        String sourceId = String.format("%010d", idsUnid);
         if (messageType.equals("ADT")) {
             List<AdtMessage> adtMsg = new ArrayList<>();
             try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, String.format("%010d", idsUnid));
+                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, sourceId);
                 adtMsg.add(msgBuilder.getAdtMessage());
             } catch (Hl7MessageNotImplementedException e) {
                 logger.warn("Ignoring message: " + e.toString());
@@ -418,12 +430,12 @@ public class IdsOperations implements AutoCloseable {
         } else if (messageType.equals("ORU")) {
             if (triggerEvent.equals("R01")) {
                 // get all result batteries in the message
-                return PathologyOrderBuilder.buildPathologyOrdersFromResults((ORU_R01) msgFromIds);
+                return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
             }
         } else if (messageType.equals("ORM")) {
             if (triggerEvent.equals("O01")) {
                 // get all orders in the message
-                return PathologyOrderBuilder.buildPathologyOrders((ORM_O01) msgFromIds);
+                return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
             }
         }
         logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));

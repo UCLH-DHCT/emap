@@ -54,8 +54,6 @@ You need the `-p` option to `docker-compose` to make sure the container and netw
 
 `docker-compose -p emaplive up --build -d`
 
-We avoid port clashes by not mapping any local ports. If something needs to connect, it should connect to the relevant docker network. Makes web browser debugging in rabbitmq hard.
-
 # emapstar
 
 ## Dependencies
@@ -102,6 +100,19 @@ This sets the username+password for the rabbitmq server. This helps prevents a u
 RABBITMQ_DEFAULT_USER=emap
 RABBITMQ_DEFAULT_PASS=seelastpassforpassword
 ```
+
+## `.env` file
+
+If you want to be able to refer to the environment variables in the docker-compose.yml file itself, they need to be in a file called `.env`.
+
+To specify which port on the GAE your rabbitmq queue binds to, use this as an example:
+
+```
+RABBITMQ_PORT=5673
+RABBITMQ_ADMIN_PORT=5674
+```
+
+We should allocate ports to people to avoid clashes, and double check what the firewall rules are for different ports. In the meantime, please use a strong password on your rabbitmq server.
 
 # hl7source
 

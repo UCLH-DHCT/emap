@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Instant;
 
 import javax.persistence.Column;
@@ -25,14 +27,16 @@ public class IdsEffectLogging {
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
-    private double queueReadDurationSeconds;
     private double processMessageDurationSeconds;
     @Column(columnDefinition = "text")
     private String returnStatus;
     private String mrn;
     private String messageType;
+    private String eventReasonCode;
     @Column(columnDefinition = "text")
     private String message;
+    @Column(columnDefinition = "text")
+    private String stackTrace;
 
     /**
      * @param sourceId the unique ID from the source system (eg. IDS unid)
@@ -92,16 +96,36 @@ public class IdsEffectLogging {
     }
 
     /**
-     * @param queueReadDurationSeconds how long it took to read from the queue
-     */
-    public void setQueueReadDuration(double queueReadDurationSeconds) {
-        this.queueReadDurationSeconds = queueReadDurationSeconds;
-    }
-
-    /**
      * @param processMessageDurationSeconds how long it took to process the message
      */
     public void setProcessMessageDuration(double processMessageDurationSeconds) {
         this.processMessageDurationSeconds = processMessageDurationSeconds;
+    }
+
+    /**
+     * @param stackTrace stack trace text if you have one
+     */
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+    }
+
+    /**
+     * Convert stack trace from exception to text.
+     *
+     * @param th throwable containing a stack trace
+     */
+    public void setStackTrace(Throwable th) {
+        StringWriter st = new StringWriter();
+        th.printStackTrace(new PrintWriter(st));
+        setStackTrace(st.toString());
+    }
+
+    /**
+     * Unclear what we'll use this field for so log it somewhere convenient for now.
+     *
+     * @param eventReasonCode the hl7 event reason code
+     */
+    public void setEventReasonCode(String eventReasonCode) {
+        this.eventReasonCode = eventReasonCode;
     }
 }

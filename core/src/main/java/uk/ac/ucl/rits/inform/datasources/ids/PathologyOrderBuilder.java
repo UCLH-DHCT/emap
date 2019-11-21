@@ -61,18 +61,23 @@ public class PathologyOrderBuilder {
 
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
+     * @param idsUnid unique Id from the IDS
      * @param ormO01 the ORM message
      * @return list of PathologyOrder orders, one for each order
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    public static List<PathologyOrder> buildPathologyOrders(ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
+    public static List<PathologyOrder> buildPathologyOrders(String idsUnid, ORM_O01 ormO01)
+            throws HL7Exception, Hl7InconsistencyException {
         List<PathologyOrder> orders = new ArrayList<>();
         List<ORM_O01_ORDER> orderAll = ormO01.getORDERAll();
+        int msgSuffix = 0;
         for (ORM_O01_ORDER order : orderAll) {
+            msgSuffix++;
+            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             PathologyOrder pathologyOrder;
             try {
-                pathologyOrder = new PathologyOrderBuilder(order, ormO01).getMessage();
+                pathologyOrder = new PathologyOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
                 if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
                     logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
                 } else {
@@ -88,12 +93,14 @@ public class PathologyOrderBuilder {
 
     /**
      * Several sets of results can exist in an ORU message, so build multiple PathologyOrder objects.
+     * @param idsUnid unique Id from the IDS
      * @param oruR01 the HL7 message
      * @return a list of PathologyOrder messages built from the results message
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public static List<PathologyOrder> buildPathologyOrdersFromResults(ORU_R01 oruR01) throws HL7Exception, Hl7InconsistencyException {
+    public static List<PathologyOrder> buildPathologyOrdersFromResults(String idsUnid, ORU_R01 oruR01)
+            throws HL7Exception, Hl7InconsistencyException {
         List<PathologyOrder> orders = new ArrayList<>();
         if (oruR01.getPATIENT_RESULTReps() != 1) {
             throw new RuntimeException("not handling this yet");
@@ -104,8 +111,11 @@ public class PathologyOrderBuilder {
         PID pid = patientResults.getPATIENT().getPID();
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
 
+        int msgSuffix = 0;
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
-            PathologyOrder pathologyOrder = new PathologyOrderBuilder(obs, msh, pid, pv1).getMessage();
+            msgSuffix++;
+            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
+            PathologyOrder pathologyOrder = new PathologyOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
             String testBatteryLocalCode = pathologyOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
                 logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
@@ -160,19 +170,23 @@ public class PathologyOrderBuilder {
 
     /**
      * Build a pathology order structure from a pathology order (ORM)  message.
+     * @param subMessageSourceId unique Id from the IDS
      * @param order one of the order groups in the message that is to be converted into an order structure
      * @param ormO01 the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      * @throws MessageIgnoredException if the entire message should be ignored
      */
-    public PathologyOrderBuilder(ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+    public PathologyOrderBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
+            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+        msg.setSourceMessageId(subMessageSourceId);
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
         PID pid = patient.getPID();
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         msg.setVisitNumber(patientHl7.getVisitNumber());
+        msg.setMrn(patientHl7.getMrn());
         String sendingApplication = patientHl7.getSendingApplication();
         if (!sendingApplication.equals("WinPath")) {
             throw new MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
@@ -222,6 +236,7 @@ public class PathologyOrderBuilder {
      *                  OBX (Observation/Result)
      *                  PRT (Participation Information) optional repeating
      *
+     * @param subMessageSourceId unique Id from the IDS
      * @param obs the result group from HAPI (ORU_R01_ORDER_OBSERVATION)
      * @param msh the MSH segment
      * @param pid the PID segment
@@ -229,11 +244,14 @@ public class PathologyOrderBuilder {
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public PathologyOrderBuilder(ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1) throws HL7Exception, Hl7InconsistencyException {
+    public PathologyOrderBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+            throws HL7Exception, Hl7InconsistencyException {
+        msg.setSourceMessageId(subMessageSourceId);
         // Can only seem to get these segments at the ORU_R01_PATIENT_RESULT level.
         // Could there really be more than one patient per message?
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         msg.setVisitNumber(patientHl7.getVisitNumber());
+        msg.setMrn(patientHl7.getMrn());
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
         populateFromOrcObr(orc, obr);
