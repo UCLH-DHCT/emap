@@ -68,15 +68,17 @@ public class App {
     private CountDownLatch vocabLoaded = new CountDownLatch(1);
 
     /**
-     * The listener for processing messages and writing to Emap-Star.
+     * The listener for processing messages and writing to Emap-Star. The ordering
+     * of queue names in the `queues` parameter actually matters - we want HL7
+     * messages to be processed in preference to caboodle messages.
      *
-     * @param msg the message
+     * @param msg     the message
      * @param channel the rabbitmq channel
-     * @param tag the message tag
+     * @param tag     the message tag
      * @throws IOException if rabbitmq channel has a problem
      */
     @Profile("default")
-    @RabbitListener(queues = {"hl7Queue"})
+    @RabbitListener(queues = {"hl7Queue", "caboodleQueue"})
     public void receiveMessage(EmapOperationMessage msg, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag)
             throws IOException {
         try {
@@ -113,8 +115,8 @@ public class App {
             idsEffectLogging.setReturnStatus("Unexpected exception: " + th.toString());
             idsEffectLogging.setMessage(th.getMessage());
             idsEffectLogging.setStackTrace(th);
-            logger.info("Sending NACK with requeue then throwing for " + msg.getSourceMessageId());
-            channel.basicNack(tag, true, false);
+            logger.info("Sending NACK no requeue then throwing for " + msg.getSourceMessageId());
+            channel.basicNack(tag, false, false);
             throw th;
         } finally {
             idsEffectLogging.setProcessingEndTime(Instant.now());

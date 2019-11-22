@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 /**
  * What effect did each IDS message have on Inform-db?
@@ -18,6 +20,7 @@ import javax.persistence.Id;
  *
  * @author Jeremy Stein
  */
+@Table(indexes = { @Index(columnList = "sourceId", unique = false) })
 @Entity
 public class IdsEffectLogging {
     @Id
