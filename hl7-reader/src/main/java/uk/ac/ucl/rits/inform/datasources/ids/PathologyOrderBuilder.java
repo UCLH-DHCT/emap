@@ -316,9 +316,11 @@ public class PathologyOrderBuilder {
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         msg.setLabSpecimenNumber(orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
         msg.setLabSpecimenNumberOCS(orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
 
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
+        msg.setResultStatus(resultStatus);
 
         // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
         // in a status change (SC) message.

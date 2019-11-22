@@ -186,9 +186,32 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     @Override
     @Transactional
-    public String processMessage(VitalSigns msg) {
-        String returnCode = "Not implemented";
-        logger.error(returnCode);
+    public String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException {
+        String returnCode = "OK";
+        String visitNumber = msg.getVisitNumber();
+        String mrnStr = msg.getMrn();
+        Instant storedFrom = Instant.now();
+        Instant observationTime = msg.getObservationTimeTaken();
+        Encounter enc = getCreateEncounter(mrnStr, visitNumber, observationTime);
+
+        PatientFact vitalSign = new PatientFact();
+        vitalSign.setFactType(getCreateAttribute(AttributeKeyMap.VITAL_SIGN));
+        vitalSign.setValidFrom(observationTime);
+        vitalSign.setStoredFrom(storedFrom);
+
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER, msg.getVitalSignIdentifier()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_UNIT, msg.getUnit()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                AttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME, msg.getObservationTimeTaken()));
+
+        enc.addFact(vitalSign);
+        enc = encounterRepo.save(enc);
         return returnCode;
     }
 
@@ -1211,6 +1234,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 order.getOrderDateTime()));
         pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_PATIENT_TYPE,
                 order.getOrderType()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS,
+                order.getOrderStatus()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS,
+                order.getResultStatus()));
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE,
+                order.getLabDepartment()));
 
         // Status change time is only given to us once per order/battery result, but we apply it
         // to each result within the order and call it the result time, because results can be returned bit by bit
@@ -1371,9 +1400,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *         and !createIfNotExist
      */
     private Mrn getCreateMrn(String mrnStr, Instant validFrom, Instant storedFrom, boolean createIfNotExist) {
-        if (createIfNotExist && (storedFrom == null || validFrom == null)) {
+        if (createIfNotExist && (storedFrom == null || validFrom == null || mrnStr == null || mrnStr.isEmpty())) {
             throw new IllegalArgumentException(String.format(
-                    "if createIfNotExist, storedFrom (%s) and validFrom (%s) must be non-null", storedFrom, validFrom));
+                    "if createIfNotExist, storedFrom (%s) and validFrom (%s) and mrnStr (%s) must be non-null", storedFrom, validFrom, mrnStr));
         }
         Mrn mrn = mrnRepo.findByMrnString(mrnStr);
         if (mrn == null) {
