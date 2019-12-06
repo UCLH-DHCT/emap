@@ -421,18 +421,33 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws MessageIgnoredException if message can't be processed
      */
     private Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant validFrom) throws MessageIgnoredException {
+        logger.info("getCreateEncounter looking for existing encounter " + encounterStr + " in MRN " + mrnStr);
         Instant storedFrom = Instant.now();
-        Mrn newOrExistingMrn = getCreateMrn(mrnStr, validFrom, storedFrom, true);
-        Encounter existingEnc = getOnlyElement(getEncounterWhere(newOrExistingMrn, encounterStr));
+        // look for encounter by its encounter number only as this is sufficiently unique without also using the MRN
+        Encounter existingEnc = encounterRepo.findEncounterByEncounter(encounterStr);
         if (existingEnc == null) {
+            // The encounter didn't exist, so see if its MRN exists, creating if not.
+            Mrn newOrExistingMrn = getCreateMrn(mrnStr, validFrom, storedFrom, true);
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
             enc.setEncounter(encounterStr);
             newOrExistingMrn.addEncounter(enc, validFrom, storedFrom);
             return enc;
         } else {
-            // return the only element
-            logger.info("getCreateEncounter RETURNING EXISTING");
+            // Encounter did exist. See whether the given MRN matches the MRN we had on record for that encounter.
+            // If they don't match just keep using the encounter, but this would suggest the source data has got
+            // confused between the patient's current MRN and the MRN this encounter had when it was created.
+            // This is a cause for concern if we need to create the encounter (other branch of this "if") because
+            // we'll create it under the wrong MRN.
+            String infoStr = "";
+            MrnEncounter mrnMatching = getOnlyElement(existingEnc.getMrns().stream()
+                    .filter(mrn -> mrn.getMrn().getMrn().equals(mrnStr)).collect(Collectors.toList()));
+            if (mrnMatching == null) {
+                infoStr = "MRN " + mrnStr + " was not associated with this encounter";
+            } else {
+                infoStr = "MRN " + mrnStr + " is associated with this encounter (valid = " +  mrnMatching.isValid() + ")";
+            }
+            logger.info(String.format("getCreateEncounter RETURNING EXISTING encounter %s (%s)", existingEnc.getEncounter(), infoStr));
             return existingEnc;
         }
     }
@@ -1423,7 +1438,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             pers.addMrn(mrn, validFrom, storedFrom);
             pers = personRepo.save(pers);
         } else {
-            logger.info("Reusing an existing MRN");
+            logger.info("Reusing an existing MRN " + mrn.getMrn() + " with encounters: " + mrn.getEncounters());
         }
         return mrn;
     }
