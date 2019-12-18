@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.interchange;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -141,5 +142,28 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     @Override
     public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         return processor.processMessage(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        VitalSigns that = (VitalSigns) o;
+        return Objects.equals(mrn, that.mrn)
+                && Objects.equals(vitalSignIdentifier, that.vitalSignIdentifier)
+                && Objects.equals(visitNumber, that.visitNumber)
+                && Objects.equals(numericValue, that.numericValue)
+                && Objects.equals(stringValue, that.stringValue)
+                && Objects.equals(unit, that.unit)
+                && Objects.equals(observationTimeTaken, that.observationTimeTaken);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, unit, observationTimeTaken);
     }
 }
