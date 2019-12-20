@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.interchange.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Publishes messages to rabbitmq, resending messages that receive a nack messaged.
- *
  * @author Stef Piatek
  */
 @Component
@@ -43,6 +42,8 @@ public class Publisher implements Runnable, Releasable {
     private int delayMultiplier = 2;
     private @Value("${rabbitmq.retry.delay.maximum:600}")
     int maximumDelay;
+    private Thread mainThread;
+    private volatile boolean isFinished;
 
 
     private Logger logger = LoggerFactory.getLogger(Publisher.class);
@@ -72,13 +73,13 @@ public class Publisher implements Runnable, Releasable {
         this.maxInTransit = maxInTransit;
         this.initialDelay = initialDelay;
         currentDelay = initialDelay;
-        new Thread(this).start();
-
+        isFinished = false;
+        mainThread = new Thread(this);
+        mainThread.start();
     }
 
     /**
      * Submit single message for publication to rabbitmq queue defined in the configs EmapDataSource bean.
-     *
      * @param message       Emap message to be sent.
      * @param correlationId Unique Id for the message. Must not contain a colon character.
      * @param batchId       Unique Id for the batch, in most cases this can be the correlationId.
@@ -95,7 +96,6 @@ public class Publisher implements Runnable, Releasable {
 
     /**
      * Submit batch of messages for publication to rabbitmq queue defined in the configs EmapDataSource bean.
-     *
      * @param batch    Batch of messages to be sent (pairs of Emap messages and their unique correlationIds)
      *                 CorrelationIds should be unique within the batch and not contain a colon character.
      * @param batchId  Unique Id for the batch, in most cases this can be the first correlationId of the batch.
@@ -122,10 +122,19 @@ public class Publisher implements Runnable, Releasable {
     }
 
     /**
+     * Shutdown all threads managed by publisher, managed by spring.
+     */
+    @PreDestroy
+    public void shutdown() {
+        executorService.shutdownNow();
+        isFinished = true;
+        mainThread.interrupt();
+    }
+
+    /**
      * If the number of messages published to rabbitmq queue is less than the maximum number of elements in flight,
      * then the message will be added to the waitingMap and published to rabbitmq.
      * Otherwise the it will block here and keep on retrying until an acknowledgement of reciept from rabbitmq is received.
-     *
      * @param message       Emap message to be sent.
      * @param correlationId Unique Id for the message. Must not contain a colon character.
      * @param batchId       Unique Id for the batch, in most cases this can be the correlationId.
@@ -149,7 +158,7 @@ public class Publisher implements Runnable, Releasable {
      * and attempts to sequentially publish the messages in the queue to rabbitmq.
      */
     public void run() {
-        while (true) {
+        while (!isFinished) {
             try {
                 MessageBatch<? extends EmapOperationMessage> messageBatch = blockingQueue.take();
                 batchWaitingMap.put(messageBatch.batchId, new Pair<>(messageBatch.batch.size(), messageBatch.callback));
@@ -171,7 +180,6 @@ public class Publisher implements Runnable, Releasable {
      * There are two possible states that this is called from:
      * - If there have been no nacks received: Free up a single space for a new message to be sent
      * - If there has been a nack and this is the first ack: Free up all spaces for new messages to be published again.
-     *
      * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
      */
     @Override
@@ -212,11 +220,10 @@ public class Publisher implements Runnable, Releasable {
 
     /**
      * On a nack response, no new messages will be sent, attempting to resend the messages that have failed to publish.
-     *
+     * <p>
      * Failed messages will be sent with an exponential backoff, using the 'rabbitmq.retry.delay.initial'
      * and the 'rabbitmq.retry.delay.maximum' from application.properties as the seconds delay. The exponential backoff
      * will double after every message in transit has received a nack.
-     *
      * @param correlationId correlationId + ":" + batchId (within the correlationData sent to rabbitmq).
      */
     @Override
