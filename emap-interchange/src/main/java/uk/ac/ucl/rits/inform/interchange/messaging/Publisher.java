@@ -86,8 +86,9 @@ public class Publisher implements Runnable, Releasable {
      *                      Must not contain a colon character.
      * @param callback      To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                      Most likely to update the state of progress.
+     * @throws InterruptedException if thread gets interrupted during queue put wait
      */
-    public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback) {
+    public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback) throws InterruptedException {
         Pair<EmapOperationMessage, String> pair = new Pair<>(message, correlationId);
         List<Pair<EmapOperationMessage, String>> list = new ArrayList<>();
         list.add(pair);
@@ -103,8 +104,9 @@ public class Publisher implements Runnable, Releasable {
      * @param callback To be run on receipt of a successful acknowledgement of publishing all messages in batch from rabbitmq
      *                 Most likely to update the state of progress
      * @param <T>      Any child of EmapOperationMessage so that you can pass in child class directly.
+     * @throws InterruptedException if thread gets interrupted during queue put wait
      */
-    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback) {
+    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback) throws InterruptedException {
         MessageBatch<T> submitBatch = new MessageBatch<>(batchId, batch, callback);
 
         // If queue is full for longer than the scan for new messages, then the progress would not have been updated
@@ -117,6 +119,7 @@ public class Publisher implements Runnable, Releasable {
             blockingQueue.put(submitBatch);
         } catch (InterruptedException e) {
             logger.error("Waiting to submit a batch was interrupted", e);
+            throw e;
         }
         logger.info(String.format("BatchId %s with %s messages was submitted to Publisher batches", batchId, batch.size()));
     }
@@ -139,8 +142,9 @@ public class Publisher implements Runnable, Releasable {
      * @param correlationId Unique Id for the message. Must not contain a colon character.
      * @param batchId       Unique Id for the batch, in most cases this can be the correlationId.
      *                      Must not contain a colon character.
+     * @throws InterruptedException if thread is interrupted while waiting to acquire semaphore
      */
-    private void publish(EmapOperationMessage message, String correlationId, String batchId) {
+    private void publish(EmapOperationMessage message, String correlationId, String batchId) throws InterruptedException {
         logger.debug("Sending message to RabbitMQ");
 
         CorrelationData correlationData = new CorrelationData(correlationId + ":" + batchId);
@@ -148,6 +152,7 @@ public class Publisher implements Runnable, Releasable {
             semaphore.acquire();
         } catch (InterruptedException e) {
             logger.error("Waiting to send message to rabbitmq was interrupted", e);
+            throw e;
         }
         waitingMap.put(correlationId, message);
         rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
