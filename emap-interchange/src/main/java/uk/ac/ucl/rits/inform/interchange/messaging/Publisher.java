@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.interchange.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,6 +171,9 @@ public class Publisher implements Runnable, Releasable {
                 for (Pair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
                     publish(pair.first, pair.second, messageBatch.batchId);
                 }
+            } catch (AmqpException e) {
+                logger.error("AMQP Exception encountered, shutting down", e);
+                System.exit(1);
             } catch (InterruptedException e) {
                 logger.error("Publisher thread interrupted", e);
                 return;
