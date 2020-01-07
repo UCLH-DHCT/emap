@@ -105,9 +105,14 @@ public class Publisher implements Runnable, Releasable {
      * @param callback To be run on receipt of a successful acknowledgement of publishing all messages in batch from rabbitmq
      *                 Most likely to update the state of progress
      * @param <T>      Any child of EmapOperationMessage so that you can pass in child class directly.
-     * @throws InterruptedException if thread gets interrupted during queue put wait
+     * @throws InterruptedException  if thread gets interrupted during queue put wait
+     * @throws IllegalStateException if publisher is shutdown due to an exception
      */
-    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback) throws InterruptedException {
+    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback)
+            throws InterruptedException, IllegalStateException {
+        if (isFinished) {
+            throw new IllegalStateException("Publisher has been shut down");
+        }
         MessageBatch<T> submitBatch = new MessageBatch<>(batchId, batch, callback);
 
         // If queue is full for longer than the scan for new messages, then the progress would not have been updated
@@ -172,8 +177,8 @@ public class Publisher implements Runnable, Releasable {
                     publish(pair.first, pair.second, messageBatch.batchId);
                 }
             } catch (AmqpException e) {
-                logger.error("AMQP Exception encountered, shutting down", e);
-                System.exit(1);
+                logger.error("AMQP Exception encountered, shutting down the publisher", e);
+                shutdown();
             } catch (InterruptedException e) {
                 logger.error("Publisher thread interrupted", e);
                 return;
