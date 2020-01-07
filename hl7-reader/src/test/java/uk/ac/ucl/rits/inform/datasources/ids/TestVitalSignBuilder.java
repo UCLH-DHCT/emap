@@ -1,0 +1,84 @@
+package uk.ac.ucl.rits.inform.datasources.ids;
+
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+
+import static junit.framework.TestCase.assertEquals;
+
+@RunWith(SpringRunner.class)
+@ActiveProfiles("test")
+@SpringBootTest
+public class TestVitalSignBuilder {
+    List<VitalSigns> vitalSigns;
+    VitalSigns firstVitalSign;
+
+    @Before
+    public void setUp() throws IOException, HL7Exception {
+        String hl7 = HL7Utils.readHl7FromResource("VitalSignHL7Message.txt");
+        Message hl7Msg = HL7Utils.parseHl7String(hl7);
+        vitalSigns =  new VitalSignBuilder((ORU_R01) hl7Msg, "42").getMessages();
+        firstVitalSign = vitalSigns.get(0);
+    }
+
+    @Test
+    public void testMRN()  {
+        String result = firstVitalSign.getMrn();
+        assertEquals("6537077", result);
+    }
+
+    @Test
+    public void testVisitNumber()  {
+        String result = firstVitalSign.getVisitNumber();
+        assertEquals("TODO", result);
+    }
+
+    @Test
+    public void testVitalSignIdentifier()  {
+        String result = firstVitalSign.getVitalSignIdentifier();
+        assertEquals("EPIC$271649006", result);
+    }
+
+    @Test
+    public void testNumericValue()  {
+        Double result = firstVitalSign.getNumericValue();
+        assertEquals(132.0, result);
+    }
+
+    @Test
+    public void testStringValue()  {
+        String result = vitalSigns.get(6).getStringValue();
+        assertEquals("string value", result);
+    }
+
+    @Test
+    public void testUnit()  {
+        String result = firstVitalSign.getUnit();
+        assertEquals("mm[Hg]", result);
+    }
+
+    @Test
+    public void testObservationTimeTaken()  {
+        Instant result = firstVitalSign.getObservationTimeTaken();
+        assertEquals(Instant.parse("2010-02-11T22:05:25.00Z"), result);
+    }
+
+    @Test
+    public void testSourceMessageId()  {
+        String result = firstVitalSign.getSourceMessageId();
+        assertEquals("42_01", result);
+    }
+
+
+}

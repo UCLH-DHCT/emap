@@ -43,4 +43,14 @@ public class PatientInfoHl7 implements PV1Wrap, PIDWrap, MSHWrap {
         this.pv1 = pv1;
     }
 
+    /**
+     * Builder parser object without pv1 segment.
+     * @param msh the MSH segment from the message
+     * @param pid the PID segment from the message
+     */
+    public PatientInfoHl7(MSH msh, PID pid) {
+        this.msh = msh;
+        this.pid = pid;
+    }
+
 }
