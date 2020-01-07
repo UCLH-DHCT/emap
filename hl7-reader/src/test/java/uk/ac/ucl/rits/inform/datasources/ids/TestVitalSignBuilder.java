@@ -41,7 +41,7 @@ public class TestVitalSignBuilder {
     @Test
     public void testVisitNumber()  {
         String result = firstVitalSign.getVisitNumber();
-        assertEquals("TODO", result);
+        assertEquals("1234TESTVISITNUM", result);
     }
 
     @Test

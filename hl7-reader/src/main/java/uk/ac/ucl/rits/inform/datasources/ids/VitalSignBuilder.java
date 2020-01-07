@@ -12,6 +12,7 @@ import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.PID;
+import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
@@ -41,6 +42,7 @@ public class VitalSignBuilder {
         ORU_R01_PATIENT_RESULT patientResult = oruR01.getPATIENT_RESULT();
         PID pid = patientResult.getPATIENT().getPID();
         MSH msh = (MSH) oruR01.get("MSH");
+        PV1 pv1 = patientResult.getPATIENT().getVISIT().getPV1();
 
         // assumes that only one result
         ORU_R01_ORDER_OBSERVATION orderObs = patientResult.getORDER_OBSERVATION();
@@ -52,7 +54,7 @@ public class VitalSignBuilder {
             // TODO: Vitalsigns previously using $ for a separator, should I change this?
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             try {
-                VitalSigns vitalSign = populateMessages(subMessageSourceId, observation.getOBX(), msh, pid);
+                VitalSigns vitalSign = populateMessages(subMessageSourceId, observation.getOBX(), msh, pid, pv1);
                 // validate vitalsigns?
                 vitalSigns.add(vitalSign);
             } catch (HL7Exception e) {
@@ -70,15 +72,14 @@ public class VitalSignBuilder {
      * @return Vitalsign
      * @throws HL7Exception if HL7 message cannot be parsed
      */
-    private VitalSigns populateMessages(String subMessageSourceId, OBX obx, MSH msh, PID pid) throws HL7Exception {
+    private VitalSigns populateMessages(String subMessageSourceId, OBX obx, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
         VitalSigns vitalSign = new VitalSigns();
 
         // set generic information
-        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid);
+        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         vitalSign.setMrn(patientHl7.getMrn());
+        vitalSign.setVisitNumber(patientHl7.getVisitNumber());
         vitalSign.setSourceMessageId(subMessageSourceId);
-        // TODO: Need to see how visit number is encoded in HL7 message as not expecting a PV1 segment
-        vitalSign.setVisitNumber("such a good question");
 
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
