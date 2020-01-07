@@ -87,9 +87,11 @@ public class Publisher implements Runnable, Releasable {
      *                      Must not contain a colon character.
      * @param callback      To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                      Most likely to update the state of progress.
-     * @throws InterruptedException if thread gets interrupted during queue put wait
+     * @throws InterruptedException  if thread gets interrupted during queue put wait
+     * @throws IllegalStateException if publisher has been shut down
      */
-    public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback) throws InterruptedException {
+    public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback)
+            throws InterruptedException, IllegalStateException {
         Pair<EmapOperationMessage, String> pair = new Pair<>(message, correlationId);
         List<Pair<EmapOperationMessage, String>> list = new ArrayList<>();
         list.add(pair);
@@ -106,7 +108,7 @@ public class Publisher implements Runnable, Releasable {
      *                 Most likely to update the state of progress
      * @param <T>      Any child of EmapOperationMessage so that you can pass in child class directly.
      * @throws InterruptedException  if thread gets interrupted during queue put wait
-     * @throws IllegalStateException if publisher is shutdown due to an exception
+     * @throws IllegalStateException if publisher has been shut down
      */
     public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback)
             throws InterruptedException, IllegalStateException {
@@ -273,4 +275,3 @@ public class Publisher implements Runnable, Releasable {
         }
     }
 }
-
