@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.interchange.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,9 +87,11 @@ public class Publisher implements Runnable, Releasable {
      *                      Must not contain a colon character.
      * @param callback      To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                      Most likely to update the state of progress.
-     * @throws InterruptedException if thread gets interrupted during queue put wait
+     * @throws InterruptedException  if thread gets interrupted during queue put wait
+     * @throws IllegalStateException if publisher has been shut down
      */
-    public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback) throws InterruptedException {
+    public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback)
+            throws InterruptedException, IllegalStateException {
         Pair<EmapOperationMessage, String> pair = new Pair<>(message, correlationId);
         List<Pair<EmapOperationMessage, String>> list = new ArrayList<>();
         list.add(pair);
@@ -104,9 +107,14 @@ public class Publisher implements Runnable, Releasable {
      * @param callback To be run on receipt of a successful acknowledgement of publishing all messages in batch from rabbitmq
      *                 Most likely to update the state of progress
      * @param <T>      Any child of EmapOperationMessage so that you can pass in child class directly.
-     * @throws InterruptedException if thread gets interrupted during queue put wait
+     * @throws InterruptedException  if thread gets interrupted during queue put wait
+     * @throws IllegalStateException if publisher has been shut down
      */
-    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback) throws InterruptedException {
+    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback)
+            throws InterruptedException, IllegalStateException {
+        if (isFinished) {
+            throw new IllegalStateException("Publisher has been shut down");
+        }
         MessageBatch<T> submitBatch = new MessageBatch<>(batchId, batch, callback);
 
         // If queue is full for longer than the scan for new messages, then the progress would not have been updated
@@ -170,6 +178,9 @@ public class Publisher implements Runnable, Releasable {
                 for (Pair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
                     publish(pair.first, pair.second, messageBatch.batchId);
                 }
+            } catch (AmqpException e) {
+                logger.error("AMQP Exception encountered, shutting down the publisher", e);
+                shutdown();
             } catch (InterruptedException e) {
                 logger.error("Publisher thread interrupted", e);
                 return;
@@ -264,4 +275,3 @@ public class Publisher implements Runnable, Releasable {
         }
     }
 }
-
