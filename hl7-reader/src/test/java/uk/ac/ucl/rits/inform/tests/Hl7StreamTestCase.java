@@ -48,7 +48,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  *
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @ComponentScan(basePackages= {

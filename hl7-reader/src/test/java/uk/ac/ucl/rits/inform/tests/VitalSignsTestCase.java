@@ -8,14 +8,6 @@ import static org.junit.Assert.assertEquals;
 import java.time.Instant;
 import java.util.List;
 
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
@@ -28,11 +20,6 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
  *
  * @author Jeremy Stein
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
-@AutoConfigureTestDatabase
-@ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class VitalSignsTestCase extends MessageStreamTestCase {
     public VitalSignsTestCase() {
         super();
