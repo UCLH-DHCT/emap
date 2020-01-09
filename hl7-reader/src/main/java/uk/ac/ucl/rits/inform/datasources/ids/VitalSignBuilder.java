@@ -34,11 +34,11 @@ public class VitalSignBuilder {
 
     /**
      * Populates VitalSign messages from a ORU R01 HL7message.
-     * @param oruR01  ORU R01 HL7 VitalSign message from EPIC
      * @param idsUnid Unique id from UDS
+     * @param oruR01  ORU R01 HL7 VitalSign message from EPIC
      * @throws HL7Exception If errors in parsing HL7 message
      */
-    public VitalSignBuilder(ORU_R01 oruR01, String idsUnid) throws HL7Exception {
+    public VitalSignBuilder(String idsUnid, ORU_R01 oruR01) throws HL7Exception {
         ORU_R01_PATIENT_RESULT patientResult = oruR01.getPATIENT_RESULT();
         PID pid = patientResult.getPATIENT().getPID();
         MSH msh = (MSH) oruR01.get("MSH");
@@ -66,9 +66,10 @@ public class VitalSignBuilder {
     /**
      * Populate vitalsign message from HL7 message segments.
      * @param subMessageSourceId Unique ID of message
-     * @param obx OBX segment
-     * @param msh MSH segment
-     * @param pid PID segment
+     * @param obx                OBX segment
+     * @param msh                MSH segment
+     * @param pid                PID segment
+     * @param pv1                PIV segment
      * @return Vitalsign
      * @throws HL7Exception if HL7 message cannot be parsed
      */
