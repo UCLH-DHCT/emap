@@ -1,19 +1,12 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
-
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -31,21 +24,23 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v26.message.ORM_O01;
-import ca.uhn.hl7v2.model.v26.message.ORU_R01;
-import ca.uhn.hl7v2.model.v26.segment.MSH;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 
 /**
@@ -395,9 +390,9 @@ public class IdsOperations implements AutoCloseable {
      * Using the type+trigger event of the HL7 message, create the correct type of
      * interchange message. One HL7 message can give rise to multiple interchange messages.
      * @param msgFromIds the HL7 message
-     * @param idsUnid the sequential ID number from the IDS (unid)
+     * @param idsUnid    the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception              if HL7 exception thrown by HAPI
      * @throws Hl7InconsistencyException if the HL7 message contradicts itself
      */
     public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
@@ -405,30 +400,18 @@ public class IdsOperations implements AutoCloseable {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
+        String sendingFacility = msh.getSendingFacility().getHd1_NamespaceID().getValueOrEmpty();
 
         logger.info(String.format("%s^%s", messageType, triggerEvent));
-        String sourceId = String.format("%010d", idsUnid);
-        if (messageType.equals("ADT")) {
-            List<AdtMessage> adtMsg = new ArrayList<>();
-            try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, sourceId);
-                adtMsg.add(msgBuilder.getAdtMessage());
-            } catch (Hl7MessageNotImplementedException e) {
-                logger.warn("Ignoring message: " + e.toString());
-            }
-            return adtMsg;
-        } else if (messageType.equals("ORU")) {
-            if (triggerEvent.equals("R01")) {
-                // get all result batteries in the message
-                return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
-            }
-        } else if (messageType.equals("ORM")) {
-            if (triggerEvent.equals("O01")) {
-                // get all orders in the message
-                return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
+        if (sendingFacility.contains("Vitals")) {
+            if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
+                String sourceId = String.format("%010d", idsUnid);
+                VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
+                return vitalSignBuilder.getMessages();
             }
         }
-        logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
+        logger.info(String.format("Message not parsed %s^%s", messageType, triggerEvent));
         return null;
+
     }
 }
