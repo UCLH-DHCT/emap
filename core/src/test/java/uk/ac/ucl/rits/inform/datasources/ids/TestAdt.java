@@ -1,12 +1,14 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import static org.junit.Assert.assertEquals;
+
 import java.time.Instant;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.model.Message;
-import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
@@ -14,11 +16,11 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
  * Test the EVN wrapper.
  */
 @ActiveProfiles("test")
-public class TestAdt extends TestCase {
+public class TestAdt {
     private AdtMessage wrapper;
 
-    @Override
-    public void setUp() throws Exception {
+    @Before
+    public void setup() throws Exception {
         String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         wrapper = new AdtMessageBuilder(hl7Msg, "42").getAdtMessage();
@@ -59,7 +61,6 @@ public class TestAdt extends TestCase {
         Instant result = wrapper.getEventOccurredDateTime();
         assertEquals(Instant.parse("2012-01-01T12:00:00.00Z"), result);
     }
-
 
     /**
      * Test event code

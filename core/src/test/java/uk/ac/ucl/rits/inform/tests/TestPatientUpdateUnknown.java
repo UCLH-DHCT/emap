@@ -7,13 +7,6 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
@@ -26,11 +19,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  *
  * @author Jeremy Stein
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
-@AutoConfigureTestDatabase
-@ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class TestPatientUpdateUnknown extends Hl7StreamTestCase {
     /**
      * Updating info for a patient we have not previously seen should NOT create a patient.
