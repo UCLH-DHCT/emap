@@ -375,25 +375,15 @@ public class IdsOperations implements AutoCloseable {
                             subMessageCount, messagesFromHl7Message.size()));
                     Semaphore semaphore = new Semaphore(0);
                     publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
-                        // Successfully queued so mark as done.
-                        // Who is responsible for re-attempting in the case of a retry-able error like the
-                        // network is down?
                         logger.warn("callback for " + msg.getSourceMessageId());
                         semaphore.release();
                     });
-                    try {
-                        semaphore.acquire();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    semaphore.acquire();
                 }
-            } catch (HL7Exception | Hl7InconsistencyException e) {
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
                 String errMsg =
                         "[" + idsMsg.getUnid() + "] Skipping due to " + e.getStackTrace() + " (" + msgFromIds.getClass() + ")";
                 logger.error(errMsg);
-                // If the error is unrecoverable then skip it by marking as done.
-                Instant processingEnd = Instant.now();
-                setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
             }
         } finally {
             Instant processingEnd = Instant.now();
