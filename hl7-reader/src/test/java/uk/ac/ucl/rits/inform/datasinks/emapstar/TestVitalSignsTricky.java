@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import java.time.Instant;
 
