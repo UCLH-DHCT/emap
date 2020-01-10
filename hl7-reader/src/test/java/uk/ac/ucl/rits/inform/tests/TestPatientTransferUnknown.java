@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestPatientTransferUnknown extends Hl7StreamTestCase {
+public class TestPatientTransferUnknown extends Hl7StreamEndToEndTestCase {
     /**
      * Transferring a patient we have not previously seen should create the patient with the given info.
      * Previous history won't be known but that could potentially be filled in later (from eg. Caboodle).

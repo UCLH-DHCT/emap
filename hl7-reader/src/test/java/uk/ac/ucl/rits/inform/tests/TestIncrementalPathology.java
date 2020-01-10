@@ -20,7 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  * New results should be added taking care to avoid duplicating existing ones.
  * @author Jeremy Stein
  */
-public class TestIncrementalPathology extends Hl7StreamTestCase {
+public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
     public TestIncrementalPathology() {
         super();
         hl7StreamFileNames.add("IncrementalPathology.txt");

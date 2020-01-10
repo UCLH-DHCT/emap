@@ -14,7 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
  * Test adding results with antibiotic sensitivities included.
  * @author Jeremy Stein
  */
-public class TestPathologySensitivity extends Hl7StreamTestCase {
+public class TestPathologySensitivity extends Hl7StreamEndToEndTestCase {
     public TestPathologySensitivity() {
         super();
         hl7StreamFileNames.add("PathologySensitivity.txt");

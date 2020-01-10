@@ -19,7 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  *
  * @author Jeremy Stein
  */
-public class TestPatientUpdateUnknown extends Hl7StreamTestCase {
+public class TestPatientUpdateUnknown extends Hl7StreamEndToEndTestCase {
     /**
      * Updating info for a patient we have not previously seen should NOT create a patient.
      */

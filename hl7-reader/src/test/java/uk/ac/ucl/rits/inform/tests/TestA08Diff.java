@@ -23,7 +23,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-public class TestA08Diff extends Hl7StreamTestCase {
+public class TestA08Diff extends Hl7StreamEndToEndTestCase {
     public TestA08Diff() {
         super();
         hl7StreamFileNames.add("GenericAdt/A01.txt");

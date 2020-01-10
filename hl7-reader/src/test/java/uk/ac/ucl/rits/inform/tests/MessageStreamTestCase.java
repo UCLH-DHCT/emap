@@ -25,7 +25,8 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
- * Test cases that take a stream of Emap Interchange messages as an input.
+ * Test cases that take a stream of Emap Interchange messages as an input,
+ * and inspect the resultant changes to Emap-Star.
  *
  * @author Jeremy Stein
  */

@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 @Ignore
-public class TestOrm extends Hl7StreamTestCase {
+public class TestOrm extends Hl7StreamEndToEndTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.
