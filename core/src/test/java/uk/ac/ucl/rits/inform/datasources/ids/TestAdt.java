@@ -13,7 +13,8 @@ import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
 /**
- * Test the EVN wrapper.
+ * Take an HL7 ADT message as input, and check the correctness of the resultant
+ * interchange message (AdtMessage).
  */
 @ActiveProfiles("test")
 public class TestAdt {

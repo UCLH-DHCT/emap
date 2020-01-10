@@ -22,7 +22,7 @@ import uk.ac.ucl.rits.inform.informdb.PersonMrn;
  *
  * @author Jeremy Stein
  */
-public class TestMergeById extends Hl7StreamTestCase {
+public class TestMergeById extends Hl7StreamEndToEndTestCase {
     @Autowired
     private PersonMrnRepository personMrnRepo;
     public TestMergeById() {

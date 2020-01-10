@@ -32,7 +32,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-public class TestDoubleA01WithA13 extends Hl7StreamTestCase {
+public class TestDoubleA01WithA13 extends Hl7StreamEndToEndTestCase {
     public TestDoubleA01WithA13() {
         super();
         hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");

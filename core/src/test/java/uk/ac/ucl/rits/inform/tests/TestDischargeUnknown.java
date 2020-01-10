@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestDischargeUnknown extends Hl7StreamTestCase {
+public class TestDischargeUnknown extends Hl7StreamEndToEndTestCase {
     /**
      * Discharging a patient we have not previously seen should create the patient and then discharge them.
      * Transfer record won't be known but that could potentially be filled in later (from eg. Caboodle).

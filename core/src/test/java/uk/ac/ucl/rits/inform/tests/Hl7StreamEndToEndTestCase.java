@@ -56,7 +56,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
         "uk.ac.ucl.rits.inform.tests",
         "uk.ac.ucl.rits.inform.informdb" })
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public abstract class Hl7StreamTestCase {
+public abstract class Hl7StreamEndToEndTestCase {
     @Autowired
     protected IdsOperations idsOps;
     @Autowired

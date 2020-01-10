@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestDoubleA01Fix extends Hl7StreamTestCase {
+public class TestDoubleA01Fix extends Hl7StreamEndToEndTestCase {
     public TestDoubleA01Fix() {
         super();
         hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
