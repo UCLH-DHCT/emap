@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.messaging;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -33,7 +34,7 @@ public class Publisher implements Runnable, Releasable {
     private Semaphore semaphore;
     private final BlockingQueue<MessageBatch<? extends EmapOperationMessage>> blockingQueue;
     private Map<String, EmapOperationMessage> waitingMap;
-    private Map<String, Pair<Integer, Runnable>> batchWaitingMap;
+    private Map<String, ImmutablePair<Integer, Runnable>> batchWaitingMap;
     private ScheduledThreadPoolExecutor executorService;
     private final int maxInTransit;
     private volatile boolean failedSend = false;
@@ -92,8 +93,8 @@ public class Publisher implements Runnable, Releasable {
      */
     public void submit(EmapOperationMessage message, String correlationId, String batchId, Runnable callback)
             throws InterruptedException, IllegalStateException {
-        Pair<EmapOperationMessage, String> pair = new Pair<>(message, correlationId);
-        List<Pair<EmapOperationMessage, String>> list = new ArrayList<>();
+        ImmutablePair<EmapOperationMessage, String> pair = new ImmutablePair<>(message, correlationId);
+        List<ImmutablePair<EmapOperationMessage, String>> list = new ArrayList<>();
         list.add(pair);
         submit(list, batchId, callback);
     }
@@ -110,7 +111,7 @@ public class Publisher implements Runnable, Releasable {
      * @throws InterruptedException  if thread gets interrupted during queue put wait
      * @throws IllegalStateException if publisher has been shut down
      */
-    public <T extends EmapOperationMessage> void submit(List<Pair<T, String>> batch, String batchId, Runnable callback)
+    public <T extends EmapOperationMessage> void submit(List<ImmutablePair<T, String>> batch, String batchId, Runnable callback)
             throws InterruptedException, IllegalStateException {
         if (isFinished) {
             throw new IllegalStateException("Publisher has been shut down");
@@ -174,9 +175,9 @@ public class Publisher implements Runnable, Releasable {
         while (!isFinished) {
             try {
                 MessageBatch<? extends EmapOperationMessage> messageBatch = blockingQueue.take();
-                batchWaitingMap.put(messageBatch.batchId, new Pair<>(messageBatch.batch.size(), messageBatch.callback));
-                for (Pair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
-                    publish(pair.first, pair.second, messageBatch.batchId);
+                batchWaitingMap.put(messageBatch.batchId, new ImmutablePair<>(messageBatch.batch.size(), messageBatch.callback));
+                for (ImmutablePair<? extends EmapOperationMessage, String> pair : messageBatch.batch) {
+                    publish(pair.getLeft(), pair.getRight(), messageBatch.batchId);
                 }
             } catch (AmqpException e) {
                 logger.error("AMQP Exception encountered, shutting down the publisher", e);
@@ -220,14 +221,14 @@ public class Publisher implements Runnable, Releasable {
             }
         }
         synchronized (batchWaitingMap) {
-            Pair<Integer, Runnable> batchState = batchWaitingMap.get(ids[1]);
-            int countOfWaitingMessages = batchState.first - 1;
+            ImmutablePair<Integer, Runnable> batchState = batchWaitingMap.get(ids[1]);
+            int countOfWaitingMessages = batchState.getLeft() - 1;
             if (countOfWaitingMessages == 0) {
                 batchWaitingMap.remove(ids[1]);
                 // Real work done in a separate thread so that it doesn't block the event thread
-                executorService.execute(batchState.second);
+                executorService.execute(batchState.getRight());
             } else {
-                batchWaitingMap.put(ids[1], new Pair<>(countOfWaitingMessages, batchState.second));
+                batchWaitingMap.put(ids[1], new ImmutablePair<>(countOfWaitingMessages, batchState.getRight()));
             }
         }
         logger.debug(String.format("Sent message with correlationId: %s", correlationId));
