@@ -1,7 +1,7 @@
 /**
  * 
  */
-package uk.ac.ucl.rits.inform.tests;
+package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
@@ -31,7 +30,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  * @author Jeremy Stein
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
+@SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
