@@ -1,4 +1,7 @@
 package uk.ac.ucl.rits.inform.tests;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
@@ -15,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import junit.framework.TestCase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
@@ -30,7 +32,7 @@ import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @ActiveProfiles("test")
-public class TestAttributes extends TestCase {
+public class TestAttributes {
     @Autowired
     private InformDbOperations dbOps;
 
@@ -42,7 +44,6 @@ public class TestAttributes extends TestCase {
     /**
      * Store short names from the attributes enum.
      */
-    @Override
     @Before
     public void setUp() {
         enumShortNames = new TreeSet<>();
@@ -53,10 +54,9 @@ public class TestAttributes extends TestCase {
 
     /**
      * Ensure that loading the vocab twice is harmless. (Should already have been loaded on app load).
-     * Call before tests so that we can check the tests pass after this is called.
      */
     @Before
-    public void testFoo() {
+    public void loadVocabAgain() {
         dbOps.ensureVocabLoaded();
     }
 
