@@ -80,7 +80,7 @@ rabbitmq.retry.delay.maximum=600  # maximum delay period (seconds)
 
 ### Submitting a batch of messages
 
-If messages are processed in batches, they can be submitted as a list of Pair of messages and correlationIds, 
+If messages are processed in batches, they can be submitted as a list of ImmutablePair <message, correlationId>, 
 along with a batchId and a runnable class that will update the progress upon acknowledgement for publishing
 every message in the batch. 
 
@@ -95,18 +95,20 @@ every message in the batch.
   (like updating a database) after all messages in a batch have been sent.
 
 ```java
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
 class CaboodleOperations {
     @Autowired
     private Publisher publisher;
 
     private void submitCaboodleRows(Tuple caboodleRows) {
         Tuple lastCaboodleRow = null;
-        List<Pair<VitalSigns, String>> batch = new ArrayList<>();
+        List<ImmutablePair<VitalSigns, String>> batch = new ArrayList<>();
 
         for (Tuple caboodleRow : caboodleRows) {
             VitalSigns vitalSign = processCaboodleRow(caboodleRow);
             String correlationId = caboodleRow.get("uniqueId");
-            Pair<VitalSigns, String> pair = new Pair<>(vitalSign, correlationId);
+            ImmutablePair<VitalSigns, String> pair = new ImmutablePair<>(vitalSign, correlationId);
             batch.add(pair);
 
             lastCaboodleRow = caboodleRow;

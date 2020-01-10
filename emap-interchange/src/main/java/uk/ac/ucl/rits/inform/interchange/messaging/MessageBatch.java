@@ -1,12 +1,12 @@
 package uk.ac.ucl.rits.inform.interchange.messaging;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
 import java.util.List;
 
 /**
  * Bundles a batch of messages, batchId and callback together.
- *
  * @param <T> Any child of EmapOperationMessage so that you can pass in child class directly.
  * @author Stef Piatek
  */
@@ -19,7 +19,7 @@ public class MessageBatch<T extends EmapOperationMessage> {
     /**
      * @param batch List of paired messages and their correlationIDs
      */
-    public final List<Pair<T, String>> batch;
+    public final List<ImmutablePair<T, String>> batch;
 
     /**
      * @param callback Runnable to update processing state after all messages in the batch being successfully published.
@@ -34,7 +34,7 @@ public class MessageBatch<T extends EmapOperationMessage> {
      * @param callback To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                 Most likely to update the state of progress.
      */
-    public MessageBatch(String batchId, List<Pair<T, String>> batch, Runnable callback) {
+    public MessageBatch(String batchId, List<ImmutablePair<T, String>> batch, Runnable callback) {
         if (callback == null) {
             throw new NullPointerException("Runnable is null");
         }
