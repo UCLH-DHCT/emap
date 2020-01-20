@@ -1,14 +1,13 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 /**
  * Represent a vital signs message.
- *
  * @author Sarah Keating
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
@@ -23,6 +22,8 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     private Double numericValue = 0.0;
     private String stringValue = "";
+    private String resultStatus = "";
+
 
     private String unit = "";
 
@@ -69,6 +70,14 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     }
 
     /**
+     * Gets the result status.
+     * @return resultStatus String: add(F), edit (C) or delete (D)
+     */
+    public String getResultStatus() {
+        return resultStatus;
+    }
+
+    /**
      * Returns unit of the observation value.
      * @return String unit
      */
@@ -91,6 +100,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     public void setMrn(String mrn) {
         this.mrn = mrn;
     }
+
     /**
      * Sets the visitNumber.
      * @param visitNumber String value of visitNumber
@@ -98,6 +108,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     public void setVisitNumber(String visitNumber) {
         this.visitNumber = visitNumber;
     }
+
     /**
      * Sets the vital sign Identifier.
      * @param vitalSignIdentifier String value of vital sign identifier
@@ -105,6 +116,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     public void setVitalSignIdentifier(String vitalSignIdentifier) {
         this.vitalSignIdentifier = vitalSignIdentifier;
     }
+
     /**
      * Sets the value as a number.
      * @param value Double value
@@ -112,6 +124,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     public void setNumericValue(double value) {
         this.numericValue = value;
     }
+
     /**
      * Sets the value as a string.
      * @param value String value
@@ -119,6 +132,15 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     public void setStringValue(String value) {
         this.stringValue = value;
     }
+
+    /**
+     * Sets the result status.
+     * @param resultStatus String: add(F), edit (C) or delete (D)
+     */
+    public void setResultStatus(String resultStatus) {
+        this.resultStatus = resultStatus;
+    }
+
     /**
      * Sets the unit.
      * @param unit String unit of vital sign numeric value
@@ -126,6 +148,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     public void setUnit(String unit) {
         this.unit = unit;
     }
+
     /**
      * Sets the time observation was taken.
      * @param taken Instant time taken
