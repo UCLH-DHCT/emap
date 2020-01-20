@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.ac.ucl.rits.inform.interchange.ResultStatus;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 import java.io.IOException;
@@ -60,6 +61,27 @@ public class TestVitalSignBuilder {
     public void testStringValue() {
         String result = vitalSigns.get(6).getStringValue();
         assertEquals("string value", result);
+    }
+
+    @Test
+    public void testResultStatusFtoSave() {
+        // result status is 'F' so should be converted to SAVE
+        ResultStatus result = firstVitalSign.getResultStatus();
+        assertEquals(ResultStatus.SAVE, result);
+    }
+
+    @Test
+    public void testResultStatusCtoSave() {
+        // result status is 'C' so should be converted to SAVE
+        ResultStatus result = vitalSigns.get(1).getResultStatus();
+        assertEquals(ResultStatus.SAVE, result);
+    }
+
+    @Test
+    public void testResultStatusDtoDelete() {
+        // result status is 'D' so should be converted to DELETE
+        ResultStatus result = vitalSigns.get(2).getResultStatus();
+        assertEquals(ResultStatus.DELETE, result);
     }
 
     @Test

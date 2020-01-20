@@ -15,6 +15,7 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ucl.rits.inform.interchange.ResultStatus;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 import java.util.ArrayList;
@@ -85,6 +86,16 @@ public class VitalSignBuilder {
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
         vitalSign.setVitalSignIdentifier(String.format("%s$%s", "EPIC", observationId));
+
+        String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
+        // TODO: define that these are required fields. If they don't have them, then issue with HL7 source.
+        if (resultStatus.equals("F") || resultStatus.equals("C")) {
+            vitalSign.setResultStatus(ResultStatus.SAVE);
+        } else if (resultStatus.equals("D")) {
+            vitalSign.setResultStatus(ResultStatus.DELETE);
+        } else {
+            logger.error(String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
+        }
 
         Varies dataVaries = obx.getObx5_ObservationValue(0);
         Type data = dataVaries.getData();
