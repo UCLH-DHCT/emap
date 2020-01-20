@@ -89,11 +89,10 @@ public class VitalSignBuilder {
 
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
         // TODO: define that these are required fields. If they don't have them, then issue with HL7 source.
-        if (resultStatus.equals("F") || resultStatus.equals("C")) {
-            vitalSign.setResultStatus(ResultStatus.SAVE);
-        } else if (resultStatus.equals("D")) {
+        if (resultStatus.equals("D")) {
             vitalSign.setResultStatus(ResultStatus.DELETE);
-        } else {
+        } else if (!(resultStatus.equals("F") || resultStatus.equals("C"))) {
+            // Keep default resultStatus value of SAVE, if not F or C then log as an error.
             logger.error(String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 

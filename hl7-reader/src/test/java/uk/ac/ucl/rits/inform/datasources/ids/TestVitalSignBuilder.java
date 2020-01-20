@@ -85,6 +85,13 @@ public class TestVitalSignBuilder {
     }
 
     @Test
+    public void testResultStatusUnrecognisedSave() {
+        // result status is 'NOT_EXPECTED' so should be converted to SAVE
+        ResultStatus result = vitalSigns.get(3).getResultStatus();
+        assertEquals(ResultStatus.SAVE, result);
+    }
+
+    @Test
     public void testUnit() {
         String result = firstVitalSign.getUnit();
         assertEquals("mm[Hg]", result);
