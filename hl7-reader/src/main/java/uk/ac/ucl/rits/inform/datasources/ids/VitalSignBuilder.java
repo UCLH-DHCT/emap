@@ -52,11 +52,9 @@ public class VitalSignBuilder {
         int msgSuffix = 0;
         for (ORU_R01_OBSERVATION observation : observations) {
             msgSuffix++;
-            // TODO: Vitalsigns previously using $ for a separator, should I change this?
-            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
+            String subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
             try {
                 VitalSigns vitalSign = populateMessages(subMessageSourceId, observation.getOBX(), msh, pid, pv1);
-                // validate vitalsigns?
                 vitalSigns.add(vitalSign);
             } catch (HL7Exception e) {
                 logger.error(String.format("HL7 Exception encountered for msg %s", subMessageSourceId), e);

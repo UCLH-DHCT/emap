@@ -106,7 +106,7 @@ public class TestVitalSignBuilder {
     @Test
     public void testSourceMessageId() {
         String result = firstVitalSign.getSourceMessageId();
-        assertEquals("42_01", result);
+        assertEquals("42$01", result);
     }
 
 }
