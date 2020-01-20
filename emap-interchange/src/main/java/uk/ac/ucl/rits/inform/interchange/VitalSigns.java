@@ -22,8 +22,8 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     private Double numericValue = 0.0;
     private String stringValue = "";
-    private String resultStatus = "";
 
+    private ResultStatus resultStatus = ResultStatus.SAVE;
 
     private String unit = "";
 
@@ -73,7 +73,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
      * Gets the result status.
      * @return resultStatus String: add(F), edit (C) or delete (D)
      */
-    public String getResultStatus() {
+    public ResultStatus getResultStatus() {
         return resultStatus;
     }
 
@@ -135,9 +135,9 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the result status.
-     * @param resultStatus String: add(F), edit (C) or delete (D)
+     * @param resultStatus action to be taken when the interchange message is parsed.
      */
-    public void setResultStatus(String resultStatus) {
+    public void setResultStatus(ResultStatus resultStatus) {
         this.resultStatus = resultStatus;
     }
 
