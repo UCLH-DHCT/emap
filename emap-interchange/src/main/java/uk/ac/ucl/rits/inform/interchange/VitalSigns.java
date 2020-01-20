@@ -23,6 +23,9 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     private Double numericValue = 0.0;
     private String stringValue = "";
 
+    /**
+     * Result status has default value of {@link ResultStatus#SAVE}.
+     */
     private ResultStatus resultStatus = ResultStatus.SAVE;
 
     private String unit = "";
@@ -71,7 +74,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Gets the result status.
-     * @return resultStatus String: add(F), edit (C) or delete (D)
+     * @return {@link VitalSigns#resultStatus}
      */
     public ResultStatus getResultStatus() {
         return resultStatus;
@@ -134,7 +137,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     }
 
     /**
-     * Sets the result status.
+     * Sets the result status {@link VitalSigns#resultStatus}.
      * @param resultStatus action to be taken when the interchange message is parsed.
      */
     public void setResultStatus(ResultStatus resultStatus) {
