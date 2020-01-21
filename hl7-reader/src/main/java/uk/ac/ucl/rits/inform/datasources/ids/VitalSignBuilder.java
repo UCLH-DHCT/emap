@@ -104,7 +104,7 @@ public class VitalSignBuilder {
             try {
                 vitalSign.setNumericValue(Double.parseDouble(value));
             } catch (NumberFormatException e) {
-                logger.debug(String.format("Non numeric result %s", value));
+                logger.debug(String.format("Numeric result expected for msg %s, instead '%s' was found", value, subMessageSourceId));
             }
         } else {
             //TODO: will there be an NTE or comment segment?
@@ -115,7 +115,7 @@ public class VitalSignBuilder {
         try {
             vitalSign.setObservationTimeTaken(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
         } catch (DataTypeException e) {
-            logger.error("Observation Time Taken could not be set", e);
+            logger.error(String.format("Observation Time Taken could not be set for msg %s", subMessageSourceId), e);
         }
         return vitalSign;
     }
