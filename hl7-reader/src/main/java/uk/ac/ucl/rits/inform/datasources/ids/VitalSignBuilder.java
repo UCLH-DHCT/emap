@@ -57,7 +57,7 @@ public class VitalSignBuilder {
             for (ORU_R01_OBSERVATION observation : observations) {
                 msgSuffix++;
                 subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
-                VitalSigns vitalSign = populateMessages(subMessageSourceId, observation.getOBX(), msh, pid, pv1);
+                VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation.getOBX(), msh, pid, pv1);
                 vitalSigns.add(vitalSign);
             }
         } catch (HL7Exception e) {
@@ -75,7 +75,7 @@ public class VitalSignBuilder {
      * @return Vitalsign
      * @throws HL7Exception if HL7 message cannot be parsed
      */
-    private VitalSigns populateMessages(String subMessageSourceId, OBX obx, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
+    private VitalSigns createVitalSign(String subMessageSourceId, OBX obx, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
         VitalSigns vitalSign = new VitalSigns();
 
         // set generic information
