@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Build one or more vitalsigns from HL7 message.
+ */
 public class VitalSignBuilder {
     private static final Logger logger = LoggerFactory.getLogger(VitalSignBuilder.class);
     private List<VitalSigns> vitalSigns = new ArrayList<>();
@@ -49,7 +52,7 @@ public class VitalSignBuilder {
             PV1 pv1 = patientResult.getPATIENT().getVISIT().getPV1();
 
             // assumes that only one result
-            //TODO: check only one result per message is expected
+            //todo: check only one result per message is expected
             ORU_R01_ORDER_OBSERVATION orderObs = patientResult.getORDER_OBSERVATION();
             List<ORU_R01_OBSERVATION> observations = orderObs.getOBSERVATIONAll();
 
@@ -89,7 +92,7 @@ public class VitalSignBuilder {
         vitalSign.setVitalSignIdentifier(String.format("%s$%s", "EPIC", observationId));
 
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
-        // TODO: define that these are required fields. If they don't have them, then issue with HL7 source.
+        // todo: define that these are required fields. If they don't have them, then issue with HL7 source.
         if (resultStatus.equals("D")) {
             vitalSign.setResultStatus(ResultStatus.DELETE);
         } else if (!(resultStatus.equals("F") || resultStatus.equals("C"))) {
@@ -108,7 +111,7 @@ public class VitalSignBuilder {
                 logger.error(String.format("Numeric result expected for msg %s, instead '%s' was found", value, subMessageSourceId));
             }
         } else {
-            //TODO: will there be an NTE or comment segment? or will all form comments be appended to value (if string)
+            //todo: will there be an NTE or comment segment? or will all form comments be appended to value (if string)
             vitalSign.setStringValue(value);
         }
 
