@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -410,8 +411,7 @@ public class IdsOperations implements AutoCloseable {
                 return vitalSignBuilder.getMessages();
             }
         }
-        logger.info(String.format("Message not parsed %s^%s", messageType, triggerEvent));
-        return null;
-
+        logger.info(String.format("Message not parsed %s %s^%s", sendingFacility, messageType, triggerEvent));
+        return new ArrayList<>();
     }
 }
