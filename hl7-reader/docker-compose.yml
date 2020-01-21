@@ -33,6 +33,6 @@ services:
         env_file:
             - rabbit-envs
         ports:
-            - "${RABBITMQ_PORT}:5672"
-            - "${RABBITMQ_ADMIN_PORT}:15672"
+            - "${RABBITMQ_PORT}:7672"
+            - "${RABBITMQ_ADMIN_PORT}:17672"
         restart: on-failure
