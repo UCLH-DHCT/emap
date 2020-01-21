@@ -49,6 +49,7 @@ public class VitalSignBuilder {
             PV1 pv1 = patientResult.getPATIENT().getVISIT().getPV1();
 
             // assumes that only one result
+            //TODO: check only one result per message is expected
             ORU_R01_ORDER_OBSERVATION orderObs = patientResult.getORDER_OBSERVATION();
             List<ORU_R01_OBSERVATION> observations = orderObs.getOBSERVATIONAll();
 
@@ -92,7 +93,7 @@ public class VitalSignBuilder {
         if (resultStatus.equals("D")) {
             vitalSign.setResultStatus(ResultStatus.DELETE);
         } else if (!(resultStatus.equals("F") || resultStatus.equals("C"))) {
-            // Keep default resultStatus value of SAVE, if not F or C then log as an error.
+            // Always keep default resultStatus value of SAVE, if not F or C then log as an error.
             logger.error(String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 
@@ -104,10 +105,10 @@ public class VitalSignBuilder {
             try {
                 vitalSign.setNumericValue(Double.parseDouble(value));
             } catch (NumberFormatException e) {
-                logger.debug(String.format("Numeric result expected for msg %s, instead '%s' was found", value, subMessageSourceId));
+                logger.error(String.format("Numeric result expected for msg %s, instead '%s' was found", value, subMessageSourceId));
             }
         } else {
-            //TODO: will there be an NTE or comment segment?
+            //TODO: will there be an NTE or comment segment? or will all form comments be appended to value (if string)
             vitalSign.setStringValue(value);
         }
 
