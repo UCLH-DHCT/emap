@@ -37,28 +37,30 @@ public class VitalSignBuilder {
      * Populates VitalSign messages from a ORU R01 HL7message.
      * @param idsUnid Unique id from UDS
      * @param oruR01  ORU R01 HL7 VitalSign message from EPIC
-     * @throws HL7Exception If errors in parsing HL7 message
      */
-    public VitalSignBuilder(String idsUnid, ORU_R01 oruR01) throws HL7Exception {
-        ORU_R01_PATIENT_RESULT patientResult = oruR01.getPATIENT_RESULT();
-        PID pid = patientResult.getPATIENT().getPID();
-        MSH msh = (MSH) oruR01.get("MSH");
-        PV1 pv1 = patientResult.getPATIENT().getVISIT().getPV1();
+    public VitalSignBuilder(String idsUnid, ORU_R01 oruR01) {
+        // define Id here so can use it for logging if MSH or order obs throws HL7 Exception
+        String subMessageSourceId = idsUnid;
 
-        // assumes that only one result
-        ORU_R01_ORDER_OBSERVATION orderObs = patientResult.getORDER_OBSERVATION();
-        List<ORU_R01_OBSERVATION> observations = orderObs.getOBSERVATIONAll();
+        try {
+            ORU_R01_PATIENT_RESULT patientResult = oruR01.getPATIENT_RESULT();
+            PID pid = patientResult.getPATIENT().getPID();
+            MSH msh = (MSH) oruR01.get("MSH");
+            PV1 pv1 = patientResult.getPATIENT().getVISIT().getPV1();
 
-        int msgSuffix = 0;
-        for (ORU_R01_OBSERVATION observation : observations) {
-            msgSuffix++;
-            String subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
-            try {
+            // assumes that only one result
+            ORU_R01_ORDER_OBSERVATION orderObs = patientResult.getORDER_OBSERVATION();
+            List<ORU_R01_OBSERVATION> observations = orderObs.getOBSERVATIONAll();
+
+            int msgSuffix = 0;
+            for (ORU_R01_OBSERVATION observation : observations) {
+                msgSuffix++;
+                subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
                 VitalSigns vitalSign = populateMessages(subMessageSourceId, observation.getOBX(), msh, pid, pv1);
                 vitalSigns.add(vitalSign);
-            } catch (HL7Exception e) {
-                logger.error(String.format("HL7 Exception encountered for msg %s", subMessageSourceId), e);
             }
+        } catch (HL7Exception e) {
+            logger.error(String.format("HL7 Exception encountered for msg %s", subMessageSourceId), e);
         }
     }
 
