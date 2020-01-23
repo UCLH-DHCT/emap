@@ -112,7 +112,9 @@ public class VitalSignBuilder {
             try {
                 vitalSign.setNumericValue(Double.parseDouble(value));
             } catch (NumberFormatException e) {
-                logger.error(String.format("Numeric result expected for msg %s, instead '%s' was found", value, subMessageSourceId));
+                if (vitalSign.getResultStatus() != ResultStatus.DELETE) {
+                    logger.error(String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
+                }
             }
         } else {
             vitalSign.setStringValue(value);
