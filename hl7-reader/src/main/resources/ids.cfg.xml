@@ -17,6 +17,7 @@
     <property name="hibernate.connection.url"></property>
     <property name="hibernate.connection.username"></property>
     <property name="hibernate.connection.password"></property>
+    <property name="hibernate.default_schema"></property>
 
     <property name="hibernate.hbm2ddl.auto">
       validate

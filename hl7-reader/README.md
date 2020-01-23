@@ -82,6 +82,7 @@ These are the required envs for this file with example values.
 IDS_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/ids
 IDS_USERNAME=someuser
 IDS_PASSWORD=redacted
+IDS_SCHEMA=schemaname
 INFORMDB_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/informdb
 INFORMDB_SCHEMA=devfoo
 INFORMDB_USERNAME=someuser
