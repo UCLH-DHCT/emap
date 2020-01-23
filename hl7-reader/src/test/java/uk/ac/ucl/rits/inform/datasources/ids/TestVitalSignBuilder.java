@@ -36,31 +36,31 @@ public class TestVitalSignBuilder {
     @Test
     public void testMRN() {
         String result = firstVitalSign.getMrn();
-        assertEquals("6537077", result);
+        assertEquals("21014099", result);
     }
 
     @Test
     public void testVisitNumber() {
         String result = firstVitalSign.getVisitNumber();
-        assertEquals("1234TESTVISITNUM", result);
+        assertEquals("1002040107", result);
     }
 
     @Test
     public void testVitalSignIdentifier() {
         String result = firstVitalSign.getVitalSignIdentifier();
-        assertEquals("EPIC$271649006", result);
+        assertEquals("EPIC$5", result);
     }
 
     @Test
     public void testNumericValue() {
-        Double result = firstVitalSign.getNumericValue();
-        assertEquals(132.0, result);
+        Double result = vitalSigns.get(1).getNumericValue();
+        assertEquals(102.2, result);
     }
 
     @Test
     public void testStringValue() {
-        String result = vitalSigns.get(6).getStringValue();
-        assertEquals("string value", result);
+        String result = firstVitalSign.getStringValue();
+        assertEquals("140/90", result);
     }
 
     @Test
@@ -73,34 +73,34 @@ public class TestVitalSignBuilder {
     @Test
     public void testResultStatusCtoSave() {
         // result status is 'C' so should be converted to SAVE
-        ResultStatus result = vitalSigns.get(1).getResultStatus();
+        ResultStatus result = vitalSigns.get(4).getResultStatus();
         assertEquals(ResultStatus.SAVE, result);
     }
 
     @Test
     public void testResultStatusDtoDelete() {
         // result status is 'D' so should be converted to DELETE
-        ResultStatus result = vitalSigns.get(2).getResultStatus();
+        ResultStatus result = vitalSigns.get(5).getResultStatus();
         assertEquals(ResultStatus.DELETE, result);
     }
 
     @Test
     public void testResultStatusUnrecognisedSave() {
         // result status is 'NOT_EXPECTED' so should be converted to SAVE
-        ResultStatus result = vitalSigns.get(3).getResultStatus();
+        ResultStatus result = vitalSigns.get(2).getResultStatus();
         assertEquals(ResultStatus.SAVE, result);
     }
 
     @Test
     public void testUnit() {
-        String result = firstVitalSign.getUnit();
-        assertEquals("mm[Hg]", result);
+        String result = vitalSigns.get(3).getUnit();
+        assertEquals("%", result);
     }
 
     @Test
     public void testObservationTimeTaken() {
         Instant result = firstVitalSign.getObservationTimeTaken();
-        assertEquals(Instant.parse("2010-02-11T22:05:25.00Z"), result);
+        assertEquals(Instant.parse("2020-01-22T14:03:00.00Z"), result);
     }
 
     @Test
