@@ -35,14 +35,18 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testMRN() {
-        String result = firstVitalSign.getMrn();
-        assertEquals("21014099", result);
+        for (VitalSigns vitalSign: vitalSigns){
+            String result = vitalSign.getMrn();
+            assertEquals("21014099", result);
+        }
     }
 
     @Test
     public void testVisitNumber() {
-        String result = firstVitalSign.getVisitNumber();
-        assertEquals("1002040107", result);
+        for (VitalSigns vitalSign: vitalSigns){
+            String result = vitalSign.getVisitNumber();
+            assertEquals("1002040107", result);
+        }
     }
 
     @Test
@@ -61,6 +65,12 @@ public class TestVitalSignBuilder {
     public void testStringValue() {
         String result = firstVitalSign.getStringValue();
         assertEquals("140/90", result);
+    }
+
+    @Test
+    public void testComment() {
+        String result = vitalSigns.get(2).getStringValue();
+        assertEquals("patient was running really fast (on a hamster wheel)", result);
     }
 
     @Test

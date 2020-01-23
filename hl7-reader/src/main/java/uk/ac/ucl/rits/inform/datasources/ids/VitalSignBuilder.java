@@ -10,6 +10,7 @@ import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
@@ -60,7 +61,7 @@ public class VitalSignBuilder {
             for (ORU_R01_OBSERVATION observation : observations) {
                 msgSuffix++;
                 subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
-                VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation.getOBX(), msh, pid, pv1);
+                VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation, msh, pid, pv1);
                 vitalSigns.add(vitalSign);
             }
         } catch (HL7Exception e) {
@@ -71,15 +72,18 @@ public class VitalSignBuilder {
     /**
      * Populate vitalsign message from HL7 message segments.
      * @param subMessageSourceId Unique ID of message
-     * @param obx                OBX segment
+     * @param observation        observation object
      * @param msh                MSH segment
      * @param pid                PID segment
      * @param pv1                PIV segment
      * @return Vitalsign
      * @throws HL7Exception if HL7 message cannot be parsed
      */
-    private VitalSigns createVitalSign(String subMessageSourceId, OBX obx, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
+    private VitalSigns createVitalSign(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
         VitalSigns vitalSign = new VitalSigns();
+
+        OBX obx = observation.getOBX();
+        NTE nte = observation.getNTE();
 
         // set generic information
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
@@ -111,8 +115,16 @@ public class VitalSignBuilder {
                 logger.error(String.format("Numeric result expected for msg %s, instead '%s' was found", value, subMessageSourceId));
             }
         } else {
-            //todo: will there be an NTE or comment segment? or will all form comments be appended to value (if string)
             vitalSign.setStringValue(value);
+        }
+
+        // todo: do we want a comment field for vitalsigns
+        // todo: check to see crazy long message & separator characters
+        // todo: can an empty comment be sent
+        if (!nte.isEmpty()) {
+            // assumes single comment
+            String comment = nte.getNte3_Comment(0).getValue().trim();
+            vitalSign.setStringValue(String.format("%s %s", vitalSign.getStringValue(), comment).trim());
         }
 
         vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
