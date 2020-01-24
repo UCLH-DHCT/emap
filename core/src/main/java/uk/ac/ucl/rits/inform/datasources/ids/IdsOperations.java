@@ -140,10 +140,12 @@ public class IdsOperations implements AutoCloseable {
             String envVarUrl = envPrefix + "_JDBC_URL";
             String envVarUsername = envPrefix + "_USERNAME";
             String envVarPassword = envPrefix + "_PASSWORD";
+            String envVarSchema = envPrefix + "_SCHEMA";
 
             String url = System.getenv(envVarUrl);
             String uname = System.getenv(envVarUsername);
             String pword = System.getenv(envVarPassword);
+            String schema = System.getenv(envVarSchema);
             if (url != null) {
                 cfg.setProperty("hibernate.connection.url", url);
             }
@@ -152,6 +154,9 @@ public class IdsOperations implements AutoCloseable {
             }
             if (pword != null) {
                 cfg.setProperty("hibernate.connection.password", pword);
+            }
+            if (schema != null) {
+                cfg.setProperty("hibernate.default_schema", schema);
             }
         }
 
