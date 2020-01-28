@@ -36,7 +36,7 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
     private Long               patientFactId;
 
     @ManyToOne
-    @JoinColumn(name = "encounter", referencedColumnName = "encounter")
+    @JoinColumn(name = "encounter")
     private Encounter         encounter;
 
     @Override

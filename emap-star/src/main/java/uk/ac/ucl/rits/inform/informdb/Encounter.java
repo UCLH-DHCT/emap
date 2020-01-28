@@ -42,7 +42,7 @@ public class Encounter implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long                encounterId;
 
-    @Column(unique = false, nullable = false)
+    @Column(unique = true, nullable = false)
     private String             encounter;
     private String             sourceSystem;
 
