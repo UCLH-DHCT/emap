@@ -294,15 +294,6 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     }
 
     /**
-     * @return the child facts as a Map, indexed by fact short name
-     */
-    public Map<String, F> getChildFactsAsMap() {
-        Map<String, F> map = new HashMap<>();
-        childFacts.forEach(d -> map.put(d.getFactType().getShortName(), d));
-        return map;
-    }
-
-    /**
      * @return The parent fact of this fact
      */
     public F getParentFact() {
