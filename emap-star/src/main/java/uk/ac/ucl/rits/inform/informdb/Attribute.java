@@ -5,6 +5,8 @@ import java.time.Instant;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
@@ -27,7 +29,8 @@ public class Attribute implements Serializable {
     private String          shortName;
     @Column(nullable = false)
     private String          description;
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 15)
     private ResultType      resultType;
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant         addedTime;
