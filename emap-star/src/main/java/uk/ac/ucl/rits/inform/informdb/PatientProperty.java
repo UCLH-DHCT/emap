@@ -24,11 +24,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @JsonIgnoreProperties({"parentFact", "valid"})
-@Table(indexes = { @Index(name = "patient_property_parent_fact_index", columnList = "parent_fact", unique = false),
-        @Index(name = "patient_property_string_index", columnList = "valueAsString", unique = false),
+@Table(indexes = {
+        @Index(name = "patient_property_parent_fact_index", columnList = "parent_fact", unique = false),
         @Index(name = "patient_property_attribute_index", columnList = "attribute", unique = false),
-        @Index(columnList = "storedFrom", unique = false),
-        @Index(columnList = "storedUntil", unique = false),
+        @Index(name = "patient_property_stored_from_index", columnList = "storedFrom", unique = false),
+        @Index(name = "patient_property_stored_until_index", columnList = "storedUntil", unique = false),
+        @Index(name = "patient_property_value_as_boolean_index", columnList = "valueAsBoolean", unique = false),
+        @Index(name = "patient_property_value_as_datetime_index", columnList = "valueAsDatetime", unique = false),
+        @Index(name = "patient_property_value_as_integer_index", columnList = "valueAsInteger", unique = false),
+        @Index(name = "patient_property_value_as_link_index", columnList = "valueAsLink", unique = false),
+        @Index(name = "patient_property_value_as_real_index", columnList = "valueAsReal", unique = false),
+        @Index(name = "patient_property_value_as_string_index", columnList = "valueAsString", unique = false),
+        @Index(name = "patient_property_value_as_attribute_index", columnList = "value_as_attribute", unique = false),
 })
 public class PatientProperty extends Property<PatientFact> implements Serializable {
 
