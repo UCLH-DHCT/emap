@@ -751,42 +751,51 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Mark the specified visit as finished.
      *
-     * @param adtWrap the A03 message detailing the discharge
+     * @param adtMsg the A03 message detailing the discharge
      * @throws MessageIgnoredException if message can't be processed
      * @throws EmapStarIntegrityException contradiction in the DB
      * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    public void dischargePatient(AdtMessage adtWrap) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        String mrnStr = adtWrap.getMrn();
-        String visitNumber = adtWrap.getVisitNumber();
+    public void dischargePatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+        String mrnStr = adtMsg.getMrn();
+        String visitNumber = adtMsg.getVisitNumber();
+        Instant storedFrom = Instant.now();
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
             // If encounter was not known about, create it before discharging it
-            if (adtWrap.getAdmissionDateTime() == null) {
-                throw new MessageIgnoredException(adtWrap,
+            if (adtMsg.getAdmissionDateTime() == null) {
+                throw new MessageIgnoredException(adtMsg,
                         "Cannot find the visit " + visitNumber + " and we don't know the admission date so can't create an admission");
             } else {
-                encounter = admitPatient(adtWrap);
+                encounter = admitPatient(adtMsg);
             }
         }
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
-            throw new MessageIgnoredException(adtWrap,
+            throw new MessageIgnoredException(adtMsg,
                     "No open bed visit, cannot discharge, did you miss an A13? visit " + visitNumber);
         }
-        Instant eventOccurred = adtWrap.getEventOccurredDateTime();
-        Instant dischargeDateTime = adtWrap.getDischargeDateTime();
+        Instant eventOccurred = adtMsg.getEventOccurredDateTime();
+        Instant dischargeDateTime = adtMsg.getDischargeDateTime();
         logger.info("DISCHARGE: MRN " + mrnStr);
         logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
         if (dischargeDateTime == null) {
-            throw new MessageIgnoredException(adtWrap, "Trying to discharge but the discharge date is null");
+            throw new MessageIgnoredException(adtMsg, "Trying to discharge but the discharge date is null");
         } else {
             // Discharge from the bed visit and the hospital visit
             addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
             PatientFact hospVisit = latestOpenBedVisit.getParentFact();
             addDischargeToVisit(hospVisit, dischargeDateTime);
+
+            String dischargeDisposition = adtMsg.getDischargeDisposition();
+            // Add discharge disposition to hospital visit only, not bed.
+            hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
+                    AttributeKeyMap.DISCHARGE_DISPOSITION, dischargeDisposition));
+            String dischargeLocation = adtMsg.getDischargeLocation();
+            hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
+                    AttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
         }
     }
 
@@ -891,10 +900,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Mark a Visit as finished, which can happen either when transferring or
      * discharging a patient.
+     * This could use buildPatientProperty rather than being deprecated?
      *
      * @param visit             the visit to mark as finished
      * @param dischargeDateTime the discharge/transfer time
      */
+    @Deprecated
     private void addDischargeToVisit(PatientFact visit, Instant dischargeDateTime) {
         Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
         PatientProperty visProp = new PatientProperty();
@@ -931,7 +942,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Add a property (key-value pair) to a pre-existing fact.
+     * Add a property (key-value pair) to a pre-existing fact. Use buildPatientProperty in preference?
      *
      * Use buildPatientProperty instead.
      *

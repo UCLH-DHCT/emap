@@ -11,8 +11,6 @@ import uk.ac.ucl.rits.inform.interchange.AdtMessage;
  */
 @ActiveProfiles("test")
 public abstract class TestHl7MessageStream {
-    public TestHl7MessageStream() {
-    }
 
     protected AdtMessage processSingleMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
