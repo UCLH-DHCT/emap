@@ -40,7 +40,7 @@ public class Encounter implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int                encounterId;
+    private Long                encounterId;
 
     @Column(unique = false, nullable = false)
     private String             encounter;
@@ -59,14 +59,14 @@ public class Encounter implements Serializable {
     /**
      * @return the encounterId
      */
-    public int getEncounterId() {
+    public Long getEncounterId() {
         return encounterId;
     }
 
     /**
      * @param encounterId the encounterId to set
      */
-    public void setEncounterId(int encounterId) {
+    public void setEncounterId(Long encounterId) {
         this.encounterId = encounterId;
     }
 

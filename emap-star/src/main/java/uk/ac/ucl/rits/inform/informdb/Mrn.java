@@ -41,7 +41,7 @@ public class Mrn implements Serializable {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer            mrnId;
+    private Long            mrnId;
 
     @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
     private List<MrnEncounter> encounters;
@@ -62,14 +62,14 @@ public class Mrn implements Serializable {
     /**
      * @return the mrnId
      */
-    public Integer getMrnId() {
+    public Long getMrnId() {
         return mrnId;
     }
 
     /**
      * @param mrnId the mrnId to set
      */
-    public void setMrnId(Integer mrnId) {
+    public void setMrnId(Long mrnId) {
         this.mrnId = mrnId;
     }
 

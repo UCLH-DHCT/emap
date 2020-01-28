@@ -9,9 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -30,10 +27,6 @@ import org.hibernate.annotations.SortNatural;
  */
 @MappedSuperclass
 public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends Property<F>> extends TemporalCore {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long               factId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
     @SortNatural
@@ -54,16 +47,12 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     /**
      * @return the factId
      */
-    public Long getFactId() {
-        return factId;
-    }
+    public abstract Long getFactId();
 
     /**
      * @param factId the factId to set
      */
-    public void setFactId(Long factId) {
-        this.factId = factId;
-    }
+    public abstract void setFactId(Long factId);
 
     /**
      * @param attrKey the attribute

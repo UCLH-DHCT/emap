@@ -31,7 +31,7 @@ public class Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int             personId;
+    private Long             personId;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant         createDatetime;
@@ -42,14 +42,14 @@ public class Person implements Serializable {
     /**
      * @return the personId
      */
-    public int getPersonId() {
+    public Long getPersonId() {
         return personId;
     }
 
     /**
      * @param personId the personId to set
      */
-    public void setPersonId(int personId) {
+    public void setPersonId(Long personId) {
         this.personId = personId;
     }
 

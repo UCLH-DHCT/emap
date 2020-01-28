@@ -32,7 +32,7 @@ public class MrnEncounter extends TemporalCore implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer   mrnEncounterId;
+    private Long   mrnEncounterId;
 
     @ManyToOne
     @JoinColumn(name = "mrn", nullable = false)
@@ -75,14 +75,14 @@ public class MrnEncounter extends TemporalCore implements Serializable {
     /**
      * @return the mrnEncounterId
      */
-    public Integer getMrnEncounterId() {
+    public Long getMrnEncounterId() {
         return mrnEncounterId;
     }
 
     /**
      * @param mrnEncounterId the mrnEncounterId to set
      */
-    public void setMrnEncounterId(Integer mrnEncounterId) {
+    public void setMrnEncounterId(Long mrnEncounterId) {
         this.mrnEncounterId = mrnEncounterId;
     }
 

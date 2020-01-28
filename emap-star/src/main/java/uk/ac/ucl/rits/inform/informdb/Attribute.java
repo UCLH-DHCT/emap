@@ -21,7 +21,7 @@ public class Attribute implements Serializable {
     private static final long serialVersionUID = -3151350347466393547L;
 
     @Id
-    private long            attributeId;
+    private Long            attributeId;
 
     @Column(unique = true, nullable = false, length = 15)
     private String          shortName;
@@ -38,14 +38,14 @@ public class Attribute implements Serializable {
     /**
      * @return the attributeId
      */
-    public long getAttributeId() {
+    public Long getAttributeId() {
         return attributeId;
     }
 
     /**
      * @param attributeId the attributeId to set
      */
-    public void setAttributeId(long attributeId) {
+    public void setAttributeId(Long attributeId) {
         this.attributeId = attributeId;
     }
 

@@ -36,7 +36,7 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int                    propertyId;
+    private Long                    patientPropertyId;
 
     @JoinColumn(name = "parent_fact")
     @ManyToOne
@@ -61,15 +61,15 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
     /**
      * @return the propertyId
      */
-    public int getPropertyId() {
-        return propertyId;
+    public Long getPatientPropertyId() {
+        return patientPropertyId;
     }
 
     /**
-     * @param propertyId the propertyId to set
+     * @param patientPropertyId the propertyId to set
      */
-    public void setPropertyId(int propertyId) {
-        this.propertyId = propertyId;
+    public void setPatientPropertyId(Long patientPropertyId) {
+        this.patientPropertyId = patientPropertyId;
     }
 
     @Override

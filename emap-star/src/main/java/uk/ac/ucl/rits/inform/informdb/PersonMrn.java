@@ -34,7 +34,7 @@ public class PersonMrn extends TemporalCore implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int               id;
+    private Long               personMrnId;
 
     @ManyToOne
     @JoinColumn(name = "person", nullable = false)
@@ -99,15 +99,15 @@ public class PersonMrn extends TemporalCore implements Serializable {
     /**
      * @return the Id
      */
-    public int getId() {
-        return id;
+    public Long getPersonMrnId() {
+        return personMrnId;
     }
 
     /**
-     * @param id the Id
+     * @param personMrnId the Id
      */
-    public void setId(int id) {
-        this.id = id;
+    public void setPersonMrnId(Long personMrnId) {
+        this.personMrnId = personMrnId;
     }
 
     /**
@@ -126,7 +126,7 @@ public class PersonMrn extends TemporalCore implements Serializable {
 
     @Override
     public String toString() {
-        return "PersonMrn [id=" + id + ", person=" + person.getPersonId() + ", mrn=" + mrn + ", validUntil="
+        return "PersonMrn [id=" + personMrnId + ", person=" + person.getPersonId() + ", mrn=" + mrn + ", validUntil="
                 + getValidUntil() + ", live=" + live + "]";
     }
 
