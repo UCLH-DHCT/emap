@@ -33,7 +33,9 @@ public class Attribute implements Serializable {
     @Column(nullable = false, length = 15)
     private ResultType      resultType;
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant         addedTime;
+    private Instant         validFrom;
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant         validUntil;
 
     @Transient
     private AttributeKeyMap attributeKey;
@@ -95,17 +97,31 @@ public class Attribute implements Serializable {
     }
 
     /**
-     * @return the addedTime
+     * @return the validFrom - when this attribute was added
      */
-    public Instant getAddedTime() {
-        return addedTime;
+    public Instant getValidFrom() {
+        return validFrom;
     }
 
     /**
-     * @param addedTime the addedTime to set
+     * @param validFrom the validFrom time to set
      */
-    public void setAddedTime(Instant addedTime) {
-        this.addedTime = addedTime;
+    public void setValidFrom(Instant validFrom) {
+        this.validFrom = validFrom;
+    }
+
+    /**
+     * @return the validUntil - when this attribute was deprecated
+     */
+    public Instant getValidUntil() {
+        return validUntil;
+    }
+
+    /**
+     * @param validUntil the validUntil to set
+     */
+    public void setValidUntil(Instant validUntil) {
+        this.validUntil = validUntil;
     }
 
     @Override

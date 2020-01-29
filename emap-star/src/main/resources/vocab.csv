@@ -1,51 +1,51 @@
-attribute_id,short_name,description,result_type,added_time
-1,F_NAME,First name,String,2019-03-04T17:00:00Z
-2,M_NAME,Middles names separated by spaces,String,2019-03-04T17:00:00Z
-3,L_NAME,Family name,String,2019-03-04T17:00:00Z
-4,NAMING,Fact group containing name data,None,2019-03-04T17:00:00Z
-5,HOSP_VISIT,Fact group about a hospital visit,None,2019-03-05T11:33:00Z
-6,BED_VISIT,Fact group about a bed visit,None,2019-03-19T16:40:00Z
-7,ARRIVAL_TIME,Time of arrival,Datetime,2019-03-05T11:33:00Z
-8,DISCH_TIME,Time of departure,Datetime,2019-03-05T11:33:00Z
-9,LOCATION,Location,String,2019-03-19T16:40:00Z
-10,VISIT_PAREN,Parent visit,Link,2019-03-20T11:56:00Z
-11,GENERAL_DEMO,General Demographics that are single key value pairs,None,2019-04-11T10:00:00Z
-12,DOB,Date of Birth,Datetime,2019-04-11T10:00:00Z
-13,SEX,Sex,Attribute,2019-04-11T10:00:00Z
-14,MALE,Male,None,2019-04-11T10:00:00Z
-15,FEMALE,Female,None,2019-04-11T10:00:00Z
-16,OTHER,Other,None,2019-04-11T10:00:00Z
-17,UNKNOWN,Unknown,None,2019-04-11T10:00:00Z
-18,POST_CODE,Postcode,String,2019-04-11T10:00:00Z
-19,NHS_NUMBER,NHS number,String,2019-04-11T10:00:00Z
-20,PATH_RESULT,Fact type,None,2019-06-20T16:00:00Z
-21,PATH_BATT_COD,Local code for the battery of tests,String,2019-06-20T16:00:00Z
-22,PATH_BATT_DESC,Local description for the battery of tests,String,2019-06-20T16:00:00Z
-23,PATH_TEST_COD,Local code for the single test item,String,2019-06-20T16:00:00Z
-24,PATH_TEST_DESC,Local description for the single test item,String,2019-06-20T16:00:00Z
-25,PATH_COD_SYS,Coding system (aka vocab) for the test code,String,2019-06-20T16:00:00Z
-26,PATH_NUM_VALUE,Pathology result numerical value,Float,2019-06-20T16:00:00Z
-27,PATH_NUM_UNITS,Pathology result numerical value units,String,2019-06-20T16:00:00Z
-28,PATH_REF_RANGE,Reference range for the result,String,2019-07-13T17:00:00Z
-29,PATH_RES_TIME,When the result was last updated,Datetime,2019-07-13T17:00:00Z
-30,PATH_RES_STS,The status of the result (final etc),String,2019-07-13T17:00:00Z
-31,PATH_ORDER,Pathology order fact type,None,2019-07-23T15:00:00Z
-32,PATH_ORD_CTL_ID,Pathology order control ID,String,2019-07-23T15:00:00Z
-33,PATH_EPIC_NUM,Pathology Epic order number,String,2019-07-23T15:00:00Z
-34,PATH_LAB_NUM,Pathology order lab/specimen number aka accession number,String,2019-07-25T18:00:00Z
-35,PATH_OCS_NUM,Pathology order lab/specimen number with extra appended character aka OCS number,String,2019-07-25T18:00:00Z
-36,PATH_COLL_TIME,Sample collection/observation time,Datetime,2019-07-31T17:00:00Z
-37,PATH_ORDER_TIME,When the order was originally made,Datetime,2019-07-31T17:00:00Z
-38,PATH_ORDER_TYPE,The type of the patient that the order relates to,String,2019-07-31T17:00:00Z
-39,PATH_STS_TIME,Time of last change of status for the order,Datetime,2019-07-31T17:00:00Z
-40,PATH_ISOL_CODE,Local code of the isolate,String,2019-08-15T17:00:00Z
-41,PATH_LAB_DEPT,Lab department,String,2019-11-14T12:00:00Z
-42,PATH_ORDER_STS,Order status code,String,2019-11-14T12:00:00Z
-43,PATH_RESULT_STS,Result status code,String,2019-11-14T12:00:00Z
-44,VIT_SIGN,Vital sign fact type,None,2019-11-14T16:00:00Z
-45,VIT_OBS_ID,Code to identify the vital sign,String,2019-11-14T16:00:00Z
-46,VIT_OBS_COD_SYS,Coding system being used for VIT_OBS_ID,String,2019-11-14T16:00:00Z
-47,VIT_STR_VALUE,Vital sign string value,String,2019-11-14T16:00:00Z
-48,VIT_NUM_VALUE,Vital sign numerical value,Float,2019-11-14T16:00:00Z
-49,VIT_UNIT,Unit of vital sign value,String,2019-11-14T16:00:00Z
-50,VIT_OBS_TIME,Vital sign observation time,Datetime,2019-11-14T16:00:00Z
+attribute_id,short_name,description,result_type,valid_from,valid_until
+1,F_NAME,First name,String,2019-03-04T17:00:00Z,
+2,M_NAME,Middles names separated by spaces,String,2019-03-04T17:00:00Z,
+3,L_NAME,Family name,String,2019-03-04T17:00:00Z,
+4,NAMING,Fact group containing name data,None,2019-03-04T17:00:00Z,
+5,HOSP_VISIT,Fact group about a hospital visit,None,2019-03-05T11:33:00Z,
+6,BED_VISIT,Fact group about a bed visit,None,2019-03-19T16:40:00Z,
+7,ARRIVAL_TIME,Time of arrival,Datetime,2019-03-05T11:33:00Z,
+8,DISCH_TIME,Time of departure,Datetime,2019-03-05T11:33:00Z,
+9,LOCATION,Location,String,2019-03-19T16:40:00Z,
+10,VISIT_PAREN,Parent visit,Link,2019-03-20T11:56:00Z,
+11,GENERAL_DEMO,General Demographics that are single key value pairs,None,2019-04-11T10:00:00Z,
+12,DOB,Date of Birth,Datetime,2019-04-11T10:00:00Z,
+13,SEX,Sex,Attribute,2019-04-11T10:00:00Z,
+14,MALE,Male,None,2019-04-11T10:00:00Z,
+15,FEMALE,Female,None,2019-04-11T10:00:00Z,
+16,OTHER,Other,None,2019-04-11T10:00:00Z,
+17,UNKNOWN,Unknown,None,2019-04-11T10:00:00Z,
+18,POST_CODE,Postcode,String,2019-04-11T10:00:00Z,
+19,NHS_NUMBER,NHS number,String,2019-04-11T10:00:00Z,
+20,PATH_RESULT,Fact type,None,2019-06-20T16:00:00Z,
+21,PATH_BATT_COD,Local code for the battery of tests,String,2019-06-20T16:00:00Z,
+22,PATH_BATT_DESC,Local description for the battery of tests,String,2019-06-20T16:00:00Z,
+23,PATH_TEST_COD,Local code for the single test item,String,2019-06-20T16:00:00Z,
+24,PATH_TEST_DESC,Local description for the single test item,String,2019-06-20T16:00:00Z,
+25,PATH_COD_SYS,Coding system (aka vocab) for the test code,String,2019-06-20T16:00:00Z,
+26,PATH_NUM_VALUE,Pathology result numerical value,Float,2019-06-20T16:00:00Z,
+27,PATH_NUM_UNITS,Pathology result numerical value units,String,2019-06-20T16:00:00Z,
+28,PATH_REF_RANGE,Reference range for the result,String,2019-07-13T17:00:00Z,
+29,PATH_RES_TIME,When the result was last updated,Datetime,2019-07-13T17:00:00Z,
+30,PATH_RES_STS,The status of the result (final etc),String,2019-07-13T17:00:00Z,
+31,PATH_ORDER,Pathology order fact type,None,2019-07-23T15:00:00Z,
+32,PATH_ORD_CTL_ID,Pathology order control ID,String,2019-07-23T15:00:00Z,
+33,PATH_EPIC_NUM,Pathology Epic order number,String,2019-07-23T15:00:00Z,
+34,PATH_LAB_NUM,Pathology order lab/specimen number aka accession number,String,2019-07-25T18:00:00Z,
+35,PATH_OCS_NUM,Pathology order lab/specimen number with extra appended character aka OCS number,String,2019-07-25T18:00:00Z,
+36,PATH_COLL_TIME,Sample collection/observation time,Datetime,2019-07-31T17:00:00Z,
+37,PATH_ORDER_TIME,When the order was originally made,Datetime,2019-07-31T17:00:00Z,
+38,PATH_ORDER_TYPE,The type of the patient that the order relates to,String,2019-07-31T17:00:00Z,
+39,PATH_STS_TIME,Time of last change of status for the order,Datetime,2019-07-31T17:00:00Z,
+40,PATH_ISOL_CODE,Local code of the isolate,String,2019-08-15T17:00:00Z,
+41,PATH_LAB_DEPT,Lab department,String,2019-11-14T12:00:00Z,
+42,PATH_ORDER_STS,Order status code,String,2019-11-14T12:00:00Z,
+43,PATH_RESULT_STS,Result status code,String,2019-11-14T12:00:00Z,
+44,VIT_SIGN,Vital sign fact type,None,2019-11-14T16:00:00Z,
+45,VIT_OBS_ID,Code to identify the vital sign,String,2019-11-14T16:00:00Z,
+46,VIT_OBS_COD_SYS,Coding system being used for VIT_OBS_ID,String,2019-11-14T16:00:00Z,
+47,VIT_STR_VALUE,Vital sign string value,String,2019-11-14T16:00:00Z,
+48,VIT_NUM_VALUE,Vital sign numerical value,Float,2019-11-14T16:00:00Z,
+49,VIT_UNIT,Unit of vital sign value,String,2019-11-14T16:00:00Z,
+50,VIT_OBS_TIME,Vital sign observation time,Datetime,2019-11-14T16:00:00Z,
