@@ -28,7 +28,7 @@ import org.hibernate.annotations.SortNatural;
 @MappedSuperclass
 public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends Property<F>> extends TemporalCore {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
     @SortNatural
     private List<PropertyType> properties;
 
@@ -185,7 +185,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      */
     protected void addProperty(PropertyType prop, F fact) {
         this.linkProperty(prop);
-        prop.setParentFact(fact);
+        prop.setFact(fact);
     }
 
     /**

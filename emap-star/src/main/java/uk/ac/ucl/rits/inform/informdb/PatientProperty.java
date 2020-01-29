@@ -10,8 +10,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @JsonIgnoreProperties({"parentFact", "valid"})
 @Table(indexes = {
-        @Index(name = "patient_property_parent_fact_index", columnList = "parent_fact", unique = false),
+        @Index(name = "patient_property_fact_index", columnList = "fact", unique = false),
         @Index(name = "patient_property_property_type_index", columnList = "property_type", unique = false),
         @Index(name = "patient_property_stored_from_index", columnList = "storedFrom", unique = false),
         @Index(name = "patient_property_stored_until_index", columnList = "storedUntil", unique = false),
@@ -44,26 +42,6 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long                    patientPropertyId;
-
-    @JoinColumn(name = "parent_fact")
-    @ManyToOne
-    private PatientFact parentFact;
-
-    /**
-     * @return the parentFact
-     */
-    @Override
-    public PatientFact getParentFact() {
-        return parentFact;
-    }
-
-    /**
-     * @param parentFact the parentFact to set
-     */
-    @Override
-    public void setParentFact(PatientFact parentFact) {
-        this.parentFact = parentFact;
-    }
 
     /**
      * @return the propertyId

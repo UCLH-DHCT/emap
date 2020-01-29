@@ -23,6 +23,10 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     @JoinColumn(name = "property_type")
     private Attribute propertyType;
 
+    @JoinColumn(name = "fact")
+    @ManyToOne
+    private F fact;
+
     @Column(columnDefinition = "text")
     private String    valueAsString;
     private Long      valueAsInteger;
@@ -38,14 +42,18 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     private Long      valueAsLink;
 
     /**
-     * @return the parentFact
+     * @return the fact this property belongs to (property grouper)
      */
-    public abstract F getParentFact();
+    public F getFact() {
+        return fact;
+    }
 
     /**
      * @param fact the parentFact to set
      */
-    public abstract void setParentFact(F fact);
+    public void setFact(F fact) {
+        this.fact = fact;
+    }
 
     /**
      * @return the propertyType
