@@ -96,7 +96,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             return new ArrayList<PropertyType>();
         }
         List<PropertyType> propsWithAttr = properties.stream()
-                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey) && pred.test(prop))
+                .filter(prop -> prop.getPropertyType().getShortName().equals(attrKey) && pred.test(prop))
                 .collect(Collectors.toList());
         return propsWithAttr;
     }
@@ -215,7 +215,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     public Map<String, List<PropertyType>> toMap() {
         Map<String, List<PropertyType>> results = new HashMap<String, List<PropertyType>>();
         for (PropertyType p : properties) {
-            String key = p.getAttribute().getShortName();
+            String key = p.getPropertyType().getShortName();
             List<PropertyType> l = results.get(key);
             if (l == null) {
                 l = new ArrayList<>();

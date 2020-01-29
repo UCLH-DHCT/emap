@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties({"parentFact", "valid"})
 @Table(indexes = {
         @Index(name = "patient_property_parent_fact_index", columnList = "parent_fact", unique = false),
-        @Index(name = "patient_property_attribute_index", columnList = "attribute", unique = false),
+        @Index(name = "patient_property_property_type_index", columnList = "property_type", unique = false),
         @Index(name = "patient_property_stored_from_index", columnList = "storedFrom", unique = false),
         @Index(name = "patient_property_stored_until_index", columnList = "storedUntil", unique = false),
         @Index(name = "patient_property_value_as_boolean_index", columnList = "valueAsBoolean", unique = false),
@@ -82,7 +82,7 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Prop " + this.getAttribute().getShortName() + " = ");
+        sb.append("Prop " + this.getPropertyType().getShortName() + " = ");
         SortedMap<String, Object> ret = new TreeMap<>();
         // properties can have more than one type filled in
         ret.put("valueAsAttribute", getValueAsAttribute());

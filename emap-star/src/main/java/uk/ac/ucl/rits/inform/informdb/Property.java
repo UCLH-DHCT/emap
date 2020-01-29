@@ -20,8 +20,8 @@ import javax.xml.bind.TypeConstraintException;
 public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implements Comparable<Property<?>> {
 
     @ManyToOne
-    @JoinColumn(name = "attribute")
-    private Attribute attribute;
+    @JoinColumn(name = "property_type")
+    private Attribute propertyType;
 
     @Column(columnDefinition = "text")
     private String    valueAsString;
@@ -48,17 +48,17 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     public abstract void setParentFact(F fact);
 
     /**
-     * @return the attribute
+     * @return the propertyType
      */
-    public Attribute getAttribute() {
-        return attribute;
+    public Attribute getPropertyType() {
+        return propertyType;
     }
 
     /**
-     * @param attribute the attribute to set
+     * @param propertyType the property type attribute to set
      */
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
+    public void setPropertyType(Attribute propertyType) {
+        this.propertyType = propertyType;
     }
 
     /**
@@ -161,7 +161,7 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
 
     @Override
     public int compareTo(Property<?> o) {
-        return attribute.getShortName().compareTo(o.attribute.getShortName());
+        return propertyType.getShortName().compareTo(o.propertyType.getShortName());
     }
 
     /**
@@ -234,7 +234,7 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (attribute == null ? 0 : attribute.hashCode());
+        result = prime * result + (propertyType == null ? 0 : propertyType.hashCode());
         result = prime * result + (valueAsAttribute == null ? 0 : valueAsAttribute.hashCode());
         result = prime * result + (valueAsBoolean == null ? 0 : valueAsBoolean.hashCode());
         result = prime * result + (valueAsDatetime == null ? 0 : valueAsDatetime.hashCode());
@@ -257,11 +257,11 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
             return false;
         }
         Property<?> other = (Property<?>) obj;
-        if (attribute == null) {
-            if (other.attribute != null) {
+        if (propertyType == null) {
+            if (other.propertyType != null) {
                 return false;
             }
-        } else if (!attribute.equals(other.attribute)) {
+        } else if (!propertyType.equals(other.propertyType)) {
             return false;
         }
         if (valueAsAttribute == null) {
