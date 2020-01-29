@@ -57,7 +57,7 @@ public class Mrn implements Serializable {
     private String             sourceSystem;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant            createDatetime;
+    private Instant            storedFrom;
 
     /**
      * @return the mrnId
@@ -150,15 +150,15 @@ public class Mrn implements Serializable {
     /**
      * @return the Instant this Mrn was first recorded in the database
      */
-    public Instant getCreateDatetime() {
-        return createDatetime;
+    public Instant getStoredFrom() {
+        return storedFrom;
     }
 
     /**
-     * @param createDatetime the Instant this Mrn was first recorded in the database
+     * @param storedFrom the Instant this Mrn was first recorded in the database
      */
-    public void setCreateDatetime(Instant createDatetime) {
-        this.createDatetime = createDatetime;
+    public void setStoredFrom(Instant storedFrom) {
+        this.storedFrom = storedFrom;
     }
 
     /**
