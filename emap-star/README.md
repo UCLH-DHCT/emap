@@ -22,7 +22,7 @@ There are believed to be as many as three kinds of time travel in Emap-Star.
 
 ## Attribute management
 
-Attribute IDs, once assigned, are never changed or deleted. Only new ones can be added to. Attributes can be deprecated if they are no longer to be used. All "short_name"s must be unique.
+Attribute IDs, once assigned, are never changed or deleted. Only new ones can be added. Attributes can be deprecated if they are no longer to be used. All "short_name"s must be unique.
 
 How to avoid semantic duplicates?
 
