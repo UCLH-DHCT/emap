@@ -30,7 +30,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     @Column(columnDefinition = "text")
     private String    valueAsString;
     private Long      valueAsInteger;
-    private Boolean   valueAsBoolean;
     private Double    valueAsReal;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant   valueAsDatetime;
@@ -95,20 +94,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
      */
     public void setValueAsInteger(Long valueAsInteger) {
         this.valueAsInteger = valueAsInteger;
-    }
-
-    /**
-     * @return the valueAsBoolean
-     */
-    public Boolean getValueAsBoolean() {
-        return valueAsBoolean;
-    }
-
-    /**
-     * @param valueAsBoolean the valueAsBoolean to set
-     */
-    public void setValueAsBoolean(Boolean valueAsBoolean) {
-        this.valueAsBoolean = valueAsBoolean;
     }
 
     /**
@@ -184,8 +169,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
             this.valueAsDatetime = (Instant) value;
         } else if (value instanceof Double) {
             this.valueAsReal = (Double) value;
-        } else if (value instanceof Boolean) {
-            this.valueAsBoolean = (Boolean) value;
         } else if (value instanceof Attribute) {
             this.valueAsAttribute = (Attribute) value;
         } else {
@@ -225,15 +208,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
      *
      * @param value The value to set.
      */
-    public void setValue(boolean value) {
-        this.valueAsBoolean = value;
-    }
-
-    /**
-     * Set value helper.
-     *
-     * @param value The value to set.
-     */
     public void setValue(Attribute value) {
         this.valueAsAttribute = value;
     }
@@ -244,7 +218,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
         int result = 1;
         result = prime * result + (propertyType == null ? 0 : propertyType.hashCode());
         result = prime * result + (valueAsAttribute == null ? 0 : valueAsAttribute.hashCode());
-        result = prime * result + (valueAsBoolean == null ? 0 : valueAsBoolean.hashCode());
         result = prime * result + (valueAsDatetime == null ? 0 : valueAsDatetime.hashCode());
         result = prime * result + (valueAsInteger == null ? 0 : valueAsInteger.hashCode());
         result = prime * result + (valueAsLink == null ? 0 : valueAsLink.hashCode());
@@ -277,13 +250,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
                 return false;
             }
         } else if (!valueAsAttribute.equals(other.valueAsAttribute)) {
-            return false;
-        }
-        if (valueAsBoolean == null) {
-            if (other.valueAsBoolean != null) {
-                return false;
-            }
-        } else if (!valueAsBoolean.equals(other.valueAsBoolean)) {
             return false;
         }
         if (valueAsDatetime == null) {
