@@ -9,9 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -31,11 +28,7 @@ import org.hibernate.annotations.SortNatural;
 @MappedSuperclass
 public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends Property<F>> extends TemporalCore {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long               factId;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentFact")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
     @SortNatural
     private List<PropertyType> properties;
 
@@ -44,7 +37,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     protected final List<F>    childFacts = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "fact_type")
+    @JoinColumn(name = "fact_type", nullable = false)
     private Attribute          factType;
 
     @JoinColumn(name = "parent_fact")
@@ -54,16 +47,12 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     /**
      * @return the factId
      */
-    public Long getFactId() {
-        return factId;
-    }
+    public abstract Long getFactId();
 
     /**
      * @param factId the factId to set
      */
-    public void setFactId(Long factId) {
-        this.factId = factId;
-    }
+    public abstract void setFactId(Long factId);
 
     /**
      * @param attrKey the attribute
@@ -107,7 +96,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             return new ArrayList<PropertyType>();
         }
         List<PropertyType> propsWithAttr = properties.stream()
-                .filter(prop -> prop.getAttribute().getShortName().equals(attrKey) && pred.test(prop))
+                .filter(prop -> prop.getPropertyType().getShortName().equals(attrKey) && pred.test(prop))
                 .collect(Collectors.toList());
         return propsWithAttr;
     }
@@ -196,7 +185,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      */
     protected void addProperty(PropertyType prop, F fact) {
         this.linkProperty(prop);
-        prop.setParentFact(fact);
+        prop.setFact(fact);
     }
 
     /**
@@ -226,7 +215,7 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     public Map<String, List<PropertyType>> toMap() {
         Map<String, List<PropertyType>> results = new HashMap<String, List<PropertyType>>();
         for (PropertyType p : properties) {
-            String key = p.getAttribute().getShortName();
+            String key = p.getPropertyType().getShortName();
             List<PropertyType> l = results.get(key);
             if (l == null) {
                 l = new ArrayList<>();
@@ -291,15 +280,6 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
      */
     public List<F> getChildFacts() {
         return childFacts;
-    }
-
-    /**
-     * @return the child facts as a Map, indexed by fact short name
-     */
-    public Map<String, F> getChildFactsAsMap() {
-        Map<String, F> map = new HashMap<>();
-        childFacts.forEach(d -> map.put(d.getFactType().getShortName(), d));
-        return map;
     }
 
     /**

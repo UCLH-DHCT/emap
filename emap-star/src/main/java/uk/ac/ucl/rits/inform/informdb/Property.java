@@ -20,13 +20,16 @@ import javax.xml.bind.TypeConstraintException;
 public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implements Comparable<Property<?>> {
 
     @ManyToOne
-    @JoinColumn(name = "attribute")
-    private Attribute attribute;
+    @JoinColumn(name = "property_type")
+    private Attribute propertyType;
+
+    @JoinColumn(name = "fact")
+    @ManyToOne
+    private F fact;
 
     @Column(columnDefinition = "text")
     private String    valueAsString;
     private Long      valueAsInteger;
-    private Boolean   valueAsBoolean;
     private Double    valueAsReal;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant   valueAsDatetime;
@@ -38,27 +41,31 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     private Long      valueAsLink;
 
     /**
-     * @return the parentFact
+     * @return the fact this property belongs to (property grouper)
      */
-    public abstract F getParentFact();
+    public F getFact() {
+        return fact;
+    }
 
     /**
      * @param fact the parentFact to set
      */
-    public abstract void setParentFact(F fact);
-
-    /**
-     * @return the attribute
-     */
-    public Attribute getAttribute() {
-        return attribute;
+    public void setFact(F fact) {
+        this.fact = fact;
     }
 
     /**
-     * @param attribute the attribute to set
+     * @return the propertyType
      */
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
+    public Attribute getPropertyType() {
+        return propertyType;
+    }
+
+    /**
+     * @param propertyType the property type attribute to set
+     */
+    public void setPropertyType(Attribute propertyType) {
+        this.propertyType = propertyType;
     }
 
     /**
@@ -87,20 +94,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
      */
     public void setValueAsInteger(Long valueAsInteger) {
         this.valueAsInteger = valueAsInteger;
-    }
-
-    /**
-     * @return the valueAsBoolean
-     */
-    public Boolean getValueAsBoolean() {
-        return valueAsBoolean;
-    }
-
-    /**
-     * @param valueAsBoolean the valueAsBoolean to set
-     */
-    public void setValueAsBoolean(Boolean valueAsBoolean) {
-        this.valueAsBoolean = valueAsBoolean;
     }
 
     /**
@@ -161,7 +154,7 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
 
     @Override
     public int compareTo(Property<?> o) {
-        return attribute.getShortName().compareTo(o.attribute.getShortName());
+        return propertyType.getShortName().compareTo(o.propertyType.getShortName());
     }
 
     /**
@@ -176,8 +169,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
             this.valueAsDatetime = (Instant) value;
         } else if (value instanceof Double) {
             this.valueAsReal = (Double) value;
-        } else if (value instanceof Boolean) {
-            this.valueAsBoolean = (Boolean) value;
         } else if (value instanceof Attribute) {
             this.valueAsAttribute = (Attribute) value;
         } else {
@@ -217,15 +208,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
      *
      * @param value The value to set.
      */
-    public void setValue(boolean value) {
-        this.valueAsBoolean = value;
-    }
-
-    /**
-     * Set value helper.
-     *
-     * @param value The value to set.
-     */
     public void setValue(Attribute value) {
         this.valueAsAttribute = value;
     }
@@ -234,9 +216,8 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (attribute == null ? 0 : attribute.hashCode());
+        result = prime * result + (propertyType == null ? 0 : propertyType.hashCode());
         result = prime * result + (valueAsAttribute == null ? 0 : valueAsAttribute.hashCode());
-        result = prime * result + (valueAsBoolean == null ? 0 : valueAsBoolean.hashCode());
         result = prime * result + (valueAsDatetime == null ? 0 : valueAsDatetime.hashCode());
         result = prime * result + (valueAsInteger == null ? 0 : valueAsInteger.hashCode());
         result = prime * result + (valueAsLink == null ? 0 : valueAsLink.hashCode());
@@ -257,11 +238,11 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
             return false;
         }
         Property<?> other = (Property<?>) obj;
-        if (attribute == null) {
-            if (other.attribute != null) {
+        if (propertyType == null) {
+            if (other.propertyType != null) {
                 return false;
             }
-        } else if (!attribute.equals(other.attribute)) {
+        } else if (!propertyType.equals(other.propertyType)) {
             return false;
         }
         if (valueAsAttribute == null) {
@@ -269,13 +250,6 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
                 return false;
             }
         } else if (!valueAsAttribute.equals(other.valueAsAttribute)) {
-            return false;
-        }
-        if (valueAsBoolean == null) {
-            if (other.valueAsBoolean != null) {
-                return false;
-            }
-        } else if (!valueAsBoolean.equals(other.valueAsBoolean)) {
             return false;
         }
         if (valueAsDatetime == null) {

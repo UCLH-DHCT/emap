@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -22,7 +23,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  */
 @Entity
-@Table(name = "mrn_encounter")
+@Table(name = "mrn_encounter", indexes = { @Index(columnList = "mrn", unique = false),
+        @Index(columnList = "encounter", unique = false), })
 @JsonIgnoreProperties({"mrn", "valid"})
 public class MrnEncounter extends TemporalCore implements Serializable {
 
@@ -30,7 +32,7 @@ public class MrnEncounter extends TemporalCore implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer   mrnEncounterId;
+    private Long   mrnEncounterId;
 
     @ManyToOne
     @JoinColumn(name = "mrn", nullable = false)
@@ -73,14 +75,14 @@ public class MrnEncounter extends TemporalCore implements Serializable {
     /**
      * @return the mrnEncounterId
      */
-    public Integer getMrnEncounterId() {
+    public Long getMrnEncounterId() {
         return mrnEncounterId;
     }
 
     /**
      * @param mrnEncounterId the mrnEncounterId to set
      */
-    public void setMrnEncounterId(Integer mrnEncounterId) {
+    public void setMrnEncounterId(Long mrnEncounterId) {
         this.mrnEncounterId = mrnEncounterId;
     }
 

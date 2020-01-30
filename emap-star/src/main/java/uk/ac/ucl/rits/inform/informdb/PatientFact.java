@@ -3,6 +3,9 @@ package uk.ac.ucl.rits.inform.informdb;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -28,9 +31,23 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
 
     private static final long serialVersionUID = -5867434510066589366L;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long               patientFactId;
+
     @ManyToOne
-    @JoinColumn(name = "encounter", referencedColumnName = "encounter")
+    @JoinColumn(name = "encounter")
     private Encounter         encounter;
+
+    @Override
+    public Long getFactId() {
+        return patientFactId;
+    }
+
+    @Override
+    public void setFactId(Long patientFactId) {
+        this.patientFactId = patientFactId;
+    }
 
     /**
      * @return the encounter

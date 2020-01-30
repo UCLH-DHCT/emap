@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -24,7 +25,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  */
 @Entity
-@Table(name = "person_mrn")
+@Table(name = "person_mrn",
+        indexes = { @Index(columnList = "mrn", unique = false), @Index(columnList = "person", unique = false), })
 @JsonIgnoreProperties({ "person", "valid" })
 public class PersonMrn extends TemporalCore implements Serializable {
 
@@ -32,7 +34,7 @@ public class PersonMrn extends TemporalCore implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int               id;
+    private Long               personMrnId;
 
     @ManyToOne
     @JoinColumn(name = "person", nullable = false)
@@ -97,15 +99,15 @@ public class PersonMrn extends TemporalCore implements Serializable {
     /**
      * @return the Id
      */
-    public int getId() {
-        return id;
+    public Long getPersonMrnId() {
+        return personMrnId;
     }
 
     /**
-     * @param id the Id
+     * @param personMrnId the Id
      */
-    public void setId(int id) {
-        this.id = id;
+    public void setPersonMrnId(Long personMrnId) {
+        this.personMrnId = personMrnId;
     }
 
     /**
@@ -124,7 +126,7 @@ public class PersonMrn extends TemporalCore implements Serializable {
 
     @Override
     public String toString() {
-        return "PersonMrn [id=" + id + ", person=" + person.getPersonId() + ", mrn=" + mrn + ", validUntil="
+        return "PersonMrn [id=" + personMrnId + ", person=" + person.getPersonId() + ", mrn=" + mrn + ", validUntil="
                 + getValidUntil() + ", live=" + live + "]";
     }
 

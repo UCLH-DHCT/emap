@@ -31,10 +31,10 @@ public class Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int             personId;
+    private Long             personId;
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant         createDatetime;
+    private Instant         storedFrom;
 
     @OneToMany(targetEntity = PersonMrn.class, mappedBy = "person", cascade = CascadeType.ALL)
     private List<PersonMrn> mrns;
@@ -42,29 +42,29 @@ public class Person implements Serializable {
     /**
      * @return the personId
      */
-    public int getPersonId() {
+    public Long getPersonId() {
         return personId;
     }
 
     /**
      * @param personId the personId to set
      */
-    public void setPersonId(int personId) {
+    public void setPersonId(Long personId) {
         this.personId = personId;
     }
 
     /**
-     * @return the createDatetime
+     * @return the Instant this Person was first recorded in the database
      */
     public Instant getCreateDatetime() {
-        return this.createDatetime;
+        return this.storedFrom;
     }
 
     /**
-     * @param createDatetime the createDatetime to set
+     * @param storedFrom the Instant this Person was first recorded in the database
      */
-    public void setCreateDatetime(Instant createDatetime) {
-        this.createDatetime = createDatetime;
+    public void setCreateDatetime(Instant storedFrom) {
+        this.storedFrom = storedFrom;
     }
 
     /**
@@ -106,7 +106,7 @@ public class Person implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Person [person_id=%d, create_datetime=%s]", personId, createDatetime.toString());
+        return String.format("Person [person_id=%d, create_datetime=%s]", personId, storedFrom.toString());
     }
 
     /**
