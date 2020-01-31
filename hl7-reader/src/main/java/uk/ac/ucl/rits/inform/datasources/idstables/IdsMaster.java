@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.idstables;
 
 import java.time.Instant;
 
@@ -8,7 +8,10 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * Representation of the main IDS table. Usually for reading but we can create a test IDS.
+ * Representation of the main IDS table. Usually for reading but we can also
+ * create a test IDS. This is outside of the package
+ * uk.ac.ucl.rits.inform.datasources.ids, so won't be picked up during entity
+ * scanning - this avoids creating an empty version of this table in the UDS.
  */
 @Entity
 @Table(name = "tbl_ids_master")

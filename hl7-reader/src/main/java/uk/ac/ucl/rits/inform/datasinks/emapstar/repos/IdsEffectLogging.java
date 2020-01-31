@@ -20,8 +20,9 @@ import javax.persistence.Table;
  *
  * @author Jeremy Stein
  */
-@Table(indexes = { @Index(columnList = "sourceId", unique = false) })
 @Entity
+@Table(name = "etl_per_message_logging",
+       indexes = { @Index(columnList = "sourceId", unique = false) })
 public class IdsEffectLogging {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

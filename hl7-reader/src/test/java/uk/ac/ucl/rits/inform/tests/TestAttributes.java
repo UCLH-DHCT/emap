@@ -3,7 +3,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -82,5 +84,29 @@ public class TestAttributes {
         Collection<Serializable> dbOnly = CollectionUtils.subtract(shortNamesInDb, enumShortNames);
         assertEquals("All enum attributes should be in the DB, and vice versa. In enum only: " + enumOnly + "  In db only: " + dbOnly,
                 shortNamesInDb, enumShortNames);
+    }
+
+    /**
+     * Check that AttributeKeyMap enum values are deprecated iff there is a validUntil date.
+     */
+    @Test
+    public void checkAttributeDeprecation() {
+        Field[] declaredFields = AttributeKeyMap.class.getDeclaredFields();
+        int numChecked = 0;
+        for (Field field: declaredFields) {
+            // exclude the non-enum constants like shortname
+            if (field.isEnumConstant()) {
+                numChecked++;
+                Deprecated annotation = field.getAnnotation(Deprecated.class);
+                boolean isDeprecated = (annotation != null);
+                AttributeKeyMap attrKM = AttributeKeyMap.valueOf(field.getName());
+                Optional<Attribute> attr = attributeRepo.findByShortName(attrKM.getShortname());
+                Attribute attribute = attr.get();
+                boolean hasValidUntil = (attribute.getValidUntil() != null);
+                assertTrue(String.format("Attr %s has deprecation status %b but validUntil status %b",
+                        attribute.getShortName(), isDeprecated, hasValidUntil), isDeprecated == hasValidUntil);
+            }
+        }
+        assertEquals("Number of checks does not match number of enum values", attributeRepo.count(), numChecked);
     }
 }

@@ -5,11 +5,13 @@ import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * Keep track of what message number we have processed up to.
  */
 @Entity
+@Table(name = "etl_ids_progress")
 public class IdsProgress {
     @Id
     private int id;
