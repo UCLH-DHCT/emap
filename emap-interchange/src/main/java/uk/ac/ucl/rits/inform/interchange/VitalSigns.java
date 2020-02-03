@@ -61,7 +61,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
      * Returns recorded numeric value.
      * @return Double value
      */
-    public double getNumericValue() {
+    public Double getNumericValue() {
         return numericValue;
     }
 
@@ -133,7 +133,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
      * Sets the value as a number.
      * @param value Double value
      */
-    public void setNumericValue(double value) {
+    public void setNumericValue(Double value) {
         this.numericValue = value;
     }
 
