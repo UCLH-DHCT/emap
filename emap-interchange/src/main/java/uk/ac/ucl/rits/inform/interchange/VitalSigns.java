@@ -22,6 +22,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     private Double numericValue = 0.0;
     private String stringValue = "";
+    private String comment = "";
 
     /**
      * Result status has default value of {@link ResultStatus#SAVE}.
@@ -70,6 +71,14 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
      */
     public String getStringValue() {
         return stringValue;
+    }
+
+    /**
+     * Returns recorded comment.
+     * @return Comment value
+     */
+    public String getComment() {
+        return comment;
     }
 
     /**
@@ -137,6 +146,14 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     }
 
     /**
+     * Sets the comment.
+     * @param comment Comment
+     */
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    /**
      * Sets the result status {@link VitalSigns#resultStatus}.
      * @param resultStatus action to be taken when the interchange message is parsed.
      */
@@ -184,12 +201,13 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
                 && Objects.equals(visitNumber, that.visitNumber)
                 && Objects.equals(numericValue, that.numericValue)
                 && Objects.equals(stringValue, that.stringValue)
+                && Objects.equals(comment, that.comment)
                 && Objects.equals(unit, that.unit)
                 && Objects.equals(observationTimeTaken, that.observationTimeTaken);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, unit, observationTimeTaken);
+        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, comment, unit, observationTimeTaken);
     }
 }
