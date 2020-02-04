@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
@@ -117,16 +116,13 @@ public class VitalSignBuilder {
                 }
             }
         } else {
-            vitalSign.setStringValue(value);
+            vitalSign.setStringValue(value.trim());
         }
 
-        // todo: do we want a comment field for vitalsigns
         // todo: check to see crazy long message & separator characters
-        // todo: can an empty comment be sent
         if (!nte.isEmpty()) {
             // assumes single comment
-            String comment = nte.getNte3_Comment(0).getValue().trim();
-            vitalSign.setStringValue(String.format("%s %s", vitalSign.getStringValue(), comment).trim());
+            vitalSign.setComment(nte.getNte3_Comment(0).getValue().trim());
         }
 
         vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
