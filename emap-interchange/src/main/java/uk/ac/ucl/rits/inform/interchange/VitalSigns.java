@@ -20,9 +20,20 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     private String vitalSignIdentifier = "";
 
-    private Double numericValue = 0.0;
-    private String stringValue = "";
-    private String comment = "";
+    /**
+     * Numeric value, null if not set.
+     */
+    private Double numericValue;
+
+    /**
+     * String value, null if not set.
+     */
+    private String stringValue;
+
+    /**
+     * Comment, null if not set.
+     */
+    private String comment;
 
     /**
      * Result status has default value of {@link ResultStatus#SAVE}.
@@ -59,7 +70,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Returns recorded numeric value.
-     * @return Double value
+     * @return {@link VitalSigns#numericValue}
      */
     public Double getNumericValue() {
         return numericValue;
@@ -67,7 +78,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Returns recorded string value.
-     * @return String value
+     * @return {@link VitalSigns#stringValue}
      */
     public String getStringValue() {
         return stringValue;
@@ -75,7 +86,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Returns recorded comment.
-     * @return Comment value
+     * @return {@link VitalSigns#comment}
      */
     public String getComment() {
         return comment;
@@ -131,7 +142,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the value as a number.
-     * @param value Double value
+     * @param value {@link VitalSigns#numericValue}
      */
     public void setNumericValue(Double value) {
         this.numericValue = value;
@@ -139,7 +150,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the value as a string.
-     * @param value String value
+     * @param value {@link VitalSigns#stringValue}
      */
     public void setStringValue(String value) {
         this.stringValue = value;
@@ -147,7 +158,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the comment.
-     * @param comment Comment
+     * @param comment {@link VitalSigns#comment}
      */
     public void setComment(String comment) {
         this.comment = comment;
