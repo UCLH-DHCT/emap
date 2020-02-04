@@ -20,8 +20,20 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     private String vitalSignIdentifier = "";
 
-    private Double numericValue = 0.0;
-    private String stringValue = "";
+    /**
+     * Numeric value, null if not set.
+     */
+    private Double numericValue;
+
+    /**
+     * String value, null if not set.
+     */
+    private String stringValue;
+
+    /**
+     * Comment, null if not set.
+     */
+    private String comment;
 
     /**
      * Result status has default value of {@link ResultStatus#SAVE}.
@@ -58,18 +70,26 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Returns recorded numeric value.
-     * @return Double value
+     * @return {@link VitalSigns#numericValue}
      */
-    public double getNumericValue() {
+    public Double getNumericValue() {
         return numericValue;
     }
 
     /**
      * Returns recorded string value.
-     * @return String value
+     * @return {@link VitalSigns#stringValue}
      */
     public String getStringValue() {
         return stringValue;
+    }
+
+    /**
+     * Returns recorded comment.
+     * @return {@link VitalSigns#comment}
+     */
+    public String getComment() {
+        return comment;
     }
 
     /**
@@ -122,18 +142,26 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the value as a number.
-     * @param value Double value
+     * @param value {@link VitalSigns#numericValue}
      */
-    public void setNumericValue(double value) {
+    public void setNumericValue(Double value) {
         this.numericValue = value;
     }
 
     /**
      * Sets the value as a string.
-     * @param value String value
+     * @param value {@link VitalSigns#stringValue}
      */
     public void setStringValue(String value) {
         this.stringValue = value;
+    }
+
+    /**
+     * Sets the comment.
+     * @param comment {@link VitalSigns#comment}
+     */
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     /**
@@ -184,12 +212,13 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
                 && Objects.equals(visitNumber, that.visitNumber)
                 && Objects.equals(numericValue, that.numericValue)
                 && Objects.equals(stringValue, that.stringValue)
+                && Objects.equals(comment, that.comment)
                 && Objects.equals(unit, that.unit)
                 && Objects.equals(observationTimeTaken, that.observationTimeTaken);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, unit, observationTimeTaken);
+        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, comment, unit, observationTimeTaken);
     }
 }
