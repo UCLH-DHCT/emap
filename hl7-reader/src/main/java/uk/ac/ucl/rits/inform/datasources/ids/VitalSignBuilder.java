@@ -125,12 +125,8 @@ public class VitalSignBuilder {
             vitalSign.setComment(nte.getNte3_Comment(0).getValue().trim());
         }
 
-        vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
-        try {
-            vitalSign.setObservationTimeTaken(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
-        } catch (DataTypeException e) {
-            logger.error(String.format("Observation Time Taken could not be set for msg %s", subMessageSourceId), e);
-        }
+            vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
+        vitalSign.setObservationTimeTaken(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
         return vitalSign;
     }
 
