@@ -213,7 +213,6 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     }
 
     /**
-
      * @return int number of pathology results in list
      */
     public int getNumPathologyResults() {
