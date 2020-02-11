@@ -213,6 +213,19 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     }
 
     /**
+     * Get pathology result by index.
+     * @param index int index of result to get
+     * @return PathologyResult at index given or null if out of bounds
+     */
+    public PathologyResult getPathologyResult(int index) {
+        if (index >= getNumPathologyResults() || index < 0) {
+            return null;
+        } else {
+            return pathologyResults.get(index);
+        }
+    }
+
+    /**
      * @return int number of pathology results in list
      */
     public int getNumPathologyResults() {
