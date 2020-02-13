@@ -22,7 +22,7 @@ public class TestVitalSignsTricky extends VitalSignsTestCase {
             setVisitNumber("dave");
             setVitalSignIdentifier("HEART_RATE");
             //setVitalSignIdentifierCodingSystem("JES");
-            setNumericValue(94);
+            setNumericValue(94.);
             setUnit("/min");
             setObservationTimeTaken(Instant.parse("2019-11-14T17:09:58Z"));
         }});
@@ -33,7 +33,7 @@ public class TestVitalSignsTricky extends VitalSignsTestCase {
             setVisitNumber("bob");
             setVitalSignIdentifier("HEART_RATE");
             //setVitalSignIdentifierCodingSystem("JES");
-            setNumericValue(95);
+            setNumericValue(95.);
             setUnit("/min");
             setObservationTimeTaken(Instant.parse("2019-11-14T17:09:58Z"));
         }});
