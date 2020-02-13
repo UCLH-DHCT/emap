@@ -207,10 +207,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER, msg.getVitalSignIdentifier()));
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
                 AttributeKeyMap.VITAL_SIGNS_UNIT, msg.getUnit()));
-        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
-        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+        if (msg.getStringValue() != null) {
+            vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                    AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
+        }
+        if (msg.getNumericValue() != null) {
+            vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                    AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+        }
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
                 AttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME, msg.getObservationTimeTaken()));
 
