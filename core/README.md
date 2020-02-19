@@ -40,7 +40,7 @@ We use https because outgoing ssh is blocked from the GAE.
 
 Repositories must be checked out to the correct branches. "Correct" will depend on what you're trying to do. Conventionally a live instance would all be deployed off master, but during the development phase `develop` is more likely to be the correct branch. Occasionally you may need to deploy off a feature branch - if in doubt ask the author of that code.
 
- * `git clone --branch idempotentise https://github.com/inform-health-informatics/Emap-Core.git`
+ * `git clone --branch develop https://github.com/inform-health-informatics/Emap-Core.git`
  * `git clone --branch master https://github.com/inform-health-informatics/Emap-Interchange.git`
  * `git clone --branch develop https://github.com/inform-health-informatics/Inform-DB.git`
 
@@ -53,6 +53,27 @@ Supply the required config files in the `Emap-Core` directory (see below in read
 You need the `-p` option to `docker-compose` to make sure the container and network names don't clash.
 
 `docker-compose -p emaplive up --build -d`
+
+## Adding in a fake UDS
+
+In dev/test environments, you may want to make your own UDS in a docker container. It could also double as an IDS as there's nothing to say these can't be on the same postgres instance.
+
+This container is defined in a separate docker-compose file, so you need to specify both files as below:
+
+`docker-compose -f docker-compose.yml -f docker-compose.fakeuds.yml -p emaplive up --build -d`
+
+You can use all the usual commands in this way, eg:
+
+```
+$ docker-compose -f docker-compose.yml -f docker-compose.fakeuds.yml ps
+Name                       Command               State                                             Ports                                           
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+emap-core_emapstar_1    /usr/local/bin/mvn-entrypo ...   Up                                                                                                
+emap-core_fakeuds_1     docker-entrypoint.sh postgres    Up      5432/tcp                                                                                  
+emap-core_hl7source_1   /usr/local/bin/mvn-entrypo ...   Up                                                                                                
+emap-core_rabbitmq_1    docker-entrypoint.sh rabbi ...   Up      15671/tcp, 0.0.0.0:15672->15672/tcp, 25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5672->5672/tcp
+
+```
 
 # emapstar
 
@@ -76,42 +97,23 @@ to reference the code containing the dependencies.
 
 ## `config-envs` file
 
-These are the required envs for this file with example values.
+This file is used by hl7source and emapstar to point to the IDS, UDS, and rabbitmq server.
 
-```bash
-IDS_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/ids
-IDS_USERNAME=someuser
-IDS_PASSWORD=redacted
-IDS_SCHEMA=schemaname
-INFORMDB_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/informdb
-INFORMDB_SCHEMA=devfoo
-INFORMDB_USERNAME=someuser
-INFORMDB_PASSWORD=redacted
-SPRING_RABBITMQ_HOST=rabbitmq
-SPRING_RABBITMQ_PORT=8672
-SPRING_RABBITMQ_USERNAME=someuser
-SPRING_RABBITMQ_PASSWORD=redacted
-```
+The required envs in this file with example values are found in [config-envs.EXAMPLE](config-envs.EXAMPLE)
 
 ## `rabbit-envs` file
 
-This sets the username+password for the rabbitmq server. This helps prevents a user/malware outside the GAE from accessing the queue.
+This sets the username+password on the rabbitmq server. If you're on the GAE this should be a strong password to help prevent a user/malware outside the GAE from accessing the queue.
 
-```bash
-RABBITMQ_DEFAULT_USER=emap
-RABBITMQ_DEFAULT_PASS=seelastpassforpassword
-```
+[rabbit-envs.EXAMPLE](rabbit-envs.EXAMPLE)
 
 ## `.env` file
 
-If you want to be able to refer to the environment variables in the docker-compose.yml file itself, they need to be in a file called `.env`.
+In order to use environment variables from the docker-compose.yml file itself, they need to be in a file called `.env`. Hence yet another file.
 
-To specify which port on the GAE your rabbitmq queue binds to, use this as an example:
+This is used for specifying which port on the host your rabbitmq queue should bind to. Example found here:
 
-```
-RABBITMQ_PORT=5673
-RABBITMQ_ADMIN_PORT=5674
-```
+[.env.EXAMPLE](.env.EXAMPLE)
 
 We should allocate ports to people to avoid clashes, and double check what the firewall rules are for different ports. In the meantime, please use a strong password on your rabbitmq server.
 
