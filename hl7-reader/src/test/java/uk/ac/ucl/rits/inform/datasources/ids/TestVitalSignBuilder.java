@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 import static junit.framework.TestCase.assertEquals;
 
 @RunWith(SpringRunner.class)
