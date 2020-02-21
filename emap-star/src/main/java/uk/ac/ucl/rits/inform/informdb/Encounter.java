@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -142,6 +143,7 @@ public class Encounter implements Serializable {
     }
 
     /**
+     * Use getFactsGroupByType instead.
      * @return the facts as a Map, indexed by fact short name
      */
     @Deprecated
@@ -149,6 +151,16 @@ public class Encounter implements Serializable {
         Map<String, PatientFact> map = new HashMap<>();
         facts.forEach(d -> map.put(d.getFactType().getShortName(), d));
         return map;
+    }
+
+    /**
+     * Successor to getFactsAsMap.
+     * @return the facts as a Map, indexed by fact short name
+     */
+    public Map<AttributeKeyMap, List<PatientFact>> getFactsGroupByType() {
+        Map<AttributeKeyMap, List<PatientFact>> factsByType = facts.stream().collect(
+                Collectors.groupingBy(f -> AttributeKeyMap.parseFromShortName(f.getFactType().getShortName())));
+        return factsByType;
     }
 
     /**
