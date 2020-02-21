@@ -7,6 +7,8 @@ services:
         volumes:
             - postgres-data-fakeuds:/var/lib/postgresql/data
         restart: unless-stopped
+        ports:
+            - "${FAKEUDS_PORT}:5432"
 
 volumes:
     postgres-data-fakeuds:
