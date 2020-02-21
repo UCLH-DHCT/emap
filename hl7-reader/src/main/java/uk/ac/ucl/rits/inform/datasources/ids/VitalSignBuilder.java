@@ -95,7 +95,6 @@ public class VitalSignBuilder {
         vitalSign.setVitalSignIdentifier(String.format("%s$%s", "EPIC", observationId));
 
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
-        // todo: define that these are required fields. If they don't have them, then issue with HL7 source.
         if (resultStatus.equals("D")) {
             vitalSign.setResultStatus(ResultStatus.DELETE);
         } else if (!(resultStatus.equals("F") || resultStatus.equals("C"))) {
