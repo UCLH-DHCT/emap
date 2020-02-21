@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertEquals;
 
 @RunWith(SpringRunner.class)
@@ -69,7 +71,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testComment() {
-        String result = vitalSigns.get(2).getStringValue();
+        String result = vitalSigns.get(2).getComment();
         assertEquals("patient was running really fast (on a hamster wheel)", result);
     }
 
@@ -91,7 +93,13 @@ public class TestVitalSignBuilder {
     public void testResultStatusDtoDelete() {
         // result status is 'D' so should be converted to DELETE
         ResultStatus result = vitalSigns.get(5).getResultStatus();
+        Double numericValue = vitalSigns.get(5).getNumericValue();
+        String stringValue = vitalSigns.get(5).getStringValue();
+
         assertEquals(ResultStatus.DELETE, result);
+        assertNull(numericValue);
+        assertEquals("\"\"", stringValue);
+
     }
 
     @Test
