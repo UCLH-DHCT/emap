@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
@@ -215,6 +216,7 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     /**
      * @return int number of pathology results in list
      */
+    @JsonIgnore
     public int getNumPathologyResults() {
         return pathologyResults.size();
     }
