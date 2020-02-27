@@ -1,7 +1,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BOX_CONFIG_FILE="$(dirname "$SCRIPT_DIR")/box-config-envs"
+BOX_CONFIG_FILE="$(dirname "$SCRIPT_DIR")/config/box-config-envs"
 set -a # auto-export all vars so docker-compose can see them for opening ports etc.
 source "$BOX_CONFIG_FILE"
 set +a
