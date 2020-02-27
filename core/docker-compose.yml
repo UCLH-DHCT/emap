@@ -10,7 +10,7 @@ services:
                 HTTPS_PROXY: ${HTTPS_PROXY}
                 https_proxy: ${https_proxy}
         env_file:
-            - config-envs
+            - ../config/emap-core-config-envs
         logging:
             driver: "json-file"
         restart: on-failure
@@ -24,14 +24,14 @@ services:
                 HTTPS_PROXY: ${HTTPS_PROXY}
                 https_proxy: ${https_proxy}
         env_file:
-            - config-envs
+            - ../config/emap-core-config-envs
         logging:
             driver: "json-file"
         restart: on-failure
     rabbitmq:
         image: rabbitmq:management
         env_file:
-            - rabbit-envs
+            - ../config/rabbitmq-config-envs
         ports:
             - "${RABBITMQ_PORT}:5672"
             - "${RABBITMQ_ADMIN_PORT}:15672"
