@@ -109,7 +109,10 @@ The Dockerfiles have to build the dependencies before building Emap-Core. Theref
 ```
 Emap [project dir, name doesn't actually matter]
  |
- +-- box-config-envs [emap in a box config file]
+ +-- config
+ |  |
+ |  +-- box-config-envs [emap in a box (overall) config file]
+ |  +-- FOO-config-envs [config file for service FOO]
  +-- Emap-Core [git repo]
  |  |
  |  +-- box.sh [runs emap in a box]
@@ -122,25 +125,29 @@ Emap [project dir, name doesn't actually matter]
 The `docker-compose.yml` file sets the build directory to be the project root directory, to allow the Emap-Core Dockerfiles
 to reference the code containing the dependencies.
 
-## `config-envs` file
+## `FOO-config-envs` file
 
 This file is used by hl7source and emapstar to point to the IDS, UDS, and rabbitmq server.
 
-The required envs in this file with example values are found in [config-envs.EXAMPLE](config-envs.EXAMPLE)
+The required envs in this file with example values are found in [emap-core-config-envs.EXAMPLE](emap-core-config-envs.EXAMPLE)
 
 ## `rabbit-envs` file
 
 This sets the username+password on the rabbitmq server. If you're on the GAE this should be a strong password to help prevent a user/malware outside the GAE from accessing the queue.
 
-[rabbit-envs.EXAMPLE](rabbit-envs.EXAMPLE)
+[rabbitmq-config-envs.EXAMPLE](rabbitmq-config-envs.EXAMPLE)
 
 ## `.env` file
 
-In order to use environment variables from the docker-compose.yml file itself, they need to be in a file called `.env`. Hence yet another file.
+These files are now deprecated in favour of `box-config-envs`.
 
-This is used for specifying which port on the host your rabbitmq queue should bind to. Example found here:
+## `box-config-envs` file
 
-[.env.EXAMPLE](.env.EXAMPLE)
+This is used for specifying which port on the host your rabbitmq queue, fakeuds port should bind to, and for specifying the project name (`-p` option to docker-compose) to keep the Emap instances on the same docker host separate. Example found here:
+
+[box-config-envs.EXAMPLE](box-config-envs.EXAMPLE)
+
+If you're running on your own machine, you can set BOX_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
 
 We should allocate ports to people to avoid clashes, and double check what the firewall rules are for different ports. In the meantime, please use a strong password on your rabbitmq server.
 
