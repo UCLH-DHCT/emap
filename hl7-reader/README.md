@@ -62,30 +62,33 @@ This container is defined in a separate docker-compose file, so you need to spec
 
 `docker-compose -f docker-compose.yml -f docker-compose.fakeuds.yml -p emaplive up --build -d`
 
-## Emap-in-a-box
+## `emap.sh` script and Emap-in-a-box
 
-To make running with multiple docker-compose files easier, there's a script called `box.sh` which can run the above command for you. It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
+To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
 
-It needs configuring with at least one environment variable `BOX_PROJECT_NAME` which must live in the file `box-config-envs` in the directory above `Emap-Core` and friends.
+By default it gives you the full Emap-in-a-box experience, ie. you get a dockerised postgres server to act as a UDS, and you get a rabbitmq server. To avoid this you would need to pass the service names you need to the script (see docker-compose help).
+Useful command: `./emap.sh ps --services` to list available services.
+We should really have multiple emap scripts that include/exclude the fake UDS and/or the DBfiller. Good, concise names on a postcard...
+
+It needs configuring with at least one environment variable `EMAP_PROJECT_NAME` which must live in the file `global-config-envs` in the directory `config`, adjacent to `Emap-Core` and friends.
 
 Because this is just a file containing environment variables, you can actually put all the local ports here as well, instead of spreading them over multiple `.env` files inside the repository dirs themselves:
 
-Example `box-config-envs`:
+Example `global-config-envs`:
 ```bash
-BOX_PROJECT_NAME=jes1
+EMAP_PROJECT_NAME=jes1
 RABBITMQ_PORT=5972
 RABBITMQ_ADMIN_PORT=15972
 FAKEUDS_PORT=5433
 ```
 
-We should really have multiple "box" scripts that are less complete boxes - that is, they don't include the fake UDS and/or the DBfiller. Good, concise names on a postcard...
 
 ### Example
 
-I've appended the docker-compose command `ps` to `box.sh`, and you can see all the services from all our repos in one place!
+I've appended the docker-compose command `ps` to `emap.sh`, and you can see all the services from all our repos in one place!
 ```
-(develop) $ ./box.sh ps
-Emap in a box config file: /Users/jeremystein/Emap/box-config-envs
+(develop) $ ./emap.sh ps
+Global Emap config file: /Users/jeremystein/Emap/global-config-envs
 ++ docker-compose -f /Users/jeremystein/Emap/Emap-Core/docker-compose.yml -f /Users/jeremystein/Emap/Emap-Core/docker-compose.fakeuds.yml -f /Users/jeremystein/Emap/Emap-Core/../DatabaseFiller/docker-compose.yml -p jes1 ps
 WARNING: The HTTP_PROXY variable is not set. Defaulting to a blank string.
 WARNING: The http_proxy variable is not set. Defaulting to a blank string.
@@ -111,11 +114,11 @@ Emap [project dir, name doesn't actually matter]
  |
  +-- config
  |  |
- |  +-- box-config-envs [emap in a box (overall) config file]
+ |  +-- global-config-envs [global emap config file]
  |  +-- FOO-config-envs [config file for service FOO]
  +-- Emap-Core [git repo]
  |  |
- |  +-- box.sh [runs emap in a box]
+ |  +-- emap.sh [runs emap, optionally in a box]
  |  +-- docker-compose.yml [sets build directory to be .. (aka Emap)]
  +-- Emap-Interchange [git repo]
  +-- Inform-DB [git repo]
@@ -139,15 +142,15 @@ This sets the username+password on the rabbitmq server. If you're on the GAE thi
 
 ## `.env` file
 
-These files are now deprecated in favour of `box-config-envs`.
+These files are now deprecated in favour of `global-config-envs`.
 
-## `box-config-envs` file
+## `global-config-envs` file
 
 This is used for specifying which port on the host your rabbitmq queue, fakeuds port should bind to, and for specifying the project name (`-p` option to docker-compose) to keep the Emap instances on the same docker host separate. Example found here:
 
-[box-config-envs.EXAMPLE](box-config-envs.EXAMPLE)
+[global-config-envs.EXAMPLE](global-config-envs.EXAMPLE)
 
-If you're running on your own machine, you can set BOX_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
+If you're running on your own machine, you can set EMAP_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
 
 We should allocate ports to people to avoid clashes, and double check what the firewall rules are for different ports. In the meantime, please use a strong password on your rabbitmq server.
 
