@@ -62,17 +62,45 @@ This container is defined in a separate docker-compose file, so you need to spec
 
 `docker-compose -f docker-compose.yml -f docker-compose.fakeuds.yml -p emaplive up --build -d`
 
-You can use all the usual commands in this way, eg:
+## `emap.sh` script and Emap-in-a-box
 
+To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
+
+By default it gives you the full Emap-in-a-box experience, ie. you get a dockerised postgres server to act as a UDS, and you get a rabbitmq server. To avoid this you would need to pass the service names you need to the script (see docker-compose help).
+Useful command: `./emap.sh ps --services` to list available services.
+We should really have multiple emap scripts that include/exclude the fake UDS and/or the DBfiller. Good, concise names on a postcard...
+
+It needs configuring with at least one environment variable `EMAP_PROJECT_NAME` which must live in the file `global-config-envs` in the directory `config`, adjacent to `Emap-Core` and friends.
+
+Because this is just a file containing environment variables, you can actually put all the local ports here as well, instead of spreading them over multiple `.env` files inside the repository dirs themselves:
+
+Example `global-config-envs`:
+```bash
+EMAP_PROJECT_NAME=jes1
+RABBITMQ_PORT=5972
+RABBITMQ_ADMIN_PORT=15972
+FAKEUDS_PORT=5433
 ```
-$ docker-compose -f docker-compose.yml -f docker-compose.fakeuds.yml ps
-Name                       Command               State                                             Ports                                           
------------------------------------------------------------------------------------------------------------------------------------------------------------
-emap-core_emapstar_1    /usr/local/bin/mvn-entrypo ...   Up                                                                                                
-emap-core_fakeuds_1     docker-entrypoint.sh postgres    Up      5432/tcp                                                                                  
-emap-core_hl7source_1   /usr/local/bin/mvn-entrypo ...   Up                                                                                                
-emap-core_rabbitmq_1    docker-entrypoint.sh rabbi ...   Up      15671/tcp, 0.0.0.0:15672->15672/tcp, 25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5672->5672/tcp
 
+
+### Example
+
+I've appended the docker-compose command `ps` to `emap.sh`, and you can see all the services from all our repos in one place!
+```
+(develop) $ ./emap.sh ps
+Global Emap config file: /Users/jeremystein/Emap/global-config-envs
+++ docker-compose -f /Users/jeremystein/Emap/Emap-Core/docker-compose.yml -f /Users/jeremystein/Emap/Emap-Core/docker-compose.fakeuds.yml -f /Users/jeremystein/Emap/Emap-Core/../DatabaseFiller/docker-compose.yml -p jes1 ps
+WARNING: The HTTP_PROXY variable is not set. Defaulting to a blank string.
+WARNING: The http_proxy variable is not set. Defaulting to a blank string.
+WARNING: The HTTPS_PROXY variable is not set. Defaulting to a blank string.
+WARNING: The https_proxy variable is not set. Defaulting to a blank string.
+      Name                    Command                State                                               Ports                                           
+      ---------------------------------------------------------------------------------------------------------------------------------------------------------
+      jes1_dbfiller_1    java -jar ./target/DBFille ...   Exit 255                                                                                             
+      jes1_emapstar_1    /usr/local/bin/mvn-entrypo ...   Up                                                                                                   
+      jes1_fakeuds_1     docker-entrypoint.sh postgres    Up         0.0.0.0:5433->5432/tcp                                                                    
+      jes1_hl7source_1   /usr/local/bin/mvn-entrypo ...   Up                                                                                                   
+      jes1_rabbitmq_1    docker-entrypoint.sh rabbi ...   Up         15671/tcp, 0.0.0.0:15972->15672/tcp, 25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5972->5672/tcp
 ```
 
 # emapstar
@@ -84,8 +112,13 @@ The Dockerfiles have to build the dependencies before building Emap-Core. Theref
 ```
 Emap [project dir, name doesn't actually matter]
  |
+ +-- config
+ |  |
+ |  +-- global-config-envs [global emap config file]
+ |  +-- FOO-config-envs [config file for service FOO]
  +-- Emap-Core [git repo]
  |  |
+ |  +-- emap.sh [runs emap, optionally in a box]
  |  +-- docker-compose.yml [sets build directory to be .. (aka Emap)]
  +-- Emap-Interchange [git repo]
  +-- Inform-DB [git repo]
@@ -95,25 +128,29 @@ Emap [project dir, name doesn't actually matter]
 The `docker-compose.yml` file sets the build directory to be the project root directory, to allow the Emap-Core Dockerfiles
 to reference the code containing the dependencies.
 
-## `config-envs` file
+## `FOO-config-envs` file
 
 This file is used by hl7source and emapstar to point to the IDS, UDS, and rabbitmq server.
 
-The required envs in this file with example values are found in [config-envs.EXAMPLE](config-envs.EXAMPLE)
+The required envs in this file with example values are found in [emap-core-config-envs.EXAMPLE](emap-core-config-envs.EXAMPLE)
 
 ## `rabbit-envs` file
 
 This sets the username+password on the rabbitmq server. If you're on the GAE this should be a strong password to help prevent a user/malware outside the GAE from accessing the queue.
 
-[rabbit-envs.EXAMPLE](rabbit-envs.EXAMPLE)
+[rabbitmq-config-envs.EXAMPLE](rabbitmq-config-envs.EXAMPLE)
 
 ## `.env` file
 
-In order to use environment variables from the docker-compose.yml file itself, they need to be in a file called `.env`. Hence yet another file.
+These files are now deprecated in favour of `global-config-envs`.
 
-This is used for specifying which port on the host your rabbitmq queue should bind to. Example found here:
+## `global-config-envs` file
 
-[.env.EXAMPLE](.env.EXAMPLE)
+This is used for specifying which port on the host your rabbitmq queue, fakeuds port should bind to, and for specifying the project name (`-p` option to docker-compose) to keep the Emap instances on the same docker host separate. Example found here:
+
+[global-config-envs.EXAMPLE](global-config-envs.EXAMPLE)
+
+If you're running on your own machine, you can set EMAP_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
 
 We should allocate ports to people to avoid clashes, and double check what the firewall rules are for different ports. In the meantime, please use a strong password on your rabbitmq server.
 
