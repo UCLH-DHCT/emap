@@ -5,7 +5,7 @@ EMAP_CONFIG_FILE="$(dirname "$SCRIPT_DIR")/config/global-config-envs"
 set -a # auto-export all vars so docker-compose can see them for opening ports etc.
 source "$EMAP_CONFIG_FILE"
 set +a
-echo "Emap in a box config file: $EMAP_CONFIG_FILE"
+>&2 echo "Emap in a box config file: $EMAP_CONFIG_FILE"
 set -x
 # Order of docker-compose files can matter. Eg. env_file location is relative to
 # the directory of the *first* -f value.
