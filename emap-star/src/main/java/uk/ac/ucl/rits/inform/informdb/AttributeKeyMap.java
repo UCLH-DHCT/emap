@@ -53,6 +53,22 @@ public enum AttributeKeyMap {
      */
     PATIENT_CLASS("PATIENT_CLASS"),
     /**
+     * Categorical showing patient discharge status.
+     */
+    DISCHARGE_DISPOSITION("DISCH_DISP"),
+    /**
+     * String value for patient discharge location.
+     */
+    DISCHARGE_LOCATION("DISCH_LOCATION"),
+    /**
+     * Boolean showing whether patient is dead or not.
+     */
+    PATIENT_DEATH_INDICATOR("DEATH_INDICATOR"),
+    /**
+     * Time of death as a date time.
+     */
+    PATIENT_DEATH_TIME("DEATH_TIME"),
+    /**
      * Location as a String.
      */
     LOCATION("LOCATION"),
@@ -78,6 +94,14 @@ public enum AttributeKeyMap {
      * Patient home postcode.
      */
     POST_CODE("POST_CODE"),
+    /**
+     * Generic boolean value.
+     */
+    BOOLEAN_TRUE("BOOLEAN_TRUE"),
+    /**
+     * Generic boolean value.
+     */
+    BOOLEAN_FALSE("BOOLEAN_FALSE"),
     /**
      * Sex.
      */
