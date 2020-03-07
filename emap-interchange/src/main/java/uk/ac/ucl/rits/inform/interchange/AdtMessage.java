@@ -32,6 +32,8 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
     private String currentRoomCode;
     private String currentWardCode;
     private Instant dischargeDateTime;
+    private String dischargeDisposition;
+    private String dischargeLocation;
     private String ethnicGroup;
     private String fullLocationString;
     private String hospitalService;
@@ -40,8 +42,8 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
     private String nhsNumber;
     private Instant patientBirthDate;
     private String patientClass;
-    private String patientDeathDateTime;
-    private String patientDeathIndicator;
+    private Instant patientDeathDateTime;
+    private Boolean patientDeathIndicator;
     private String patientFamilyName;
     private String patientFullName;
     private String patientGivenName;
@@ -194,6 +196,34 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
     }
 
     /**
+     * @return the dischargeDisposition
+     */
+    public String getDischargeDisposition() {
+        return dischargeDisposition;
+    }
+
+    /**
+     * @param dischargeDisposition the dischargeDisposition to set
+     */
+    public void setDischargeDisposition(String dischargeDisposition) {
+        this.dischargeDisposition = dischargeDisposition;
+    }
+
+    /**
+     * @return the dischargeLocation
+     */
+    public String getDischargeLocation() {
+        return dischargeLocation;
+    }
+
+    /**
+     * @param dischargeLocation the dischargeLocation to set
+     */
+    public void setDischargeLocation(String dischargeLocation) {
+        this.dischargeLocation = dischargeLocation;
+    }
+
+    /**
      * @return the ethnicGroup
      */
     public String getEthnicGroup() {
@@ -322,28 +352,28 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
     /**
      * @return the patientDeathDateTime
      */
-    public String getPatientDeathDateTime() {
+    public Instant getPatientDeathDateTime() {
         return patientDeathDateTime;
     }
 
     /**
      * @param patientDeathDateTime the patientDeathDateTime to set
      */
-    public void setPatientDeathDateTime(String patientDeathDateTime) {
+    public void setPatientDeathDateTime(Instant patientDeathDateTime) {
         this.patientDeathDateTime = patientDeathDateTime;
     }
 
     /**
      * @return the patientDeathIndicator
      */
-    public String getPatientDeathIndicator() {
+    public Boolean getPatientDeathIndicator() {
         return patientDeathIndicator;
     }
 
     /**
      * @param patientDeathIndicator the patientDeathIndicator to set
      */
-    public void setPatientDeathIndicator(String patientDeathIndicator) {
+    public void setPatientDeathIndicator(Boolean patientDeathIndicator) {
         this.patientDeathIndicator = patientDeathIndicator;
     }
 
