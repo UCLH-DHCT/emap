@@ -44,6 +44,11 @@ public enum AttributeKeyMap {
      */
     DISCHARGE_TIME("DISCH_TIME"),
     /**
+     * The patient class (eg. inpatient, outpatient, emergency, etc.)
+     * as defined by the source system, represented as a string.
+     */
+    PATIENT_CLASS("PATIENT_CLASS"),
+    /**
      * Location as a String.
      */
     LOCATION("LOCATION"),

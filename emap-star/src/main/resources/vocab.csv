@@ -49,3 +49,4 @@ attribute_id,short_name,description,result_type,valid_from,valid_until
 48,VIT_NUM_VALUE,Vital sign numerical value,Float,2019-11-14T16:00:00Z,
 49,VIT_UNIT,Unit of vital sign value,String,2019-11-14T16:00:00Z,
 50,VIT_OBS_TIME,Vital sign observation time,Datetime,2019-11-14T16:00:00Z,
+51,PATIENT_CLASS,Patient class eg inpatient outpatient,String,2020-03-10T17:00:00Z,
