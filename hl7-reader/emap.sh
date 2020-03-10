@@ -7,7 +7,7 @@ source "$EMAP_CONFIG_FILE"
 set +a
 >&2 echo "Emap in a box config file: $EMAP_CONFIG_FILE"
 # If invoked as emap-live.sh then disable the fake UDS and dbfiller
-if [ "$0" = "emap-live.sh" ]; then
+if [ "$( basename "$0" )" = "emap-live.sh" ]; then
     FAKEUDS_ARG=""
     DBFILLER_ARG=""
 else
