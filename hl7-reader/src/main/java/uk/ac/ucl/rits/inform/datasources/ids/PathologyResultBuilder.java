@@ -128,6 +128,7 @@ public class PathologyResultBuilder {
 
     /**
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.
+     * Ignores NTE-1 for now.
      * @param notes all NTE segments for the observation
      */
     private void populateNotes(List<NTE> notes) {
@@ -138,7 +139,7 @@ public class PathologyResultBuilder {
                 allNotes.add(ft.getValueOrEmpty());
             }
         }
-        msg.setNotes(String.join(" ", allNotes));
+        msg.setNotes(String.join("\n", allNotes));
     }
 
     /**

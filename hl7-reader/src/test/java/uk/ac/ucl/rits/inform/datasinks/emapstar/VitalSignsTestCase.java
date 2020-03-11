@@ -30,6 +30,7 @@ public abstract class VitalSignsTestCase extends MessageStreamTestCase {
             setEventOccurredDateTime(Instant.now());
             setMrn("ALICE");
             setVisitNumber("bob");
+            setPatientClass("I");
         }});
         messageStream.add(new AdtMessage() {{
             setOperationType(AdtOperationType.DISCHARGE_PATIENT);
@@ -44,6 +45,7 @@ public abstract class VitalSignsTestCase extends MessageStreamTestCase {
             setEventOccurredDateTime(Instant.now());
             setMrn("CAROL");
             setVisitNumber("dave");
+            setPatientClass("I");
         }});
         messageStream.add(new AdtMessage() {{
             setOperationType(AdtOperationType.MERGE_BY_ID);
