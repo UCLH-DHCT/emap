@@ -247,9 +247,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return whether it is a visit fact (ie. what used to be the VisitFact class)
      */
     private static boolean factIsVisitFact(PatientFact pf) {
-        String shortName = pf.getFactType().getShortName();
-        return shortName.equals(AttributeKeyMap.BED_VISIT.getShortname())
-                || shortName.equals(AttributeKeyMap.HOSPITAL_VISIT.getShortname());
+        return pf.isOfType(AttributeKeyMap.HOSPITAL_VISIT)
+                || AttributeKeyMap.isLocationVisitType(pf.getFactType());
     }
 
     /**
@@ -287,6 +286,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
+     * @param encounter the Encounter to search in
+     * @param pred      the predicate to check for each PatientFact
+     * @return all PatientFact objects in encounter which match predicate pred
+     */
+    @Transactional
+    private List<PatientFact> getOpenValidLocationVisit(Encounter encounter) {
+        return getFactWhere(encounter.getFacts(),
+                f -> visitFactIsOpenAndValid(f) && AttributeKeyMap.isLocationVisitType(f.getFactType()));
+    }
+
+    /**
      * @param facts the list of facts to search in
      * @param pred      the predicate to check for each PatientFact
      * @return all PatientFact objects which match predicate pred
@@ -306,7 +316,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *         are valid and stored as of the present moment
      */
     private List<PatientFact> getValidStoredDemographicFacts(Encounter encounter) {
-        return getDemographicFactsWhere(encounter, f -> factIsValid(f) && factIsStored(f));
+        return getDemographicFactsWhere(encounter, f -> f.isValid() && factIsStored(f));
     }
 
     /**
@@ -349,20 +359,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Check whether PatientFact's valid_until column is null, indicating that it
-     * has never been invalidated. Note: this does not perform time travel (ie.
-     * check whether valid_until is null or in the future) Note: the validity of the
-     * underlying properties is not checked
-     *
-     * @param pf the patient fact to check
-     * @return whether fact is valid as of the present moment
-     */
-    private boolean factIsValid(TemporalCore pf) {
-        Instant validUntil = pf.getValidUntil();
-        return validUntil == null;
-    }
-
-    /**
      * Check whether PatientFact's stored_until column is null, indicating that it
      * has not been unstored (deleted). Note: this does not perform time travel (ie.
      * check whether stored_until is null or in the future) Note: the storedness of the
@@ -377,15 +373,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * @param vf            the visit fact to check
-     * @param visitTypeAttr the visit type to compare to
-     * @return whether the visit fact vf is of the type visitTypeAttr
-     */
-    private boolean visitFactIsOfType(PatientFact vf, AttributeKeyMap visitTypeAttr) {
-        return visitTypeAttr.getShortname().equals(vf.getFactType().getShortName());
-    }
-
-    /**
      * Get all PatientFact objects on this encounter with the given visit type, or
      * null if none.
      *
@@ -394,7 +381,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return all PatientFact objects of the specified type
      */
     private List<PatientFact> getVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr));
+        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr));
     }
 
     /**
@@ -405,7 +392,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Transactional
     private List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && visitFactIsOpenAndValid(vf));
+        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr) && visitFactIsOpenAndValid(vf));
     }
 
     /**
@@ -415,7 +402,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *         Encounter
      */
     private List<PatientFact> getClosedVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> visitFactIsOfType(vf, attr) && !visitFactIsOpen(vf) && vf.isValid());
+        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr) && !visitFactIsOpen(vf) && vf.isValid());
     }
 
     /**
@@ -461,8 +448,19 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Create a new encounter using the details given in the A01 message. This may
+     * Create a new encounter using the details given in the ADT message. This may
      * also entail creating a new Mrn and Person if these don't already exist.
+     * This may occur as the result of not just an A01/A04 message, because A02 or
+     * A03 messages can also trigger an "admit" if we didn't previously know about that patient.
+     * For this reason, look more at the patient class than whether it's an A01 or A04
+     * when determining whether to create a BED_VISIT instead of an OUTPATIENT_VISIT.
+     *
+     * ED flows tend to go A04+A08+A01 (all patient class = E). A04 and A01 are both considered
+     * to be admits here, so treat this as a transfer from the A04 to the A01 location.
+     * Note that this now breaks the previous workaround for the A01+(A11)+A01 sequence before the
+     * A11 messages were added to the feed, which treated A01+A01 as the second A01 *correcting* the first's
+     * patient location. Now we require an explicit A11 to count it as a correction,
+     * which I think is OK as these got turned on in July 2019.
      *
      * @param adtMsg msg containing encounter details
      * @return the created Encounter
@@ -483,7 +481,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // Therefore need to reuse the existing encounter and the open visit if it
         // exists.
         // (Better to move the hosp visit creation to the actual "new Encounter"?)
-        Encounter enc = getCreateEncounter(mrnStr, adtMsg.getVisitNumber(), adtMsg.getAdmissionDateTime());
+        Encounter enc = getCreateEncounter(mrnStr, adtMsg.getVisitNumber(), admissionTime);
         List<PatientFact> allHospitalVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.HOSPITAL_VISIT);
 
         // This perhaps belongs in a getCreateHospitalVisit method, with an
@@ -496,31 +494,40 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
-            // We have received an A01 but there was already an
+            // We have received an A01/A04 but there was already an
             // open hospital visit, so invalidate the existing bed visit and its properties
             logger.info("Invalidating previous bed visit");
-            List<PatientFact> allOpenBedVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.BED_VISIT);
-            if (allOpenBedVisits.size() != 1) {
+            List<PatientFact> allOpenLocationVisits = getOpenValidLocationVisit(enc);
+            if (allOpenLocationVisits.size() != 1) {
                 throw new EmapStarIntegrityException(
                         "Found an open hospital visit with open bed visit count != 1 - hosp visit = "
                                 + hospitalVisit.getFactId());
             }
             // Need to check whether it's the bed visit that corresponds to the existing
             // hospital visit?
-            PatientFact openBedVisit = allOpenBedVisits.get(0);
+            PatientFact openLocVisit = allOpenLocationVisits.get(0);
             Instant invalidTime = adtMsg.getEventOccurredDateTime();
-            openBedVisit.invalidateAll(invalidTime);
+            openLocVisit.invalidateAll(invalidTime);
             break;
         default:
             throw new MessageIgnoredException(adtMsg, "More than 1 (count = " + allHospitalVisits.size()
                     + ") hospital visits in encounter " + adtMsg.getVisitNumber());
         }
-        // create a new bed visit with the new (or updated) location
-        addOpenBedVisit(enc, adtMsg.getAdmissionDateTime(), hospitalVisit,
+        // create a new location visit with the new (or updated) location
+        AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
+        addOpenLocationVisit(enc, visitType, adtMsg.getAdmissionDateTime(), hospitalVisit,
                 adtMsg.getFullLocationString());
         enc = encounterRepo.save(enc);
         logger.info("Encounter: " + enc.toString());
         return enc;
+    }
+
+    private AttributeKeyMap visitTypeFromPatientClass(String patientClass) {
+        if (patientClass.equals("I")) {
+            return AttributeKeyMap.BED_VISIT;
+        } else {
+            return AttributeKeyMap.OUTPATIENT_VISIT;
+        }
     }
 
     /**
@@ -534,7 +541,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Build the demographics objects from a message but don't actually do anything
-     * with them.
+     * with them. Include visit related facts like patient class because these are
+     * treated very similarly.
      *
      * @param adtMsg the msg to build demographics from
      * @return Attribute->Fact key-value pairs
@@ -623,24 +631,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Add a new open bed visit to an existing higher-level (hospital) visit.
+     * Add a new open bed/outpatient/ED ("location") visit to an existing higher-level (hospital) visit.
      *
      * @param enc            the encounter to add the Visit to
+     * @param visitType     the fact type of the location visit, should only be BED_VISIT or OUTPATIENT_VISIT or similar
      * @param visitBeginTime when the Visit began, which could be an admission
-     * @param parentVisit    the (hospital?) visit that is a parent of the new bed
-     *                       visit
-     * @param currentBed     bed location
+     * @param hospitalVisit    the (hospital) visit to add the new location visit to
+     * @param currentLocation     location
      */
     @Transactional
-    private void addOpenBedVisit(Encounter enc, Instant visitBeginTime, PatientFact parentVisit, String currentBed) {
+    private void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant visitBeginTime, PatientFact hospitalVisit, String currentLocation) {
         PatientFact visitFact = new PatientFact();
         visitFact.setStoredFrom(Instant.now());
         visitFact.setValidFrom(visitBeginTime);
-        Attribute hosp = getCreateAttribute(AttributeKeyMap.BED_VISIT);
+        Attribute hosp = getCreateAttribute(visitType);
         visitFact.setFactType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
-        addLocationToVisit(visitFact, currentBed, visitBeginTime);
-        visitFact.setParentFact(parentVisit);
+        addLocationToVisit(visitFact, currentLocation, visitBeginTime);
+        visitFact.setParentFact(hospitalVisit);
         enc.addFact(visitFact);
     }
 
@@ -753,7 +761,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
-        addOpenBedVisit(encounter, eventOccurred, hospitalVisit.get(0), newTransferLocation);
+        AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
+        addOpenLocationVisit(encounter, visitType, eventOccurred, hospitalVisit.get(0), newTransferLocation);
     }
 
     /**
@@ -841,7 +850,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         // Get the most recent bed visit.
         PatientFact mostRecentBedVisit = getVisitFactWhere(encounter,
-                vf -> visitFactIsOfType(vf, AttributeKeyMap.BED_VISIT) && vf.isValid()).stream()
+                vf -> vf.isOfType(AttributeKeyMap.BED_VISIT) && vf.isValid()).stream()
                         .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2)).get();
 
         // Encounters should always have at least one visit.
@@ -994,13 +1003,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         updateDemographics(encounter, currentDemographics, newDemographics);
 
         // detect when location has changed and perform a transfer
-        List<PatientFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
-        PatientFact onlyOpenBedVisit = getOnlyElement(latestOpenBedVisits);
-        if (onlyOpenBedVisit == null) {
+        List<PatientFact> latestOpenLocationVisits = getOpenValidLocationVisit(encounter);
+        PatientFact onlyOpenLocationVisit = getOnlyElement(latestOpenLocationVisits);
+        if (onlyOpenLocationVisit == null) {
             throw new MessageIgnoredException(adtMsg, "Got A08 but no open bed visit for visit " + visitNumber);
         }
         PatientProperty knownlocation =
-                getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
+                getOnlyElement(onlyOpenLocationVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
         if (!newLocation.equals(knownlocation.getValueAsString())) {
             logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtMsg.getMrn(),
                     visitNumber, knownlocation.getValueAsString(), newLocation));
@@ -1336,6 +1345,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                     buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_TIME, resultTime));
             fact.addProperty(
                     buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
+            fact.addProperty(
+                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.RESULT_NOTES, pr.getNotes()));
 
             parent.addChildFact(fact);
             facts.put(key, fact);

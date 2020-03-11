@@ -50,8 +50,13 @@ public abstract class MessageStreamTestCase {
     @Transactional
     public void setup() throws EmapOperationMessageProcessingException {
         for (EmapOperationMessage msg : messageStream) {
-            msg.processMessage(dbOps);
+            processSingleMessage(msg);
         }
+    }
+
+    @Transactional
+    protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
+        msg.processMessage(dbOps);
     }
     
 }
