@@ -23,6 +23,6 @@ public class TestPatientTransferUnknown extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testEncounterExists() {
-        _testSingleEncounterAndBasicLocation("123412341234", "T12S^T12S BY05^BY05-33", null);
+        _testVisitExistsWithLocation("123412341234", 1, "T12S^T12S BY05^BY05-33", null);
     }
 }
