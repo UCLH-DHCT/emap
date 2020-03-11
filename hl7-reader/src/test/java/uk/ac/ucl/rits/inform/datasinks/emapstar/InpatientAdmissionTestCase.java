@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.CheckedInputStream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,9 +20,9 @@ import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
-public class AdmissionTestCase extends MessageStreamTestCase {
+public class InpatientAdmissionTestCase extends MessageStreamTestCase {
 
-    public AdmissionTestCase() {
+    public InpatientAdmissionTestCase() {
     }
 
     @Before
@@ -32,27 +33,9 @@ public class AdmissionTestCase extends MessageStreamTestCase {
             setEventOccurredDateTime(Instant.now());
             setMrn("1234ABCD");
             setVisitNumber("1234567890");
-            setPatientClass("E");
+            setPatientClass("I");
             setPatientFullName("Fred Bloggs");
-            setFullLocationString("ED^BADGERS^WISCONSIN");
-        }});
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
-            setEventOccurredDateTime(Instant.now());
-            setMrn("1234ABCD");
-            setVisitNumber("1234567890");
-            setPatientClass("E");
-            setPatientFullName("Fred Bloggs");
-            setFullLocationString("ED^BADGERS^WISCONSIN");
-        }});
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
-            setMrn("1234ABCD");
-            setVisitNumber("1234567890");
-            setPatientClass("E");
-            setFullLocationString("ED^BADGERS^HONEY");
+            setFullLocationString("T42^BADGERS^WISCONSIN");
         }});
     }
 
@@ -62,16 +45,16 @@ public class AdmissionTestCase extends MessageStreamTestCase {
      */
     @Test
     @Transactional
-    public void testEdAdmission() {
+    public void testInpAdmission() {
         Encounter enc = encounterRepo.findEncounterByEncounter("1234567890");
         Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
         List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
         List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
         List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
         assertEquals(1, hospVisits.size());
-        assertEquals(2, outpVisits.size());
-        assertNull(bedVisits);
-        assertTrue("locvisit and hospvisit should be linked by the ORM",
-                outpVisits.stream().allMatch(locVis -> locVis.getParentFact() == hospVisits.get(0)));
+        PatientFact onlyHospVisit = hospVisits.get(0);
+        assertNull(outpVisits);
+        assertEquals(1, bedVisits.size());
+        assertIsParentOfChildren(onlyHospVisit, bedVisits);
     }
 }

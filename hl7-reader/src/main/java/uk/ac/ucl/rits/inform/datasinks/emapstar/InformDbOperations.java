@@ -648,7 +648,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         visitFact.setFactType(hosp);
         addArrivalTimeToVisit(visitFact, visitBeginTime);
         addLocationToVisit(visitFact, currentLocation, visitBeginTime);
-        visitFact.setParentFact(hospitalVisit);
+        hospitalVisit.addChildFact(visitFact);
         enc.addFact(visitFact);
     }
 
