@@ -10,8 +10,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,12 +40,10 @@ import uk.ac.ucl.rits.inform.datasources.ids.IdsOperations;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.informdb.Fact;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-
 /**
  * A test case that first loads in and processes a stream of HL7 messages from one or more text files.
  * @author Jeremy Stein
@@ -122,21 +122,27 @@ public abstract class Hl7StreamEndToEndTestCase {
     }
 
     /**
-     * Check that the encounter got loaded and has the right data associated with it.
+     * Check that the encounter got loaded and has the right number of
+     * bed visits, and that one of those visits matches the given expected values.
      *
      * @param expectedEncounter the encounter ID to look for
-     * @param expectedLocation where the patient is expected to be
-     * @param expectedDischargeTime when this encounter should have been discharged, or null if it's expected to be still open
+     * @param expectedTotalVisits How many bed/location visits in the encounter in total
+     * @param expectedLocation where the patient is expected to be for one of their visits
+     * @param expectedDischargeTime for this same visit, the expected discharged time, or null if it's expected to be still open
      */
     @Transactional
-    public void _testSingleEncounterAndBasicLocation(String expectedEncounter, String expectedLocation, Instant expectedDischargeTime) {
+    public void _testVisitExistsWithLocation(String expectedEncounter, int expectedTotalVisits, String expectedLocation, Instant expectedDischargeTime) {
         Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
         assertNotNull("encounter did not exist", enc);
         Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
         assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
-        List<PatientFact> validBedVisits = factsAsMap.get(AttributeKeyMap.BED_VISIT).stream().filter(v -> v.isValid()).collect(Collectors.toList());
-        assertEquals(1, validBedVisits.size());
-        PatientFact bedVisit = validBedVisits.get(0);
+        List<PatientFact> validBedVisits = factsAsMap.get(AttributeKeyMap.BED_VISIT).stream()
+                .filter(PatientFact::isValid).collect(Collectors.toList());
+        assertEquals(expectedTotalVisits, validBedVisits.size());
+        List<PatientFact> validBedVisitsAtLocation =
+                validBedVisits.stream().filter(f -> f.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString().equals(expectedLocation)).collect(Collectors.toList());
+        assertEquals(1, validBedVisitsAtLocation.size());
+        PatientFact bedVisit = validBedVisitsAtLocation.get(0);
         List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid());
         assertEquals("There should be exactly one location property for an inpatient bed visit", 1, location.size());
         PatientProperty loca = location.get(0);

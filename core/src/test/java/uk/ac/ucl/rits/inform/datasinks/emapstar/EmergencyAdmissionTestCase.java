@@ -68,6 +68,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamTestCase {
         List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
         List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
         List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
+        assertTrue(outpVisits.stream().allMatch(v -> v.isValid()));
         assertEquals(1, hospVisits.size());
         PatientFact onlyHospVisit = hospVisits.get(0);
         assertEquals(2, outpVisits.size());

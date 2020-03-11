@@ -28,6 +28,6 @@ public class TestDischargeUnknown extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testEncounterExists() {
-        _testSingleEncounterAndBasicLocation("123412341234", "T11E^T11E BY02^BY02-17", Instant.parse("2013-02-11T10:00:00Z"));
+        _testVisitExistsWithLocation("123412341234", 1, "T11E^T11E BY02^BY02-17", Instant.parse("2013-02-11T10:00:00Z"));
     }
 }
