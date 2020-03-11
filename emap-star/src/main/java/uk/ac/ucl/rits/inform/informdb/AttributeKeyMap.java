@@ -36,6 +36,10 @@ public enum AttributeKeyMap {
      */
     BED_VISIT("BED_VISIT"),
     /**
+     * A visit to a location that isn't a bed.
+     */
+    OUTPATIENT_VISIT("OUTP_VISIT"),
+    /**
      * Arrival time as a date time.
      */
     ARRIVAL_TIME("ARRIVAL_TIME"),
@@ -55,6 +59,7 @@ public enum AttributeKeyMap {
     /**
      * Parent visit.
      */
+    @Deprecated
     PARENT_VISIT("VISIT_PAREN"),
     /**
      * The NHS number associated with an encounter (and hopefully
@@ -217,7 +222,11 @@ public enum AttributeKeyMap {
     /**
      * The time the vital sign was observed.
      */
-    VITAL_SIGNS_OBSERVATION_TIME("VIT_OBS_TIME");
+    VITAL_SIGNS_OBSERVATION_TIME("VIT_OBS_TIME"),
+    /**
+     * Textual notes accompanying a patient result, eg. pathology or vital sign.
+     */
+    RESULT_NOTES("RESULT_NOTES");
 
     private String shortname;
 
@@ -242,6 +251,23 @@ public enum AttributeKeyMap {
 
     private static Map<String, AttributeKeyMap> values;
 
+    /**
+     * @param attr the attribute to test
+     * @return is the Attribute of a type that is a location visit (bed etc.)
+     */
+    public static boolean isLocationVisitType(Attribute attr) {
+        return isLocationVisitType(parseFromShortName(attr.getShortName()));
+    }
+
+    /**
+     * @param attrKM the visit type to test
+     * @return whether it's a type suitable to be a child fact
+     *          of a HOSPITAL_VISIT fact. Eg. bed, outpatient
+     */
+    public static boolean isLocationVisitType(AttributeKeyMap attrKM) {
+        return attrKM.equals(AttributeKeyMap.BED_VISIT)
+               || attrKM.equals(AttributeKeyMap.OUTPATIENT_VISIT);
+    }
     /**
      * Read the Attributes back from a String matching its shortname.
      *
