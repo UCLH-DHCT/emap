@@ -496,18 +496,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             hospitalVisit = allHospitalVisits.get(0);
             // We have received an A01/A04 but there was already an
             // open hospital visit, so invalidate the existing bed visit and its properties
-            logger.info("Invalidating previous bed visit");
-            List<PatientFact> allOpenLocationVisits = getOpenValidLocationVisit(enc);
-            if (allOpenLocationVisits.size() != 1) {
-                throw new EmapStarIntegrityException(
-                        "Found an open hospital visit with open bed visit count != 1 - hosp visit = "
-                                + hospitalVisit.getFactId());
-            }
-            // Need to check whether it's the bed visit that corresponds to the existing
-            // hospital visit?
-            PatientFact openLocVisit = allOpenLocationVisits.get(0);
-            Instant invalidTime = adtMsg.getEventOccurredDateTime();
-            openLocVisit.invalidateAll(invalidTime);
+            invalidateOpenLocationVisit(hospitalVisit, adtMsg.getEventOccurredDateTime());
             break;
         default:
             throw new MessageIgnoredException(adtMsg, "More than 1 (count = " + allHospitalVisits.size()
@@ -520,6 +509,26 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         enc = encounterRepo.save(enc);
         logger.info("Encounter: " + enc.toString());
         return enc;
+    }
+
+    /**
+     * @param hospitalVisit the hospital visit that the location visit lives under
+     * @param invalidTime the time as of which the visit became invalid
+     * @throws EmapStarIntegrityException
+     */
+    private void invalidateOpenLocationVisit(PatientFact hospitalVisit, Instant invalidTime)
+            throws EmapStarIntegrityException {
+        logger.info("Invalidating previous location visit");
+        List<PatientFact> allOpenLocationVisits = getFactWhere(hospitalVisit.getChildFacts(),
+                cf -> visitFactIsOpenAndValid(cf) && AttributeKeyMap.isLocationVisitType(cf.getFactType()));
+        if (allOpenLocationVisits.size() != 1) {
+            throw new EmapStarIntegrityException(
+                    "Found an open hospital visit with open bed visit count != 1 - hosp visit = "
+                            + hospitalVisit.getFactId());
+        }
+
+        PatientFact openLocVisit = allOpenLocationVisits.get(0);
+        openLocVisit.invalidateAll(invalidTime);
     }
 
     private AttributeKeyMap visitTypeFromPatientClass(String patientClass) {
@@ -707,7 +716,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             return;
         }
 
-        List<PatientFact> latestOpenBedVisits = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT);
+        List<PatientFact> latestOpenBedVisits = getOpenValidLocationVisit(encounter);
         // The discharge datetime will be null, presumably because the patient hasn't
         // been discharged yet
 
@@ -788,7 +797,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 encounter = admitPatient(adtWrap);
             }
         }
-        PatientFact latestOpenBedVisit = getOnlyElement(getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.BED_VISIT));
+        PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
             throw new MessageIgnoredException(adtWrap,
                     "No open bed visit, cannot discharge, did you miss an A13? visit " + visitNumber);
@@ -850,7 +859,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         // Get the most recent bed visit.
         PatientFact mostRecentBedVisit = getVisitFactWhere(encounter,
-                vf -> vf.isOfType(AttributeKeyMap.BED_VISIT) && vf.isValid()).stream()
+                vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
                         .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2)).get();
 
         // Encounters should always have at least one visit.
