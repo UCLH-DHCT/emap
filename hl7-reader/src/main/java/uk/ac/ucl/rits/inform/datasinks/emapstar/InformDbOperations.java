@@ -496,7 +496,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
             addOpenLocationVisit(enc, visitType, adtMsg.getAdmissionDateTime(), hospitalVisit,
-                    adtMsg.getFullLocationString());
+                    adtMsg.getFullLocationString(), adtMsg.getPatientClass());
             break;
         case 1:
             hospitalVisit = allHospitalVisits.get(0);
@@ -619,12 +619,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Transactional
     private PatientFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
+        Instant storedFrom = Instant.now();
         PatientFact visitFact = new PatientFact();
         visitFact.setValidFrom(visitBeginTime);
-        visitFact.setStoredFrom(Instant.now());
+        visitFact.setStoredFrom(storedFrom);
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setFactType(hosp);
-        addArrivalTimeToVisit(visitFact, visitBeginTime);
+
+        visitFact.addProperty(
+                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
+
         enc.addFact(visitFact);
         return visitFact;
     }
@@ -637,48 +641,27 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param visitBeginTime when the Visit began, which could be an admission
      * @param hospitalVisit    the (hospital) visit to add the new location visit to
      * @param currentLocation     location
+     * @param patientClass     the patient class
      */
     @Transactional
     private void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant visitBeginTime,
-            PatientFact hospitalVisit, String currentLocation) {
+            PatientFact hospitalVisit, String currentLocation, String patientClass) {
         PatientFact visitFact = new PatientFact();
-        visitFact.setStoredFrom(Instant.now());
+        Instant storedFrom = Instant.now();
+        visitFact.setStoredFrom(storedFrom);
         visitFact.setValidFrom(visitBeginTime);
         Attribute hosp = getCreateAttribute(visitType);
         visitFact.setFactType(hosp);
-        addArrivalTimeToVisit(visitFact, visitBeginTime);
-        addLocationToVisit(visitFact, currentLocation, visitBeginTime);
+
+        visitFact.addProperty(
+                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
+        visitFact.addProperty(
+                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.LOCATION, currentLocation));
+        visitFact.addProperty(
+                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.PATIENT_CLASS, patientClass));
+
         hospitalVisit.addChildFact(visitFact);
         enc.addFact(visitFact);
-    }
-
-    /**
-     * @param visitFact  the visit fact to add to
-     * @param currentBed the current bed location
-     * @param validFrom  the valid from timestamp to use
-     */
-    private void addLocationToVisit(PatientFact visitFact, String currentBed, Instant validFrom) {
-        Attribute location = getCreateAttribute(AttributeKeyMap.LOCATION);
-        PatientProperty locVisProp = new PatientProperty();
-        locVisProp.setValidFrom(validFrom);
-        locVisProp.setStoredFrom(Instant.now());
-        locVisProp.setPropertyType(location);
-        locVisProp.setValueAsString(currentBed);
-        visitFact.addProperty(locVisProp);
-    }
-
-    /**
-     * @param visitFact        the visit fact to add to
-     * @param visitArrivalTime the arrival time to add
-     */
-    private void addArrivalTimeToVisit(PatientFact visitFact, Instant visitArrivalTime) {
-        Attribute arrivalTime = getCreateAttribute(AttributeKeyMap.ARRIVAL_TIME);
-        PatientProperty arrVisProp = new PatientProperty();
-        arrVisProp.setValidFrom(visitArrivalTime);
-        arrVisProp.setStoredFrom(Instant.now());
-        arrVisProp.setValueAsDatetime(visitArrivalTime);
-        arrVisProp.setPropertyType(arrivalTime);
-        visitFact.addProperty(arrVisProp);
     }
 
     /**
@@ -762,7 +745,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
         AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-        addOpenLocationVisit(encounter, visitType, eventOccurred, hospitalVisit.get(0), newTransferLocation);
+        addOpenLocationVisit(encounter, visitType, eventOccurred, hospitalVisit.get(0), newTransferLocation, adtMsg.getPatientClass());
     }
 
     /**
@@ -950,13 +933,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Add a property (key-value pair) to a pre-existing fact.
      *
+     * Use buildPatientProperty instead.
+     *
      * @param fact      the fact to add to
-     * @param attrKM    the property key
+     * @param propertyType    the property key
      * @param factValue the property value
      */
-    private void addPropertyToFact(PatientFact fact, AttributeKeyMap attrKM, Object factValue) {
+    @Deprecated
+    private void addPropertyToFact(PatientFact fact, AttributeKeyMap propertyType, Object factValue) {
         if (factValue != null) {
-            Attribute attr = getCreateAttribute(attrKM);
+            Attribute attr = getCreateAttribute(propertyType);
             PatientProperty prop = new PatientProperty();
             prop.setValidFrom(fact.getValidFrom());
             prop.setStoredFrom(Instant.now());

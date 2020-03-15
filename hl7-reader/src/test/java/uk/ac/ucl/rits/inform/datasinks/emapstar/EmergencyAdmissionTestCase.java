@@ -74,5 +74,8 @@ public class EmergencyAdmissionTestCase extends MessageStreamTestCase {
         assertEquals(2, outpVisits.size());
         assertNull(bedVisits);
         assertIsParentOfChildren(onlyHospVisit, outpVisits);
+
+        assertEquals("E",
+                outpVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 }
