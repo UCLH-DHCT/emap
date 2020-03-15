@@ -8,7 +8,7 @@ package uk.ac.ucl.rits.inform.interchange;
  */
 public enum AdtOperationType {
     /**
-     * Inpatient or emergency admission.
+     * Inpatient, outpatient or emergency admission.
      */
     ADMIT_PATIENT,
     /**
@@ -24,7 +24,11 @@ public enum AdtOperationType {
      */
     UPDATE_PATIENT_INFO,
     /**
-     * Discharge decision was reversed or entered into the system in error.
+     * Decision to admit patient was reversed or was entered into the system in error.
+     */
+    CANCEL_ADMIT_PATIENT,
+    /**
+     * Decision to discharge patient was reversed or was entered into the system in error.
      */
     CANCEL_DISCHARGE_PATIENT,
     /**
