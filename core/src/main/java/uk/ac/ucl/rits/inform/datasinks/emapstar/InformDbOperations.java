@@ -779,8 +779,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         Instant eventOccurred = adtMsg.getEventOccurredDateTime();
         Instant dischargeDateTime = adtMsg.getDischargeDateTime();
-        logger.info("DISCHARGE: MRN " + mrnStr);
-        logger.info("A03: eventtime/dischargetime " + eventOccurred + "/" + dischargeDateTime);
+        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", mrnStr, visitNumber, eventOccurred, dischargeDateTime));
         if (dischargeDateTime == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to discharge but the discharge date is null");
         } else {
@@ -796,6 +795,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             String dischargeLocation = adtMsg.getDischargeLocation();
             hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
                     AttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
+            Attribute deathIndicator = getBooleanAttribute(adtMsg.getPatientDeathIndicator());
+            hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
+                    AttributeKeyMap.PATIENT_DEATH_INDICATOR, deathIndicator));
+            // only set death time if patient is dead
+            if (adtMsg.getPatientDeathIndicator()) {
+                hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
+                        AttributeKeyMap.PATIENT_DEATH_TIME, adtMsg.getPatientDeathDateTime()));
+            }
+        }
+    }
+
+    private Attribute getBooleanAttribute(Boolean patientDeathIndicator) {
+        if (patientDeathIndicator == null) {
+            return null;
+        } else if (patientDeathIndicator.booleanValue()) {
+            return getCreateAttribute(AttributeKeyMap.BOOLEAN_TRUE);
+        } else {
+            return getCreateAttribute(AttributeKeyMap.BOOLEAN_FALSE);
         }
     }
 
