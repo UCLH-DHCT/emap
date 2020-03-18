@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 /**
@@ -18,6 +20,11 @@ import javax.persistence.Transient;
  *
  */
 @Entity
+@Table(indexes = {
+        @Index(name = "attribute_valid_from_index", columnList = "validFrom", unique = false),
+        @Index(name = "attribute_valid_until_index", columnList = "validUntil", unique = false),
+})
+
 public class Attribute implements Serializable {
 
     private static final long serialVersionUID = -3151350347466393547L;
