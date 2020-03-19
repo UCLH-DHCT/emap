@@ -779,7 +779,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         Instant eventOccurred = adtMsg.getEventOccurredDateTime();
         Instant dischargeDateTime = adtMsg.getDischargeDateTime();
-        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", mrnStr, visitNumber, eventOccurred, dischargeDateTime));
+        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", mrnStr,
+                visitNumber, eventOccurred, dischargeDateTime));
         if (dischargeDateTime == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to discharge but the discharge date is null");
         } else {
@@ -806,10 +807,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
     }
 
-    private Attribute getBooleanAttribute(Boolean patientDeathIndicator) {
-        if (patientDeathIndicator == null) {
+    /**
+     * Turn a Boolean into an Emap-Star attribute.
+     * @param booleanValue the normal Boolean
+     * @return Emap-Star attributes BOOLEAN_TRUE and BOOLEAN_FALSE for true and false, or null for null
+     */
+    private Attribute getBooleanAttribute(Boolean booleanValue) {
+        if (booleanValue == null) {
             return null;
-        } else if (patientDeathIndicator.booleanValue()) {
+        } else if (booleanValue.booleanValue()) {
             return getCreateAttribute(AttributeKeyMap.BOOLEAN_TRUE);
         } else {
             return getCreateAttribute(AttributeKeyMap.BOOLEAN_FALSE);
