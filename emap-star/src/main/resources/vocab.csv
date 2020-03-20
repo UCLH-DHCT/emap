@@ -8,7 +8,7 @@ attribute_id,short_name,description,result_type,valid_from,valid_until
 7,ARRIVAL_TIME,Time of arrival,Datetime,2019-03-05T11:33:00Z,
 8,DISCH_TIME,Time of departure,Datetime,2019-03-05T11:33:00Z,
 9,LOCATION,Location,String,2019-03-19T16:40:00Z,
-10,VISIT_PAREN,Parent visit,Link,2019-03-20T11:56:00Z,
+10,VISIT_PAREN,Parent visit,Link,2019-03-20T11:56:00Z,2020-03-10T20:00:00Z
 11,GENERAL_DEMO,General Demographics that are single key value pairs,None,2019-04-11T10:00:00Z,
 12,DOB,Date of Birth,Datetime,2019-04-11T10:00:00Z,
 13,SEX,Sex,Attribute,2019-04-11T10:00:00Z,
@@ -49,3 +49,6 @@ attribute_id,short_name,description,result_type,valid_from,valid_until
 48,VIT_NUM_VALUE,Vital sign numerical value,Float,2019-11-14T16:00:00Z,
 49,VIT_UNIT,Unit of vital sign value,String,2019-11-14T16:00:00Z,
 50,VIT_OBS_TIME,Vital sign observation time,Datetime,2019-11-14T16:00:00Z,
+51,RESULT_NOTES,Notes accompanying a patient result,String,2020-03-10T17:00:00Z,
+52,PATIENT_CLASS,Patient class eg inpatient outpatient,String,2020-03-10T17:00:00Z,
+53,OUTP_VISIT,A visit fact type for non-bed visits eg outpatient clinic and ED,None,2020-03-10T17:00:00Z,
