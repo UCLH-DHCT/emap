@@ -79,6 +79,9 @@ public class PathologyResultBuilder {
      * @param obx the OBX segment
      */
     private void populateObx(OBX obx) {
+        int repCount = obx.getObx5_ObservationValueReps();
+
+        // The first rep is all that's needed for most data types
         Varies dataVaries = obx.getObx5_ObservationValue(0);
         Type data = dataVaries.getData();
         if (data instanceof ST
@@ -87,12 +90,26 @@ public class PathologyResultBuilder {
                 || data instanceof NM) {
             // Store the string value for numerics too, as they can be
             // ranges or "less than" values
-            msg.setStringValue(data.toString());
-            // HAPI can return null from toString, fix this
-            if (msg.getStringValue() == null) {
-                msg.setStringValue("");
+            // If repCount > 1, for a string this can be handled by concatenating.
+            // Will take more effort to implement for any other data type - so
+            // hoping this doesn't ever happen, but add warnings to check for it.
+            StringBuilder stringVal = new StringBuilder();
+            for (int r = 0; r < repCount; r++) {
+                Type repData = obx.getObx5_ObservationValue(r).getData();
+                String line = repData.toString();
+                // HAPI can return null from toString
+                if (line != null) {
+                    if (r > 0) {
+                        stringVal.append("\n");
+                    }
+                    stringVal.append(line);
+                }
             }
+            msg.setStringValue(stringVal.toString());
             if (data instanceof NM) {
+                if (repCount > 1) {
+                    logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
+                }
                 try {
                     msg.setNumericValue(Double.parseDouble(msg.getStringValue()));
                 } catch (NumberFormatException e) {
@@ -100,6 +117,10 @@ public class PathologyResultBuilder {
                 }
             }
         } else if (data instanceof CE) {
+            if (repCount > 1) {
+                logger.warn(String.format("WARNING - is coded (CE) result but repcount = %d", repCount));
+            }
+            // we are assuming that all coded data is an isolate, not a great assumption
             CE ceData = (CE) data;
             msg.setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
             msg.setIsolateLocalDescription(ceData.getCe2_Text().getValue());
