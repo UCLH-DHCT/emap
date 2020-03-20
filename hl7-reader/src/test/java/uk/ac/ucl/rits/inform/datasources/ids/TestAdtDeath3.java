@@ -18,7 +18,7 @@ public class TestAdtDeath3 extends TestHl7MessageStream {
 
     @Before
     public void setup() throws Exception {
-        msg = processSingleMessage("GenericAdt/A03_death_3.txt");
+        msg = processSingleAdtMessage("GenericAdt/A03_death_3.txt");
     }
 
     @Test
