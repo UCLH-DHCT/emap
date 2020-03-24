@@ -7,6 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 
 /**
@@ -16,6 +17,12 @@ import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 @ActiveProfiles("test")
 public abstract class TestHl7MessageStream {
 
+    /**
+     * processSingleMessage is preferred.
+     * @param resourceFileName
+     * @return
+     * @throws Exception
+     */
     protected AdtMessage processSingleAdtMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
@@ -23,7 +30,7 @@ public abstract class TestHl7MessageStream {
     }
 
     /**
-     * Can return multiple messages.
+     * processSingleMessage is preferred.
      * @param resourceFileName
      * @return
      * @throws Exception
@@ -32,5 +39,17 @@ public abstract class TestHl7MessageStream {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
         return PathologyOrderBuilder.buildPathologyOrdersFromResults("42", hl7Msg);
+    }
+
+    /**
+     * Convert HL7 message to one or more Interchange messages, determining the correct type.
+     * @param resourceFileName
+     * @return
+     * @throws Exception
+     */
+    protected List<? extends EmapOperationMessage> processSingleMessage(String resourceFileName) throws Exception {
+        String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
+        Message hl7Msg = HL7Utils.parseHl7String(hl7);
+        return IdsOperations.messageFromHl7Message(hl7Msg, 42);
     }
 }

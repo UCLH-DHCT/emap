@@ -402,16 +402,21 @@ public class IdsOperations implements AutoCloseable {
      * interchange message. One HL7 message can give rise to multiple interchange messages.
      * @param msgFromIds the HL7 message
      * @param idsUnid the sequential ID number from the IDS (unid)
-     * @return list of Emap interchange messages
+     * @return list of Emap interchange messages, can be empty if no messages should result
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contradicts itself
      */
-    public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
+    public static List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
             throws HL7Exception, Hl7InconsistencyException {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
-
+        String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
+        // Vital signs are not the responsibility of this parser.
+        if (sendingFacility.equals("Vitals")) {
+            logger.info("Skipping Vitals message");
+            return new ArrayList<>();
+        }
         logger.info(String.format("%s^%s", messageType, triggerEvent));
         String sourceId = String.format("%010d", idsUnid);
         if (messageType.equals("ADT")) {
@@ -435,6 +440,6 @@ public class IdsOperations implements AutoCloseable {
             }
         }
         logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
-        return null;
+        return new ArrayList<>();
     }
 }
