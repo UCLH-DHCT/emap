@@ -1,0 +1,29 @@
+package uk.ac.ucl.rits.inform.datasources.ids;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+
+/**
+ * Check that a Vital Signs HL7 message is ignored.
+ *
+ * @author Jeremy Stein
+ */
+public class TestVitalsIgnore extends TestHl7MessageStream {
+    private List<? extends EmapOperationMessage> msgs;
+
+    @Before
+    public void setup() throws Exception {
+        msgs = processSingleMessage("GenericAdt/Vitals.txt");
+    }
+
+    @Test
+    public void testNoMessage() {
+        assertTrue(msgs.isEmpty());
+    }
+}
