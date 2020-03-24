@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -903,13 +904,19 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throw new MessageIgnoredException(adtMsg, visitNumber + " Cannot process A13 - most recent bed visit is still open");
         }
         PatientProperty bedDischargeTime = getOnlyElement(
-                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
-        // Find the hospital visit corresponding to the bed visit
-        PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
-        PatientProperty hospDischargeTime = getOnlyElement(hospitalVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
-        // Do the actual cancel by invalidating the discharge time properties.
+                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
+        // Do the actual cancel by invalidating the discharge time property on the
+        // location visit, and multiple properties on the hospital visit
         bedDischargeTime.setValidUntil(invalidationDate);
-        hospDischargeTime.setValidUntil(invalidationDate);
+        PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
+        for (AttributeKeyMap a : Arrays.asList(AttributeKeyMap.DISCHARGE_TIME, AttributeKeyMap.DISCHARGE_DISPOSITION,
+                AttributeKeyMap.DISCHARGE_LOCATION, AttributeKeyMap.PATIENT_DEATH_INDICATOR,
+                AttributeKeyMap.PATIENT_DEATH_TIME)) {
+            PatientProperty prop = getOnlyElement(hospitalVisit.getPropertyByAttribute(a, PatientProperty::isValid));
+            if (prop != null) {
+                prop.setValidUntil(invalidationDate);
+            }
+        }
 
         // The Epic spec for receiving an A13 says you can be put in a different place than the last one you were in,
         // ie. an implicit transfer. Does this ever happen for messages that Epic emits? Currently ignoring
