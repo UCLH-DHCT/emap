@@ -25,6 +25,8 @@ jobs:
 
       - run:
           command: |
+              # moving directory so Dockerfile builds
+              mv Emap-Core hl7-vitals
               git clone --branch develop git@github.com:inform-health-informatics/Inform-DB.git
               cd Inform-DB
               mvn install -Dmaven.test.skip=true
