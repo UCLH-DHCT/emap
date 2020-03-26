@@ -3,7 +3,7 @@ services:
     hl7vitals:
         build:
             context: ..
-            dockerfile: Emap-Core/Dockerfile.hl7source
+            dockerfile: "hl7-vitals/Dockerfile.hl7-vitals"
             args:
                 HTTP_PROXY: ${HTTP_PROXY}
                 http_proxy: ${http_proxy}

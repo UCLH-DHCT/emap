@@ -40,7 +40,7 @@ We use https because outgoing ssh is blocked from the GAE.
 
 Repositories must be checked out to the correct branches. "Correct" will depend on what you're trying to do. Conventionally a live instance would all be deployed off master, but during the development phase `develop` is more likely to be the correct branch. Occasionally you may need to deploy off a feature branch - if in doubt ask the author of that code.
 
- * `git clone --branch vitalsigns https://github.com/inform-health-informatics/Emap-Core.git`
+ * `git clone --branch vitalsigns https://github.com/inform-health-informatics/Emap-Core.git hl7-vitals`
  * `git clone --branch master https://github.com/inform-health-informatics/Emap-Interchange.git`
  * `git clone --branch develop https://github.com/inform-health-informatics/Inform-DB.git`
 
