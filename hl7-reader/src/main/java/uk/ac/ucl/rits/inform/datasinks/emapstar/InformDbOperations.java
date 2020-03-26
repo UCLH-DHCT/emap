@@ -106,8 +106,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 newAttr.setDescription(description);
                 String resultType = record.get("result_type");
                 newAttr.setResultType(ResultType.valueOf(resultType));
-                String addedTime = record.get("added_time");
-                newAttr.setAddedTime(Instant.parse(addedTime));
+                String validFrom = record.get("valid_from");
+                newAttr.setValidFrom(Instant.parse(validFrom));
+                String validUntil = record.get("valid_until");
+                if (!validUntil.isEmpty()) {
+                    newAttr.setValidUntil(Instant.parse(validUntil));
+                }
                 Optional<Attribute> findExistingAttr = attributeRepo.findByAttributeId(attributeId);
                 if (findExistingAttr.isPresent()) {
                     // If there is pre-existing data check everything matches
@@ -203,10 +207,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER, msg.getVitalSignIdentifier()));
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
                 AttributeKeyMap.VITAL_SIGNS_UNIT, msg.getUnit()));
-        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
-        vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+        if (msg.getStringValue() != null) {
+            vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                    AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
+        }
+        if (msg.getNumericValue() != null) {
+            vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
+                    AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+        }
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
                 AttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME, msg.getObservationTimeTaken()));
 
@@ -646,7 +654,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientProperty locVisProp = new PatientProperty();
         locVisProp.setValidFrom(validFrom);
         locVisProp.setStoredFrom(Instant.now());
-        locVisProp.setAttribute(location);
+        locVisProp.setPropertyType(location);
         locVisProp.setValueAsString(currentBed);
         visitFact.addProperty(locVisProp);
     }
@@ -661,7 +669,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         arrVisProp.setValidFrom(visitArrivalTime);
         arrVisProp.setStoredFrom(Instant.now());
         arrVisProp.setValueAsDatetime(visitArrivalTime);
-        arrVisProp.setAttribute(arrivalTime);
+        arrVisProp.setPropertyType(arrivalTime);
         visitFact.addProperty(arrVisProp);
     }
 
@@ -873,7 +881,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         visProp.setValidFrom(dischargeDateTime);
         visProp.setStoredFrom(Instant.now());
         visProp.setValueAsDatetime(dischargeDateTime);
-        visProp.setAttribute(dischargeTime);
+        visProp.setPropertyType(dischargeTime);
         visit.addProperty(visProp);
     }
 
@@ -915,7 +923,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             PatientProperty prop = new PatientProperty();
             prop.setValidFrom(fact.getValidFrom());
             prop.setStoredFrom(Instant.now());
-            prop.setAttribute(attr);
+            prop.setPropertyType(attr);
             prop.setValue(factValue);
             fact.addProperty(prop);
         }
@@ -1280,7 +1288,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientProperty prop = new PatientProperty();
         prop.setValidFrom(validFrom);
         prop.setStoredFrom(storedFrom);
-        prop.setAttribute(getCreateAttribute(attrKM));
+        prop.setPropertyType(getCreateAttribute(attrKM));
         if (value != null) {
             prop.setValue(value);
         }
@@ -1431,7 +1439,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
              */
             logger.info("Creating a new MRN");
             mrn = new Mrn();
-            mrn.setCreateDatetime(storedFrom);
+            mrn.setStoredFrom(storedFrom);
             mrn.setMrn(mrnStr);
             Person pers = new Person();
             pers.setCreateDatetime(storedFrom);

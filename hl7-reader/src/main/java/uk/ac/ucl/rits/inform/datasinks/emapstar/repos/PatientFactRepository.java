@@ -21,8 +21,8 @@ public interface PatientFactRepository extends CrudRepository<PatientFact, Long>
      */
     @Query("SELECT pf FROM PatientFact pf "
             + " INNER JOIN pf.properties AS pp "
-            + " INNER JOIN pp.attribute AS attr "
-            + " WHERE attr.shortName=?1 AND pp.valueAsString=?2 AND pf.validUntil is null ")
+            + " INNER JOIN pp.propertyType AS propType "
+            + " WHERE propType.shortName=?1 AND pp.valueAsString=?2 AND pf.validUntil is null ")
     List<PatientFact> findAllWithProperty(String propertyAttribute, String propertyValue);
 
     /**

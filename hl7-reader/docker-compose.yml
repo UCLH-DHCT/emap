@@ -1,6 +1,6 @@
 version: '3.2'
 services:
-    hl7source:
+    hl7vitals:
         build:
             context: ..
             dockerfile: Emap-Core/Dockerfile.hl7source
@@ -10,15 +10,12 @@ services:
                 HTTPS_PROXY: ${HTTPS_PROXY}
                 https_proxy: ${https_proxy}
         env_file:
-            - config-envs
+            - ../config/emap-core-config-envs
         logging:
             driver: "json-file"
         restart: on-failure
-    rabbitmq:
-        image: rabbitmq:management
-        env_file:
-            - rabbit-envs
-        ports:
-            - "${RABBITMQ_PORT}:5672"
-            - "${RABBITMQ_ADMIN_PORT}:15672"
-        restart: on-failure
+
+networks:
+    default:
+        external:
+            name: ${RABBIT_NETWORK}

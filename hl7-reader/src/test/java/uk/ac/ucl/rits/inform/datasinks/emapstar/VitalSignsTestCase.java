@@ -4,6 +4,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
@@ -63,8 +64,7 @@ public abstract class VitalSignsTestCase extends MessageStreamTestCase {
                 vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE).get(0).getValueAsReal());
         assertEquals("HEART_RATE",
                 vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER).get(0).getValueAsString());
-        assertEquals("",
-                vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_STRING_VALUE).get(0).getValueAsString());
+        assertTrue(vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_STRING_VALUE).isEmpty());
         assertEquals("/min",
                 vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_UNIT).get(0).getValueAsString());
         assertEquals(Instant.parse("2019-11-14T17:09:58Z"),
