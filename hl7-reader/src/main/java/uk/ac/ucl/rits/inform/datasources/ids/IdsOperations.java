@@ -25,9 +25,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
@@ -59,7 +57,7 @@ public class IdsOperations implements AutoCloseable {
     private boolean idsEmptyOnInit;
 
     /**
-     * @param idsCfgXml injected param
+     * @param idsCfgXml   injected param
      * @param environment injected param
      */
     public IdsOperations(
@@ -76,7 +74,7 @@ public class IdsOperations implements AutoCloseable {
     }
 
     @Autowired
-    private IdsProgressRepository      idsProgressRepository;
+    private IdsProgressRepository idsProgressRepository;
 
     /**
      * We are writing to the HL7 queue.
@@ -122,11 +120,9 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Create a session factory from the given config file, overwriting configurable
      * values from the environment, if specified.
-     *
      * @param configFile the hibernate xml config file
      * @param envPrefix  the prefix for environment variable names, or null if no
      *                   variables should be read from the environment
-     *
      * @return the SessionFactory thus created
      */
     private static SessionFactory makeSessionFactory(String configFile, String envPrefix) {
@@ -178,7 +174,6 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Record that we have processed all messages up to the specified message.
-     *
      * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
      *                             processed
      * @param messageDatetime      the timestamp of this message
@@ -196,8 +191,8 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Write a message into the IDS. For test IDS instances only!
-     * @param hl7message the HL7 message text
-     * @param id the IDS unique ID
+     * @param hl7message     the HL7 message text
+     * @param id             the IDS unique ID
      * @param patientInfoHl7 the parser to get various HL7 fields out of
      * @throws HL7Exception if HAPI does
      */
@@ -242,7 +237,6 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Entry point for populating a test IDS from a file specified on the command
      * line.
-     *
      * @return The CommandLineRunner
      */
     @Bean
@@ -274,11 +268,9 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Get next entry in the IDS, if it exists.
-     *
      * @param lastProcessedId the last one we have successfully processed
-     *
      * @return the first message that comes after lastProcessedId, or null if there
-     *         isn't one
+     * isn't one
      */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
         // consider changing to "get next N messages" for more efficient database
@@ -305,7 +297,6 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Return the next HL7 message in the IDS. If there are no more, block until
      * there are.
-     *
      * @param lastProcessedId the latest unique ID that has already been processed
      * @return the next HL7 message record
      */
@@ -333,9 +324,8 @@ public class IdsOperations implements AutoCloseable {
      * from Inform-db (ETL metadata) - process the message and write to Inform-db -
      * write the latest processed ID to reflect the above message. Blocks until
      * there are new messages.
-     *
-     * @param publisher     the local AMQP handling class
-     * @param parser        the HAPI parser to be used
+     * @param publisher the local AMQP handling class
+     * @param parser    the HAPI parser to be used
      * @throws AmqpException if rabbitmq write fails
      */
     @Transactional
