@@ -3,6 +3,8 @@
  */
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
+import uk.ac.ucl.rits.inform.informdb.Fact;
+import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
@@ -50,7 +54,33 @@ public abstract class MessageStreamTestCase {
     @Transactional
     public void setup() throws EmapOperationMessageProcessingException {
         for (EmapOperationMessage msg : messageStream) {
-            msg.processMessage(dbOps);
+            processSingleMessage(msg);
+        }
+    }
+
+    @Transactional
+    protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
+        msg.processMessage(dbOps);
+    }
+
+    /**
+     * Check the parent/child relationship has been established in both directions.
+     * @param parent the expected parent
+     * @param child the expected child
+     */
+    protected void assertIsParentOfChild(PatientFact parent, PatientFact child) {
+        assertTrue(child.getParentFact() == parent);
+        assertTrue(parent.getChildFacts().stream().anyMatch(cf -> cf == child));
+    }
+
+    /**
+     * Check parent/child relationship for a list of siblings.
+     * @param parent the expected parent of all the children
+     * @param children the children all of which have the expected parent
+     */
+    protected void assertIsParentOfChildren(PatientFact parent, List<PatientFact> children) {
+        for (PatientFact child : children) {
+            assertIsParentOfChild(parent, child);
         }
     }
     

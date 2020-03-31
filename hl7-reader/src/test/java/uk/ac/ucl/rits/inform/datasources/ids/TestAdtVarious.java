@@ -1,14 +1,14 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import java.time.Instant;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.context.ActiveProfiles;
 
-import ca.uhn.hl7v2.model.Message;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
@@ -16,15 +16,12 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
  * Take an HL7 ADT message as input, and check the correctness of the resultant
  * interchange message (AdtMessage).
  */
-@ActiveProfiles("test")
-public class TestAdt {
-    private AdtMessage wrapper;
+public class TestAdtVarious extends TestHl7MessageStream {
+    private AdtMessage msg;
 
     @Before
     public void setup() throws Exception {
-        String hl7 = HL7Utils.readHl7FromResource("TestForJunit.txt");
-        Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        wrapper = new AdtMessageBuilder(hl7Msg, "42").getAdtMessage();
+        msg = processSingleAdtMessage("TestForJunit.txt");
     }
 
     /**
@@ -32,7 +29,7 @@ public class TestAdt {
      */
     @Test
     public void testGetRecordedDateTime1()  {
-        Instant result = wrapper.getRecordedDateTime();
+        Instant result = msg.getRecordedDateTime();
         assertEquals(Instant.parse("2012-09-21T17:43:00.00Z"), result);
     }
 
@@ -41,7 +38,7 @@ public class TestAdt {
      */
     @Test
     public void testGetEventReasonCode1()  {
-        String result = wrapper.getEventReasonCode();
+        String result = msg.getEventReasonCode();
         assertEquals("ADM", result);
     }
 
@@ -50,7 +47,7 @@ public class TestAdt {
      */
     @Test
     public void testGetOperatorID1()  {
-        String result = wrapper.getOperatorId();
+        String result = msg.getOperatorId();
         assertEquals("U439966", result);
     }
 
@@ -59,7 +56,7 @@ public class TestAdt {
      */
     @Test
     public void testGetEventOccurred1()  {
-        Instant result = wrapper.getEventOccurredDateTime();
+        Instant result = msg.getEventOccurredDateTime();
         assertEquals(Instant.parse("2012-01-01T12:00:00.00Z"), result);
     }
 
@@ -68,7 +65,7 @@ public class TestAdt {
      */
     @Test
     public void testGetOperationType() {
-        AdtOperationType result = wrapper.getOperationType();
+        AdtOperationType result = msg.getOperationType();
         assertEquals(AdtOperationType.ADMIT_PATIENT, result);
     }
 
@@ -77,7 +74,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientMrn()  {
-        String result = wrapper.getMrn();
+        String result = msg.getMrn();
         assertEquals("50032556", result);
     }
 
@@ -86,7 +83,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientNHSNumber()  {
-        String result = wrapper.getNhsNumber();
+        String result = msg.getNhsNumber();
         assertEquals("this is a test NHS number", result);
     }
 
@@ -95,7 +92,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientFamilyName1()  {
-        String result = wrapper.getPatientFamilyName();
+        String result = msg.getPatientFamilyName();
         assertEquals("INTERFACES", result);
     }
 
@@ -104,7 +101,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientGivenName1()  {
-        String result = wrapper.getPatientGivenName();
+        String result = msg.getPatientGivenName();
         assertEquals("Amendadmission", result);
     }
 
@@ -113,7 +110,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientMiddleName1()  {
-        String result = wrapper.getPatientMiddleName();
+        String result = msg.getPatientMiddleName();
         assertEquals("Longforenamesecondfn", result);
     }
 
@@ -122,7 +119,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientTitle1()  {
-        String result = wrapper.getPatientTitle();
+        String result = msg.getPatientTitle();
         assertEquals("LADY", result);
     }
 
@@ -131,7 +128,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientFullName1()  {
-        String result = wrapper.getPatientFullName();
+        String result = msg.getPatientFullName();
         assertEquals("LADY Amendadmission Longforenamesecondfn INTERFACES", result);
     }
 
@@ -140,7 +137,7 @@ public class TestAdt {
      */
     @Test
     public void testGetCurrentWardCode1() {
-        String result = wrapper.getCurrentWardCode();
+        String result = msg.getCurrentWardCode();
         assertEquals("H2HH", result);
     }
 
@@ -149,7 +146,7 @@ public class TestAdt {
      */
     @Test
     public void testGetCurrentRoomCode1() {
-        String result = wrapper.getCurrentRoomCode();
+        String result = msg.getCurrentRoomCode();
         assertEquals("H203", result);
     }
 
@@ -158,7 +155,7 @@ public class TestAdt {
      */
     @Test
     public void testGetCurrentBed1() {
-        String result = wrapper.getCurrentBed();
+        String result = msg.getCurrentBed();
         assertEquals("H203-11", result);
     }
 
@@ -167,7 +164,7 @@ public class TestAdt {
      */
     @Test
     public void testGetHospitalService1() {
-        String result = wrapper.getHospitalService();
+        String result = msg.getHospitalService();
         assertEquals("41008", result);
     }
 
@@ -176,7 +173,7 @@ public class TestAdt {
      */
     @Test
     public void testGetAdmitSource1() {
-        String result = wrapper.getAdmitSource();
+        String result = msg.getAdmitSource();
         assertEquals("19", result);
     }
 
@@ -185,7 +182,7 @@ public class TestAdt {
      */
     @Test
     public void testGetPatientType1() {
-        String result = wrapper.getPatientType();
+        String result = msg.getPatientType();
         assertEquals(null, result);
     }
 
@@ -194,8 +191,13 @@ public class TestAdt {
      */
     @Test
     public void testGetVisitNumber1() {
-        String result = wrapper.getVisitNumber();
+        String result = msg.getVisitNumber();
         assertEquals("1234TESTVISITNUM", result);
+    }
+
+    @Test
+    public void testGetDischargeLocation() {
+        assertEquals("Home", msg.getDischargeLocation());
     }
 
     /**
@@ -205,7 +207,7 @@ public class TestAdt {
     public void testGetAdmissionDateTime1() {
         assertEquals(
                 Instant.parse("2012-09-21T17:40:00.00Z"),
-                wrapper.getAdmissionDateTime());
+                msg.getAdmissionDateTime());
     }
 
     /**
@@ -215,6 +217,19 @@ public class TestAdt {
     public void testGetDischargeDateTime1() {
         assertEquals(
                 null,
-                wrapper.getDischargeDateTime());
+                msg.getDischargeDateTime());
+    }
+
+    @Test
+    public void testNoTimeOfDeath()  {
+        assertNull(msg.getPatientDeathDateTime());
+    }
+
+    @Test
+    /**
+     * Not an A03, death indicator shouldn't be set
+     */
+    public void testIsNull()  {
+        assertNull(msg.getPatientDeathIndicator());
     }
 }

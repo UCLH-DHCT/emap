@@ -32,7 +32,9 @@ public class AdtMessageBuilder {
             put("A01", AdtOperationType.ADMIT_PATIENT);
             put("A02", AdtOperationType.TRANSFER_PATIENT);
             put("A03", AdtOperationType.DISCHARGE_PATIENT);
+            put("A04", AdtOperationType.ADMIT_PATIENT);
             put("A08", AdtOperationType.UPDATE_PATIENT_INFO);
+            put("A11", AdtOperationType.CANCEL_ADMIT_PATIENT);
             put("A13", AdtOperationType.CANCEL_DISCHARGE_PATIENT);
             put("A40", AdtOperationType.MERGE_BY_ID);
         }
@@ -101,6 +103,8 @@ public class AdtMessageBuilder {
             msg.setCurrentRoomCode(patientInfoHl7.getCurrentRoomCode());
             msg.setCurrentWardCode(patientInfoHl7.getCurrentWardCode());
             msg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
+            msg.setDischargeDisposition(patientInfoHl7.getDischargeDisposition());
+            msg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
             msg.setFullLocationString(patientInfoHl7.getFullLocationString());
             msg.setHospitalService(patientInfoHl7.getHospitalService());
             msg.setPatientClass(patientInfoHl7.getPatientClass()); // make an enum
@@ -112,8 +116,23 @@ public class AdtMessageBuilder {
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
             msg.setPatientBirthDate(patientInfoHl7.getPatientBirthDate());
-            msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
-            msg.setPatientDeathIndicator(patientInfoHl7.getPatientDeathIndicator());
+
+            // Dead = Y should only happen in an A03, according to the HL7 spec,
+            // For other messages leave this null.
+            if (triggerEvent.equals("A03")) {
+                String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
+                if (hl7DeathIndicator.equals("Y")) {
+                    msg.setPatientDeathIndicator(true);
+                } else if (hl7DeathIndicator.equals("N")
+                        || hl7DeathIndicator.equals("")) {
+                    msg.setPatientDeathIndicator(false);
+                }
+                if (msg.getPatientDeathIndicator()) {
+                    // only set the death time if indicator says they're dead
+                    msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
+                }
+            }
+
             msg.setPatientFamilyName(patientInfoHl7.getPatientFamilyName());
             msg.setPatientFullName(patientInfoHl7.getPatientFullName());
             msg.setPatientGivenName(patientInfoHl7.getPatientGivenName());
