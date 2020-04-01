@@ -520,12 +520,25 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Determine visit type from the patient class (which ultimately comes from HL7).
      * @param patientClass string from HL7
      * @return the fact type of the visit fact
+     * @throws MessageIgnoredException if patient class is not recognised or
+     *                                 shouldn't appear in a visit-generating
+     *                                 message
      */
-    private AttributeKeyMap visitTypeFromPatientClass(String patientClass) {
-        if (patientClass.equals("I")) {
+    private AttributeKeyMap visitTypeFromPatientClass(String patientClass) throws MessageIgnoredException {
+        if (patientClass.equals("I") // inpatient
+                || patientClass.equals("B") // baby
+                || patientClass.equals("SURG ADMIT")
+                || patientClass.toUpperCase().equals("DAY CASE")) {
             return AttributeKeyMap.BED_VISIT;
-        } else {
+        } else if (patientClass.equals("O") // outpatient
+                || patientClass.equals("E")) { // emergency
             return AttributeKeyMap.OUTPATIENT_VISIT;
+        } else {
+            // Note that "N" is a real patient class but shouldn't appear in a visit-generating message.
+            // It's typically found in A31 messages (change of patient info).
+            throw new MessageIgnoredException(String.format("Unexpected patient class \"%s\"", patientClass)) {{
+                setFlagFollowUp(true); // need to flag this and follow up later
+            }};
         }
     }
 
