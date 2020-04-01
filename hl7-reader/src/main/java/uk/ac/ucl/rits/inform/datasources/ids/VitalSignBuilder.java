@@ -125,7 +125,22 @@ public class VitalSignBuilder {
                 }
             }
         } else {
-            vitalSign.setStringValue(value.trim());
+            StringBuilder valueBuilder = new StringBuilder();
+            // Allow for multiple results
+            for (Varies resultLine : dataVaries) {
+                Type lineData = resultLine.getData();
+                String lineValue = lineData.toString();
+                if (lineValue != null) {
+                    if (valueBuilder.length() > 1) {
+                        valueBuilder.append("\n");
+                    }
+                    valueBuilder.append(lineValue.trim());
+                }
+            }
+            String stringValue = valueBuilder.toString();
+            if (!stringValue.equals("")) {
+                vitalSign.setStringValue(stringValue.trim());
+            }
         }
 
         StringBuilder commentBuilder = new StringBuilder();

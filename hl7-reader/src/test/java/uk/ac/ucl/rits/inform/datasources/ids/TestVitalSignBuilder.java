@@ -137,4 +137,10 @@ public class TestVitalSignBuilder {
         assertEquals(7, vitalSigns.size());
     }
 
+    @Test
+    public void testMultiLineStringValue() {
+        String result = vitalSigns.get(6).getStringValue();
+        assertEquals("Supplemental Oxygen\nextra line", result);
+    }
+
 }
