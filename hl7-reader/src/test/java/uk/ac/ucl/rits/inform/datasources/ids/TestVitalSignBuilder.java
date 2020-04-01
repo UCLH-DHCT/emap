@@ -75,6 +75,12 @@ public class TestVitalSignBuilder {
     }
 
     @Test
+    public void testMultipleComments() {
+        String result = vitalSigns.get(3).getComment();
+        assertEquals("comment 1a\ncomment 1b\ncomment 2", result);
+    }
+
+    @Test
     public void testResultStatusFtoSave() {
         // result status is 'F' so should be converted to SAVE
         ResultStatus result = firstVitalSign.getResultStatus();

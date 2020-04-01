@@ -86,7 +86,7 @@ public class VitalSignBuilder {
         VitalSigns vitalSign = new VitalSigns();
 
         OBX obx = observation.getOBX();
-        NTE nte = observation.getNTE();
+        List<NTE> notes = observation.getNTEAll();
 
         // set generic information
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
@@ -107,8 +107,8 @@ public class VitalSignBuilder {
                     String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 
-        Varies dataVaries = obx.getObx5_ObservationValue(0);
-        Type data = dataVaries.getData();
+        Varies[] dataVaries = obx.getObx5_ObservationValue();
+        Type data = dataVaries[0].getData();
         // HAPI can return null so use nullDefault as empty string
         String value = data.toString();
         if (value == null) {
@@ -128,10 +128,24 @@ public class VitalSignBuilder {
             vitalSign.setStringValue(value.trim());
         }
 
-        // todo: check to see crazy long message & separator characters
-        if (!nte.isEmpty()) {
-            // assumes single comment
-            vitalSign.setComment(nte.getNte3_Comment(0).getValue().trim());
+        StringBuilder commentBuilder = new StringBuilder();
+        if (!notes.isEmpty()) {
+            // multiple NTE segments
+            for (NTE note : notes) {
+                FT[] allComments = note.getNte3_Comment();
+                // Multiple lines in field
+                for (FT comment : allComments) {
+                    if (commentBuilder.length() > 1) {
+                        commentBuilder.append("\n");
+                    }
+                    commentBuilder.append(comment.getValueOrEmpty().trim());
+                }
+            }
+            vitalSign.setComment(commentBuilder.toString().trim());
+        }
+        if (commentBuilder.toString().equals("") && value.equals("")) {
+            throw new IllegalArgumentException(
+                    String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
         }
 
         vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
