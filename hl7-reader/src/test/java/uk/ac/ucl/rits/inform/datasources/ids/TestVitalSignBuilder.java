@@ -126,4 +126,9 @@ public class TestVitalSignBuilder {
         assertEquals("42$01", result);
     }
 
+    @Test
+    public void testMissingValue() {
+        assertEquals(7, vitalSigns.size());
+    }
+
 }
