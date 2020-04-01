@@ -114,7 +114,6 @@ public class VitalSignBuilder {
         if (value == null) {
             value = "";
         }
-
         if (data instanceof NM) {
             try {
                 vitalSign.setNumericValue(Double.parseDouble(value));
