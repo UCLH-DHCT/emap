@@ -400,11 +400,7 @@ public class IdsOperations implements AutoCloseable {
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
-        // Vital signs are not the responsibility of this parser.
-        if (sendingFacility.equals("Vitals")) {
-            logger.info("Skipping Vitals message");
-            return new ArrayList<>();
-        }
+        // only process vitalsigns
         logger.info(String.format("%s^%s", messageType, triggerEvent));
         if (sendingFacility.contains("Vitals")) {
             if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
