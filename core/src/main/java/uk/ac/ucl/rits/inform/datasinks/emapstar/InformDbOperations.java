@@ -525,21 +525,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *                                 message
      */
     private AttributeKeyMap visitTypeFromPatientClass(String patientClass) throws MessageIgnoredException {
-        if (patientClass.equals("I") // inpatient
-                || patientClass.equals("B") // baby
-                || patientClass.equals("SURG ADMIT")
-                || patientClass.toUpperCase().equals("DAY CASE")) {
-            return AttributeKeyMap.BED_VISIT;
-        } else if (patientClass.equals("O") // outpatient
-                || patientClass.equals("E")) { // emergency
-            return AttributeKeyMap.OUTPATIENT_VISIT;
-        } else {
-            // Note that "N" is a real patient class but shouldn't appear in a visit-generating message.
-            // It's typically found in A31 messages (change of patient info).
-            throw new MessageIgnoredException(String.format("Unexpected patient class \"%s\"", patientClass)) {{
-                setFlagFollowUp(true); // need to flag this and follow up later
-            }};
-        }
+        // For now everything's a bed visit, and we're not using AttributeKeyMap.OUTPATIENT_VISIT.
+        // The patient class is also being separately recorded so this can be used if needed.
+        return AttributeKeyMap.BED_VISIT;
     }
 
     /**

@@ -68,14 +68,14 @@ public class EmergencyAdmissionTestCase extends MessageStreamTestCase {
         List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
         List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
         List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
-        assertTrue(outpVisits.stream().allMatch(v -> v.isValid()));
+        assertTrue(bedVisits.stream().allMatch(v -> v.isValid()));
         assertEquals(1, hospVisits.size());
+        assertEquals(2, bedVisits.size());
+        assertNull(outpVisits);
         PatientFact onlyHospVisit = hospVisits.get(0);
-        assertEquals(2, outpVisits.size());
-        assertNull(bedVisits);
-        assertIsParentOfChildren(onlyHospVisit, outpVisits);
+        assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
         assertEquals("E",
-                outpVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+                bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 }
