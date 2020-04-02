@@ -491,7 +491,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
-            hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
+            hospitalVisit = addOpenHospitalVisit(enc, admissionTime, adtMsg.getPatientClass());
             addDemographicsToEncounter(enc, adtMsg);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
@@ -616,20 +616,23 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param enc            the Encounter to add to
      * @param visitBeginTime The start time of the visit
+     * @param patientClass   the patient class
      * @return the hospital visit fact object
      */
     @Transactional
-    private PatientFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
+    private PatientFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime, String patientClass) {
         Instant storedFrom = Instant.now();
         PatientFact visitFact = new PatientFact();
         visitFact.setValidFrom(visitBeginTime);
         visitFact.setStoredFrom(storedFrom);
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setFactType(hosp);
-
         visitFact.addProperty(
                 buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
-
+        // Patient Class belongs in the hospital visit because it's then easier to query it if needed
+        // instead of digging it out of bed visits.
+        visitFact.addProperty(
+                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.PATIENT_CLASS, patientClass));
         enc.addFact(visitFact);
         return visitFact;
     }

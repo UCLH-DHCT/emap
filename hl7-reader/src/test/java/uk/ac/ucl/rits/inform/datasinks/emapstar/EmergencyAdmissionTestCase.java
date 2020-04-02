@@ -77,5 +77,9 @@ public class EmergencyAdmissionTestCase extends MessageStreamTestCase {
 
         assertEquals("E",
                 bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+        // patient class should also go in the hosp visit - we think it doesn't routinely change during a visit,
+        // except when explicitly signalled, eg. and O->I transfer.
+        assertEquals("E",
+                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 }

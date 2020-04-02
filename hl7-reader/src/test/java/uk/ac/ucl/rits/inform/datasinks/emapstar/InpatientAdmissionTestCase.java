@@ -59,5 +59,8 @@ public class InpatientAdmissionTestCase extends MessageStreamTestCase {
 
         assertEquals("I",
                 bedVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+
+        assertEquals("I",
+                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 }
