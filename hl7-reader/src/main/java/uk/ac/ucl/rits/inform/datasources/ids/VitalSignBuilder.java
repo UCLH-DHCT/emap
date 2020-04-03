@@ -38,6 +38,7 @@ public class VitalSignBuilder {
 
     /**
      * Populates VitalSign messages from a ORU R01 HL7message.
+     * Allows multiple: OBR segments, OBX segments, NTE segments, OBX lines and NTE lines
      * @param idsUnid Unique id from UDS
      * @param oruR01  ORU R01 HL7 VitalSign message from EPIC
      */
@@ -51,20 +52,21 @@ public class VitalSignBuilder {
             MSH msh = (MSH) oruR01.get("MSH");
             PV1 pv1 = patientResult.getPATIENT().getVISIT().getPV1();
 
-            // assumes that only one result
-            //todo: check only one result per message is expected
-            ORU_R01_ORDER_OBSERVATION orderObs = patientResult.getORDER_OBSERVATION();
-            List<ORU_R01_OBSERVATION> observations = orderObs.getOBSERVATIONAll();
+            // Allow multiple OBRs per message
+            List<ORU_R01_ORDER_OBSERVATION> orderObs = patientResult.getORDER_OBSERVATIONAll();
+            for (ORU_R01_ORDER_OBSERVATION orderObr : orderObs) {
+                List<ORU_R01_OBSERVATION> observations = orderObr.getOBSERVATIONAll();
 
-            int msgSuffix = 0;
-            for (ORU_R01_OBSERVATION observation : observations) {
-                msgSuffix++;
-                subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
-                try {
-                    VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation, msh, pid, pv1);
-                    vitalSigns.add(vitalSign);
-                } catch (IllegalArgumentException e) {
-                    logger.error(String.format("Vitalsign could not be parsed for msg %s", subMessageSourceId), e);
+                int msgSuffix = 0;
+                for (ORU_R01_OBSERVATION observation : observations) {
+                    msgSuffix++;
+                    subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
+                    try {
+                        VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation, msh, pid, pv1);
+                        vitalSigns.add(vitalSign);
+                    } catch (IllegalArgumentException e) {
+                        logger.error(String.format("Vitalsign could not be parsed for msg %s", subMessageSourceId), e);
+                    }
                 }
             }
         } catch (HL7Exception e) {

@@ -143,4 +143,12 @@ public class TestVitalSignBuilder {
         assertEquals("Supplemental Oxygen\nextra line", result);
     }
 
+    @Test
+    public void testMultipleOBRs() throws IOException, HL7Exception {
+        String hl7 = HL7Utils.readHl7FromResource("VitalSignMultiOBR.txt");
+        Message hl7Msg = HL7Utils.parseHl7String(hl7);
+        vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
+        assertEquals(4, vitalSigns.size());
+    }
+
 }
