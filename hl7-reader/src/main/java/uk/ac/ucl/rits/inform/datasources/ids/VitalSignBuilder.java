@@ -126,42 +126,18 @@ public class VitalSignBuilder {
                 }
             }
         } else {
-            // Strings can be made of multiple values
-            Varies[] dataVaries = obx.getObx5_ObservationValue();
-            StringBuilder valueBuilder = new StringBuilder();
-            // Allow for multiple results
-            for (Varies resultLine : dataVaries) {
-                Type lineData = resultLine.getData();
-                String lineValue = lineData.toString();
-                if (lineValue != null) {
-                    if (valueBuilder.length() > 1) {
-                        valueBuilder.append("\n");
-                    }
-                    valueBuilder.append(lineValue.trim());
-                }
-            }
-            String stringValue = valueBuilder.toString();
-            if (!stringValue.equals("")) {
+            // Skip empty string values
+            if (!value.equals("")) {
+                String stringValue = getStringValue(obx);
                 vitalSign.setStringValue(stringValue.trim());
             }
         }
 
-        StringBuilder commentBuilder = new StringBuilder();
         if (!notes.isEmpty()) {
-            // multiple NTE segments
-            for (NTE note : notes) {
-                FT[] allComments = note.getNte3_Comment();
-                // Multiple lines in field
-                for (FT comment : allComments) {
-                    if (commentBuilder.length() > 1) {
-                        commentBuilder.append("\n");
-                    }
-                    commentBuilder.append(comment.getValueOrEmpty().trim());
-                }
-            }
-            vitalSign.setComment(commentBuilder.toString().trim());
+            String comment = getComments(notes);
+            vitalSign.setComment(comment);
         }
-        if (commentBuilder.toString().equals("") && value.equals("")) {
+        if (vitalSign.getComment() == null && value.equals("")) {
             throw new IllegalArgumentException(
                     String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
         }
@@ -169,6 +145,50 @@ public class VitalSignBuilder {
         vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
         vitalSign.setObservationTimeTaken(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
         return vitalSign;
+    }
+
+    /**
+     * Build comments from list of NTEs, trimmed and lines separated by newlines.
+     * @param notes List of NTE objects
+     * @return String of trimmed comment lines, joined by newlines
+     */
+    private String getComments(List<NTE> notes) {
+        StringBuilder commentBuilder = new StringBuilder();
+        // multiple NTE segments
+        for (NTE note : notes) {
+            FT[] allComments = note.getNte3_Comment();
+            // Multiple lines in field
+            for (FT comment : allComments) {
+                if (commentBuilder.length() > 1) {
+                    commentBuilder.append("\n");
+                }
+                commentBuilder.append(comment.getValueOrEmpty().trim());
+            }
+        }
+        return commentBuilder.toString().trim();
+    }
+
+    /**
+     * Extracts vitalsign string value from obx. Allows for multiple lines in an OBX (separated by newline characters)
+     * @param obx OBX object
+     * @return String of all whitespace trimmed lines separated by newlines
+     */
+    private String getStringValue(OBX obx) {
+        // Strings can be made of multiple values
+        Varies[] dataVaries = obx.getObx5_ObservationValue();
+        StringBuilder valueBuilder = new StringBuilder();
+        // Allow for multiple results
+        for (Varies resultLine : dataVaries) {
+            Type lineData = resultLine.getData();
+            String lineValue = lineData.toString();
+            if (lineValue != null) {
+                if (valueBuilder.length() > 1) {
+                    valueBuilder.append("\n");
+                }
+                valueBuilder.append(lineValue.trim());
+            }
+        }
+        return valueBuilder.toString().trim();
     }
 
 
