@@ -109,14 +109,14 @@ public class VitalSignBuilder {
                     String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 
-        Varies[] dataVaries = obx.getObx5_ObservationValue();
-        Type data = dataVaries[0].getData();
+        // Assuming numeric data will be a single value
+        Type singularData = obx.getObservationValue(0).getData();
         // HAPI can return null so use nullDefault as empty string
-        String value = data.toString();
+        String value = singularData.toString();
         if (value == null) {
             value = "";
         }
-        if (data instanceof NM) {
+        if (singularData instanceof NM) {
             try {
                 vitalSign.setNumericValue(Double.parseDouble(value));
             } catch (NumberFormatException e) {
@@ -126,6 +126,8 @@ public class VitalSignBuilder {
                 }
             }
         } else {
+            // Strings can be made of multiple values
+            Varies[] dataVaries = obx.getObx5_ObservationValue();
             StringBuilder valueBuilder = new StringBuilder();
             // Allow for multiple results
             for (Varies resultLine : dataVaries) {
