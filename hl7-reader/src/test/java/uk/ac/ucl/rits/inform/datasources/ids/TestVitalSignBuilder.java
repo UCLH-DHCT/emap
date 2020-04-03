@@ -75,6 +75,12 @@ public class TestVitalSignBuilder {
     }
 
     @Test
+    public void testMultipleComments() {
+        String result = vitalSigns.get(3).getComment();
+        assertEquals("comment 1a\ncomment 1b\ncomment 2", result);
+    }
+
+    @Test
     public void testResultStatusFtoSave() {
         // result status is 'F' so should be converted to SAVE
         ResultStatus result = firstVitalSign.getResultStatus();
@@ -124,6 +130,17 @@ public class TestVitalSignBuilder {
     public void testSourceMessageId() {
         String result = firstVitalSign.getSourceMessageId();
         assertEquals("42$01", result);
+    }
+
+    @Test
+    public void testMissingValue() {
+        assertEquals(7, vitalSigns.size());
+    }
+
+    @Test
+    public void testMultiLineStringValue() {
+        String result = vitalSigns.get(6).getStringValue();
+        assertEquals("Supplemental Oxygen\nextra line", result);
     }
 
 }

@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -56,7 +59,9 @@ public class AppHl7 {
                     // we may want to handle AmqpException specifically
                     // we need to distinguish between situations where a retry will help
                     // (eg. full queue) and where it won't.
-                    logger.error("Exiting because : " + e.toString());
+                    StringWriter st = new StringWriter();
+                    e.printStackTrace(new PrintWriter(st));
+                    logger.error("Exiting because : " + st.toString());
                     break;
                 }
             }

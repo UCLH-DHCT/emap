@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
@@ -20,7 +21,6 @@ import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Build one or more vitalsigns from HL7 message.
@@ -60,8 +60,12 @@ public class VitalSignBuilder {
             for (ORU_R01_OBSERVATION observation : observations) {
                 msgSuffix++;
                 subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
-                VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation, msh, pid, pv1);
-                vitalSigns.add(vitalSign);
+                try {
+                    VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation, msh, pid, pv1);
+                    vitalSigns.add(vitalSign);
+                } catch (IllegalArgumentException e) {
+                    logger.error(String.format("Vitalsign could not be parsed for msg %s", subMessageSourceId), e);
+                }
             }
         } catch (HL7Exception e) {
             logger.error(String.format("HL7 Exception encountered for msg %s", subMessageSourceId), e);
@@ -82,7 +86,7 @@ public class VitalSignBuilder {
         VitalSigns vitalSign = new VitalSigns();
 
         OBX obx = observation.getOBX();
-        NTE nte = observation.getNTE();
+        List<NTE> notes = observation.getNTEAll();
 
         // set generic information
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
@@ -99,32 +103,66 @@ public class VitalSignBuilder {
             vitalSign.setResultStatus(ResultStatus.DELETE);
         } else if (!(resultStatus.equals("F") || resultStatus.equals("C"))) {
             // Always keep default resultStatus value of SAVE, if not F or C then log as an error.
-            logger.error(String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
+            throw new IllegalArgumentException(
+                    String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 
-        Varies dataVaries = obx.getObx5_ObservationValue(0);
-        Type data = dataVaries.getData();
+        Varies[] dataVaries = obx.getObx5_ObservationValue();
+        Type data = dataVaries[0].getData();
         // HAPI can return null so use nullDefault as empty string
-        String value = Objects.toString(data, "");
+        String value = data.toString();
+        if (value == null) {
+            value = "";
+        }
         if (data instanceof NM) {
             try {
                 vitalSign.setNumericValue(Double.parseDouble(value));
             } catch (NumberFormatException e) {
                 if (vitalSign.getResultStatus() != ResultStatus.DELETE) {
-                    logger.error(String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
+                    throw new IllegalArgumentException(
+                            String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
                 }
             }
         } else {
-            vitalSign.setStringValue(value.trim());
+            StringBuilder valueBuilder = new StringBuilder();
+            // Allow for multiple results
+            for (Varies resultLine : dataVaries) {
+                Type lineData = resultLine.getData();
+                String lineValue = lineData.toString();
+                if (lineValue != null) {
+                    if (valueBuilder.length() > 1) {
+                        valueBuilder.append("\n");
+                    }
+                    valueBuilder.append(lineValue.trim());
+                }
+            }
+            String stringValue = valueBuilder.toString();
+            if (!stringValue.equals("")) {
+                vitalSign.setStringValue(stringValue.trim());
+            }
         }
 
-        // todo: check to see crazy long message & separator characters
-        if (!nte.isEmpty()) {
-            // assumes single comment
-            vitalSign.setComment(nte.getNte3_Comment(0).getValue().trim());
+        StringBuilder commentBuilder = new StringBuilder();
+        if (!notes.isEmpty()) {
+            // multiple NTE segments
+            for (NTE note : notes) {
+                FT[] allComments = note.getNte3_Comment();
+                // Multiple lines in field
+                for (FT comment : allComments) {
+                    if (commentBuilder.length() > 1) {
+                        commentBuilder.append("\n");
+                    }
+                    commentBuilder.append(comment.getValueOrEmpty().trim());
+                }
+            }
+            vitalSign.setComment(commentBuilder.toString().trim());
+        }
+        if (commentBuilder.toString().equals("") && value.equals("")) {
+            throw new IllegalArgumentException(
+                    String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
         }
 
-            vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
+        vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
         vitalSign.setObservationTimeTaken(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
         return vitalSign;
     }
