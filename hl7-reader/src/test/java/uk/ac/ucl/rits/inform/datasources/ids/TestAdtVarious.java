@@ -1,6 +1,8 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import java.time.Instant;
 
@@ -14,12 +16,12 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
  * Take an HL7 ADT message as input, and check the correctness of the resultant
  * interchange message (AdtMessage).
  */
-public class TestAdt extends TestHl7MessageStream {
+public class TestAdtVarious extends TestHl7MessageStream {
     private AdtMessage msg;
 
     @Before
     public void setup() throws Exception {
-        msg = processSingleMessage("TestForJunit.txt");
+        msg = processSingleAdtMessage("TestForJunit.txt");
     }
 
     /**
@@ -193,6 +195,11 @@ public class TestAdt extends TestHl7MessageStream {
         assertEquals("1234TESTVISITNUM", result);
     }
 
+    @Test
+    public void testGetDischargeLocation() {
+        assertEquals("Home", msg.getDischargeLocation());
+    }
+
     /**
      * PV1-44.1.
      */
@@ -211,5 +218,18 @@ public class TestAdt extends TestHl7MessageStream {
         assertEquals(
                 null,
                 msg.getDischargeDateTime());
+    }
+
+    @Test
+    public void testNoTimeOfDeath()  {
+        assertNull(msg.getPatientDeathDateTime());
+    }
+
+    @Test
+    /**
+     * Not an A03, death indicator shouldn't be set
+     */
+    public void testIsNull()  {
+        assertNull(msg.getPatientDeathIndicator());
     }
 }

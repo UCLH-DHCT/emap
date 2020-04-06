@@ -137,6 +137,20 @@ interface PV1Wrap {
     }
 
     /**
+     * @return discharge disposition PV1-36
+     */
+    default String getDischargeDisposition() {
+        return getPV1().getPv136_DischargeDisposition().getValueOrEmpty();
+    }
+
+    /**
+     * @return discharge location identifier PV1-37
+     */
+    default String getDischargeLocation() {
+        return getPV1().getPv137_DischargedToLocation().getDld1_DischargeToLocation().getCwe1_Identifier().getValueOrEmpty();
+    }
+
+    /**
      * We could probably use the HAPI functions to obtain the different components of this result,
      * e.g. for easier conversion to Postgres timestamp format.
      *
