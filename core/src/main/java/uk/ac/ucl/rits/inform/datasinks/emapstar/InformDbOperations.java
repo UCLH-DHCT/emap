@@ -733,9 +733,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant recordedDateTime = adtMsg.getRecordedDateTime();
 
         String admitSource = adtMsg.getAdmitSource();
-        logger.info(
-                "TRANSFERRING: MRN = %s\n    A02 details: adm %s\n    A02 details: admitsrc %s / eventoccurred %s / recorded %s",
-                mrnStr, admissionDateTime, admitSource, eventOccurred, recordedDateTime);
+        logger.info(String.format(
+                "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
+                mrnStr, admissionDateTime, admitSource, eventOccurred, recordedDateTime));
 
         // add a new visit to the current encounter
         Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
