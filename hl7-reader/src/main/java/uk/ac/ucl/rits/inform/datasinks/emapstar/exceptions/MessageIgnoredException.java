@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 public class MessageIgnoredException extends EmapOperationMessageProcessingException {
 
     private static final long serialVersionUID = 3654478669545317495L;
+    private boolean flagFollowUp;
 
     /**
      * Create a new MessageIgnoredException.
@@ -37,5 +38,23 @@ public class MessageIgnoredException extends EmapOperationMessageProcessingExcep
     @Override
     public String getExceptionDescription() {
         return "Message can probably be skipped";
+    }
+
+    /**
+     * @return whether this exception has been flagged to follow up
+     */
+    public boolean isFlagFollowUp() {
+        return flagFollowUp;
+    }
+
+    /**
+     * Flag in the log the message which triggered this exception as an error
+     * worthy of follow up. Eg. an unexpected feature of the
+     * data that will require a developer to investigate.
+     *
+     * @param flagFollowUp true iff should flag for follow up
+     */
+    public void setFlagFollowUp(boolean flagFollowUp) {
+        this.flagFollowUp = flagFollowUp;
     }
 }
