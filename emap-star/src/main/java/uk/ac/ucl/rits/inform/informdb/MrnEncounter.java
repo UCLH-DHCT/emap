@@ -23,8 +23,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  */
 @Entity
-@Table(name = "mrn_encounter", indexes = { @Index(columnList = "mrn", unique = false),
-        @Index(columnList = "encounter", unique = false), })
+@Table(name = "mrn_encounter", indexes = {
+        @Index(columnList = "mrn", unique = false),
+        @Index(columnList = "encounter", unique = false),
+        @Index(name = "mrn_encounter_stored_from_index", columnList = "storedFrom", unique = false),
+        @Index(name = "mrn_encounter_stored_until_index", columnList = "storedUntil", unique = false),
+        @Index(name = "mrn_encounter_valid_from_index", columnList = "validFrom", unique = false),
+        @Index(name = "mrn_encounter_valid_until_index", columnList = "validUntil", unique = false),
+})
 @JsonIgnoreProperties({"mrn", "valid"})
 public class MrnEncounter extends TemporalCore implements Serializable {
 

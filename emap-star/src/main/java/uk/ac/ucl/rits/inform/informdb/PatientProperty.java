@@ -27,6 +27,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
         @Index(name = "patient_property_property_type_index", columnList = "property_type", unique = false),
         @Index(name = "patient_property_stored_from_index", columnList = "storedFrom", unique = false),
         @Index(name = "patient_property_stored_until_index", columnList = "storedUntil", unique = false),
+        @Index(name = "patient_property_valid_from_index", columnList = "validFrom", unique = false),
+        @Index(name = "patient_property_valid_until_index", columnList = "validUntil", unique = false),
         @Index(name = "patient_property_value_as_datetime_index", columnList = "valueAsDatetime", unique = false),
         @Index(name = "patient_property_value_as_integer_index", columnList = "valueAsInteger", unique = false),
         @Index(name = "patient_property_value_as_link_index", columnList = "valueAsLink", unique = false),
