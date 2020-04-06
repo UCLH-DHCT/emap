@@ -290,8 +290,8 @@ interface PIDWrap {
      * @return PID-29 (or PID-29.1?) Patient Death Date and Time. Carecast: YYYYMMDDHHmm format though hhmm is mainly 0000
      * @throws HL7Exception if HAPI does
      */
-    default String getPatientDeathDateTime() throws HL7Exception {
-        return getPID().getPatientDeathDateAndTime().toString();
+    default Instant getPatientDeathDateTime() throws HL7Exception {
+        return HL7Utils.interpretLocalTime(getPID().getPatientDeathDateAndTime());
     }
 
     /**
@@ -299,7 +299,7 @@ interface PIDWrap {
      * @throws HL7Exception if HAPI does
      */
     default String getPatientDeathIndicator() throws HL7Exception {
-        return getPID().getPatientDeathIndicator().getValue();
+        return getPID().getPatientDeathIndicator().getValueOrEmpty();
     }
 
     // Epic - PID-32 Identity Reliability Code ??

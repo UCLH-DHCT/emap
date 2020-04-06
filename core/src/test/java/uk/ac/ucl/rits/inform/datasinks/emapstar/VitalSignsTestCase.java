@@ -38,6 +38,7 @@ public abstract class VitalSignsTestCase extends MessageStreamTestCase {
             setEventOccurredDateTime(Instant.now());
             setMrn("ALICE");
             setVisitNumber("bob");
+            setPatientDeathIndicator(false);
         }});
         messageStream.add(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);
