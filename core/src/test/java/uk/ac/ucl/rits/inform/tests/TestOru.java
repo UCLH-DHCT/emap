@@ -10,12 +10,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.Fact;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
@@ -36,19 +38,33 @@ public class TestOru extends Hl7StreamEndToEndTestCase {
     }
 
     /**
+     * Return the only pathology order fact for the order number, and check there is only one.
+     * Optionally check that it belongs to the expected encounter number.
+     * @param orderNum orderNum for order fact to retrieve
+     * @param expectedEncounterNum if non-null, verify that it's part of this encounter
+     * @return the requested pathology order fact
+     */
+    private PatientFact _getSingleOrderByOrderNumber(String orderNum, String expectedEncounterNum) {
+        List<PatientFact> orders = patientFactRepo.findAllPathologyOrdersByOrderNumber(orderNum);
+        assertEquals("should be exactly one order", 1, orders.size());
+        PatientFact pathOrder = orders.get(0);
+        assertNotNull(pathOrder);
+
+        if (expectedEncounterNum != null) {
+            // check it's the same encounter we find by encounter id
+            Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounterNum);
+            assertEquals(enc, pathOrder.getEncounter());
+        }
+        return pathOrder;
+    }
+
+    /**
      * Check that the encounter contains some pathology data now.
      */
     @Test
     @Transactional
     public void testPathOrderAndResult() {
-        List<PatientFact> orders = patientFactRepo.findAllPathologyOrdersByOrderNumber("12121218");
-        assertEquals("should be exactly one order", 1, orders.size());
-        PatientFact pathOrder = orders.get(0);
-        assertNotNull(pathOrder);
-
-        // check it's the same encounter we find by encounter id
-        Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
-        assertEquals(enc, pathOrder.getEncounter());
+        PatientFact pathOrder = _getSingleOrderByOrderNumber("12121218", "123412341234");
 
         // check some attributes of the order
         List<PatientProperty> collectionTimes = pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_COLLECTION_TIME);
@@ -93,5 +109,23 @@ public class TestOru extends Hl7StreamEndToEndTestCase {
                 wccResult.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_REFERENCE_RANGE).get(0).getValueAsString());
         assertEquals("x10^9/L",
                 wccResult.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_UNITS).get(0).getValueAsString());
+    }
+
+    @Test
+    @Transactional
+    public void testNotes() {
+        PatientFact pathOrder = _getSingleOrderByOrderNumber("12121214", "123412341234");
+        List<PatientFact> childFacts = pathOrder.getChildFacts();
+        List<PatientFact> hbaResults = childFacts.stream()
+                .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)
+                        && pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString().equals("HBA")).collect(Collectors.toList());
+
+        assertEquals(1, hbaResults.size());
+        PatientFact hbaResult = hbaResults.get(0);
+        assertEquals("HbA1c results traceable to the IFCC reference\n" +
+                "method effective 26th April 2010\n" +
+                "Please note analyser changed from Tosoh G7 to G8\n" +
+                "on 06/05/2010",
+                hbaResult.getPropertyByAttribute(AttributeKeyMap.RESULT_NOTES).get(0).getValueAsString());
     }
 }
