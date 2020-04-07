@@ -492,7 +492,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
-            hospitalVisit = addOpenHospitalVisit(enc, admissionTime);
+            hospitalVisit = addOpenHospitalVisit(enc, admissionTime, adtMsg.getPatientClass());
             addDemographicsToEncounter(enc, adtMsg);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
@@ -521,13 +521,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Determine visit type from the patient class (which ultimately comes from HL7).
      * @param patientClass string from HL7
      * @return the fact type of the visit fact
+     * @throws MessageIgnoredException if patient class is not recognised or
+     *                                 shouldn't appear in a visit-generating
+     *                                 message
      */
-    private AttributeKeyMap visitTypeFromPatientClass(String patientClass) {
-        if (patientClass.equals("I")) {
-            return AttributeKeyMap.BED_VISIT;
-        } else {
-            return AttributeKeyMap.OUTPATIENT_VISIT;
-        }
+    private AttributeKeyMap visitTypeFromPatientClass(String patientClass) throws MessageIgnoredException {
+        // For now everything's a bed visit, and we're not using AttributeKeyMap.OUTPATIENT_VISIT.
+        // The patient class is also being separately recorded so this can be used if needed.
+        return AttributeKeyMap.BED_VISIT;
     }
 
     /**
@@ -616,20 +617,23 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param enc            the Encounter to add to
      * @param visitBeginTime The start time of the visit
+     * @param patientClass   the patient class
      * @return the hospital visit fact object
      */
     @Transactional
-    private PatientFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime) {
+    private PatientFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime, String patientClass) {
         Instant storedFrom = Instant.now();
         PatientFact visitFact = new PatientFact();
         visitFact.setValidFrom(visitBeginTime);
         visitFact.setStoredFrom(storedFrom);
         Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setFactType(hosp);
-
         visitFact.addProperty(
                 buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
-
+        // Patient Class belongs in the hospital visit because it's then easier to query it if needed
+        // instead of digging it out of bed visits.
+        visitFact.addProperty(
+                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.PATIENT_CLASS, patientClass));
         enc.addFact(visitFact);
         return visitFact;
     }
@@ -733,9 +737,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant recordedDateTime = adtMsg.getRecordedDateTime();
 
         String admitSource = adtMsg.getAdmitSource();
-        logger.info(
-                "TRANSFERRING: MRN = %s\n    A02 details: adm %s\n    A02 details: admitsrc %s / eventoccurred %s / recorded %s",
-                mrnStr, admissionDateTime, admitSource, eventOccurred, recordedDateTime);
+        logger.info(String.format(
+                "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
+                mrnStr, admissionDateTime, admitSource, eventOccurred, recordedDateTime));
 
         // add a new visit to the current encounter
         Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
