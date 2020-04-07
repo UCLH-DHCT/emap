@@ -22,6 +22,7 @@ docker-compose \
     $FAKEUDS_ARG \
     $DBFILLER_ARG \
     -f "$(dirname "$SCRIPT_DIR")"/Omop-ETL/docker-compose.yml \
+    -f "$(dirname "$SCRIPT_DIR")"/caboodle-vitalsigns/docker-compose.yml \
     -f "$(dirname "$SCRIPT_DIR")"/hl7-vitals/docker-compose.yml \
     -p $EMAP_PROJECT_NAME \
     "$@"
