@@ -1,8 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Still need to truncate the databases ...
-
+# Steps that must be performed manually for now:
+# - Truncate star_validation tables including progress
+# - Truncate ops_validation tables, including progress but not the mapping tables
+# - Truncate hl7 and caboodle progress tables in caboodle_extract_validation schema
 
 # edit hl7 (vitals+adt) config files in place, keeping a backup named by the timestamp
 configure_time_window() {
@@ -12,8 +14,14 @@ configure_time_window() {
     export window_end="$(date --iso-8601=date)T00:00:00.000Z"
     echo Setting config for pipeline to run from $window_start to $window_end
     perl -pi.$(date --iso-8601=seconds) \
-        -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/; s/^(IDS_CFG_END_DATETIME)=.*$/$1=$ENV{"window_end"}/;' \
-        ../config/hl7-vitals-config-envs ../config/emap-core-config-envs
+        -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/;
+            s/^(IDS_CFG_END_DATETIME)=.*$/$1=$ENV{"window_end"}/;
+            s/^(CABOODLE_DATE_FROM)=.*$/$1=$ENV{"window_start"}/;
+            s/^(CABOODLE_DATE_UNTIL)=.*$/$1=$ENV{"window_end"}/;
+        ' \
+        ../config/hl7-vitals-config-envs \
+        ../config/emap-core-config-envs \
+        ../config/caboodle-envs
 }
  
 stop_it_and_tidy_up() {
@@ -31,17 +39,19 @@ run_pipeline() {
     bash emap-live.sh ps
     bash emap-live.sh up -d rabbitmq
     bash emap-live.sh ps
+    # If this is run after the data sources, it would deadlock if the hl7source generates
+    # more messages than can fit in the queue, but currently emapstar doesn't like being started up
+    # unless the queues exist, or start existing very quickly.
+    # So, start it up just a little after the datasources!
+    (sleep 180; bash emap-live.sh up -d emapstar; bash emap-live.sh ps)
+    
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source
     bash emap-live.sh ps
-    # this will deadlock if the hl7source generates more messages than can fit in the queue,
-    # but currently emapstar doesn't like being started up unless the queues exist, or start
-    # existing very quickly
-    bash emap-live.sh up -d emapstar
-    bash emap-live.sh ps
     bash emap-live.sh up --exit-code-from hl7vitals hl7vitals
     bash emap-live.sh ps
-    # do we want caboodle vitals?
+    bash emap-live.sh up --exit-code-from caboodle caboodle
+    bash emap-live.sh ps
 }
 
 
