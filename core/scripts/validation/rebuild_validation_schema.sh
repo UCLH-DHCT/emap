@@ -43,7 +43,7 @@ run_pipeline() {
     # more messages than can fit in the queue, but currently emapstar doesn't like being started up
     # unless the queues exist, or start existing very quickly.
     # So, start it up just a little after the datasources!
-    (sleep 180; bash emap-live.sh up -d emapstar; bash emap-live.sh ps)
+    (sleep 180; bash emap-live.sh up -d emapstar; bash emap-live.sh ps) &
     
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source
