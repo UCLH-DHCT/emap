@@ -769,21 +769,19 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtMsg.getMrn();
         String visitNumber = adtMsg.getVisitNumber();
-
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        if (encounter == null) {
-            // If encounter was not known about, create it before discharging it
-            if (adtMsg.getAdmissionDateTime() == null) {
-                throw new MessageIgnoredException(adtMsg,
-                        "Cannot find the visit " + visitNumber + " and we don't know the admission date so can't create an admission");
-            } else {
-                encounter = admitPatient(adtMsg, storedFrom);
-            }
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+        if (admissionDateTime == null) {
+            // This can happen occasionally, seems to be only/usually where EVN-4 = "ED_AFTER_DISMISS".
+            // In this unusual case, use the discharge date instead. Note that this will only be used
+            // if we have no prior record of the patient and are creating their admission record now.
+            admissionDateTime = adtMsg.getDischargeDateTime();
         }
+        Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
-            throw new MessageIgnoredException(adtMsg,
-                    "No open bed visit, cannot discharge, did you miss an A13? visit " + visitNumber);
+            // If visit was not known about, admit the patient first before going on to discharge
+            encounter = admitPatient(adtMsg, storedFrom);
+            latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         }
         Instant eventOccurred = adtMsg.getEventOccurredDateTime();
         Instant dischargeDateTime = adtMsg.getDischargeDateTime();
