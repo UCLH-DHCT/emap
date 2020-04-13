@@ -42,6 +42,7 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -62,10 +63,14 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * @param idsCfgXml injected param
+     * @param defaultStartDatetime the start date to use if no progress has been previously recorded in the DB
+     * @param endDatetime the datetime to finish processing messages, regardless of previous progress
      * @param environment injected param
      */
     public IdsOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
+            @Value("${ids.cfg.default-start-datetime}") Instant defaultStartDatetime,
+            @Value("${ids.cfg.end-datetime}") Instant endDatetime,
             @Autowired Environment environment) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
@@ -75,7 +80,19 @@ public class IdsOperations implements AutoCloseable {
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
         logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
+        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime);
+        this.endUnid = getFirstMessageUnidFromDate(endDatetime);
+
+        // Since progress is stored as the unid (the date info is purely for human convenience),
+        // there is no way to translate a future date into a unid.
+        // This feature is only intended for processing messages in the past, so that's OK.
+        logger.info(String.format(
+                "IDS message processing boundaries: Start date = %s, start unid = %d  -->  End date = %s, end unid = %d",
+                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid));
     }
+
+    private Integer defaultStartUnid;
+    private Integer endUnid;
 
     @Autowired
     private IdsProgressRepository      idsProgressRepository;
@@ -118,6 +135,35 @@ public class IdsOperations implements AutoCloseable {
             qexists.setMaxResults(1);
             boolean idsIsEmpty = qexists.list().isEmpty();
             return idsIsEmpty;
+        }
+    }
+
+    /**
+     * Find the first message in the IDS that came in at or after a certain
+     * timestamp.
+     *
+     * @param fromDateTime the timestamp to start from, or null for no boundary
+     * @return the unid of the first message to be persisted at or after that time,
+     *         or null if there are no such messages or no bound was requested (fromDateTime == null)
+     */
+    private Integer getFirstMessageUnidFromDate(Instant fromDateTime) {
+        if (fromDateTime == null) {
+            // bypass this slow query if no bound was requested
+            return null;
+        }
+        try (Session idsSession = idsFactory.openSession();) {
+            idsSession.setDefaultReadOnly(true);
+            Query<IdsMaster> qexists = idsSession.createQuery(
+                    "from IdsMaster where persistdatetime >= :fromDatetime order by unid", IdsMaster.class);
+            qexists.setParameter("fromDatetime", fromDateTime);
+            qexists.setMaxResults(1);
+            List<IdsMaster> msgs = qexists.list();
+            if (msgs.isEmpty()) {
+                logger.warn(String.format("No IDS messages were found beyond the specified date %s, is it in the future?", fromDateTime));
+                return null;
+            } else {
+                return msgs.get(0).getUnid();
+            }
         }
     }
 
@@ -170,9 +216,15 @@ public class IdsOperations implements AutoCloseable {
     @Transactional
     private int getLatestProcessedId() {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
+
         if (onlyRow == null) {
             onlyRow = new IdsProgress();
-            // Is it wrong to set in a get?
+            // use default start time, if specified
+            logger.info(String.format("No progress found, initialising to unid = %d", this.defaultStartUnid));
+            if (this.defaultStartUnid != null) {
+                // initialise progress as per config, otherwise it'll just stay at 0 (ie. the very beginning)
+                onlyRow.setLastProcessedIdsUnid(this.defaultStartUnid);
+            }
             onlyRow = idsProgressRepository.save(onlyRow);
         }
         return onlyRow.getLastProcessedIdsUnid();
@@ -339,11 +391,16 @@ public class IdsOperations implements AutoCloseable {
      * @param publisher     the local AMQP handling class
      * @param parser        the HAPI parser to be used
      * @throws AmqpException if rabbitmq write fails
+     * @throws ReachedEndException if we have reached the pre-configured last message
      */
     @Transactional
-    public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException {
+    public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException, ReachedEndException {
         int lastProcessedId = getLatestProcessedId();
         logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
+        if (this.endUnid != null && lastProcessedId >= this.endUnid) {
+            logger.info(String.format("lastProcessedId = %d  >=  endUnid = %d, exiting", lastProcessedId, this.endUnid));
+            throw new ReachedEndException();
+        }
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
 
         Instant messageDatetime = idsMsg.getMessagedatetime();
