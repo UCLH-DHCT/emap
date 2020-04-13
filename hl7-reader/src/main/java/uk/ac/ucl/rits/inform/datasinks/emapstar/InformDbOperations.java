@@ -147,7 +147,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public String processMessage(PathologyOrder pathologyOrder) throws EmapOperationMessageProcessingException {
-        addOrUpdatePathologyOrder(pathologyOrder);
+        Instant storedFrom = Instant.now();
+        addOrUpdatePathologyOrder(pathologyOrder, storedFrom);
         // be more specific about the type of OK in future
         return "OK";
     }
@@ -162,27 +163,28 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public String processMessage(AdtMessage adtMsg) throws EmapOperationMessageProcessingException {
         String returnCode;
         returnCode = "OK";
+        Instant storedFrom = Instant.now();
         switch (adtMsg.getOperationType()) {
         case ADMIT_PATIENT:
-            admitPatient(adtMsg);
+            admitPatient(adtMsg, storedFrom);
             break;
         case TRANSFER_PATIENT:
-            transferPatient(adtMsg);
+            transferPatient(adtMsg, storedFrom);
             break;
         case DISCHARGE_PATIENT:
-            dischargePatient(adtMsg);
+            dischargePatient(adtMsg, storedFrom);
             break;
         case UPDATE_PATIENT_INFO:
-            updatePatientInfo(adtMsg);
+            updatePatientInfo(adtMsg, storedFrom);
             break;
         case CANCEL_ADMIT_PATIENT:
-            cancelAdmitPatient(adtMsg);
+            cancelAdmitPatient(adtMsg, storedFrom);
             break;
         case CANCEL_DISCHARGE_PATIENT:
-            cancelDischargePatient(adtMsg);
+            cancelDischargePatient(adtMsg, storedFrom);
             break;
         case MERGE_BY_ID:
-            mergeById(adtMsg);
+            mergeById(adtMsg, storedFrom);
             break;
         default:
             returnCode = "Not implemented";
@@ -200,7 +202,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String mrnStr = msg.getMrn();
         Instant storedFrom = Instant.now();
         Instant observationTime = msg.getObservationTimeTaken();
-        Encounter enc = getCreateEncounter(mrnStr, visitNumber, observationTime);
+        Encounter enc = getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime);
 
         PatientFact vitalSign = new PatientFact();
         vitalSign.setFactType(getCreateAttribute(AttributeKeyMap.VITAL_SIGN));
@@ -414,13 +416,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param mrnStr            the MRN string to find/create
      * @param encounterStr      encounter ID (visit ID) to find/create
+     * @param storedFrom        storedFrom time to use for newly created records - should be a time very close to the present
      * @param validFrom         validFrom times to use for newly created records - usually the admission time
      * @return the Encounter, existing or newly created
      * @throws MessageIgnoredException if message can't be processed
      */
-    private Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant validFrom) throws MessageIgnoredException {
+    private Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant storedFrom, Instant validFrom) throws MessageIgnoredException {
         logger.info(String.format("getCreateEncounter looking for existing encounter %s in MRN %s", encounterStr, mrnStr));
-        Instant storedFrom = Instant.now();
         // look for encounter by its encounter number only as this is sufficiently unique without also using the MRN
         Encounter existingEnc = encounterRepo.findEncounterByEncounter(encounterStr);
         if (existingEnc == null) {
@@ -466,13 +468,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * which I think is OK as these got turned on in July 2019.
      *
      * @param adtMsg msg containing encounter details
+     * @param storedFrom storedFrom time to use for new records
      * @return the created Encounter
      * @throws MessageIgnoredException if message can't be processed
      * @throws InvalidMrnException if Mrn field is empty
      * @throws EmapStarIntegrityException if there's a contradiction in the DB
      */
     @Transactional
-    public Encounter admitPatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+    public Encounter admitPatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtMsg.getMrn();
         Instant admissionTime = adtMsg.getAdmissionDateTime();
         if (mrnStr == null) {
@@ -484,7 +488,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // Therefore need to reuse the existing encounter and the open visit if it
         // exists.
         // (Better to move the hosp visit creation to the actual "new Encounter"?)
-        Encounter enc = getCreateEncounter(mrnStr, adtMsg.getVisitNumber(), admissionTime);
+        Encounter enc = getCreateEncounter(mrnStr, adtMsg.getVisitNumber(), storedFrom, admissionTime);
         List<PatientFact> allHospitalVisits = getOpenVisitFactWhereVisitType(enc, AttributeKeyMap.HOSPITAL_VISIT);
 
         // This perhaps belongs in a getCreateHospitalVisit method, with an
@@ -496,7 +500,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             addDemographicsToEncounter(enc, adtMsg);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-            addOpenLocationVisit(enc, visitType, adtMsg.getAdmissionDateTime(), hospitalVisit,
+            addOpenLocationVisit(enc, visitType, storedFrom, adtMsg.getAdmissionDateTime(), hospitalVisit,
                     adtMsg.getFullLocationString(), adtMsg.getPatientClass());
             break;
         case 1:
@@ -506,7 +510,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // existing bed visit and its properties and created a new one,
             // but now treat it as a transfer. You need an explicit cancel admit message
             // to get the old behaviour.
-            transferPatient(adtMsg);
+            transferPatient(adtMsg, storedFrom);
             break;
         default:
             throw new MessageIgnoredException(adtMsg, "More than 1 (count = " + allHospitalVisits.size()
@@ -643,16 +647,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param enc            the encounter to add the Visit to
      * @param visitType     the fact type of the location visit, should only be BED_VISIT or OUTPATIENT_VISIT or similar
+     * @param storedFrom    storedFrom time to use for new records
      * @param visitBeginTime when the Visit began, which could be an admission
      * @param hospitalVisit    the (hospital) visit to add the new location visit to
      * @param currentLocation     location
      * @param patientClass     the patient class
      */
     @Transactional
-    private void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant visitBeginTime,
+    private void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant storedFrom, Instant visitBeginTime,
             PatientFact hospitalVisit, String currentLocation, String patientClass) {
         PatientFact visitFact = new PatientFact();
-        Instant storedFrom = Instant.now();
         visitFact.setStoredFrom(storedFrom);
         visitFact.setValidFrom(visitBeginTime);
         Attribute hosp = getCreateAttribute(visitType);
@@ -673,12 +677,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Close off the existing Visit and open a new one.
      *
      * @param adtMsg usually an A02 message but can be an A08
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
      * @throws EmapStarIntegrityException if a contradiction between DB and the incoming message or itself
      * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    public void transferPatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+    public void transferPatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
         // Location while the old patient location should appear in PV1-6 - Prior
         // Patient Location."
@@ -687,15 +693,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // admit time + location.
         String mrnStr = adtMsg.getMrn();
         String visitNumber = adtMsg.getVisitNumber();
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
 
-        if (encounter == null) {
-            logger.warn("Received transfer for patient we don't know about - admitting them");
-            encounter = admitPatient(adtMsg);
-            return;
-        }
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+        Instant recordedDateTime = adtMsg.getRecordedDateTime();
 
-        List<PatientFact> latestOpenBedVisits = getOpenValidLocationVisit(encounter);
         // The discharge datetime will be null, presumably because the patient hasn't
         // been discharged yet
 
@@ -713,9 +714,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // or there was a big gap between A08 event + recorded time.
             eventOccurred = adtMsg.getRecordedDateTime();
         }
+
+        Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
+
+        List<PatientFact> latestOpenBedVisits = getOpenValidLocationVisit(encounter);
         if (latestOpenBedVisits.isEmpty()) {
-            throw new MessageIgnoredException(adtMsg,
-                    "No open bed visit, cannot transfer, did you miss an A13? visit " + visitNumber);
+            logger.warn("Received transfer for patient we didn't know was admitted - admitting them instead");
+            admitPatient(adtMsg, storedFrom);
+            return;
         }
         PatientFact latestOpenBedVisit = latestOpenBedVisits.get(0);
         String newTransferLocation = adtMsg.getFullLocationString();
@@ -733,9 +739,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
         addDischargeToVisit(latestOpenBedVisit, eventOccurred);
 
-        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
-        Instant recordedDateTime = adtMsg.getRecordedDateTime();
-
         String admitSource = adtMsg.getAdmitSource();
         logger.info(String.format(
                 "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
@@ -749,22 +752,23 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
         AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-        addOpenLocationVisit(encounter, visitType, eventOccurred, hospitalVisit.get(0), newTransferLocation, adtMsg.getPatientClass());
+        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, hospitalVisit.get(0), newTransferLocation, adtMsg.getPatientClass());
     }
 
     /**
      * Mark the specified visit as finished.
      *
      * @param adtMsg the A03 message detailing the discharge
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
      * @throws EmapStarIntegrityException contradiction in the DB
      * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    public void dischargePatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+    public void dischargePatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtMsg.getMrn();
         String visitNumber = adtMsg.getVisitNumber();
-        Instant storedFrom = Instant.now();
 
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
         if (encounter == null) {
@@ -773,7 +777,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 throw new MessageIgnoredException(adtMsg,
                         "Cannot find the visit " + visitNumber + " and we don't know the admission date so can't create an admission");
             } else {
-                encounter = admitPatient(adtMsg);
+                encounter = admitPatient(adtMsg, storedFrom);
             }
         }
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
@@ -849,17 +853,19 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Cancel a pre-existing admission by invalidating the facts associated with it.
      * @param adtMsg the adt message
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
      * @throws InvalidMrnException think this is useless
      * @throws EmapStarIntegrityException contradiction in the db
      */
-    private void cancelAdmitPatient(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+    private void cancelAdmitPatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String visitNumber = adtMsg.getVisitNumber();
         Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
 
         if (encounter == null) {
             logger.warn("Tried to cancel admit for patient we don't know about - admitting them");
-            encounter = admitPatient(adtMsg);
+            encounter = admitPatient(adtMsg, storedFrom);
         }
 
         List<PatientFact> latestOpenBedVisits = getOpenValidLocationVisit(encounter);
@@ -879,10 +885,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * erroneously entered, or a decision to discharge was reversed.
      *
      * @param adtMsg the A13 message detailing the cancel discharge
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
      */
     @Transactional
-    private void cancelDischargePatient(AdtMessage adtMsg) throws MessageIgnoredException {
+    private void cancelDischargePatient(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         String visitNumber = adtMsg.getVisitNumber();
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtMsg.getEventOccurredDateTime();
@@ -1036,12 +1043,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * communicated only via an A08)
      *
      * @param adtMsg the message with the patient info
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
      * @throws EmapStarIntegrityException if there's a contradiction in the DB
      * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    private void updatePatientInfo(AdtMessage adtMsg) throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+    private void updatePatientInfo(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String visitNumber = adtMsg.getVisitNumber();
         String newLocation = adtMsg.getFullLocationString();
 
@@ -1071,7 +1080,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (!newLocation.equals(knownlocation.getValueAsString())) {
             logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtMsg.getMrn(),
                     visitNumber, knownlocation.getValueAsString(), newLocation));
-            transferPatient(adtMsg);
+            transferPatient(adtMsg, storedFrom);
         }
     }
 
@@ -1118,14 +1127,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * non-surviving MRN.
      *
      * @param adtMsg message containing merge info
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if merge time in message is blank or message can't be processed
      */
     @Transactional
-    private void mergeById(AdtMessage adtMsg) throws MessageIgnoredException {
+    private void mergeById(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         String oldMrnStr = adtMsg.getMergedPatientId();
         String survivingMrnStr = adtMsg.getMrn();
         Instant mergeTime = adtMsg.getRecordedDateTime();
-        Instant storedFrom = Instant.now();
         logger.info(String.format("MERGE: surviving mrn %s, oldMrn = %s, merge time = %s", survivingMrnStr, oldMrnStr,
                 mergeTime));
         if (mergeTime == null) {
@@ -1179,18 +1188,20 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Convert the simplified data from the pathology message into Inform-db structures,
      * and merge with existing data depending on whether it's a new order or changes to an existing one.
      * @param pathologyOrder the pathology order details, may contain results
+     * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
      * @throws EmapStarIntegrityException contradiction in DB
      */
     @Transactional
-    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder) throws MessageIgnoredException, EmapStarIntegrityException {
+    private void addOrUpdatePathologyOrder(PathologyOrder pathologyOrder, Instant storedFrom)
+            throws MessageIgnoredException, EmapStarIntegrityException {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
         String mrnStr = pathologyOrder.getMrn();
         PatientFact newPathologyOrder = buildPathologyOrderFact(pathologyOrder);
         Instant backupValidFrom = newPathologyOrder.getValidFrom();
         // build the order fact from the message data
-        Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber, mrnStr, backupValidFrom);
+        Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber, mrnStr, storedFrom, backupValidFrom);
         Encounter encounter = encounterOrderPair.getLeft();
         PatientFact existingOrderRootFact = encounterOrderPair.getRight();
 
@@ -1425,6 +1436,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param epicCareOrderNumber the Epic order number to search by
      * @param visitNumber the encounter/visit number to search by
      * @param mrnStr MRN string to use if an MRN record needs creating
+     * @param storedFrom storedFrom time to use for new records
      * @param backupValidFrom validFrom time to use if encounter/mrn/person needs creating
      * @return Pair containing the Encounter object that this order is attached to and the PatientFact object that is the root
      * object representing the order, if it exists (else null).
@@ -1432,7 +1444,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapStarIntegrityException contradiction in DB
      */
     private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber,
-            String mrnStr, Instant backupValidFrom)
+            String mrnStr, Instant storedFrom, Instant backupValidFrom)
             throws MessageIgnoredException, EmapStarIntegrityException {
         // We do get messages with blank Epic order numbers,
         // however searching on a blank order number will never do the right
@@ -1456,7 +1468,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // (also our test depends on this being allowed)
             logger.error(String.format("Couldn't find order with order number %s, searching by visit number instead", epicCareOrderNumber));
             if (!visitNumber.isEmpty()) {
-                encounter = getCreateEncounter(mrnStr, visitNumber, backupValidFrom);
+                encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, backupValidFrom);
             } else {
                 throw new MessageIgnoredException("Can't find encounter - can't search on empty visit number");
             }
