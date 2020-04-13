@@ -85,13 +85,10 @@ public class IdsOperations implements AutoCloseable {
 
         // Since progress is stored as the unid (the date info is purely for human convenience),
         // there is no way to translate a future date into a unid.
-        // This feature is intended for processing messages in the past, however!
+        // This feature is only intended for processing messages in the past, so that's OK.
         logger.info(String.format(
-                "Start unid to use if no progress is found = %d (from date = %s). If this is null, can be because the date is in the future",
-                this.defaultStartUnid, defaultStartDatetime));
-        logger.info(String.format(
-                "End unid at which to stop processing = %d (from date = %s). If this is null, can be because the date is in the future",
-                this.endUnid, endDatetime));
+                "IDS message processing boundaries: Start date = %s, start unid = %d  -->  End date = %s, end unid = %d",
+                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid));
     }
 
     private Integer defaultStartUnid;
@@ -145,11 +142,15 @@ public class IdsOperations implements AutoCloseable {
      * Find the first message in the IDS that came in at or after a certain
      * timestamp.
      *
-     * @param fromDateTime the timestamp to start from
+     * @param fromDateTime the timestamp to start from, or null for no boundary
      * @return the unid of the first message to be persisted at or after that time,
-     *         or null if there are no such messages
+     *         or null if there are no such messages or no bound was requested (fromDateTime == null)
      */
     private Integer getFirstMessageUnidFromDate(Instant fromDateTime) {
+        if (fromDateTime == null) {
+            // bypass this slow query if no bound was requested
+            return null;
+        }
         try (Session idsSession = idsFactory.openSession();) {
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qexists = idsSession.createQuery(
@@ -158,6 +159,7 @@ public class IdsOperations implements AutoCloseable {
             qexists.setMaxResults(1);
             List<IdsMaster> msgs = qexists.list();
             if (msgs.isEmpty()) {
+                logger.warn(String.format("No IDS messages were found beyond the specified date %s, is it in the future?", fromDateTime));
                 return null;
             } else {
                 return msgs.get(0).getUnid();
