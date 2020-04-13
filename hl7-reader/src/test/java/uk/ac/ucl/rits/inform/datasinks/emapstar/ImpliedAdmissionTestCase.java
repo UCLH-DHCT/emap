@@ -33,7 +33,7 @@ import uk.ac.ucl.rits.inform.interchange.VitalSigns;
  */
 public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     private Instant expectedAdmissionDateTime = Instant.parse("2020-03-01T06:30:00.000Z");
-    private Instant expectedTransferDateTime = Instant.parse("2020-03-01T10:35:00.000Z");
+    private Instant expectedBedArrivalDateTime = Instant.parse("2020-03-01T10:35:00.000Z");
     private Instant expectedDischargeTime = null;
 
     public ImpliedAdmissionTestCase() {
@@ -61,7 +61,7 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.TRANSFER_PATIENT);
             setAdmissionDateTime(expectedAdmissionDateTime);
-            setEventOccurredDateTime(expectedTransferDateTime);
+            setEventOccurredDateTime(expectedBedArrivalDateTime);
             setMrn("1234ABCD");
             setVisitNumber("1234567890");
             setPatientClass("I");
@@ -75,10 +75,11 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
      */
     public void performDischarge() throws EmapOperationMessageProcessingException {
         expectedDischargeTime = Instant.parse("2020-03-01T16:21:54.000Z");
+        expectedBedArrivalDateTime = null;
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.DISCHARGE_PATIENT);
             setAdmissionDateTime(expectedAdmissionDateTime);
-            setEventOccurredDateTime(expectedTransferDateTime);
+            setEventOccurredDateTime(expectedDischargeTime);
             setMrn("1234ABCD");
             setFullLocationString("T42^BADGERS^WISCONSIN");
             setVisitNumber("1234567890");
@@ -102,10 +103,9 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
         // check bed visit arrival time
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());
-        PatientProperty arrivalTime = _arrivalTimes.get(0);
+        PatientProperty bedArrivalTime = _arrivalTimes.get(0);
 
-        // this is known to fail
-        //        assertEquals(expectedTransferDateTime, arrivalTime.getValueAsDatetime());
+        assertEquals(expectedBedArrivalDateTime, bedArrivalTime.getValueAsDatetime());
 
         // check hospital visit arrival time
         PatientFact hospVisit = bedVisit.getParentFact();

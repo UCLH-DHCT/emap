@@ -479,6 +479,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String mrnStr = adtMsg.getMrn();
         Instant admissionTime = adtMsg.getAdmissionDateTime();
+        // Location visit start time is normally the same as (hospital) admission time.
+        // However, if this admission is being implied from a non-admit message,
+        // then the location (bed) visit can start at a different time instead.
+        Instant locationVisitStartTime;
+        Instant locationVisitValidFrom;
+        if (adtMsg.getOperationType().equals(AdtOperationType.TRANSFER_PATIENT)) {
+            // Bed visit start time is the transfer time, thus leaving a gap where
+            // we don't know where they were, which is the most
+            // accurate representation of the data we have.
+            locationVisitStartTime = adtMsg.getEventOccurredDateTime();
+            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
+            locationVisitStartTime = null;
+            locationVisitValidFrom = adtMsg.getDischargeDateTime();
+        } else {
+            locationVisitStartTime = admissionTime;
+            locationVisitValidFrom = admissionTime;
+        }
         if (mrnStr == null) {
             throw new InvalidMrnException(String.format("Missing mrn in message"));
         }
@@ -500,7 +518,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             addDemographicsToEncounter(enc, adtMsg);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-            addOpenLocationVisit(enc, visitType, storedFrom, adtMsg.getAdmissionDateTime(), hospitalVisit,
+            addOpenLocationVisit(enc, visitType, storedFrom, locationVisitValidFrom, locationVisitStartTime, hospitalVisit,
                     adtMsg.getFullLocationString(), adtMsg.getPatientClass());
             break;
         case 1:
@@ -643,31 +661,40 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Add a new open bed/outpatient/ED ("location") visit to an existing higher-level (hospital) visit.
+     * Add a new open bed/outpatient/ED ("location") visit to an existing
+     * higher-level (hospital) visit.
      *
-     * @param enc            the encounter to add the Visit to
-     * @param visitType     the fact type of the location visit, should only be BED_VISIT or OUTPATIENT_VISIT or similar
-     * @param storedFrom    storedFrom time to use for new records
-     * @param visitBeginTime when the Visit began, which could be an admission
-     * @param hospitalVisit    the (hospital) visit to add the new location visit to
-     * @param currentLocation     location
-     * @param patientClass     the patient class
+     * @param enc             the encounter to add the Visit to
+     * @param visitType       the fact type of the location visit, should only be
+     *                        BED_VISIT or OUTPATIENT_VISIT or similar
+     * @param storedFrom      storedFrom time to use for new records
+     * @param validFrom       the validFrom time to use for new records. Will
+     *                        usually be the same as visitBeginTime, but it can't be
+     *                        null
+     * @param visitBeginTime  when the Visit (either location or hospital visit)
+     *                        began. Will usually be the same as validFrom, but it
+     *                        can be null if the start time can't be determined
+     * @param hospitalVisit   the (hospital) visit to add the new location visit to
+     * @param currentLocation location
+     * @param patientClass    the patient class
      */
     @Transactional
-    private void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant storedFrom, Instant visitBeginTime,
-            PatientFact hospitalVisit, String currentLocation, String patientClass) {
+    private void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant storedFrom, Instant validFrom,
+            Instant visitBeginTime, PatientFact hospitalVisit, String currentLocation, String patientClass) {
         PatientFact visitFact = new PatientFact();
         visitFact.setStoredFrom(storedFrom);
-        visitFact.setValidFrom(visitBeginTime);
-        Attribute hosp = getCreateAttribute(visitType);
-        visitFact.setFactType(hosp);
+        visitFact.setValidFrom(validFrom);
+        visitFact.setFactType(getCreateAttribute(visitType));
 
+        // Sometimes it's impossible to determine when a bed visit started eg - the
+        // first ADT message we receive for an encounter was a discharge message, so
+        // visitBeginTime can be null
         visitFact.addProperty(
-                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
+                buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
         visitFact.addProperty(
-                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.LOCATION, currentLocation));
+                buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.LOCATION, currentLocation));
         visitFact.addProperty(
-                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.PATIENT_CLASS, patientClass));
+                buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_CLASS, patientClass));
 
         hospitalVisit.addChildFact(visitFact);
         enc.addFact(visitFact);
@@ -752,7 +779,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
         AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, hospitalVisit.get(0), newTransferLocation, adtMsg.getPatientClass());
+        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, eventOccurred, hospitalVisit.get(0), newTransferLocation, adtMsg.getPatientClass());
     }
 
     /**
@@ -780,6 +807,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
             // If visit was not known about, admit the patient first before going on to discharge
+            // It's not possible to tell when to start the bed visit from.
             encounter = admitPatient(adtMsg, storedFrom);
             latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         }
