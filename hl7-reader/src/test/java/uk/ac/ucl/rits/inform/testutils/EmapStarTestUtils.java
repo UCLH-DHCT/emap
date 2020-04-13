@@ -20,24 +20,25 @@ import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
+
 /**
- * 
- * @author jeremystein
+ * Utility methods for making assertions about the contents of Emap-Star.
+ * These are used by the (Interchange -> Emap-Star) test cases in
+ * uk.ac.ucl.rits.inform.datasinks.emapstar, and by the end to end (HL7 ->->
+ * Emap-Star) tests in uk.ac.ucl.rits.inform.tests.
  *
+ * @author Jeremy Stein
  */
 @Component
 @ActiveProfiles("test")
-@ComponentScan(basePackages= {
-        "uk.ac.ucl.rits.inform.informdb" })
+@ComponentScan(basePackages = { "uk.ac.ucl.rits.inform.informdb" })
 public class EmapStarTestUtils {
 
     @Autowired
     protected EncounterRepository encounterRepo;
-    
-    public EmapStarTestUtils() {
-        // TODO Auto-generated constructor stub
-    }
 
+    public EmapStarTestUtils() {
+    }
 
     /**
      * Check that the encounter got loaded and has the right number of
@@ -47,9 +48,10 @@ public class EmapStarTestUtils {
      * @param expectedTotalVisits How many bed/location visits in the encounter in total
      * @param expectedLocation where the patient is expected to be for one of their visits
      * @param expectedDischargeTime for this same visit, the expected discharged time, or null if it's expected to be still open
+     * @return the bedVisit found
      */
     @Transactional
-    public void _testVisitExistsWithLocation(String expectedEncounter, int expectedTotalVisits, String expectedLocation, Instant expectedDischargeTime) {
+    public PatientFact _testVisitExistsWithLocation(String expectedEncounter, int expectedTotalVisits, String expectedLocation, Instant expectedDischargeTime) {
         Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
         assertNotNull("encounter did not exist", enc);
         Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
@@ -75,6 +77,7 @@ public class EmapStarTestUtils {
             assertEquals("Discharge time does not match", expectedDischargeTime, disch.getValueAsDatetime());
 
         }
+        return bedVisit;
     }
     
 }

@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,6 +27,7 @@ import uk.ac.ucl.rits.inform.informdb.Fact;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.testutils.EmapStarTestUtils;
 
 /**
  * Test cases that take a stream of Emap Interchange messages as an input,
@@ -37,6 +39,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
+@ComponentScan(basePackages = { "uk.ac.ucl.rits.inform.testutils" })
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class MessageStreamTestCase {
     @Autowired
@@ -47,6 +50,9 @@ public abstract class MessageStreamTestCase {
     protected MrnRepository mrnRepo;
     @Autowired
     protected PatientFactRepository patientFactRepo;
+
+    @Autowired
+    protected EmapStarTestUtils emapStarTestUtils;
 
     protected List<EmapOperationMessage> messageStream = new ArrayList<>();
 
