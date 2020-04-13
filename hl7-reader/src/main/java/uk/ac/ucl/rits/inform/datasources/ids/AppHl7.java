@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.parser.PipeParser;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 
 /**
@@ -49,9 +50,14 @@ public class AppHl7 {
             PipeParser parser = context.getPipeParser();
             logger.info("Done initialising HAPI");
 
+            int exitCode = 1;
             while (true) {
                 try {
                     idsOps.parseAndSendNextHl7(publisher, parser);
+                } catch (ReachedEndException ree) {
+                    // last message has been processed, so stop
+                    exitCode = 0;
+                    break;
                 } catch (Exception e) {
                     // we may want to handle AmqpException specifically
                     // we need to distinguish between situations where a retry will help
@@ -62,14 +68,14 @@ public class AppHl7 {
             }
 
             long endCurrentTimeMillis = System.currentTimeMillis();
-            logger.info(String.format("processed messages for %.0f secs",
-                    (endCurrentTimeMillis - startTimeMillis) / 1000.0));
+            logger.info(String.format("processed messages for %.0f secs, exiting with code %d",
+                    (endCurrentTimeMillis - startTimeMillis) / 1000.0, exitCode));
             context.close();
             idsOps.close();
-            // Make sure all threads exit - it's an error exit code because something
-            // abnormal must have happened to get to this point. In the non-error case
-            // this program sits and processes messages until the end of time.
-            System.exit(1);
+            // Make sure all threads exit - if running in open-ended mode, ie. no IDS endUnid
+            // to stop at, then the only way to get here is because something
+            // abnormal has happened
+            System.exit(exitCode);
         };
     }
 }
