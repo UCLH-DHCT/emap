@@ -12,7 +12,7 @@ configure_time_window() {
     # run up to most recent midnight, from N days previous
     export window_start="$(date --iso-8601=date --date="$window_length_ago")T00:00:00.000Z"
     export window_end="$(date --iso-8601=date)T00:00:00.000Z"
-    echo Setting config for pipeline to run from $window_start to $window_end
+    echo "Setting config for pipeline to run from $window_start to $window_end"
     perl -pi.$(date --iso-8601=seconds) \
         -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/;
             s/^(IDS_CFG_END_DATETIME)=.*$/$1=$ENV{"window_end"}/;
@@ -26,9 +26,9 @@ configure_time_window() {
  
 stop_it_and_tidy_up() {
     bash emap-live.sh ps
-    echo Tidying up...
+    echo "Tidying up..."
     bash emap-live.sh down
-    echo Done tidying up
+    echo "Done tidying up"
     bash emap-live.sh ps
 }
 
@@ -66,15 +66,15 @@ wait_for_queue_to_empty() {
         non_empty_queues=$(bash emap-live.sh exec rabbitmq rabbitmqctl -q list_queues \
             | awk -v RS='\r\n' 'BEGIN {OFS="\t"} {if (($1=="hl7Queue" || $1=="caboodleQueue") && $2!="0") {print $1 $2}  }' )
         if [ -z "$non_empty_queues" ]; then
-            echo Queues are empty, continuing
+            echo "Queues are empty, continuing"
             break
         elif expr \( $(date +%s) - $start_time \) \> $timeout_secs; then
             echo "Waiting for queue timed out"
             stop_it_and_tidy_up
             exit 2
         else
-            echo Queues still have contents, waiting
-            sleep 20
+            echo "Queues still have contents, waiting"
+            sleep 120
         fi
     done
 }
