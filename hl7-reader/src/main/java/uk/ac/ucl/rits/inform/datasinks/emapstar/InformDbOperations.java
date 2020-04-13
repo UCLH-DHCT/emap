@@ -514,8 +514,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
-            hospitalVisit = addOpenHospitalVisit(enc, admissionTime, adtMsg.getPatientClass());
-            addDemographicsToEncounter(enc, adtMsg);
+            hospitalVisit = addOpenHospitalVisit(enc, storedFrom, admissionTime, adtMsg.getPatientClass());
+            addDemographicsToEncounter(enc, adtMsg, storedFrom);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
             addOpenLocationVisit(enc, visitType, storedFrom, locationVisitValidFrom, locationVisitStartTime, hospitalVisit,
@@ -556,9 +556,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * @param enc        the encounter to add to
      * @param adtMsg the message details to use
+     * @param storedFrom storedFrom value to use for new records
      */
-    private void addDemographicsToEncounter(Encounter enc, AdtMessage adtMsg) {
-        Map<String, PatientFact> demogs = buildPatientDemographics(adtMsg);
+    private void addDemographicsToEncounter(Encounter enc, AdtMessage adtMsg, Instant storedFrom) {
+        Map<String, PatientFact> demogs = buildPatientDemographics(adtMsg, storedFrom);
         demogs.forEach((k, v) -> enc.addFact(v));
     }
 
@@ -568,24 +569,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * treated very similarly.
      *
      * @param adtMsg the msg to build demographics from
+     * @param storedFrom storedFrom value to use for new records
      * @return Attribute->Fact key-value pairs
      */
-    private Map<String, PatientFact> buildPatientDemographics(AdtMessage adtMsg) {
+    private Map<String, PatientFact> buildPatientDemographics(AdtMessage adtMsg, Instant storedFrom) {
         Map<String, PatientFact> demographics = new HashMap<>();
         Instant validFrom = adtMsg.getEventOccurredDateTime();
         if (validFrom == null) {
             // some messages (eg. A08) don't have an event occurred field
             validFrom = adtMsg.getRecordedDateTime();
         }
-        Instant storedFrom = Instant.now();
         PatientFact nameFact = new PatientFact();
         nameFact.setValidFrom(validFrom);
         nameFact.setStoredFrom(storedFrom);
         Attribute nameAttr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
         nameFact.setFactType(nameAttr);
-        addPropertyToFact(nameFact, AttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
-        addPropertyToFact(nameFact, AttributeKeyMap.MIDDLE_NAMES, adtMsg.getPatientMiddleName());
-        addPropertyToFact(nameFact, AttributeKeyMap.FAMILY_NAME, adtMsg.getPatientFamilyName());
+        addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
+        addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.MIDDLE_NAMES, adtMsg.getPatientMiddleName());
+        addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.FAMILY_NAME, adtMsg.getPatientFamilyName());
         demographics.put(AttributeKeyMap.NAME_FACT.getShortname(), nameFact);
 
         PatientFact generalDemoFact = new PatientFact();
@@ -594,15 +595,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         generalDemoFact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
 
         // will we have to worry about Instants and timezones shifting the date?
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.DOB, adtMsg.getPatientBirthDate());
+        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.DOB, adtMsg.getPatientBirthDate());
 
         String hl7Sex = adtMsg.getPatientSex();
         Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.SEX, sexAttrValue);
+        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.SEX, sexAttrValue);
 
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.NHS_NUMBER, adtMsg.getNhsNumber());
+        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.NHS_NUMBER, adtMsg.getNhsNumber());
 
-        addPropertyToFact(generalDemoFact, AttributeKeyMap.POST_CODE, adtMsg.getPatientZipOrPostalCode());
+        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.POST_CODE, adtMsg.getPatientZipOrPostalCode());
 
         demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname(), generalDemoFact);
         return demographics;
@@ -638,13 +639,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * ongoing.
      *
      * @param enc            the Encounter to add to
+     * @param storedFrom     storedFrom value to use for new records
      * @param visitBeginTime The start time of the visit
      * @param patientClass   the patient class
      * @return the hospital visit fact object
      */
     @Transactional
-    private PatientFact addOpenHospitalVisit(Encounter enc, Instant visitBeginTime, String patientClass) {
-        Instant storedFrom = Instant.now();
+    private PatientFact addOpenHospitalVisit(Encounter enc, Instant storedFrom, Instant visitBeginTime, String patientClass) {
         PatientFact visitFact = new PatientFact();
         visitFact.setValidFrom(visitBeginTime);
         visitFact.setStoredFrom(storedFrom);
@@ -764,7 +765,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             logger.warn(err);
             throw new MessageIgnoredException(adtMsg, err);
         }
-        addDischargeToVisit(latestOpenBedVisit, eventOccurred);
+        addDischargeToVisit(latestOpenBedVisit, eventOccurred, storedFrom);
 
         String admitSource = adtMsg.getAdmitSource();
         logger.info(String.format(
@@ -779,7 +780,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
         // link the bed visit to the parent (hospital) visit
         AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, eventOccurred, hospitalVisit.get(0), newTransferLocation, adtMsg.getPatientClass());
+        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, eventOccurred, hospitalVisit.get(0),
+                newTransferLocation, adtMsg.getPatientClass());
     }
 
     /**
@@ -819,9 +821,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throw new MessageIgnoredException(adtMsg, "Trying to discharge but the discharge date is null");
         } else {
             // Discharge from the bed visit and the hospital visit
-            addDischargeToVisit(latestOpenBedVisit, dischargeDateTime);
+            addDischargeToVisit(latestOpenBedVisit, dischargeDateTime, storedFrom);
             PatientFact hospVisit = latestOpenBedVisit.getParentFact();
-            addDischargeToVisit(hospVisit, dischargeDateTime);
+            addDischargeToVisit(hospVisit, dischargeDateTime, storedFrom);
 
             String dischargeDisposition = adtMsg.getDischargeDisposition();
             // Add discharge disposition to hospital visit only, not bed.
@@ -970,13 +972,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *
      * @param visit             the visit to mark as finished
      * @param dischargeDateTime the discharge/transfer time
+     * @param storedFrom storedFrom value to use for new records
      */
     @Deprecated
-    private void addDischargeToVisit(PatientFact visit, Instant dischargeDateTime) {
+    private void addDischargeToVisit(PatientFact visit, Instant dischargeDateTime, Instant storedFrom) {
         Attribute dischargeTime = getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
         PatientProperty visProp = new PatientProperty();
         visProp.setValidFrom(dischargeDateTime);
-        visProp.setStoredFrom(Instant.now());
+        visProp.setStoredFrom(storedFrom);
         visProp.setValueAsDatetime(dischargeDateTime);
         visProp.setPropertyType(dischargeTime);
         visit.addProperty(visProp);
@@ -1008,24 +1011,18 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Add a property (key-value pair) to a pre-existing fact. Use buildPatientProperty in preference?
+     * Add a property (key-value pair) to a pre-existing fact, only if its value is non-null.
      *
-     * Use buildPatientProperty instead.
+     * Mainly kept for backwards compatibility, consider using buildPatientProperty directly instead.
      *
      * @param fact      the fact to add to
+     * @param storedFrom storedFrom time to use for new records
      * @param propertyType    the property key
      * @param factValue the property value
      */
-    @Deprecated
-    private void addPropertyToFact(PatientFact fact, AttributeKeyMap propertyType, Object factValue) {
+    private void addPropertyToFact(PatientFact fact, Instant storedFrom, AttributeKeyMap propertyType, Object factValue) {
         if (factValue != null) {
-            Attribute attr = getCreateAttribute(propertyType);
-            PatientProperty prop = new PatientProperty();
-            prop.setValidFrom(fact.getValidFrom());
-            prop.setStoredFrom(Instant.now());
-            prop.setPropertyType(attr);
-            prop.setValue(factValue);
-            fact.addProperty(prop);
+            fact.addProperty(buildPatientProperty(storedFrom, fact.getValidFrom(), propertyType, factValue));
         }
     }
 
@@ -1090,7 +1087,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             throw new MessageIgnoredException(adtMsg, "Cannot find the visit " + visitNumber);
         }
         // Compare new demographics with old
-        Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg);
+        Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg, storedFrom);
         Map<String, PatientFact> currentDemographics = getValidStoredDemographicFacts(encounter).stream()
                 .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
         updateDemographics(encounter, currentDemographics, newDemographics);
@@ -1224,7 +1221,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String visitNumber = pathologyOrder.getVisitNumber();
         String epicCareOrderNumber = pathologyOrder.getEpicCareOrderNumber();
         String mrnStr = pathologyOrder.getMrn();
-        PatientFact newPathologyOrder = buildPathologyOrderFact(pathologyOrder);
+        PatientFact newPathologyOrder = buildPathologyOrderFact(pathologyOrder, storedFrom);
         Instant backupValidFrom = newPathologyOrder.getValidFrom();
         // build the order fact from the message data
         Pair<Encounter, PatientFact> encounterOrderPair = getEncounterForOrder(epicCareOrderNumber, visitNumber, mrnStr, storedFrom, backupValidFrom);
@@ -1249,7 +1246,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         //
         // Add the results to the newly constructed order fact, although that fact may not
         // be used if there is an existing order.
-        Map<String, PatientFact> newPathologyResults = buildPathologyResultsFacts(newPathologyOrder,
+        Map<String, PatientFact> newPathologyResults = buildPathologyResultsFacts(newPathologyOrder, storedFrom,
                 pathologyOrder.getPathologyResults(), pathologyOrder.getTestBatteryLocalCode());
 
         if (existingOrderRootFact != null) {
@@ -1324,10 +1321,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Convert order details from an Emap-Interchange message to Emap-Star structures.
      * @param order the pathology order details
+     * @param storedFrom storedFrom time to use for new records
      * @return a PatientFact object that represents the order
      */
-    private PatientFact buildPathologyOrderFact(PathologyOrder order) {
-        Instant storedFrom = Instant.now();
+    private PatientFact buildPathologyOrderFact(PathologyOrder order, Instant storedFrom) {
         // The valid from date should be the order time, when this fact became true.
         // However we are currently not getting this time, so try to find
         // another non-null time: the requested or collection/observation time
@@ -1403,14 +1400,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * results at different times and this might be useful).
      *
      * @param parent the parent PatientFact, either from the DB or newly constructed
+     * @param storedFrom storedFrom time to use for new records
      * @param pathResults the pathology results
      * @param testBatteryLocalCode the battery local code for the order
      * @return all descendant PatientFact objects indexed by a unique identifier
      */
-    private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, List<? extends PathologyResult> pathResults,
-            String testBatteryLocalCode) {
+    private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, Instant storedFrom,
+            List<? extends PathologyResult> pathResults, String testBatteryLocalCode) {
         Map<String, PatientFact> facts = new HashMap<>();
-        Instant storedFrom = Instant.now();
         for (PathologyResult pr : pathResults) {
             Instant resultTime = pr.getResultTime();
             PatientFact fact = new PatientFact();
@@ -1448,7 +1445,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             for (PathologyOrder sensOrder : pathologySensitivities) {
                 // each sensitivity needs to be built as an order
                 List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
-                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, sensResults, sensOrder.getTestBatteryLocalCode());
+                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults, sensOrder.getTestBatteryLocalCode());
                 facts.putAll(sensFacts);
             }
         }
