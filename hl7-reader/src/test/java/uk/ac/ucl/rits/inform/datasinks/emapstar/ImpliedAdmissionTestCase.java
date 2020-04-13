@@ -34,6 +34,7 @@ import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     private Instant expectedAdmissionDateTime = Instant.parse("2020-03-01T06:30:00.000Z");
     private Instant expectedTransferDateTime = Instant.parse("2020-03-01T10:35:00.000Z");
+    private Instant expectedDischargeTime = null;
 
     public ImpliedAdmissionTestCase() {
     }
@@ -70,12 +71,34 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     }
 
     /**
+     * Process a discharge message.
+     */
+    public void performDischarge() throws EmapOperationMessageProcessingException {
+        expectedDischargeTime = Instant.parse("2020-03-01T16:21:54.000Z");
+        processSingleMessage(new AdtMessage() {{
+            setOperationType(AdtOperationType.DISCHARGE_PATIENT);
+            setAdmissionDateTime(expectedAdmissionDateTime);
+            setEventOccurredDateTime(expectedTransferDateTime);
+            setMrn("1234ABCD");
+            setFullLocationString("T42^BADGERS^WISCONSIN");
+            setVisitNumber("1234567890");
+            setPatientClass("I");
+            setPatientFullName("Fred Bloggs");
+            setDischargeDisposition("foo");
+            setDischargeLocation("Home");
+            setDischargeDateTime(expectedDischargeTime);
+            setPatientDeathIndicator(false);
+        }});
+    }
+
+    /**
      * Whatever happens in the setup, this visit should always be present.
+     * Expected discharge time depends on whether the discharge message has been sent.
      */
     @Test
     @Transactional
     public void testVisitPresent() {
-        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation("1234567890", 1, "T42^BADGERS^WISCONSIN", null);
+        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation("1234567890", 1, "T42^BADGERS^WISCONSIN", expectedDischargeTime);
         // check bed visit arrival time
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());
