@@ -757,10 +757,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 getOnlyElement(latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid())).getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
             // If we get an A02 with a new location that matches where we already thought
-            // the patient was,
-            // don't perform an actual transfer. In the test data, this happens in a
-            // minority of cases
-            // following an A08 implied transfer. Let's see what it does in the real data...
+            // the patient was, don't perform an actual transfer.
+            // In the test data, this sometimes happens following an A08 implied transfer.
+            // Also, even if the location hasn't changed the patient class could have changed
+            // (should be made explicit as an A06 or A07 but we don't distinguish A02/A06/A07 here).
             String err = "REDUNDANT transfer, location has not changed: " + currentKnownLocation;
             logger.warn(err);
             throw new MessageIgnoredException(adtMsg, err);
