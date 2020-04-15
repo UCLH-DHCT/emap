@@ -732,7 +732,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // Definition: This field contains the date/time that the event actually
         // occurred. For example, on a transfer (A02 transfer a patient), this field
         // would contain the date/time the patient was actually transferred."
-        Instant eventOccurred = adtMsg.getEventOccurredDateTime();
+        Instant transferOccurred = adtMsg.getEventOccurredDateTime();
         if (adtMsg.getOperationType().equals(AdtOperationType.UPDATE_PATIENT_INFO)) {
             // A08 doesn't have an event time, so use the recorded time instead
             // Downside: recorded time is later than event time, so subsequent discharge
@@ -740,7 +740,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // for this visit can be *earlier* than the arrival time if it's a very short
             // visit
             // or there was a big gap between A08 event + recorded time.
-            eventOccurred = adtMsg.getRecordedDateTime();
+            transferOccurred = adtMsg.getRecordedDateTime();
         }
 
         Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
@@ -761,27 +761,37 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // In the test data, this sometimes happens following an A08 implied transfer.
             // Also, even if the location hasn't changed the patient class could have changed
             // (should be made explicit as an A06 or A07 but we don't distinguish A02/A06/A07 here).
-            String err = "REDUNDANT transfer, location has not changed: " + currentKnownLocation;
-            logger.warn(err);
-            throw new MessageIgnoredException(adtMsg, err);
+            PatientProperty currentPatientClass = getOnlyElement(
+                    latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, p -> p.isValid()));
+            if (adtMsg.getPatientClass().equals(currentPatientClass.getValueAsString())) {
+                String err = String.format("REDUNDANT transfer, location (%s) and patient class (%s) have not changed",
+                        currentKnownLocation, currentPatientClass.getValueAsString());
+                logger.warn(err);
+                throw new MessageIgnoredException(adtMsg, err);
+            } else {
+                // Only patient class has changed, so update just that without creating a new location visit
+                currentPatientClass.setValidUntil(transferOccurred);
+                latestOpenBedVisit.addProperty(
+                        buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS, adtMsg.getPatientClass()));
+            }
+        } else {
+            // locations have changed, do a "normal" transfer, patient class will get done as part of this
+            addDischargeToVisit(latestOpenBedVisit, transferOccurred, storedFrom);
+            String admitSource = adtMsg.getAdmitSource();
+            logger.info(String.format(
+                    "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
+                    mrnStr, admissionDateTime, admitSource, transferOccurred, recordedDateTime));
+            // add a new visit to the current encounter
+            Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
+            if (encounter != encounterDoubleCheck) {
+                throw new MessageIgnoredException(adtMsg, "Different encounter: " + encounter + " | " + encounterDoubleCheck);
+            }
+            List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
+            // link the bed visit to the parent (hospital) visit
+            AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
+            addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospitalVisit.get(0),
+                    newTransferLocation, adtMsg.getPatientClass());
         }
-        addDischargeToVisit(latestOpenBedVisit, eventOccurred, storedFrom);
-
-        String admitSource = adtMsg.getAdmitSource();
-        logger.info(String.format(
-                "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
-                mrnStr, admissionDateTime, admitSource, eventOccurred, recordedDateTime));
-
-        // add a new visit to the current encounter
-        Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
-        if (encounter != encounterDoubleCheck) {
-            throw new MessageIgnoredException(adtMsg, "Different encounter: " + encounter + " | " + encounterDoubleCheck);
-        }
-        List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
-        // link the bed visit to the parent (hospital) visit
-        AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, eventOccurred, hospitalVisit.get(0),
-                newTransferLocation, adtMsg.getPatientClass());
     }
 
     /**
