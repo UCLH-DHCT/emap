@@ -4,14 +4,12 @@ import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Transferring a patient we have not previously seen should create the patient with the given info.
+ * Previous history won't be known but that could potentially be filled in later (from eg. Caboodle).
  *
  * @author Jeremy Stein
  */
 public class TestPatientTransferUnknown extends Hl7StreamEndToEndTestCase {
-    /**
-     * Transferring a patient we have not previously seen should create the patient with the given info.
-     * Previous history won't be known but that could potentially be filled in later (from eg. Caboodle).
-     */
     public TestPatientTransferUnknown() {
         super();
         hl7StreamFileNames.add("GenericAdt/A02.txt");
@@ -22,7 +20,7 @@ public class TestPatientTransferUnknown extends Hl7StreamEndToEndTestCase {
      */
     @Test
     @Transactional
-    public void testEncounterExists() {
-        _testVisitExistsWithLocation("123412341234", 1, "T12S^T12S BY05^BY05-33", null);
+    public void testVisitExists() {
+        emapStarTestUtils._testVisitExistsWithLocation("123412341234", 1, "T12S^T12S BY05^BY05-33", null);
     }
 }
