@@ -378,18 +378,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Get all PatientFact objects on this encounter with the given visit type, or
-     * null if none.
-     *
-     * @param encounter where to look for PatientFact objects
-     * @param attr      the visit type (as an attribute)
-     * @return all PatientFact objects of the specified type
-     */
-    private List<PatientFact> getVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr));
-    }
-
-    /**
      * @param encounter the Encounter to search in
      * @param attr      the type to match against
      * @return all open and valid Visit objects of the specified type for the
@@ -402,12 +390,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * @param encounter the Encounter to search in
-     * @param attr      the type to match against
-     * @return all open and valid Visit objects of the specified type for the
+     * @return all closed and valid location Visits for the
      *         Encounter
      */
-    private List<PatientFact> getClosedVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr) && !visitFactIsOpen(vf) && vf.isValid());
+    private List<PatientFact> getClosedLocationVisitFact(Encounter encounter) {
+        return getVisitFactWhere(encounter,
+                vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && !visitFactIsOpen(vf) && vf.isValid());
     }
 
     /**
@@ -910,12 +898,25 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (latestOpenBedVisits.size() != 1) {
             throw new MessageIgnoredException(adtMsg, "No open location visit, cannot cancel admit" + visitNumber);
         }
+
+        // It's usual for an HL7-originated ED admission that there will be two beds
+        // visits at this point - one that resulted from the original A04 HL7 message
+        // and one from the A01 that typically has a different location.
+        // Make sure that all bed and hospital visits get invalidated in the case of a
+        // cancel admit.
+        // A side-effect of doing this is that the (corrected) admit message that follows
+        // this cancel admit will open produce one bed visit in the new hospital visit.
+        List<PatientFact> closedBedVisits = getClosedLocationVisitFact(encounter);
+
         Instant cancellationTime = adtMsg.getEventOccurredDateTime();
         PatientFact onlyOpenLocationVisit = latestOpenBedVisits.get(0);
         PatientFact hospVisit = onlyOpenLocationVisit.getParentFact();
         // do the actual invalidations
         onlyOpenLocationVisit.invalidateAll(cancellationTime);
         hospVisit.invalidateAll(cancellationTime);
+        for (PatientFact closedBedVisit : closedBedVisits) {
+            closedBedVisit.invalidateAll(cancellationTime);
+        }
     }
 
     /**
