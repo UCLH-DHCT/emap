@@ -28,6 +28,10 @@ public enum AdtOperationType {
      */
     CANCEL_ADMIT_PATIENT,
     /**
+     * Decision to transfer patient was reversed or was entered into the system in error.
+     */
+    CANCEL_TRANSFER_PATIENT,
+    /**
      * Decision to discharge patient was reversed or was entered into the system in error.
      */
     CANCEL_DISCHARGE_PATIENT,
