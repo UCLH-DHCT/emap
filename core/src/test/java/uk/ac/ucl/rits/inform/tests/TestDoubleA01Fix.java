@@ -28,8 +28,8 @@ public class TestDoubleA01Fix extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testEncounterExists() {
-        _testVisitExistsWithLocation("123412341234", 2, "T42E^T42E BY02^BY02-17", Instant.parse("2013-02-11T10:00:52Z"));
+        emapStarTestUtils._testVisitExistsWithLocation("123412341234", 2, "T42E^T42E BY02^BY02-17", Instant.parse("2013-02-11T10:00:52Z"));
         // Because there was no explicit A11, the second A01 should be treated as a transfer and its visit should still be open
-        _testVisitExistsWithLocation("123412341234", 2, "T11E^T11E BY02^BY02-17", null);
+        emapStarTestUtils._testVisitExistsWithLocation("123412341234", 2, "T11E^T11E BY02^BY02-17", null);
     }
 }
