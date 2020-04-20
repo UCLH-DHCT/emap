@@ -180,6 +180,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         case CANCEL_ADMIT_PATIENT:
             cancelAdmitPatient(adtMsg, storedFrom);
             break;
+        case CANCEL_TRANSFER_PATIENT:
+            cancelTransferPatient(adtMsg, storedFrom);
+            break;
         case CANCEL_DISCHARGE_PATIENT:
             cancelDischargePatient(adtMsg, storedFrom);
             break;
@@ -477,6 +480,18 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // we don't know where they were, which is the most
             // accurate representation of the data we have.
             locationVisitStartTime = adtMsg.getEventOccurredDateTime();
+            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_ADMIT_PATIENT)) {
+            locationVisitStartTime = admissionTime;
+            locationVisitValidFrom = admissionTime;
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_TRANSFER_PATIENT)) {
+            // we also don't know when the patient started being in their most recent location
+            // (ie. the one before the one that got cancelled)
+            locationVisitStartTime = null;
+            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_DISCHARGE_PATIENT)) {
+            // CANCEL_DISCHARGE_PATIENT messages do not carry the discharge time field :(
+            locationVisitStartTime = null;
             locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
             locationVisitStartTime = null;
@@ -915,8 +930,63 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         onlyOpenLocationVisit.invalidateAll(cancellationTime);
         hospVisit.invalidateAll(cancellationTime);
         for (PatientFact closedBedVisit : closedBedVisits) {
+            logger.info("JES : invalidting closed bed visit");
             closedBedVisit.invalidateAll(cancellationTime);
         }
+    }
+
+    /**
+     * Cancel the most recent bed visit by invalidating it.
+     *
+     * @param adtMsg the cancel transfer message
+     * @param storedFrom storedFrom time to use for new records
+     * @throws MessageIgnoredException    if message can't be processed
+     * @throws InvalidMrnException        think this is useless
+     * @throws EmapStarIntegrityException contradiction in the db
+     */
+    private void cancelTransferPatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+        String visitNumber = adtMsg.getVisitNumber();
+        String mrnStr = adtMsg.getMrn();
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+        Instant cancellationDateTime = adtMsg.getRecordedDateTime();
+        // the transfer time of the transfer being cancelled, NOT the cancellation time
+        Instant originalTransferDateTime = adtMsg.getEventOccurredDateTime();
+
+        Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
+        PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
+        if (latestOpenBedVisit == null) {
+            // If visit was not known about, admit the patient first.
+            // We now have their current location and can stop.
+            // (Don't go so far as to create their cancelled bed visit and
+            // then invalidate it).
+            encounter = admitPatient(adtMsg, storedFrom);
+            return;
+        }
+
+        // invalidate the erroneous transfer
+        latestOpenBedVisit.invalidateAll(cancellationDateTime);
+
+        // reopen the previous bed visit by invalidating its discharge time property
+        Optional<PatientFact> mostRecentBedVisitOptional = getVisitFactWhere(encounter,
+                vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
+                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2));
+
+        if (!mostRecentBedVisitOptional.isPresent()) {
+            throw new MessageIgnoredException(adtMsg, String.format(
+                    "Can't cancel transfer for CSN %s, there was no prior bed visit to re-enable", visitNumber));
+        }
+        PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
+
+        if (visitFactIsOpen(mostRecentBedVisit)) {
+            throw new MessageIgnoredException(adtMsg,
+                    String.format("Can't cancel transfer for CSN %s, prior bed visit was already open", visitNumber));
+        }
+
+        // reopen the previous visit by invalidating its discharge time
+        PatientProperty bedDischargeTime = getOnlyElement(
+                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
+        bedDischargeTime.setValidUntil(cancellationDateTime);
     }
 
     /**
@@ -926,25 +996,37 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param adtMsg the A13 message detailing the cancel discharge
      * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
+     * @throws EmapStarIntegrityException if there's a contradiction in the DB
+     * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    private void cancelDischargePatient(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private void cancelDischargePatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String visitNumber = adtMsg.getVisitNumber();
+        String mrnStr = adtMsg.getMrn();
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtMsg.getEventOccurredDateTime();
         // this must be non-null or the invalidation won't work
         if (invalidationDate == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
         }
-
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        if (encounter == null) {
-            throw new MessageIgnoredException(adtMsg, "Cannot cancel discharge for a visit that doesn't exist: " + visitNumber);
-        }
+        Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
         // Get the most recent bed visit.
-        PatientFact mostRecentBedVisit = getVisitFactWhere(encounter,
+        Optional<PatientFact> mostRecentBedVisitOptional = getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
-                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2)).get();
+                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2));
+
+        if (!mostRecentBedVisitOptional.isPresent()) {
+            // If we have no existing visit, admit the patient.
+            // We now have their current location and can stop.
+            // (Don't go so far as to create the discharge and
+            // then invalidate it).
+            admitPatient(adtMsg, storedFrom);
+            return;
+        }
+        PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
 
         // Encounters should always have at least one visit.
         if (visitFactIsOpen(mostRecentBedVisit)) {

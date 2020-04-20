@@ -37,6 +37,7 @@ public class AdtMessageBuilder {
             put("A07", AdtOperationType.TRANSFER_PATIENT);
             put("A08", AdtOperationType.UPDATE_PATIENT_INFO);
             put("A11", AdtOperationType.CANCEL_ADMIT_PATIENT);
+            put("A12", AdtOperationType.CANCEL_TRANSFER_PATIENT);
             put("A13", AdtOperationType.CANCEL_DISCHARGE_PATIENT);
             put("A40", AdtOperationType.MERGE_BY_ID);
         }

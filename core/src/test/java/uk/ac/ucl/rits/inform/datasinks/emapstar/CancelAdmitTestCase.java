@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 public class CancelAdmitTestCase extends MessageStreamTestCase {
 
