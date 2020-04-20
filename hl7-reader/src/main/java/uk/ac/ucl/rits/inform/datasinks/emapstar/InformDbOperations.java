@@ -930,7 +930,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         onlyOpenLocationVisit.invalidateAll(cancellationTime);
         hospVisit.invalidateAll(cancellationTime);
         for (PatientFact closedBedVisit : closedBedVisits) {
-            logger.info("JES : invalidting closed bed visit");
             closedBedVisit.invalidateAll(cancellationTime);
         }
     }
