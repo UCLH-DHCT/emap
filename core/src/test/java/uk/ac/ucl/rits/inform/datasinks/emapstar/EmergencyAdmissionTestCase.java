@@ -34,7 +34,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamTestCase {
             setVisitNumber("1234567890");
             setPatientClass("E");
             setPatientFullName("Fred Bloggs");
-            setFullLocationString("ED^BADGERS^WISCONSIN");
+            setFullLocationString("ED^null^null");
         }});
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
@@ -43,7 +43,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamTestCase {
             setVisitNumber("1234567890");
             setPatientClass("E");
             setPatientFullName("Fred Bloggs");
-            setFullLocationString("ED^BADGERS^WISCONSIN");
+            setFullLocationString("ED^null^null");
         }});
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);
