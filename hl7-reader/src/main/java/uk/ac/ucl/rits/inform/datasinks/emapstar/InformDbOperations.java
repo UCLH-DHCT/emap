@@ -180,6 +180,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         case CANCEL_ADMIT_PATIENT:
             cancelAdmitPatient(adtMsg, storedFrom);
             break;
+        case CANCEL_TRANSFER_PATIENT:
+            cancelTransferPatient(adtMsg, storedFrom);
+            break;
         case CANCEL_DISCHARGE_PATIENT:
             cancelDischargePatient(adtMsg, storedFrom);
             break;
@@ -378,18 +381,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Get all PatientFact objects on this encounter with the given visit type, or
-     * null if none.
-     *
-     * @param encounter where to look for PatientFact objects
-     * @param attr      the visit type (as an attribute)
-     * @return all PatientFact objects of the specified type
-     */
-    private List<PatientFact> getVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr));
-    }
-
-    /**
      * @param encounter the Encounter to search in
      * @param attr      the type to match against
      * @return all open and valid Visit objects of the specified type for the
@@ -402,12 +393,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * @param encounter the Encounter to search in
-     * @param attr      the type to match against
-     * @return all open and valid Visit objects of the specified type for the
+     * @return all closed and valid location Visits for the
      *         Encounter
      */
-    private List<PatientFact> getClosedVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
-        return getVisitFactWhere(encounter, vf -> vf.isOfType(attr) && !visitFactIsOpen(vf) && vf.isValid());
+    private List<PatientFact> getClosedLocationVisitFact(Encounter encounter) {
+        return getVisitFactWhere(encounter,
+                vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && !visitFactIsOpen(vf) && vf.isValid());
     }
 
     /**
@@ -489,6 +480,18 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // we don't know where they were, which is the most
             // accurate representation of the data we have.
             locationVisitStartTime = adtMsg.getEventOccurredDateTime();
+            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_ADMIT_PATIENT)) {
+            locationVisitStartTime = admissionTime;
+            locationVisitValidFrom = admissionTime;
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_TRANSFER_PATIENT)) {
+            // we also don't know when the patient started being in their most recent location
+            // (ie. the one before the one that got cancelled)
+            locationVisitStartTime = null;
+            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+        } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_DISCHARGE_PATIENT)) {
+            // CANCEL_DISCHARGE_PATIENT messages do not carry the discharge time field :(
+            locationVisitStartTime = null;
             locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
             locationVisitStartTime = null;
@@ -732,7 +735,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // Definition: This field contains the date/time that the event actually
         // occurred. For example, on a transfer (A02 transfer a patient), this field
         // would contain the date/time the patient was actually transferred."
-        Instant eventOccurred = adtMsg.getEventOccurredDateTime();
+        Instant transferOccurred = adtMsg.getEventOccurredDateTime();
         if (adtMsg.getOperationType().equals(AdtOperationType.UPDATE_PATIENT_INFO)) {
             // A08 doesn't have an event time, so use the recorded time instead
             // Downside: recorded time is later than event time, so subsequent discharge
@@ -740,7 +743,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // for this visit can be *earlier* than the arrival time if it's a very short
             // visit
             // or there was a big gap between A08 event + recorded time.
-            eventOccurred = adtMsg.getRecordedDateTime();
+            transferOccurred = adtMsg.getRecordedDateTime();
         }
 
         Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
@@ -757,31 +760,41 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 getOnlyElement(latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid())).getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
             // If we get an A02 with a new location that matches where we already thought
-            // the patient was,
-            // don't perform an actual transfer. In the test data, this happens in a
-            // minority of cases
-            // following an A08 implied transfer. Let's see what it does in the real data...
-            String err = "REDUNDANT transfer, location has not changed: " + currentKnownLocation;
-            logger.warn(err);
-            throw new MessageIgnoredException(adtMsg, err);
+            // the patient was, don't perform an actual transfer.
+            // In the test data, this sometimes happens following an A08 implied transfer.
+            // Also, even if the location hasn't changed the patient class could have changed
+            // (should be made explicit as an A06 or A07 but we don't distinguish A02/A06/A07 here).
+            PatientProperty currentPatientClass = getOnlyElement(
+                    latestOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, p -> p.isValid()));
+            if (adtMsg.getPatientClass().equals(currentPatientClass.getValueAsString())) {
+                String err = String.format("REDUNDANT transfer, location (%s) and patient class (%s) have not changed",
+                        currentKnownLocation, currentPatientClass.getValueAsString());
+                logger.warn(err);
+                throw new MessageIgnoredException(adtMsg, err);
+            } else {
+                // Only patient class has changed, so update just that without creating a new location visit
+                currentPatientClass.setValidUntil(transferOccurred);
+                latestOpenBedVisit.addProperty(
+                        buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS, adtMsg.getPatientClass()));
+            }
+        } else {
+            // locations have changed, do a "normal" transfer, patient class will get done as part of this
+            addDischargeToVisit(latestOpenBedVisit, transferOccurred, storedFrom);
+            String admitSource = adtMsg.getAdmitSource();
+            logger.info(String.format(
+                    "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
+                    mrnStr, admissionDateTime, admitSource, transferOccurred, recordedDateTime));
+            // add a new visit to the current encounter
+            Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
+            if (encounter != encounterDoubleCheck) {
+                throw new MessageIgnoredException(adtMsg, "Different encounter: " + encounter + " | " + encounterDoubleCheck);
+            }
+            List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
+            // link the bed visit to the parent (hospital) visit
+            AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
+            addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospitalVisit.get(0),
+                    newTransferLocation, adtMsg.getPatientClass());
         }
-        addDischargeToVisit(latestOpenBedVisit, eventOccurred, storedFrom);
-
-        String admitSource = adtMsg.getAdmitSource();
-        logger.info(String.format(
-                "TRANSFERRING: MRN = %s, admitdatetime %s, admitsrc %s, eventOccurred %s, recorded %s",
-                mrnStr, admissionDateTime, admitSource, eventOccurred, recordedDateTime));
-
-        // add a new visit to the current encounter
-        Encounter encounterDoubleCheck = latestOpenBedVisit.getEncounter();
-        if (encounter != encounterDoubleCheck) {
-            throw new MessageIgnoredException(adtMsg, "Different encounter: " + encounter + " | " + encounterDoubleCheck);
-        }
-        List<PatientFact> hospitalVisit = getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
-        // link the bed visit to the parent (hospital) visit
-        AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
-        addOpenLocationVisit(encounter, visitType, storedFrom, eventOccurred, eventOccurred, hospitalVisit.get(0),
-                newTransferLocation, adtMsg.getPatientClass());
     }
 
     /**
@@ -900,12 +913,79 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (latestOpenBedVisits.size() != 1) {
             throw new MessageIgnoredException(adtMsg, "No open location visit, cannot cancel admit" + visitNumber);
         }
+
+        // It's usual for an HL7-originated ED admission that there will be two beds
+        // visits at this point - one that resulted from the original A04 HL7 message
+        // and one from the A01 that typically has a different location.
+        // Make sure that all bed and hospital visits get invalidated in the case of a
+        // cancel admit.
+        // A side-effect of doing this is that the (corrected) admit message that follows
+        // this cancel admit will open produce one bed visit in the new hospital visit.
+        List<PatientFact> closedBedVisits = getClosedLocationVisitFact(encounter);
+
         Instant cancellationTime = adtMsg.getEventOccurredDateTime();
         PatientFact onlyOpenLocationVisit = latestOpenBedVisits.get(0);
         PatientFact hospVisit = onlyOpenLocationVisit.getParentFact();
         // do the actual invalidations
         onlyOpenLocationVisit.invalidateAll(cancellationTime);
         hospVisit.invalidateAll(cancellationTime);
+        for (PatientFact closedBedVisit : closedBedVisits) {
+            closedBedVisit.invalidateAll(cancellationTime);
+        }
+    }
+
+    /**
+     * Cancel the most recent bed visit by invalidating it.
+     *
+     * @param adtMsg the cancel transfer message
+     * @param storedFrom storedFrom time to use for new records
+     * @throws MessageIgnoredException    if message can't be processed
+     * @throws InvalidMrnException        think this is useless
+     * @throws EmapStarIntegrityException contradiction in the db
+     */
+    private void cancelTransferPatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
+        String visitNumber = adtMsg.getVisitNumber();
+        String mrnStr = adtMsg.getMrn();
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+        Instant cancellationDateTime = adtMsg.getRecordedDateTime();
+        // the transfer time of the transfer being cancelled, NOT the cancellation time
+        Instant originalTransferDateTime = adtMsg.getEventOccurredDateTime();
+
+        Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
+        PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
+        if (latestOpenBedVisit == null) {
+            // If visit was not known about, admit the patient first.
+            // We now have their current location and can stop.
+            // (Don't go so far as to create their cancelled bed visit and
+            // then invalidate it).
+            encounter = admitPatient(adtMsg, storedFrom);
+            return;
+        }
+
+        // invalidate the erroneous transfer
+        latestOpenBedVisit.invalidateAll(cancellationDateTime);
+
+        // reopen the previous bed visit by invalidating its discharge time property
+        Optional<PatientFact> mostRecentBedVisitOptional = getVisitFactWhere(encounter,
+                vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
+                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2));
+
+        if (!mostRecentBedVisitOptional.isPresent()) {
+            throw new MessageIgnoredException(adtMsg, String.format(
+                    "Can't cancel transfer for CSN %s, there was no prior bed visit to re-enable", visitNumber));
+        }
+        PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
+
+        if (visitFactIsOpen(mostRecentBedVisit)) {
+            throw new MessageIgnoredException(adtMsg,
+                    String.format("Can't cancel transfer for CSN %s, prior bed visit was already open", visitNumber));
+        }
+
+        // reopen the previous visit by invalidating its discharge time
+        PatientProperty bedDischargeTime = getOnlyElement(
+                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
+        bedDischargeTime.setValidUntil(cancellationDateTime);
     }
 
     /**
@@ -915,25 +995,37 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param adtMsg the A13 message detailing the cancel discharge
      * @param storedFrom storedFrom time to use for new records
      * @throws MessageIgnoredException if message can't be processed
+     * @throws EmapStarIntegrityException if there's a contradiction in the DB
+     * @throws InvalidMrnException mrn not specified
      */
     @Transactional
-    private void cancelDischargePatient(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private void cancelDischargePatient(AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         String visitNumber = adtMsg.getVisitNumber();
+        String mrnStr = adtMsg.getMrn();
+        Instant admissionDateTime = adtMsg.getAdmissionDateTime();
+
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtMsg.getEventOccurredDateTime();
         // this must be non-null or the invalidation won't work
         if (invalidationDate == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
         }
-
-        Encounter encounter = encounterRepo.findEncounterByEncounter(visitNumber);
-        if (encounter == null) {
-            throw new MessageIgnoredException(adtMsg, "Cannot cancel discharge for a visit that doesn't exist: " + visitNumber);
-        }
+        Encounter encounter = getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime);
         // Get the most recent bed visit.
-        PatientFact mostRecentBedVisit = getVisitFactWhere(encounter,
+        Optional<PatientFact> mostRecentBedVisitOptional = getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
-                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2)).get();
+                        .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2));
+
+        if (!mostRecentBedVisitOptional.isPresent()) {
+            // If we have no existing visit, admit the patient.
+            // We now have their current location and can stop.
+            // (Don't go so far as to create the discharge and
+            // then invalidate it).
+            admitPatient(adtMsg, storedFrom);
+            return;
+        }
+        PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
 
         // Encounters should always have at least one visit.
         if (visitFactIsOpen(mostRecentBedVisit)) {

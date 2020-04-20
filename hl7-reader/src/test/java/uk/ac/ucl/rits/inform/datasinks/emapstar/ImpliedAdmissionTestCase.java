@@ -35,6 +35,7 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     private Instant expectedAdmissionDateTime = Instant.parse("2020-03-01T06:30:00.000Z");
     private Instant expectedBedArrivalDateTime = Instant.parse("2020-03-01T10:35:00.000Z");
     private Instant expectedDischargeTime = null;
+    private String expectedLocation = "T42^BADGERS^WISCONSIN";
 
     public ImpliedAdmissionTestCase() {
     }
@@ -66,7 +67,63 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
             setVisitNumber("1234567890");
             setPatientClass("I");
             setPatientFullName("Fred Bloggs");
-            setFullLocationString("T42^BADGERS^WISCONSIN");
+            setFullLocationString(expectedLocation);
+        }});
+    }
+
+    /**
+     * Process a cancel admit message.
+     */
+    public void performCancelAdmit() throws EmapOperationMessageProcessingException {
+        Instant expectedCancellationDateTime = Instant.parse("2020-03-01T10:48:00.000Z");
+        processSingleMessage(new AdtMessage() {{
+            setOperationType(AdtOperationType.CANCEL_ADMIT_PATIENT);
+            setAdmissionDateTime(expectedAdmissionDateTime);
+            setEventOccurredDateTime(expectedCancellationDateTime);
+            setMrn("1234ABCD");
+            setVisitNumber("1234567890");
+            setPatientClass("I");
+            setPatientFullName("Fred Bloggs");
+            setFullLocationString(expectedLocation);
+        }});
+    }
+
+    /**
+     * Process a cancel transfer message.
+     */
+    public void performCancelTransfer() throws EmapOperationMessageProcessingException {
+        Instant expectedTransferCancellationDateTime = Instant.parse("2020-03-01T10:48:00.000Z");
+        Instant erroneousTransferDateTime = Instant.parse("2020-03-01T09:35:00.000Z");
+        expectedBedArrivalDateTime = null;
+        processSingleMessage(new AdtMessage() {{
+            setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
+            setAdmissionDateTime(expectedAdmissionDateTime);
+            setEventOccurredDateTime(erroneousTransferDateTime);
+            setRecordedDateTime(expectedTransferCancellationDateTime);
+            setMrn("1234ABCD");
+            setVisitNumber("1234567890");
+            setPatientClass("I");
+            setPatientFullName("Fred Bloggs");
+            setFullLocationString(expectedLocation);
+        }});
+    }
+
+    /**
+     * Process a cancel discharge message.
+     */
+    public void performCancelDischarge() throws EmapOperationMessageProcessingException {
+        Instant expectedCancellationDateTime = Instant.parse("2020-03-01T10:48:00.000Z");
+        expectedBedArrivalDateTime = null;
+        processSingleMessage(new AdtMessage() {{
+            setOperationType(AdtOperationType.CANCEL_DISCHARGE_PATIENT);
+            setAdmissionDateTime(expectedAdmissionDateTime);
+            setEventOccurredDateTime(expectedCancellationDateTime);
+            setMrn("1234ABCD");
+            setVisitNumber("1234567890");
+            setPatientClass("I");
+            setPatientFullName("Fred Bloggs");
+            setFullLocationString(expectedLocation);
+            // A13 messages do not carry the discharge time field
         }});
     }
 
@@ -81,7 +138,7 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
             setAdmissionDateTime(expectedAdmissionDateTime);
             setEventOccurredDateTime(expectedDischargeTime);
             setMrn("1234ABCD");
-            setFullLocationString("T42^BADGERS^WISCONSIN");
+            setFullLocationString(expectedLocation);
             setVisitNumber("1234567890");
             setPatientClass("I");
             setPatientFullName("Fred Bloggs");
@@ -99,12 +156,11 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     @Test
     @Transactional
     public void testVisitPresent() {
-        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation("1234567890", 1, "T42^BADGERS^WISCONSIN", expectedDischargeTime);
+        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation("1234567890", 1, expectedLocation, expectedDischargeTime);
         // check bed visit arrival time
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());
         PatientProperty bedArrivalTime = _arrivalTimes.get(0);
-
         assertEquals(expectedBedArrivalDateTime, bedArrivalTime.getValueAsDatetime());
 
         // check hospital visit arrival time

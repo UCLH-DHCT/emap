@@ -52,13 +52,7 @@ public class EmapStarTestUtils {
      */
     @Transactional
     public PatientFact _testVisitExistsWithLocation(String expectedEncounter, int expectedTotalVisits, String expectedLocation, Instant expectedDischargeTime) {
-        Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
-        assertNotNull("encounter did not exist", enc);
-        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
-        assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
-        List<PatientFact> validBedVisits = factsAsMap.get(AttributeKeyMap.BED_VISIT).stream()
-                .filter(PatientFact::isValid).collect(Collectors.toList());
-        assertEquals(expectedTotalVisits, validBedVisits.size());
+        List<PatientFact> validBedVisits = getLocationVisitsForEncounter(expectedEncounter, expectedTotalVisits);
         List<PatientFact> validBedVisitsAtLocation =
                 validBedVisits.stream().filter(f -> f.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString().equals(expectedLocation)).collect(Collectors.toList());
         assertEquals(1, validBedVisitsAtLocation.size());
@@ -78,6 +72,26 @@ public class EmapStarTestUtils {
 
         }
         return bedVisit;
+    }
+
+    /**
+     * @param expectedEncounter the encounter, which must exist
+     * @param expectedTotalVisits how many visits you expect to exist
+     * @return all valid location visit facts (not hospital visits), sorted by arrival time
+     */
+    public List<PatientFact> getLocationVisitsForEncounter(String expectedEncounter, int expectedTotalVisits) {
+        Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
+        assertNotNull("encounter did not exist", enc);
+        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
+        assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
+        List<PatientFact> validBedVisits = factsAsMap.get(AttributeKeyMap.BED_VISIT).stream()
+                .filter(PatientFact::isValid).collect(Collectors.toList());
+        assertEquals(expectedTotalVisits, validBedVisits.size());
+        // sort by arrival time
+        validBedVisits.sort((v1, v2) ->
+                v1.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime().compareTo(
+                v2.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime()));
+        return validBedVisits;
     }
     
 }
