@@ -4,9 +4,12 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +46,7 @@ public class TestDeath extends MessageStreamTestCase {
             setDischargeDisposition("deceased");
             setDischargeLocation("mortuary");
             setDischargeDateTime(expectedDischargeTime);
+            setEventOccurredDateTime(expectedDischargeTime);
             setPatientDeathIndicator(true);
             setPatientDeathDateTime(expectedDeathTime);
         }});
@@ -63,6 +67,7 @@ public class TestDeath extends MessageStreamTestCase {
             setDischargeDisposition("abc");
             setDischargeLocation("home");
             setDischargeDateTime(expectedDischargeTime);
+            setEventOccurredDateTime(expectedDischargeTime);
             setPatientDeathIndicator(false);
         }});
     }
@@ -83,12 +88,24 @@ public class TestDeath extends MessageStreamTestCase {
         List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION);
         assertEquals(1, dischLocation.size());
         assertEquals("mortuary", dischLocation.get(0).getValueAsString());
+    }
 
-        List<PatientProperty> deathIndicator = hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
+    /**
+     * Check dead patient has the correct death fact.
+     */
+    @Test
+    @Transactional
+    public void testDeathFactDave() {
+        List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("dave", AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        assertEquals(1, deathByValidity.get(true).size());
+        PatientFact deathFact = deathByValidity.get(true).get(0);
+
+        List<PatientProperty> deathIndicator = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
         assertEquals(1, deathIndicator.size());
         assertEquals(AttributeKeyMap.BOOLEAN_TRUE.getShortname(), deathIndicator.get(0).getValueAsAttribute().getShortName());
 
-        List<PatientProperty> deathTime = hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME);
+        List<PatientProperty> deathTime = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME);
         assertEquals(1, deathTime.size());
         assertEquals(expectedDeathTime, deathTime.get(0).getValueAsDatetime());
     }
@@ -109,13 +126,26 @@ public class TestDeath extends MessageStreamTestCase {
         List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION);
         assertEquals(1, dischLocation.size());
         assertEquals("home", dischLocation.get(0).getValueAsString());
+    }
 
-        List<PatientProperty> deathIndicator = hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
+    /**
+     * Check alive patient has the correct death fact.
+     */
+    @Test
+    @Transactional
+    public void testDeathFactAlice() {
+        List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("alice", AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        assertEquals(1, deathByValidity.get(true).size());
+        PatientFact deathFact = deathByValidity.get(true).get(0);
+
+        List<PatientProperty> deathIndicator = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
         assertEquals(1, deathIndicator.size());
         assertEquals(AttributeKeyMap.BOOLEAN_FALSE.getShortname(), deathIndicator.get(0).getValueAsAttribute().getShortName());
 
-        // no patient death time if not dead
-        List<PatientProperty> deathTime = hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME);
-        assertEquals(0, deathTime.size());
+        // death time exists but is null
+        List<PatientProperty> deathTime = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME);
+        assertEquals(1, deathTime.size());
+        assertNull(deathTime.get(0).getValueAsDatetime());
     }
 }

@@ -590,25 +590,36 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
         addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.MIDDLE_NAMES, adtMsg.getPatientMiddleName());
         addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.FAMILY_NAME, adtMsg.getPatientFamilyName());
-        demographics.put(AttributeKeyMap.NAME_FACT.getShortname(), nameFact);
+        demographics.put(nameFact.getFactType().getShortName(), nameFact);
 
         PatientFact generalDemoFact = new PatientFact();
         generalDemoFact.setValidFrom(validFrom);
         generalDemoFact.setStoredFrom(storedFrom);
         generalDemoFact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
-
         // will we have to worry about Instants and timezones shifting the date?
         addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.DOB, adtMsg.getPatientBirthDate());
-
         String hl7Sex = adtMsg.getPatientSex();
         Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
         addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.SEX, sexAttrValue);
-
         addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.NHS_NUMBER, adtMsg.getNhsNumber());
-
         addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.POST_CODE, adtMsg.getPatientZipOrPostalCode());
+        demographics.put(generalDemoFact.getFactType().getShortName(), generalDemoFact);
 
-        demographics.put(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname(), generalDemoFact);
+        // death fact
+        Attribute deathIndicator = getBooleanAttribute(adtMsg.getPatientDeathIndicator());
+        PatientFact deathFact = new PatientFact();
+        deathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATIENT_DEATH_FACT));
+        deathFact.setValidFrom(validFrom);
+        deathFact.setStoredFrom(storedFrom);
+        deathFact.addProperty(
+                buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_DEATH_INDICATOR, deathIndicator));
+        // set death time regardless of whether death boolean is set, sometimes they
+        // contradict each other and we need to delegate interpretation of this
+        // further down the pipeline :(
+        deathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_DEATH_TIME,
+                adtMsg.getPatientDeathDateTime()));
+        demographics.put(deathFact.getFactType().getShortName(), deathFact);
+
         return demographics;
     }
 
@@ -795,6 +806,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospitalVisit.get(0),
                     newTransferLocation, adtMsg.getPatientClass());
         }
+        // demographics may have changed
+        updatePatientInfo(adtMsg, storedFrom);
     }
 
     /**
@@ -845,14 +858,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             String dischargeLocation = adtMsg.getDischargeLocation();
             hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
                     AttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
-            Attribute deathIndicator = getBooleanAttribute(adtMsg.getPatientDeathIndicator());
-            hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
-                    AttributeKeyMap.PATIENT_DEATH_INDICATOR, deathIndicator));
-            // only set death time if patient is dead
-            if (adtMsg.getPatientDeathIndicator()) {
-                hospVisit.addProperty(buildPatientProperty(storedFrom, dischargeDateTime,
-                        AttributeKeyMap.PATIENT_DEATH_TIME, adtMsg.getPatientDeathDateTime()));
-            }
+            // demographics may have changed
+            updatePatientInfo(adtMsg, storedFrom);
         }
     }
 
@@ -1056,8 +1063,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         bedDischargeTime.setValidUntil(invalidationDate);
         PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
         for (AttributeKeyMap a : Arrays.asList(AttributeKeyMap.DISCHARGE_TIME, AttributeKeyMap.DISCHARGE_DISPOSITION,
-                AttributeKeyMap.DISCHARGE_LOCATION, AttributeKeyMap.PATIENT_DEATH_INDICATOR,
-                AttributeKeyMap.PATIENT_DEATH_TIME)) {
+                AttributeKeyMap.DISCHARGE_LOCATION)) {
             PatientProperty prop = getOnlyElement(hospitalVisit.getPropertyByAttribute(a, PatientProperty::isValid));
             if (prop != null) {
                 prop.setValidUntil(invalidationDate);
@@ -1199,18 +1205,21 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
         updateDemographics(encounter, currentDemographics, newDemographics);
 
-        // detect when location has changed and perform a transfer
+        /*
+         * Detect when location has changed and perform a transfer. If there isn't an
+         * open location then just do nothing. Used to throw an exception but this isn't
+         * really an error and we still want the demographics to update above.
+         */
         List<PatientFact> latestOpenLocationVisits = getOpenValidLocationVisit(encounter);
         PatientFact onlyOpenLocationVisit = getOnlyElement(latestOpenLocationVisits);
-        if (onlyOpenLocationVisit == null) {
-            throw new MessageIgnoredException(adtMsg, "Got A08 but no open bed visit for visit " + visitNumber);
-        }
-        PatientProperty knownlocation =
-                getOnlyElement(onlyOpenLocationVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
-        if (!newLocation.equals(knownlocation.getValueAsString())) {
-            logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN A08: |%s| -> |%s|", adtMsg.getMrn(),
-                    visitNumber, knownlocation.getValueAsString(), newLocation));
-            transferPatient(adtMsg, storedFrom);
+        if (onlyOpenLocationVisit != null) {
+            PatientProperty knownlocation =
+                    getOnlyElement(onlyOpenLocationVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
+            if (!newLocation.equals(knownlocation.getValueAsString())) {
+                logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN message of type (%s): |%s| -> |%s|", adtMsg.getMrn(),
+                        visitNumber, adtMsg.getOperationType(), knownlocation.getValueAsString(), newLocation));
+                transferPatient(adtMsg, storedFrom);
+            }
         }
     }
 
