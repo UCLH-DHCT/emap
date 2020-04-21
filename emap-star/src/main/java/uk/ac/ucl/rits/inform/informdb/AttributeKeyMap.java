@@ -61,6 +61,10 @@ public enum AttributeKeyMap {
      */
     DISCHARGE_LOCATION("DISCH_LOCATION"),
     /**
+     * Fact type to store death info.
+     */
+    PATIENT_DEATH_FACT("DEATH_FACT"),
+    /**
      * Boolean showing whether patient is dead or not.
      */
     PATIENT_DEATH_INDICATOR("DEATH_INDICATOR"),
