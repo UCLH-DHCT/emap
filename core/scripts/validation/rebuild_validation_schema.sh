@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Steps that must be performed manually for now:
+# - Check out the right commits and (re)build your docker images
 # - Truncate star_validation tables including progress
 # - Truncate ops_validation tables, including progress but not the mapping tables
 # - Truncate hl7 and caboodle progress tables in caboodle_extract_validation schema
@@ -23,7 +24,7 @@ configure_time_window() {
         ../config/emap-core-config-envs \
         ../config/caboodle-envs
 }
- 
+
 stop_it_and_tidy_up() {
     bash emap-live.sh ps
     echo "Tidying up..."
@@ -44,7 +45,7 @@ run_pipeline() {
     # unless the queues exist, or start existing very quickly.
     # So, start it up just a little after the datasources!
     (sleep 180; bash emap-live.sh up -d emapstar; bash emap-live.sh ps) &
-    
+
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source
     bash emap-live.sh ps
@@ -62,8 +63,11 @@ wait_for_queue_to_empty() {
     start_time=$(date +%s)
     while true; do
         echo "Checking emptiness of rabbitmq queues"
+        # This script gets stopped if backgrounded by the shell and docker-compose exec is used here.
+        # Not sure why, but calling docker exec directly works fine, so get the container ID and do that.
+        rabbitmq_container_id=$(bash emap-live.sh ps -q rabbitmq)
         # returns empty string if all queues we care about are at 0 messages
-        non_empty_queues=$(bash emap-live.sh exec rabbitmq rabbitmqctl -q list_queues \
+        non_empty_queues=$(docker exec $rabbitmq_container_id rabbitmqctl -q list_queues \
             | awk -v RS='\r\n' 'BEGIN {OFS="\t"} {if (($1=="hl7Queue" || $1=="caboodleQueue") && $2!="0") {print $1 $2}  }' )
         if [ -z "$non_empty_queues" ]; then
             echo "Queues are empty, continuing"
@@ -85,12 +89,8 @@ run_omop() {
 
 # This script does not yet clear the databases before starting
 
-
-#configure_time_window '4 days ago'
-configure_time_window '1 day ago'
+configure_time_window '7 days ago'
 run_pipeline
 wait_for_queue_to_empty
 run_omop
-
-
 stop_it_and_tidy_up
