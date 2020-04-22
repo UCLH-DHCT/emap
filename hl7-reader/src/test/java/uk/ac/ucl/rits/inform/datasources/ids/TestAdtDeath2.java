@@ -1,7 +1,10 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+
+import java.time.Instant;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +30,7 @@ public class TestAdtDeath2 extends TestHl7MessageStream {
      */
     @Test
     public void testTimeOfDeath()  {
-        assertNull(msg.getPatientDeathDateTime());
+        assertEquals(Instant.parse("2013-02-11T08:34:56.00Z"), msg.getPatientDeathDateTime());
     }
 
     /**

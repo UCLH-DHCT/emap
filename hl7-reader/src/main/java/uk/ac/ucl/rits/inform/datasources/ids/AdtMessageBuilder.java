@@ -130,10 +130,8 @@ public class AdtMessageBuilder {
                         || hl7DeathIndicator.equals("")) {
                     msg.setPatientDeathIndicator(false);
                 }
-                if (msg.getPatientDeathIndicator()) {
-                    // only set the death time if indicator says they're dead
-                    msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
-                }
+                // set the death time even if indicator says they're not dead (it happens...)
+                msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
             }
 
             msg.setPatientFamilyName(patientInfoHl7.getPatientFamilyName());

@@ -37,8 +37,9 @@ public class TestAdtDeath extends TestHl7MessageStream {
     public void testIsDead()  {
         assertTrue(msg.getPatientDeathIndicator());
     }
+
     @Test
     public void testDischargeDisposition() {
-        assertTrue(msg.getPatientDeathIndicator());
+        assertEquals("Home", msg.getDischargeDisposition());
     }
 }
