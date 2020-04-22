@@ -949,6 +949,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String mrnStr = adtMsg.getMrn();
         Instant admissionDateTime = adtMsg.getAdmissionDateTime();
         Instant cancellationDateTime = adtMsg.getRecordedDateTime();
+        // the new location, which is the location before the erroneous transfer was made
+        String newCorrectLocation = adtMsg.getFullLocationString();
         // the transfer time of the transfer being cancelled, NOT the cancellation time
         Instant originalTransferDateTime = adtMsg.getEventOccurredDateTime();
 
@@ -963,6 +965,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             return;
         }
 
+        PatientFact hospVisit = latestOpenBedVisit.getParentFact();
         // invalidate the erroneous transfer
         latestOpenBedVisit.invalidateAll(cancellationDateTime);
 
@@ -971,21 +974,33 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
                         .max((vf1, vf2) -> sortVisitByDischargeTime(vf1, vf2));
 
-        if (!mostRecentBedVisitOptional.isPresent()) {
-            throw new MessageIgnoredException(adtMsg, String.format(
-                    "Can't cancel transfer for CSN %s, there was no prior bed visit to re-enable", visitNumber));
-        }
-        PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
+        if (mostRecentBedVisitOptional.isPresent()) {
+            /**
+             * Previous visit exists, reopen it
+             */
+            PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
 
-        if (visitFactIsOpen(mostRecentBedVisit)) {
-            throw new MessageIgnoredException(adtMsg,
-                    String.format("Can't cancel transfer for CSN %s, prior bed visit was already open", visitNumber));
-        }
+            if (visitFactIsOpen(mostRecentBedVisit)) {
+                // it was already open, that's too weird
+                throw new MessageIgnoredException(adtMsg,
+                        String.format("Can't cancel transfer for CSN %s, prior bed visit was already open", visitNumber));
+            }
 
-        // reopen the previous visit by invalidating its discharge time
-        PatientProperty bedDischargeTime = getOnlyElement(
-                mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-        bedDischargeTime.setValidUntil(cancellationDateTime);
+            // reopen it by invalidating its discharge time
+            PatientProperty bedDischargeTime = getOnlyElement(
+                    mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
+            bedDischargeTime.setValidUntil(cancellationDateTime);
+        } else {
+            /*
+             * If there is no previous location (this situation should only happen if we've
+             * come in mid-stream), then re-create the previous location visit as best we
+             * can: We can't know when it started, so set arrival time as null and use the
+             * point where it ended as the valid_from.
+             */
+            AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
+            addOpenLocationVisit(encounter, visitType, storedFrom, originalTransferDateTime, null, hospVisit,
+                    newCorrectLocation, adtMsg.getPatientClass());
+        }
     }
 
     /**
