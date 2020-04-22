@@ -58,3 +58,4 @@ attribute_id,short_name,description,result_type,valid_from,valid_until
 57,DISCH_DISP,Discharge disposition,String,2020-03-16T22:00:00Z,
 58,BOOLEAN_TRUE,The boolean value true,None,2020-03-16T22:00:00Z,
 59,BOOLEAN_FALSE,The boolean value false,None,2020-03-16T22:00:00Z,
+60,DEATH_FACT,Fact type for death-related properties,None,2020-04-21T17:00:00Z,
