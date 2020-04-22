@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +20,13 @@ import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
-public class CancelTransfer extends MessageStreamTestCase {
-
+/**
+ * Base class for testing cancel transfer message stream, that can include or exclude the admit message.
+ * @author Jeremy Stein
+ */
+public abstract class CancelTransfer extends MessageStreamTestCase {
+    String mrn = "1234ABCD";
+    String visNum = "1234567890";
     private Instant admitTime = Instant.parse("2020-03-01T00:30:00Z");
     private Instant erroneousTransferTime = Instant.parse("2020-03-01T01:00:00Z");
     private Instant cancellationTime = Instant.parse("2020-03-01T01:02:02Z");
@@ -31,23 +35,31 @@ public class CancelTransfer extends MessageStreamTestCase {
     private String erroneousTransferLocation = "ED^BADGERS^HONEY";
     private String correctTransferLocation = "ED^BADGERS^EURASIAN";
 
+    private boolean omitAdmit;
+
     public CancelTransfer() {
     }
 
-    @Before
-    public void setup() throws EmapOperationMessageProcessingException {
-        String mrn = "1234ABCD";
-        String visNum = "1234567890";
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(admitTime);
-            setEventOccurredDateTime(admitTime);
-            setMrn(mrn);
-            setVisitNumber(visNum);
-            setPatientClass("I");
-            setPatientFullName("Fred Bloggs");
-            setFullLocationString(originalLocation);
-        }});
+    /**
+     * Parameterised test.
+     * @param omitAdmit iff true, simulate coming in mid-stream by omitting the first admit message
+     */
+    public void setup(boolean omitAdmit) throws EmapOperationMessageProcessingException {
+        this.omitAdmit = omitAdmit;
+
+        if (!omitAdmit) {
+            processSingleMessage(new AdtMessage() {{
+                setOperationType(AdtOperationType.ADMIT_PATIENT);
+                setAdmissionDateTime(admitTime);
+                setEventOccurredDateTime(admitTime);
+                setMrn(mrn);
+                setVisitNumber(visNum);
+                setPatientClass("I");
+                setPatientFullName("Fred Bloggs");
+                setFullLocationString(originalLocation);
+            }});
+        }
+
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.TRANSFER_PATIENT);
             setAdmissionDateTime(admitTime);
@@ -57,6 +69,7 @@ public class CancelTransfer extends MessageStreamTestCase {
             setPatientClass("I");
             setFullLocationString(erroneousTransferLocation);
         }});
+
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
             setEventOccurredDateTime(erroneousTransferTime);
@@ -68,6 +81,7 @@ public class CancelTransfer extends MessageStreamTestCase {
             setFullLocationString(originalLocation);
             // previous location would be set to erroneousTransferLocation if we had that field in Interchange
         }});
+
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.TRANSFER_PATIENT);
             setAdmissionDateTime(admitTime);
@@ -115,12 +129,16 @@ public class CancelTransfer extends MessageStreamTestCase {
                 .getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
                 .collect(Collectors.partitioningBy(p -> p.isValid()));
         
-        // one valid, one invalid
+        // one valid. If admit message was sent, then one invalid should exist too
         assertEquals(1, allDischargeTimesByValidity.get(true).size());
-        assertEquals(1, allDischargeTimesByValidity.get(false).size());
         assertEquals(correctTransferTime, allDischargeTimesByValidity.get(true).get(0).getValueAsDatetime());
-        assertEquals(erroneousTransferTime, allDischargeTimesByValidity.get(false).get(0).getValueAsDatetime());
-        
+        if (omitAdmit) {
+            assertEquals(0, allDischargeTimesByValidity.get(false).size());
+        } else {
+            assertEquals(1, allDischargeTimesByValidity.get(false).size());
+            assertEquals(erroneousTransferTime, allDischargeTimesByValidity.get(false).get(0).getValueAsDatetime());
+        }
+
         assertTrue(!propertiesForCancelledBedVisit.isEmpty());
         assertTrue(!propertiesForCurrentBedVisit.isEmpty());
         assertTrue(propertiesForCancelledBedVisit.stream().allMatch(p -> !p.isValid()));
