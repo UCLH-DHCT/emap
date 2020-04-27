@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
@@ -90,7 +90,7 @@ public class TransferTestCase extends MessageStreamTestCase {
     /**
      * Generate a sequence of transfer messages.
      */
-    @Before
+    @BeforeEach
     public void performTransfers() throws EmapOperationMessageProcessingException {
         for (TransferTestExpectedValues exp : expectedValues) {
             try {
@@ -109,10 +109,10 @@ public class TransferTestCase extends MessageStreamTestCase {
                     }
                 });
                 // if processing the message didn't throw, check that it wasn't meant to throw
-                assertFalse("Processor said message wasn't redundant, it should have been: " +  exp.toString(), exp.expectedRedundant);
+                assertFalse(exp.expectedRedundant, "Processor said message wasn't redundant, it should have been: " +  exp.toString());
             } catch (MessageIgnoredException me) {
                 // if it threw due to a redundant transfer, check this was expected
-                assertTrue("Processor said message was redundant, it shouldn't have been: " +  exp.toString(), exp.expectedRedundant);
+                assertTrue(exp.expectedRedundant, "Processor said message was redundant, it shouldn't have been: " +  exp.toString());
             }
         }
     }

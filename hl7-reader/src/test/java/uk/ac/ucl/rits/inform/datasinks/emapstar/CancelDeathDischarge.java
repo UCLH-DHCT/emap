@@ -1,14 +1,14 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -34,7 +34,8 @@ public class CancelDeathDischarge extends MessageStreamTestCase {
     private Instant correctedDischargeTime = Instant.parse("2020-01-02T20:06:08Z");
     private Instant timeOfDeath = Instant.parse("2020-01-02T17:31:00Z");
 
-    @Before
+    @Override
+    @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);

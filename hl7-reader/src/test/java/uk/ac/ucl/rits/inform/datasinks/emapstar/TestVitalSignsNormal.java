@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import java.time.Instant;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;

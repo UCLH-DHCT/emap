@@ -1,15 +1,17 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -128,7 +130,7 @@ public abstract class CancelTransfer extends MessageStreamTestCase {
         Map<Boolean, List<PatientProperty>> allDischargeTimesByValidity = originalBedVisit
                 .getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
                 .collect(Collectors.partitioningBy(p -> p.isValid()));
-        
+
         // one valid. If admit message was sent, then one invalid should exist too
         assertEquals(1, allDischargeTimesByValidity.get(true).size());
         assertEquals(correctTransferTime, allDischargeTimesByValidity.get(true).get(0).getValueAsDatetime());

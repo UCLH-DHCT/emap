@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
@@ -14,7 +14,7 @@ public class CancelTransferFull extends CancelTransfer {
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         setup(false);
     }

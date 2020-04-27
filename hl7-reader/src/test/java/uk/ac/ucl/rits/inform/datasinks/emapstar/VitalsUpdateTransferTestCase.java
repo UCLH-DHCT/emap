@@ -1,21 +1,22 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
+
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test different transfers. Note that the Interchange ADT type
@@ -79,7 +80,7 @@ public class VitalsUpdateTransferTestCase extends MessageStreamTestCase {
     /**
      * Generate a sequence of transfer messages.
      */
-    @Before
+    @BeforeEach
     public void performTransfers() throws EmapOperationMessageProcessingException {
         // manually add vitalsign for implied admission
         processSingleMessage(new VitalSigns() {{
@@ -109,10 +110,10 @@ public class VitalsUpdateTransferTestCase extends MessageStreamTestCase {
                     }
                 });
                 // if processing the message didn't throw, check that it wasn't meant to throw
-                assertFalse("Processor said message wasn't redundant, it should have been: " + exp.toString(), exp.expectedRedundant);
+                assertFalse(exp.expectedRedundant, "Processor said message wasn't redundant, it should have been: " + exp.toString());
             } catch (MessageIgnoredException me) {
                 // if it threw due to a redundant transfer, check this was expected
-                assertTrue("Processor said message was redundant, it shouldn't have been: " + exp.toString(), exp.expectedRedundant);
+                assertTrue(exp.expectedRedundant, "Processor said message was redundant, it shouldn't have been: " + exp.toString());
             }
         }
     }

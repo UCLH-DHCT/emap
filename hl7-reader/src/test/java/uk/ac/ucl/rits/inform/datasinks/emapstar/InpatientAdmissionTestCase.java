@@ -1,16 +1,14 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.CheckedInputStream;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -25,7 +23,8 @@ public class InpatientAdmissionTestCase extends MessageStreamTestCase {
     public InpatientAdmissionTestCase() {
     }
 
-    @Before
+    @Override
+    @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);
