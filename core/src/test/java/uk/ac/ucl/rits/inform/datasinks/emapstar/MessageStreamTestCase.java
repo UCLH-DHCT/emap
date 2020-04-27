@@ -1,15 +1,15 @@
 /**
- * 
+ *
  */
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,13 +17,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
-import uk.ac.ucl.rits.inform.informdb.Fact;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -35,7 +34,7 @@ import uk.ac.ucl.rits.inform.testutils.EmapStarTestUtils;
  *
  * @author Jeremy Stein
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
@@ -56,7 +55,7 @@ public abstract class MessageStreamTestCase {
 
     protected List<EmapOperationMessage> messageStream = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     @Transactional
     public void setup() throws EmapOperationMessageProcessingException {
         for (EmapOperationMessage msg : messageStream) {
@@ -89,5 +88,5 @@ public abstract class MessageStreamTestCase {
             assertIsParentOfChild(parent, child);
         }
     }
-    
+
 }

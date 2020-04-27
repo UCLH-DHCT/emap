@@ -1,23 +1,21 @@
 /**
- * 
+ *
  */
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
@@ -34,7 +32,8 @@ public class TestDeath extends MessageStreamTestCase {
     public TestDeath() {
     }
 
-    @Before
+    @Override
+    @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);

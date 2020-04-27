@@ -1,16 +1,15 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
@@ -26,7 +25,7 @@ public class EmergencyAdmissionWithCancellationTestCase extends EmergencyAdmissi
     public EmergencyAdmissionWithCancellationTestCase() {
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setup() throws EmapOperationMessageProcessingException {
         // do the original messages, but then cancel the admit and redo it

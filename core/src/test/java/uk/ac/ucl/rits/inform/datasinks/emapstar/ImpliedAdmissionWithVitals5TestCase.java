@@ -1,8 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -14,8 +13,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  * @author Jeremy Stein
  */
 public class ImpliedAdmissionWithVitals5TestCase extends ImpliedAdmissionTestCase {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     public ImpliedAdmissionWithVitals5TestCase() {
     }
@@ -27,10 +24,10 @@ public class ImpliedAdmissionWithVitals5TestCase extends ImpliedAdmissionTestCas
      * We can't recreate things that came before the message stream started, we
      * mainly need to not give weird errors.
      */
-    @Before
+    @Override
+    @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         addVitals();
-        thrown.expect(MessageIgnoredException.class);
-        performCancelAdmit();
+        Assertions.assertThrows(MessageIgnoredException.class, () -> performCancelAdmit());
     }
 }

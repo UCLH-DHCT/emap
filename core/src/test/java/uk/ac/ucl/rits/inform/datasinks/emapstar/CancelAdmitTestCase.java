@@ -1,16 +1,17 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -20,7 +21,6 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 public class CancelAdmitTestCase extends MessageStreamTestCase {
 
@@ -31,7 +31,8 @@ public class CancelAdmitTestCase extends MessageStreamTestCase {
     public CancelAdmitTestCase() {
     }
 
-    @Before
+    @Override
+    @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         String mrn = "1234ABCD";
         String visNum = "1234567890";
@@ -98,7 +99,7 @@ public class CancelAdmitTestCase extends MessageStreamTestCase {
         // check times and locations are the correct ones
         assertEquals(cancellationTime, hospVisitsByValidity.get(false).get(0).getValidUntil());
         assertEquals(cancellationTime, bedVisitsByValidity.get(false).get(0).getValidUntil());
-        
+
         assertEquals("ED^BADGERS^WISCONSIN", bedVisitsByValidity.get(false).get(0)
                 .getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
         assertEquals(erroneousAdmitTime, bedVisitsByValidity.get(false).get(0)
