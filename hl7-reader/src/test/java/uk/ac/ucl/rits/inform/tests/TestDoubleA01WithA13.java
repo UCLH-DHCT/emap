@@ -1,13 +1,13 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -53,12 +53,12 @@ public class TestDoubleA01WithA13 extends Hl7StreamEndToEndTestCase {
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
         PatientFact generalDemo = factsAsMap.get(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname());
         List<PatientProperty> dob = generalDemo.getPropertyByAttribute(AttributeKeyMap.DOB, p -> p.isValid());
-        assertEquals("There should be exactly one dob property", 1, dob.size());
+        assertEquals(1, dob.size(), "There should be exactly one dob property");
         PatientProperty d = dob.get(0);
         assertTrue(d.isValid());
         // Note the "expected" birthdate being at 23:00 the day before - this is reflecting a bug in the way
         // DOBs are stored - they should be stored as dates only, no times, because that has the
         // potential for timezone bugs as you see here.
-        assertEquals("demographics did not get updated", Instant.parse("1989-09-08T23:00:00Z"), d.getValueAsDatetime());
+        assertEquals(Instant.parse("1989-09-08T23:00:00Z"), d.getValueAsDatetime(), "demographics did not get updated");
     }
 }

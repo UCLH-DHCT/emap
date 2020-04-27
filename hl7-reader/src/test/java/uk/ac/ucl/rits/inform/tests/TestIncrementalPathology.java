@@ -1,13 +1,13 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -35,7 +35,7 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
         System.out.println(String.format(" FACTS x %s:", facts.size()));
         for (PatientFact pf : facts) {
             System.out.println(String.format("    FACT[TYPE=%s[%d]]:", pf.getFactType().getShortName(), pf.getFactType().getAttributeId()));
-            
+
             List<PatientProperty> properties = pf.getProperties();
             if (properties != null) {
                 System.out.println(String.format("        PROPERTIES x %s:", properties.size()));
