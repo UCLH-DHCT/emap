@@ -7,6 +7,9 @@ set -euo pipefail
 # - Truncate ops_validation tables, including progress but not the mapping tables
 # - Truncate hl7 and caboodle progress tables in caboodle_extract_validation schema
 
+date_suffix=$(date +%s)
+log_file_prefix=rebuild_log_${date_suffix}
+
 # edit hl7 (vitals+adt) config files in place, keeping a backup named by the timestamp
 configure_time_window() {
     window_length_ago="$1" # eg. "4 days ago", must be >= 1 day I think
@@ -27,7 +30,12 @@ configure_time_window() {
 
 stop_it_and_tidy_up() {
     bash emap-live.sh ps
-    echo "Tidying up..."
+    echo "Capturing remaining logs..."
+    # capture the logs for services that were run backgrounded
+    for cont in emapstar rabbitmq ; do
+        bash emap-live.sh logs $cont > ${log_file_prefix}_${cont}.txt
+    done
+    echo "Shutting down containers..."
     bash emap-live.sh down
     echo "Done tidying up"
     bash emap-live.sh ps
@@ -47,11 +55,11 @@ run_pipeline() {
     (sleep 180; bash emap-live.sh up -d emapstar; bash emap-live.sh ps) &
 
     # wait for each hl7 source to finish filling up the queue
-    bash emap-live.sh up --exit-code-from hl7source hl7source
+    bash emap-live.sh up --exit-code-from hl7source hl7source > ${log_file_prefix}_hl7source.txt
     bash emap-live.sh ps
-    bash emap-live.sh up --exit-code-from hl7vitals hl7vitals
+    bash emap-live.sh up --exit-code-from hl7vitals hl7vitals > ${log_file_prefix}_hl7vitals.txt
     bash emap-live.sh ps
-    bash emap-live.sh up --exit-code-from caboodle caboodle
+    bash emap-live.sh up --exit-code-from caboodle caboodle > ${log_file_prefix}_caboodle.txt
     bash emap-live.sh ps
 }
 
@@ -84,7 +92,7 @@ wait_for_queue_to_empty() {
 }
 
 run_omop() {
-   bash emap-live.sh up --exit-code-from emapops emapops
+   bash emap-live.sh up --exit-code-from emapops emapops > ${log_file_prefix}_emapops.txt
 }
 
 # This script does not yet clear the databases before starting
