@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,7 +85,7 @@ public class EmapStarTestUtils {
         assertNotNull(enc, "encounter did not exist");
         Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
         assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
-        List<PatientFact> validBedVisits = factsAsMap.get(AttributeKeyMap.BED_VISIT).stream()
+        List<PatientFact> validBedVisits = factsAsMap.getOrDefault(AttributeKeyMap.BED_VISIT, new ArrayList<>()).stream()
                 .filter(PatientFact::isValid).collect(Collectors.toList());
         assertEquals(expectedTotalVisits, validBedVisits.size());
         // sort by arrival time
