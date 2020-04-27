@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.BeforeEach;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
@@ -28,6 +29,6 @@ public class ImpliedAdmissionWithVitals5TestCase extends ImpliedAdmissionTestCas
     @BeforeEach
     public void setup() throws EmapOperationMessageProcessingException {
         addVitals();
-        Assertions.assertThrows(MessageIgnoredException.class, () -> performCancelAdmit());
+        assertThrows(MessageIgnoredException.class, () -> performCancelAdmit());
     }
 }
