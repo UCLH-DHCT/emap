@@ -55,6 +55,23 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
         }});
     }
 
+    public void performUpdatePatientDetails() throws EmapOperationMessageProcessingException {
+        processSingleMessage(new AdtMessage() {
+            {
+                setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
+                setAdmissionDateTime(expectedAdmissionDateTime);
+                setRecordedDateTime(expectedAdmissionDateTime.plusSeconds(25));
+                setEventOccurredDateTime(expectedBedArrivalDateTime);
+                setMrn("1234ABCD");
+                setNhsNumber("9999999999");
+                setVisitNumber("1234567890");
+                setPatientFullName("Fred Blogger");
+                setFullLocationString(expectedLocation);
+                setPatientClass("I");
+            }
+        });
+    }
+
     /**
      * Process a transfer message.
      */
