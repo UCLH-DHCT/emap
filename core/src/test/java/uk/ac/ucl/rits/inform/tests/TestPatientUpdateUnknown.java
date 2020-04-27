@@ -1,12 +1,12 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
@@ -44,7 +44,7 @@ public class TestPatientUpdateUnknown extends Hl7StreamEndToEndTestCase {
      */
     @Override
     public void testAllProcessed() {
-        assertEquals("expecting no messages to be processed", 0, processedMessages);
+        assertEquals(0, processedMessages, "expecting no messages to be processed");
     }
 
     /**
@@ -54,6 +54,6 @@ public class TestPatientUpdateUnknown extends Hl7StreamEndToEndTestCase {
     @Transactional
     public void testEncounterNotExists() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
-        assertNull("encounter exists but should not", enc);
+        assertNull(enc, "encounter exists but should not");
     }
 }

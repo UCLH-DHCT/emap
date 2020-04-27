@@ -12,13 +12,13 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
@@ -31,7 +31,7 @@ import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
  * @author Jeremy Stein
  *
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @ActiveProfiles("test")
 public class TestAttributes {
@@ -46,7 +46,7 @@ public class TestAttributes {
     /**
      * Store short names from the attributes enum.
      */
-    @Before
+    @BeforeEach
     public void setUp() {
         enumShortNames = new TreeSet<>();
         for (AttributeKeyMap attr: AttributeKeyMap.values()) {
@@ -57,7 +57,7 @@ public class TestAttributes {
     /**
      * Ensure that loading the vocab twice is harmless. (Should already have been loaded on app load).
      */
-    @Before
+    @BeforeEach
     public void loadVocabAgain() {
         dbOps.ensureVocabLoaded();
     }
@@ -98,11 +98,11 @@ public class TestAttributes {
             if (field.isEnumConstant()) {
                 numChecked++;
                 Deprecated annotation = field.getAnnotation(Deprecated.class);
-                boolean isDeprecated = (annotation != null);
+                boolean isDeprecated = annotation != null;
                 AttributeKeyMap attrKM = AttributeKeyMap.valueOf(field.getName());
                 Optional<Attribute> attr = attributeRepo.findByShortName(attrKM.getShortname());
                 Attribute attribute = attr.get();
-                boolean hasValidUntil = (attribute.getValidUntil() != null);
+                boolean hasValidUntil = attribute.getValidUntil() != null;
                 assertTrue(String.format("Attr %s has deprecation status %b but validUntil status %b",
                         attribute.getShortName(), isDeprecated, hasValidUntil), isDeprecated == hasValidUntil);
             }

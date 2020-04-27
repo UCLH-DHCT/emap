@@ -1,18 +1,18 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
-@Ignore
+@Disabled
 public class TestOrm extends Hl7StreamEndToEndTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever

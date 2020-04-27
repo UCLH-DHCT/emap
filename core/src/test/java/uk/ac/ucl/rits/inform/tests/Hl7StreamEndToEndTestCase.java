@@ -1,16 +1,16 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +18,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
@@ -40,7 +40,7 @@ import uk.ac.ucl.rits.inform.testutils.EmapStarTestUtils;
  * @author Jeremy Stein
  *
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { uk.ac.ucl.rits.inform.datasinks.emapstar.App.class })
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
@@ -79,7 +79,7 @@ public abstract class Hl7StreamEndToEndTestCase {
      * @throws Hl7InconsistencyException if sequence of HL7 data does not make sense
      * @throws MessageIgnoredException if one or more messages can't be processed
      */
-    @Before
+    @BeforeEach
     @Transactional
     public void setup() throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
         totalMessages = 0;
@@ -91,7 +91,7 @@ public abstract class Hl7StreamEndToEndTestCase {
                 while (hl7Iter.hasNext()) {
                     totalMessages++;
                     Message hl7Msg = hl7Iter.next();
-                    List<? extends EmapOperationMessage> messagesFromHl7Message = idsOps.messageFromHl7Message(hl7Msg, 0);
+                    List<? extends EmapOperationMessage> messagesFromHl7Message = IdsOperations.messageFromHl7Message(hl7Msg, 0);
                     // We are bypassing the queue and processing the message immediately, so
                     // this is still an end-to-end test (for now).
                     // This won't be possible when the HL7 reader is properly split off, then we'll have
@@ -111,9 +111,9 @@ public abstract class Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testAllProcessed() {
-        assertTrue("You must specify some HL7 containing files", !hl7StreamFileNames.isEmpty());
-        assertEquals("not all messages were processed - some were ignored", totalMessages, processedMessages);
-        assertTrue("No messages got processed", totalMessages > 0);
+        assertTrue(!hl7StreamFileNames.isEmpty(), "You must specify some HL7 containing files");
+        assertEquals(totalMessages, processedMessages, "not all messages were processed - some were ignored");
+        assertTrue(totalMessages > 0, "No messages got processed");
     }
 
 }
