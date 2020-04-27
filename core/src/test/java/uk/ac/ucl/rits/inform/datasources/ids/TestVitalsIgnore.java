@@ -1,11 +1,11 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
@@ -17,7 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 public class TestVitalsIgnore extends TestHl7MessageStream {
     private List<? extends EmapOperationMessage> msgs;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         msgs = processSingleMessage("GenericAdt/Vitals.txt");
     }
