@@ -35,18 +35,21 @@ public class VitalsUpdateTransferTestCase extends MessageStreamTestCase {
             locationDescription = "location0";
             operationType = AdtOperationType.UPDATE_PATIENT_INFO;
             expectedRedundant = false;
+            patientName = "Joe Bloggs";
         }});
         // Transfer
         expectedValues.add(new TransferTestExpectedValues() {{
             locationStartTime = Instant.parse("2001-01-01T01:01:00Z");
             locationDescription = "location1";
             operationType = AdtOperationType.TRANSFER_PATIENT;
+            patientName = "Joe Bloggs";
         }});
         // Change the patient details after transfer
         expectedValues.add(new TransferTestExpectedValues() {{
             locationStartTime = Instant.parse("2001-01-01T01:01:00Z");
             operationType = AdtOperationType.UPDATE_PATIENT_INFO;
             expectedRedundant = false;
+            patientName = "Joe B";
         }});
 
 
@@ -63,6 +66,7 @@ public class VitalsUpdateTransferTestCase extends MessageStreamTestCase {
         public String patientClass;
         public boolean expectedRedundant;
         public AdtOperationType operationType;
+        public String patientName;
 
         @Override
         public String toString() {
@@ -99,7 +103,7 @@ public class VitalsUpdateTransferTestCase extends MessageStreamTestCase {
                         setMrn("1234ABCD");
                         setNhsNumber("9999999999");
                         setVisitNumber("1234567890");
-                        setPatientFullName("Fred Bloggs");
+                        setPatientFullName(exp.patientName);
                         setFullLocationString(exp.locationDescription);
                         setPatientClass("I");
                     }
