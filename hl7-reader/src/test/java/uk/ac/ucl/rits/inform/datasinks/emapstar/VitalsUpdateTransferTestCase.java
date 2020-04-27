@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,17 +23,16 @@ import static org.junit.Assert.assertTrue;
  * HL7 message (or any transfer-like event in a non-HL7 source).
  * @author Jeremy Stein
  */
-public class TransferPatientWithWrongDate extends MessageStreamTestCase {
+public class VitalsUpdateTransferTestCase extends MessageStreamTestCase {
     private List<TransferTestExpectedValues> expectedValues = new ArrayList<>();
     private Instant expectedAdmissionDateTime;
 
 
-    public TransferPatientWithWrongDate() {
+    public VitalsUpdateTransferTestCase() {
         // first message encountered is an update of patient info
         expectedValues.add(new TransferTestExpectedValues() {{
             locationStartTime = Instant.parse("2001-01-01T01:01:00Z");
             locationDescription = "location0";
-            patientClass = "E";
             operationType = AdtOperationType.UPDATE_PATIENT_INFO;
             expectedRedundant = false;
         }});
@@ -40,22 +40,13 @@ public class TransferPatientWithWrongDate extends MessageStreamTestCase {
         expectedValues.add(new TransferTestExpectedValues() {{
             locationStartTime = Instant.parse("2001-01-01T01:01:00Z");
             locationDescription = "location1";
-            patientClass = "E";
             operationType = AdtOperationType.TRANSFER_PATIENT;
         }});
-        // Then cancel it
+        // Change the patient details after transfer
         expectedValues.add(new TransferTestExpectedValues() {{
             locationStartTime = Instant.parse("2001-01-01T01:01:00Z");
-            locationDescription = "location0";
-            patientClass = "E";
-            operationType = AdtOperationType.CANCEL_TRANSFER_PATIENT;
-        }});
-        // then retransfer the patient
-        expectedValues.add(new TransferTestExpectedValues() {{
-            locationStartTime = Instant.parse("2001-01-01T01:02:00Z");
-            locationDescription = "location2";
-            patientClass = "E";
-            operationType = AdtOperationType.TRANSFER_PATIENT;
+            operationType = AdtOperationType.UPDATE_PATIENT_INFO;
+            expectedRedundant = false;
         }});
 
 
@@ -86,6 +77,17 @@ public class TransferPatientWithWrongDate extends MessageStreamTestCase {
      */
     @Before
     public void performTransfers() throws EmapOperationMessageProcessingException {
+        // manually add vitalsign for implied admission
+        processSingleMessage(new VitalSigns() {{
+            setMrn("1234ABCD");
+            setVisitNumber("1234567890");
+            setVitalSignIdentifier("HEART_RATE");
+            setNumericValue(92.);
+            setUnit("/min");
+            setObservationTimeTaken(Instant.parse("2000-01-01T01:01:00Z"));
+        }});
+
+        // process ADT messages
         for (TransferTestExpectedValues exp : expectedValues) {
             try {
                 processSingleMessage(new AdtMessage() {
@@ -99,7 +101,7 @@ public class TransferPatientWithWrongDate extends MessageStreamTestCase {
                         setVisitNumber("1234567890");
                         setPatientFullName("Fred Bloggs");
                         setFullLocationString(exp.locationDescription);
-                        setPatientClass(exp.patientClass);
+                        setPatientClass("I");
                     }
                 });
                 // if processing the message didn't throw, check that it wasn't meant to throw
@@ -114,7 +116,7 @@ public class TransferPatientWithWrongDate extends MessageStreamTestCase {
     @Test
     @Transactional
     public void testBedVisits() {
-        List<PatientFact> validBedVisits = emapStarTestUtils.getLocationVisitsForEncounter("1234567890", 2);
+        List<PatientFact> validBedVisits = emapStarTestUtils.getLocationVisitsForEncounter("1234567890", 1);
 
     }
 }
