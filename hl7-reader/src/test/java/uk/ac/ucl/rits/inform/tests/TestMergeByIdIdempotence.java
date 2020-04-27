@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.BeforeEach;
+
 import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
@@ -23,6 +25,7 @@ public class TestMergeByIdIdempotence extends TestMergeById {
     }
 
     @Override
+    @BeforeEach
     public void setup()
             throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
         assertThrows(MessageIgnoredException.class, () -> super.setup());
