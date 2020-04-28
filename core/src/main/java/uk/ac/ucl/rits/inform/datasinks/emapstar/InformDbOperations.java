@@ -54,7 +54,6 @@ import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
@@ -76,7 +75,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private EncounterRepository        encounterRepo;
     @Autowired
-    private PatientFactRepository      patientFactRepository;
+    private PatientFactRepository      patientFactRepo;
     @Autowired
     private PersonMrnRepository        personMrnRepo;
 
@@ -89,6 +88,22 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Call when you are finished with this object.
      */
     public void close() {}
+
+    public Encounter save(Encounter encounter) {
+        return encounterRepo.save(encounter);
+    }
+
+    public Encounter findEncounterByEncounter(String encounterStr) {
+        return encounterRepo.findEncounterByEncounter(encounterStr);
+    }
+
+    public Mrn findByMrnString(String mrnStr) {
+        return mrnRepo.findByMrnString(mrnStr);
+    }
+
+    public Person save(Person person) {
+        return personRepo.save(person);
+    }
 
     /**
      * Load in attributes (vocab) from CSV file, if they don't already exist in DB.
@@ -221,7 +236,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String mrnStr = msg.getMrn();
         Instant storedFrom = Instant.now();
         Instant observationTime = msg.getObservationTimeTaken();
-        Encounter enc = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime, encounterRepo, personRepo, mrnRepo);
+        Encounter enc = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime, this);
 
         PatientFact vitalSign = new PatientFact();
         vitalSign.setFactType(getCreateAttribute(AttributeKeyMap.VITAL_SIGN));
@@ -624,7 +639,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // if we have no prior record of the patient and are creating their admission record now.
             admissionDateTime = adtMsg.getDischargeDateTime();
         }
-        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, encounterRepo, personRepo, mrnRepo);
+        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, this);
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
             // If visit was not known about, admit the patient first before going on to discharge
@@ -754,7 +769,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // the transfer time of the transfer being cancelled, NOT the cancellation time
         Instant originalTransferDateTime = adtMsg.getEventOccurredDateTime();
 
-        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, encounterRepo, personRepo, mrnRepo);
+        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, this);
         PatientFact latestOpenBedVisit = getOnlyElement(getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
             // If visit was not known about, admit the patient first.
@@ -826,7 +841,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         if (invalidationDate == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
         }
-        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, encounterRepo, personRepo, mrnRepo);
+        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, this);
         // Get the most recent bed visit.
         Optional<PatientFact> mostRecentBedVisitOptional = getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
@@ -867,8 +882,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // ie. an implicit transfer. Does this ever happen for messages that Epic emits? Currently ignoring
         // the location field.
 
-        mostRecentBedVisit = patientFactRepository.save(mostRecentBedVisit);
-        hospitalVisit = patientFactRepository.save(hospitalVisit);
+        mostRecentBedVisit = patientFactRepo.save(mostRecentBedVisit);
+        hospitalVisit = patientFactRepo.save(hospitalVisit);
     }
 
     private static Map<String, Attribute> attributeCache = null;
@@ -940,7 +955,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     private AdtOperation adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
-        return new AdtOperation(encounterRepo, mrnRepo, personMrnRepo, personRepo, patientFactRepository, adtMsg, storedFrom);
+        return new AdtOperation(this, adtMsg, storedFrom);
     }
 
     /**
@@ -1021,8 +1036,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // The non-surviving Mrn is invalidated but still points to the old person
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person)
-        Mrn oldMrn = AdtOperation.getCreateMrn(oldMrnStr, mergeTime, storedFrom, true, personRepo, mrnRepo);
-        Mrn survivingMrn = AdtOperation.getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, personRepo, mrnRepo);
+        Mrn oldMrn = AdtOperation.getCreateMrn(oldMrnStr, mergeTime, storedFrom, true, this);
+        Mrn survivingMrn = AdtOperation.getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, this);
         if (survivingMrn == null || oldMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
@@ -1329,7 +1344,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact existingPathologyOrder = null;
         if (!epicCareOrderNumber.isEmpty()) {
             existingPathologyOrder = getOnlyElement(
-                    patientFactRepository.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
+                    patientFactRepo.findAllPathologyOrdersByOrderNumber(epicCareOrderNumber));
         }
         // If this fails, try the lab number + order type because epic order num may be blank for lab initiated orders
         Encounter encounter;
@@ -1345,7 +1360,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // (also our test depends on this being allowed)
             logger.error(String.format("Couldn't find order with order number %s, searching by visit number instead", epicCareOrderNumber));
             if (!visitNumber.isEmpty()) {
-                encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, backupValidFrom, encounterRepo, personRepo, mrnRepo);
+                encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, backupValidFrom, this);
             } else {
                 throw new MessageIgnoredException("Can't find encounter - can't search on empty visit number");
             }

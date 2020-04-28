@@ -2,21 +2,13 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
@@ -37,12 +29,7 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 public class AdtOperation {
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
-    private AttributeRepository        attributeRepo;
-    private PersonRepository           personRepo;
-    private MrnRepository              mrnRepo;
-    private EncounterRepository        encounterRepo;
-    private PatientFactRepository      patientFactRepository;
-    private PersonMrnRepository        personMrnRepo;
+    private InformDbOperations dbOps;
 
     private AdtMessage adtMsg;
 
@@ -67,16 +54,13 @@ public class AdtOperation {
 
     private Instant locationVisitValidFrom;
 
-    public AdtOperation(EncounterRepository encounterRepo, MrnRepository mrnRepo, PersonMrnRepository personMrnRepo, PersonRepository personRepo, PatientFactRepository patientFactRepository, AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+
+    public AdtOperation(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.adtMsg = adtMsg;
-        this.encounterRepo = encounterRepo;
-        this.personMrnRepo = personMrnRepo;
-        this.mrnRepo = mrnRepo;
-        this.personRepo = personRepo;
-        this.patientFactRepository = patientFactRepository;
+        this.dbOps = dbOps;
         this.storedFrom = storedFrom;
         determineTimestamps();
-        encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, encounterRepo, personRepo, mrnRepo);
+        encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);
 
     }
 
@@ -157,12 +141,12 @@ public class AdtOperation {
      * @return the Mrn, pre-existing or newly created, or null if it doesn't exist
      *         and !createIfNotExist
      */
-    static Mrn getCreateMrn(String mrnStr, Instant validFrom, Instant storedFrom, boolean createIfNotExist, PersonRepository personRep, MrnRepository mrnRep) {
+    static Mrn getCreateMrn(String mrnStr, Instant validFrom, Instant storedFrom, boolean createIfNotExist, InformDbOperations dbOps) {
         if (createIfNotExist && (storedFrom == null || validFrom == null || mrnStr == null || mrnStr.isEmpty())) {
             throw new IllegalArgumentException(String.format(
                     "if createIfNotExist, storedFrom (%s) and validFrom (%s) and mrnStr (%s) must be non-null", storedFrom, validFrom, mrnStr));
         }
-        Mrn mrn = mrnRep.findByMrnString(mrnStr);
+        Mrn mrn = dbOps.findByMrnString(mrnStr);
         if (mrn == null) {
             if (!createIfNotExist) {
                 return null;
@@ -179,7 +163,7 @@ public class AdtOperation {
             Person pers = new Person();
             pers.setCreateDatetime(storedFrom);
             pers.addMrn(mrn, validFrom, storedFrom);
-            pers = personRep.save(pers);
+            pers = dbOps.save(pers);
         } else {
             logger.info(String.format("Reusing an existing MRN %s with encounters: %s", mrn.getMrn(),
                     mrn.getEncounters().toString()));
@@ -199,13 +183,13 @@ public class AdtOperation {
      * @return the Encounter, existing or newly created
      * @throws MessageIgnoredException if message can't be processed
      */
-    static Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant storedFrom, Instant validFrom, EncounterRepository encRepo, PersonRepository personRep, MrnRepository mrnRep) throws MessageIgnoredException {
+    static Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant storedFrom, Instant validFrom, InformDbOperations dbOps) throws MessageIgnoredException {
         logger.info(String.format("getCreateEncounter looking for existing encounter %s in MRN %s", encounterStr, mrnStr));
         // look for encounter by its encounter number only as this is sufficiently unique without also using the MRN
-        Encounter existingEnc = encRepo.findEncounterByEncounter(encounterStr);
+        Encounter existingEnc = dbOps.findEncounterByEncounter(encounterStr);
         if (existingEnc == null) {
             // The encounter didn't exist, so see if its MRN exists, creating if not.
-            Mrn newOrExistingMrn = getCreateMrn(mrnStr, validFrom, storedFrom, true, personRep, mrnRep);
+            Mrn newOrExistingMrn = getCreateMrn(mrnStr, validFrom, storedFrom, true, dbOps);
             logger.info("getCreateEncounter CREATING NEW");
             Encounter enc = new Encounter();
             enc.setEncounter(encounterStr);
@@ -324,7 +308,7 @@ public class AdtOperation {
             throw new MessageIgnoredException(adtMsg, "More than 1 (count = " + allHospitalVisits.size()
                     + ") hospital visits in encounter " + adtMsg.getVisitNumber());
         }
-        encounter = encounterRepo.save(encounter);
+        encounter = dbOps.save(encounter);
         logger.info(String.format("Encounter: %s", encounter.toString()));
     }
 
