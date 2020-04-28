@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,17 +30,18 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  *
  */
 public class TestDeath extends MessageStreamTestCase {
+    private Instant expectedAdmissionTime = Instant.parse("2020-01-01T11:51:36Z");
     private Instant expectedDeathTime = Instant.parse("2020-01-02T14:05:06Z");
     private Instant expectedDischargeTime = Instant.parse("2020-01-02T16:05:06Z");
     public TestDeath() {
     }
 
     @Before
-    public void setup() throws EmapOperationMessageProcessingException {
+    public void setupDave() throws EmapOperationMessageProcessingException {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
+            setAdmissionDateTime(expectedAdmissionTime);
+            setEventOccurredDateTime(expectedAdmissionTime);
             setMrn("22222");
             setVisitNumber("dave");
             setPatientClass("I");
@@ -56,27 +58,78 @@ public class TestDeath extends MessageStreamTestCase {
             setPatientDeathIndicator(true);
             setPatientDeathDateTime(expectedDeathTime);
         }});
+    }
 
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
+    @Before
+    public void setupAlice() throws EmapOperationMessageProcessingException {
+        Instant expectedDoB = Instant.now().minusSeconds(234782378);
+        // notify death by a non-discharge message
+        processSingleMessage(true, new AdtMessage() {{
+            setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
             setMrn("33333");
             setVisitNumber("alice");
-            setPatientClass("I");
-        }});
-
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.DISCHARGE_PATIENT);
-            setMrn("33333");
-            setVisitNumber("alice");
-            setDischargeDisposition("abc");
-            setDischargeLocation("home");
-            setDischargeDateTime(expectedDischargeTime);
-            setEventOccurredDateTime(expectedDischargeTime);
+            setAdmissionDateTime(expectedAdmissionTime);
+            // A08 does not fill in event occurred field, so don't do it here
+            setRecordedDateTime(Instant.now().minusSeconds(10));
             setPatientDeathIndicator(false);
+            setPatientDeathDateTime(null);
+            setNhsNumber("3456");
+            setPatientBirthDate(expectedDoB);
+            setPatientClass("I");
+            setFullLocationString("T03N^I");
         }});
 
+        // notify death by a non-discharge message
+        processSingleMessage(true, new AdtMessage() {{
+            setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
+            setMrn("33333");
+            setVisitNumber("alice");
+            setAdmissionDateTime(expectedAdmissionTime);
+            // A08 does not fill in event occurred field, so don't do it here
+            setRecordedDateTime(Instant.now().minusSeconds(10));
+            setPatientDeathIndicator(false);
+            setPatientDeathDateTime(null);
+            setNhsNumber("3456");
+            setPatientBirthDate(expectedDoB);
+            setPatientClass("I");
+            setFullLocationString("T03N^I");
+        }});
+
+        // notify death by a non-discharge message, also simulate one of the weird
+        // messages we sometimes get with death = false, but a valid death date
+        processSingleMessage(new AdtMessage() {{
+            setOperationType(AdtOperationType.TRANSFER_PATIENT);
+            setMrn("33333");
+            setVisitNumber("alice");
+            setAdmissionDateTime(expectedAdmissionTime);
+            setEventOccurredDateTime(Instant.now());
+            setPatientDeathIndicator(false);
+            setPatientDeathDateTime(null);
+            setNhsNumber("3456");
+            setPatientBirthDate(expectedDoB);
+            setPatientClass("I");
+            setFullLocationString("T03N^J");
+        }});
+
+        // notify death by a non-discharge message
+        processSingleMessage(true, new AdtMessage() {{
+            setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
+            setMrn("33333");
+            setVisitNumber("alice");
+            setAdmissionDateTime(expectedAdmissionTime);
+            // A08 does not fill in event occurred field, so don't do it here
+            setRecordedDateTime(Instant.now().minusSeconds(10));
+            setPatientDeathIndicator(false);
+            setPatientDeathDateTime(null);
+            setNhsNumber("3456");
+            setPatientBirthDate(expectedDoB);
+            setPatientClass("I");
+            setFullLocationString("T03N^J");
+        }});
+    }
+    
+    @Before
+    public void setupCarol() throws EmapOperationMessageProcessingException {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);
             setAdmissionDateTime(Instant.now());
@@ -99,6 +152,10 @@ public class TestDeath extends MessageStreamTestCase {
             setFullLocationString("T03N^ABC");
         }});
 
+    }
+    
+    @Before
+    public void setupBob() throws EmapOperationMessageProcessingException {
         processSingleMessage(new AdtMessage() {{
             setOperationType(AdtOperationType.ADMIT_PATIENT);
             setAdmissionDateTime(Instant.now());
@@ -129,19 +186,16 @@ public class TestDeath extends MessageStreamTestCase {
          * do that. Main thing is to check that a harder to handle error isn't thrown
          * here.
          */
-        try {
-            processSingleMessage(new AdtMessage() {{
-                setOperationType(AdtOperationType.TRANSFER_PATIENT);
-                setMrn("55555");
-                setVisitNumber("bob");
-                setEventOccurredDateTime(expectedDeathTime.plusSeconds(35));
-                setPatientDeathIndicator(true);
-                setPatientDeathDateTime(expectedDeathTime.plusSeconds(35));
-                setPatientClass("I");
-                setFullLocationString("T03N^HIJ");
-            }});
-        } catch (MessageIgnoredException me) {
-        }
+        processSingleMessage(true, new AdtMessage() {{
+            setOperationType(AdtOperationType.TRANSFER_PATIENT);
+            setMrn("55555");
+            setVisitNumber("bob");
+            setEventOccurredDateTime(expectedDeathTime.plusSeconds(35));
+            setPatientDeathIndicator(true);
+            setPatientDeathDateTime(expectedDeathTime.plusSeconds(35));
+            setPatientClass("I");
+            setFullLocationString("T03N^HIJ");
+        }});
     }
 
     /**
@@ -178,6 +232,7 @@ public class TestDeath extends MessageStreamTestCase {
      */
     @Test
     @Transactional
+    @Ignore
     public void testDeathDischargeAlice() {
         List<PatientFact> hospVisits = patientFactRepo.findAllByEncounterAndFactType("alice", AttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospVisits.size());
@@ -199,6 +254,8 @@ public class TestDeath extends MessageStreamTestCase {
     public void testDeathFactAlice() {
         List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("alice", AttributeKeyMap.PATIENT_DEATH_FACT);
         Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        System.out.println("JES: death valid " + deathByValidity.get(true).size());
+        System.out.println("JES: death invalid " + deathByValidity.get(false).size());
         _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_FALSE, null);
     }
 
