@@ -518,7 +518,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         switch (allHospitalVisits.size()) {
         case 0:
             hospitalVisit = addOpenHospitalVisit(enc, storedFrom, admissionTime, adtMsg.getPatientClass());
-            addDemographicsToEncounter(enc, adtMsg, storedFrom);
+            addOrUpdateDemographics(enc, adtMsg, storedFrom);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = visitTypeFromPatientClass(adtMsg.getPatientClass());
             addOpenLocationVisit(enc, visitType, storedFrom, locationVisitValidFrom, locationVisitStartTime, hospitalVisit,
@@ -557,13 +557,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * @param enc        the encounter to add to
-     * @param adtMsg the message details to use
+     * @param encounter  the encounter to add to
+     * @param adtMsg     the message details to use
      * @param storedFrom storedFrom value to use for new records
      */
-    private void addDemographicsToEncounter(Encounter enc, AdtMessage adtMsg, Instant storedFrom) {
-        Map<String, PatientFact> demogs = buildPatientDemographics(adtMsg, storedFrom);
-        demogs.forEach((k, v) -> enc.addFact(v));
+    private void addOrUpdateDemographics(Encounter encounter, AdtMessage adtMsg, Instant storedFrom) {
+        // Compare new demographics with old
+        Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg, storedFrom);
+        Map<String, PatientFact> currentDemographics = getValidStoredDemographicFacts(encounter).stream()
+                .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
+        updateDemographics(encounter, currentDemographics, newDemographics);
     }
 
     /**
@@ -1199,11 +1202,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // what the reason/circumstances were.
             throw new MessageIgnoredException(adtMsg, "Cannot find the visit " + visitNumber);
         }
-        // Compare new demographics with old
-        Map<String, PatientFact> newDemographics = buildPatientDemographics(adtMsg, storedFrom);
-        Map<String, PatientFact> currentDemographics = getValidStoredDemographicFacts(encounter).stream()
-                .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
-        updateDemographics(encounter, currentDemographics, newDemographics);
+        addOrUpdateDemographics(encounter, adtMsg, storedFrom);
 
         /*
          * Detect when location has changed and perform a transfer. If there isn't an
