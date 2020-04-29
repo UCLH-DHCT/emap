@@ -113,4 +113,45 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         assertTrue(validHospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).isEmpty());
         assertTrue(validBedVisits.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).isEmpty());
     }
+
+
+    /**
+     * An ED patient transfers to a inpatient ward (A06). We expect hospital visit fact
+     * to change patient class form 'E' to 'I'
+     * @throws EmapOperationMessageProcessingException
+     */
+    @Test
+    @Transactional
+    public void testEdAdmissionAsInpatient() throws EmapOperationMessageProcessingException {
+        patientClass = "E";
+        queueAdmit();
+        queueUpdatePatientDetails();
+        queueAdmit(true);
+
+        queueAdmitOutpatientToInpatient(true);
+
+        processRest();
+
+        Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
+        Map<AttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsByType.get(AttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsByType.get(AttributeKeyMap.BED_VISIT);
+        assertTrue(bedVisits.stream().allMatch(v -> v.isValid()));
+        assertEquals(1, hospVisits.size());
+        assertEquals(3, bedVisits.size());
+
+        PatientFact onlyHospVisit = hospVisits.get(0);
+        assertIsParentOfChildren(onlyHospVisit, bedVisits);
+
+        assertEquals("E",
+                bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+        assertEquals("I",
+                bedVisits.get(2).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+        // patient class should also go in the hosp visit - we think it doesn't
+        // routinely change during a visit,
+        // except when explicitly signalled, eg. and O->I transfer
+        // which is what we are testing here
+        assertEquals("I",
+                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+    }
 }
