@@ -114,7 +114,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Queue a vital signs message.
      */
-    public void queueVitals() {
+    public void queueVital() {
         VitalSigns vital = new VitalSigns();
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
