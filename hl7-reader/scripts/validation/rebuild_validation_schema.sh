@@ -12,10 +12,11 @@ log_file_prefix=rebuild_log_${date_suffix}
 
 # edit hl7 (vitals+adt) config files in place, keeping a backup named by the timestamp
 configure_time_window() {
-    window_length_ago="$1" # eg. "4 days ago", must be >= 1 day I think
+    window_start_human="$1" # eg. "4 days ago", "2020-04-12", must be >= 1 day ago I think
+    window_end_human="$2" # same thing but for end, eg. "today", "2020-04-19"
     # run up to most recent midnight, from N days previous
-    export window_start="$(date --iso-8601=date --date="$window_length_ago")T00:00:00.000Z"
-    export window_end="$(date --iso-8601=date)T00:00:00.000Z"
+    export window_start="$(date --iso-8601=date --date="$window_start_human")T00:00:00.000Z"
+    export window_end="$(date --iso-8601=date --date="$window_end_human")T00:00:00.000Z"
     echo "Setting config for pipeline to run from $window_start to $window_end"
     perl -pi.$(date --iso-8601=seconds) \
         -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/;
@@ -97,7 +98,15 @@ run_omop() {
 
 # This script does not yet clear the databases before starting
 
-configure_time_window '7 days ago'
+window_start_arg="$1"
+if [ -z "$window_start_arg" ]; then
+    window_start_arg="7 days ago"
+fi
+window_end_arg="$2"
+if [ -z "$window_end_arg" ]; then
+    window_end_arg="today"
+fi
+configure_time_window "$window_start_arg" "$window_end_arg"
 run_pipeline
 wait_for_queue_to_empty
 run_omop
