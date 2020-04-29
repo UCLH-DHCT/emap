@@ -6,7 +6,6 @@ import java.util.List;
 
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
 /**
@@ -254,7 +253,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Queue a cancel transfer message.
      */
-    public void queueCancelTransfer() throws EmapOperationMessageProcessingException {
+    public void queueCancelTransfer() {
         this.ensureAdmitted();
         Instant erroneousTransferDateTime;
         if (this.transferTime.isEmpty()) {
