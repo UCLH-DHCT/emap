@@ -15,22 +15,25 @@ import uk.ac.ucl.rits.inform.interchange.VitalSigns;
  * @author Jeremy Stein & Roma Klapaukh
  */
 public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
-    protected Instant        currentTime          = Instant.parse("2020-03-01T06:30:00.000Z");
-    protected final String[] allLocations         = { "T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY", "ED^BADGERS^HOG",
-            "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN" };
-    protected int            currentLocation      = 0;
-    protected String         mrn                  = "1234ABCD";
-    protected String         csn                  = "1234567890";
-    protected String         patientClass         = "E";
-    protected Instant        admissionTime        = null;
-    protected Instant        dischargeTime        = null;
-    protected String         nhsNumber            = "9999999999";
-    protected String         name                 = "Fred Blogger";
-    protected List<Instant>  transferTime         = new ArrayList<>();
+    protected Instant             currentTime          = Instant.parse("2020-03-01T06:30:00.000Z");
+    protected final String[]      allLocations         = { "T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
+            "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN" };
+    protected int                 currentLocation      = 0;
+    protected String              mrn                  = "1234ABCD";
+    protected String              csn                  = "1234567890";
+    protected String              patientClass         = "E";
+    protected Instant             admissionTime        = null;
+    protected Instant             dischargeTime        = null;
+    protected String              nhsNumber            = "9999999999";
+    protected String              name                 = "Fred Blogger";
+    protected final List<Instant> transferTime         = new ArrayList<>();
 
-    protected String         dischargeDisposition = "Peachy";
-    protected String         dischargeLocation    = "Home";
-    protected boolean        patientDied          = false;
+    protected String              dischargeDisposition = "Peachy";
+    protected String              dischargeLocation    = "Home";
+    protected boolean             patientDied          = false;
+
+    protected double              vitalReading         = 92.;
+    protected List<Instant>       vitalTime            = new ArrayList<>();
 
     /**
      * Create a new MessageStreamBaseCase.
@@ -115,13 +118,16 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * Queue a vital signs message.
      */
     public void queueVital() {
+        Instant vitalTime = this.nextTime();
+        this.vitalTime.add(vitalTime);
+
         VitalSigns vital = new VitalSigns();
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
         vital.setVitalSignIdentifier("HEART_RATE");
-        vital.setNumericValue(92.);
+        vital.setNumericValue(vitalReading);
         vital.setUnit("/min");
-        vital.setObservationTimeTaken(this.nextTime());
+        vital.setObservationTimeTaken(vitalTime);
         queueMessage(vital);
     }
 
@@ -272,4 +278,14 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         this.queueMessage(cancelDischarge);
     }
 
+    public void queueMerge(String mergedMrn, String survivingMrn) {
+        AdtMessage merge = new AdtMessage();
+
+        merge.setOperationType(AdtOperationType.MERGE_BY_ID);
+        merge.setRecordedDateTime(this.nextTime());
+        merge.setMrn(mergedMrn);
+        merge.setMergedPatientId(survivingMrn);
+
+        this.queueMessage(merge);
+    }
 }
