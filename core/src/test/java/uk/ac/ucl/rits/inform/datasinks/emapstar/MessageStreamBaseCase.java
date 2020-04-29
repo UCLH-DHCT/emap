@@ -162,11 +162,19 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     public void queueAdmit() {
+        this.queueAdmit(false);
+    }
+
+    public void queueAdmit(boolean transfer) {
         Instant eventTime = this.nextTime();
         if (this.admissionTime == null) {
             this.admissionTime = eventTime;
         }
         this.transferTime.add(eventTime);
+        if(transfer) {
+            this.stepLocation();
+        }
+
 
         AdtMessage admit = new AdtMessage();
         admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
@@ -224,7 +232,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Queue a cancel admit message.
      */
-    public void queueCancelAdmit() throws EmapOperationMessageProcessingException {
+    public void queueCancelAdmit() {
         this.ensureAdmitted();
         AdtMessage cancelAdmit = new AdtMessage();
         Instant expectedCancellationDateTime = this.nextTime();
@@ -237,6 +245,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         cancelAdmit.setPatientClass(this.patientClass);
         cancelAdmit.setPatientFullName(this.name);
         cancelAdmit.setFullLocationString(this.previousLocation());
+
         this.queueMessage(cancelAdmit);
 
         this.admissionTime = null;
