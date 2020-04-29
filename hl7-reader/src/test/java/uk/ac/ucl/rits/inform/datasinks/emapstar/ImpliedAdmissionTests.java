@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
@@ -31,7 +32,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     public void basicFlow() throws EmapOperationMessageProcessingException {
         queueTransfer();
         processRest();
-        testState();
     }
 
     @Test
@@ -40,7 +40,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueTransfer();
         queueVital();
         processRest();
-        testState();
     }
 
     @Test
@@ -49,7 +48,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueVital();
         queueTransfer();
         processRest();
-        testState();
     }
 
     @Test
@@ -58,7 +56,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueVital();
         queueDischarge();
         processRest();
-        testState();
     }
 
     @Test
@@ -67,7 +64,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueVital();
         queueCancelTransfer();
         processRest();
-        testState();
     }
 
     @Test
@@ -77,6 +73,8 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueCancelAdmit();
         processN(1);
         assertThrows(MessageIgnoredException.class, () -> processN(1));
+        queueTransfer();
+        processRest();
     }
 
     @Test
@@ -85,7 +83,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueVital();
         queueCancelDischarge();
         processRest();
-        testState();
     }
 
     @Test
@@ -96,9 +93,9 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         queueTransfer();
         queueUpdatePatientDetails();
         processRest();
-        testState();
     }
 
+    @AfterEach
     @Transactional
     public void testState() {
         PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation(this.csn, 1,
@@ -107,7 +104,8 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());
         PatientProperty bedArrivalTime = _arrivalTimes.get(0);
-        assertEquals(this.transferTime.isEmpty() ? null : this.transferTime.get(0), bedArrivalTime.getValueAsDatetime());
+        assertEquals(this.transferTime.isEmpty() ? null : this.transferTime.get(0),
+                bedArrivalTime.getValueAsDatetime());
 
         // check hospital visit arrival time
         PatientFact hospVisit = bedVisit.getParentFact();
