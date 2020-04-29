@@ -36,6 +36,8 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     private Instant expectedBedArrivalDateTime = Instant.parse("2020-03-01T10:35:00.000Z");
     private Instant expectedDischargeTime = null;
     private String expectedLocation = "T42^BADGERS^WISCONSIN";
+    // can vary
+    protected Integer expectedTotalVisit = 1;
 
     public ImpliedAdmissionTestCase() {
     }
@@ -156,7 +158,10 @@ public abstract class ImpliedAdmissionTestCase extends MessageStreamTestCase {
     @Test
     @Transactional
     public void testVisitPresent() {
-        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation("1234567890", 1, expectedLocation, expectedDischargeTime);
+        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation("1234567890", expectedTotalVisit, expectedLocation, expectedDischargeTime);
+        if (expectedTotalVisit == 0 && bedVisit == null) {
+            return;
+        }
         // check bed visit arrival time
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());

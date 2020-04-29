@@ -14,9 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  * @author Jeremy Stein
  */
 public class ImpliedAdmissionWithVitals5TestCase extends ImpliedAdmissionTestCase {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     public ImpliedAdmissionWithVitals5TestCase() {
     }
 
@@ -29,8 +26,8 @@ public class ImpliedAdmissionWithVitals5TestCase extends ImpliedAdmissionTestCas
      */
     @Before
     public void setup() throws EmapOperationMessageProcessingException {
+        expectedTotalVisit = 0;
         addVitals();
-        thrown.expect(MessageIgnoredException.class);
         performCancelAdmit();
     }
 }
