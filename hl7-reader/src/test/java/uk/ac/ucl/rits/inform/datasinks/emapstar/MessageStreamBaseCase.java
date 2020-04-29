@@ -26,7 +26,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     protected Instant        dischargeTime        = null;
     protected String         nhsNumber            = "9999999999";
     protected String         name                 = "Fred Blogger";
-    protected List<Instant>  transferTime     = new ArrayList<>();
+    protected List<Instant>  transferTime         = new ArrayList<>();
 
     protected String         dischargeDisposition = "Peachy";
     protected String         dischargeLocation    = "Home";
@@ -53,6 +53,15 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         Instant time = currentTime;
         this.stepClock();
         return time;
+    }
+
+    /**
+     * Get the current location of the patient.
+     *
+     * @return Current location.
+     */
+    protected String currentLocation() {
+        return this.allLocations[this.currentLocation];
     }
 
     /**
@@ -133,6 +142,22 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         update.setFullLocationString(allLocations[this.currentLocation]);
         update.setPatientClass(this.patientClass);
         queueMessage(update);
+    }
+
+    public void queueAdmit() {
+        if (this.admissionTime == null) {
+            this.admissionTime = this.nextTime();
+        }
+        AdtMessage admit = new AdtMessage();
+        admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
+        admit.setAdmissionDateTime(this.admissionTime);
+        admit.setEventOccurredDateTime(this.admissionTime);
+        admit.setMrn(this.mrn);
+        admit.setVisitNumber(this.csn);
+        admit.setPatientClass(this.patientClass);
+        admit.setPatientFullName(this.name);
+        admit.setFullLocationString(this.currentLocation());
+        this.queueMessage(admit);
     }
 
     /**
