@@ -69,5 +69,9 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
         List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
         assertEquals(2, allTestResults001.size());
         assertEquals(17, allTestResults002.size());
+
+        // check that most recent message result is used
+        PatientProperty monocyteProperty =  allTestResults002.get(1).getProperties().get(3);
+        assertEquals(0.5, monocyteProperty.getValueAsReal());
     }
 }

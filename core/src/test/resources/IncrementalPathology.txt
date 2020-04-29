@@ -38,7 +38,7 @@ OBX|9|NM|PLT^Platelet count^Winpath||95|x10\S\9/L|150-400|L|||F
 OBX|10|NM|MPVU^MPV^Winpath||9.4|fL|7-13||||F
 OBX|11|NM|NE^Neutrophils^Winpath||9.28|x10\S\9/L|2.0-7.5|H|||F
 OBX|12|NM|LY^Lymphocytes^Winpath||0.40|x10\S\9/L|1.2-3.65|L|||F
-OBX|13|NM|MO^Monocytes^Winpath||0.35|x10\S\9/L|0.2-1.0||||F
+OBX|13|NM|MO^Monocytes^Winpath||0.5|x10\S\9/L|0.2-1.0||||F
 OBX|14|NM|EO^Eosinophils^Winpath||0.00|x10\S\9/L|0.0-0.4||||F
 OBX|15|NM|BA^Basophils^Winpath||0.01|x10\S\9/L|0.0-0.1||||F
 OBX|16|NM|NRC^Nucleated RBCs abs^Winpath||0.00|x10\S\9/L|0-0.01||||F
