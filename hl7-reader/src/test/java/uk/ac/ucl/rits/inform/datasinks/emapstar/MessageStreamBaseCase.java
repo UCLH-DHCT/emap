@@ -53,9 +53,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * @return A time later than all the previous ones.
      */
     protected Instant nextTime() {
-        Instant time = currentTime;
         this.stepClock();
-        return time;
+        return currentTime;
     }
 
     /**
@@ -106,6 +105,15 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     /**
+     * Get the time of the last transfer
+     *
+     * @return The time of the last transfer
+     */
+    protected Instant lastTransferTime() {
+        return this.transferTime.get(this.transferTime.size() - 1);
+    }
+
+    /**
      * Make sure that the patient has an admission time.
      */
     protected void ensureAdmitted() {
@@ -151,13 +159,16 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     public void queueAdmit() {
+        Instant eventTime = this.nextTime();
         if (this.admissionTime == null) {
-            this.admissionTime = this.nextTime();
+            this.admissionTime = eventTime;
         }
+        this.transferTime.add(eventTime);
+
         AdtMessage admit = new AdtMessage();
         admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
         admit.setAdmissionDateTime(this.admissionTime);
-        admit.setEventOccurredDateTime(this.admissionTime);
+        admit.setEventOccurredDateTime(eventTime);
         admit.setMrn(this.mrn);
         admit.setVisitNumber(this.csn);
         admit.setPatientClass(this.patientClass);
@@ -167,14 +178,31 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     /**
-     * Queue a transfer message.
+     * Queue a moving transfer message.
      */
     public void queueTransfer() {
-        this.ensureAdmitted();
-        AdtMessage transfer = new AdtMessage();
-        Instant tTime = this.nextTime();
-        this.transferTime.add(tTime);
+        this.queueTransfer(true);
+    }
 
+    /**
+     * Queue a transfer message.
+     */
+    public void queueTransfer(boolean updateLocation) {
+        this.ensureAdmitted();
+
+        // Handle non-moving update
+        String location;
+
+        Instant tTime = this.nextTime();;
+
+        if (updateLocation) {
+            location = nextLocation();
+            this.transferTime.add(tTime);
+        } else {
+            location = currentLocation();
+        }
+
+        AdtMessage transfer = new AdtMessage();
         transfer.setOperationType(AdtOperationType.TRANSFER_PATIENT);
         transfer.setAdmissionDateTime(this.admissionTime);
         transfer.setEventOccurredDateTime(tTime);
@@ -182,7 +210,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         transfer.setVisitNumber(this.csn);
         transfer.setPatientClass(this.patientClass);
         transfer.setPatientFullName(this.name);
-        transfer.setFullLocationString(this.nextLocation());
+        transfer.setFullLocationString(location);
         this.queueMessage(transfer);
 
     }
