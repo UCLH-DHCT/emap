@@ -31,6 +31,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     protected String              dischargeDisposition = "Peachy";
     protected String              dischargeLocation    = "Home";
     protected boolean             patientDied          = false;
+    protected Instant             deathTime            = null;
 
     protected double              vitalReading         = 92.;
     protected List<Instant>       vitalTime            = new ArrayList<>();
@@ -155,6 +156,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         update.setPatientFullName(this.name);
         update.setFullLocationString(allLocations[this.currentLocation]);
         update.setPatientClass(this.patientClass);
+        update.setPatientDeathIndicator(this.patientDied);
+        update.setPatientDeathDateTime(deathTime);
         queueMessage(update);
     }
 
@@ -193,7 +196,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         // Handle non-moving update
         String location;
 
-        Instant tTime = this.nextTime();;
+        Instant tTime = this.nextTime();
+        ;
 
         if (updateLocation) {
             location = nextLocation();
@@ -211,6 +215,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         transfer.setPatientClass(this.patientClass);
         transfer.setPatientFullName(this.name);
         transfer.setFullLocationString(location);
+        transfer.setPatientDeathIndicator(this.patientDied);
+        transfer.setPatientDeathDateTime(deathTime);
         this.queueMessage(transfer);
 
     }
@@ -283,6 +289,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         discharge.setDischargeLocation(this.dischargeLocation);
         discharge.setDischargeDateTime(this.dischargeTime);
         discharge.setPatientDeathIndicator(this.patientDied);
+        discharge.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(discharge);
     }
