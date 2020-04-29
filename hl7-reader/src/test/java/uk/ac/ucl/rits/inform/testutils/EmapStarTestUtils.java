@@ -55,7 +55,10 @@ public class EmapStarTestUtils {
         List<PatientFact> validBedVisits = getLocationVisitsForEncounter(expectedEncounter, expectedTotalVisits);
         List<PatientFact> validBedVisitsAtLocation =
                 validBedVisits.stream().filter(f -> f.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString().equals(expectedLocation)).collect(Collectors.toList());
-        assertEquals(1, validBedVisitsAtLocation.size());
+        assertEquals(expectedTotalVisits, validBedVisitsAtLocation.size());
+        if (expectedTotalVisits == 0) {
+            return null;
+        }
         PatientFact bedVisit = validBedVisitsAtLocation.get(0);
         List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid());
         assertEquals("There should be exactly one location property for an inpatient bed visit", 1, location.size());
@@ -69,7 +72,6 @@ public class EmapStarTestUtils {
         } else {
             PatientProperty disch = dischargeTimes.get(0);
             assertEquals("Discharge time does not match", expectedDischargeTime, disch.getValueAsDatetime());
-
         }
         return bedVisit;
     }
