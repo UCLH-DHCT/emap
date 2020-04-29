@@ -27,7 +27,7 @@ public class TestDeath extends MessageStreamBaseCase {
     public TestDeath() {}
 
     /**
-     * Check patient has been discharged as dead.
+     * Check patient has been discharged as dead including with cancellations.
      *
      * @throws EmapOperationMessageProcessingException
      */
@@ -45,17 +45,21 @@ public class TestDeath extends MessageStreamBaseCase {
 
         queueDischarge();
 
+        queueCancelDischarge();
+
+        queueDischarge();
+
         processRest();
 
         List<PatientFact> hospVisits =
                 patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospVisits.size());
         PatientFact hospVisit = hospVisits.get(0);
-        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION);
+        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION, PatientProperty::isValid);
         assertEquals(1, dischDisp.size());
         assertEquals(dischargeDisposition, dischDisp.get(0).getValueAsString());
 
-        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION);
+        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION, PatientProperty::isValid);
         assertEquals(1, dischLocation.size());
         assertEquals(dischargeLocation, dischLocation.get(0).getValueAsString());
 
