@@ -77,8 +77,8 @@ public abstract class MessageProcessingBaseCase {
     @Transactional
     public void processN(int n) throws EmapOperationMessageProcessingException {
         int end = nextToProcess + n;
-        for (; nextToProcess < end; nextToProcess++) {
-            processSingleMessage(messageStream.get(nextToProcess));
+        while (nextToProcess < end) {
+            processSingleMessage(messageStream.get(nextToProcess++));
         }
     }
 
