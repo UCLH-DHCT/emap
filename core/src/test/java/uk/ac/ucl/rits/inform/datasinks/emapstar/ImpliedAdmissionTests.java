@@ -38,7 +38,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Transactional
     public void basicFlowWithVitals() throws EmapOperationMessageProcessingException {
         queueTransfer();
-        queueVitals();
+        queueVital();
         processRest();
         testState();
     }
@@ -46,7 +46,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void vitalsThenTransfer() throws EmapOperationMessageProcessingException {
-        queueVitals();
+        queueVital();
         queueTransfer();
         processRest();
         testState();
@@ -55,7 +55,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void vitalsDischarge() throws EmapOperationMessageProcessingException {
-        queueVitals();
+        queueVital();
         queueDischarge();
         processRest();
         testState();
@@ -64,7 +64,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void vitalsCancelTransfer() throws EmapOperationMessageProcessingException {
-        queueVitals();
+        queueVital();
         queueCancelTransfer();
         processRest();
         testState();
@@ -73,7 +73,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void cancelWithoutTransferIgnored() throws EmapOperationMessageProcessingException {
-        queueVitals();
+        queueVital();
         queueCancelAdmit();
         processN(1);
         assertThrows(MessageIgnoredException.class, () -> processN(1));
@@ -82,7 +82,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void vitalsThenCancel() throws EmapOperationMessageProcessingException {
-        queueVitals();
+        queueVital();
         queueCancelDischarge();
         processRest();
         testState();
@@ -91,7 +91,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void patientUpdateRegressionBug() throws EmapOperationMessageProcessingException {
-        queueVitals();
+        queueVital();
         queueUpdatePatientDetails();
         queueTransfer();
         queueUpdatePatientDetails();
