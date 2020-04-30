@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
+import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
@@ -128,7 +129,9 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         queueUpdatePatientDetails();
         queueAdmit(true);
 
-        queueAdmitOutpatientToInpatient(true);
+        // an 'A06' message ie change patient to inpatient and tranfer
+        patientClass = "I";
+        queueAdmit(true);
 
         processRest();
 
@@ -144,14 +147,17 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
         assertEquals("E",
-                bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+                bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS,
+                        PatientProperty::isValid).get(0).getValueAsString());
         assertEquals("I",
-                bedVisits.get(2).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+                bedVisits.get(2).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS,
+                        PatientProperty::isValid).get(0).getValueAsString());
         // patient class should also go in the hosp visit - we think it doesn't
         // routinely change during a visit,
         // except when explicitly signalled, eg. and O->I transfer
         // which is what we are testing here
         assertEquals("I",
-                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS,
+                        PatientProperty::isValid).get(0).getValueAsString());
     }
 }
