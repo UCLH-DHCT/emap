@@ -166,14 +166,16 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     public void queueAdmit(boolean transfer) {
         Instant eventTime = this.nextTime();
+
+        if(this.admissionTime == null || transfer) {
+            this.transferTime.add(eventTime);
+        }
         if (this.admissionTime == null) {
             this.admissionTime = eventTime;
         }
-        this.transferTime.add(eventTime);
-        if(transfer) {
+        if (transfer) {
             this.stepLocation();
         }
-
 
         AdtMessage admit = new AdtMessage();
         admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
