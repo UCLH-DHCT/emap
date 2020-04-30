@@ -188,39 +188,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     /**
-     * Admitting an outpatient/someone in ed to hospital as an inpatient
-     */
-    public void queueAdmitOutpatientToInpatient() {
-        this.queueAdmitOutpatientToInpatient(false);
-    }
-
-    /**
-     * Admitting an outpatient/someone in ed to hospital as an inpatient
-     * @param  transfer boolean indicating whether this includes a bed transfer
-     */
-    public void queueAdmitOutpatientToInpatient(boolean transfer) {
-        Instant eventTime = this.nextTime();
-        if (this.admissionTime == null) {
-            this.admissionTime = eventTime;
-        }
-        this.transferTime.add(eventTime);
-        if(transfer) {
-            this.stepLocation();
-        }
-
-        AdtMessage admit = new AdtMessage();
-        admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
-        admit.setAdmissionDateTime(this.admissionTime);
-        admit.setEventOccurredDateTime(eventTime);
-        admit.setMrn(this.mrn);
-        admit.setVisitNumber(this.csn);
-        admit.setPatientClass("I");
-        admit.setPatientFullName(this.name);
-        admit.setFullLocationString(this.currentLocation());
-        this.queueMessage(admit);
-    }
-
-    /**
      * Queue a moving transfer message.
      */
     public void queueTransfer() {
