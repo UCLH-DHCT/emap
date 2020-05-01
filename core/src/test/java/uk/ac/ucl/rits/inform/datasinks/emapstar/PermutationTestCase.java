@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import uk.ac.ucl.rits.inform.informdb.Attribute;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
@@ -47,6 +48,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     @Value("${test.perm.length:2}")
     private int                 maxTestLength;
 
+    /**
+     * List of all queueing operations being tested. Note that queueDischarge must be last.
+     */
     private Runnable[]          operations   = { this::queueAdmitTransfer, this::queueAdmitClass, this::queueVital,
             this::queuePatUpdateClass, this::queueTransfer, this::queueDischarge };
     private String[]            patientClass = { "E", "O", "I", "DAY CASE", "SURG ADMIT" };
@@ -187,6 +191,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             operations[i].run();
             processN(1);
             this.checkAdmission();
+            this.checkDeath();
             if (i == 0 || i == 4) {
                 testLastBedVisit(transferTime.size(), currentLocation(), super.patientClass, lastTransferTime(),
                         lastTransferTime());
@@ -283,6 +288,50 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                 assertEquals(this.dischargeTime, hospDichargeTime.getValueAsDatetime());
             } else {
                 assertTrue(_hospDischTimes.isEmpty(), "Non discharged patient had discharge time");
+            }
+        }
+    }
+
+    /**
+     * Check that the patients death status is correct.
+     */
+    private void checkDeath() {
+        Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
+        assertNotNull(enc, "encounter did not exist");
+        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
+        assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
+        List<PatientFact> deaths = factsAsMap.getOrDefault(AttributeKeyMap.PATIENT_DEATH_FACT, new ArrayList<>())
+                .stream().filter(PatientFact::isValid).collect(Collectors.toList());
+        assertTrue(2 > deaths.size(), "Must only have 1 or 0 death facts");
+
+        if(deaths.isEmpty()) {
+            return;
+        }
+
+        // Check death date
+        PatientFact death = deaths.get(0);
+
+        { // Ensure that the arrival time is correct
+            List<PatientProperty> death_inds =
+                    death.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR, PatientProperty::isValid);
+            assertEquals(1, death_inds.size());
+            PatientProperty death_ind = death_inds.get(0);
+            Attribute deathInd = death_ind.getValueAsAttribute();
+            assertNotNull(deathInd, "Patient death indicator shouldn't be null");
+            assertEquals(this.patientDied ?
+                            AttributeKeyMap.BOOLEAN_TRUE.getShortname() :
+                            AttributeKeyMap.BOOLEAN_FALSE.getShortname(),
+                            deathInd.getShortName());
+        }
+        {
+            List<PatientProperty> deathDates =
+                    death.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME, PatientProperty::isValid);
+            if (this.deathTime != null) {
+                assertEquals(1, deathDates.size());
+                PatientProperty deathDate = deathDates.get(0);
+                assertEquals(this.deathTime, deathDate.getValueAsDatetime());
+            } else {
+                assertTrue(deathDates.isEmpty(), "Non dead patient had death time");
             }
         }
     }
