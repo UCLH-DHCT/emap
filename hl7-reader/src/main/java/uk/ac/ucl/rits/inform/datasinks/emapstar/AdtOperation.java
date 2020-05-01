@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
+import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
@@ -64,7 +65,12 @@ public class AdtOperation {
         this.dbOps = dbOps;
         this.storedFrom = storedFrom;
         determineTimestamps();
-        encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);
+        if (adtMsg.getVisitNumber() != null) {
+            encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);
+        } else if (!adtMsg.getOperationType().equals(AdtOperationType.MERGE_BY_ID)) {
+            // CSNs are not present in merge by ID messages, but in other messages this is an error
+            throw new MessageIgnoredException(adtMsg, "CSN missing in a non-merge message: " + adtMsg.getOperationType());
+        }
 
     }
 
@@ -295,6 +301,23 @@ public class AdtOperation {
     }
 
 
+    /**
+     * Create a new encounter using the details given in the ADT message. This may
+     * also entail creating a new Mrn and Person if these don't already exist.
+     * This may occur as the result of not just an A01/A04 message, because A02 or
+     * A03 messages can also trigger an "admit" if we didn't previously know about that patient.
+     * For this reason, look more at the patient class than whether it's an A01 or A04
+     * when determining whether to create a BED_VISIT instead of an OUTPATIENT_VISIT.
+     *
+     * ED flows tend to go A04+A08+A01 (all patient class = E). A04 and A01 are both considered
+     * to be admits here, so treat this as a transfer from the A04 to the A01 location.
+     * Note that this now breaks the previous workaround for the A01+(A11)+A01 sequence before the
+     * A11 messages were added to the feed, which treated A01+A01 as the second A01 *correcting* the first's
+     * patient location. Now we require an explicit A11 to count it as a correction,
+     * which I think is OK as these got turned on in July 2019.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
     public void performAdmit() throws MessageIgnoredException {
         List<PatientFact> allHospitalVisits = InformDbOperations.getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
 
@@ -327,6 +350,11 @@ public class AdtOperation {
         logger.info(String.format("Encounter: %s", encounter.toString()));
     }
 
+    /**
+     * Handle a change in patient info, which can occur with any message type.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
     public void performUpdateInfo() throws MessageIgnoredException {
         String newLocation = adtMsg.getFullLocationString();
         InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
@@ -350,6 +378,11 @@ public class AdtOperation {
 
     }
 
+    /**
+     * Close off the existing Visit and open a new one.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
     public void performTransfer() throws MessageIgnoredException {
         List<PatientFact> latestOpenBedVisits = InformDbOperations.getOpenValidLocationVisit(encounter);
         if (latestOpenBedVisits.isEmpty()) {
@@ -403,6 +436,12 @@ public class AdtOperation {
         performUpdateInfo();
     }
 
+
+    /**
+     * Mark the specified visit as finished.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
     public void performDischarge() throws MessageIgnoredException {
         PatientFact latestOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
         if (latestOpenBedVisit == null) {
@@ -436,6 +475,10 @@ public class AdtOperation {
         }
     }
 
+    /**
+     * Cancel a pre-existing admission by invalidating the facts associated with it.
+     * @throws MessageIgnoredException if message can't be processed
+     */
     public void performCancelAdmit() throws MessageIgnoredException {
 //        if (encounter == null) {
 //            logger.warn("Tried to cancel admit for patient we don't know about - admitting them");
@@ -472,6 +515,11 @@ public class AdtOperation {
         }
     }
 
+    /**
+     * Cancel the most recent bed visit by invalidating it.
+     *
+     * @throws MessageIgnoredException    if message can't be processed
+     */
     public void performCancelTransfer() throws MessageIgnoredException {
         Instant cancellationDateTime = adtMsg.getRecordedDateTime();
         // the new location, which is the location before the erroneous transfer was made
@@ -528,6 +576,12 @@ public class AdtOperation {
         }
     }
 
+    /**
+     * Mark the visit specified by visit number as not discharged any more. Can either mean a discharge was
+     * erroneously entered, or a decision to discharge was reversed.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
     public void performCancelDischarge() throws MessageIgnoredException {
         // event occurred field seems to be populated despite the Epic example message showing it blank.
         Instant invalidationDate = adtMsg.getEventOccurredDateTime();
@@ -579,5 +633,68 @@ public class AdtOperation {
 
         mostRecentBedVisit = dbOps.save(mostRecentBedVisit);
         hospitalVisit = dbOps.save(hospitalVisit);        
+    }
+
+    /**
+     * Indicate in the DB that two MRNs now belong to the same person. One MRN is
+     * designated the surviving MRN, although we can't prevent data being added to
+     * whichever MRN/CSN is specified in future messages, which (if the source
+     * system is behaving) we'd hope would be the surviving MRN. The best we could
+     * do is flag it as an error if new data is put against a non-surviving MRN.
+     *
+     * @throws MessageIgnoredException if merge time in message is blank or message
+     *                                 can't be processed
+     */
+    public void performMergeById() throws MessageIgnoredException {
+        String oldMrnStr = adtMsg.getMergedPatientId();
+        String survivingMrnStr = adtMsg.getMrn();
+        Instant mergeTime = adtMsg.getRecordedDateTime();
+        logger.info(String.format("MERGE: surviving mrn %s, oldMrn = %s, merge time = %s", survivingMrnStr, oldMrnStr,
+                mergeTime));
+        if (mergeTime == null) {
+            throw new MessageIgnoredException(adtMsg, "event occurred null");
+        }
+
+        // The non-surviving Mrn is invalidated but still points to the old person
+        // (we are recording the fact that between these dates, the hospital believed
+        // that the mrn belonged to this person)
+        Mrn oldMrn = getCreateMrn(oldMrnStr, mergeTime, storedFrom, true, dbOps);
+        Mrn survivingMrn = getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, dbOps);
+        if (survivingMrn == null || oldMrn == null) {
+            throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
+                    oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
+        }
+        PersonMrn oldPersonMrn = InformDbOperations.getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValid());
+        PersonMrn survivingPersonMrn = InformDbOperations.getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
+        if (survivingPersonMrn == null || oldPersonMrn == null) {
+            throw new MessageIgnoredException(adtMsg, String.format(
+                    "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
+                    oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
+        }
+
+        // If we already thought they were the same person, do nothing further.
+        if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
+            throw new MessageIgnoredException(adtMsg,
+                    String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
+                            survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
+        }
+
+        survivingPersonMrn.setLive(true);
+
+        // Invalidate the old person<->mrn association
+        oldPersonMrn.setValidUntil(mergeTime);
+
+        // Create a new person<->mrn association that tells us that as of the merge time
+        // the old MRN is believed to belong to the person associated with the surviving MRN
+        Person survivingPerson = survivingPersonMrn.getPerson();
+        PersonMrn newOldPersonMrn = new PersonMrn(survivingPerson, oldMrn);
+        newOldPersonMrn.setStoredFrom(storedFrom);
+        newOldPersonMrn.setValidFrom(mergeTime);
+        newOldPersonMrn.setLive(false);
+        survivingPerson.linkMrn(newOldPersonMrn);
+        oldMrn.linkPerson(newOldPersonMrn);
+
+        newOldPersonMrn = dbOps.save(newOldPersonMrn);
+        oldPersonMrn = dbOps.save(oldPersonMrn);
     }
 }

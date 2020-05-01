@@ -55,7 +55,7 @@ public class EmapStarTestUtils {
         List<PatientFact> validBedVisits = getLocationVisitsForEncounter(expectedEncounter, expectedTotalVisits);
         List<PatientFact> validBedVisitsAtLocation =
                 validBedVisits.stream().filter(f -> f.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString().equals(expectedLocation)).collect(Collectors.toList());
-        assertEquals(expectedTotalVisits, validBedVisitsAtLocation.size());
+        assertEquals(expectedTotalVisits, validBedVisits.size());
         if (expectedTotalVisits == 0) {
             return null;
         }
