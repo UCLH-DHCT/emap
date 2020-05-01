@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestReporter;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -27,30 +28,32 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
- * Test different transfers. Note that the Interchange ADT type
- * AdtOperationType.TRANSFER_PATIENT can originate from an A02, A06 or A07 HL7
- * message (or any transfer-like event in a non-HL7 source).
+ * Generatively test different sequences of messages and that the general state
+ * after each message looks correct. Possible messages, and state tests are hard
+ * coded, while orderings of arbitrary length are generated.
  *
- * @author Jeremy Stein
+ * @author Roma Klapaukh
  *
  */
 public class PermutationTestCase extends MessageStreamBaseCase {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
-
     private TransactionTemplate        transactionTemplate;
+
+    @Value("${test.perm.length:2}")
+    private int                        maxTestLength;
+
+    private Runnable[]                 operations   = { this::queueAdmitTransfer, this::queueAdmitClass,
+            this::queueVital, this::queuePatUpdateClass, this::queueTransfer, this::queueDischarge };
+    private String[]                   patientClass = { "E", "O", "I", "DAY CASE", "SURG ADMIT" };
+    private int                        currentClass;
+
+    public PermutationTestCase() {}
 
     public void setUp() {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
-
-    public PermutationTestCase() {}
-
-    private Runnable[] operations   = { this::queueAdmitTransfer, this::queueAdmitClass, this::queueVital,
-            this::queuePatUpdateClass, this::queueTransfer, this::queueDischarge };
-    private String[]   patientClass = { "E", "O", "I", "DAY CASE", "SURG ADMIT" };
-    private int        currentClass;
 
     private void reset() {
         currentClass = 0;
@@ -90,7 +93,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             start.add(i);
             initialMessages.add(start);
         }
-        List<List<Integer>> fullMessages = generatePermutations(initialMessages, 1, 2);
+        List<List<Integer>> fullMessages = generatePermutations(initialMessages, 1, this.maxTestLength);
 
         return fullMessages.stream().map(l -> makeTest("Test " + l.toString(), () -> {
             reset();
