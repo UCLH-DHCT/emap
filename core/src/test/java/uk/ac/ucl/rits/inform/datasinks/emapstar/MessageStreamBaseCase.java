@@ -160,14 +160,24 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         queueMessage(update);
     }
 
+    /**
+     * Queue an admit message that doesn't perform a transfer. If you want to
+     * simulate an A06 change do <code>patientClass="I"</code> before calling this
+     * method.
+     */
     public void queueAdmit() {
         this.queueAdmit(false);
     }
 
+    /**
+     * Queue an admit message that may or may not perform a transfer.
+     *
+     * @param transfer If true will also advance the patient to the next location.
+     */
     public void queueAdmit(boolean transfer) {
         Instant eventTime = this.nextTime();
 
-        if(this.admissionTime == null || transfer) {
+        if (this.admissionTime == null || transfer) {
             this.transferTime.add(eventTime);
         }
         if (this.admissionTime == null) {
@@ -198,6 +208,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a transfer message.
+     *
+     * @param updateLocation if false the patient location will not be advanced.
      */
     public void queueTransfer(boolean updateLocation) {
         this.ensureAdmitted();
@@ -323,6 +335,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         this.queueMessage(cancelDischarge);
     }
 
+    /**
+     * Queue a merge MRN message
+     * @param mergedMrn The mrn that will stop being used
+     * @param survivingMrn The mrn that will be used going forwards
+     */
     public void queueMerge(String mergedMrn, String survivingMrn) {
         AdtMessage merge = new AdtMessage();
 
