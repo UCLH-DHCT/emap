@@ -33,10 +33,16 @@ public class AdtOperation {
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     private InformDbOperations dbOps;
-
     private AdtMessage adtMsg;
-
     private Encounter encounter;
+
+    private Instant storedFrom;
+    private Instant admissionDateTime;
+    private Instant dischargeDateTime;
+    private Instant recordedDateTime;
+    private Instant transferOccurred;
+    private Instant locationVisitStartTime;
+    private Instant locationVisitValidFrom;
 
     /**
      * @return the encounter that is being manipulated
@@ -44,21 +50,6 @@ public class AdtOperation {
     public Encounter getEncounter() {
         return encounter;
     }
-
-    private Instant storedFrom;
-
-    private Instant admissionDateTime;
-
-    private Instant dischargeDateTime;
-
-    private Instant recordedDateTime;
-
-    private Instant transferOccurred;
-
-    private Instant locationVisitStartTime;
-
-    private Instant locationVisitValidFrom;
-
 
     public AdtOperation(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.adtMsg = adtMsg;
@@ -71,7 +62,6 @@ public class AdtOperation {
             // CSNs are not present in merge by ID messages, but in other messages this is an error
             throw new MessageIgnoredException(adtMsg, "CSN missing in a non-merge message: " + adtMsg.getOperationType());
         }
-
     }
 
     /**
@@ -448,7 +438,6 @@ public class AdtOperation {
             // If visit was not known about, admit the patient first before going on to discharge
             // It's not possible to tell when to start the bed visit from.
             performAdmit();
-//            encounter = admitPatient(adtMsg, storedFrom);
             latestOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
         }
 
@@ -471,7 +460,6 @@ public class AdtOperation {
                     AttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
             // demographics may have changed
             performUpdateInfo();
-//            updatePatientInfo(adtMsg, storedFrom);
         }
     }
 
@@ -480,11 +468,6 @@ public class AdtOperation {
      * @throws MessageIgnoredException if message can't be processed
      */
     public void performCancelAdmit() throws MessageIgnoredException {
-//        if (encounter == null) {
-//            logger.warn("Tried to cancel admit for patient we don't know about - admitting them");
-//            encounter = admitPatient(adtMsg, storedFrom);
-//        }
-
         List<PatientFact> latestOpenBedVisits = InformDbOperations.getOpenValidLocationVisit(encounter);
         if (latestOpenBedVisits.isEmpty()) {
             performAdmit();
@@ -534,7 +517,6 @@ public class AdtOperation {
             // (Don't go so far as to create their cancelled bed visit and
             // then invalidate it).
             performAdmit();
-//            encounter = admitPatient(adtMsg, storedFrom);
             return;
         }
 
@@ -589,7 +571,6 @@ public class AdtOperation {
         if (invalidationDate == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
         }
-//        Encounter encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, admissionDateTime, this);
         // Get the most recent bed visit.
         Optional<PatientFact> mostRecentBedVisitOptional = InformDbOperations.getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
@@ -601,7 +582,6 @@ public class AdtOperation {
             // (Don't go so far as to create the discharge and
             // then invalidate it).
             performAdmit();
-//            admitPatient(adtMsg, storedFrom);
             return;
         }
         PatientFact mostRecentBedVisit = mostRecentBedVisitOptional.get();
