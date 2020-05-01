@@ -1,11 +1,15 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicTest;
@@ -17,6 +21,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -140,6 +145,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         for (int i : seq) {
             operations[i].run();
             processN(1);
+            this.checkAdmission();
             if (i == 0 || i == 4) {
                 testLastBedVisit(transferTime.size(), currentLocation(), super.patientClass, lastTransferTime(),
                         lastTransferTime());
@@ -181,5 +187,46 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                     precedingVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).get(0).getValueAsDatetime());
         }
 
+    }
+
+    public void checkAdmission() {
+        if (this.admissionTime == null) {
+            return;
+        }
+        Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
+        assertNotNull(enc, "encounter did not exist");
+        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
+        assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
+        List<PatientFact> hospVisits = factsAsMap.getOrDefault(AttributeKeyMap.HOSPITAL_VISIT, new ArrayList<>())
+                .stream().filter(PatientFact::isValid).collect(Collectors.toList());
+        assertEquals(1, hospVisits.size());
+        // check hospital visit arrival time
+        PatientFact hospVisit = hospVisits.get(0);
+
+        { // Ensure that the arrival time is correct
+            List<PatientProperty> _hospArrivalTimes =
+                    hospVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid);
+            assertEquals(1, _hospArrivalTimes.size());
+            PatientProperty hospArrivalTime = _hospArrivalTimes.get(0);
+            assertEquals(this.admissionTime, hospArrivalTime.getValueAsDatetime());
+        }
+        { // Ensure that the patient class is correct
+            List<PatientProperty> patClasses =
+                    hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
+            assertEquals(1, patClasses.size());
+            PatientProperty patClass = patClasses.get(0);
+            assertEquals(super.patientClass, patClass.getValueAsString());
+        }
+        {
+            List<PatientProperty> _hospDischTimes =
+                    hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid);
+            if (this.dischargeTime != null) {
+                assertEquals(1, _hospDischTimes.size());
+                PatientProperty hospDichargeTime = _hospDischTimes.get(0);
+                assertEquals(this.dischargeTime, hospDichargeTime.getValueAsDatetime());
+            } else {
+                assertTrue(_hospDischTimes.isEmpty(), "Non discharged patient had discharge time");
+            }
+        }
     }
 }
