@@ -14,8 +14,6 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.api.TestReporter;
-import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -32,29 +30,40 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  * after each message looks correct. Possible messages, and state tests are hard
  * coded, while orderings of arbitrary length are generated.
  *
+ * In order to keep the database session open for the full duration of each
+ * test, tests are run inside of manually created transactions which are all
+ * marked as rollback only.
+ *
+ * Tests are generated such that there should never be a message that is
+ * ignored.
+ *
  * @author Roma Klapaukh
  *
  */
 public class PermutationTestCase extends MessageStreamBaseCase {
 
-    @Autowired
-    private PlatformTransactionManager transactionManager;
-    private TransactionTemplate        transactionTemplate;
+    private TransactionTemplate transactionTemplate;
 
     @Value("${test.perm.length:2}")
-    private int                        maxTestLength;
+    private int                 maxTestLength;
 
-    private Runnable[]                 operations   = { this::queueAdmitTransfer, this::queueAdmitClass,
-            this::queueVital, this::queuePatUpdateClass, this::queueTransfer, this::queueDischarge };
-    private String[]                   patientClass = { "E", "O", "I", "DAY CASE", "SURG ADMIT" };
-    private int                        currentClass;
+    private Runnable[]          operations   = { this::queueAdmitTransfer, this::queueAdmitClass, this::queueVital,
+            this::queuePatUpdateClass, this::queueTransfer, this::queueDischarge };
+    private String[]            patientClass = { "E", "O", "I", "DAY CASE", "SURG ADMIT" };
+    private int                 currentClass;
 
-    public PermutationTestCase() {}
-
-    public void setUp() {
+    /**
+     * Create a new Permutation test case.
+     *
+     * @param transactionManager Spring transaction manager
+     */
+    public PermutationTestCase(@Autowired PlatformTransactionManager transactionManager) {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
+    /**
+     * Reset the patient state to allow a new message stream to be run.
+     */
     private void reset() {
         currentClass = 0;
         messageStream.clear();
@@ -68,24 +77,38 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         this.deathTime = null;
     }
 
+    /**
+     * Queue an admit which will transfer a patient.
+     */
     private void queueAdmitTransfer() {
         queueAdmit(true);
     }
 
+    /**
+     * Queue and admit which will only change the patient class.
+     */
     private void queueAdmitClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
         super.patientClass = this.patientClass[this.currentClass];
         queueAdmit();
     }
 
+    /**
+     * Send an Patient update which changes the patient class.
+     */
     private void queuePatUpdateClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
         super.patientClass = this.patientClass[this.currentClass];
         queueUpdatePatientDetails();
     }
 
+    /**
+     * Create all the tests
+     *
+     * @return A stream of all the possible valid orderings.
+     */
     @TestFactory
-    public Stream<DynamicTest> testTransferSeqeuence(TestReporter rep) {
+    public Stream<DynamicTest> testTransferSeqeuence() {
 
         List<List<Integer>> initialMessages = new ArrayList<>();
         for (int i = 0; i < operations.length; i++) {
@@ -95,15 +118,14 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         }
         List<List<Integer>> fullMessages = generatePermutations(initialMessages, 1, this.maxTestLength);
 
-        return fullMessages.stream().map(l -> makeTest("Test " + l.toString(), () -> {
+        return fullMessages.stream().map(l -> DynamicTest.dynamicTest("Test " + l.toString(), () -> {
             reset();
             super.mrn = l.toString();
             super.csn = l.toString();
-            setUp();
             Exception e = transactionTemplate.execute(status -> {
                 status.setRollbackOnly();
                 try {
-                    runTest(l, rep);
+                    runTest(l);
                 } catch (EmapOperationMessageProcessingException a) {
                     return a;
                 }
@@ -116,10 +138,19 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
     }
 
-    private DynamicTest makeTest(String name, Executable r) {
-        return DynamicTest.dynamicTest(name, r);
-    }
-
+    /**
+     * Recursive method to generate a permutation of all possible array indexes of
+     * the operations array.
+     *
+     * @param soFar     The permutations created so far. Assumed to be non-empty
+     *                  (seed values must be provided)
+     * @param step      The current processing step. Usually the maximum list length
+     *                  in soFar.
+     * @param maxLength How many steps to run total. If step = max(list length in
+     *                  soFar) then max length also is the final max list length.
+     * @return A list of all possible acceptable orderings of the method calls in
+     *         operations.
+     */
     private List<List<Integer>> generatePermutations(List<List<Integer>> soFar, int step, int maxLength) {
         if (step == maxLength) {
             return soFar;
@@ -144,7 +175,14 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         return generatePermutations(nextRound, step + 1, maxLength);
     }
 
-    public void runTest(List<Integer> seq, TestReporter rep) throws EmapOperationMessageProcessingException {
+    /**
+     * Run a single stream of indicies as a test. This will involve processing the
+     * message stream and checking a subset of properties.
+     *
+     * @param seq The sequence of messages to send
+     * @throws EmapOperationMessageProcessingException If message processing fails.
+     */
+    private void runTest(List<Integer> seq) throws EmapOperationMessageProcessingException {
         for (int i : seq) {
             operations[i].run();
             processN(1);
@@ -156,7 +194,20 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         }
     }
 
-    public void testLastBedVisit(int expectedVisits, String thisLocation, String thisPatientClass,
+    /**
+     * If the last action was a transfer make sure it was processed correctly.
+     *
+     * @param expectedVisits        How many valid bed moves there should be in
+     *                              total
+     * @param thisLocation          What the current patient location should be
+     * @param thisPatientClass      What the patient class for this location should
+     *                              be
+     * @param thisLocationStartTime What the admission time for this location should
+     *                              be (and the discharge from the last bed).
+     * @param eventTime             The time this event was considered to have
+     *                              happened.
+     */
+    private void testLastBedVisit(int expectedVisits, String thisLocation, String thisPatientClass,
             Instant thisLocationStartTime, Instant eventTime) {
 
         List<PatientFact> validBedVisits = emapStarTestUtils.getLocationVisitsForEncounter(this.csn, expectedVisits);
@@ -192,7 +243,10 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
     }
 
-    public void checkAdmission() {
+    /**
+     * Check that the admission is correct.
+     */
+    private void checkAdmission() {
         if (this.admissionTime == null) {
             return;
         }
