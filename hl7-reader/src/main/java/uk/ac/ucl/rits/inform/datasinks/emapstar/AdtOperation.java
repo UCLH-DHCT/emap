@@ -307,10 +307,11 @@ public class AdtOperation {
      * A11 messages were added to the feed, which treated A01+A01 as the second A01 *correcting* the first's
      * patient location. Now we require an explicit A11 to count it as a correction,
      * which I think is OK as these got turned on in July 2019.
+     * @return the open location visit just created by this method
      *
      * @throws MessageIgnoredException if message can't be processed
      */
-    public void performAdmit() throws MessageIgnoredException {
+    public PatientFact performAdmit() throws MessageIgnoredException {
         List<PatientFact> allHospitalVisits = InformDbOperations.getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
 
         // This perhaps belongs in a getCreateHospitalVisit method, with an
@@ -340,6 +341,7 @@ public class AdtOperation {
         }
         encounter = dbOps.save(encounter);
         logger.info(String.format("Encounter: %s", encounter.toString()));
+        return InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
     }
 
     /**
@@ -356,11 +358,9 @@ public class AdtOperation {
          * open location then just do nothing. Used to throw an exception but this isn't
          * really an error and we still want the demographics to update above.
          */
-        List<PatientFact> latestOpenLocationVisits = InformDbOperations.getOpenValidLocationVisit(encounter);
-        PatientFact onlyOpenLocationVisit = InformDbOperations.getOnlyElement(latestOpenLocationVisits);
-        if (onlyOpenLocationVisit != null) {
+        if (onlyOpenBedVisit != null) {
             PatientProperty knownlocation =
-                    InformDbOperations.getOnlyElement(onlyOpenLocationVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
+                    InformDbOperations.getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
             if (!newLocation.equals(knownlocation.getValueAsString())) {
                 logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN message of type (%s): |%s| -> |%s|", adtMsg.getMrn(),
                         adtMsg.getVisitNumber(), adtMsg.getOperationType(), knownlocation.getValueAsString(), newLocation));
@@ -381,7 +381,7 @@ public class AdtOperation {
             performAdmit();
             return;
         }
-        
+
         String newTransferLocation = adtMsg.getFullLocationString();
         String currentKnownLocation =
                 InformDbOperations.getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid())).getValueAsString();
@@ -423,7 +423,7 @@ public class AdtOperation {
                     newTransferLocation, adtMsg.getPatientClass());
         }
         // demographics may have changed
-        performUpdateInfo();
+        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
     }
 
 
@@ -436,8 +436,7 @@ public class AdtOperation {
         if (onlyOpenBedVisit == null) {
             // If visit was not known about, admit the patient first before going on to discharge
             // It's not possible to tell when to start the bed visit from.
-            performAdmit();
-            onlyOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
+            onlyOpenBedVisit = performAdmit();
         }
 
         logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", adtMsg.getMrn(),
@@ -458,7 +457,7 @@ public class AdtOperation {
             hospVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, dischargeDateTime,
                     AttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
             // demographics may have changed
-            performUpdateInfo();
+            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
         }
     }
 
@@ -468,12 +467,10 @@ public class AdtOperation {
      */
     public void performCancelAdmit() throws MessageIgnoredException {
         if (onlyOpenBedVisit == null) {
-            performAdmit();
-        }
-        onlyOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
-
-        if (onlyOpenBedVisit == null) {
-            throw new MessageIgnoredException(adtMsg, "No open location visit, cannot cancel admit" + adtMsg.getVisitNumber());
+            onlyOpenBedVisit = performAdmit();
+            if (onlyOpenBedVisit == null) {
+                throw new MessageIgnoredException(adtMsg, "No open location visit, cannot cancel admit" + adtMsg.getVisitNumber());
+            }
         }
 
         // It's usual for an HL7-originated ED admission that there will be two beds
