@@ -109,6 +109,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return patientFactRepo.save(pf);
     }
 
+    public PersonMrn save(PersonMrn personMrn) {
+        return personMrnRepo.save(personMrn);
+    }
+
     /**
      * Load in attributes (vocab) from CSV file, if they don't already exist in DB.
      */
@@ -199,30 +203,31 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String returnCode;
         returnCode = "OK";
         Instant storedFrom = Instant.now();
+        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
         switch (adtMsg.getOperationType()) {
         case ADMIT_PATIENT:
-            admitPatient(adtMsg, storedFrom);
+            adtOperation.performAdmit();
             break;
         case TRANSFER_PATIENT:
-            transferPatient(adtMsg, storedFrom);
+            adtOperation.performTransfer();
             break;
         case DISCHARGE_PATIENT:
-            dischargePatient(adtMsg, storedFrom);
+            adtOperation.performDischarge();
             break;
         case UPDATE_PATIENT_INFO:
-            updatePatientInfo(adtMsg, storedFrom);
+            adtOperation.performUpdateInfo();
             break;
         case CANCEL_ADMIT_PATIENT:
-            cancelAdmitPatient(adtMsg, storedFrom);
+            adtOperation.performCancelAdmit();
             break;
         case CANCEL_TRANSFER_PATIENT:
-            cancelTransferPatient(adtMsg, storedFrom);
+            adtOperation.performCancelTransfer();
             break;
         case CANCEL_DISCHARGE_PATIENT:
-            cancelDischargePatient(adtMsg, storedFrom);
+            adtOperation.performCancelDischarge();
             break;
         case MERGE_BY_ID:
-            mergeById(adtMsg, storedFrom);
+            adtOperation.performMergeById();
             break;
         default:
             returnCode = "Not implemented";
@@ -437,37 +442,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * Create a new encounter using the details given in the ADT message. This may
-     * also entail creating a new Mrn and Person if these don't already exist.
-     * This may occur as the result of not just an A01/A04 message, because A02 or
-     * A03 messages can also trigger an "admit" if we didn't previously know about that patient.
-     * For this reason, look more at the patient class than whether it's an A01 or A04
-     * when determining whether to create a BED_VISIT instead of an OUTPATIENT_VISIT.
-     *
-     * ED flows tend to go A04+A08+A01 (all patient class = E). A04 and A01 are both considered
-     * to be admits here, so treat this as a transfer from the A04 to the A01 location.
-     * Note that this now breaks the previous workaround for the A01+(A11)+A01 sequence before the
-     * A11 messages were added to the feed, which treated A01+A01 as the second A01 *correcting* the first's
-     * patient location. Now we require an explicit A11 to count it as a correction,
-     * which I think is OK as these got turned on in July 2019.
-     *
-     * @param adtMsg msg containing encounter details
-     * @param storedFrom storedFrom time to use for new records
-     * @return the created Encounter
-     * @throws MessageIgnoredException if message can't be processed
-     * @throws InvalidMrnException if Mrn field is empty
-     * @throws EmapStarIntegrityException if there's a contradiction in the DB
-     */
-    @Transactional
-    public Encounter admitPatient(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performAdmit();
-        return adtOperation.getEncounter();
-      
-    }
-
-    /**
      * Determine visit type from the patient class (which ultimately comes from HL7).
      * @param patientClass string from HL7
      * @return the fact type of the visit fact
@@ -603,39 +577,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return visitFact;
     }
 
-    /**
-     * Close off the existing Visit and open a new one.
-     *
-     * @param adtMsg usually an A02 message but can be an A08
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if message can't be processed
-     * @throws EmapStarIntegrityException if a contradiction between DB and the incoming message or itself
-     * @throws InvalidMrnException mrn not specified
-     */
-    @Transactional
-    public void transferPatient(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        // Docs: "The new patient location should appear in PV1-3 - Assigned Patient
-        // Location while the old patient location should appear in PV1-6 - Prior
-        // Patient Location."
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performTransfer();
-    }
-
-    /**
-     * Mark the specified visit as finished.
-     *
-     * @param adtMsg the A03 message detailing the discharge
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if message can't be processed
-     * @throws EmapStarIntegrityException contradiction in the DB
-     * @throws InvalidMrnException mrn not specified
-     */
     @Transactional
     public void dischargePatient(AdtMessage adtMsg, Instant storedFrom)
             throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performDischarge();
     }
 
     /**
@@ -673,53 +618,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return dischV1.compareTo(dischV2);
     }
 
-    /**
-     * Cancel a pre-existing admission by invalidating the facts associated with it.
-     * @param adtMsg the adt message
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if message can't be processed
-     * @throws InvalidMrnException think this is useless
-     * @throws EmapStarIntegrityException contradiction in the db
-     */
+ 
     @Transactional
     private void cancelAdmitPatient(AdtMessage adtMsg, Instant storedFrom)
             throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
         AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
         adtOperation.performCancelAdmit();
-    }
-
-    /**
-     * Cancel the most recent bed visit by invalidating it.
-     *
-     * @param adtMsg the cancel transfer message
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException    if message can't be processed
-     * @throws InvalidMrnException        think this is useless
-     * @throws EmapStarIntegrityException contradiction in the db
-     */
-    @Transactional
-    private void cancelTransferPatient(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performCancelTransfer();
-    }
-
-    /**
-     * Mark the visit specified by visit number as not discharged any more. Can either mean a discharge was
-     * erroneously entered, or a decision to discharge was reversed.
-     *
-     * @param adtMsg the A13 message detailing the cancel discharge
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if message can't be processed
-     * @throws EmapStarIntegrityException if there's a contradiction in the DB
-     * @throws InvalidMrnException mrn not specified
-     */
-    @Transactional
-    private void cancelDischargePatient(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performCancelDischarge();
-
     }
 
     private static Map<String, Attribute> attributeCache = null;
@@ -765,7 +669,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the only element that satisfies it, or null if there are none that do
      * @throws DuplicateValueException if more than one element satisfies pred
      */
-    private <E> E getOnlyElementWhere(List<E> list, Predicate<? super E> pred) {
+    public static <E> E getOnlyElementWhere(List<E> list, Predicate<? super E> pred) {
         List<E> persons = list.stream().filter(pred).collect(Collectors.toList());
         return getOnlyElement(persons);
     }
@@ -792,24 +696,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     private AdtOperation adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         return new AdtOperation(this, adtMsg, storedFrom);
-    }
-
-    /**
-     * Handle an A08 message. This is supposed to be about patient info changes (ie.
-     * demographics, but we also see changes to location (ie. transfers)
-     * communicated only via an A08)
-     *
-     * @param adtMsg the message with the patient info
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if message can't be processed
-     * @throws EmapStarIntegrityException if there's a contradiction in the DB
-     * @throws InvalidMrnException mrn not specified
-     */
-    @Transactional
-    private void updatePatientInfo(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performUpdateInfo();
     }
 
     /**
@@ -844,72 +730,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 }
             }
         }
-    }
-
-    /**
-     * Indicate in the DB that two MRNs now belong to the same person. One MRN is
-     * designated the surviving MRN, although we can't really enforce this as we'll
-     * continue to add further data to whichever MRN is specified in future, which
-     * (if the source system is behaving) we'd hope would be the surviving MRN. The
-     * best we could do is flag it as an error if new data is put against a
-     * non-surviving MRN.
-     *
-     * @param adtMsg message containing merge info
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if merge time in message is blank or message can't be processed
-     */
-    @Transactional
-    private void mergeById(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
-        String oldMrnStr = adtMsg.getMergedPatientId();
-        String survivingMrnStr = adtMsg.getMrn();
-        Instant mergeTime = adtMsg.getRecordedDateTime();
-        logger.info(String.format("MERGE: surviving mrn %s, oldMrn = %s, merge time = %s", survivingMrnStr, oldMrnStr,
-                mergeTime));
-        if (mergeTime == null) {
-            throw new MessageIgnoredException(adtMsg, "event occurred null");
-        }
-
-        // The non-surviving Mrn is invalidated but still points to the old person
-        // (we are recording the fact that between these dates, the hospital believed
-        // that the mrn belonged to this person)
-        Mrn oldMrn = AdtOperation.getCreateMrn(oldMrnStr, mergeTime, storedFrom, true, this);
-        Mrn survivingMrn = AdtOperation.getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, this);
-        if (survivingMrn == null || oldMrn == null) {
-            throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
-                    oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
-        }
-        PersonMrn oldPersonMrn = getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValid());
-        PersonMrn survivingPersonMrn = getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
-        if (survivingPersonMrn == null || oldPersonMrn == null) {
-            throw new MessageIgnoredException(adtMsg, String.format(
-                    "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
-                    oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
-        }
-
-        // If we already thought they were the same person, do nothing further.
-        if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
-            throw new MessageIgnoredException(adtMsg,
-                    String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
-                            survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
-        }
-
-        survivingPersonMrn.setLive(true);
-
-        // Invalidate the old person<->mrn association
-        oldPersonMrn.setValidUntil(mergeTime);
-
-        // Create a new person<->mrn association that tells us that as of the merge time
-        // the old MRN is believed to belong to the person associated with the surviving MRN
-        Person survivingPerson = survivingPersonMrn.getPerson();
-        PersonMrn newOldPersonMrn = new PersonMrn(survivingPerson, oldMrn);
-        newOldPersonMrn.setStoredFrom(storedFrom);
-        newOldPersonMrn.setValidFrom(mergeTime);
-        newOldPersonMrn.setLive(false);
-        survivingPerson.linkMrn(newOldPersonMrn);
-        oldMrn.linkPerson(newOldPersonMrn);
-
-        newOldPersonMrn = personMrnRepo.save(newOldPersonMrn);
-        oldPersonMrn = personMrnRepo.save(oldPersonMrn);
     }
 
     /**
