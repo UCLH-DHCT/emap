@@ -5,21 +5,18 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
-import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Another tests case for incremental biulding of pathology results.
+ * Another tests case for incremental building of pathology results.
  * First message has an order status of  A (some, but not all results available) with 5 results available, but Albumin result duplicated
- * Second message an order status of CM (Order is completed) with 6 results (adding in alanine transaminase, still with Albumin dulpicated)
+ * Second message an order status of CM (Order is completed) with 6 results (adding in alanine transaminase, still with Albumin duplicated)
  * Should parse the messages, adding in the new result but not adding in the duplicate albumin fact.
- *
  * @author Stef Piatek
  */
 public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEndToEndTestCase {
@@ -28,61 +25,65 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
         hl7StreamFileNames.add("TestIncrementalPathologyDuplicateFactSegment.txt");
     }
 
+    /**
+     * Creates a map of results by test code for an order number within an encounter
+     * @param encounter   encounter id
+     * @param orderNumber order number
+     * @return resultByTestCode
+     */
+    Map<String, List<PatientFact>> createMapOfresultByTestCode(String encounter, String orderNumber) {
+        List<PatientFact> allFactsForEncounter = encounterRepo.findEncounterByEncounter(encounter).getFacts();
+        Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
+                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
+        List<PatientFact> childFacts = allOrders.get(orderNumber).get(0).getChildFacts();
+        // query results by test code
+        Map<String, List<PatientFact>> resultsByTestCode = childFacts.stream()
+                .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
+                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));
+
+        return resultsByTestCode;
+    }
+
+    /**
+     * Check that the obr has been parsed successfully with only 5 values as there is a duplicate value for albumin
+     */
     @Test
     @Transactional
     public void testObrFactsExist() {
+        // ensure that encounter has facts
         Encounter enc = encounterRepo.findEncounterByEncounter("7878787877");
-        System.out.println(enc);
-        List<PatientFact> facts = enc.getFacts();
-        System.out.println(String.format(" FACTS x %s:", facts.size()));
-        for (PatientFact pf : facts) {
-            System.out.println(String.format("    FACT[TYPE=%s[%d]]:", pf.getFactType().getShortName(), pf.getFactType().getAttributeId()));
-
-            List<PatientProperty> properties = pf.getProperties();
-            if (properties != null) {
-                System.out.println(String.format("        PROPERTIES x %s:", properties.size()));
-                for (PatientProperty pp : properties) {
-                    System.out.println("            " + pp.toString());
-                }
-            }
-            List<PatientFact> childFacts = pf.getChildFacts();
-            System.out.println(String.format("        CHILDFACTS x %s:", childFacts.size()));
-            for (PatientFact chFact : childFacts) {
-                System.out.println(String.format("            CFACT[TYPE=%s[%d]]:", chFact.getFactType().getShortName(), chFact.getFactType().getAttributeId()));
-                List<PatientProperty> childProperties = chFact.getProperties();
-                System.out.println(String.format("                CF PROPERTIES x %s:", childProperties.size()));
-                for (PatientProperty ppp : childProperties) {
-                    System.out.println("                   " + ppp.toString());
-                }
-            }
-        }
         List<PatientFact> allFactsForEncounter = enc.getFacts();
-        assertTrue(!allFactsForEncounter.isEmpty());
+        assertFalse(allFactsForEncounter.isEmpty());
+
+        // check only one order
         Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
                 .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
         System.out.println("Keys: " + allOrders.keySet().toString());
         assertEquals(1, allOrders.size());
 
+        // check that pathology results have not been duplicated so the total number of results should be 5
         List<PatientFact> childFacts001 = allOrders.get("22222222").get(0).getChildFacts();
-
-        // check that pathology results have not been duplicated
         List<PatientFact> allTestResults001 = childFacts001.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
         assertEquals(5, allTestResults001.size());
 
     }
 
     /**
-     * Given that alanine transaminase is only in the second message, the value of 58 should exist
+     * Given that alanine transaminase is only in the second message, it should have the value of 58
      */
     @Test
     @Transactional
     public void testNewResultIsCorrectValue() {
-        List<PatientFact> allFactsForEncounter = encounterRepo.findEncounterByEncounter("7878787877").getFacts();
-        Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
-                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
-        List<PatientFact> childFacts001 = allOrders.get("22222222").get(0).getChildFacts();
-        List<PatientFact> allTestResults001 = childFacts001.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
-        PatientProperty alanineTransaminaseProperty = allTestResults001.get(2).getProperties().get(3);
-        assertEquals(58, alanineTransaminaseProperty.getValueAsReal());
+        Map<String, List<PatientFact>> resultsByTestCode = createMapOfresultByTestCode("7878787877", "22222222");
+
+        // fact should exist
+        List<PatientFact> alanineTransaminaseFacts = resultsByTestCode.get("ALT");
+        assertNotNull(alanineTransaminaseFacts);
+        assertEquals(1, alanineTransaminaseFacts.size());
+
+        // value should be correct
+        PatientFact alanineTransaminaseFact = alanineTransaminaseFacts.get(0);
+        double alanineTransaminaseValue = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0).getValueAsReal();
+        assertEquals(58, alanineTransaminaseValue);
     }
 }
