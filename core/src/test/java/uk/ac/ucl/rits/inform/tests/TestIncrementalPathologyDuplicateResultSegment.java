@@ -86,4 +86,16 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
         double alanineTransaminaseValue = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0).getValueAsReal();
         assertEquals(58, alanineTransaminaseValue);
     }
+
+    /**
+     * Given that albumin is given twice within each message, only one fact should exist
+     */
+    @Test
+    @Transactional
+    public void testDuplicateResultIsRemoved() {
+        Map<String, List<PatientFact>> resultsByTestCode = mapResultsByTestCode("7878787877", "22222222");
+
+        List<PatientFact> albuminFactList = resultsByTestCode.get("ALB");
+        assertEquals(1, albuminFactList.size());
+    }
 }
