@@ -53,6 +53,12 @@ public class AdtOperation {
         return encounter;
     }
 
+    /**
+     * @param dbOps      the dp ops service
+     * @param adtMsg     the ADT Interchange message
+     * @param storedFrom time to use for any new records that might be created
+     * @throws MessageIgnoredException if message can be ignored
+     */
     public AdtOperation(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.adtMsg = adtMsg;
         this.dbOps = dbOps;
@@ -76,9 +82,8 @@ public class AdtOperation {
         admissionDateTime = adtMsg.getAdmissionDateTime();
         recordedDateTime = adtMsg.getRecordedDateTime();
 
-//        Instant eventOccurred = adtMsg.getEventOccurredDateTime();
         dischargeDateTime = adtMsg.getDischargeDateTime();
-        
+
         // Transfers can be inferred from non-transfer messages, but
         // different fields will indicate the transfer time.
         switch (adtMsg.getOperationType()) {
@@ -104,6 +109,8 @@ public class AdtOperation {
             // visit
             // or there was a big gap between A08 event + recorded time.
             transferOccurred = adtMsg.getRecordedDateTime();
+            break;
+        default:
             break;
         }
 
@@ -150,8 +157,7 @@ public class AdtOperation {
      *                         existence (valid from). Ignored if !createIfNotExist
      * @param storedFrom       the storedFrom time to use if an object needs to be newly created
      * @param createIfNotExist whether to create if it doesn't exist
-     * @param personRep 
-     * @param mrnRep 
+     * @param dbOps            db ops service
      * @return the Mrn, pre-existing or newly created, or null if it doesn't exist
      *         and !createIfNotExist
      */
@@ -193,11 +199,12 @@ public class AdtOperation {
      * @param encounterStr      encounter ID (visit ID) to find/create
      * @param storedFrom        storedFrom time to use for newly created records - should be a time very close to the present
      * @param validFrom         validFrom times to use for newly created records - usually the admission time
-     * @param encRepo 
+     * @param dbOps             the db ops service
      * @return the Encounter, existing or newly created
      * @throws MessageIgnoredException if message can't be processed
      */
-    static Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant storedFrom, Instant validFrom, InformDbOperations dbOps) throws MessageIgnoredException {
+    public static Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant storedFrom,
+            Instant validFrom, InformDbOperations dbOps) throws MessageIgnoredException {
         logger.info(String.format("getCreateEncounter looking for existing encounter %s in MRN %s", encounterStr, mrnStr));
         // look for encounter by its encounter number only as this is sufficiently unique without also using the MRN
         Encounter existingEnc = dbOps.findEncounterByEncounter(encounterStr);
@@ -227,8 +234,6 @@ public class AdtOperation {
             return existingEnc;
         }
     }
-    
-
 
     /**
      * Add a new open bed/outpatient/ED ("location") visit to an existing
@@ -362,8 +367,10 @@ public class AdtOperation {
             PatientProperty knownlocation =
                     InformDbOperations.getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
             if (!newLocation.equals(knownlocation.getValueAsString())) {
-                logger.warn(String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN message of type (%s): |%s| -> |%s|", adtMsg.getMrn(),
-                        adtMsg.getVisitNumber(), adtMsg.getOperationType(), knownlocation.getValueAsString(), newLocation));
+                logger.warn(
+                        String.format("[mrn %s, visit num %s] IMPLICIT TRANSFER IN message of type (%s): |%s| -> |%s|",
+                                adtMsg.getMrn(), adtMsg.getVisitNumber(), adtMsg.getOperationType(),
+                                knownlocation.getValueAsString(), newLocation));
                 performTransfer();
             }
         }
@@ -383,8 +390,9 @@ public class AdtOperation {
         }
 
         String newTransferLocation = adtMsg.getFullLocationString();
-        String currentKnownLocation =
-                InformDbOperations.getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid())).getValueAsString();
+        String currentKnownLocation = InformDbOperations
+                .getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()))
+                .getValueAsString();
         if (newTransferLocation.equals(currentKnownLocation)) {
             // If we get an A02 with a new location that matches where we already thought
             // the patient was, don't perform an actual transfer.
@@ -401,8 +409,8 @@ public class AdtOperation {
             } else {
                 // Only patient class has changed, so update just that without creating a new location visit
                 currentPatientClass.setValidUntil(transferOccurred);
-                onlyOpenBedVisit.addProperty(
-                        InformDbOperations.buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS, adtMsg.getPatientClass()));
+                onlyOpenBedVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, transferOccurred,
+                        AttributeKeyMap.PATIENT_CLASS, adtMsg.getPatientClass()));
             }
         } else {
             // locations have changed, do a "normal" transfer, patient class will get done as part of this
@@ -605,7 +613,7 @@ public class AdtOperation {
         // the location field.
 
         mostRecentBedVisit = dbOps.save(mostRecentBedVisit);
-        hospitalVisit = dbOps.save(hospitalVisit);        
+        hospitalVisit = dbOps.save(hospitalVisit);
     }
 
     /**

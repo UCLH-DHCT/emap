@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.EmapStarIntegrityException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.InvalidMrnException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
@@ -89,26 +87,50 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     public void close() {}
 
+    /**
+     * @param encounter encounter to save
+     * @return the new saved encounter
+     */
     public Encounter save(Encounter encounter) {
         return encounterRepo.save(encounter);
     }
 
+    /**
+     * @param encounterStr encounter string to search by
+     * @return the encounter found, or null if not found
+     */
     public Encounter findEncounterByEncounter(String encounterStr) {
         return encounterRepo.findEncounterByEncounter(encounterStr);
     }
 
+    /**
+     * @param mrnStr mrn string to search by
+     * @return mrn found, or null if not found
+     */
     public Mrn findByMrnString(String mrnStr) {
         return mrnRepo.findByMrnString(mrnStr);
     }
 
+    /**
+     * @param person person to save
+     * @return new saved person
+     */
     public Person save(Person person) {
         return personRepo.save(person);
     }
 
+    /**
+     * @param pf patient fact to save
+     * @return newly saved patient fact
+     */
     public PatientFact save(PatientFact pf) {
         return patientFactRepo.save(pf);
     }
 
+    /**
+     * @param personMrn person mrn association to save
+     * @return newly saved personmrn
+     */
     public PersonMrn save(PersonMrn personMrn) {
         return personMrnRepo.save(personMrn);
     }
@@ -163,6 +185,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         logger.info("Done loading vocab from csv");
     }
 
+    /**
+     * Load the vocab from the CSV file into the DB, and populate the in-memory attribute cache.
+     */
     @PostConstruct
     private synchronized void populateAttributeCache() {
         ensureVocabLoaded();
@@ -456,8 +481,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * @param enc        the encounter to add to
-     * @param adtMsg the message details to use
+     * @param encounter  the encounter to add to
+     * @param adtMsg     the message details to use
      * @param storedFrom storedFrom value to use for new records
      */
     static void addOrUpdateDemographics(Encounter encounter, AdtMessage adtMsg, Instant storedFrom) {
@@ -577,12 +602,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return visitFact;
     }
 
-    @Transactional
-    public void dischargePatient(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-    }
-
     /**
      * Turn a Boolean into an Emap-Star attribute.
      * @param booleanValue the normal Boolean
@@ -618,14 +637,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return dischV1.compareTo(dischV2);
     }
 
- 
-    @Transactional
-    private void cancelAdmitPatient(AdtMessage adtMsg, Instant storedFrom)
-            throws MessageIgnoredException, InvalidMrnException, EmapStarIntegrityException {
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        adtOperation.performCancelAdmit();
-    }
-
     private static Map<String, Attribute> attributeCache = null;
 
     /**
@@ -635,7 +646,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the Attribute object from the cache
      */
     @Transactional
-    static Attribute getCreateAttribute(AttributeKeyMap attrKM) {
+    public static Attribute getCreateAttribute(AttributeKeyMap attrKM) {
         Attribute attribute = attributeCache.get(attrKM.getShortname());
         if (attribute != null) {
             return attribute;
@@ -694,6 +705,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
     }
 
+    /**
+     * Construct an ADT handler wrapper object.
+     * @param adtMsg the ADT Interchange message
+     * @param storedFrom storedFrom time to use for new records
+     * @return the newly constructed object
+     * @throws MessageIgnoredException if message is being ignored
+     */
     private AdtOperation adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         return new AdtOperation(this, adtMsg, storedFrom);
     }
