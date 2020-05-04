@@ -5,11 +5,14 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Another tests case for incremental building of pathology results.
@@ -53,11 +56,11 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
 
 
     /**
-     * Given that alanine transaminase is only in the second message, it should have the value of 58
+     * Given that alanine transaminase is only in the second message, it should have the value of 58 and be the time of the updated message
      */
     @Test
     @Transactional
-    public void testNewResultIsCorrectValue() {
+    public void testNewResultIsCorrect() {
         Map<String, List<PatientFact>> resultsByTestCode = mapResultsByTestCode("7878787877", "22222222");
 
         // fact should exist
@@ -67,8 +70,12 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
 
         // value should be correct
         PatientFact alanineTransaminaseFact = alanineTransaminaseFacts.get(0);
-        double alanineTransaminaseValue = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0).getValueAsReal();
-        assertEquals(58, alanineTransaminaseValue);
+        double resultValue = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0).getValueAsReal();
+        assertEquals(58, resultValue);
+
+        // date time should be the second datetime message
+        Instant resultTime = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME).get(0).getValueAsDatetime();
+        assertEquals(Instant.parse("2020-04-22T05:24:00Z"), resultTime);
     }
 
     /**
@@ -81,5 +88,9 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
 
         List<PatientFact> albuminFactList = resultsByTestCode.get("ALB");
         assertEquals(1, albuminFactList.size());
+
+        // result was released in first message, and not updated in the second so keep the first message result time
+        Instant resultTime = albuminFactList.get(0).getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME).get(0).getValueAsDatetime();
+        assertEquals(Instant.parse("2020-04-22T03:25:00Z"), resultTime);
     }
 }
