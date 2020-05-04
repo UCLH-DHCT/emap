@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.tests;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 import java.util.List;
@@ -27,16 +26,24 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
 
     /**
      * Creates a map of results by test code for an order number within an encounter
+     * Also checks that encounter exists and only has one order
      * @param encounter   encounter id
      * @param orderNumber order number
      * @return resultByTestCode
      */
-    Map<String, List<PatientFact>> createMapOfresultByTestCode(String encounter, String orderNumber) {
+    Map<String, List<PatientFact>> mapResultsByTestCode(String encounter, String orderNumber) {
+        // ensure that encounter has facts
         List<PatientFact> allFactsForEncounter = encounterRepo.findEncounterByEncounter(encounter).getFacts();
+        assertFalse(allFactsForEncounter.isEmpty());
+
+        // only one order
         Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
                 .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
-        List<PatientFact> childFacts = allOrders.get(orderNumber).get(0).getChildFacts();
+        assertEquals(1, allOrders.size());
+
+
         // query results by test code
+        List<PatientFact> childFacts = allOrders.get(orderNumber).get(0).getChildFacts();
         Map<String, List<PatientFact>> resultsByTestCode = childFacts.stream()
                 .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
                 .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));
@@ -44,29 +51,6 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
         return resultsByTestCode;
     }
 
-    /**
-     * Check that the obr has been parsed successfully with only 5 values as there is a duplicate value for albumin
-     */
-    @Test
-    @Transactional
-    public void testObrFactsExist() {
-        // ensure that encounter has facts
-        Encounter enc = encounterRepo.findEncounterByEncounter("7878787877");
-        List<PatientFact> allFactsForEncounter = enc.getFacts();
-        assertFalse(allFactsForEncounter.isEmpty());
-
-        // check only one order
-        Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
-                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
-        System.out.println("Keys: " + allOrders.keySet().toString());
-        assertEquals(1, allOrders.size());
-
-        // check that pathology results have not been duplicated so the total number of results should be 5
-        List<PatientFact> childFacts001 = allOrders.get("22222222").get(0).getChildFacts();
-        List<PatientFact> allTestResults001 = childFacts001.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
-        assertEquals(5, allTestResults001.size());
-
-    }
 
     /**
      * Given that alanine transaminase is only in the second message, it should have the value of 58
@@ -74,7 +58,7 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
     @Test
     @Transactional
     public void testNewResultIsCorrectValue() {
-        Map<String, List<PatientFact>> resultsByTestCode = createMapOfresultByTestCode("7878787877", "22222222");
+        Map<String, List<PatientFact>> resultsByTestCode = mapResultsByTestCode("7878787877", "22222222");
 
         // fact should exist
         List<PatientFact> alanineTransaminaseFacts = resultsByTestCode.get("ALT");
