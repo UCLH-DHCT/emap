@@ -98,11 +98,11 @@ run_omop() {
 
 # This script does not yet clear the databases before starting
 
-window_start_arg="$1"
+window_start_arg="${1:-}"
 if [ -z "$window_start_arg" ]; then
     window_start_arg="7 days ago"
 fi
-window_end_arg="$2"
+window_end_arg="${2:-}"
 if [ -z "$window_end_arg" ]; then
     window_end_arg="today"
 fi
