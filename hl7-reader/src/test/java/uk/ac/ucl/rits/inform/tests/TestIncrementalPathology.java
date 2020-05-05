@@ -1,19 +1,18 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.PatientFact;
+import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
-
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.informdb.PatientFact;
-import uk.ac.ucl.rits.inform.informdb.PatientProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Messages come through giving progressively more results.
@@ -54,7 +53,7 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
                 }
             }
         }
-        List <PatientFact> allFactsForEncounter = enc.getFacts();
+        List<PatientFact> allFactsForEncounter = enc.getFacts();
         assertTrue(!allFactsForEncounter.isEmpty());
         Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
                 .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
@@ -69,5 +68,23 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
         List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
         assertEquals(2, allTestResults001.size());
         assertEquals(17, allTestResults002.size());
+
+    }
+
+    /**
+     * Given that two messages give the monocyte result, the result from the last message to be encountered should be used
+     */
+    @Test
+    @Transactional
+    public void testResultsUpdate() {
+        List<PatientFact> allFactsForEncounter = encounterRepo.findEncounterByEncounter("123412341234").getFacts();
+        Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
+                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
+        List<PatientFact> childFacts002 = allOrders.get("94000002").get(0).getChildFacts();
+        List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
+
+        // first message has result of 0.35, second message has a result of 0.5 so this should be used
+        PatientProperty monocyteProperty = allTestResults002.get(1).getProperties().get(3);
+        assertEquals(0.5, monocyteProperty.getValueAsReal());
     }
 }
