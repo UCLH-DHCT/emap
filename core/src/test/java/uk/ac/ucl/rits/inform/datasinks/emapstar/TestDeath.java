@@ -10,218 +10,150 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
  * @author Jeremy Stein
  *
  */
-public class TestDeath extends MessageStreamTestCase {
-    private Instant expectedDeathTime = Instant.parse("2020-01-02T14:05:06Z");
-    private Instant expectedDischargeTime = Instant.parse("2020-01-02T16:05:06Z");
-    public TestDeath() {
-    }
+public class TestDeath extends MessageStreamBaseCase {
 
-    @Override
-    @BeforeEach
-    public void setup() throws EmapOperationMessageProcessingException {
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
-            setMrn("22222");
-            setVisitNumber("dave");
-            setPatientClass("I");
-        }});
-
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.DISCHARGE_PATIENT);
-            setMrn("22222");
-            setVisitNumber("dave");
-            setDischargeDisposition("deceased");
-            setDischargeLocation("mortuary");
-            setDischargeDateTime(expectedDischargeTime);
-            setEventOccurredDateTime(expectedDischargeTime);
-            setPatientDeathIndicator(true);
-            setPatientDeathDateTime(expectedDeathTime);
-        }});
-
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
-            setMrn("33333");
-            setVisitNumber("alice");
-            setPatientClass("I");
-        }});
-
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.DISCHARGE_PATIENT);
-            setMrn("33333");
-            setVisitNumber("alice");
-            setDischargeDisposition("abc");
-            setDischargeLocation("home");
-            setDischargeDateTime(expectedDischargeTime);
-            setEventOccurredDateTime(expectedDischargeTime);
-            setPatientDeathIndicator(false);
-        }});
-
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
-            setMrn("44444");
-            setVisitNumber("carol");
-            setPatientClass("I");
-            setFullLocationString("T03N^ABC");
-        }});
-
-        // notify death by a non-discharge message
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
-            setMrn("44444");
-            setVisitNumber("carol");
-            // A08 does not fill in event occurred field, so don't do it here
-            setRecordedDateTime(expectedDeathTime);
-            setPatientDeathIndicator(true);
-            setPatientDeathDateTime(expectedDeathTime);
-            setFullLocationString("T03N^ABC");
-        }});
-
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.ADMIT_PATIENT);
-            setAdmissionDateTime(Instant.now());
-            setEventOccurredDateTime(Instant.now());
-            setMrn("55555");
-            setVisitNumber("bob");
-            setPatientClass("I");
-            setFullLocationString("T03N^XYZ");
-        }});
-
-        // notify death by a non-discharge message, also simulate one of the weird
-        // messages we sometimes get with death = false, but a valid death date
-        processSingleMessage(new AdtMessage() {{
-            setOperationType(AdtOperationType.TRANSFER_PATIENT);
-            setMrn("55555");
-            setVisitNumber("bob");
-            setEventOccurredDateTime(expectedDeathTime);
-            setPatientDeathIndicator(false);
-            setPatientDeathDateTime(expectedDeathTime);
-            setPatientClass("I");
-            setFullLocationString("T03N^HIJ");
-        }});
-
-        /**
-         * Notify death by a redundant transfer message. For now, allow it to be ignored
-         * as redundant, as there's potentially quite a lot to check in a transfer
-         * message to determine if it really is redundant and I don't know if we want to
-         * do that. Main thing is to check that a harder to handle error isn't thrown
-         * here.
-         */
-        try {
-            processSingleMessage(new AdtMessage() {{
-                setOperationType(AdtOperationType.TRANSFER_PATIENT);
-                setMrn("55555");
-                setVisitNumber("bob");
-                setEventOccurredDateTime(expectedDeathTime.plusSeconds(35));
-                setPatientDeathIndicator(true);
-                setPatientDeathDateTime(expectedDeathTime.plusSeconds(35));
-                setPatientClass("I");
-                setFullLocationString("T03N^HIJ");
-            }});
-        } catch (MessageIgnoredException me) {
-        }
-    }
+    public TestDeath() {}
 
     /**
-     * Check patient has been discharged as dead.
+     * Check patient has been discharged as dead including with cancellations.
+     *
+     * @throws EmapOperationMessageProcessingException
      */
     @Test
     @Transactional
-    public void testDeathDischargeDave() {
-        List<PatientFact> hospVisits = patientFactRepo.findAllByEncounterAndFactType("dave", AttributeKeyMap.HOSPITAL_VISIT);
+    public void testDeathDischarge() throws EmapOperationMessageProcessingException {
+        patientClass = "I";
+
+        queueAdmit();
+
+        dischargeDisposition = "deceased";
+        dischargeLocation = "mortuary";
+        patientDied = true;
+        deathTime = currentTime;
+
+        queueDischarge();
+
+        queueCancelDischarge();
+
+        queueDischarge();
+
+        processRest();
+
+        List<PatientFact> hospVisits =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospVisits.size());
         PatientFact hospVisit = hospVisits.get(0);
-        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION);
+        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION, PatientProperty::isValid);
         assertEquals(1, dischDisp.size());
-        assertEquals("deceased", dischDisp.get(0).getValueAsString());
+        assertEquals(dischargeDisposition, dischDisp.get(0).getValueAsString());
 
-        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION);
+        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION, PatientProperty::isValid);
         assertEquals(1, dischLocation.size());
-        assertEquals("mortuary", dischLocation.get(0).getValueAsString());
-    }
+        assertEquals(dischargeLocation, dischLocation.get(0).getValueAsString());
 
-    /**
-     * Check dead patient has the correct death fact.
-     */
-    @Test
-    @Transactional
-    public void testDeathFactDave() {
-        List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("dave", AttributeKeyMap.PATIENT_DEATH_FACT);
-        Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_TRUE, expectedDeathTime);
+        List<PatientFact> deathFacts =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidity =
+                deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_TRUE, deathTime);
     }
 
     /**
      * Check patient has been discharged as alive.
+     *
+     * @throws EmapOperationMessageProcessingException
      */
     @Test
     @Transactional
-    public void testDeathDischargeAlice() {
-        List<PatientFact> hospVisits = patientFactRepo.findAllByEncounterAndFactType("alice", AttributeKeyMap.HOSPITAL_VISIT);
+    public void testLivingDischarge() throws EmapOperationMessageProcessingException {
+        queueAdmit();
+        dischargeDisposition = "abc";
+        dischargeLocation = "home";
+        queueDischarge();
+
+        processRest();
+
+        List<PatientFact> hospVisits =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospVisits.size());
         PatientFact hospVisit = hospVisits.get(0);
         List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION);
         assertEquals(1, dischDisp.size());
-        assertEquals("abc", dischDisp.get(0).getValueAsString());
+        assertEquals(dischargeDisposition, dischDisp.get(0).getValueAsString());
 
         List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION);
         assertEquals(1, dischLocation.size());
-        assertEquals("home", dischLocation.get(0).getValueAsString());
-    }
+        assertEquals(dischargeLocation, dischLocation.get(0).getValueAsString());
 
-    /**
-     * Check alive patient has the correct death fact.
-     */
-    @Test
-    @Transactional
-    public void testDeathFactAlice() {
-        List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("alice", AttributeKeyMap.PATIENT_DEATH_FACT);
-        Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        List<PatientFact> deathFacts =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidity =
+                deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
         _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_FALSE, null);
     }
 
     /**
      * Check patient with death notified by non-discharge message.
+     *
+     * @throws EmapOperationMessageProcessingException
      */
     @Test
     @Transactional
-    public void testDeathFactCarol() {
-        List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("carol", AttributeKeyMap.PATIENT_DEATH_FACT);
-        Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_TRUE, expectedDeathTime);
+    public void testDeathFactStandard() throws EmapOperationMessageProcessingException {
+        queueAdmit();
+        deathTime = currentTime;
+        patientDied = true;
+        queueUpdatePatientDetails();
+
+        processRest();
+
+        List<PatientFact> deathFacts =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidity =
+                deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_TRUE, deathTime);
     }
 
     /**
      * Check patient with contradictory death stats notified by non-discharge
      * message, and a redundant transfer that should be ignored.
+     *
+     * @throws EmapOperationMessageProcessingException
      */
     @Test
     @Transactional
-    public void testDeathFactBob() {
-        List<PatientFact> deathFacts = patientFactRepo.findAllByEncounterAndFactType("bob", AttributeKeyMap.PATIENT_DEATH_FACT);
-        Map<Boolean, List<PatientFact>> deathByValidity = deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_FALSE, expectedDeathTime);
+    public void testDeathFactContradictory() throws EmapOperationMessageProcessingException {
+        patientClass = "I";
+        queueAdmit();
+        // notify death by a non-discharge message, also simulate one of the weird
+        // messages we sometimes get with death = false, but a valid death date
+
+        deathTime = currentTime;
+        queueTransfer();
+
+        // Notify death through a redundant transfer (not common - usually an A08)
+        patientDied = true;
+        queueTransfer(false);
+
+        processRest();
+
+        List<PatientFact> deathFacts =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidity =
+                deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_FALSE, deathTime);
     }
 
     /**
@@ -232,11 +164,13 @@ public class TestDeath extends MessageStreamTestCase {
      *                               expected valid death status
      * @param expectedDeathDateTime  expected valid death datetime
      */
-    private void _checkDeathFact(Map<Boolean, List<PatientFact>> deathByValidity, AttributeKeyMap expectedDeathIndicator, Instant expectedDeathDateTime) {
+    private void _checkDeathFact(Map<Boolean, List<PatientFact>> deathByValidity,
+            AttributeKeyMap expectedDeathIndicator, Instant expectedDeathDateTime) {
         assertEquals(1, deathByValidity.get(true).size());
         PatientFact deathFact = deathByValidity.get(true).get(0);
 
-        List<PatientProperty> deathIndicator = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
+        List<PatientProperty> deathIndicator =
+                deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
         assertEquals(1, deathIndicator.size());
         assertEquals(expectedDeathIndicator.getShortname(), deathIndicator.get(0).getValueAsAttribute().getShortName());
 
