@@ -1,11 +1,12 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
@@ -21,7 +22,7 @@ public class TestA06 extends TestHl7MessageStream {
 
     private AdtMessage msg;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         msg = processSingleAdtMessage("GenericAdt/A06.txt");
     }
