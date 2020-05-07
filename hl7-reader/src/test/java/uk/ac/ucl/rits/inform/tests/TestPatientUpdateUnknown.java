@@ -1,13 +1,13 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -34,7 +34,7 @@ public class TestPatientUpdateUnknown extends Hl7StreamEndToEndTestCase {
     @Transactional
     public void testEncounterAndFacts() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
-        assertNotNull("encounter does not exist", enc);
+        assertNotNull(enc, "encounter does not exist");
         Map<AttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
         assertTrue(factsByType.containsKey(AttributeKeyMap.NAME_FACT));
         assertTrue(factsByType.containsKey(AttributeKeyMap.GENERAL_DEMOGRAPHIC));

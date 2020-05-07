@@ -1,10 +1,11 @@
 package uk.ac.ucl.rits.inform.testutils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,17 +62,18 @@ public class EmapStarTestUtils {
         }
         PatientFact bedVisit = validBedVisitsAtLocation.get(0);
         List<PatientProperty> location = bedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid());
-        assertEquals("There should be exactly one location property for an inpatient bed visit", 1, location.size());
+        assertEquals(1, location.size(), "There should be exactly one location property for an inpatient bed visit");
         PatientProperty loca = location.get(0);
         assertTrue(loca.isValid());
-        assertEquals("Bedded location not correct", expectedLocation, loca.getValueAsString());
+        assertEquals(expectedLocation, loca.getValueAsString(), "Bedded location not correct");
 
         List<PatientProperty> dischargeTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid());
         if (expectedDischargeTime == null) {
-            assertEquals("There is an unexpected discharge", 0, dischargeTimes.size());
+            assertEquals(0, dischargeTimes.size(), "There is an unexpected discharge");
         } else {
             PatientProperty disch = dischargeTimes.get(0);
-            assertEquals("Discharge time does not match", expectedDischargeTime, disch.getValueAsDatetime());
+            assertEquals(expectedDischargeTime, disch.getValueAsDatetime(), "Discharge time does not match");
+
         }
         return bedVisit;
     }
@@ -83,10 +85,10 @@ public class EmapStarTestUtils {
      */
     public List<PatientFact> getLocationVisitsForEncounter(String expectedEncounter, int expectedTotalVisits) {
         Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
-        assertNotNull("encounter did not exist", enc);
+        assertNotNull(enc, "encounter did not exist");
         Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
-        assertTrue("Encounter has no patient facts", !factsAsMap.isEmpty());
-        List<PatientFact> validBedVisits = factsAsMap.get(AttributeKeyMap.BED_VISIT).stream()
+        assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
+        List<PatientFact> validBedVisits = factsAsMap.getOrDefault(AttributeKeyMap.BED_VISIT, new ArrayList<>()).stream()
                 .filter(PatientFact::isValid).collect(Collectors.toList());
         assertEquals(expectedTotalVisits, validBedVisits.size());
         // sort by arrival time
@@ -95,5 +97,5 @@ public class EmapStarTestUtils {
                 v2.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime()));
         return validBedVisits;
     }
-    
+
 }
