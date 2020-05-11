@@ -71,8 +71,6 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     public void cancelWithoutTransferIgnored() throws EmapOperationMessageProcessingException {
         queueVital();
         queueCancelAdmit();
-        processN(1);
-        assertThrows(MessageIgnoredException.class, () -> processN(1));
         queueTransfer();
         processRest();
     }
