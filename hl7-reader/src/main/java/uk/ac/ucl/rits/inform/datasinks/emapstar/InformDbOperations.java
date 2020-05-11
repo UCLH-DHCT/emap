@@ -484,13 +484,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param encounter  the encounter to add to
      * @param adtMsg     the message details to use
      * @param storedFrom storedFrom value to use for new records
+     * @return whether any demographics were actually added/modified
      */
-    static void addOrUpdateDemographics(Encounter encounter, AdtMessage adtMsg, Instant storedFrom) {
+    static boolean addOrUpdateDemographics(Encounter encounter, AdtMessage adtMsg, Instant storedFrom) {
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = InformDbOperations.buildPatientDemographics(adtMsg, storedFrom);
         Map<String, PatientFact> currentDemographics = InformDbOperations.getValidStoredDemographicFacts(encounter).stream()
                 .collect(Collectors.toMap(f -> f.getFactType().getShortName(), f -> f));
-        InformDbOperations.updateDemographics(encounter, currentDemographics, newDemographics);
+        return InformDbOperations.updateDemographics(encounter, currentDemographics, newDemographics);
     }
 
     /**
@@ -723,17 +724,20 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *                            demographics of
      * @param currentDemographics existing demographics (eg. from the db)
      * @param newDemographics     new demographics (eg. from the current message)
+     * @return whether any demographics were actually added/modified
      */
-    static void updateDemographics(Encounter encounter, Map<String, PatientFact> currentDemographics,
+    static boolean updateDemographics(Encounter encounter, Map<String, PatientFact> currentDemographics,
             Map<String, PatientFact> newDemographics) {
         logger.info(String.format("A08 comparing %d existing demographic facts to %s new facts",
                 currentDemographics.size(), newDemographics.size()));
+        boolean anyChanged = false;
         for (String newKey : newDemographics.keySet()) {
             PatientFact newFact = newDemographics.get(newKey);
             PatientFact currentFact = currentDemographics.get(newKey);
             if (currentFact == null) {
                 logger.info("fact does not exist, adding " + newFact.getFactType().getShortName());
                 encounter.addFact(newFact);
+                anyChanged = true;
             } else {
                 if (newFact.equals(currentFact)) {
                     logger.info("fact exists and matches, no action: " + currentFact.getFactType().getShortName());
@@ -745,9 +749,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                             "fact exists but does not match, replacing: " + currentFact.getFactType().getShortName());
                     currentFact.invalidateAll(invalidationDate);
                     encounter.addFact(newFact);
+                    anyChanged = true;
                 }
             }
         }
+        return anyChanged;
     }
 
     /**

@@ -389,6 +389,7 @@ public class AdtOperation {
             return;
         }
 
+        boolean isRedundant = true;
         String newTransferLocation = adtMsg.getFullLocationString();
         String currentKnownLocation = InformDbOperations
                 .getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()))
@@ -401,18 +402,15 @@ public class AdtOperation {
             // (should be made explicit as an A06 or A07 but we don't distinguish A02/A06/A07 here).
             PatientProperty currentPatientClass = InformDbOperations.getOnlyElement(
                     onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, p -> p.isValid()));
-            if (adtMsg.getPatientClass().equals(currentPatientClass.getValueAsString())) {
-                String err = String.format("REDUNDANT transfer, location (%s) and patient class (%s) have not changed",
-                        currentKnownLocation, currentPatientClass.getValueAsString());
-                logger.warn(err);
-                throw new MessageIgnoredException(adtMsg, err);
-            } else {
+            if (!adtMsg.getPatientClass().equals(currentPatientClass.getValueAsString())) {
+                isRedundant = false;
                 // Only patient class has changed, so update just that without creating a new location visit
                 currentPatientClass.setValidUntil(transferOccurred);
                 onlyOpenBedVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, transferOccurred,
                         AttributeKeyMap.PATIENT_CLASS, adtMsg.getPatientClass()));
             }
         } else {
+            isRedundant = false;
             // locations have changed, do a "normal" transfer, patient class will get done as part of this
             addDischargeToVisit(onlyOpenBedVisit, transferOccurred, storedFrom);
             String admitSource = adtMsg.getAdmitSource();
@@ -430,8 +428,18 @@ public class AdtOperation {
             addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospitalVisit.get(0),
                     newTransferLocation, adtMsg.getPatientClass());
         }
+
         // demographics may have changed
-        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+        if (InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom)) {
+            isRedundant = false;
+        }
+        if (isRedundant) {
+            String err = String.format(
+                    "REDUNDANT transfer, location (%s) and patient class (%s), demographics and death status have not changed",
+                    currentKnownLocation, adtMsg.getPatientClass());
+            logger.warn(err);
+            throw new MessageIgnoredException(adtMsg, err);
+        }
     }
 
 
