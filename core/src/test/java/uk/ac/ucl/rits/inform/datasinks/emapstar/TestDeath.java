@@ -128,7 +128,7 @@ public class TestDeath extends MessageStreamBaseCase {
 
     /**
      * Check patient with contradictory death stats notified by non-discharge
-     * message, and a redundant transfer that should be ignored.
+     * message, and a redundant transfer that changes the death status to be consistent again.
      *
      * @throws EmapOperationMessageProcessingException
      */
@@ -143,17 +143,27 @@ public class TestDeath extends MessageStreamBaseCase {
         deathTime = currentTime;
         queueTransfer();
 
-        // Notify death through a redundant transfer (not common - usually an A08)
+        processRest();
+
+        // check for the contradictory death status
+        List<PatientFact> deathFactsContradictory =
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+        Map<Boolean, List<PatientFact>> deathByValidityContradictory =
+                deathFactsContradictory.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        _checkDeathFact(deathByValidityContradictory, AttributeKeyMap.BOOLEAN_FALSE, deathTime);
+
+        // Notify death through a transfer where nothing else has changed (not common - usually an A08)
         patientDied = true;
         queueTransfer(false);
 
         processRest();
 
-        List<PatientFact> deathFacts =
+        // check for the new, consistent death status
+        List<PatientFact> deathFactsConsistent =
                 patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
-        Map<Boolean, List<PatientFact>> deathByValidity =
-                deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_FALSE, deathTime);
+        Map<Boolean, List<PatientFact>> deathByValidityConsistent =
+                deathFactsConsistent.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
+        _checkDeathFact(deathByValidityConsistent, AttributeKeyMap.BOOLEAN_TRUE, deathTime);
     }
 
     /**
