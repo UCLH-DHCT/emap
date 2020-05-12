@@ -83,6 +83,7 @@ public class EmapStarTestUtils {
      * @param expectedTotalVisits how many visits you expect to exist
      * @return all valid location visit facts (not hospital visits), sorted by arrival time
      */
+    @Transactional
     public List<PatientFact> getLocationVisitsForEncounter(String expectedEncounter, int expectedTotalVisits) {
         Encounter enc = encounterRepo.findEncounterByEncounter(expectedEncounter);
         assertNotNull(enc, "encounter did not exist");
