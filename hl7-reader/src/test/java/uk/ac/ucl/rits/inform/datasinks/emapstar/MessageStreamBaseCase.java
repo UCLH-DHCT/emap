@@ -156,7 +156,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         update.setFullLocationString(allLocations[this.currentLocation]);
         update.setPatientClass(this.patientClass);
         update.setPatientDeathIndicator(this.patientDied);
-        update.setPatientDeathDateTime(deathTime);
+        update.setPatientDeathDateTime(this.deathTime);
         queueMessage(update);
     }
 
@@ -196,6 +196,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         admit.setPatientClass(this.patientClass);
         admit.setPatientFullName(this.name);
         admit.setFullLocationString(this.currentLocation());
+        admit.setPatientDeathIndicator(this.patientDied);
+        admit.setPatientDeathDateTime(this.deathTime);
         this.queueMessage(admit);
     }
 
