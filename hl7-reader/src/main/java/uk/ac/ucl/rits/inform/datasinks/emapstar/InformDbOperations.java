@@ -326,6 +326,20 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
+     * Filter for facts that are related to vital signs.
+     * Better attribute metadata would be a better solution than this.
+     *
+     * @param pf the patient fact
+     * @return true if this is a vital signs fact
+     */
+    private static boolean factIsVitalSignFact(PatientFact pf) {
+        String shortName = pf.getFactType().getShortName();
+        // The only (current) use for this is to define demographic facts in terms of what they are not.
+        // Identifying demographic facts positively would be a better approach.
+        return shortName.startsWith("VIT_");
+    }
+
+    /**
      * Filter for facts that are related to pathology.
      *
      * @param pf the patient fact
@@ -404,7 +418,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
          * are going to need some richer type information for Attributes to do this
          * properly.
          */
-        return getFactWhere(encounter, f -> !factIsVisitFact(f) && !factIsPathFact(f) && pred.test(f));
+        return getFactWhere(encounter,
+                f -> !factIsVisitFact(f) && !factIsPathFact(f) && !factIsVitalSignFact(f) && pred.test(f));
     }
 
     /**
