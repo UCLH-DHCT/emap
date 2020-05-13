@@ -559,8 +559,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // set death time regardless of whether death boolean is set, sometimes they
         // contradict each other and we need to delegate interpretation of this
         // further down the pipeline :(
-        deathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_DEATH_TIME,
-                adtMsg.getPatientDeathDateTime()));
+        if (adtMsg.getPatientDeathDateTime() != null) {
+            deathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_DEATH_TIME,
+                    adtMsg.getPatientDeathDateTime()));
+        }
         demographics.put(deathFact.getFactType().getShortName(), deathFact);
 
         return demographics;
