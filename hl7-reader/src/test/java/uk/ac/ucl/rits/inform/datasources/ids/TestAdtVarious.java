@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
@@ -219,16 +220,19 @@ public class TestAdtVarious extends TestHl7MessageStream {
                 msg.getDischargeDateTime());
     }
 
+    /**
+     * Death time should be null.
+     */
     @Test
     public void testNoTimeOfDeath()  {
         assertNull(msg.getPatientDeathDateTime());
     }
 
-    @Test
     /**
-     * Not an A03, death indicator shouldn't be set
+     * Death indicator should be false.
      */
-    public void testIsNull()  {
-        assertNull(msg.getPatientDeathIndicator());
+    @Test
+    public void testDeathIndicator()  {
+        assertFalse(msg.getPatientDeathIndicator());
     }
 }
