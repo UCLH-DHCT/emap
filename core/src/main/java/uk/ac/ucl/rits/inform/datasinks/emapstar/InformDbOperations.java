@@ -745,8 +745,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     static boolean updateDemographics(Encounter encounter, Map<String, PatientFact> currentDemographics,
             Map<String, PatientFact> newDemographics) {
-        logger.info(String.format("A08 comparing %d existing demographic facts to %s new facts",
-                currentDemographics.size(), newDemographics.size()));
+        logger.info(String.format("Update demographics (CSN = %s): comparing %d existing demographic facts to %d new facts",
+                encounter.getEncounter(), currentDemographics.size(), newDemographics.size()));
         boolean anyChanged = false;
         for (String newKey : newDemographics.keySet()) {
             PatientFact newFact = newDemographics.get(newKey);
