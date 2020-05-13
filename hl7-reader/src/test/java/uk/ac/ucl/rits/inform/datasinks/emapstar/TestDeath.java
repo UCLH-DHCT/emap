@@ -184,9 +184,12 @@ public class TestDeath extends MessageStreamBaseCase {
         assertEquals(1, deathIndicator.size());
         assertEquals(expectedDeathIndicator.getShortname(), deathIndicator.get(0).getValueAsAttribute().getShortName());
 
-        // death time exists but is null
         List<PatientProperty> deathTime = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME);
-        assertEquals(1, deathTime.size());
-        assertEquals(expectedDeathDateTime, deathTime.get(0).getValueAsDatetime());
+        if (expectedDeathDateTime == null) {
+            assertEquals(0, deathTime.size());
+        } else {
+            assertEquals(1, deathTime.size());
+            assertEquals(expectedDeathDateTime, deathTime.get(0).getValueAsDatetime());
+        }
     }
 }
