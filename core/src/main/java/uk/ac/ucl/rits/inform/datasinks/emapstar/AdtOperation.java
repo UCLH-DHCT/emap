@@ -321,10 +321,9 @@ public class AdtOperation {
 
         // This perhaps belongs in a getCreateHospitalVisit method, with an
         // InformDbDataIntegrity exception
-        PatientFact hospitalVisit;
         switch (allHospitalVisits.size()) {
         case 0:
-            hospitalVisit = InformDbOperations.addOpenHospitalVisit(encounter, storedFrom, admissionDateTime, adtMsg.getPatientClass());
+            PatientFact hospitalVisit = InformDbOperations.addOpenHospitalVisit(encounter, storedFrom, admissionDateTime, adtMsg.getPatientClass());
             InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = InformDbOperations.visitTypeFromPatientClass(adtMsg.getPatientClass());
@@ -332,7 +331,6 @@ public class AdtOperation {
                     adtMsg.getFullLocationString(), adtMsg.getPatientClass());
             break;
         case 1:
-            hospitalVisit = allHospitalVisits.get(0);
             // We have received an admit message but there was already an
             // open hospital visit. Previously we would have invalidated the
             // existing bed visit and its properties and created a new one,
