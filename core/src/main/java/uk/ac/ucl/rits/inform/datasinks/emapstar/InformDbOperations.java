@@ -225,41 +225,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public String processMessage(AdtMessage adtMsg) throws EmapOperationMessageProcessingException {
-        String returnCode;
-        returnCode = "OK";
         Instant storedFrom = Instant.now();
         AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
-        switch (adtMsg.getOperationType()) {
-        case ADMIT_PATIENT:
-            adtOperation.performAdmit();
-            break;
-        case TRANSFER_PATIENT:
-            adtOperation.performTransfer();
-            break;
-        case DISCHARGE_PATIENT:
-            adtOperation.performDischarge();
-            break;
-        case UPDATE_PATIENT_INFO:
-            adtOperation.performUpdateInfo();
-            break;
-        case CANCEL_ADMIT_PATIENT:
-            adtOperation.performCancelAdmit();
-            break;
-        case CANCEL_TRANSFER_PATIENT:
-            adtOperation.performCancelTransfer();
-            break;
-        case CANCEL_DISCHARGE_PATIENT:
-            adtOperation.performCancelDischarge();
-            break;
-        case MERGE_BY_ID:
-            adtOperation.performMergeById();
-            break;
-        default:
-            returnCode = "Not implemented";
-            logger.error(returnCode);
-            break;
-        }
-        return returnCode;
+        return adtOperation.processMessage();
     }
 
     @Override

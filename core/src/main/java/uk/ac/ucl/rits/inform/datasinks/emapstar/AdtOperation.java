@@ -74,6 +74,48 @@ public class AdtOperation {
     }
 
     /**
+     * Go ahead and process the ADT message.
+     * @return a status string
+     *
+     * @throws MessageIgnoredException if message is being ignored
+     */
+    public String processMessage() throws MessageIgnoredException {
+        String returnCode;
+        returnCode = "OK";
+        switch (adtMsg.getOperationType()) {
+        case ADMIT_PATIENT:
+            this.performAdmit();
+            break;
+        case TRANSFER_PATIENT:
+            this.performTransfer();
+            break;
+        case DISCHARGE_PATIENT:
+            this.performDischarge();
+            break;
+        case UPDATE_PATIENT_INFO:
+            this.performUpdateInfo();
+            break;
+        case CANCEL_ADMIT_PATIENT:
+            this.performCancelAdmit();
+            break;
+        case CANCEL_TRANSFER_PATIENT:
+            this.performCancelTransfer();
+            break;
+        case CANCEL_DISCHARGE_PATIENT:
+            this.performCancelDischarge();
+            break;
+        case MERGE_BY_ID:
+            this.performMergeById();
+            break;
+        default:
+            returnCode = "Not implemented";
+            logger.error(adtMsg.getOperationType() + " message type not implemented");
+            break;
+        }
+        return returnCode;
+    }
+
+    /**
      * Use the AdtOperationType to determine which fields are correct ones to use.
      * Different messages types have different fields that are present/absent, and
      * they will sometimes have different meanings from message type to message type.
