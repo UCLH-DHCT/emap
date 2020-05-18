@@ -636,6 +636,33 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
+     * Add a property to a fact if it doesn't already exist with an identical value,
+     * otherwise replace it with new version.
+     *
+     * @param fact    fact to update
+     * @param newProp new version of property to use as replacement if necessary
+     * @return true iff anything was changed
+     */
+    public static boolean addOrUpdateProperty(PatientFact fact, PatientProperty newProp) {
+        Attribute propertyType = newProp.getPropertyType();
+        List<PatientProperty> currentProps = fact.getPropertyByAttribute(propertyType, PatientProperty::isValid);
+        // In the specific case where there is exactly one valid property and it matches the new value, do nothing.
+        // Otherwise invalidate all properties and create a new property.
+        if (currentProps.size() == 1) {
+            PatientProperty onlyProp = currentProps.get(0);
+            if (newProp.equals(onlyProp)) {
+                return false;
+            }
+        }
+        Instant invalidationTime = newProp.getValidFrom();
+        for (PatientProperty prop : currentProps) {
+            prop.setValidUntil(invalidationTime);
+        }
+        fact.addProperty(newProp);
+        return true;
+    }
+
+    /**
      * Compare function for visits by discharge time. Missing discharge time sorts as "high", ie. it is considered the most recent.
      * @param v1 visit to compare 1
      * @param v2 visit to compare 2

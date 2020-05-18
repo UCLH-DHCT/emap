@@ -356,12 +356,32 @@ public class AdtOperation {
         String newLocation = adtMsg.getFullLocationString();
         InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
 
+        ensureLocationAndClass(newLocation);
+    }
+
+    /**
+     * Ensure that the hospital visit's patient class is up to date, and perform a
+     * transfer if the location has changed, along with its own patient class
+     * property.
+     *
+     * @param newLocation the new location string, which may be the same as the current one
+     * @return true iff anything was actually updated
+     * @throws MessageIgnoredException probably shouldn't do this...
+     */
+    private boolean ensureLocationAndClass(String newLocation) throws MessageIgnoredException {
         /*
          * Detect when location has changed and perform a transfer. If there isn't an
          * open location then just do nothing. Used to throw an exception but this isn't
          * really an error and we still want the demographics to update above.
          */
+        boolean anyChanges = false;
         if (onlyOpenBedVisit != null) {
+            if (InformDbOperations.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
+                    InformDbOperations.buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS,
+                            adtMsg.getPatientClass()))) {
+                anyChanges = true;
+            }
+
             PatientProperty knownlocation =
                     InformDbOperations.getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, p -> p.isValid()));
             if (!newLocation.equals(knownlocation.getValueAsString())) {
@@ -370,9 +390,10 @@ public class AdtOperation {
                                 adtMsg.getMrn(), adtMsg.getVisitNumber(), adtMsg.getOperationType(),
                                 knownlocation.getValueAsString(), newLocation));
                 performTransfer();
+                anyChanges = true;
             }
         }
-
+        return anyChanges;
     }
 
     /**
@@ -386,7 +407,9 @@ public class AdtOperation {
             performAdmit();
             return;
         }
-
+        InformDbOperations.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
+                InformDbOperations.buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS,
+                        adtMsg.getPatientClass()));
         boolean isRedundant = true;
         String newTransferLocation = adtMsg.getFullLocationString();
         String currentKnownLocation = InformDbOperations
