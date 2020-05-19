@@ -39,7 +39,7 @@ public class TestPatientUpdateUnknown extends Hl7StreamEndToEndTestCase {
         assertTrue(factsByType.containsKey(AttributeKeyMap.NAME_FACT));
         assertTrue(factsByType.containsKey(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
         assertTrue(factsByType.containsKey(AttributeKeyMap.PATIENT_DEATH_FACT));
-        assertFalse(factsByType.containsKey(AttributeKeyMap.HOSPITAL_VISIT));
-        assertFalse(factsByType.containsKey(AttributeKeyMap.BED_VISIT));
+        assertTrue(factsByType.containsKey(AttributeKeyMap.HOSPITAL_VISIT));
+        assertTrue(factsByType.containsKey(AttributeKeyMap.BED_VISIT));
     }
 }
