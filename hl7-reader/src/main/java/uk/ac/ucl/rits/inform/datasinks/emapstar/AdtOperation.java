@@ -87,11 +87,13 @@ public class AdtOperation {
         switch (adtMsg.getOperationType()) {
         case ADMIT_PATIENT:
             ensureAdmissionExists();
+            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
             ensurePatientClass();
             ensureLocation();
             break;
         case TRANSFER_PATIENT:
             ensureAdmissionExists();
+            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
             ensurePatientClass();
             ensureLocation();
             break;
@@ -99,7 +101,10 @@ public class AdtOperation {
             this.performDischarge();
             break;
         case UPDATE_PATIENT_INFO:
-            this.performUpdateInfo();
+            ensureAdmissionExists();
+            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+            ensurePatientClass();
+            ensureLocation();
             break;
         case CANCEL_ADMIT_PATIENT:
             this.performCancelAdmit();
@@ -372,7 +377,6 @@ public class AdtOperation {
         // InformDbDataIntegrity exception
         if (onlyOpenBedVisit == null) {
             PatientFact hospitalVisit = InformDbOperations.addOpenHospitalVisit(encounter, storedFrom, admissionDateTime, adtMsg.getPatientClass());
-            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
             // create a new location visit with the new (or updated) location
             AttributeKeyMap visitType = InformDbOperations.visitTypeFromPatientClass(adtMsg.getPatientClass());
             AdtOperation.addOpenLocationVisit(encounter, visitType, storedFrom, locationVisitValidFrom, locationVisitStartTime, hospitalVisit,
@@ -383,18 +387,6 @@ public class AdtOperation {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Handle a change in patient info, which can occur with any message type.
-     *
-     * @throws MessageIgnoredException if message can't be processed
-     */
-    public void performUpdateInfo() throws MessageIgnoredException {
-        ensureAdmissionExists();
-        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
-        ensurePatientClass();
-        ensureLocation();
     }
 
     /**
@@ -412,13 +404,9 @@ public class AdtOperation {
          * open location then just do nothing. Used to throw an exception but this isn't
          * really an error and we still want the demographics to update above.
          */
-        boolean anyChanges = false;
-        if (InformDbOperations.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
+        return InformDbOperations.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
                 InformDbOperations.buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS,
-                        adtMsg.getPatientClass()))) {
-            anyChanges = true;
-        }
-        return anyChanges;
+                        adtMsg.getPatientClass()));
     }
 
     /**
@@ -431,13 +419,10 @@ public class AdtOperation {
         if (onlyOpenBedVisit == null) {
             throw new RuntimeException("ensureLocation: onlyOpenBedVisit == null");
         }
-        boolean anyChanges = false;
-
         String currentKnownLocation = InformDbOperations
                 .getOnlyElement(onlyOpenBedVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, PatientProperty::isValid))
                 .getValueAsString();
         if (!newTransferLocation.equals(currentKnownLocation)) {
-            anyChanges = true;
             // locations have changed, do a "normal" transfer, patient class will get done as part of this
             addDischargeToVisit(onlyOpenBedVisit, transferOccurred, storedFrom);
             String admitSource = adtMsg.getAdmitSource();
@@ -449,23 +434,15 @@ public class AdtOperation {
             if (encounter != encounterDoubleCheck) {
                 throw new MessageIgnoredException(adtMsg, "Different encounter: " + encounter + " | " + encounterDoubleCheck);
             }
-            List<PatientFact> hospitalVisit = InformDbOperations.getOpenVisitFactWhereVisitType(encounter, AttributeKeyMap.HOSPITAL_VISIT);
-            if (hospitalVisit.get(0) != onlyOpenBedVisit.getParentFact()) {
-                throw new MessageIgnoredException(adtMsg, "AAARRRGGG");
-            }
+            PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
             // link the bed visit to the parent (hospital) visit
             AttributeKeyMap visitType = InformDbOperations.visitTypeFromPatientClass(adtMsg.getPatientClass());
-            addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospitalVisit.get(0),
+            addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospVisit,
                     newTransferLocation, adtMsg.getPatientClass());
+            return true;
         }
-
-        // demographics may have changed
-        if (InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom)) {
-            anyChanges = true;
-        }
-        return anyChanges;
+        return false;
     }
-
 
     /**
      * Mark the specified visit as finished.
@@ -504,6 +481,8 @@ public class AdtOperation {
      * @throws MessageIgnoredException if message can't be processed
      */
     public void performCancelAdmit() throws MessageIgnoredException {
+        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+
         ensureAdmissionExists();
 
         // It's usual for an HL7-originated ED admission that there will be two beds
@@ -536,6 +515,8 @@ public class AdtOperation {
         String newCorrectLocation = adtMsg.getFullLocationString();
         // the transfer time of the transfer being cancelled, NOT the cancellation time
         Instant originalTransferDateTime = adtMsg.getEventOccurredDateTime();
+
+        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
 
         // If visit was not known about, admit the patient first.
         // We now have their current location and can stop.
@@ -596,6 +577,8 @@ public class AdtOperation {
         if (invalidationDate == null) {
             throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
         }
+        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+
         // Get the most recent bed visit, open or closed. It will hopefully be closed.
         Optional<PatientFact> mostRecentBedVisitOptional = InformDbOperations.getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
