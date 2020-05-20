@@ -333,8 +333,6 @@ public class AdtOperation {
                 InformDbOperations.buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
         visitFact.addProperty(
                 InformDbOperations.buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.LOCATION, currentLocation));
-        visitFact.addProperty(
-                InformDbOperations.buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_CLASS, patientClass));
 
         hospitalVisit.addChildFact(visitFact);
         enc.addFact(visitFact);

@@ -41,10 +41,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     public MessageStreamBaseCase() {}
 
     /**
-     * Step the clock forward one hour.
+     * Step the clock forward not quite exactly one hour. One hour looks too much
+     * like a time zone bug when it causes an error.
      */
     protected void stepClock() {
-        this.currentTime = this.currentTime.plusSeconds(3600);
+        this.currentTime = this.currentTime.plusSeconds(3660);
     }
 
     /**
