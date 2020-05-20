@@ -144,12 +144,21 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * Queue a patient update message.
      */
     public void queueUpdatePatientDetails() {
+        boolean impliedTransfer = this.admissionTime == null;
+
         this.ensureAdmitted();
+
+        this.stepClock();
+
+        if (impliedTransfer) {
+            this.transferTime.add(this.currentTime);
+        }
+
         AdtMessage update = new AdtMessage();
         update.setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
         update.setAdmissionDateTime(this.admissionTime);
         update.setRecordedDateTime(this.admissionTime);
-        update.setEventOccurredDateTime(this.nextTime());
+        update.setEventOccurredDateTime(this.currentTime);
         update.setMrn(this.mrn);
         update.setNhsNumber(this.nhsNumber);
         update.setVisitNumber(this.csn);
@@ -221,7 +230,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         String location;
 
         Instant tTime = this.nextTime();
-        ;
 
         if (updateLocation) {
             location = nextLocation();
@@ -340,7 +348,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a merge MRN message
-     * @param mergedMrn The mrn that will stop being used
+     *
+     * @param mergedMrn    The mrn that will stop being used
      * @param survivingMrn The mrn that will be used going forwards
      */
     public void queueMerge(String mergedMrn, String survivingMrn) {
