@@ -92,10 +92,18 @@ public class AdtOperation {
             ensureLocation();
             break;
         case TRANSFER_PATIENT:
-            ensureAdmissionExists();
-            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
-            ensurePatientClass();
-            ensureLocation();
+            boolean anyChanges = false;
+            anyChanges |= ensureAdmissionExists();
+            anyChanges |= InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+            anyChanges |= ensurePatientClass();
+            anyChanges |= ensureLocation();
+            if (!anyChanges) {
+                String err = String.format(
+                        "REDUNDANT transfer: location (%s), patient class (%s), demographics and death status have not changed",
+                        newTransferLocation, adtMsg.getPatientClass());
+                logger.warn(err);
+                throw new MessageIgnoredException(adtMsg, err);
+            }
             break;
         case DISCHARGE_PATIENT:
             this.performDischarge();
