@@ -221,16 +221,12 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         PatientFact precedingVisit = expectedVisits > 1 ? validBedVisits.get(expectedVisits - 2) : null;
         PatientFact lastVisit = validBedVisits.get(expectedVisits - 1);
 
-        // Check right time / place / class
-        assertEquals(thisLocation,
-                lastVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+        // Check right time / place
+        PatientProperty actualLocation = lastVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, PatientProperty::isValid).get(0);
+        assertEquals(thisLocation, actualLocation.getValueAsString());
         assertEquals(thisLocationStartTime,
                 lastVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
-        // The patient class may have changed, so make sure it is up to date
-        PatientProperty patClass = lastVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()
-                .filter(x -> x.isValid()).findAny().get();
-        assertEquals(thisPatientClass, patClass.getValueAsString());
-        assertEquals(eventTime, patClass.getValidFrom());
+        assertEquals(eventTime, actualLocation.getValidFrom());
 
         // Check correct invalidation date of patient class (if relevant)
         Optional<PatientProperty> invPatClass = lastVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()

@@ -49,9 +49,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         PatientFact onlyHospVisit = hospVisits.get(0);
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
-        assertEquals("E",
-                bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
-        // patient class should also go in the hosp visit - we think it doesn't
+        // patient class should go in the hosp visit - we think it doesn't
         // routinely change during a visit,
         // except when explicitly signalled, eg. and O->I transfer.
         assertEquals("E",
@@ -146,18 +144,13 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         PatientFact onlyHospVisit = hospVisits.get(0);
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
-        assertEquals("E",
-                bedVisits.get(1).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS,
-                        PatientProperty::isValid).get(0).getValueAsString());
-        assertEquals("I",
-                bedVisits.get(2).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS,
-                        PatientProperty::isValid).get(0).getValueAsString());
-        // patient class should also go in the hosp visit - we think it doesn't
-        // routinely change during a visit,
-        // except when explicitly signalled, eg. and O->I transfer
-        // which is what we are testing here
-        assertEquals("I",
-                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS,
-                        PatientProperty::isValid).get(0).getValueAsString());
+        List<PatientProperty> validPatientClasses = onlyHospVisit
+                .getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
+        List<PatientProperty> invalidPatientClasses = onlyHospVisit
+                .getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, hv -> !hv.isValid());
+        assertEquals(1, invalidPatientClasses.size());
+        assertEquals(1, validPatientClasses.size());
+        assertEquals("E", invalidPatientClasses.get(0).getValueAsString());
+        assertEquals("I", validPatientClasses.get(0).getValueAsString());
     }
 }
