@@ -112,7 +112,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
-    public Stream<DynamicTest> testTransferSeqeuence() {
+    public Stream<DynamicTest> testTransferSequence() {
 
         List<List<Integer>> initialMessages = new ArrayList<>();
         for (int i = 0; i < operations.length; i++) {
