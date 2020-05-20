@@ -76,7 +76,8 @@ public class TransferTestCase extends MessageStreamBaseCase {
         assertEquals(thisLocationStartTime,
                 lastVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
         // The patient class may have changed, so make sure it is up to date
-        PatientProperty patClass = lastVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()
+        PatientFact hospVisit = lastVisit.getParentFact();
+        PatientProperty patClass = hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()
                 .filter(x -> x.isValid()).findAny().get();
         assertEquals(thisPatientClass, patClass.getValueAsString());
         assertEquals(eventTime, patClass.getValidFrom());
