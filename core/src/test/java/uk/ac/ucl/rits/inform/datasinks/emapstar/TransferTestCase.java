@@ -30,7 +30,7 @@ public class TransferTestCase extends MessageStreamBaseCase {
 
     @Test
     @Transactional
-    public void testTransferSeqeuence() throws EmapOperationMessageProcessingException {
+    public void testTransferSequence() throws EmapOperationMessageProcessingException {
         // Admit an outpatient
         patientClass = "O";
         queueAdmit();
