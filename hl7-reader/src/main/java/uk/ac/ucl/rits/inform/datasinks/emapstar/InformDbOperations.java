@@ -611,7 +611,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param newProp new version of property to use as replacement if necessary
      * @return true iff anything was changed
      */
-    public static boolean addOrUpdateProperty(PatientFact fact, PatientProperty newProp) {
+    public boolean addOrUpdateProperty(PatientFact fact, PatientProperty newProp) {
         Attribute propertyType = newProp.getPropertyType();
         List<PatientProperty> currentProps = fact.getPropertyByAttribute(propertyType, PatientProperty::isValid);
         // In the specific case where there is exactly one valid property and it matches the new value, do nothing.
@@ -1071,6 +1071,32 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     public long countEncounters() {
         return encounterRepo.count();
+    }
+
+    /**
+     * Invalidate a property without updating any column except for stored_until. Do
+     * not compare property values to check for changes. Deletes the existing row by
+     * setting stored_until and creates a new row showing the updated validity
+     * interval for the property.
+     *
+     * @param prop             the existing property to invalidate
+     * @param storedFromUntil  When did the change to the DB occur? This will be a
+     *                         time very close to the present moment. Will be used
+     *                         as a storedFrom and/or a storedUntil as appropriate.
+     * @param invalidationDate When did the change to the DB become true. This is
+     *                         the actual patient event took place so can be
+     *                         significantly in the past.
+     * @return the newly created row showing the new state of this property
+     */
+    PatientProperty invalidateProperty(PatientProperty prop, Instant storedFromUntil, Instant invalidationDate) {
+        PatientProperty newProp = new PatientProperty(prop);
+        // stored from/until timestamps are identical so these properties are exactly adjacent in time
+        prop.setStoredUntil(storedFromUntil);
+        newProp.setStoredFrom(storedFromUntil);
+        newProp.setValidUntil(invalidationDate);
+        // new property needs to be explicitly added to the same fact
+        prop.getFact().addProperty(newProp);
+        return newProp;
     }
 
 

@@ -335,7 +335,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         AdtMessage cancelDischarge = new AdtMessage();
         cancelDischarge.setOperationType(AdtOperationType.CANCEL_DISCHARGE_PATIENT);
         cancelDischarge.setAdmissionDateTime(this.admissionTime);
-        cancelDischarge.setEventOccurredDateTime(this.nextTime());
+        cancelDischarge.setRecordedDateTime(this.nextTime());
         cancelDischarge.setMrn(this.mrn);
         cancelDischarge.setVisitNumber(this.csn);
         cancelDischarge.setPatientClass(this.patientClass);
