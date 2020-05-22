@@ -625,7 +625,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         // there should only be one, but invalidate all just to be sure
         Instant invalidationTime = newProp.getValidFrom();
         for (PatientProperty prop : currentProps) {
-            invalidateProperty(prop, newProp.getStoredFrom(), invalidationTime);
+            prop.invalidateProperty(newProp.getStoredFrom(), invalidationTime, null);
         }
         fact.addProperty(newProp);
         return true;
@@ -760,7 +760,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                     Instant invalidationDate = newFact.getValidFrom();
                     logger.info(
                             "fact exists but does not match, replacing: " + currentFact.getFactType().getShortName());
-                    currentFact.invalidateAll(invalidationDate);
+                    currentFact.invalidateAll(newFact.getStoredFrom(), invalidationDate);
                     encounter.addFact(newFact);
                     anyChanged = true;
                 }
@@ -1073,32 +1073,4 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public long countEncounters() {
         return encounterRepo.count();
     }
-
-    /**
-     * Invalidate a property without updating any column except for stored_until. Do
-     * not compare property values to check for changes. Deletes the existing row by
-     * setting stored_until and creates a new row showing the updated validity
-     * interval for the property.
-     *
-     * @param prop             the existing property to invalidate
-     * @param storedFromUntil  When did the change to the DB occur? This will be a
-     *                         time very close to the present moment. Will be used
-     *                         as a storedFrom and/or a storedUntil as appropriate.
-     * @param invalidationDate When did the change to the DB become true. This is
-     *                         the actual patient event took place so can be
-     *                         significantly in the past.
-     * @return the newly created row showing the new state of this property
-     */
-    PatientProperty invalidateProperty(PatientProperty prop, Instant storedFromUntil, Instant invalidationDate) {
-        PatientProperty newProp = new PatientProperty(prop);
-        // stored from/until timestamps are identical so these properties are exactly adjacent in time
-        prop.setStoredUntil(storedFromUntil);
-        newProp.setStoredFrom(storedFromUntil);
-        newProp.setValidUntil(invalidationDate);
-        // new property needs to be explicitly added to the same fact
-        prop.getFact().addProperty(newProp);
-        return newProp;
-    }
-
-
 }

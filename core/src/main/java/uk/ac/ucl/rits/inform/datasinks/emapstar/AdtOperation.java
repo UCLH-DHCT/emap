@@ -503,10 +503,10 @@ public class AdtOperation {
         Instant cancellationTime = adtMsg.getEventOccurredDateTime();
         PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
         // do the actual invalidations
-        onlyOpenBedVisit.invalidateAll(cancellationTime);
-        hospVisit.invalidateAll(cancellationTime);
+        onlyOpenBedVisit.invalidateAll(storedFrom, cancellationTime);
+        hospVisit.invalidateAll(storedFrom, cancellationTime);
         for (PatientFact closedBedVisit : closedBedVisits) {
-            closedBedVisit.invalidateAll(cancellationTime);
+            closedBedVisit.invalidateAll(storedFrom, cancellationTime);
         }
     }
 
@@ -534,7 +534,7 @@ public class AdtOperation {
 
         PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
         // invalidate the erroneous transfer
-        onlyOpenBedVisit.invalidateAll(cancellationDateTime);
+        onlyOpenBedVisit.invalidateAll(storedFrom, cancellationDateTime);
 
         // reopen the previous bed visit by invalidating its discharge time property
         Optional<PatientFact> mostRecentBedVisitOptional = InformDbOperations.getVisitFactWhere(encounter,
@@ -556,7 +556,7 @@ public class AdtOperation {
             // reopen it by invalidating its discharge time
             PatientProperty bedDischargeTime = InformDbOperations.getOnlyElement(
                     mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-            dbOps.invalidateProperty(bedDischargeTime, storedFrom, cancellationDateTime);
+            bedDischargeTime.invalidateProperty(storedFrom, cancellationDateTime, null);
         } else {
             /*
              * If there is no previous location (this situation should only happen if we've
@@ -611,13 +611,13 @@ public class AdtOperation {
         }
         PatientProperty bedDischargeTime = InformDbOperations.getOnlyElement(
                 mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-        dbOps.invalidateProperty(bedDischargeTime, storedFrom, invalidationDate);
+        bedDischargeTime.invalidateProperty(storedFrom, invalidationDate, null);
         PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
         for (AttributeKeyMap a : Arrays.asList(AttributeKeyMap.DISCHARGE_TIME, AttributeKeyMap.DISCHARGE_DISPOSITION,
                 AttributeKeyMap.DISCHARGE_LOCATION)) {
             PatientProperty prop = InformDbOperations.getOnlyElement(hospitalVisit.getPropertyByAttribute(a, PatientProperty::isValid));
             if (prop != null) {
-                dbOps.invalidateProperty(prop, storedFrom, invalidationDate);
+                prop.invalidateProperty(storedFrom, invalidationDate, null);
             }
         }
 
