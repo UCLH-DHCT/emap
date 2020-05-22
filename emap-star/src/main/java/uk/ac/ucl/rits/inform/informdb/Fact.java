@@ -33,11 +33,12 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     }
 
     /**
-     * Copy constructor.
+     * Copy constructor. Cloned facts do not inherit the parent and child facts nor properties.
      * @param other object to copy from
      */
     public Fact(Fact<F, PropertyType> other) {
         super(other);
+        factType = other.factType;
     }
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
@@ -154,14 +155,18 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
     /**
      * Invalidate the fact and all its properties.
      *
+     * @param storedFromUntil  the time the DB was updated to reflect this fact
+     *                         becoming invalid
      * @param invalidationDate the instant at which this fact became invalid
      */
-    public void invalidateAll(Instant invalidationDate) {
-        setValidUntil(invalidationDate);
+    public void invalidateAll(Instant storedFromUntil, Instant invalidationDate) {
+        F newFact = (F) invalidateFact(storedFromUntil, invalidationDate);
         for (PropertyType prop : properties) {
-            prop.setValidUntil(invalidationDate);
+            prop.invalidateProperty(storedFromUntil, invalidationDate, newFact);
         }
     }
+
+    protected abstract Fact<F, PropertyType> invalidateFact(Instant storedFromUntil, Instant invalidationDate);
 
     /**
      * Recursively de-nullify validFrom values for all properties of this fact and

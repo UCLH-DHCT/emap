@@ -233,6 +233,22 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
         this.valueAsAttribute = value;
     }
 
+    /**
+     * Invalidate this property without updating any column except for stored_until. Do
+     * not compare property values to check for changes. Deletes the existing row by
+     * setting stored_until and creates a new row showing the updated validity
+     * interval for the property.
+     *
+     * @param storedFromUntil  When did the change to the DB occur? This will be a
+     *                         time very close to the present moment. Will be used
+     *                         as a storedFrom and/or a storedUntil as appropriate.
+     * @param invalidationDate When did the change to the DB become true. This is
+     *                         the actual patient event took place so can be
+     *                         significantly in the past.
+     * @return the newly created row showing the new state of this property
+     */
+    public abstract Property<F> invalidateProperty(Instant storedFromUntil, Instant invalidationDate, F fact);
+
     @Override
     public int hashCode() {
         final int prime = 31;

@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -39,6 +40,17 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
      */
     public PatientFact(PatientFact other) {
         super(other);
+        encounter = other.encounter;
+    }
+
+    @Override
+    protected PatientFact invalidateFact(Instant storedFromUntil, Instant invalidationDate) {
+        PatientFact newFact = new PatientFact(this);
+        this.setStoredUntil(storedFromUntil);
+        newFact.setStoredFrom(storedFromUntil);
+        newFact.setValidUntil(invalidationDate);
+        this.getEncounter().addFact(newFact);
+        return newFact;
     }
 
     private static final long serialVersionUID = -5867434510066589366L;

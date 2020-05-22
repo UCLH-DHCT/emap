@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -55,6 +56,35 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
     /**
      */
     public PatientProperty() {
+    }
+
+    /**
+     * Invalidate this property without updating any column except for stored_until. Do
+     * not compare property values to check for changes. Deletes the existing row by
+     * setting stored_until and creates a new row showing the updated validity
+     * interval for the property.
+     *
+     * @param storedFromUntil  When did the change to the DB occur? This will be a
+     *                         time very close to the present moment. Will be used
+     *                         as a storedFrom and/or a storedUntil as appropriate.
+     * @param invalidationDate When did the change to the DB become true. This is
+     *                         the actual patient event took place so can be
+     *                         significantly in the past.
+     * @return the newly created row showing the new state of this property
+     */
+    public PatientProperty invalidateProperty(Instant storedFromUntil, Instant invalidationDate, PatientFact fact) {
+        PatientProperty newProp = new PatientProperty(this);
+        // stored from/until timestamps are identical so these properties are exactly adjacent in time
+        this.setStoredUntil(storedFromUntil);
+        newProp.setStoredFrom(storedFromUntil);
+        newProp.setValidUntil(invalidationDate);
+        // new property needs to be explicitly added to the same fact
+        if (fact != null) {
+            fact.addProperty(newProp);
+        } else {
+            getFact().addProperty(newProp);
+        }
+        return newProp;
     }
 
     /**
