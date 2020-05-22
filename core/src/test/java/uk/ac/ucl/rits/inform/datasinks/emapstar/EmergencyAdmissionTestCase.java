@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,18 +83,18 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         List<PatientFact> hospVisits = factsByType.get(AttributeKeyMap.HOSPITAL_VISIT);
         List<PatientFact> bedVisits = factsByType.get(AttributeKeyMap.BED_VISIT);
 
-        assertEquals(2, hospVisits.size());
+        assertEquals(3, hospVisits.size());
         Map<Boolean, List<PatientFact>> hospVisitsByValidity =
                 hospVisits.stream().collect(Collectors.partitioningBy(v -> v.isValid()));
-        assertEquals(1, hospVisitsByValidity.get(false).size());
+        assertEquals(2, hospVisitsByValidity.get(false).size());
 
         List<PatientFact> validHospVisits = hospVisitsByValidity.get(true);
         assertEquals(1, validHospVisits.size());
 
-        assertEquals(3, bedVisits.size());
+        assertEquals(5, bedVisits.size());
         Map<Boolean, List<PatientFact>> bedVisitsByValidity =
                 bedVisits.stream().collect(Collectors.partitioningBy(v -> v.isValid()));
-        assertEquals(2, bedVisitsByValidity.get(false).size());
+        assertEquals(4, bedVisitsByValidity.get(false).size());
         List<PatientFact> validBedVisits = bedVisitsByValidity.get(true);
         assertEquals(1, validBedVisits.size());
 
@@ -124,12 +125,14 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
     public void testEdAdmissionAsInpatient() throws EmapOperationMessageProcessingException {
         patientClass = "E";
         queueAdmit();
+        Instant emergencyStartTime = this.currentTime;
         queueUpdatePatientDetails();
         queueAdmit(true);
 
         // an 'A06' message ie change patient to inpatient and tranfer
         patientClass = "I";
         queueAdmit(true);
+        Instant toInpatientTime = this.currentTime;
 
         processRest();
 
@@ -144,13 +147,9 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         PatientFact onlyHospVisit = hospVisits.get(0);
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
-        List<PatientProperty> validPatientClasses = onlyHospVisit
-                .getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
-        List<PatientProperty> invalidPatientClasses = onlyHospVisit
-                .getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, hv -> !hv.isValid());
-        assertEquals(1, invalidPatientClasses.size());
-        assertEquals(1, validPatientClasses.size());
-        assertEquals("E", invalidPatientClasses.get(0).getValueAsString());
-        assertEquals("I", validPatientClasses.get(0).getValueAsString());
+        List<PatientProperty> allPatientClasses = onlyHospVisit
+                .getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS);
+
+        emapStarTestUtils._testPropertyValuesOverTime(allPatientClasses, "E", "I", emergencyStartTime, toInpatientTime, toInpatientTime);
     }
 }

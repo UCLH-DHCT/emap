@@ -1,11 +1,13 @@
 package uk.ac.ucl.rits.inform.testutils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,16 +97,16 @@ public class EmapStarTestUtils {
                 .filter(PatientFact::isValid).collect(Collectors.toList());
         assertEquals(expectedTotalVisits, validBedVisits.size());
         // sort by arrival time
-        validBedVisits.sort((v1, v2) ->
-                v1.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime().compareTo(
-                v2.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime()));
+        validBedVisits.sort(Comparator.comparing(
+                vis -> vis.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime(),
+                Comparator.nullsFirst(Instant::compareTo)));
         return validBedVisits;
     }
 
     /**
-     * Test a collection of properties of type datetime where we expect to see one
+     * Test a collection of properties of the same type where we expect to see one
      * current one and one invalidated one. The invalidated one takes two rows to
-     * represent so there should be 3 in all.
+     * represent so there should be three in all.
      *
      * @param allProperties            all the rows of this property type,
      *                                 regardless of storedness or validity
@@ -114,28 +116,25 @@ public class EmapStarTestUtils {
      * @param expectedOldValidUntil    when did the old value stop being true
      * @param expectedCurrentValidFrom when did the new value start being true
      */
-    public void _testDatetimePropertyValuesOverTime(List<PatientProperty> allProperties, Instant expectedOldValue,
-            Instant expectedCurrentValue, Instant expectedOldValidFrom, Instant expectedOldValidUntil,
+    public <ValueType> void _testPropertyValuesOverTime(List<PatientProperty> allProperties, ValueType expectedOldValue,
+            ValueType expectedCurrentValue, Instant expectedOldValidFrom, Instant expectedOldValidUntil,
             Instant expectedCurrentValidFrom) {
         assertEquals(3, allProperties.size());
-        Map<Pair<Boolean, Boolean>, List<PatientProperty>> dischTimes = allProperties.stream().collect(Collectors
+        Map<Pair<Boolean, Boolean>, List<PatientProperty>> allPropertiesByValidityAndStoredness = allProperties.stream().collect(Collectors
                 .groupingBy(dt -> new ImmutablePair<>(dt.getStoredUntil() == null, dt.getValidUntil() == null)));
 
-        List<PatientProperty> allCurrent = dischTimes.get(new ImmutablePair<>(true, true));
+        List<PatientProperty> allCurrent = allPropertiesByValidityAndStoredness.get(new ImmutablePair<>(true, true));
         assertEquals(1, allCurrent.size());
-        // the valid discharge time property has a later value
-        assertEquals(expectedCurrentValue, allCurrent.get(0).getValueAsDatetime());
+        assertEquals(expectedCurrentValue, allCurrent.get(0).getValue(expectedCurrentValue.getClass()));
         assertEquals(expectedCurrentValidFrom, allCurrent.get(0).getValidFrom());
 
-        List<PatientProperty> allDeletedValid = dischTimes.get(new ImmutablePair<>(false, true));
+        List<PatientProperty> allDeletedValid = allPropertiesByValidityAndStoredness.get(new ImmutablePair<>(false, true));
         assertEquals(1, allDeletedValid.size());
-        // the invalid (cancelled) discharge time property
-        assertEquals(expectedOldValue, allDeletedValid.get(0).getValueAsDatetime());
+        assertEquals(expectedOldValue, allDeletedValid.get(0).getValue(expectedOldValue.getClass()));
 
-        List<PatientProperty> allStoredInvalid = dischTimes.get(new ImmutablePair<>(true, false));
+        List<PatientProperty> allStoredInvalid = allPropertiesByValidityAndStoredness.get(new ImmutablePair<>(true, false));
         assertEquals(1, allStoredInvalid.size());
-        // the invalid (cancelled) discharge time property
-        assertEquals(expectedOldValue, allStoredInvalid.get(0).getValueAsDatetime());
+        assertEquals(expectedOldValue, allStoredInvalid.get(0).getValue(expectedOldValue.getClass()));
         assertEquals(expectedOldValidUntil, allStoredInvalid.get(0).getValidUntil());
 
         // Can't tell what the stored from/until timestamps should be (they will be created
@@ -144,10 +143,13 @@ public class EmapStarTestUtils {
 
         // These should abut exactly because the invalidation was one operation
         assertEquals(allDeletedValid.get(0).getStoredUntil(), allStoredInvalid.get(0).getStoredFrom());
-        // The new discharge time was given in a separate message so will have been processed slightly afterwards
-        assertTrue(allDeletedValid.get(0).getStoredUntil().isBefore(allCurrent.get(0).getStoredFrom()));
 
-        assertTrue(allDeletedValid.get(0).getStoredFrom().isBefore(allDeletedValid.get(0).getStoredUntil()));
+        // Some events (eg. Patient class change) can occur in a single message, so the changeover
+        // is instantaneous. Others (Cancel transfer + new correct transfer) happen in separate messages
+        // so the deletion and recreation will have a slight gap between them. Therefore allow equal to or less than.
+        assertFalse(allDeletedValid.get(0).getStoredUntil().isAfter(allCurrent.get(0).getStoredFrom()));
+        assertFalse(allDeletedValid.get(0).getStoredFrom().isAfter(allDeletedValid.get(0).getStoredUntil()));
+
         assertEquals(expectedOldValidFrom, allStoredInvalid.get(0).getValidFrom());
     }
 

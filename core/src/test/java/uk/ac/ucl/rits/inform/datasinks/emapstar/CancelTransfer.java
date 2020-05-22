@@ -20,7 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
- * Base class for testing cancel transfer message stream, that can include or
+ * Test cancel transfer message stream, that can include or
  * exclude the admit message.
  *
  * @author Jeremy Stein
@@ -37,8 +37,8 @@ public class CancelTransfer extends MessageStreamBaseCase {
     @Transactional
     public void cancelTransferFull() throws EmapOperationMessageProcessingException {
         omitAdmit = false;
-        queueAdmit();
         originalLocation = currentLocation();
+        queueAdmit();
         queueTransfer();
         erroneousTransferLocation = currentLocation();
         erroneousTransferTime = currentTime;
@@ -54,7 +54,7 @@ public class CancelTransfer extends MessageStreamBaseCase {
 
     @Test
     @Transactional
-    public void CancelTransferMidStream() throws EmapOperationMessageProcessingException {
+    public void cancelTransferMidStream() throws EmapOperationMessageProcessingException {
         omitAdmit = true;
         originalLocation = currentLocation();
         queueTransfer();
@@ -82,7 +82,7 @@ public class CancelTransfer extends MessageStreamBaseCase {
         List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
         List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
         assertEquals(1, hospVisits.size());
-        assertEquals(3, bedVisits.size());
+        assertEquals(4, bedVisits.size());
         assertNull(outpVisits);
         // There should be one invalid bed visit (+hosp visit), and one valid bed visit
         // (+hosp visit)
@@ -93,7 +93,7 @@ public class CancelTransfer extends MessageStreamBaseCase {
         assertEquals(1, hospVisitsByValidity.get(true).size());
         assertEquals(0, hospVisitsByValidity.get(false).size());
         assertEquals(2, bedVisitsByValidity.get(true).size());
-        assertEquals(1, bedVisitsByValidity.get(false).size());
+        assertEquals(2, bedVisitsByValidity.get(false).size());
 
         // check the properties are all valid/invalid as appropriate
         List<PatientProperty> propertiesForCancelledBedVisit = bedVisitsByValidity.get(false).get(0).getProperties();
@@ -107,19 +107,12 @@ public class CancelTransfer extends MessageStreamBaseCase {
         List<PatientProperty> propertiesForCurrentBedVisit =
                 validBedVisitsByLocation.get(correctTransferLocation).get(0).getProperties();
         PatientFact originalBedVisit = validBedVisitsByLocation.get(originalLocation).get(0);
-        Map<Boolean, List<PatientProperty>> allDischargeTimesByValidity =
-                originalBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
-                        .collect(Collectors.partitioningBy(p -> p.isValid()));
+        List<PatientProperty> allDischargeTimes = originalBedVisit
+                .getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
 
-        // one valid. If admit message was sent, then one invalid should exist too
-        assertEquals(1, allDischargeTimesByValidity.get(true).size());
-        assertEquals(correctTransferTime, allDischargeTimesByValidity.get(true).get(0).getValueAsDatetime());
-        if (omitAdmit) {
-            assertEquals(0, allDischargeTimesByValidity.get(false).size());
-        } else {
-            assertEquals(1, allDischargeTimesByValidity.get(false).size());
-            assertEquals(erroneousTransferTime, allDischargeTimesByValidity.get(false).get(0).getValueAsDatetime());
-        }
+        emapStarTestUtils._testPropertyValuesOverTime(allDischargeTimes,
+                omitAdmit ? null : erroneousTransferTime, correctTransferTime, erroneousTransferTime,
+                        cancellationTime, correctTransferTime);
 
         assertTrue(!propertiesForCancelledBedVisit.isEmpty());
         assertTrue(!propertiesForCurrentBedVisit.isEmpty());

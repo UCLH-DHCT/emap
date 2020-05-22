@@ -59,7 +59,7 @@ public class TestCancelDischarge extends Hl7StreamEndToEndTestCase {
         Instant expectedOldValue = Instant.parse("2013-02-11T13:45:00.000Z");
         Instant expectedCurrentValue = Instant.parse("2013-02-11T18:43:00.000Z");
         Instant expectedOldValidUntil = Instant.parse("2013-02-11T13:58:34.000Z");
-        emapStarTestUtils._testDatetimePropertyValuesOverTime(dischargeTimes, expectedOldValue, expectedCurrentValue,
+        emapStarTestUtils._testPropertyValuesOverTime(dischargeTimes, expectedOldValue, expectedCurrentValue,
                 expectedOldValue, expectedOldValidUntil, expectedCurrentValue);
     }
 }
