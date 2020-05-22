@@ -1,15 +1,10 @@
-/**
- * 
- */
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,13 +12,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
-import uk.ac.ucl.rits.inform.informdb.Fact;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -31,17 +26,17 @@ import uk.ac.ucl.rits.inform.testutils.EmapStarTestUtils;
 
 /**
  * Test cases that take a stream of Emap Interchange messages as an input,
- * and inspect the resultant changes to Emap-Star.
+ * and inspect the processing and resultant changes to Emap-Star.
  *
  * @author Jeremy Stein
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @ComponentScan(basePackages = { "uk.ac.ucl.rits.inform.testutils" })
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public abstract class MessageStreamTestCase {
+public abstract class MessageProcessingBaseCase {
     @Autowired
     protected InformDbOperations dbOps;
     @Autowired
@@ -56,17 +51,68 @@ public abstract class MessageStreamTestCase {
 
     protected List<EmapOperationMessage> messageStream = new ArrayList<>();
 
-    @Before
+    /**
+     * How far though the message stream processing is.
+     */
+    protected int nextToProcess = 0;
+
+    /**
+     * Process all remaining messages in queue.
+     *
+     * @throws EmapOperationMessageProcessingException
+     */
     @Transactional
-    public void setup() throws EmapOperationMessageProcessingException {
-        for (EmapOperationMessage msg : messageStream) {
-            processSingleMessage(msg);
+    public void processRest() throws EmapOperationMessageProcessingException {
+        for (; nextToProcess < messageStream.size(); nextToProcess++) {
+            processSingleMessage(messageStream.get(nextToProcess));
         }
     }
 
+    /**
+     * Process the next n messages in the list.
+     *
+     * @param n Number of messages to process.
+     * @throws EmapOperationMessageProcessingException.
+     * @throws IndexOutOfBoundsException If n is larger than the remaining number of messages.
+     */
+    @Transactional
+    public void processN(int n) throws EmapOperationMessageProcessingException {
+        int end = nextToProcess + n;
+        while (nextToProcess < end) {
+            processSingleMessage(messageStream.get(nextToProcess++));
+        }
+    }
+
+    /**
+     * Add a message to the queue.
+     *
+     * @param msg The message to add.
+     */
+    public void queueMessage(EmapOperationMessage msg) {
+        this.messageStream.add(msg);
+    }
+
+    /**
+     * Process a single message.
+     *
+     * @param msg The message to process.
+     *
+     * @throws EmapOperationMessageProcessingException
+     */
     @Transactional
     protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
-        msg.processMessage(dbOps);
+        processSingleMessage(false, msg);
+    }
+    
+    @Transactional
+    protected void processSingleMessage(boolean allowMessageIgnored, EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
+        try {
+            msg.processMessage(dbOps);
+        } catch (MessageIgnoredException me) {
+            if (!allowMessageIgnored) {
+                throw me;
+            }
+        }
     }
 
     /**
@@ -89,5 +135,5 @@ public abstract class MessageStreamTestCase {
             assertIsParentOfChild(parent, child);
         }
     }
-    
+
 }

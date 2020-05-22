@@ -1,13 +1,13 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
@@ -19,7 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 public class TestAdtVarious extends TestHl7MessageStream {
     private AdtMessage msg;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         msg = processSingleAdtMessage("TestForJunit.txt");
     }
@@ -220,16 +220,19 @@ public class TestAdtVarious extends TestHl7MessageStream {
                 msg.getDischargeDateTime());
     }
 
+    /**
+     * Death time should be null.
+     */
     @Test
     public void testNoTimeOfDeath()  {
         assertNull(msg.getPatientDeathDateTime());
     }
 
-    @Test
     /**
-     * Not an A03, death indicator shouldn't be set
+     * Death indicator should be false.
      */
-    public void testIsNull()  {
-        assertNull(msg.getPatientDeathIndicator());
+    @Test
+    public void testDeathIndicator()  {
+        assertFalse(msg.getPatientDeathIndicator());
     }
 }

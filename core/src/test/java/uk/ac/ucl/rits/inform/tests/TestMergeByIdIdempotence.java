@@ -1,9 +1,13 @@
 package uk.ac.ucl.rits.inform.tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
@@ -17,8 +21,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  * @author Jeremy Stein
  */
 public class TestMergeByIdIdempotence extends TestMergeById {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     public TestMergeByIdIdempotence() {
         // do the merge a second time, should get a MessageIgnoredException
@@ -26,9 +28,17 @@ public class TestMergeByIdIdempotence extends TestMergeById {
     }
 
     @Override
+    @BeforeEach
     public void setup()
             throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
-        thrown.expect(MessageIgnoredException.class);
-        super.setup();
+        assertThrows(MessageIgnoredException.class, () -> super.setup());
+    }
+
+    @Override
+    @Test
+    public void testAllProcessed() {
+        assertTrue(!hl7StreamFileNames.isEmpty(), "You must specify some HL7 containing files");
+        assertEquals(totalMessages, 1 + processedMessages, "All messages were processed - one should have been ignored");
+        assertTrue(totalMessages > 0, "No messages got processed");
     }
 }

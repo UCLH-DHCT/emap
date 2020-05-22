@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
@@ -23,7 +23,7 @@ import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 public class TestCovid19Test extends TestHl7MessageStream {
     private PathologyOrder msg;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         List<PathologyOrder> msgs = processSinglePathologyOrderMessage("covid19test.txt");
         assertEquals(1, msgs.size());

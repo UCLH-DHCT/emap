@@ -1,14 +1,14 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +42,7 @@ public class TestMergeById extends Hl7StreamEndToEndTestCase {
         // still valid person-mrn links
         List<PersonMrn> validRetiredMrnPersons = retiredMrnPersons.get(true);
 
-        assertEquals("retired mrn should still have a valid connection to a person", 1, validRetiredMrnPersons.size());
+        assertEquals(1, validRetiredMrnPersons.size(), "retired mrn should still have a valid connection to a person");
 
         List<PersonMrn> invalidRetiredMrnPersons = retiredMrnPersons.get(false);
         assertEquals(1, invalidRetiredMrnPersons.size());

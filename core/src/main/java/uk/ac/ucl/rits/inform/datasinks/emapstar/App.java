@@ -133,7 +133,7 @@ public class App {
     @Profile("default")
     public CommandLineRunner loadVocab() {
         return (args) -> {
-            dbOps.ensureVocabLoaded();
+//            dbOps.ensureVocabLoaded();
             vocabLoaded.countDown();
         };
     }
@@ -148,7 +148,7 @@ public class App {
     @Profile("test")
     public CommandLineRunner mainLoopTest(InformDbOperations dbOps) {
         return (args) -> {
-            dbOps.ensureVocabLoaded();
+//            dbOps.ensureVocabLoaded();
             logger.info("Running test CommandLineRunner, to ensure the vocab is loaded.");
         };
     }
