@@ -28,6 +28,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
         @Index(columnList = "storedUntil", unique = false),
 })
 public class PatientFact extends Fact<PatientFact, PatientProperty> implements Serializable {
+    /**
+     */
+    public PatientFact() {
+    }
+
+    /**
+     * Copy constructor.
+     * @param other object to copy from
+     */
+    public PatientFact(PatientFact other) {
+        super(other);
+    }
 
     private static final long serialVersionUID = -5867434510066589366L;
 

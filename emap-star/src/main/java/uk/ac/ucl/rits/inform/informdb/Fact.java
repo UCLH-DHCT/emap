@@ -27,6 +27,18 @@ import org.hibernate.annotations.SortNatural;
  */
 @MappedSuperclass
 public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends Property<F>> extends TemporalCore {
+    /**
+     */
+    public Fact() {
+    }
+
+    /**
+     * Copy constructor.
+     * @param other object to copy from
+     */
+    public Fact(Fact<F, PropertyType> other) {
+        super(other);
+    }
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fact")
     @SortNatural

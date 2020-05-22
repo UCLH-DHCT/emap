@@ -45,6 +45,19 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
     private Long                    patientPropertyId;
 
     /**
+     * Copy constructor.
+     * @param prop property to copy
+     */
+    public PatientProperty(PatientProperty prop) {
+        super(prop);
+    }
+
+    /**
+     */
+    public PatientProperty() {
+    }
+
+    /**
      * @return the propertyId
      */
     public Long getPatientPropertyId() {

@@ -41,6 +41,27 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     private Long      valueAsLink;
 
     /**
+     */
+    public Property() {
+    }
+
+    /**
+     * Copy constructor.
+     * @param prop object to copy from
+     */
+    public Property(Property<F> prop) {
+        super(prop);
+        propertyType = prop.propertyType;
+        fact = prop.fact;
+        valueAsString = prop.valueAsString;
+        valueAsInteger = prop.valueAsInteger;
+        valueAsReal = prop.valueAsReal;
+        valueAsDatetime = prop.valueAsDatetime;
+        valueAsAttribute = prop.valueAsAttribute;
+        valueAsLink = prop.valueAsLink;
+    }
+
+    /**
      * @return the fact this property belongs to (property grouper)
      */
     public F getFact() {
