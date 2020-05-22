@@ -622,9 +622,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 return false;
             }
         }
+        // there should only be one, but invalidate all just to be sure
         Instant invalidationTime = newProp.getValidFrom();
         for (PatientProperty prop : currentProps) {
-            prop.setValidUntil(invalidationTime);
+            invalidateProperty(prop, newProp.getStoredFrom(), invalidationTime);
         }
         fact.addProperty(newProp);
         return true;
