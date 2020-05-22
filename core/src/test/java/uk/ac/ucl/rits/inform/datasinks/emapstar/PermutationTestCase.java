@@ -408,12 +408,11 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                     iv.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
 
             // All properties should have been invalidated the same way
-            assertEquals(0, iv.getProperties()
+            assertTrue(iv.getProperties()
                     .stream()
-                    .filter(p -> p.getStoredUntil() == null &&
+                    .allMatch(p -> p.getStoredUntil() == null &&
                             this.currentTime.equals(p.getValidUntil())
-                            )
-                    .count());
+                            ));
 
         }
 
@@ -436,12 +435,11 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                     iv.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
 
             // All properties should have been invalidated the same way
-            assertEquals(0, iv.getProperties()
+            assertTrue(iv.getProperties()
                     .stream()
-                    .filter(p ->  p.getValidUntil() == null &&
+                    .allMatch(p ->  p.getValidUntil() == null &&
                             p.getStoredUntil() != null
-                            )
-                    .count());
+                            ));
 
         }
 
