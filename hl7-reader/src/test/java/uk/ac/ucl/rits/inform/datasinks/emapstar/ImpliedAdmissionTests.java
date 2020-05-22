@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.Instant;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -102,8 +101,13 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());
         PatientProperty bedArrivalTime = _arrivalTimes.get(0);
-        assertEquals(this.transferTime.isEmpty() ? null : this.transferTime.get(0),
-                bedArrivalTime.getValueAsDatetime());
+        Instant expectedArrivalTime;
+        if (this.transferTime.isEmpty() || this.transferTime.get(0).equals(Instant.MIN)) {
+            expectedArrivalTime = null;
+        } else {
+            expectedArrivalTime = this.transferTime.get(0);
+        }
+        assertEquals(expectedArrivalTime, bedArrivalTime.getValueAsDatetime());
 
         // check hospital visit arrival time
         PatientFact hospVisit = bedVisit.getParentFact();
