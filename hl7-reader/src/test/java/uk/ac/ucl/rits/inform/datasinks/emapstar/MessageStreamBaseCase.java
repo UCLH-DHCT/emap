@@ -46,7 +46,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      *
      * This does not reset the class to how it is instantiated though.
      */
-    protected void reintialise() {
+    protected void reinitialise() {
         messageStream.clear();
         nextToProcess = 0;
         this.patientClass = "E";

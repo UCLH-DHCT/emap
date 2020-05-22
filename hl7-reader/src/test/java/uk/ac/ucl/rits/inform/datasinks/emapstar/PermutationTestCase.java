@@ -70,7 +70,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      * Reset the patient state to allow a new message stream to be run.
      */
     private void reset() {
-        super.reintialise();
+        super.reinitialise();
         currentClass = 0;
         super.patientClass = patientClass[currentClass];
     }
