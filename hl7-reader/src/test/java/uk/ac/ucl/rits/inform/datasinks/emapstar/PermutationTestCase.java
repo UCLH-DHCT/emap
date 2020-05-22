@@ -383,7 +383,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             // It should have a two invalid discharges with the current event time stamp.
             assertEquals(2, bd.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME,
                     p -> !p.isValid() &&
-                    (this.currentTime.equals(p.getStoredUntil()) || this.currentTime.equals(p.getValidUntil()))).size());
+                    (p.getStoredUntil() != null || this.currentTime.equals(p.getValidUntil()))).size());
         }
 
         // There should be two variously invalidated visits for this location for this time.
@@ -394,8 +394,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             List<PatientFact> invalidVisit = bedVisits
                 .stream()
                 .filter(v -> v.getStoredUntil() == null &&
-                             v.getValidUntil() != null &&
-                             v.getValidUntil().equals(this.currentTime)
+                        this.currentTime.equals(v.getValidUntil())
                         )
                 .collect(Collectors.toList());
 
@@ -412,8 +411,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             assertEquals(0, iv.getProperties()
                     .stream()
                     .filter(p -> p.getStoredUntil() == null &&
-                                 p.getValidUntil() != null &&
-                                 p.getValidUntil().equals(this.currentTime)
+                            this.currentTime.equals(p.getValidUntil())
                             )
                     .count());
 
@@ -424,8 +422,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             List<PatientFact> invalidVisit = bedVisits
                 .stream()
                 .filter(v -> v.getValidUntil() == null &&
-                             v.getStoredUntil() != null &&
-                             v.getStoredUntil().equals(this.currentTime)
+                             v.getStoredUntil() != null
                         )
                 .collect(Collectors.toList());
 
@@ -442,8 +439,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             assertEquals(0, iv.getProperties()
                     .stream()
                     .filter(p ->  p.getValidUntil() == null &&
-                            p.getStoredUntil() != null &&
-                            p.getStoredUntil().equals(this.currentTime)
+                            p.getStoredUntil() != null
                             )
                     .count());
 
