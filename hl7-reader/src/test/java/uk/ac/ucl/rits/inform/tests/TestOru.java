@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -10,14 +10,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.informdb.Fact;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
@@ -46,7 +44,7 @@ public class TestOru extends Hl7StreamEndToEndTestCase {
      */
     private PatientFact _getSingleOrderByOrderNumber(String orderNum, String expectedEncounterNum) {
         List<PatientFact> orders = patientFactRepo.findAllPathologyOrdersByOrderNumber(orderNum);
-        assertEquals("should be exactly one order", 1, orders.size());
+        assertEquals(1, orders.size(), "should be exactly one order");
         PatientFact pathOrder = orders.get(0);
         assertNotNull(pathOrder);
 

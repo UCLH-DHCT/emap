@@ -1,10 +1,12 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.Before;
-import org.junit.Test;
+import java.time.Instant;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 
@@ -16,7 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 public class TestAdtDeath2 extends TestHl7MessageStream {
     private AdtMessage msg;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         msg = processSingleAdtMessage("GenericAdt/A03_death_2.txt");
     }
@@ -27,7 +29,7 @@ public class TestAdtDeath2 extends TestHl7MessageStream {
      */
     @Test
     public void testTimeOfDeath()  {
-        assertNull(msg.getPatientDeathDateTime());
+        assertEquals(Instant.parse("2013-02-11T08:34:56.00Z"), msg.getPatientDeathDateTime());
     }
 
     /**

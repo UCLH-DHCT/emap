@@ -120,21 +120,17 @@ public class AdtMessageBuilder {
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
             msg.setPatientBirthDate(patientInfoHl7.getPatientBirthDate());
 
-            // Dead = Y should only happen in an A03, according to the HL7 spec,
-            // For other messages leave this null.
-            if (triggerEvent.equals("A03")) {
-                String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
-                if (hl7DeathIndicator.equals("Y")) {
-                    msg.setPatientDeathIndicator(true);
-                } else if (hl7DeathIndicator.equals("N")
-                        || hl7DeathIndicator.equals("")) {
-                    msg.setPatientDeathIndicator(false);
-                }
-                if (msg.getPatientDeathIndicator()) {
-                    // only set the death time if indicator says they're dead
-                    msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
-                }
+            // Despite what the HL7 spec hints at, this death information can occur
+            // in any message, not just A03
+            String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
+            if (hl7DeathIndicator.equals("Y")) {
+                msg.setPatientDeathIndicator(true);
+            } else if (hl7DeathIndicator.equals("N")
+                    || hl7DeathIndicator.equals("")) {
+                msg.setPatientDeathIndicator(false);
             }
+            // set the death time even if indicator says they're not dead (it happens...)
+            msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
 
             msg.setPatientFamilyName(patientInfoHl7.getPatientFamilyName());
             msg.setPatientFullName(patientInfoHl7.getPatientFullName());

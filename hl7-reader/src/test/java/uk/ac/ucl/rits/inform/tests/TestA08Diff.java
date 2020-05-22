@@ -1,15 +1,15 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -38,9 +38,9 @@ public class TestA08Diff extends Hl7StreamEndToEndTestCase {
     @Transactional
     public void testDemographicsExist() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
-        assertNotNull("encounter did not exist", enc);
+        assertNotNull(enc, "encounter did not exist");
         List<PatientFact> facts = enc.getFacts();
-        assertTrue("Encounter has no patient facts", !facts.isEmpty());
+        assertTrue(!facts.isEmpty(), "Encounter has no patient facts");
         List<PatientFact> generalDemographicFacts = facts.stream()
                 .filter(f -> f.isOfType(AttributeKeyMap.GENERAL_DEMOGRAPHIC))
                 .sorted((d1, d2) -> d1.getValidFrom().compareTo(d2.getValidFrom())).collect(Collectors.toList());

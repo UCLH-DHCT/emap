@@ -1,19 +1,18 @@
 package uk.ac.ucl.rits.inform.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import ca.uhn.hl7v2.HL7Exception;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 /**
  *
@@ -21,39 +20,26 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  */
 public class TestPatientUpdateUnknown extends Hl7StreamEndToEndTestCase {
     /**
-     * Updating info for a patient we have not previously seen should NOT create a patient.
+     * Updating info for a patient we have not previously seen should create the encounter but no visits.
      */
     public TestPatientUpdateUnknown() {
         super();
         hl7StreamFileNames.add("GenericAdt/A08_v1.txt");
     }
 
-    @Override
-    public void setup()
-            throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
-        try {
-            super.setup();
-            fail("Expected exception MessageIgnoredException");
-        } catch (MessageIgnoredException th) {
-            // good
-        }
-    }
-
     /**
-     * Check that no messages got processed.
-     */
-    @Override
-    public void testAllProcessed() {
-        assertEquals("expecting no messages to be processed", 0, processedMessages);
-    }
-
-    /**
-     * Check that the encounter did not get get loaded.
+     * Check that the encounter got created and the right facts do/don't exist.
      */
     @Test
     @Transactional
-    public void testEncounterNotExists() {
+    public void testEncounterAndFacts() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
-        assertNull("encounter exists but should not", enc);
+        assertNotNull(enc, "encounter does not exist");
+        Map<AttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
+        assertTrue(factsByType.containsKey(AttributeKeyMap.NAME_FACT));
+        assertTrue(factsByType.containsKey(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
+        assertTrue(factsByType.containsKey(AttributeKeyMap.PATIENT_DEATH_FACT));
+        assertTrue(factsByType.containsKey(AttributeKeyMap.HOSPITAL_VISIT));
+        assertTrue(factsByType.containsKey(AttributeKeyMap.BED_VISIT));
     }
 }
