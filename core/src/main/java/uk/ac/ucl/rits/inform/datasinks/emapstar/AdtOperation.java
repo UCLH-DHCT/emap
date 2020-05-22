@@ -200,9 +200,9 @@ public class AdtOperation {
             locationVisitStartTime = null;
             locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_DISCHARGE_PATIENT)) {
-            // CANCEL_DISCHARGE_PATIENT messages do not carry the discharge time field :(
+            // CANCEL_DISCHARGE_PATIENT messages do not carry the arrival time for the location
             locationVisitStartTime = null;
-            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+            locationVisitValidFrom = adtMsg.getRecordedDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
             locationVisitStartTime = null;
             locationVisitValidFrom = adtMsg.getDischargeDateTime();
@@ -410,7 +410,7 @@ public class AdtOperation {
          * open location then just do nothing. Used to throw an exception but this isn't
          * really an error and we still want the demographics to update above.
          */
-        return InformDbOperations.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
+        return dbOps.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
                 InformDbOperations.buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS,
                         adtMsg.getPatientClass()));
     }
@@ -556,7 +556,7 @@ public class AdtOperation {
             // reopen it by invalidating its discharge time
             PatientProperty bedDischargeTime = InformDbOperations.getOnlyElement(
                     mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-            bedDischargeTime.setValidUntil(cancellationDateTime);
+            dbOps.invalidateProperty(bedDischargeTime, storedFrom, cancellationDateTime);
         } else {
             /*
              * If there is no previous location (this situation should only happen if we've
@@ -577,11 +577,13 @@ public class AdtOperation {
      * @throws MessageIgnoredException if message can't be processed
      */
     public void performCancelDischarge() throws MessageIgnoredException {
-        // event occurred field seems to be populated despite the Epic example message showing it blank.
-        Instant invalidationDate = adtMsg.getEventOccurredDateTime();
-        // this must be non-null or the invalidation won't work
+        // Event occurred field contains the original time of the discharge that is being cancelled,
+        // so use the event recorded date for when the cancellation happened. (Zero length
+        // time intervals technically mean the row was never valid).
+        Instant invalidationDate = adtMsg.getRecordedDateTime();
+        // this must be non-null for the invalidation - all A13 messages seen so far do have this field
         if (invalidationDate == null) {
-            throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
+            throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event recorded date is null");
         }
         InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
 
@@ -609,15 +611,13 @@ public class AdtOperation {
         }
         PatientProperty bedDischargeTime = InformDbOperations.getOnlyElement(
                 mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-        // Do the actual cancel by invalidating the discharge time property on the
-        // location visit, and multiple properties on the hospital visit
-        bedDischargeTime.setValidUntil(invalidationDate);
+        dbOps.invalidateProperty(bedDischargeTime, storedFrom, invalidationDate);
         PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
         for (AttributeKeyMap a : Arrays.asList(AttributeKeyMap.DISCHARGE_TIME, AttributeKeyMap.DISCHARGE_DISPOSITION,
                 AttributeKeyMap.DISCHARGE_LOCATION)) {
             PatientProperty prop = InformDbOperations.getOnlyElement(hospitalVisit.getPropertyByAttribute(a, PatientProperty::isValid));
             if (prop != null) {
-                prop.setValidUntil(invalidationDate);
+                dbOps.invalidateProperty(prop, storedFrom, invalidationDate);
             }
         }
 

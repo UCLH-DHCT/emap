@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
@@ -97,6 +99,56 @@ public class EmapStarTestUtils {
                 v1.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime().compareTo(
                 v2.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime()));
         return validBedVisits;
+    }
+
+    /**
+     * Test a collection of properties of type datetime where we expect to see one
+     * current one and one invalidated one. The invalidated one takes two rows to
+     * represent so there should be 3 in all.
+     *
+     * @param allProperties            all the rows of this property type,
+     *                                 regardless of storedness or validity
+     * @param expectedOldValue         the actual value of the old property
+     * @param expectedCurrentValue     the actual current value
+     * @param expectedOldValidFrom     when did the old value become true
+     * @param expectedOldValidUntil    when did the old value stop being true
+     * @param expectedCurrentValidFrom when did the new value start being true
+     */
+    public void _testDatetimePropertyValuesOverTime(List<PatientProperty> allProperties, Instant expectedOldValue,
+            Instant expectedCurrentValue, Instant expectedOldValidFrom, Instant expectedOldValidUntil,
+            Instant expectedCurrentValidFrom) {
+        assertEquals(3, allProperties.size());
+        Map<Pair<Boolean, Boolean>, List<PatientProperty>> dischTimes = allProperties.stream().collect(Collectors
+                .groupingBy(dt -> new ImmutablePair<>(dt.getStoredUntil() == null, dt.getValidUntil() == null)));
+
+        List<PatientProperty> allCurrent = dischTimes.get(new ImmutablePair<>(true, true));
+        assertEquals(1, allCurrent.size());
+        // the valid discharge time property has a later value
+        assertEquals(expectedCurrentValue, allCurrent.get(0).getValueAsDatetime());
+        assertEquals(expectedCurrentValidFrom, allCurrent.get(0).getValidFrom());
+
+        List<PatientProperty> allDeletedValid = dischTimes.get(new ImmutablePair<>(false, true));
+        assertEquals(1, allDeletedValid.size());
+        // the invalid (cancelled) discharge time property
+        assertEquals(expectedOldValue, allDeletedValid.get(0).getValueAsDatetime());
+
+        List<PatientProperty> allStoredInvalid = dischTimes.get(new ImmutablePair<>(true, false));
+        assertEquals(1, allStoredInvalid.size());
+        // the invalid (cancelled) discharge time property
+        assertEquals(expectedOldValue, allStoredInvalid.get(0).getValueAsDatetime());
+        assertEquals(expectedOldValidUntil, allStoredInvalid.get(0).getValidUntil());
+
+        // Can't tell what the stored from/until timestamps should be (they will be created
+        // at the time the test was run), but we can at least test that they have the right
+        // relationships to each other.
+
+        // These should abut exactly because the invalidation was one operation
+        assertEquals(allDeletedValid.get(0).getStoredUntil(), allStoredInvalid.get(0).getStoredFrom());
+        // The new discharge time was given in a separate message so will have been processed slightly afterwards
+        assertTrue(allDeletedValid.get(0).getStoredUntil().isBefore(allCurrent.get(0).getStoredFrom()));
+
+        assertTrue(allDeletedValid.get(0).getStoredFrom().isBefore(allDeletedValid.get(0).getStoredUntil()));
+        assertEquals(expectedOldValidFrom, allStoredInvalid.get(0).getValidFrom());
     }
 
 }
