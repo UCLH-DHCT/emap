@@ -392,8 +392,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         String wrongLocation = this.peekNextLocation();
 
         // There should be one invalid but  stored from the current time bed visit
-        // It should have been created if it didn't exist before
-        {
+        // This will only exist in the 1+ previous bed visits case. But we can only detect 2+
+        // with the current implementation.
+        if (!this.lastTransferTime().equals(Instant.MIN)) {
             List<PatientFact> invalidVisit = bedVisits
                 .stream()
                 .filter(v -> v.getStoredUntil() == null &&
