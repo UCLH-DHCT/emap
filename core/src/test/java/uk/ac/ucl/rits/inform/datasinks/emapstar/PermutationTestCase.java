@@ -389,7 +389,8 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         // There should be two variously invalidated visits for this location for this time.
         String wrongLocation = this.peekNextLocation();
 
-        //  There should be one invalid but  stored from the current time bed visit
+        // There should be one invalid but  stored from the current time bed visit
+        // It should have been created if it didn't exist before
         {
             List<PatientFact> invalidVisit = bedVisits
                 .stream()
@@ -416,8 +417,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         }
 
-        //  There should be one unstored from the current time but valid bed visit
-        {
+        // There should be one unstored from the current time but valid bed visit
+        // But only if the last location existed before this
+        if (!this.lastTransferTime().equals(Instant.MIN)) {
             List<PatientFact> invalidVisit = bedVisits
                 .stream()
                 .filter(v -> v.getValidUntil() == null &&
