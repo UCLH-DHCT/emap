@@ -378,12 +378,14 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             } else {
                 assertEquals(this.lastTransferTime(),
                         bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
-            }
 
-            // It should have a two invalid discharges with the current event time stamp.
-            assertEquals(2, bd.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME,
-                    p -> !p.isValid() &&
-                    (p.getStoredUntil() != null || this.currentTime.equals(p.getValidUntil()))).size());
+
+                // It should have a two invalid discharges with the current event time stamp.
+                // But only if it existed beforehand
+                assertEquals(2, bd.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME,
+                        p -> !p.isValid() &&
+                        (p.getStoredUntil() != null || this.currentTime.equals(p.getValidUntil()))).size());
+            }
         }
 
         // There should be two variously invalidated visits for this location for this time.
