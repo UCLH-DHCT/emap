@@ -41,6 +41,26 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     public MessageStreamBaseCase() {}
 
     /**
+     * Reset the state to allow for a new stream of stream of tests to be run with
+     * the same instance.
+     *
+     * This does not reset the class to how it is instantiated though.
+     */
+    protected void reinitialise() {
+        messageStream.clear();
+        nextToProcess = 0;
+        this.patientClass = "E";
+        this.vitalTime.clear();
+        this.transferTime.clear();
+        this.admissionTime = null;
+        this.dischargeTime = null;
+        this.patientDied = false;
+        this.deathTime = null;
+        dischargeDisposition = "Peachy";
+        dischargeLocation = "Home";
+    }
+
+    /**
      * Step the clock forward not quite exactly one hour. One hour looks too much
      * like a time zone bug when it causes an error.
      */
@@ -96,6 +116,14 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     /**
+     * See the next location without changing state. When the end of the array is reached, loop around.
+     */
+    protected String peekNextLocation() {
+        int loc = (this.currentLocation + 1) % this.allLocations.length;
+        return allLocations[loc];
+    }
+
+    /**
      * Return to the previous location and return it.
      *
      * @return A location.
@@ -111,6 +139,9 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * @return The time of the last transfer
      */
     protected Instant lastTransferTime() {
+        if (this.transferTime.isEmpty()) {
+            return null;
+        }
         return this.transferTime.get(this.transferTime.size() - 1);
     }
 
@@ -269,6 +300,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         cancelAdmit.setPatientClass(this.patientClass);
         cancelAdmit.setPatientFullName(this.name);
         cancelAdmit.setFullLocationString(this.previousLocation());
+        cancelAdmit.setPatientDeathIndicator(this.patientDied);
+        cancelAdmit.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(cancelAdmit);
 
@@ -287,6 +320,10 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             erroneousTransferDateTime = this.transferTime.remove(this.transferTime.size() - 1);
         }
 
+        if(this.transferTime.isEmpty()) {
+            // This is really acting as a place holder for NULL
+            this.transferTime.add(Instant.MIN);
+        }
         AdtMessage cancelTransfer = new AdtMessage();
         cancelTransfer.setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
         cancelTransfer.setAdmissionDateTime(this.admissionTime);
@@ -297,6 +334,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         cancelTransfer.setPatientClass(this.patientClass);
         cancelTransfer.setPatientFullName(this.name);
         cancelTransfer.setFullLocationString(this.previousLocation());
+        cancelTransfer.setPatientDeathIndicator(this.patientDied);
+        cancelTransfer.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(cancelTransfer);
     }
