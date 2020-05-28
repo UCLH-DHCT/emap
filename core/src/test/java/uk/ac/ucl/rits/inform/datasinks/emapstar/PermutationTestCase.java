@@ -374,7 +374,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             // And at the current start time (unless it is unknown)
             if (this.lastTransferTime().equals(Instant.MIN)) {
                 // If you don't know, don't have any valid arrival times
-                assertTrue(bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid).isEmpty());
+                assertNull(bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid).get(0).getValueAsDatetime());
             } else {
                 assertEquals(this.lastTransferTime(),
                         bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
