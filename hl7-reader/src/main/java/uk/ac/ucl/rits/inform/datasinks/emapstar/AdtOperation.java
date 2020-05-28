@@ -640,10 +640,10 @@ public class AdtOperation {
      *                                 can't be processed
      */
     public void performMergeById() throws MessageIgnoredException {
-        String oldMrnStr = adtMsg.getMergedPatientId();
+        String retiredMrnStr = adtMsg.getMergedPatientId();
         String survivingMrnStr = adtMsg.getMrn();
         Instant mergeTime = adtMsg.getRecordedDateTime();
-        logger.info(String.format("MERGE: surviving mrn %s, oldMrn = %s, merge time = %s", survivingMrnStr, oldMrnStr,
+        logger.info(String.format("MERGE: surviving mrn %s, retiredMrn = %s, merge time = %s", survivingMrnStr, retiredMrnStr,
                 mergeTime));
         if (mergeTime == null) {
             throw new MessageIgnoredException(adtMsg, "event occurred null");
@@ -652,43 +652,43 @@ public class AdtOperation {
         // The non-surviving Mrn is invalidated but still points to the old person
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person)
-        Mrn oldMrn = getCreateMrn(oldMrnStr, mergeTime, storedFrom, true, dbOps);
+        Mrn retiredMrn = getCreateMrn(retiredMrnStr, mergeTime, storedFrom, true, dbOps);
         Mrn survivingMrn = getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, dbOps);
-        if (survivingMrn == null || oldMrn == null) {
+        if (survivingMrn == null || retiredMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
-                    oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
+                    retiredMrnStr, survivingMrnStr, retiredMrn, survivingMrn));
         }
-        PersonMrn oldPersonMrn = InformDbOperations.getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValid());
+        PersonMrn retiredPersonMrn = InformDbOperations.getOnlyElementWhere(retiredMrn.getPersons(), pm -> pm.isValid());
         PersonMrn survivingPersonMrn = InformDbOperations.getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
-        if (survivingPersonMrn == null || oldPersonMrn == null) {
+        if (survivingPersonMrn == null || retiredPersonMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
-                    oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
+                    retiredMrnStr, survivingMrnStr, retiredPersonMrn, survivingPersonMrn));
         }
 
         // If we already thought they were the same person, do nothing further.
-        if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
+        if (retiredPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
             throw new MessageIgnoredException(adtMsg,
-                    String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
-                            survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
+                    String.format("We already thought that MRNs %s and %s were the same person (%s)", retiredMrnStr,
+                            survivingMrnStr, retiredPersonMrn.getPerson().getPersonId()));
         }
 
         survivingPersonMrn.setLive(true);
 
         // Invalidate the old person<->mrn association
-        oldPersonMrn.setValidUntil(mergeTime);
+        retiredPersonMrn.setValidUntil(mergeTime);
 
         // Create a new person<->mrn association that tells us that as of the merge time
         // the old MRN is believed to belong to the person associated with the surviving MRN
         Person survivingPerson = survivingPersonMrn.getPerson();
-        PersonMrn newOldPersonMrn = new PersonMrn(survivingPerson, oldMrn);
-        newOldPersonMrn.setStoredFrom(storedFrom);
-        newOldPersonMrn.setValidFrom(mergeTime);
-        newOldPersonMrn.setLive(false);
-        survivingPerson.linkMrn(newOldPersonMrn);
-        oldMrn.linkPerson(newOldPersonMrn);
+        PersonMrn survivingPersonRetiredMrn = new PersonMrn(survivingPerson, retiredMrn);
+        survivingPersonRetiredMrn.setStoredFrom(storedFrom);
+        survivingPersonRetiredMrn.setValidFrom(mergeTime);
+        survivingPersonRetiredMrn.setLive(false);
+        survivingPerson.linkMrn(survivingPersonRetiredMrn);
+        retiredMrn.linkPerson(survivingPersonRetiredMrn);
 
-        newOldPersonMrn = dbOps.save(newOldPersonMrn);
-        oldPersonMrn = dbOps.save(oldPersonMrn);
+        survivingPersonRetiredMrn = dbOps.save(survivingPersonRetiredMrn);
+        retiredPersonMrn = dbOps.save(retiredPersonMrn);
     }
 }
