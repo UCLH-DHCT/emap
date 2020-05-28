@@ -43,8 +43,11 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
         encounter = other.encounter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected PatientFact invalidateFact(Instant storedFromUntil, Instant invalidationDate) {
+    public PatientFact invalidateFact(Instant storedFromUntil, Instant invalidationDate) {
         PatientFact newFact = new PatientFact(this);
         this.setStoredUntil(storedFromUntil);
         newFact.setStoredFrom(storedFromUntil);

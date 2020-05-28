@@ -166,7 +166,17 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
         }
     }
 
-    protected abstract Fact<F, PropertyType> invalidateFact(Instant storedFromUntil, Instant invalidationDate);
+    /**
+     * Invalid a fact (but not its properties). The fact will be deleted but not
+     * invalidated and then a new, invalidated fact will be created in its place
+     * which shows the validity interval. If a new, current fact is required as a
+     * replacement this must be created separately.
+     *
+     * @param storedFromUntil when does the change happen in the DB
+     * @param invalidationDate when did the fact stop being true
+     * @return the newly created fact that has been invalidated (but not deleted)
+     */
+    public abstract Fact<F, PropertyType> invalidateFact(Instant storedFromUntil, Instant invalidationDate);
 
     /**
      * Recursively de-nullify validFrom values for all properties of this fact and

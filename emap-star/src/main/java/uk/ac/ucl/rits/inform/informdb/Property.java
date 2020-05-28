@@ -179,6 +179,26 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     }
 
     /**
+     * Get value in a generic way.
+     * @param <T> the value type
+     * @param type the type you want to return
+     * @return the value of the specified type
+     */
+    public <T> Object getValue(Class<T> type) {
+        if (type.equals(String.class)) {
+            return this.valueAsString;
+        } else if (type.equals(Instant.class)) {
+            return this.valueAsDatetime;
+        } else if (type.equals(Double.class)) {
+            return this.valueAsReal;
+        } else if (type.equals(Attribute.class)) {
+            return this.valueAsAttribute;
+        } else {
+            throw new TypeConstraintException("Not a supported type: " + type);
+        }
+    }
+
+    /**
      * Helper method to set the correct value.
      *
      * @param value the value, of any supported type
@@ -234,9 +254,9 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
     }
 
     /**
-     * Invalidate this property without updating any column except for stored_until. Do
-     * not compare property values to check for changes. Deletes the existing row by
-     * setting stored_until and creates a new row showing the updated validity
+     * Invalidate this property without updating any column except for stored_until.
+     * Do not compare property values to check for changes. Deletes the existing row
+     * by setting stored_until and creates a new row showing the updated validity
      * interval for the property.
      *
      * @param storedFromUntil  When did the change to the DB occur? This will be a
@@ -245,6 +265,9 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
      * @param invalidationDate When did the change to the DB become true. This is
      *                         the actual patient event took place so can be
      *                         significantly in the past.
+     * @param fact             the fact to add newly created invalid properties to,
+     *                         or null to add these to the same fact the
+     *                         pre-existing properties were part of
      * @return the newly created row showing the new state of this property
      */
     public abstract Property<F> invalidateProperty(Instant storedFromUntil, Instant invalidationDate, F fact);
