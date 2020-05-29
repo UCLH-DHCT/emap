@@ -35,25 +35,9 @@ public class TestMergeById extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testMergeHasHappened() {
-        Mrn retiredMrn = mrnRepo.findByMrnString("40800000");
         Mrn survivingMrn = mrnRepo.findByMrnString("40800001");
-        Map<Boolean, List<PersonMrn>> retiredMrnPersons = retiredMrn.getPersons().stream()
-                .collect(Collectors.partitioningBy(p -> p.getValidUntil() == null));
-        // still valid person-mrn links
-        List<PersonMrn> validRetiredMrnPersons = retiredMrnPersons.get(true);
 
-        assertEquals(1, validRetiredMrnPersons.size(), "retired mrn should still have a valid connection to a person");
-
-        List<PersonMrn> invalidRetiredMrnPersons = retiredMrnPersons.get(false);
-        assertEquals(1, invalidRetiredMrnPersons.size());
-        // The retired MRN should have an invalidated link to the old person that is still marked live.
-        // But its new, valid link pointing to the new person should be marked as not live.
-        PersonMrn invalidRetiredMrnPerson = invalidRetiredMrnPersons.get(0);
-        assertTrue(invalidRetiredMrnPerson.isLive());
-        PersonMrn validRetiredMrnPerson = validRetiredMrnPersons.get(0);
-        Person personForRetiredMrn = validRetiredMrnPerson.getPerson();
-        assertFalse(validRetiredMrnPerson.isLive());
-
+        // Surviving MRN should be simpler - test this first.
         // the surviving MRN should have a single, valid link to the person, which is marked as live
         Map<Boolean, List<PersonMrn>> survivingMrnPersons = survivingMrn.getPersons().stream()
                 .collect(Collectors.partitioningBy(p -> p.getValidUntil() == null));
@@ -64,6 +48,26 @@ public class TestMergeById extends Hl7StreamEndToEndTestCase {
         PersonMrn validSurvivingMrnPerson = validSurvivingMrnPersons.get(0);
         assertTrue(validSurvivingMrnPerson.isLive());
         Person personForSurvivingMrn = validSurvivingMrnPerson.getPerson();
+
+        // Retired MRN
+        Mrn retiredMrn = mrnRepo.findByMrnString("40800000");
+        Map<Boolean, List<PersonMrn>> retiredMrnPersons = retiredMrn.getPersons().stream()
+                .collect(Collectors.partitioningBy(p -> p.isValid()));
+        // still valid person-mrn links
+        List<PersonMrn> validRetiredMrnPersons = retiredMrnPersons.get(true);
+
+        assertEquals(1, validRetiredMrnPersons.size(), "retired mrn should still have a valid connection to a person");
+
+        List<PersonMrn> invalidRetiredMrnPersons = retiredMrnPersons.get(false);
+        assertEquals(2, invalidRetiredMrnPersons.size());
+        // The retired MRN should have an invalidated link to the old person that is still marked live.
+        // But its new, valid link pointing to the new person should be marked as not live.
+        PersonMrn invalidRetiredMrnPerson = invalidRetiredMrnPersons.get(0);
+        assertTrue(invalidRetiredMrnPerson.isLive());
+        PersonMrn validRetiredMrnPerson = validRetiredMrnPersons.get(0);
+        Person personForRetiredMrn = validRetiredMrnPerson.getPerson();
+        assertFalse(validRetiredMrnPerson.isLive());
+
 
         // the two MRNs should point to the same person
         assertEquals(personForRetiredMrn, personForSurvivingMrn);
