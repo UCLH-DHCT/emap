@@ -676,7 +676,8 @@ public class AdtOperation {
         survivingPersonMrn.setLive(true);
 
         // Invalidate the old person<->mrn association
-        retiredPersonMrn.setValidUntil(mergeTime);
+        PersonMrn retiredInvalidPersonMrn = retiredPersonMrn.invalidate(storedFrom, mergeTime);
+        retiredInvalidPersonMrn = dbOps.save(retiredInvalidPersonMrn);
 
         // Create a new person<->mrn association that tells us that as of the merge time
         // the old MRN is believed to belong to the person associated with the surviving MRN
