@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -65,6 +66,17 @@ public class PersonMrn extends TemporalCore implements Serializable {
     }
 
     /**
+     * Copy constructor.
+     * @param other other object to copy from
+     */
+    public PersonMrn(PersonMrn other) {
+        super(other);
+        this.mrn = other.mrn;
+        this.person = other.person;
+        this.live = other.live;
+    }
+
+    /**
      * @return the Person in the association
      */
     public Person getPerson() {
@@ -122,6 +134,22 @@ public class PersonMrn extends TemporalCore implements Serializable {
      */
     public void setLive(Boolean live) {
         this.live = live;
+    }
+
+    /**
+     * Invalidate this object by deleting it and creating a new row showing the now-closed validity interval.
+     * @param storedFromUntil the time that this change is being made in the DB
+     * @param invalidationDate the time at which this fact stopped being true, can be any amount of time in the past
+     * @return the newly created row
+     */
+    public PersonMrn invalidate(Instant storedFromUntil, Instant invalidationDate) {
+        PersonMrn newPersonMrn = new PersonMrn(this);
+        this.setStoredUntil(storedFromUntil);
+        newPersonMrn.setStoredFrom(storedFromUntil);
+        newPersonMrn.setValidUntil(invalidationDate);
+        newPersonMrn.mrn.linkPerson(newPersonMrn);
+        newPersonMrn.person.linkMrn(newPersonMrn);
+        return newPersonMrn;
     }
 
     @Override
