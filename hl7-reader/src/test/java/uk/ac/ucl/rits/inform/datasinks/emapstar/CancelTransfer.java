@@ -138,9 +138,8 @@ public class CancelTransfer extends MessageStreamBaseCase {
             List<PatientProperty> allDischargeTimes = originalBedVisit
                     .getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
 
-            emapStarTestUtils._testPropertyValuesOverTime(allDischargeTimes,
-                    omitAdmit ? null : erroneousTransferTime, correctTransferTime, erroneousTransferTime,
-                            cancellationTime, correctTransferTime);
+            emapStarTestUtils._testPropertyValuesOverTime(allDischargeTimes, erroneousTransferTime, correctTransferTime,
+                    erroneousTransferTime, cancellationTime, correctTransferTime);
             assertTrue(!propertiesForCancelledBedVisit.isEmpty());
             assertTrue(propertiesForCancelledBedVisit.stream().allMatch(p -> !p.isValid()));
             // all properties except discharge time should be valid
