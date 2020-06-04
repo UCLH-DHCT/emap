@@ -73,7 +73,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private void reset() {
         super.reinitialise();
         currentClass = 0;
-        super.patientClass = patientClass[currentClass];
+        setPatientClass(patientClass[currentClass], super.currentTime);
     }
 
     /**
@@ -88,8 +88,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      */
     private void queueAdmitClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
-        super.patientClass = this.patientClass[this.currentClass];
-        queueAdmit();
+        queueAdmit(false, this.patientClass[this.currentClass]);
     }
 
     /**
@@ -97,8 +96,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      */
     private void queuePatUpdateClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
-        super.patientClass = this.patientClass[this.currentClass];
-        queueUpdatePatientDetails();
+        queueUpdatePatientDetails(this.patientClass[this.currentClass]);
     }
 
     /**
@@ -190,7 +188,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             switch (i) {
             case 0:
             case 4:
-                testLastBedVisit(transferTime.size(), currentLocation(), super.patientClass, lastTransferTime(),
+                testLastBedVisit(transferTime.size(), currentLocation(), super.getPatientClass(), lastTransferTime(),
                         lastTransferTime());
                 break;
             case 5:
@@ -285,7 +283,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                     hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
             assertEquals(1, patClasses.size());
             PatientProperty patClass = patClasses.get(0);
-            assertEquals(super.patientClass, patClass.getValueAsString());
+            assertEquals(super.getPatientClass(), patClass.getValueAsString());
         }
         {
             List<PatientProperty> _hospDischTimes =
