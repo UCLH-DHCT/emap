@@ -24,6 +24,8 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  */
 public class ImpliedAdmissionTests extends MessageStreamBaseCase {
 
+    private int totalExpectedLocations = 1;
+
     public ImpliedAdmissionTests() {}
 
     @Test
@@ -85,6 +87,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void patientUpdateRegressionBug() throws EmapOperationMessageProcessingException {
+        totalExpectedLocations  = 2;
         queueVital();
         queueUpdatePatientDetails();
         queueTransfer();
@@ -95,7 +98,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @AfterEach
     @Transactional
     public void testState() {
-        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation(this.csn, 1,
+        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation(this.csn, totalExpectedLocations,
                 this.allLocations[this.currentLocation], this.dischargeTime);
         // check bed visit arrival time
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
@@ -105,7 +108,8 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
         if (this.transferTime.isEmpty() || this.transferTime.get(0).equals(Instant.MIN)) {
             expectedArrivalTime = null;
         } else {
-            expectedArrivalTime = this.transferTime.get(0);
+            // looking at current location, so use last transfer time
+            expectedArrivalTime = this.transferTime.get(this.transferTime.size() - 1);
         }
         assertEquals(expectedArrivalTime, bedArrivalTime.getValueAsDatetime());
 
