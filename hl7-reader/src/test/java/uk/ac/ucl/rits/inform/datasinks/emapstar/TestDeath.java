@@ -34,9 +34,7 @@ public class TestDeath extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void testDeathDischarge() throws EmapOperationMessageProcessingException {
-        patientClass = "I";
-
-        queueAdmit();
+        queueAdmit(false, "I");
 
         dischargeDisposition = "deceased";
         dischargeLocation = "mortuary";
@@ -135,8 +133,7 @@ public class TestDeath extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void testDeathFactContradictory() throws EmapOperationMessageProcessingException {
-        patientClass = "I";
-        queueAdmit();
+        queueAdmit(false, "I");
         // notify death by a non-discharge message, also simulate one of the weird
         // messages we sometimes get with death = false, but a valid death date
 

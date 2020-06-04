@@ -45,7 +45,7 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         assertEquals(1, bedVisits.size());
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
-        assertEquals(this.patientClass,
+        assertEquals(this.getPatientClass(),
                 onlyHospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 

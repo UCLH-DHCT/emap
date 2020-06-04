@@ -32,32 +32,29 @@ public class TransferTestCase extends MessageStreamBaseCase {
     @Transactional
     public void testTransferSequence() throws EmapOperationMessageProcessingException {
         // Admit an outpatient
-        patientClass = "O";
-        queueAdmit();
+        queueAdmit(false, "O");
         processN(1);
-        testLastBedVisit(1, currentLocation(), patientClass, lastTransferTime(),  lastTransferTime());
+        testLastBedVisit(1, currentLocation(), getPatientClass(), lastTransferTime(),  getLatestPatientClassChangeTime());
 
         // Transfer them
         queueTransfer();
         processN(1);
-        testLastBedVisit(2, currentLocation(), patientClass,  lastTransferTime(),  lastTransferTime());
+        testLastBedVisit(2, currentLocation(), getPatientClass(),  lastTransferTime(),  getLatestPatientClassChangeTime());
 
         // Transfer them redundantly
-        queueTransfer(false);
+        queueTransfer(false, "O");
         assertThrows(MessageIgnoredException.class, () -> processN(1));
 
         // Transfer their class and location
-        patientClass = "I";
-        queueTransfer();
+        queueTransfer(true, "I");
         Instant realTransferTime =  lastTransferTime();
         processN(1);
-        testLastBedVisit(3, currentLocation(), patientClass, realTransferTime, currentTime);
+        testLastBedVisit(3, currentLocation(), getPatientClass(), realTransferTime, getLatestPatientClassChangeTime());
 
         // Transfer their class only
-        patientClass = "O";
-        queueTransfer(false);
+        queueTransfer(false, "O");
         processN(1);
-        testLastBedVisit(3, currentLocation(), patientClass, realTransferTime, currentTime);
+        testLastBedVisit(3, currentLocation(), getPatientClass(), realTransferTime, getLatestPatientClassChangeTime());
 
     }
 

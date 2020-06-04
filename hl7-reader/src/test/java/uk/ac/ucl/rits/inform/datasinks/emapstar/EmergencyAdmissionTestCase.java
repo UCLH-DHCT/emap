@@ -31,8 +31,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void testEdAdmission() throws EmapOperationMessageProcessingException {
-        patientClass = "E";
-        queueAdmit();
+        queueAdmit(false, "E");
         queueUpdatePatientDetails();
         queueAdmit(true);
 
@@ -69,8 +68,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void testEdAdmissionWithCancellation() throws EmapOperationMessageProcessingException {
-        patientClass = "E";
-        queueAdmit();
+        queueAdmit(false, "E");
         queueUpdatePatientDetails();
         queueAdmit(true);
 
@@ -123,15 +121,13 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void testEdAdmissionAsInpatient() throws EmapOperationMessageProcessingException {
-        patientClass = "E";
-        queueAdmit();
+        queueAdmit(false, "E");
         Instant emergencyStartTime = this.currentTime;
         queueUpdatePatientDetails();
         queueAdmit(true);
 
         // an 'A06' message ie change patient to inpatient and tranfer
-        patientClass = "I";
-        queueAdmit(true);
+        queueAdmit(true, "I");
         Instant toInpatientTime = this.currentTime;
 
         processRest();
