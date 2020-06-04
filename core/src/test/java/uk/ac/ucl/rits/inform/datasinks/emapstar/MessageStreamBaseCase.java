@@ -183,9 +183,10 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     public void queueUpdatePatientDetails(String patientClass) {
         boolean impliedTransfer = this.admissionTime == null;
 
-        this.ensureAdmitted();
-
+        // clock must be changed before anything which might cause a change
         this.stepClock();
+
+        this.ensureAdmitted();
 
         if (impliedTransfer) {
             this.transferTime.add(this.currentTime);
