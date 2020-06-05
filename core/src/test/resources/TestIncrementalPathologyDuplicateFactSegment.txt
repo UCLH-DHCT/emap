@@ -18,6 +18,6 @@ OBX|1|NM|BILI^Bilirubin (total)^Winpath||5|umol/L|0-20||||F
 OBX|2|NM|ALP^Alkaline phosphatase^Winpath||108|IU/L|40-129||||F
 OBX|3|NM|ALT^Alanine transaminase^Winpath||58|IU/L|10-50|H|||F
 OBX|4|NM|ALB^Albumin^Winpath||37|g/L|34-50||||F
-OBX|5|NM|ALP^Alkaline phosphatase^Winpath||108|IU/L|40-129||||F
+OBX|5|NM|ALP^Alkaline phosphatase^Winpath||110|IU/L|40-129||||F
 OBX|6|NM|ALB^Albumin^Winpath||37|g/L|34-50||||F
 
