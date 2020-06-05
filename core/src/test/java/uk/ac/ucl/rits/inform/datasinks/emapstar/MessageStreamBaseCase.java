@@ -21,7 +21,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     protected String              mrn                  = "1234ABCD";
     protected String              csn                  = "1234567890";
     private String                patientClass         = "E";
-    private Instant               latestPatientClassChangeTime = currentTime;
+    private Instant               latestPatientClassChangeTime = null;
     protected Instant             admissionTime        = null;
     protected Instant             dischargeTime        = null;
     protected String              nhsNumber            = "9999999999";
@@ -51,7 +51,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         messageStream.clear();
         nextToProcess = 0;
         this.setPatientClass("E");
-        latestPatientClassChangeTime = currentTime;
+        latestPatientClassChangeTime = null;
         this.vitalTime.clear();
         this.transferTime.clear();
         this.admissionTime = null;
