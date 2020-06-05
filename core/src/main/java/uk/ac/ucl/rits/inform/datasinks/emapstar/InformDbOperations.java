@@ -1000,15 +1000,29 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             fact.addProperty(
                     buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.RESULT_NOTES, pr.getNotes()));
 
-            parent.addChildFact(fact);
-            facts.put(key, fact);
-            // each result can have zero or more sensitivities, which are actually just another type of order
-            List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
-            for (PathologyOrder sensOrder : pathologySensitivities) {
-                // each sensitivity needs to be built as an order
-                List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
-                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults, sensOrder.getTestBatteryLocalCode());
-                facts.putAll(sensFacts);
+            // Check for duplicates within the given set of results; warn of their presence
+            // and just monitor for differences for the time being.
+            // (We know we're seeing duplicates but we don't know if the actual values are
+            // ever different).
+            PatientFact existing = facts.get(key);
+            if (existing != null) {
+                String details = "";
+                if (!existing.equals(fact)) {
+                    details = String.format("\nExisting = %s\nSubsequent = %s", key, existing, fact);
+                }
+                logger.warn(String.format("Pathology %s DUPLICATE RESULT not added! Is full duplicate?: %s%s",
+                        key, existing.equals(fact), details));
+            } else {
+                parent.addChildFact(fact);
+                facts.put(key, fact);
+                // each result can have zero or more sensitivities, which are actually just another type of order
+                List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
+                for (PathologyOrder sensOrder : pathologySensitivities) {
+                    // each sensitivity needs to be built as an order
+                    List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
+                    Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults, sensOrder.getTestBatteryLocalCode());
+                    facts.putAll(sensFacts);
+                }
             }
         }
         return facts;
