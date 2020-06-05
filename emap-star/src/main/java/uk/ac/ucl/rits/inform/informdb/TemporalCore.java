@@ -32,6 +32,22 @@ public abstract class TemporalCore {
     private Instant storedUntil;
 
     /**
+     */
+    public TemporalCore() {
+    }
+
+    /**
+     * Copy constructor.
+     * @param other object to copy from
+     */
+    public TemporalCore(TemporalCore other) {
+        validFrom = other.validFrom;
+        validUntil = other.validUntil;
+        storedFrom = other.storedFrom;
+        storedUntil = other.storedUntil;
+    }
+
+    /**
      * Get the time from when this bit of data was considered true or extant.
      * Historically loaded data is back dated to its original occurrence time.
      *

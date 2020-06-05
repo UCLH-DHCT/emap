@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -43,6 +44,38 @@ public class PatientProperty extends Property<PatientFact> implements Serializab
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long                    patientPropertyId;
+
+    /**
+     * Copy constructor.
+     * @param prop property to copy
+     */
+    public PatientProperty(PatientProperty prop) {
+        super(prop);
+    }
+
+    /**
+     */
+    public PatientProperty() {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PatientProperty invalidateProperty(Instant storedFromUntil, Instant invalidationDate, PatientFact fact) {
+        PatientProperty newProp = new PatientProperty(this);
+        // stored from/until timestamps are identical so these properties are exactly adjacent in time
+        this.setStoredUntil(storedFromUntil);
+        newProp.setStoredFrom(storedFromUntil);
+        newProp.setValidUntil(invalidationDate);
+        // new property needs to be explicitly added to the same fact
+        if (fact != null) {
+            fact.addProperty(newProp);
+        } else {
+            getFact().addProperty(newProp);
+        }
+        return newProp;
+    }
 
     /**
      * @return the propertyId
