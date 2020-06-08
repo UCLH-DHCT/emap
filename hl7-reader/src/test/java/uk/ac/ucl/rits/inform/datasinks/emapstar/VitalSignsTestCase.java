@@ -51,9 +51,8 @@ public class VitalSignsTestCase extends MessageStreamBaseCase {
     public void queueMerge() {
 
         this.setMrn1();
-        this.patientClass = "I";
 
-        this.queueAdmit();
+        this.queueAdmit(false, "I");
         this.queueDischarge();
 
         this.setMrn2();

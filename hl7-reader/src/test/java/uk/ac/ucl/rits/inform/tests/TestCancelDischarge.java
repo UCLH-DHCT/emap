@@ -51,16 +51,15 @@ public class TestCancelDischarge extends Hl7StreamEndToEndTestCase {
         List<PatientProperty> bedArrival = bedVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, bedArrival.size());
         List<PatientProperty> bedDisch = bedVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
-        assertEquals(2, bedDisch.size());
+        assertEquals(3, bedDisch.size());
 
         List<PatientProperty> arrivalTimes = hospitalVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, arrivalTimes.size());
         List<PatientProperty> dischargeTimes = hospitalVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
-        assertEquals(2, dischargeTimes.size());  // the invalidated one and the new one
-        Map<Boolean, List<PatientProperty>> dischTimes = dischargeTimes.stream().collect(Collectors.partitioningBy(dt -> dt.isValid()));
-        // the invalid (cancelled) discharge time property
-        assertEquals(Instant.parse("2013-02-11T10:00:00.000Z"), dischTimes.get(false).get(0).getValueAsDatetime());
-        // the valid discharge time property has a later value
-        assertEquals(Instant.parse("2013-02-11T10:06:00.000Z"), dischTimes.get(true).get(0).getValueAsDatetime());
+        Instant expectedOldValue = Instant.parse("2013-02-11T13:45:00.000Z");
+        Instant expectedCurrentValue = Instant.parse("2013-02-11T18:43:00.000Z");
+        Instant expectedOldValidUntil = Instant.parse("2013-02-11T13:58:34.000Z");
+        emapStarTestUtils._testPropertyValuesOverTime(dischargeTimes, expectedOldValue, expectedCurrentValue,
+                expectedOldValue, expectedOldValidUntil, expectedCurrentValue);
     }
 }

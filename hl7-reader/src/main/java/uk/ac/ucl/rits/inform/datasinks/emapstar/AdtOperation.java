@@ -200,9 +200,9 @@ public class AdtOperation {
             locationVisitStartTime = null;
             locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.CANCEL_DISCHARGE_PATIENT)) {
-            // CANCEL_DISCHARGE_PATIENT messages do not carry the discharge time field :(
+            // CANCEL_DISCHARGE_PATIENT messages do not carry the arrival time for the location
             locationVisitStartTime = null;
-            locationVisitValidFrom = adtMsg.getEventOccurredDateTime();
+            locationVisitValidFrom = adtMsg.getRecordedDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
             locationVisitStartTime = null;
             locationVisitValidFrom = adtMsg.getDischargeDateTime();
@@ -410,7 +410,7 @@ public class AdtOperation {
          * open location then just do nothing. Used to throw an exception but this isn't
          * really an error and we still want the demographics to update above.
          */
-        return InformDbOperations.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
+        return dbOps.addOrUpdateProperty(onlyOpenBedVisit.getParentFact(),
                 InformDbOperations.buildPatientProperty(storedFrom, transferOccurred, AttributeKeyMap.PATIENT_CLASS,
                         adtMsg.getPatientClass()));
     }
@@ -503,10 +503,10 @@ public class AdtOperation {
         Instant cancellationTime = adtMsg.getEventOccurredDateTime();
         PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
         // do the actual invalidations
-        onlyOpenBedVisit.invalidateAll(cancellationTime);
-        hospVisit.invalidateAll(cancellationTime);
+        onlyOpenBedVisit.invalidateAll(storedFrom, cancellationTime);
+        hospVisit.invalidateAll(storedFrom, cancellationTime);
         for (PatientFact closedBedVisit : closedBedVisits) {
-            closedBedVisit.invalidateAll(cancellationTime);
+            closedBedVisit.invalidateAll(storedFrom, cancellationTime);
         }
     }
 
@@ -534,7 +534,7 @@ public class AdtOperation {
 
         PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
         // invalidate the erroneous transfer
-        onlyOpenBedVisit.invalidateAll(cancellationDateTime);
+        onlyOpenBedVisit.invalidateAll(storedFrom, cancellationDateTime);
 
         // reopen the previous bed visit by invalidating its discharge time property
         Optional<PatientFact> mostRecentBedVisitOptional = InformDbOperations.getVisitFactWhere(encounter,
@@ -556,7 +556,7 @@ public class AdtOperation {
             // reopen it by invalidating its discharge time
             PatientProperty bedDischargeTime = InformDbOperations.getOnlyElement(
                     mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-            bedDischargeTime.setValidUntil(cancellationDateTime);
+            bedDischargeTime.invalidateProperty(storedFrom, cancellationDateTime, null);
         } else {
             /*
              * If there is no previous location (this situation should only happen if we've
@@ -577,11 +577,13 @@ public class AdtOperation {
      * @throws MessageIgnoredException if message can't be processed
      */
     public void performCancelDischarge() throws MessageIgnoredException {
-        // event occurred field seems to be populated despite the Epic example message showing it blank.
-        Instant invalidationDate = adtMsg.getEventOccurredDateTime();
-        // this must be non-null or the invalidation won't work
+        // Event occurred field contains the original time of the discharge that is being cancelled,
+        // so use the event recorded date for when the cancellation happened. (Zero length
+        // time intervals technically mean the row was never valid).
+        Instant invalidationDate = adtMsg.getRecordedDateTime();
+        // this must be non-null for the invalidation - all A13 messages seen so far do have this field
         if (invalidationDate == null) {
-            throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event occurred date is null");
+            throw new MessageIgnoredException(adtMsg, "Trying to cancel discharge but the event recorded date is null");
         }
         InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
 
@@ -609,15 +611,13 @@ public class AdtOperation {
         }
         PatientProperty bedDischargeTime = InformDbOperations.getOnlyElement(
                 mostRecentBedVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid));
-        // Do the actual cancel by invalidating the discharge time property on the
-        // location visit, and multiple properties on the hospital visit
-        bedDischargeTime.setValidUntil(invalidationDate);
+        bedDischargeTime.invalidateProperty(storedFrom, invalidationDate, null);
         PatientFact hospitalVisit = mostRecentBedVisit.getParentFact();
         for (AttributeKeyMap a : Arrays.asList(AttributeKeyMap.DISCHARGE_TIME, AttributeKeyMap.DISCHARGE_DISPOSITION,
                 AttributeKeyMap.DISCHARGE_LOCATION)) {
             PatientProperty prop = InformDbOperations.getOnlyElement(hospitalVisit.getPropertyByAttribute(a, PatientProperty::isValid));
             if (prop != null) {
-                prop.setValidUntil(invalidationDate);
+                prop.invalidateProperty(storedFrom, invalidationDate, null);
             }
         }
 
@@ -640,10 +640,10 @@ public class AdtOperation {
      *                                 can't be processed
      */
     public void performMergeById() throws MessageIgnoredException {
-        String oldMrnStr = adtMsg.getMergedPatientId();
+        String retiredMrnStr = adtMsg.getMergedPatientId();
         String survivingMrnStr = adtMsg.getMrn();
         Instant mergeTime = adtMsg.getRecordedDateTime();
-        logger.info(String.format("MERGE: surviving mrn %s, oldMrn = %s, merge time = %s", survivingMrnStr, oldMrnStr,
+        logger.info(String.format("MERGE: surviving mrn %s, retiredMrn = %s, merge time = %s", survivingMrnStr, retiredMrnStr,
                 mergeTime));
         if (mergeTime == null) {
             throw new MessageIgnoredException(adtMsg, "event occurred null");
@@ -652,43 +652,44 @@ public class AdtOperation {
         // The non-surviving Mrn is invalidated but still points to the old person
         // (we are recording the fact that between these dates, the hospital believed
         // that the mrn belonged to this person)
-        Mrn oldMrn = getCreateMrn(oldMrnStr, mergeTime, storedFrom, true, dbOps);
+        Mrn retiredMrn = getCreateMrn(retiredMrnStr, mergeTime, storedFrom, true, dbOps);
         Mrn survivingMrn = getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, dbOps);
-        if (survivingMrn == null || oldMrn == null) {
+        if (survivingMrn == null || retiredMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
-                    oldMrnStr, survivingMrnStr, oldMrn, survivingMrn));
+                    retiredMrnStr, survivingMrnStr, retiredMrn, survivingMrn));
         }
-        PersonMrn oldPersonMrn = InformDbOperations.getOnlyElementWhere(oldMrn.getPersons(), pm -> pm.isValid());
+        PersonMrn retiredPersonMrn = InformDbOperations.getOnlyElementWhere(retiredMrn.getPersons(), pm -> pm.isValid());
         PersonMrn survivingPersonMrn = InformDbOperations.getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
-        if (survivingPersonMrn == null || oldPersonMrn == null) {
+        if (survivingPersonMrn == null || retiredPersonMrn == null) {
             throw new MessageIgnoredException(adtMsg, String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
-                    oldMrnStr, survivingMrnStr, oldPersonMrn, survivingPersonMrn));
+                    retiredMrnStr, survivingMrnStr, retiredPersonMrn, survivingPersonMrn));
         }
 
         // If we already thought they were the same person, do nothing further.
-        if (oldPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
+        if (retiredPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
             throw new MessageIgnoredException(adtMsg,
-                    String.format("We already thought that MRNs %s and %s were the same person (%s)", oldMrnStr,
-                            survivingMrnStr, oldPersonMrn.getPerson().getPersonId()));
+                    String.format("We already thought that MRNs %s and %s were the same person (%s)", retiredMrnStr,
+                            survivingMrnStr, retiredPersonMrn.getPerson().getPersonId()));
         }
 
         survivingPersonMrn.setLive(true);
 
         // Invalidate the old person<->mrn association
-        oldPersonMrn.setValidUntil(mergeTime);
+        PersonMrn retiredInvalidPersonMrn = retiredPersonMrn.invalidate(storedFrom, mergeTime);
+        retiredInvalidPersonMrn = dbOps.save(retiredInvalidPersonMrn);
 
         // Create a new person<->mrn association that tells us that as of the merge time
         // the old MRN is believed to belong to the person associated with the surviving MRN
         Person survivingPerson = survivingPersonMrn.getPerson();
-        PersonMrn newOldPersonMrn = new PersonMrn(survivingPerson, oldMrn);
-        newOldPersonMrn.setStoredFrom(storedFrom);
-        newOldPersonMrn.setValidFrom(mergeTime);
-        newOldPersonMrn.setLive(false);
-        survivingPerson.linkMrn(newOldPersonMrn);
-        oldMrn.linkPerson(newOldPersonMrn);
+        PersonMrn survivingPersonRetiredMrn = new PersonMrn(survivingPerson, retiredMrn);
+        survivingPersonRetiredMrn.setStoredFrom(storedFrom);
+        survivingPersonRetiredMrn.setValidFrom(mergeTime);
+        survivingPersonRetiredMrn.setLive(false);
+        survivingPerson.linkMrn(survivingPersonRetiredMrn);
+        retiredMrn.linkPerson(survivingPersonRetiredMrn);
 
-        newOldPersonMrn = dbOps.save(newOldPersonMrn);
-        oldPersonMrn = dbOps.save(oldPersonMrn);
+        survivingPersonRetiredMrn = dbOps.save(survivingPersonRetiredMrn);
+        retiredPersonMrn = dbOps.save(retiredPersonMrn);
     }
 }

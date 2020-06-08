@@ -1,15 +1,19 @@
 package uk.ac.ucl.rits.inform.testutils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
@@ -93,10 +97,60 @@ public class EmapStarTestUtils {
                 .filter(PatientFact::isValid).collect(Collectors.toList());
         assertEquals(expectedTotalVisits, validBedVisits.size());
         // sort by arrival time
-        validBedVisits.sort((v1, v2) ->
-                v1.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime().compareTo(
-                v2.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime()));
+        validBedVisits.sort(Comparator.comparing(
+                vis -> vis.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime(),
+                Comparator.nullsFirst(Instant::compareTo)));
         return validBedVisits;
+    }
+
+    /**
+     * Test a collection of properties of the same type where we expect to see one
+     * current one and one invalidated one. The invalidated one takes two rows to
+     * represent so there should be three in all.
+     *
+     * @param allProperties            all the rows of this property type,
+     *                                 regardless of storedness or validity
+     * @param expectedOldValue         the actual value of the old property
+     * @param expectedCurrentValue     the actual current value
+     * @param expectedOldValidFrom     when did the old value become true
+     * @param expectedOldValidUntil    when did the old value stop being true
+     * @param expectedCurrentValidFrom when did the new value start being true
+     */
+    public <ValueType> void _testPropertyValuesOverTime(List<PatientProperty> allProperties, ValueType expectedOldValue,
+            ValueType expectedCurrentValue, Instant expectedOldValidFrom, Instant expectedOldValidUntil,
+            Instant expectedCurrentValidFrom) {
+        assertEquals(3, allProperties.size());
+        Map<Pair<Boolean, Boolean>, List<PatientProperty>> allPropertiesByValidityAndStoredness = allProperties.stream().collect(Collectors
+                .groupingBy(dt -> new ImmutablePair<>(dt.getStoredUntil() == null, dt.getValidUntil() == null)));
+
+        List<PatientProperty> allCurrent = allPropertiesByValidityAndStoredness.get(new ImmutablePair<>(true, true));
+        assertEquals(1, allCurrent.size());
+        assertEquals(expectedCurrentValue, allCurrent.get(0).getValue(expectedCurrentValue.getClass()));
+        assertEquals(expectedCurrentValidFrom, allCurrent.get(0).getValidFrom());
+
+        List<PatientProperty> allDeletedValid = allPropertiesByValidityAndStoredness.get(new ImmutablePair<>(false, true));
+        assertEquals(1, allDeletedValid.size());
+        assertEquals(expectedOldValue, allDeletedValid.get(0).getValue(expectedOldValue.getClass()));
+
+        List<PatientProperty> allStoredInvalid = allPropertiesByValidityAndStoredness.get(new ImmutablePair<>(true, false));
+        assertEquals(1, allStoredInvalid.size());
+        assertEquals(expectedOldValue, allStoredInvalid.get(0).getValue(expectedOldValue.getClass()));
+        assertEquals(expectedOldValidUntil, allStoredInvalid.get(0).getValidUntil());
+
+        // Can't tell what the stored from/until timestamps should be (they will be created
+        // at the time the test was run), but we can at least test that they have the right
+        // relationships to each other.
+
+        // These should abut exactly because the invalidation was one operation
+        assertEquals(allDeletedValid.get(0).getStoredUntil(), allStoredInvalid.get(0).getStoredFrom());
+
+        // Some events (eg. Patient class change) can occur in a single message, so the changeover
+        // is instantaneous. Others (Cancel transfer + new correct transfer) happen in separate messages
+        // so the deletion and recreation will have a slight gap between them. Therefore allow equal to or less than.
+        assertFalse(allDeletedValid.get(0).getStoredUntil().isAfter(allCurrent.get(0).getStoredFrom()));
+        assertFalse(allDeletedValid.get(0).getStoredFrom().isAfter(allDeletedValid.get(0).getStoredUntil()));
+
+        assertEquals(expectedOldValidFrom, allStoredInvalid.get(0).getValidFrom());
     }
 
 }
