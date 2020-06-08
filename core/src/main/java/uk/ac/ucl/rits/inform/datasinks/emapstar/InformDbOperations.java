@@ -611,7 +611,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param newProp new version of property to use as replacement if necessary
      * @return true iff anything was changed
      */
-    public static boolean addOrUpdateProperty(PatientFact fact, PatientProperty newProp) {
+    public boolean addOrUpdateProperty(PatientFact fact, PatientProperty newProp) {
         Attribute propertyType = newProp.getPropertyType();
         List<PatientProperty> currentProps = fact.getPropertyByAttribute(propertyType, PatientProperty::isValid);
         // In the specific case where there is exactly one valid property and it matches the new value, do nothing.
@@ -622,9 +622,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 return false;
             }
         }
+        // there should only be one, but invalidate all just to be sure
         Instant invalidationTime = newProp.getValidFrom();
         for (PatientProperty prop : currentProps) {
-            prop.setValidUntil(invalidationTime);
+            prop.invalidateProperty(newProp.getStoredFrom(), invalidationTime, null);
         }
         fact.addProperty(newProp);
         return true;
@@ -759,7 +760,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                     Instant invalidationDate = newFact.getValidFrom();
                     logger.info(
                             "fact exists but does not match, replacing: " + currentFact.getFactType().getShortName());
-                    currentFact.invalidateAll(invalidationDate);
+                    currentFact.invalidateAll(newFact.getStoredFrom(), invalidationDate);
                     encounter.addFact(newFact);
                     anyChanged = true;
                 }
@@ -1072,6 +1073,4 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public long countEncounters() {
         return encounterRepo.count();
     }
-
-
 }

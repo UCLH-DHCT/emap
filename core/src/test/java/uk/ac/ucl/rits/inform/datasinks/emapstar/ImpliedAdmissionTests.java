@@ -1,8 +1,8 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.Instant;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -24,6 +23,8 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  *
  */
 public class ImpliedAdmissionTests extends MessageStreamBaseCase {
+
+    private int totalExpectedLocations = 1;
 
     public ImpliedAdmissionTests() {}
 
@@ -86,6 +87,7 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @Test
     @Transactional
     public void patientUpdateRegressionBug() throws EmapOperationMessageProcessingException {
+        totalExpectedLocations  = 2;
         queueVital();
         queueUpdatePatientDetails();
         queueTransfer();
@@ -96,14 +98,20 @@ public class ImpliedAdmissionTests extends MessageStreamBaseCase {
     @AfterEach
     @Transactional
     public void testState() {
-        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation(this.csn, 1,
+        PatientFact bedVisit = emapStarTestUtils._testVisitExistsWithLocation(this.csn, totalExpectedLocations,
                 this.allLocations[this.currentLocation], this.dischargeTime);
         // check bed visit arrival time
         List<PatientProperty> _arrivalTimes = bedVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, _arrivalTimes.size());
         PatientProperty bedArrivalTime = _arrivalTimes.get(0);
-        assertEquals(this.transferTime.isEmpty() ? null : this.transferTime.get(0),
-                bedArrivalTime.getValueAsDatetime());
+        Instant expectedArrivalTime;
+        if (this.transferTime.isEmpty() || this.transferTime.get(0).equals(Instant.MIN)) {
+            expectedArrivalTime = null;
+        } else {
+            // looking at current location, so use last transfer time
+            expectedArrivalTime = this.transferTime.get(this.transferTime.size() - 1);
+        }
+        assertEquals(expectedArrivalTime, bedArrivalTime.getValueAsDatetime());
 
         // check hospital visit arrival time
         PatientFact hospVisit = bedVisit.getParentFact();

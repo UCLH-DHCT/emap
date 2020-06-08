@@ -2,13 +2,14 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +45,7 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         assertEquals(1, bedVisits.size());
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
-        assertEquals(this.patientClass,
+        assertEquals(this.getPatientClass(),
                 onlyHospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 
@@ -66,40 +67,34 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
         List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
         List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
-        assertEquals(2, hospVisits.size());
-        assertEquals(2, bedVisits.size());
+        assertEquals(3, hospVisits.size());
+        assertEquals(3, bedVisits.size());
         assertNull(outpVisits);
-        // There should be one invalid bed visit (+hosp visit), and one valid bed visit
-        // (+hosp visit)
-        Map<Boolean, List<PatientFact>> hospVisitsByValidity =
-                hospVisits.stream().collect(Collectors.partitioningBy(v -> v.isValid()));
-        Map<Boolean, List<PatientFact>> bedVisitsByValidity =
-                bedVisits.stream().collect(Collectors.partitioningBy(v -> v.isValid()));
-        assertEquals(1, hospVisitsByValidity.get(true).size());
-        assertEquals(1, hospVisitsByValidity.get(false).size());
-        assertEquals(1, bedVisitsByValidity.get(true).size());
-        assertEquals(1, bedVisitsByValidity.get(false).size());
 
-        // check the properties are all valid/invalid as appropriate
-        List<PatientProperty> propertiesForCancelledBedVisit = bedVisitsByValidity.get(false).get(0).getProperties();
-        List<PatientProperty> propertiesForCurrentBedVisit = bedVisitsByValidity.get(true).get(0).getProperties();
-        assertTrue(!propertiesForCancelledBedVisit.isEmpty());
-        assertTrue(!propertiesForCurrentBedVisit.isEmpty());
-        assertTrue(propertiesForCancelledBedVisit.stream().allMatch(p -> !p.isValid()));
-        assertTrue(propertiesForCurrentBedVisit.stream().allMatch(p -> p.isValid()));
+        Map<Pair<Boolean, Boolean>, List<PatientFact>> hospVisitsByValidity = hospVisits.stream().collect(
+                Collectors.groupingBy(v -> new ImmutablePair<>(v.getStoredUntil() == null, v.getValidUntil() == null)));
+        Map<Pair<Boolean, Boolean>, List<PatientFact>> bedVisitsByValidity = bedVisits.stream().collect(
+                Collectors.groupingBy(v -> new ImmutablePair<>(v.getStoredUntil() == null, v.getValidUntil() == null)));
+        assertEquals(1, hospVisitsByValidity.get(new ImmutablePair<>(true, true)).size());
+        assertEquals(1, hospVisitsByValidity.get(new ImmutablePair<>(false, true)).size());
+        assertEquals(1, hospVisitsByValidity.get(new ImmutablePair<>(true, false)).size());
+        assertEquals(cancellationTime, hospVisitsByValidity.get(new ImmutablePair<>(true, false)).get(0).getValidUntil());
 
-        // check times and locations are the correct ones
-        assertEquals(cancellationTime, hospVisitsByValidity.get(false).get(0).getValidUntil());
-        assertEquals(cancellationTime, bedVisitsByValidity.get(false).get(0).getValidUntil());
+        assertEquals(1, bedVisitsByValidity.get(new ImmutablePair<>(true, true)).size());
+        assertEquals(1, bedVisitsByValidity.get(new ImmutablePair<>(false, true)).size());
+        assertEquals(1, bedVisitsByValidity.get(new ImmutablePair<>(true, false)).size());
+        assertEquals(cancellationTime, bedVisitsByValidity.get(new ImmutablePair<>(true, false)).get(0).getValidUntil());
 
-        assertEquals(wrongLocation, bedVisitsByValidity.get(false).get(0)
-                .getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
-        assertEquals(erroneousAdmitTime, bedVisitsByValidity.get(false).get(0)
-                .getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
-        assertEquals(correctLocation, bedVisitsByValidity.get(true).get(0)
-                .getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
-        assertEquals(correctAdmitTime, bedVisitsByValidity.get(true).get(0)
-                .getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+        List<PatientProperty> allLocationPropertiesForBedVisit = bedVisits.stream()
+                .map(v -> v.getPropertyByAttribute(AttributeKeyMap.LOCATION)).flatMap(List::stream)
+                .collect(Collectors.toList());
+        emapStarTestUtils._testPropertyValuesOverTime(allLocationPropertiesForBedVisit, wrongLocation, correctLocation,
+                erroneousAdmitTime, cancellationTime, correctAdmitTime);
+
+        List<PatientProperty> allArrivalTimePropertiesForBedVisit = bedVisits.stream()
+                .map(v -> v.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME)).flatMap(List::stream)
+                .collect(Collectors.toList());
+        emapStarTestUtils._testPropertyValuesOverTime(allArrivalTimePropertiesForBedVisit, erroneousAdmitTime, correctAdmitTime,
+                erroneousAdmitTime, cancellationTime, correctAdmitTime);
     }
-
 }

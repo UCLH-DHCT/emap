@@ -2,19 +2,21 @@ package uk.ac.ucl.rits.inform.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
 import uk.ac.ucl.rits.inform.informdb.Mrn;
-import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 
 /**
@@ -35,37 +37,40 @@ public class TestMergeById extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testMergeHasHappened() {
-        Mrn retiredMrn = mrnRepo.findByMrnString("40800000");
         Mrn survivingMrn = mrnRepo.findByMrnString("40800001");
-        Map<Boolean, List<PersonMrn>> retiredMrnPersons = retiredMrn.getPersons().stream()
-                .collect(Collectors.partitioningBy(p -> p.getValidUntil() == null));
-        // still valid person-mrn links
-        List<PersonMrn> validRetiredMrnPersons = retiredMrnPersons.get(true);
 
-        assertEquals(1, validRetiredMrnPersons.size(), "retired mrn should still have a valid connection to a person");
+        // Surviving MRN is simpler as it shouldn't have changed - test this first.
+        // the surviving MRN should retain its single, valid, live link to the person
+        List<PersonMrn> survivingMrnPersons = survivingMrn.getPersons();
+        assertEquals(1, survivingMrnPersons.size());
+        assertTrue(survivingMrnPersons.get(0).isValid());
+        assertTrue(survivingMrnPersons.get(0).isLive());
 
-        List<PersonMrn> invalidRetiredMrnPersons = retiredMrnPersons.get(false);
-        assertEquals(1, invalidRetiredMrnPersons.size());
-        // The retired MRN should have an invalidated link to the old person that is still marked live.
-        // But its new, valid link pointing to the new person should be marked as not live.
-        PersonMrn invalidRetiredMrnPerson = invalidRetiredMrnPersons.get(0);
-        assertTrue(invalidRetiredMrnPerson.isLive());
-        PersonMrn validRetiredMrnPerson = validRetiredMrnPersons.get(0);
-        Person personForRetiredMrn = validRetiredMrnPerson.getPerson();
-        assertFalse(validRetiredMrnPerson.isLive());
+        // Retired MRN has three rows in total
+        Mrn retiredMrn = mrnRepo.findByMrnString("40800000");
+        Map<Pair<Boolean, Boolean>, List<PersonMrn>> retiredMrnPersons = retiredMrn.getPersons().stream()
+                .collect(Collectors.groupingBy(p -> new ImmutablePair<>(p.getStoredUntil() == null, p.getValidUntil() == null)));
 
-        // the surviving MRN should have a single, valid link to the person, which is marked as live
-        Map<Boolean, List<PersonMrn>> survivingMrnPersons = survivingMrn.getPersons().stream()
-                .collect(Collectors.partitioningBy(p -> p.getValidUntil() == null));
-        assertEquals(0, survivingMrnPersons.get(false).size());
-        List<PersonMrn> validSurvivingMrnPersons = survivingMrnPersons.get(true);
-        assertEquals(1, validSurvivingMrnPersons.size());
-        // check the surviving MRN is marked as live
-        PersonMrn validSurvivingMrnPerson = validSurvivingMrnPersons.get(0);
-        assertTrue(validSurvivingMrnPerson.isLive());
-        Person personForSurvivingMrn = validSurvivingMrnPerson.getPerson();
+        assertFalse(retiredMrnPersons.containsKey(new ImmutablePair<>(false, false)));
+        // There is a stored and valid link between the retired MRN and its new
+        // person, but it's not that person's live MRN
+        List<PersonMrn> storedValidRetiredMrnPersons = retiredMrnPersons.get(new ImmutablePair<>(true, true));
+        assertEquals(1, storedValidRetiredMrnPersons.size(), "retired mrn should still have a valid connection to a person");
+        assertFalse(storedValidRetiredMrnPersons.get(0).isLive());
 
-        // the two MRNs should point to the same person
-        assertEquals(personForRetiredMrn, personForSurvivingMrn);
+        // The link between the retired MRN and its old person is no longer true, so the old row has been deleted
+        // and replaced with a new row showing the invalidation date
+        List<PersonMrn> deletedValidRetiredMrnPersons = retiredMrnPersons.get(new ImmutablePair<>(false, true));
+        List<PersonMrn> storedInvalidRetiredMrnPersons = retiredMrnPersons.get(new ImmutablePair<>(true, false));
+        assertEquals(1, deletedValidRetiredMrnPersons.size());
+        assertEquals(1, storedInvalidRetiredMrnPersons.size());
+        // Both rows are still live to reflect the state that was true in the past
+        assertTrue(deletedValidRetiredMrnPersons.get(0).isLive());
+        assertTrue(storedInvalidRetiredMrnPersons.get(0).isLive());
+
+        // Check the MRNs point to the right persons
+        assertEquals(storedInvalidRetiredMrnPersons.get(0).getPerson(), deletedValidRetiredMrnPersons.get(0).getPerson());
+        assertEquals(storedValidRetiredMrnPersons.get(0).getPerson(), survivingMrnPersons.get(0).getPerson());
+        assertNotEquals(storedValidRetiredMrnPersons.get(0).getPerson(), deletedValidRetiredMrnPersons.get(0).getPerson());
     }
 }

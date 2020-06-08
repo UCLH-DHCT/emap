@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -49,10 +50,11 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private int                 maxTestLength;
 
     /**
-     * List of all queueing operations being tested. Note that queueDischarge must be last.
+     * List of all queueing operations being tested. Note that queueDischarge must
+     * be last.
      */
     private Runnable[]          operations   = { this::queueAdmitTransfer, this::queueAdmitClass, this::queueVital,
-            this::queuePatUpdateClass, this::queueTransfer, this::queueDischarge };
+            this::queuePatUpdateClass, this::queueTransfer, this::queueCancelTransfer, this::queueDischarge };
     private String[]            patientClass = { "E", "O", "I", "DAY CASE", "SURG ADMIT" };
     private int                 currentClass;
 
@@ -69,16 +71,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      * Reset the patient state to allow a new message stream to be run.
      */
     private void reset() {
+        super.reinitialise();
         currentClass = 0;
-        messageStream.clear();
-        nextToProcess = 0;
-        super.patientClass = patientClass[currentClass];
-        this.vitalTime.clear();
-        this.transferTime.clear();
-        this.admissionTime = null;
-        this.dischargeTime = null;
-        this.patientDied = false;
-        this.deathTime = null;
+        setPatientClass(patientClass[currentClass], super.currentTime);
     }
 
     /**
@@ -93,8 +88,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      */
     private void queueAdmitClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
-        super.patientClass = this.patientClass[this.currentClass];
-        queueAdmit();
+        queueAdmit(false, this.patientClass[this.currentClass]);
     }
 
     /**
@@ -102,8 +96,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      */
     private void queuePatUpdateClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
-        super.patientClass = this.patientClass[this.currentClass];
-        queueUpdatePatientDetails();
+        queueUpdatePatientDetails(this.patientClass[this.currentClass]);
     }
 
     /**
@@ -192,9 +185,15 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             processN(1);
             this.checkAdmission();
             this.checkDeath();
-            if (i == 0 || i == 4) {
-                testLastBedVisit(transferTime.size(), currentLocation(), super.patientClass, lastTransferTime(),
+            switch (i) {
+            case 0:
+            case 4:
+                testLastBedVisit(transferTime.size(), currentLocation(), super.getPatientClass(), lastTransferTime(),
                         lastTransferTime());
+                break;
+            case 5:
+                testCancelTransfer();
+                break;
             }
         }
     }
@@ -217,15 +216,26 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         List<PatientFact> validBedVisits = emapStarTestUtils.getLocationVisitsForEncounter(this.csn, expectedVisits);
 
+        // Do we have the expected number of visits
+        assertEquals(validBedVisits.size(), expectedVisits);
+
+        // If there aren't any to check stop
+        if (expectedVisits == 0) {
+            return;
+        }
+
         // Get the last visit to check
         PatientFact precedingVisit = expectedVisits > 1 ? validBedVisits.get(expectedVisits - 2) : null;
         PatientFact lastVisit = validBedVisits.get(expectedVisits - 1);
 
         // Check right time / place
-        PatientProperty actualLocation = lastVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, PatientProperty::isValid).get(0);
+        PatientProperty actualLocation =
+                lastVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, PatientProperty::isValid).get(0);
         assertEquals(thisLocation, actualLocation.getValueAsString());
-        assertEquals(thisLocationStartTime,
-                lastVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+        if (!thisLocationStartTime.equals(Instant.MIN)) {
+            assertEquals(thisLocationStartTime,
+                    lastVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+        }
         assertEquals(eventTime, actualLocation.getValidFrom());
 
         // Check correct invalidation date of patient class (if relevant)
@@ -273,7 +283,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                     hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
             assertEquals(1, patClasses.size());
             PatientProperty patClass = patClasses.get(0);
-            assertEquals(super.patientClass, patClass.getValueAsString());
+            assertEquals(super.getPatientClass(), patClass.getValueAsString());
         }
         {
             List<PatientProperty> _hospDischTimes =
@@ -300,7 +310,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                 .stream().filter(PatientFact::isValid).collect(Collectors.toList());
         assertTrue(2 > deaths.size(), "Must only have 1 or 0 death facts");
 
-        if(deaths.isEmpty()) {
+        if (deaths.isEmpty()) {
             return;
         }
 
@@ -314,10 +324,8 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             PatientProperty death_ind = death_inds.get(0);
             Attribute deathInd = death_ind.getValueAsAttribute();
             assertNotNull(deathInd, "Patient death indicator shouldn't be null");
-            assertEquals(this.patientDied ?
-                            AttributeKeyMap.BOOLEAN_TRUE.getShortname() :
-                            AttributeKeyMap.BOOLEAN_FALSE.getShortname(),
-                            deathInd.getShortName());
+            assertEquals(this.patientDied ? AttributeKeyMap.BOOLEAN_TRUE.getShortname()
+                    : AttributeKeyMap.BOOLEAN_FALSE.getShortname(), deathInd.getShortName());
         }
         {
             List<PatientProperty> deathDates =
@@ -330,5 +338,114 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                 assertTrue(deathDates.isEmpty(), "Non dead patient had death time");
             }
         }
+    }
+
+    /**
+     * Test that the invalid and unstored orders are present after a cancel transfer
+     */
+    public void testCancelTransfer() {
+        Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
+        Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
+        List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
+
+        // The number of valid bed moves needs to be correct (which may be up to one less before, or may not)
+        // That's because a cancel transfer can reveal a previously unknown location.
+        assertEquals(this.transferTime.size(), bedVisits.stream().filter(v -> v.isValid()).count());
+
+        // There should exactly one open visit.
+        {
+            List<PatientFact> openBedVisits = bedVisits
+            .stream()
+            .filter(PatientFact::isValid)
+            // It likely has a discharge time. It's just now invalid / unstored.
+            .filter( v -> v.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream().filter(p -> p.isValid()).count() == 0)
+            .collect(Collectors.toList());
+
+            // After a cancellation there should be exactly 1  open bed visit - the previous one.
+            assertEquals(1, openBedVisits.size());
+
+            PatientFact bd = openBedVisits.get(0);
+
+            // It should be at the current  location
+            assertEquals(this.currentLocation(),
+                    bd.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+
+            // And at the current start time (unless it is unknown)
+            if (this.lastTransferTime().equals(Instant.MIN)) {
+                // If you don't know, arrival time == null
+                assertNull(bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid).get(0).getValueAsDatetime());
+            } else {
+                assertEquals(this.lastTransferTime(),
+                        bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+
+
+                // It should have a two invalid discharges with the current event time stamp.
+                // But only if it existed beforehand
+                assertEquals(2, bd.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME,
+                        p -> !p.isValid() &&
+                        (p.getStoredUntil() != null || this.currentTime.equals(p.getValidUntil()))).size());
+            }
+        }
+
+        // There should be two variously invalidated visits for this location for this time.
+        String wrongLocation = this.peekNextLocation();
+
+        // There should be one invalid but  stored from the current time bed visit
+        // This will only exist in the 1+ previous bed visits case. But we can only detect 2+
+        // with the current implementation.
+        if (!this.lastTransferTime().equals(Instant.MIN)) {
+            List<PatientFact> invalidVisit = bedVisits
+                .stream()
+                .filter(v -> v.getStoredUntil() == null &&
+                        this.currentTime.equals(v.getValidUntil())
+                        )
+                .collect(Collectors.toList());
+
+            // These should only be one such.
+            assertEquals(1, invalidVisit.size());
+
+            PatientFact iv = invalidVisit.get(0);
+
+            //  It should be at the next  location
+            assertEquals(wrongLocation,
+                    iv.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+
+            // All properties should have been invalidated the same way
+            assertTrue(iv.getProperties()
+                    .stream()
+                    .allMatch(p -> p.getStoredUntil() == null &&
+                            this.currentTime.equals(p.getValidUntil())
+                            ));
+
+        }
+
+        // There should be one unstored from the current time but valid bed visit
+        // But only if the last location existed before this
+        if (!this.lastTransferTime().equals(Instant.MIN)) {
+            List<PatientFact> invalidVisit = bedVisits
+                .stream()
+                .filter(v -> v.getValidUntil() == null &&
+                             v.getStoredUntil() != null
+                        )
+                .collect(Collectors.toList());
+
+            // These should only be one such.
+            assertEquals(1, invalidVisit.size());
+
+            PatientFact iv = invalidVisit.get(0);
+
+            //  It should be at the next  location
+            assertEquals(wrongLocation,
+                    iv.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+
+            // All properties should have been invalidated the same way
+            assertTrue(iv.getProperties()
+                    .stream()
+                    .allMatch(p ->  p.getValidUntil() == null &&
+                            p.getStoredUntil() != null
+                            ));
+
+        }
+
     }
 }

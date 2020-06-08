@@ -20,7 +20,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     protected int                 currentLocation      = 0;
     protected String              mrn                  = "1234ABCD";
     protected String              csn                  = "1234567890";
-    protected String              patientClass         = "E";
+    private String                patientClass         = "E";
+    private Instant               latestPatientClassChangeTime = null;
     protected Instant             admissionTime        = null;
     protected Instant             dischargeTime        = null;
     protected String              nhsNumber            = "9999999999";
@@ -39,6 +40,27 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * Create a new MessageStreamBaseCase.
      */
     public MessageStreamBaseCase() {}
+
+    /**
+     * Reset the state to allow for a new stream of stream of tests to be run with
+     * the same instance.
+     *
+     * This does not reset the class to how it is instantiated though.
+     */
+    protected void reinitialise() {
+        messageStream.clear();
+        nextToProcess = 0;
+        this.setPatientClass("E");
+        latestPatientClassChangeTime = null;
+        this.vitalTime.clear();
+        this.transferTime.clear();
+        this.admissionTime = null;
+        this.dischargeTime = null;
+        this.patientDied = false;
+        this.deathTime = null;
+        dischargeDisposition = "Peachy";
+        dischargeLocation = "Home";
+    }
 
     /**
      * Step the clock forward not quite exactly one hour. One hour looks too much
@@ -96,6 +118,14 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     /**
+     * See the next location without changing state. When the end of the array is reached, loop around.
+     */
+    protected String peekNextLocation() {
+        int loc = (this.currentLocation + 1) % this.allLocations.length;
+        return allLocations[loc];
+    }
+
+    /**
      * Return to the previous location and return it.
      *
      * @return A location.
@@ -111,6 +141,9 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * @return The time of the last transfer
      */
     protected Instant lastTransferTime() {
+        if (this.transferTime.isEmpty()) {
+            return null;
+        }
         return this.transferTime.get(this.transferTime.size() - 1);
     }
 
@@ -140,19 +173,25 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         queueMessage(vital);
     }
 
+    protected void queueUpdatePatientDetails() {
+        this.queueUpdatePatientDetails(getPatientClass());
+    }
+
     /**
      * Queue a patient update message.
      */
-    public void queueUpdatePatientDetails() {
+    public void queueUpdatePatientDetails(String patientClass) {
         boolean impliedTransfer = this.admissionTime == null;
 
-        this.ensureAdmitted();
-
+        // clock must be changed before anything which might cause a change
         this.stepClock();
+
+        this.ensureAdmitted();
 
         if (impliedTransfer) {
             this.transferTime.add(this.currentTime);
         }
+        setPatientClass(patientClass, this.currentTime);
 
         AdtMessage update = new AdtMessage();
         update.setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
@@ -164,7 +203,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         update.setVisitNumber(this.csn);
         update.setPatientFullName(this.name);
         update.setFullLocationString(allLocations[this.currentLocation]);
-        update.setPatientClass(this.patientClass);
+        update.setPatientClass(this.getPatientClass());
         update.setPatientDeathIndicator(this.patientDied);
         update.setPatientDeathDateTime(this.deathTime);
         queueMessage(update);
@@ -176,7 +215,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * method.
      */
     public void queueAdmit() {
-        this.queueAdmit(false);
+        this.queueAdmit(false, getPatientClass());
     }
 
     /**
@@ -185,7 +224,17 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * @param transfer If true will also advance the patient to the next location.
      */
     public void queueAdmit(boolean transfer) {
+        this.queueAdmit(transfer, getPatientClass());
+    }
+
+    /**
+     * Queue an admit message that may or may not perform a transfer.
+     *
+     * @param transfer If true will also advance the patient to the next location.
+     */
+    public void queueAdmit(boolean transfer, String patientClass) {
         Instant eventTime = this.nextTime();
+        setPatientClass(patientClass, eventTime);
 
         if (this.admissionTime == null || transfer) {
             this.transferTime.add(eventTime);
@@ -203,7 +252,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         admit.setEventOccurredDateTime(eventTime);
         admit.setMrn(this.mrn);
         admit.setVisitNumber(this.csn);
-        admit.setPatientClass(this.patientClass);
+        admit.setPatientClass(this.getPatientClass());
         admit.setPatientFullName(this.name);
         admit.setFullLocationString(this.currentLocation());
         admit.setPatientDeathIndicator(this.patientDied);
@@ -215,7 +264,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * Queue a moving transfer message.
      */
     public void queueTransfer() {
-        this.queueTransfer(true);
+        this.queueTransfer(true, getPatientClass());
     }
 
     /**
@@ -224,12 +273,22 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * @param updateLocation if false the patient location will not be advanced.
      */
     public void queueTransfer(boolean updateLocation) {
+        this.queueTransfer(updateLocation, getPatientClass());
+    }
+
+    /**
+     * Queue a transfer message.
+     *
+     * @param updateLocation if false the patient location will not be advanced.
+     */
+    public void queueTransfer(boolean updateLocation, String patientClass) {
         this.ensureAdmitted();
 
         // Handle non-moving update
         String location;
 
         Instant tTime = this.nextTime();
+        setPatientClass(patientClass, tTime);
 
         if (updateLocation) {
             location = nextLocation();
@@ -244,7 +303,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         transfer.setEventOccurredDateTime(tTime);
         transfer.setMrn(this.mrn);
         transfer.setVisitNumber(this.csn);
-        transfer.setPatientClass(this.patientClass);
+        transfer.setPatientClass(this.getPatientClass());
         transfer.setPatientFullName(this.name);
         transfer.setFullLocationString(location);
         transfer.setPatientDeathIndicator(this.patientDied);
@@ -266,9 +325,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         cancelAdmit.setEventOccurredDateTime(expectedCancellationDateTime);
         cancelAdmit.setMrn(this.mrn);
         cancelAdmit.setVisitNumber(this.csn);
-        cancelAdmit.setPatientClass(this.patientClass);
+        cancelAdmit.setPatientClass(this.getPatientClass());
         cancelAdmit.setPatientFullName(this.name);
         cancelAdmit.setFullLocationString(this.previousLocation());
+        cancelAdmit.setPatientDeathIndicator(this.patientDied);
+        cancelAdmit.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(cancelAdmit);
 
@@ -287,6 +348,10 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             erroneousTransferDateTime = this.transferTime.remove(this.transferTime.size() - 1);
         }
 
+        if(this.transferTime.isEmpty()) {
+            // This is really acting as a place holder for NULL
+            this.transferTime.add(Instant.MIN);
+        }
         AdtMessage cancelTransfer = new AdtMessage();
         cancelTransfer.setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
         cancelTransfer.setAdmissionDateTime(this.admissionTime);
@@ -294,9 +359,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         cancelTransfer.setRecordedDateTime(this.nextTime());
         cancelTransfer.setMrn(this.mrn);
         cancelTransfer.setVisitNumber(this.csn);
-        cancelTransfer.setPatientClass(this.patientClass);
+        cancelTransfer.setPatientClass(this.getPatientClass());
         cancelTransfer.setPatientFullName(this.name);
         cancelTransfer.setFullLocationString(this.previousLocation());
+        cancelTransfer.setPatientDeathIndicator(this.patientDied);
+        cancelTransfer.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(cancelTransfer);
     }
@@ -316,7 +383,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         discharge.setMrn(this.mrn);
         discharge.setFullLocationString(this.allLocations[this.currentLocation]);
         discharge.setVisitNumber(this.csn);
-        discharge.setPatientClass(this.patientClass);
+        discharge.setPatientClass(this.getPatientClass());
         discharge.setPatientFullName(this.name);
         discharge.setDischargeDisposition(this.dischargeDisposition);
         discharge.setDischargeLocation(this.dischargeLocation);
@@ -335,10 +402,10 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         AdtMessage cancelDischarge = new AdtMessage();
         cancelDischarge.setOperationType(AdtOperationType.CANCEL_DISCHARGE_PATIENT);
         cancelDischarge.setAdmissionDateTime(this.admissionTime);
-        cancelDischarge.setEventOccurredDateTime(this.nextTime());
+        cancelDischarge.setRecordedDateTime(this.nextTime());
         cancelDischarge.setMrn(this.mrn);
         cancelDischarge.setVisitNumber(this.csn);
-        cancelDischarge.setPatientClass(this.patientClass);
+        cancelDischarge.setPatientClass(this.getPatientClass());
         cancelDischarge.setPatientFullName(this.name);
         cancelDischarge.setFullLocationString(this.allLocations[this.currentLocation]);
         // A13 messages do not carry the discharge time field
@@ -361,5 +428,43 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         merge.setMergedPatientId(survivingMrn);
 
         this.queueMessage(merge);
+    }
+
+    /**
+     * @return the patientClass
+     */
+    public String getPatientClass() {
+        return patientClass;
+    }
+
+    /**
+     * Set just the patient class without checking for changes.
+     * Shouldn't be called from a test directly.
+     *
+     * @param patientClass the patientClass to set
+     */
+    private void setPatientClass(String patientClass) {
+        this.patientClass = patientClass;
+    }
+
+    /**
+     * Smarter setter that checks for changes and updates the change time.
+     * If you really want to call this from a test you have to know what time it changed.
+     * @param patientClass  the patientClass to set
+     * @param eventTime     the current event time
+     */
+    protected void setPatientClass(String patientClass, Instant eventTime) {
+        // if it's an actual change, remember this time
+        if (!patientClass.equals(this.patientClass)) {
+            latestPatientClassChangeTime = eventTime;
+        }
+        setPatientClass(patientClass);
+    }
+
+    /**
+     * @return the latestPatientClassChangeTime
+     */
+    public Instant getLatestPatientClassChangeTime() {
+        return latestPatientClassChangeTime;
     }
 }
