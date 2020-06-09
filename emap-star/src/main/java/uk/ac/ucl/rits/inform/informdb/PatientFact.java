@@ -105,6 +105,8 @@ public class PatientFact extends Fact<PatientFact, PatientProperty> implements S
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(" factid = " + getFactId() + " ");
+        sb.append(getValidUntil() == null ? " VALID " : " INVALID ");
+        sb.append(getStoredUntil() == null ? " STORED " : " DELETED ");
         sb.append(this.getFactType().getShortName());
         sb.append("[id=" + getFactType().getAttributeId() + "]");
         sb.append(" --- ");
