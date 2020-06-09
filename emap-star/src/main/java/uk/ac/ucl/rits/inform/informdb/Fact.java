@@ -265,6 +265,61 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
         return result;
     }
 
+    /**
+     * Test equality of properties, optionally ignoring one or more by property type.
+     * @param other               the other fact to test property equality to
+     * @param attributesToIgnore  attributes to ignore when determining equality
+     * @return true iff all properties that you care about are equal, ignoring order of properties
+     */
+    protected boolean certainPropertiesEqual(Fact<F, PropertyType> other, List<AttributeKeyMap> attributesToIgnore) {
+        // make a shallow, filtered copy of the properties that we care about when deciding equality
+        List<PropertyType> thisProperties = this.properties.stream()
+                .filter(p -> !attributesToIgnore.stream().anyMatch(a -> p.isOfType(a))).collect(Collectors.toList());
+        List<PropertyType> otherProperties = other.properties.stream()
+                .filter(p -> !attributesToIgnore.stream().anyMatch(a -> p.isOfType(a))).collect(Collectors.toList());
+        if (thisProperties == null) {
+            if (otherProperties != null) {
+                return false;
+            }
+        } else if (thisProperties.size() != otherProperties.size()) {
+            return false;
+        } else if (!thisProperties.containsAll(otherProperties)) {
+            // same elements in different order counts as equal
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Test equality of facts, optionally ignoring one or more by properties by type.
+     * @param obj                 the other fact to test equality to
+     * @param attributesToIgnore  attributes to ignore when determining equality of properties
+     * @return true iff facts are equal, and all properties that you care about are equal, ignoring order of properties
+     */
+    protected boolean equalsIgnoringProperties(Object obj, List<AttributeKeyMap> attributesToIgnore) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Fact<F, PropertyType> other = (Fact<F, PropertyType>) obj;
+        if (factType == null) {
+            if (other.factType != null) {
+                return false;
+            }
+        } else if (!factType.equals(other.factType)) {
+            return false;
+        }
+        if (!certainPropertiesEqual(other, attributesToIgnore)) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
