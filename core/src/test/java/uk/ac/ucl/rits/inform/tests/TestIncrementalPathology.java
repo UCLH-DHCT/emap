@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.tests;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
@@ -64,8 +66,8 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
         List<PatientFact> childFacts002 = allOrders.get("94000002").get(0).getChildFacts();
 
         // check that pathology results have not been duplicated
-        List<PatientFact> allTestResults001 = childFacts001.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
-        List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
+        List<PatientFact> allTestResults001 = childFacts001.stream().filter(pf -> pf.isValid() && pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
+        List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isValid() && pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
         assertEquals(2, allTestResults001.size());
         assertEquals(17, allTestResults002.size());
 
@@ -77,14 +79,23 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testResultsUpdate() {
-        List<PatientFact> allFactsForEncounter = encounterRepo.findEncounterByEncounter("123412341234").getFacts();
-        Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
-                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
-        List<PatientFact> childFacts002 = allOrders.get("94000002").get(0).getChildFacts();
-        List<PatientFact> allTestResults002 = childFacts002.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)).collect(Collectors.toList());
-
+        List<PatientFact> findAllPathologyOrdersByOrderNumber = patientFactRepo.findAllPathologyOrdersByOrderNumber("94000002");
+        assertEquals(1, findAllPathologyOrdersByOrderNumber.size());
+        List<PatientFact> resultFacts = findAllPathologyOrdersByOrderNumber.get(0).getChildFacts();
+        Map<String, List<PatientFact>> resultFactsByTestCode = resultFacts.stream()
+                .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
+                .collect(Collectors.groupingBy(
+                        pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE)
+                                .get(0).getValueAsString()));
+        List<PatientFact> monocyteResults = resultFactsByTestCode.get("MO");
+        assertEquals(3, monocyteResults.size());
+        Map<Pair<Boolean, Boolean>, List<PatientFact>> monocyteResultsByValidity = monocyteResults.stream().collect(Collectors
+                .groupingBy(res -> new ImmutablePair<>(res.getValidUntil() == null, res.getStoredUntil() == null)));
+        List<PatientFact> validResults = monocyteResultsByValidity.get(new ImmutablePair<>(true, true));
+        assertEquals(1, validResults.size());
+        List<PatientProperty> monocyteProperties = validResults.get(0).getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE);
+        assertEquals(1, monocyteProperties.size());
         // first message has result of 0.35, second message has a result of 0.5 so this should be used
-        PatientProperty monocyteProperty = allTestResults002.get(1).getProperties().get(3);
-        assertEquals(0.5, monocyteProperty.getValueAsReal());
+        assertEquals(0.5, monocyteProperties.get(0).getValueAsReal());
     }
 }

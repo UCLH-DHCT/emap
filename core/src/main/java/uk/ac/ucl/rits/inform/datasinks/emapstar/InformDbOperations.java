@@ -828,14 +828,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 String newFactKey = newFactEntry.getKey();
                 PatientFact existingResult = existingFactsAsMap.get(newFactKey);
                 if (existingResult != null) {
-                    if (existingResult.equals(newFact)) {
+                    if (existingResult.equalsPathologyResult(newFact)) {
                         logger.debug(
                                 String.format("Ignoring fact, is equal to existing: %s", existingResult.toString()));
                     } else {
                         logger.debug(
                                 String.format(
-                                        "Ignoring fact, although needs updating.\n    Existing: %s\n    New: %s",
+                                        "Fact exists but needs updating.\n    Existing: %s\n    New: %s",
                                         existingResult.toString(), newFact.toString()));
+                        updatePathologyResult(existingResult, newFact, storedFrom);
                     }
                     newFacts.remove();
                 } else {
@@ -866,6 +867,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
 
         encounter = encounterRepo.save(encounter);
+    }
+
+    /**
+     * Crude but it works - just invalidate the whole fact and replace it with a new version.
+     * newFact is a replacement result (with no intermediate "cancel" message), so the invalidation
+     * time is taken from the start time of the new result.
+     * @param existingResult  the result to replace
+     * @param newFact         the result to replace it with
+     * @param storedFromUntil the time at which this change takes place in the DB
+     */
+    private void updatePathologyResult(PatientFact existingResult, PatientFact newFact, Instant storedFromUntil) {
+        Instant invalidationDate = getOnlyElement(
+                newFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME, PatientProperty::isValid))
+                        .getValueAsDatetime();
+        PatientFact order = existingResult.getParentFact();
+        existingResult.invalidateAll(storedFromUntil, invalidationDate);
+        logger.warn(String.format("Old fact validity %s -> %s", existingResult.getValidFrom(), invalidationDate));
+        order.addChildFact(newFact);
     }
 
     /**
@@ -1027,7 +1046,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 if (!existing.equals(fact)) {
                     details = String.format("\nExisting = %s\nSubsequent = %s", existing, fact);
                 }
-                logger.warn(String.format("Pathology %s DUPLICATE RESULT not added! Is full duplicate?: %s%s",
+                logger.warn(String.format("Pathology %s within-message duplicate result not added! Is full duplicate?: %s%s",
                         key, existing.equals(fact), details));
             } else {
                 parent.addChildFact(fact);
