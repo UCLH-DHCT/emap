@@ -1008,7 +1008,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             if (existing != null) {
                 String details = "";
                 if (!existing.equals(fact)) {
-                    details = String.format("\nExisting = %s\nSubsequent = %s", key, existing, fact);
+                    details = String.format("\nExisting = %s\nSubsequent = %s", existing, fact);
                 }
                 logger.warn(String.format("Pathology %s DUPLICATE RESULT not added! Is full duplicate?: %s%s",
                         key, existing.equals(fact), details));
@@ -1020,7 +1020,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 for (PathologyOrder sensOrder : pathologySensitivities) {
                     // each sensitivity needs to be built as an order
                     List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
-                    Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults, sensOrder.getTestBatteryLocalCode());
+                    Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults,
+                            sensOrder.getTestBatteryLocalCode());
                     facts.putAll(sensFacts);
                 }
             }
