@@ -869,15 +869,32 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * A key for identifying pathology results so updates can be compared with existing ones.
+     * A key for uniquely identifying pathology results *from the database*.
+     * Must give equivalent results to method {@link #uniqueKeyFromPathologyResultMessage}.
+     * Allows updated results to be compared with existing results.
      * @param pathologyResultFact the pathology result fact
-     * @return a key that is unique within the order
+     * @return a key for the result that is unique within the order
      */
     private String uniqueKeyFromPathologyResultFact(PatientFact pathologyResultFact) {
         PatientFact orderFact = pathologyResultFact.getParentFact();
         PatientProperty testCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE));
         PatientProperty batteryCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE));
-        return batteryCode.getValueAsString() + "_" + testCode.getValueAsString();
+        PatientProperty isolCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ISOLATE_CODE));
+        return String.format("%s_%s_%s", batteryCode.getValueAsString(), testCode.getValueAsString(),
+                isolCode == null ? "" : isolCode.getValueAsString());
+    }
+
+    /**
+     * A key for uniquely identifying pathology results *from an interchange message*.
+     * Must give equivalent results to method {@link #uniqueKeyFromPathologyResultFact}.
+     * Allows updated results to be compared with existing results.
+     * @param testBatteryLocalCode the battery code for the message
+     * @param pathologyResultMessage the pathology result message
+     * @return a key for the result that is unique within the order
+     */
+    private String uniqueKeyFromPathologyResultMessage(String testBatteryLocalCode, PathologyResult pathologyResultMessage) {
+        return String.format("%s_%s_%s", testBatteryLocalCode, pathologyResultMessage.getTestItemLocalCode(),
+                pathologyResultMessage.getIsolateLocalCode());
     }
 
     /**
@@ -977,7 +994,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             fact.setValidFrom(resultTime);
             fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
-            String key = testBatteryLocalCode + "_" + pr.getTestItemLocalCode();
+            String key = uniqueKeyFromPathologyResultMessage(testBatteryLocalCode, pr);
 
             fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
                     testBatteryLocalCode));
