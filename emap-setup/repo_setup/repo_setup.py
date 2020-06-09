@@ -6,15 +6,25 @@ class RepoSetup:
     """Clones the relevant inform repositories.
     """
 
-    def __init__(self, tt):
+    def __init__(self, main_dir, repos):
         """
-        :param star_schema: schema to query for star tables
-        :param output_dir: defaults to repository output directory
+        Initialise the repository setup
+        :param main_dir: the working directory in which to clone repositories
+        :param repos: a list containing dictionary items with name and branch of each repositories
         """
-        self.main_dir = 'C:/Development/Helpers/Test'
-        print(tt)
+        self.main_dir = main_dir
+        self.repos = repos
+
+        self.main_github = 'https://github.com/inform-health-informatics'
 
     def clone_necessary_repos(self):
-        print('cloning')
-        this_path = os.path.join(self.main_dir, 'Emap-Core')
-        repo = Repo.clone_from('https://github.com/inform-health-informatics/Emap-Core.git', this_path, branch='develop')
+        """
+        Clone the requested repositories and branches
+        :return:
+        """
+        for repo in self.repos:
+            this_path = os.path.join(self.main_dir, repo['name'])
+            this_git = repo['name'] + '.git'
+            this_git_path = os.path.join(self.main_github, this_git)
+            print('cloning ' + this_git_path + ' branch:' + repo['branch'] + ' to ' + this_path)
+            Repo.clone_from(this_git_path, this_path, branch=repo['branch'])
