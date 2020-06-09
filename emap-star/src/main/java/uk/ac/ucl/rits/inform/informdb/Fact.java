@@ -164,6 +164,9 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
         for (PropertyType prop : properties) {
             prop.invalidateProperty(storedFromUntil, invalidationDate, newFact);
         }
+        if (this.getParentFact() != null) {
+            this.getParentFact().addChildFact(newFact);
+        }
     }
 
     /**
