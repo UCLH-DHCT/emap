@@ -277,6 +277,13 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             return false;
         }
         Fact<?, ?> other = (Fact<?, ?>) obj;
+        if (factType == null) {
+            if (other.factType != null) {
+                return false;
+            }
+        } else if (!factType.equals(other.factType)) {
+            return false;
+        }
         if (properties == null) {
             if (other.properties != null) {
                 return false;
@@ -285,13 +292,6 @@ public abstract class Fact<F extends Fact<F, PropertyType>, PropertyType extends
             return false;
         } else if (!properties.containsAll(other.properties)) {
             // same elements in different order counts as equal
-            return false;
-        }
-        if (factType == null) {
-            if (other.factType != null) {
-                return false;
-            }
-        } else if (!factType.equals(other.factType)) {
             return false;
         }
         return true;
