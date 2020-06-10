@@ -6,7 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-import javax.xml.bind.TypeConstraintException;
 
 /**
  * Properties in the Fact->Property system must support certain things.
@@ -194,7 +193,7 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
         } else if (type.equals(Attribute.class)) {
             return this.valueAsAttribute;
         } else {
-            throw new TypeConstraintException("Not a supported type: " + type);
+            throw new IllegalArgumentException("Not a supported type: " + type);
         }
     }
 
@@ -213,7 +212,7 @@ public abstract class Property<F extends Fact<F, ?>> extends TemporalCore implem
         } else if (value instanceof Attribute) {
             this.valueAsAttribute = (Attribute) value;
         } else {
-            throw new TypeConstraintException("Not a supported type: " + value.getClass());
+            throw new IllegalArgumentException("Not a supported type: " + value.getClass());
         }
     }
 
