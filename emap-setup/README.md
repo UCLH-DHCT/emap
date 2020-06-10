@@ -10,7 +10,7 @@ Code to allow users to run a single script that will
 ##Usage
 1. Create your working directory 
 2. Clone emap-setup into that directory
-3. Copy global-configurations-EXAMPLE.txt as global-configurations and adjust for your own requirements
+3. Copy global-configurations-EXAMPLE.yaml as global-configurations.yaml and adjust for your own requirements
 4. Run ./emap-setup/emap-setup.py
 
 ##Notes

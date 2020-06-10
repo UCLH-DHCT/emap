@@ -7,7 +7,7 @@ from repo_setup import ReadConfig
 def read_config_vars(filename):
     """
     Read the global-configuration file and extract daa for relevant sections
-    :param filename: full path to global-configuration.txt
+    :param filename: full path to global-configuration.yaml
     :return:
     """
     config_file = ReadConfig(filename)
@@ -28,7 +28,7 @@ def create_repostories(main_dir, repos):
 
 def main(args):
     main_dir = os.getcwd()
-    filename = os.path.join(main_dir, '..', 'emap-setup', 'global-configuration.txt')
+    filename = os.path.join(main_dir, '..', 'emap-setup', 'global-configuration.yaml')
     repos = read_config_vars(filename)
     create_repostories(main_dir, repos)
     print("All done")

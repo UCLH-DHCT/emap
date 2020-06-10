@@ -1,3 +1,5 @@
+import yaml
+from openpyxl.compat import file
 
 
 def _is_dividing_line(line):
@@ -31,19 +33,12 @@ class ReadConfig:
     def __init__(self, filename):
         """
         Read the file and create sets of the lines representing different data
-
         :param filename:
         """
-        f = open(filename, 'r')
-        self.config_lines = f.readlines()
-        f.close()
-
-        self.total = len(self.config_lines)
-
-        self.repo_lines = []
-        self.other_lines = []
-
-        self._split_sections()
+        self.docs = None
+        with open(filename) as f:
+            doc = yaml.load_all(f, Loader=yaml.FullLoader)
+            self.docs = list(doc)
 
     def populate_repo_info(self):
         """
@@ -51,59 +46,28 @@ class ReadConfig:
         :return: list of repo dictionary items
         """
         repo_info = []
-        for i in range(0, len(self.repo_lines)-1):
-            line = self.repo_lines[i]
-            nextline = self.repo_lines[i+1]
-            if line == '\n' or nextline == '\n':
-                continue
-            else:
-                # should only both have text when one is name=
-                # and other is branch=
-                name = line.split('=')
-                branch = nextline.split('=')
-                if len(name) < 2 or len(branch) < 2:
-                    print('Problem with rep info')
-                    return []
-                else:
-                    repo_info.append({'name': name[1][0:-1], 'branch': branch[1][0:-1]})
+        # find repositories in docs
+        index = self._get_index('repositories')
+        if index == -1:
+            return repo_info
+        for entry in self.docs[index]['repositories']:
+            repo_info.append(entry)
         return repo_info
-
 
     def print_content(self):
         """ here for development"""
-        print('repo')
-        for line in self.repo_lines:
-            print(line)
-        print('other')
-        for line in self.other_lines:
-            print(line)
+        for doc in self.docs:
+            for k, v in doc.items():
+                print(k, '->', v)
 
-    def _split_sections(self):
+    def _get_index(self, name_of_list):
         """
-        Split the configuration file into sections
+        Return the index in docs for the relevant section
+        :param name_of_list: section name
+        :return: index of section or -1 if not found
         """
-        for i in range(0, self.total):
-            if (i < self.total - 1 and
-                    _is_dividing_line(self.config_lines[i]) and
-                    _is_section_heading(self.config_lines[i + 1])):
-                i = self._read_section(i + 1)
+        for i in range(0, len(self.docs)):
+            if name_of_list in self.docs[i]:
+                return i
+        return -1;
 
-    def _read_section(self, start_index):
-        """
-        Read a particular section of configuration doc
-        :param start_index: index of section header in config_lines
-        :return: index at end of reading section
-        """
-        header = self.config_lines[start_index].split('=')
-        i = start_index + 1
-        if len(header) != 2:
-            return start_index
-        if header[1].startswith('Repositories'):
-            while i < self.total - 1 and not _is_dividing_line(self.config_lines[i]):
-                self.repo_lines.append(self.config_lines[i])
-                i = i + 1
-        elif header[1].startswith('other'):
-            while i < self.total - 1 and not _is_dividing_line(self.config_lines[i]):
-                self.other_lines.append(self.config_lines[i])
-                i = i + 1
-        return i + 1
