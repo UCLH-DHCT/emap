@@ -1,0 +1,40 @@
+# This is an example of the global-configuration.yaml file
+# that needs to be created in the emap-setup directory
+
+###############################################################################
+
+## Please edit sections with information for your setup.
+
+## DO NOT EDIT OR REMOVE text preceded by the '---' symbol as these are used to
+## identify different elements of the configuration.
+
+###############################################################################
+
+# list of required repositories and the branch you require
+# the list below shows those needed for a standard installation
+# you may wish to add others e.g. DBFiller for synthetic data
+
+# To add a repository use the following syntax
+# name_of_repo_on_github
+#   branch:  name_of_branch_you_wish_to_use
+
+---
+config:
+  main_git_dir:
+    https://github.com/inform-health-informatics
+  repositories:
+    Emap-Core:
+      branch: develop
+    caboodle-vitalsigns:
+      branch:  develop
+    hl7-vitals:
+      branch:  vitalsigns
+    OMPO-ETL:
+      branch:  event_driven
+    Emap_interchange:
+      branch:  master
+    InformDB:
+      branch:  develop
+  rabbitmq:
+    - host: rrmq
+    - username: my_name
