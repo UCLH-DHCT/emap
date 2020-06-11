@@ -1,5 +1,9 @@
 import os
-from git import Repo
+from git import Repo, GitCommandError
+
+
+def _report_error(message):
+    print(message)
 
 
 class RepoSetup:
@@ -26,4 +30,8 @@ class RepoSetup:
             this_git = repo + '.git'
             this_git_path = os.path.join(self.main_github, this_git)
             print('cloning ' + this_git_path + ' branch:' + self.repos[repo]['branch'] + ' to ' + this_path)
-            Repo.clone_from(this_git_path, this_path, branch=self.repos[repo]['branch'])
+            try:
+                Repo.clone_from(this_git_path, this_path, branch=self.repos[repo]['branch'])
+            except GitCommandError as e:
+                _report_error('necessary repos could not be cloned due to' + e.stderr)
+                break
