@@ -1,19 +1,13 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
-
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -31,15 +25,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v26.message.ORM_O01;
-import ca.uhn.hl7v2.model.v26.message.ORU_R01;
-import ca.uhn.hl7v2.model.v26.segment.MSH;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
@@ -48,6 +33,20 @@ import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 
 /**
@@ -62,10 +61,10 @@ public class IdsOperations implements AutoCloseable {
     private boolean idsEmptyOnInit;
 
     /**
-     * @param idsCfgXml injected param
+     * @param idsCfgXml            injected param
      * @param defaultStartDatetime the start date to use if no progress has been previously recorded in the DB
-     * @param endDatetime the datetime to finish processing messages, regardless of previous progress
-     * @param environment injected param
+     * @param endDatetime          the datetime to finish processing messages, regardless of previous progress
+     * @param environment          injected param
      */
     public IdsOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
@@ -95,7 +94,7 @@ public class IdsOperations implements AutoCloseable {
     private Integer endUnid;
 
     @Autowired
-    private IdsProgressRepository      idsProgressRepository;
+    private IdsProgressRepository idsProgressRepository;
 
     /**
      * We are writing to the HL7 queue.
@@ -141,10 +140,9 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Find the first message in the IDS that came in at or after a certain
      * timestamp.
-     *
      * @param fromDateTime the timestamp to start from, or null for no boundary
      * @return the unid of the first message to be persisted at or after that time,
-     *         or null if there are no such messages or no bound was requested (fromDateTime == null)
+     * or null if there are no such messages or no bound was requested (fromDateTime == null)
      */
     private Integer getFirstMessageUnidFromDate(Instant fromDateTime) {
         if (fromDateTime == null) {
@@ -170,11 +168,9 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Create a session factory from the given config file, overwriting configurable
      * values from the environment, if specified.
-     *
      * @param configFile the hibernate xml config file
      * @param envPrefix  the prefix for environment variable names, or null if no
      *                   variables should be read from the environment
-     *
      * @return the SessionFactory thus created
      */
     private static SessionFactory makeSessionFactory(String configFile, String envPrefix) {
@@ -232,7 +228,6 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Record that we have processed all messages up to the specified message.
-     *
      * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
      *                             processed
      * @param messageDatetime      the timestamp of this message
@@ -250,8 +245,8 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Write a message into the IDS. For test IDS instances only!
-     * @param hl7message the HL7 message text
-     * @param id the IDS unique ID
+     * @param hl7message     the HL7 message text
+     * @param id             the IDS unique ID
      * @param patientInfoHl7 the parser to get various HL7 fields out of
      * @throws HL7Exception if HAPI does
      */
@@ -296,7 +291,6 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Entry point for populating a test IDS from a file specified on the command
      * line.
-     *
      * @return The CommandLineRunner
      */
     @Bean
@@ -328,11 +322,9 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Get next entry in the IDS, if it exists.
-     *
      * @param lastProcessedId the last one we have successfully processed
-     *
      * @return the first message that comes after lastProcessedId, or null if there
-     *         isn't one
+     * isn't one
      */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
         // consider changing to "get next N messages" for more efficient database
@@ -359,7 +351,6 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Return the next HL7 message in the IDS. If there are no more, block until
      * there are.
-     *
      * @param lastProcessedId the latest unique ID that has already been processed
      * @return the next HL7 message record
      */
@@ -387,10 +378,9 @@ public class IdsOperations implements AutoCloseable {
      * from Inform-db (ETL metadata) - process the message and write to Inform-db -
      * write the latest processed ID to reflect the above message. Blocks until
      * there are new messages.
-     *
-     * @param publisher     the local AMQP handling class
-     * @param parser        the HAPI parser to be used
-     * @throws AmqpException if rabbitmq write fails
+     * @param publisher the local AMQP handling class
+     * @param parser    the HAPI parser to be used
+     * @throws AmqpException       if rabbitmq write fails
      * @throws ReachedEndException if we have reached the pre-configured last message
      */
     @Transactional
@@ -458,9 +448,9 @@ public class IdsOperations implements AutoCloseable {
      * Using the type+trigger event of the HL7 message, create the correct type of
      * interchange message. One HL7 message can give rise to multiple interchange messages.
      * @param msgFromIds the HL7 message
-     * @param idsUnid the sequential ID number from the IDS (unid)
+     * @param idsUnid    the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages, can be empty if no messages should result
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contradicts itself
      */
     public static List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
@@ -469,13 +459,15 @@ public class IdsOperations implements AutoCloseable {
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
-        // Vital signs are not the responsibility of this parser.
-        if (sendingFacility.equals("Vitals")) {
-            logger.info("Skipping Vitals message");
-            return new ArrayList<>();
-        }
         logger.info(String.format("%s^%s", messageType, triggerEvent));
         String sourceId = String.format("%010d", idsUnid);
+        // Parse vitalsigns
+        if (sendingFacility.contains("Vitals")) {
+            if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
+                VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
+                return vitalSignBuilder.getMessages();
+            }
+        }
         if (messageType.equals("ADT")) {
             List<AdtMessage> adtMsg = new ArrayList<>();
             try {
