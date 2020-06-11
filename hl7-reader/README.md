@@ -6,6 +6,23 @@ for deploying a live version
 ## config
 
 Supply the required config files in the `config` directory required by the emap-core deployment.
+This service uses two of these config files:
+
+### `rabbit-envs` file
+
+This sets the username+password on the rabbitmq server.
+If you're on the GAE this should be a strong password to help prevent a user/malware outside the GAE
+from accessing the queue.
+
+[rabbitmq-config-envs.EXAMPLE](rabbitmq-config-envs.EXAMPLE)
+
+### `emap-hl7processor-config-envs` file
+
+This file is used by hl7source to point to the IDS and rabbitmq server.
+
+The required envs in this file with example values are found in 
+[emap-hl7processor-config-envs.EXAMPLE](emap-hl7processor-config-envs.EXAMPLE)
+
 
 # hl7source
 
