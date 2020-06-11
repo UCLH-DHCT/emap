@@ -3,12 +3,9 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.ac.ucl.rits.inform.interchange.ResultStatus;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
@@ -16,19 +13,17 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 
-import static org.junit.Assert.assertNull;
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNull;
 
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-@SpringBootTest
 public class TestVitalSignBuilder {
     private List<VitalSigns> vitalSigns;
     private VitalSigns firstVitalSign;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException, HL7Exception {
-        String hl7 = HL7Utils.readHl7FromResource("VitalSignHL7Message.txt");
+        String hl7 = HL7Utils.readHl7FromResource("vitalsigns/VitalSignHL7Message.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
         firstVitalSign = vitalSigns.get(0);
@@ -36,7 +31,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testMRN() {
-        for (VitalSigns vitalSign: vitalSigns){
+        for (VitalSigns vitalSign : vitalSigns) {
             String result = vitalSign.getMrn();
             assertEquals("21014099", result);
         }
@@ -44,7 +39,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testVisitNumber() {
-        for (VitalSigns vitalSign: vitalSigns){
+        for (VitalSigns vitalSign : vitalSigns) {
             String result = vitalSign.getVisitNumber();
             assertEquals("1002040107", result);
         }
@@ -145,7 +140,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testMultipleOBRs() throws IOException, HL7Exception {
-        String hl7 = HL7Utils.readHl7FromResource("VitalSignMultiOBR.txt");
+        String hl7 = HL7Utils.readHl7FromResource("vitalsigns/VitalSignMultiOBR.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
         assertEquals(4, vitalSigns.size());
