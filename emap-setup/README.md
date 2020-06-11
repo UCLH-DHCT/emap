@@ -11,7 +11,8 @@ Code to allow users to run a single script that will
 1. Create your working directory 
 2. Clone emap-setup into that directory
 3. Copy global-configurations-EXAMPLE.yaml as global-configurations.yaml and adjust for your own requirements
-4. Run ./emap-setup/emap-setup.py
+
+For initial setup run ./emap-setup/emap-setup.py -init
 
 ##Notes
 1. NEED Set up requirements script
