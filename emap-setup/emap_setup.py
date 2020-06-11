@@ -4,6 +4,15 @@ from repo_setup import RepoSetup
 from repo_setup import ReadConfig
 
 
+def usage():
+    print('Usage emap-setup.py args')
+    print('where args is one of:\n')
+    print('-init initial setup from scratch')
+    print('more to follow')
+    print('\n')
+    exit()
+
+
 def create_repostories(main_dir, repos, git_dir):
     """
     Create repositories
@@ -16,10 +25,20 @@ def create_repostories(main_dir, repos, git_dir):
 
 
 def main(args):
+    # get arguments
+    opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+
+    if len(opts) == 0 or len(sys.argv) > 2:
+        usage()
+
+    # set up main variables
     main_dir = os.getcwd()
     filename = os.path.join(main_dir, '..', 'emap-setup', 'global-configuration.yaml')
     config_file = ReadConfig(filename)
-    create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
+
+    # run chosen action
+    if opts[0] == '-init':
+        create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
     print("All done")
 
 
