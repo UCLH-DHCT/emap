@@ -30,25 +30,17 @@ public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEnd
     }
 
     /**
-     * Creates a map of results by test code for an order number within an encounter
-     * Also checks that encounter exists and only has one order
+     * Creates a map of results by test code for an order number.
+     * Also checks that it's attached to the right encounter.
      * @param encounter   encounter id
      * @param orderNumber order number
      * @return resultByTestCode
      */
     Map<String, List<PatientFact>> mapResultsByTestCode(String encounter, String orderNumber) {
-        // ensure that encounter has facts
-        List<PatientFact> allFactsForEncounter = encounterRepo.findEncounterByEncounter(encounter).getFacts();
-        assertFalse(allFactsForEncounter.isEmpty());
-
-        // only one order
-        Map<String, List<PatientFact>> allOrders = allFactsForEncounter.stream().filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_ORDER))
-                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString()));
+        List<PatientFact> allOrders = patientFactRepo.findAllPathologyOrdersByOrderNumber(orderNumber);
         assertEquals(1, allOrders.size());
-
-
-        // query results by test code
-        List<PatientFact> childFacts = allOrders.get(orderNumber).get(0).getChildFacts();
+        assertEquals(encounter, allOrders.get(0).getEncounter().getEncounter());
+        List<PatientFact> childFacts = allOrders.get(0).getChildFacts();
         Map<String, List<PatientFact>> resultsByTestCode = childFacts.stream()
                 .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
                 .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));

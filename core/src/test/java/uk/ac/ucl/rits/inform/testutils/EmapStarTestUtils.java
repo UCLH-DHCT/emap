@@ -153,4 +153,41 @@ public class EmapStarTestUtils {
         assertEquals(expectedOldValidFrom, allStoredInvalid.get(0).getValidFrom());
     }
 
+    /**
+     * Generate a string showing the hierarchical fact/property structure of an
+     * encounter, only down to the level required for microbiology sensitivities
+     * (not truly recursive).
+     *
+     * @param encounterStr the encounter string to print for
+     * @return the pretty string
+     */
+    public String prettyPrintEncounterFacts(String encounterStr) {
+        StringBuilder sb = new StringBuilder();
+        Encounter enc = encounterRepo.findEncounterByEncounter(encounterStr);
+        sb.append(enc + "\n");
+        List<PatientFact> facts = enc.getFacts();
+        sb.append(String.format(" FACTS x %s:\n", facts.size()));
+        for (PatientFact pf : facts) {
+            sb.append(String.format("    FACT[TYPE=%s[%d]]:\n", pf.getFactType().getShortName(), pf.getFactType().getAttributeId()));
+            List<PatientProperty> properties = pf.getProperties();
+            if (properties != null) {
+                sb.append(String.format("        PROPERTIES x %s:\n", properties.size()));
+                for (PatientProperty pp : properties) {
+                    sb.append(String.format("            %s\n", pp.toString()));
+                }
+            }
+            List<PatientFact> childFacts = pf.getChildFacts();
+            sb.append(String.format("        CHILDFACTS x %s:\n", childFacts.size()));
+            for (PatientFact chFact : childFacts) {
+                sb.append(String.format("            CFACT[TYPE=%s[%d]]:\n", chFact.getFactType().getShortName(), chFact.getFactType().getAttributeId()));
+                List<PatientProperty> childProperties = chFact.getProperties();
+                sb.append(String.format("                CF PROPERTIES x %s:\n", childProperties.size()));
+                for (PatientProperty ppp : childProperties) {
+                    sb.append(String.format("                   %s\n", ppp.toString()));
+                }
+            }
+        }
+        return sb.toString();
+    }
+
 }
