@@ -23,7 +23,6 @@ import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
  */
 @SpringBootApplication(scanBasePackages = {
         "uk.ac.ucl.rits.inform.datasources.ids",
-        "uk.ac.ucl.rits.inform.informdb",
         "uk.ac.ucl.rits.inform.interchange"})
 public class AppHl7 {
     private static final Logger logger = LoggerFactory.getLogger(AppHl7.class);
