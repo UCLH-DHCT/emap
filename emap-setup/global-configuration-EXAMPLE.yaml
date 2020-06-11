@@ -15,25 +15,26 @@
 # you may wish to add others e.g. DBFiller for synthetic data
 
 # To add a repository use the following syntax
-# - name: name_of_repo_on_github
+# name_of_repo_on_github
 #   branch:  name_of_branch_you_wish_to_use
 
 ---
-repositories:
-  - name: Emap-Core
-    branch: develop
-  - name: caboodle-vitalsigns
-    branch:  develop
-  - name: hl7-vitals
-    branch:  vitalsigns
-  - name: OMPO-ETL
-    branch:  event_driven
-  - name: Emap_interchange
-    branch:  master
-  - name: InformDB
-    branch:  develop
-
----
-rabbitmq:
-  - host: rrmq
-  - username: my_name
+config:
+  main_git_dir:
+    https://github.com/inform-health-informatics
+  repositories:
+    Emap-Core:
+      branch: develop
+    caboodle-vitalsigns:
+      branch:  develop
+    hl7-vitals:
+      branch:  vitalsigns
+    OMPO-ETL:
+      branch:  event_driven
+    Emap_interchange:
+      branch:  master
+    InformDB:
+      branch:  develop
+  rabbitmq:
+    - host: rrmq
+    - username: my_name
