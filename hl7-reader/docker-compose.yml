@@ -10,7 +10,7 @@ services:
                 HTTPS_PROXY: ${HTTPS_PROXY}
                 https_proxy: ${https_proxy}
         env_file:
-            - ../config/emap-core-config-envs
+            - ../config/emap-hl7processor-config-envs
         logging:
             driver: "json-file"
         restart: on-failure
