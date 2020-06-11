@@ -462,7 +462,7 @@ public class IdsOperations implements AutoCloseable {
         logger.info(String.format("%s^%s", messageType, triggerEvent));
         String sourceId = String.format("%010d", idsUnid);
         // Parse vitalsigns
-        if (sendingFacility.contains("Vitals")) {
+        if (sendingFacility.equals("Vitals")) {
             if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
                 VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
                 return vitalSignBuilder.getMessages();
