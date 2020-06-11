@@ -5,23 +5,22 @@
 
 ## Please edit sections with information for your setup.
 
-## DO NOT EDIT OR REMOVE text preceded by the '---' symbol as these are used to
-## identify different elements of the configuration.
-
 ###############################################################################
-
-# list of required repositories and the branch you require
-# the list below shows those needed for a standard installation
-# you may wish to add others e.g. DBFiller for synthetic data
-
-# To add a repository use the following syntax
-# name_of_repo_on_github
-#   branch:  name_of_branch_you_wish_to_use
 
 ---
 config:
+
+  # this is the main INFORM git-hub directory
   main_git_dir:
     https://github.com/inform-health-informatics
+
+  # list of required repositories and the branch you require
+  # the list below shows those needed for a standard installation
+  # you may wish to add others e.g. DBFiller for synthetic data
+
+  # To add a repository use the following syntax
+  # name_of_repo_on_github
+  #   branch:  name_of_branch_you_wish_to_use
   repositories:
     Emap-Core:
       branch: develop
@@ -35,6 +34,8 @@ config:
       branch:  master
     InformDB:
       branch:  develop
+
+  
   rabbitmq:
     - host: rrmq
     - username: my_name
