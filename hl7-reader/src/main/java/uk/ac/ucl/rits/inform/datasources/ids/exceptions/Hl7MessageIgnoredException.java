@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions;
+package uk.ac.ucl.rits.inform.datasources.ids.exceptions;
 
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
  * @author Jeremy Stein
  *
  */
-public class MessageIgnoredException extends EmapOperationMessageProcessingException {
+public class Hl7MessageIgnoredException extends EmapOperationMessageProcessingException {
 
     private static final long serialVersionUID = 3654478669545317495L;
     private boolean flagFollowUp;
@@ -21,7 +21,7 @@ public class MessageIgnoredException extends EmapOperationMessageProcessingExcep
      * @param errorMessage a string error message
      */
     @Deprecated
-    public MessageIgnoredException(String errorMessage) {
+    public Hl7MessageIgnoredException(String errorMessage) {
         super(errorMessage);
     }
 
@@ -31,7 +31,7 @@ public class MessageIgnoredException extends EmapOperationMessageProcessingExcep
      * @param msg the interchange message
      * @param errorMessage a string error message
      */
-    public MessageIgnoredException(EmapOperationMessage msg, String errorMessage) {
+    public Hl7MessageIgnoredException(EmapOperationMessage msg, String errorMessage) {
         super(errorMessage);
     }
 
