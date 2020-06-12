@@ -22,7 +22,16 @@ class ReadConfig:
         Return a list of dictionary items with repository name and branch
         :return: list of repo dictionary items
         """
-        return self.config_options['config']['repositories']
+        repos = []
+        for repo in self.config_options['config']['repositories']:
+            if 'repo_name' in self.config_options['config']['repositories'][repo]:
+                repo_name = self.config_options['config']['repositories'][repo]['repo_name']
+            else:
+                repo_name = repo
+            repos.append({'name': repo_name,
+                          'dirname': repo,
+                          'branch': self.config_options['config']['repositories'][repo]['branch']})
+        return repos
 
     def get_git_dir(self):
         """

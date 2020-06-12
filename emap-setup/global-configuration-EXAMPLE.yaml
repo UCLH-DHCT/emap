@@ -19,23 +19,53 @@ config:
   # you may wish to add others e.g. DBFiller for synthetic data
 
   # To add a repository use the following syntax
-  # name_of_repo_on_github
+  # name_of_dir - should match name_of_repo_on_github unless we need two branches of same
   #   branch:  name_of_branch_you_wish_to_use
+  #   repo_name: name_of_repo_on_github (only needed if we have a second branch of a repo
+  #               and the name_of_dir is different)
   repositories:
     Emap-Core:
       branch: develop
     caboodle-vitalsigns:
       branch:  develop
-    hl7-vitals:
-      branch:  vitalsigns
-    OMPO-ETL:
+    OMOP-ETL:
       branch:  event_driven
-    Emap_interchange:
+    Emap-interchange:
       branch:  master
     InformDB:
       branch:  develop
+    hl7-vitals:
+      branch:  vitalsigns
+      repo_name: Emap-Core
 
-  
   rabbitmq:
-    - host: rrmq
-    - username: my_name
+    host: rabbitmq
+    port: 5673
+    username: my_name
+    password: my_pw
+
+  ids:
+    jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+    schema: schemaname
+    username: someuser
+    password: redacted
+
+  dates:
+    start:
+    end:
+
+  informdb:
+    schema: inform_schema
+    username: someuser
+    password: redacted
+
+  caboodle:
+    jdbc_url: jdbc:sqlserver://caboodle_db
+    username: cab_user
+    password: cab_password
+
+  uds:
+    jdbc_url: jdbc:postgresql://uds_db:5432/uds
+    schema: caboodle_extract
+    username: caboodle_vitals
+    password: inform

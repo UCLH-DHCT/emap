@@ -26,12 +26,12 @@ class RepoSetup:
         Clone the requested repositories and branches
         """
         for repo in self.repos:
-            this_path = os.path.join(self.main_dir, repo)
-            this_git = repo + '.git'
+            this_path = os.path.join(self.main_dir, repo['dirname'])
+            this_git = repo['name'] + '.git'
             this_git_path = os.path.join(self.main_github, this_git)
-            print('cloning ' + this_git_path + ' branch:' + self.repos[repo]['branch'] + ' to ' + this_path)
+            print('cloning ' + this_git_path + ' branch:' + repo['branch'] + ' to ' + this_path)
             try:
-                Repo.clone_from(this_git_path, this_path, branch=self.repos[repo]['branch'])
+                Repo.clone_from(this_git_path, this_path, branch=repo['branch'])
             except GitCommandError as e:
                 _report_error('necessary repos could not be cloned due to' + e.stderr)
                 break
