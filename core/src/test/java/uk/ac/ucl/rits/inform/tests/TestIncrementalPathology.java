@@ -2,12 +2,11 @@ package uk.ac.ucl.rits.inform.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,13 +58,12 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
                                 .get(0).getValueAsString()));
         List<PatientFact> monocyteResults = resultFactsByTestCode.get("MO");
         assertEquals(3, monocyteResults.size());
-        Map<Pair<Boolean, Boolean>, List<PatientFact>> monocyteResultsByValidity = monocyteResults.stream().collect(Collectors
-                .groupingBy(res -> new ImmutablePair<>(res.getValidUntil() == null, res.getStoredUntil() == null)));
-        List<PatientFact> validResults = monocyteResultsByValidity.get(new ImmutablePair<>(true, true));
-        assertEquals(1, validResults.size());
-        List<PatientProperty> monocyteProperties = validResults.get(0).getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE);
-        assertEquals(1, monocyteProperties.size());
+
+        Instant expectedOld = Instant.parse("2019-07-16T23:04:00Z");
+        Instant expectedNew = Instant.parse("2019-07-16T23:05:00Z");
+        List<PatientProperty> allProperties = monocyteResults.stream().map(mr -> mr.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0)).collect(Collectors.toList());
         // first message has result of 0.35, second message has a result of 0.5 so this should be used
-        assertEquals(0.5, monocyteProperties.get(0).getValueAsReal());
+        emapStarTestUtils._testPropertyValuesOverTime(allProperties, 0.35, 0.5, expectedOld, expectedNew, expectedNew);
+
     }
 }
