@@ -14,6 +14,10 @@ config:
   main_git_dir:
     https://github.com/inform-health-informatics
 
+  # this is whatever name you have chosen for this installation
+  emap_project_name:
+    my_project_name
+
   # list of required repositories and the branch you require
   # the list below shows those needed for a standard installation
   # you may wish to add others e.g. DBFiller for synthetic data
@@ -22,10 +26,10 @@ config:
   # name_of_dir - should match name_of_repo_on_github unless we need two branches of same
   #   branch:  name_of_branch_you_wish_to_use
   #   repo_name: name_of_repo_on_github (only needed if we have a second branch of a repo
-  #               and the name_of_dir is different)
+  #               and the name_of_dir is different
   repositories:
     Emap-Core:
-      branch: develop
+      branch:  develop
     caboodle-vitalsigns:
       branch:  develop
     OMOP-ETL:
@@ -40,21 +44,24 @@ config:
 
   rabbitmq:
     host: rabbitmq
-    port: 5673
+    spring_port: 5673
     username: my_name
     password: my_pw
+    port: 5678
+    admin_port: 5679
 
   ids:
     jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
     schema: schemaname
-    username: someuser
-    password: redacted
+    username: someuserids
+    password: redactedids
 
   dates:
-    start:
+    start: 2020-06-04T00:00:00.000Z
     end:
 
   informdb:
+    jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
     schema: inform_schema
     username: someuser
     password: redacted
