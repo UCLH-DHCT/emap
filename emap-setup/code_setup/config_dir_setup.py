@@ -28,14 +28,19 @@ class ConfigDirSetup:
                 new_env_filename = env_file.split('.EX')
                 target = os.path.join(self.config_dir, new_env_filename[0])
                 shutil.copyfile(original, target)
-                self.substitute_caboodle_info(target)
-                self.substitute_uds_info(target)
-                self.substitute_rabbitmq_info(target)
-                self.substitute_ids_info(target)
-                self.substitute_informdb_info(target, this_dir)
-                self.substitute_omop_info(target)
+                self._substitute_caboodle_info(target)
+                self._substitute_uds_info(target)
+                self._substitute_rabbitmq_info(target)
+                self._substitute_ids_info(target)
+                self._substitute_informdb_info(target, this_dir)
+                self._substitute_omop_info(target)
 
     def _get_envs_examples(self, this_dir):
+        """
+        Return a list of *envs.EXAMPLE files
+        :param this_dir: the directory to search
+        :return:
+        """
         list_of_envs_files = []
         list_of_files = os.listdir(this_dir)
         pattern = "*-envs.EXAMPLE"
@@ -44,7 +49,11 @@ class ConfigDirSetup:
                 list_of_envs_files.append(entry)
         return list_of_envs_files
 
-    def substitute_caboodle_info(self, filename):
+    def _substitute_caboodle_info(self, filename):
+        """
+        Substitute values for caboodle environment
+        :param filename: file in which substitution should happen
+        """
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -70,7 +79,11 @@ class ConfigDirSetup:
         my_file.write(new_contents)
         my_file.close()
 
-    def substitute_uds_info(self, filename):
+    def _substitute_uds_info(self, filename):
+        """
+        Substitute values for UDS environment
+        :param filename: file in which substitution should happen
+        """
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -98,7 +111,11 @@ class ConfigDirSetup:
         my_file.write(new_contents)
         my_file.close()
 
-    def substitute_rabbitmq_info(self, filename):
+    def _substitute_rabbitmq_info(self, filename):
+        """
+        Substitute values for rabbitmq environment
+        :param filename: file in which substitution should happen
+        """
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -142,7 +159,11 @@ class ConfigDirSetup:
         my_file.write(new_contents)
         my_file.close()
 
-    def substitute_ids_info(self, filename):
+    def _substitute_ids_info(self, filename):
+        """
+        Substitute values for IDS environment
+        :param filename: file in which substitution should happen
+        """
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -182,7 +203,12 @@ class ConfigDirSetup:
         my_file.write(new_contents)
         my_file.close()
 
-    def substitute_informdb_info(self, filename, repo):
+    def _substitute_informdb_info(self, filename, repo):
+        """
+        Substitute values for informDB environment
+        :param filename: file in which substitution should happen
+        :param repo: repo using informDB
+        """
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -210,7 +236,11 @@ class ConfigDirSetup:
         my_file.write(new_contents)
         my_file.close()
 
-    def substitute_omop_info(self, filename):
+    def _substitute_omop_info(self, filename):
+        """
+        Substitute values for OMOP environment
+        :param filename: file in which substitution should happen
+        """
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -234,4 +264,3 @@ class ConfigDirSetup:
         my_file = open(filename, 'w')
         my_file.write(new_contents)
         my_file.close()
-
