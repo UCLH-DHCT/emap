@@ -14,6 +14,7 @@ class ConfigDirSetup:
         self.informdb_data = config_file.get_informdb_info()
         self.ids_data = config_file.get_ids_info()
         self.dates_data = config_file.get_dates_info()
+        self.omop_data = config_file.get_omop_info()
 
     def create_config_dir(self):
 #        os.mkdir(self.config_dir)
@@ -31,6 +32,7 @@ class ConfigDirSetup:
                 self.substitute_rabbitmq_info(target)
                 self.substitute_ids_info(target)
                 self.substitute_informdb_info(target, this_dir)
+                self.substitute_omop_info(target)
 
     def _get_envs_examples(self, this_dir):
         list_of_envs_files = []
@@ -206,3 +208,29 @@ class ConfigDirSetup:
         my_file = open(filename, 'w')
         my_file.write(new_contents)
         my_file.close()
+
+    def substitute_omop_info(self, filename):
+        my_file = open(filename)
+        contents = my_file.readlines()
+        my_file.close()
+
+        new_contents = ''
+        for line in contents:
+            if line.startswith('OPS'):
+                code = line.split('=')
+                if 'DROP' in code[0]:
+                    newline = code[0] + '={0}\n'
+                    newline = newline.format(self.omop_data['drop_and_create'])
+                elif 'SCHEMA' in code[0]:
+                    newline = code[0] + '=' + self.omop_data['schema'] + '\n'
+                else:
+                    print('Unknown configuration element ' + code[0] + ' found')
+                    newline = code[0] + '=PLEASE FILL IN'
+            else:
+                newline = line
+            new_contents = new_contents + newline
+
+        my_file = open(filename, 'w')
+        my_file.write(new_contents)
+        my_file.close()
+

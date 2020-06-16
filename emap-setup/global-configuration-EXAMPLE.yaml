@@ -61,10 +61,21 @@ config:
     end:
 
   informdb:
-    jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
-    schema: inform_schema
-    username: someuser
-    password: redacted
+    Emap-Core:
+      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+      schema: inform_schema_for_core
+      username: someuser
+      password: redacted
+    hl7-vitals:
+      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+      schema: inform_schema_for_branch
+      username: someuseraaa
+      password: redactedaaa
+    OMOP-ETL:
+      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+      schema: inform_schema_for_omop
+      username: someuser_omop
+      password: redacted_omop
 
   caboodle:
     jdbc_url: jdbc:sqlserver://caboodle_db
@@ -76,3 +87,7 @@ config:
     schema: caboodle_extract
     username: caboodle_vitals
     password: inform
+
+  omop:
+    drop_and_create: true
+    schema: ops_dev

@@ -74,6 +74,12 @@ class ReadConfig:
         """
         return self.config_options['config']['dates']
 
+    def get_omop_info(self):
+        """
+        Return the information relating to omop environment
+        """
+        return self.config_options['config']['omop']
+
     def print_content(self):
         """ here for development"""
         print(self.config_options)
