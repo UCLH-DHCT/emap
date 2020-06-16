@@ -157,19 +157,17 @@ class ConfigDirSetup:
                 elif 'SCHEMA' in code[0]:
                     newline = code[0] + '=' + self.ids_data['schema'] + '\n'
                 elif 'START_DATETIME' in code[0]:
-
-                    ##### this doesnt work fix it
-#                    if len(self.dates_data['start']) == 0:
-#                        newline = code[0] + '=\n'
-#                    else:
-                    newline = code[0] + '={0}\n'
-                    newline = newline.format(self.dates_data['start'])
+                    if self.dates_data['start'] is None:
+                        newline = code[0] + '=\n'
+                    else:
+                        newline = code[0] + '={0}\n'
+                        newline = newline.format(self.dates_data['start'])
                 elif 'END_DATETIME' in code[0]:
- #                   if len(self.dates_data['end']) == 0:
- #                       newline = code[0] + '=\n'
- #                   else:
-                    newline = code[0] + '={0}\n'
-                    newline = newline.format(self.dates_data['end'])
+                    if self.dates_data['end'] is None:
+                        newline = code[0] + '=\n'
+                    else:
+                        newline = code[0] + '={0}\n'
+                        newline = newline.format(self.dates_data['end'])
                 else:
                     print('Unknown configuration element ' + code[0] + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
