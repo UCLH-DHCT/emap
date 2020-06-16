@@ -27,7 +27,7 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
 
     @Test
     @Transactional
-    public void testSomething() {
+    public void testResultsExist() {
         System.out.println(emapStarTestUtils.prettyPrintEncounterFacts("123412341234"));
 
         List<PatientFact> order001 = patientFactRepo.findAllPathologyOrdersByOrderNumber("94000001");
@@ -48,9 +48,9 @@ public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
     @Test
     @Transactional
     public void testResultsUpdate() {
-        List<PatientFact> findAllPathologyOrdersByOrderNumber = patientFactRepo.findAllPathologyOrdersByOrderNumber("94000002");
-        assertEquals(1, findAllPathologyOrdersByOrderNumber.size());
-        List<PatientFact> resultFacts = findAllPathologyOrdersByOrderNumber.get(0).getChildFacts();
+        List<PatientFact> orders002 = patientFactRepo.findAllPathologyOrdersByOrderNumber("94000002");
+        assertEquals(1, orders002.size());
+        List<PatientFact> resultFacts = orders002.get(0).getChildFacts();
         Map<String, List<PatientFact>> resultFactsByTestCode = resultFacts.stream()
                 .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
                 .collect(Collectors.groupingBy(
