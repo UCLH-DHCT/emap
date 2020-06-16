@@ -16,8 +16,9 @@ class ConfigDirSetup:
         self.dates_data = config_file.get_dates_info()
         self.omop_data = config_file.get_omop_info()
 
-    def create_config_dir(self):
-#        os.mkdir(self.config_dir)
+    def create_or_update_config_dir(self):
+        if not os.path.isdir(self.config_dir):
+            os.mkdir(self.config_dir)
         list_of_dirs = os.listdir(self.main_dir)
         for this_dir in list_of_dirs:
             list_of_envs_files = self._get_envs_examples(this_dir)

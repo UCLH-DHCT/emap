@@ -24,9 +24,16 @@ def create_repostories(main_dir, repos, git_dir):
     r_setup = RepoSetup(main_dir, repos, git_dir)
     r_setup.clone_necessary_repos()
 
-def create_config_dir(main_dir, config_file):
+
+def create_or_update_config_dir(main_dir, config_file):
+    """
+    Create the config dir populating and copying any envs files from the repositories present
+    :param main_dir: Directory to work in
+    :param config_file: Name of the configuration file
+    """
     cd_setup = ConfigDirSetup(main_dir, config_file)
-    cd_setup.create_config_dir()
+    cd_setup.create_or_update_config_dir()
+
 
 def main(args):
     # get arguments
@@ -43,7 +50,7 @@ def main(args):
     # run chosen action
     if opts[0] == '-init':
 #        create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
-        create_config_dir(main_dir, config_file)
+        create_or_update_config_dir(main_dir, config_file)
     elif opts[0] == '-test':
         create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
     print("All done")
