@@ -30,7 +30,7 @@ class ConfigDirSetup:
                 self.substitute_uds_info(target)
                 self.substitute_rabbitmq_info(target)
                 self.substitute_ids_info(target)
-                self.substitute_informdb_info(target)
+                self.substitute_informdb_info(target, this_dir)
 
     def _get_envs_examples(self, this_dir):
         list_of_envs_files = []
@@ -179,9 +179,7 @@ class ConfigDirSetup:
         my_file.write(new_contents)
         my_file.close()
 
-    def substitute_informdb_info(self, filename):
-
-        # MAY BE DIFFERENT IF SEVERAL BRACHES OF EMAP-CORE USED
+    def substitute_informdb_info(self, filename, repo):
         my_file = open(filename)
         contents = my_file.readlines()
         my_file.close()
@@ -191,13 +189,13 @@ class ConfigDirSetup:
             if line.startswith('INFORMDB'):
                 code = line.split('=')
                 if 'URL' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data['jdbc_url'] + '\n'
+                    newline = code[0] + '=' + self.informdb_data[repo]['jdbc_url'] + '\n'
                 elif 'USER' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data['username'] + '\n'
+                    newline = code[0] + '=' + self.informdb_data[repo]['username'] + '\n'
                 elif 'PASS' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data['password'] + '\n'
+                    newline = code[0] + '=' + self.informdb_data[repo]['password'] + '\n'
                 elif 'SCHEMA' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data['schema'] + '\n'
+                    newline = code[0] + '=' + self.informdb_data[repo]['schema'] + '\n'
                 else:
                     print('Unknown configuration element ' + code[0] + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
