@@ -25,14 +25,14 @@ def create_repostories(main_dir, repos, git_dir):
     r_setup.clone_necessary_repos()
 
 
-def determine_repostories(main_dir, git_dir):
+def update_repostories(main_dir, git_dir, repos):
     """
     Create repositories
     :param main_dir: Directory to work in
-    :param repos: dictionary items describing repos
     :param git_dir: path of main git repositories
+    :param repos: dictionary items describing repos
     """
-    r_setup = RepoSetup(main_dir, git_dir)
+    r_setup = RepoSetup(main_dir, git_dir, repos)
 
 
 
@@ -64,7 +64,7 @@ def main(args):
         create_or_update_config_dir(main_dir, config_file)
     elif opts[0] == '-update':
         config_file = ReadConfig(filename)
-        determine_repostories(main_dir, config_file.get_git_dir())
+        update_repostories(main_dir, config_file.get_git_dir(), config_file.get_repo_info())
 
     elif opts[0] == '-test':
         config_file = ReadConfig(filename)
