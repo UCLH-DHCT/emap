@@ -1,6 +1,4 @@
 import os
-
-import yaml
 from git import Repo, GitCommandError
 
 
@@ -12,7 +10,7 @@ class RepoSetup:
     """Clones the relevant inform repositories.
     """
 
-    def __init__(self, main_dir, git_dir, repos=None):
+    def __init__(self, main_dir, repos, git_dir):
         """
         Initialise the repository setup
         :param main_dir: the working directory in which to clone repositories
@@ -20,11 +18,8 @@ class RepoSetup:
         :param git_dir: the main git repository path
         """
         self.main_dir = main_dir
+        self.repos = repos
         self.main_github = git_dir
-        if repos:
-            self.repos = repos
-        else:
-            self.repos =  self.detect_repos()
 
     def clone_necessary_repos(self):
         """
@@ -40,21 +35,3 @@ class RepoSetup:
             except GitCommandError as e:
                 _report_error('necessary repos could not be cloned due to' + e.stderr)
                 break
-
-    def detect_repos(self):
-        self.repos = []
-        list_of_dirs = os.listdir(self.main_dir)
-        for this_dir in list_of_dirs:
-            # leave out config dir
-            if this_dir == 'config':
-                continue
-            this_repo = Repo(os.path.join(self.main_dir, this_dir))
-            remote_url = this_repo.remotes[0].config_reader.get("url")
-            repo_name = os.path.splitext(os.path.basename(remote_url))[0]
-            repo_info = {
-                'dirname': this_dir,
-                'name': repo_name,
-                'branch': this_repo.active_branch.name
-            }
-            self.repos.append(repo_info)
-        print(self.repos)

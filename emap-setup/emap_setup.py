@@ -21,19 +21,8 @@ def create_repostories(main_dir, repos, git_dir):
     :param repos: dictionary items describing repos
     :param git_dir: path of main git repositories
     """
-    r_setup = RepoSetup(main_dir, git_dir, repos)
+    r_setup = RepoSetup(main_dir, repos, git_dir)
     r_setup.clone_necessary_repos()
-
-
-def determine_repostories(main_dir, git_dir):
-    """
-    Create repositories
-    :param main_dir: Directory to work in
-    :param repos: dictionary items describing repos
-    :param git_dir: path of main git repositories
-    """
-    r_setup = RepoSetup(main_dir, git_dir)
-
 
 
 def create_or_update_config_dir(main_dir, config_file):
@@ -56,18 +45,13 @@ def main(args):
     # set up main variables
     main_dir = os.getcwd()
     filename = os.path.join(main_dir, '..', 'emap-setup', 'global-configuration.yaml')
+    config_file = ReadConfig(filename)
 
     # run chosen action
     if opts[0] == '-init':
-        config_file = ReadConfig(filename)
-        create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
+#        create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
         create_or_update_config_dir(main_dir, config_file)
-    elif opts[0] == '-update':
-        config_file = ReadConfig(filename)
-        determine_repostories(main_dir, config_file.get_git_dir())
-
     elif opts[0] == '-test':
-        config_file = ReadConfig(filename)
         create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
     print("All done")
 
