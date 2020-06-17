@@ -1,7 +1,8 @@
 import os
 
-import yaml
-from git import Repo, GitCommandError
+from git import Repo
+from git import GitCommandError
+from git import InvalidGitRepositoryError
 
 
 def _report_error(message):
@@ -42,19 +43,24 @@ class RepoSetup:
                 break
 
     def detect_repos(self):
+        """
+        Repositories already exist; determine the names, directories and branches
+        Populate the self.repos list with the existing information
+        """
         self.repos = []
         list_of_dirs = os.listdir(self.main_dir)
         for this_dir in list_of_dirs:
-            # leave out config dir
-            if this_dir == 'config':
+            try:
+                this_repo = Repo(os.path.join(self.main_dir, this_dir))
+                remote_url = this_repo.remotes[0].config_reader.get("url")
+                repo_name = os.path.splitext(os.path.basename(remote_url))[0]
+                repo_info = {
+                    'dirname': this_dir,
+                    'name': repo_name,
+                    'branch': this_repo.active_branch.name
+                }
+                self.repos.append(repo_info)
+            except InvalidGitRepositoryError:
                 continue
-            this_repo = Repo(os.path.join(self.main_dir, this_dir))
-            remote_url = this_repo.remotes[0].config_reader.get("url")
-            repo_name = os.path.splitext(os.path.basename(remote_url))[0]
-            repo_info = {
-                'dirname': this_dir,
-                'name': repo_name,
-                'branch': this_repo.active_branch.name
-            }
-            self.repos.append(repo_info)
+
         print(self.repos)
