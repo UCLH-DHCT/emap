@@ -33,6 +33,7 @@ def update_repostories(main_dir, git_dir, repos):
     :param repos: dictionary items describing repos
     """
     r_setup = RepoSetup(main_dir, git_dir, repos)
+    r_setup.update_necessary_repositories()
 
 
 

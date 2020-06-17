@@ -4,6 +4,13 @@ from git import Repo
 from git import GitCommandError
 from git import InvalidGitRepositoryError
 
+from git import RemoteProgress
+
+
+class MyProgressPrinter(RemoteProgress):
+    def update(self, op_code, cur_count, max_count=None, message=''):
+        print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message)
+
 
 def _report_error(message):
     print(message)
@@ -24,7 +31,6 @@ class RepoSetup:
         self.main_github = git_dir
         self.repos = repos
         self.current_repos = self.detect_repos()
-        print(self.current_repos)
 
     def clone_necessary_repos(self):
         """
@@ -40,15 +46,51 @@ class RepoSetup:
             this_git_path = os.path.join(self.main_github, this_git)
             print('cloning ' + this_git_path + ' branch:' + this_repo['branch'] + ' to ' + this_path)
             try:
-                Repo.clone_from(this_git_path, this_path, branch=this_repo['branch'])
+                Repo.clone_from(this_git_path, this_path, branch=this_repo['branch'], progress=MyProgressPrinter())
                 self.current_repos[repo] = self.repos[repo].copy()
             except GitCommandError as e:
                 _report_error('necessary repos could not be cloned due to' + e.stderr)
                 break
 
     def update_necessary_repositories(self):
-        print('here')
+        for repo in self.repos:
+            if self._branches_match(repo):
+                try:
+                    print('Updating {0} with repo {1} and branch {2}'.format(repo, self.repos[repo]['name'],
+                                                                             self.repos[repo]['branch']))
+                    this_repo = Repo(os.path.join(self.main_dir, repo))
+                    this_repo.remotes[0].pull(progress=MyProgressPrinter())
+                except GitCommandError as e:
+                    _report_error('{0} with repo {1} and branch {2} could not be pulled due to {4}'
+                                  ''.format(repo,
+                                            self.repos[repo]['name'],
+                                            self.repos[repo]['branch'],
+                                            e.stderr))
+                    break
+            else:
+                try:
+                    print('Checking out repo {1}, branch {2} into {0}'.format(repo, self.repos[repo]['name'],
+                                                                             self.repos[repo]['branch']))
+                    this_repo = Repo(os.path.join(self.main_dir, repo))
+                    this_repo.git.checkout(self.repos[repo]['branch'])
+                except GitCommandError as e:
+                    _report_error('Cannot checkout repo {1}, branch {2} into {0} due to {4}'
+                                  ''.format(repo,
+                                            self.repos[repo]['name'],
+                                            self.repos[repo]['branch'],
+                                            e.stderr))
+                    break
 
+
+    def _branches_match(self, repo):
+        match = True
+        if repo not in self.current_repos:
+            match = False
+        elif self.repos[repo]['name'] != self.current_repos[repo]['name']:
+            match = False
+        elif self.repos[repo]['branch'] != self.current_repos[repo]['branch']:
+            match = False
+        return match
 
     def detect_repos(self):
         """
