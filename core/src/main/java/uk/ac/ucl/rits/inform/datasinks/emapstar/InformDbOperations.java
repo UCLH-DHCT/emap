@@ -828,14 +828,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
                 String newFactKey = newFactEntry.getKey();
                 PatientFact existingResult = existingFactsAsMap.get(newFactKey);
                 if (existingResult != null) {
-                    if (existingResult.equals(newFact)) {
+                    if (existingResult.equalsPathologyResult(newFact)) {
                         logger.debug(
                                 String.format("Ignoring fact, is equal to existing: %s", existingResult.toString()));
                     } else {
                         logger.debug(
                                 String.format(
-                                        "Ignoring fact, although needs updating.\n    Existing: %s\n    New: %s",
+                                        "Fact exists but needs updating.\n    Existing: %s\n    New: %s",
                                         existingResult.toString(), newFact.toString()));
+                        updatePathologyResult(existingResult, newFact, storedFrom);
                     }
                     newFacts.remove();
                 } else {
@@ -869,15 +870,50 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * A key for identifying pathology results so updates can be compared with existing ones.
+     * Crude but it works - just invalidate the whole fact and replace it with a new version.
+     * newFact is a replacement result (with no intermediate "cancel" message), so the invalidation
+     * time is taken from the start time of the new result.
+     * @param existingResult  the result to replace
+     * @param newFact         the result to replace it with
+     * @param storedFromUntil the time at which this change takes place in the DB
+     */
+    private void updatePathologyResult(PatientFact existingResult, PatientFact newFact, Instant storedFromUntil) {
+        Instant invalidationDate = getOnlyElement(
+                newFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME, PatientProperty::isValid))
+                        .getValueAsDatetime();
+        PatientFact order = existingResult.getParentFact();
+        existingResult.invalidateAll(storedFromUntil, invalidationDate);
+        logger.warn(String.format("Old fact validity %s -> %s", existingResult.getValidFrom(), invalidationDate));
+        order.addChildFact(newFact);
+    }
+
+    /**
+     * A key for uniquely identifying pathology results *from the database*.
+     * Must give equivalent results to method {@link #uniqueKeyFromPathologyResultMessage}.
+     * Allows updated results to be compared with existing results.
      * @param pathologyResultFact the pathology result fact
-     * @return a key that is unique within the order
+     * @return a key for the result that is unique within the order
      */
     private String uniqueKeyFromPathologyResultFact(PatientFact pathologyResultFact) {
         PatientFact orderFact = pathologyResultFact.getParentFact();
         PatientProperty testCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE));
         PatientProperty batteryCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE));
-        return batteryCode.getValueAsString() + "_" + testCode.getValueAsString();
+        PatientProperty isolCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ISOLATE_CODE));
+        return String.format("%s_%s_%s", batteryCode.getValueAsString(), testCode.getValueAsString(),
+                isolCode == null ? "" : isolCode.getValueAsString());
+    }
+
+    /**
+     * A key for uniquely identifying pathology results *from an interchange message*.
+     * Must give equivalent results to method {@link #uniqueKeyFromPathologyResultFact}.
+     * Allows updated results to be compared with existing results.
+     * @param testBatteryLocalCode the battery code for the message
+     * @param pathologyResultMessage the pathology result message
+     * @return a key for the result that is unique within the order
+     */
+    private String uniqueKeyFromPathologyResultMessage(String testBatteryLocalCode, PathologyResult pathologyResultMessage) {
+        return String.format("%s_%s_%s", testBatteryLocalCode, pathologyResultMessage.getTestItemLocalCode(),
+                pathologyResultMessage.getIsolateLocalCode());
     }
 
     /**
@@ -977,7 +1013,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             fact.setValidFrom(resultTime);
             fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
-            String key = testBatteryLocalCode + "_" + pr.getTestItemLocalCode();
+            String key = uniqueKeyFromPathologyResultMessage(testBatteryLocalCode, pr);
 
             fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
                     testBatteryLocalCode));
@@ -1000,15 +1036,30 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             fact.addProperty(
                     buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.RESULT_NOTES, pr.getNotes()));
 
-            parent.addChildFact(fact);
-            facts.put(key, fact);
-            // each result can have zero or more sensitivities, which are actually just another type of order
-            List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
-            for (PathologyOrder sensOrder : pathologySensitivities) {
-                // each sensitivity needs to be built as an order
-                List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
-                Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults, sensOrder.getTestBatteryLocalCode());
-                facts.putAll(sensFacts);
+            // Check for duplicates within the given set of results; warn of their presence
+            // and just monitor for differences for the time being.
+            // (We know we're seeing duplicates but we don't know if the actual values are
+            // ever different).
+            PatientFact existing = facts.get(key);
+            if (existing != null) {
+                String details = "";
+                if (!existing.equals(fact)) {
+                    details = String.format("\nExisting = %s\nSubsequent = %s", existing, fact);
+                }
+                logger.warn(String.format("Pathology %s within-message duplicate result not added! Is full duplicate?: %s%s",
+                        key, existing.equals(fact), details));
+            } else {
+                parent.addChildFact(fact);
+                facts.put(key, fact);
+                // each result can have zero or more sensitivities, which are actually just another type of order
+                List<PathologyOrder> pathologySensitivities = pr.getPathologySensitivities();
+                for (PathologyOrder sensOrder : pathologySensitivities) {
+                    // each sensitivity needs to be built as an order
+                    List<? extends PathologyResult> sensResults = sensOrder.getPathologyResults();
+                    Map<String, PatientFact> sensFacts = buildPathologyResultsFacts(fact, storedFrom, sensResults,
+                            sensOrder.getTestBatteryLocalCode());
+                    facts.putAll(sensFacts);
+                }
             }
         }
         return facts;

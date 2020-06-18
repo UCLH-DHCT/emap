@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -63,5 +64,11 @@ public class TestCovid19Test extends TestHl7MessageStream {
         assertEquals("Please note that this test was performed using\n" + "the Hologic Panther Fusion Assay.\n"
                 + "This new assay is currently not UKAS accredited,\n" + "but is internally verified. UKAS extension\n"
                 + "to scope to include this has been submitted.", ncvl.getStringValue());
+
+        // should match the OBR-22
+        Instant expectedResultTime = Instant.parse("2020-03-17T17:35:00Z");
+        assertEquals(expectedResultTime, ncvs.getResultTime());
+        assertEquals(expectedResultTime, ncvp.getResultTime());
+        assertEquals(expectedResultTime, ncvl.getResultTime());
     }
 }
