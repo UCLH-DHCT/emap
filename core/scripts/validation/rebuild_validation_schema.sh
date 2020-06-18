@@ -8,7 +8,8 @@ set -euo pipefail
 # - Truncate hl7 and caboodle progress tables in caboodle_extract_validation schema
 
 date_suffix=$(date +%s)
-log_file_prefix=rebuild_log_${date_suffix}
+mkdir -p ../emap_logs
+log_file_prefix=../emap_logs/rebuild_log_${date_suffix}
 
 # edit hl7 (vitals+adt) config files in place, keeping a backup named by the timestamp
 configure_time_window() {
