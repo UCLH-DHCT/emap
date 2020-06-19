@@ -898,7 +898,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact orderFact = pathologyResultFact.getParentFact();
         PatientProperty testCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE));
         PatientProperty batteryCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE));
-        PatientProperty isolCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ISOLATE_CODE));
+        PatientProperty isolCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ISOLATE_CODE));
         return String.format("%s_%s_%s", batteryCode.getValueAsString(), testCode.getValueAsString(),
                 isolCode == null ? "" : isolCode.getValueAsString());
     }
