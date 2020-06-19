@@ -1,8 +1,8 @@
 import os
 import sys
-from code_setup import RepoSetup
-from code_setup import ReadConfig
-from code_setup import ConfigDirSetup
+from setup.code_setup import RepoSetup
+from setup.code_setup import ReadConfig
+from setup.code_setup import ConfigDirSetup
 
 
 def usage():
