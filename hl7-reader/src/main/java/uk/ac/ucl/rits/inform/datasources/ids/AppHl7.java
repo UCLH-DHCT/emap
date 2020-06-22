@@ -64,9 +64,7 @@ public class AppHl7 {
                     // we may want to handle AmqpException specifically
                     // we need to distinguish between situations where a retry will help
                     // (eg. full queue) and where it won't.
-                    StringWriter st = new StringWriter();
-                    e.printStackTrace(new PrintWriter(st));
-                    logger.error("Exiting because : " + st.toString());
+                    logger.error("Exiting because encountered exception: ", e);
                     break;
                 }
             }
