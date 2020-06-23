@@ -1,9 +1,10 @@
 import os
 import sys
-from setup.code_setup import RepoSetup
-from setup.code_setup import ReadConfig
-from setup.code_setup import ConfigDirSetup
+import argparse
 
+from code_setup import ReadConfig
+from code_setup import ConfigDirSetup
+from code_setup import RepoSetup
 
 def usage():
     print('Usage emap-setup.py args')
@@ -35,12 +36,21 @@ def create_or_update_config_dir(main_dir, config_file):
     cd_setup.create_or_update_config_dir()
 
 
+def define_arguments(args):
+    parser = argparse.ArgumentParser(description='Set up or update emap installation.')
+    return parser
+
+
 def main(args):
     # get arguments
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 
     if len(opts) == 0 or len(sys.argv) > 2:
         usage()
+
+    print(locals())
+    #
+    # # define_arguments(args)
 
     # set up main variables
     main_dir = os.getcwd()
@@ -49,7 +59,7 @@ def main(args):
 
     # run chosen action
     if opts[0] == '-init':
-#        create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
+        create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
         create_or_update_config_dir(main_dir, config_file)
     elif opts[0] == '-test':
         create_repostories(main_dir, config_file.get_repo_info(), config_file.get_git_dir())
@@ -57,4 +67,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main(sys.argv[1:])
