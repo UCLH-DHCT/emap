@@ -1,17 +1,17 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.Objects;
 
 /**
  * Represent a pathology result. Note that this doesn't implement
  * EmapOperationMessage because it's not a message type
  * by itself, it is owned by a message type (PathologyOrder).
- *
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
@@ -298,5 +298,50 @@ public class PathologyResult implements Serializable {
      */
     public void setEpicCareOrderNumber(String epicCareOrderNumber) {
         this.epicCareOrderNumber = epicCareOrderNumber;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PathologyResult that = (PathologyResult) o;
+        return Objects.equals(testItemLocalCode, that.testItemLocalCode)
+                && Objects.equals(valueType, that.valueType)
+                && Objects.equals(testItemLocalDescription, that.testItemLocalDescription)
+                && Objects.equals(testItemCodingSystem, that.testItemCodingSystem)
+                && Objects.equals(observationSubId, that.observationSubId)
+                && Objects.equals(numericValue, that.numericValue)
+                && Objects.equals(stringValue, that.stringValue)
+                && Objects.equals(isolateLocalCode, that.isolateLocalCode)
+                && Objects.equals(isolateLocalDescription, that.isolateLocalDescription)
+                && Objects.equals(isolateCodingSystem, that.isolateCodingSystem)
+                && Objects.equals(units, that.units) && Objects.equals(referenceRange, that.referenceRange)
+                && Objects.equals(abnormalFlags, that.abnormalFlags) && Objects.equals(resultStatus, that.resultStatus)
+                && Objects.equals(resultTime, that.resultTime) && Objects.equals(notes, that.notes)
+                && Objects.equals(pathologySensitivities, that.pathologySensitivities)
+                && Objects.equals(epicCareOrderNumber, that.epicCareOrderNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(valueType, testItemLocalCode, testItemLocalDescription, testItemCodingSystem,
+                observationSubId, numericValue, stringValue, isolateLocalCode, isolateLocalDescription, isolateCodingSystem,
+                units, referenceRange, abnormalFlags, resultStatus, resultTime, notes, pathologySensitivities, epicCareOrderNumber);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(new StringBuilder()
+                        .append("PathologyResult{\nvalueType='%s', testItemLocalCode='%s', testItemLocalDescription='%s', ")
+                        .append("testItemCodingSystem='%s', observationSubId='%s', numericValue=%s, stringValue='%s', isolateLocalCode='%s', ")
+                        .append("isolateLocalDescription='%s', isolateCodingSystem='%s', units='%s', referenceRange='%s', abnormalFlags='%s', ")
+                        .append("resultStatus='%s', resultTime=%s, notes='%s', pathologySensitivities=%s, epicCareOrderNumber='%s'}").toString(),
+                valueType, testItemLocalCode, testItemLocalDescription, testItemCodingSystem, observationSubId,
+                numericValue, stringValue, isolateLocalCode, isolateLocalDescription, isolateCodingSystem, units,
+                referenceRange, abnormalFlags, resultStatus, resultTime, notes, pathologySensitivities, epicCareOrderNumber);
     }
 }
