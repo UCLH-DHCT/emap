@@ -1,5 +1,13 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.springframework.util.ResourceUtils;
+
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +31,17 @@ public class TestPathologyOrderFactory {
     String sourceMessageIdPrefix = "0000000000_";
 
     public TestPathologyOrderFactory() {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        mapper.findAndRegisterModules();
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        try {
+            File file = ResourceUtils.getFile("classpath:ORU_R01.yaml");
+            List<PathologyOrder> pathologyOrders = mapper.readValue(file, new TypeReference<List<PathologyOrder>>() {});
+            System.out.println(pathologyOrders.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
     }
@@ -109,8 +128,8 @@ public class TestPathologyOrderFactory {
         List<PathologyOrder> orders = new ArrayList<>();
         int i = 0;
         for (Map<String, String> orderData : ordersData) {
-            String epicCareOrderNumber = Long.valueOf(firstOrderNumber + i).toString();
             String sourceMessageId = sourceMessageIdPrefix + String.format("%02d", i);
+            String epicCareOrderNumber = Long.valueOf(firstOrderNumber + 1 + i).toString();
             PathologyOrder order = buildPathologyOrder(sourceMessageId, epicCareOrderNumber, orderData, allResultsData.get(i));
             orders.add(order);
             i++;
