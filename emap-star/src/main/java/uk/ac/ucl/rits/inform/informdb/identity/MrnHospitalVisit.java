@@ -34,7 +34,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
         @Index(name = "mrn_encounter_valid_until_index", columnList = "validUntil", unique = false),
 })
 @JsonIgnoreProperties({"mrn", "valid"})
-public class MrnHospitalVisit extends TemporalCore implements Serializable {
+public class MrnHospitalVisit extends TemporalCore<MrnHospitalVisit> implements Serializable {
 
     private static final long serialVersionUID = 4153619042373632717L;
 
@@ -62,6 +62,13 @@ public class MrnHospitalVisit extends TemporalCore implements Serializable {
      * Create a new Mrn/HospitalVisit association.
      */
     public MrnHospitalVisit() {}
+
+    public MrnHospitalVisit(MrnHospitalVisit other) {
+        super(other);
+
+        this.mrnId = other.mrnId;
+        this.hospitalVisitDurableId = other.hospitalVisitDurableId;
+    }
 
     /**
      * Create a new MRN/HospitalVisit association.
@@ -120,5 +127,10 @@ public class MrnHospitalVisit extends TemporalCore implements Serializable {
     public String toString() {
         return String.format("MrnHospitalVisit [mrnHospitalVisitId=%d, mrnId=%d, hospitalVisitDurableKey=%d]", mrnHospitalVisitId, mrnId.getMrnId(),
                 this.hospitalVisitDurableId);
+    }
+
+    @Override
+    public MrnHospitalVisit copy() {
+        return new MrnHospitalVisit(this);
     }
 }

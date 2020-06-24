@@ -14,7 +14,7 @@ import javax.persistence.Table;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 /**
- * Over time Mrns are merged into others as more is found out about a patient.
+ * Over time MRNs are merged into others as more is found out about a patient.
  * This table stores a mapping from every MRN known to the system, to its
  * currently live (in use) MRN.
  *
@@ -23,7 +23,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  */
 @Entity
 @Table(name = "mrn_to_live")
-public class MrnToLive extends TemporalCore implements Serializable {
+public class MrnToLive extends TemporalCore<MrnToLive> implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
 
@@ -38,6 +38,14 @@ public class MrnToLive extends TemporalCore implements Serializable {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "live_mrn_id", nullable = false)
     private Mrn               liveMrnId;
+
+    public MrnToLive() {}
+
+    public MrnToLive(MrnToLive other) {
+        super(other);
+        this.mrnId = other.mrnId;
+        this.liveMrnId = other.liveMrnId;
+    }
 
     /**
      * @return the mrnToLiveId
@@ -84,6 +92,11 @@ public class MrnToLive extends TemporalCore implements Serializable {
     @Override
     public String toString() {
         return "MrnToLive [mrn_id=" + mrnId + ", live_mrn_id=" + liveMrnId + ", current=" + this.isCurrent() + "]";
+    }
+
+    @Override
+    public MrnToLive copy() {
+        return new MrnToLive(this);
     }
 
 }

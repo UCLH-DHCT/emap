@@ -28,7 +28,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 @Entity
 @JsonIgnoreProperties({})
 @Table(indexes = {})
-public class LocationVisit extends TemporalCore implements Serializable {
+public class LocationVisit extends TemporalCore<LocationVisit> implements Serializable {
 
     private static final long serialVersionUID = -8228844390430073225L;
 
@@ -47,6 +47,19 @@ public class LocationVisit extends TemporalCore implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant           dischargeTime;
     private String            location;
+
+    public LocationVisit() {}
+
+    public LocationVisit(LocationVisit other) {
+        super(other);
+
+        this.bedVisitDurableIid = other.bedVisitDurableIid;
+        this.parentHospitalVisitDurableId = other.parentHospitalVisitDurableId;
+        this.parentBedVisitDurableId = other.parentBedVisitDurableId;
+        this.admissionTime = other.admissionTime;
+        this.dischargeTime = other.dischargeTime;
+        this.location = other.location;
+    }
 
     /**
      * @return the bedVisitId
@@ -144,6 +157,11 @@ public class LocationVisit extends TemporalCore implements Serializable {
      */
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    @Override
+    public LocationVisit copy() {
+        return new LocationVisit(this);
     }
 
 }

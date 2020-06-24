@@ -18,9 +18,11 @@ import javax.persistence.MappedSuperclass;
  *
  * @author UCL RITS
  *
+ * @param <T> The Class type returned by the invalidation method.
+ *
  */
 @MappedSuperclass
-public abstract class TemporalCore {
+public abstract class TemporalCore<T extends TemporalCore<T>> {
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant validFrom;
@@ -40,7 +42,7 @@ public abstract class TemporalCore {
      * Copy constructor.
      * @param other object to copy from
      */
-    public TemporalCore(TemporalCore other) {
+    public TemporalCore(TemporalCore<T> other) {
         validFrom = other.validFrom;
         validUntil = other.validUntil;
         storedFrom = other.storedFrom;
@@ -143,5 +145,24 @@ public abstract class TemporalCore {
         return storedUntil == null && asOfTime.compareTo(validFrom) >= 0
                 && (validUntil == null
                         || asOfTime.compareTo(validUntil) < 0);
+    }
+
+    public abstract T copy();
+
+    /**
+     * Invalidate this object by deleting it and creating a new row showing the
+     * now-closed validity interval.
+     *
+     * @param storedFromUntil  the time that this change is being made in the DB
+     * @param invalidationDate the time at which this fact stopped being true, can
+     *                         be any amount of time in the past
+     * @return the newly created row
+     */
+    public T invalidate(Instant storedFromUntil, Instant invalidationDate) {
+        T copiedInstance = this.copy();
+        this.setStoredUntil(storedFromUntil);
+        copiedInstance.setStoredFrom(storedFromUntil);
+        copiedInstance.setValidUntil(invalidationDate);
+        return copiedInstance;
     }
 }

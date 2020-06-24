@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
@@ -22,8 +23,9 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  *
  */
 @Entity
-@Table(indexes = {})
-public class CoreDemographic extends TemporalCore implements Serializable {
+@Table(indexes = {
+        @Index(name = "core_demographic_durable_id", columnList = "coreDemographicDurableId", unique = false) })
+public class CoreDemographic extends TemporalCore<CoreDemographic> implements Serializable {
 
     private static final long serialVersionUID = -8269778602198494673L;
 
@@ -51,6 +53,27 @@ public class CoreDemographic extends TemporalCore implements Serializable {
     private boolean           alive;
     private String            homePostcode;
     private String            sex;
+
+    public CoreDemographic() {}
+
+    public CoreDemographic(CoreDemographic other) {
+        super(other);
+        this.coreDemographicDurableId = other.coreDemographicDurableId;
+        this.mrnId = other.mrnId;
+        this.firstname = other.firstname;
+        this.middlename = other.middlename;
+        this.lastname = other.lastname;
+
+        this.dateOfBirth = other.dateOfBirth;
+        this.dateOfDeath = other.dateOfDeath;
+
+        this.datetimeOfBirth = other.datetimeOfBirth;
+        this.datetimeOfDeath = other.datetimeOfDeath;
+
+        this.alive = other.alive;
+        this.homePostcode = other.homePostcode;
+        this.sex = other.sex;
+    }
 
     /**
      * @return the coreDemographicId
@@ -232,6 +255,11 @@ public class CoreDemographic extends TemporalCore implements Serializable {
      */
     public void setSex(String sex) {
         this.sex = sex;
+    }
+
+    @Override
+    public CoreDemographic copy() {
+        return new CoreDemographic(this);
     }
 
 }
