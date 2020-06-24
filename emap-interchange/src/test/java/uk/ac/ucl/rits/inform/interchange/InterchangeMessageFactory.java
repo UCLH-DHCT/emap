@@ -29,7 +29,7 @@ public class InterchangeMessageFactory {
      * @param fileName filename within test resources/AdtMessages
      * @return ADT message
      */
-    public AdtMessage getAdtMessage(final String fileName, final String sourceMessageId){
+    public AdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
         AdtMessage adtMessage = new AdtMessage();
         String resourcePath = "classpath:AdtMessages/" + fileName;
         try {
@@ -58,8 +58,9 @@ public class InterchangeMessageFactory {
             pathologyOrders = mapper.readValue(file, new TypeReference<List<PathologyOrder>>() {});
             int count = 1;
             for (PathologyOrder order : pathologyOrders) {
-                updatePathologyOrderItsAndResults(sourceMessagePrefix, resourcePath, count, order);
-                updatePathologySensitivities(sourceMessagePrefix, resourcePath, count, order);
+                String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
+                updatePathologyOrderItsAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
+                updatePathologySensitivities(order, sourceMessageId, resourcePath.replace(".yaml", "_sens"));
                 count++;
             }
         } catch (IOException e) {
@@ -68,29 +69,53 @@ public class InterchangeMessageFactory {
         return pathologyOrders;
     }
 
-    private void updatePathologyResults(PathologyOrder order, final String resourcePath) throws IOException {
-        String resultDefaultPath = resourcePath.replace(".yaml", "_result_defaults.yaml");
+    /**
+     * Update all of a pathology order's pathology results from yaml file
+     * @param order              pathology order
+     * @param resourcePathPrefix prefix in the form '{directory}/{file_stem}'
+     * @throws IOException if files don't exist
+     */
+    private void updatePathologyResults(PathologyOrder order, final String resourcePathPrefix) throws IOException {
+        String resultDefaultPath = resourcePathPrefix + "_result_defaults.yaml";
         for (PathologyResult result : order.getPathologyResults()) {
+            //  update results from parent order data
+            result.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
+            result.setResultTime(order.getStatusChangeTime());
+            // update result with yaml data
             ObjectReader resultReader = mapper.readerForUpdating(result);
-            PathologyResult updatedResult = resultReader.readValue(ResourceUtils.getFile(resultDefaultPath));
-            updatedResult.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
-            updatedResult.setResultTime(order.getStatusChangeTime());
+            resultReader.readValue(ResourceUtils.getFile(resultDefaultPath));
         }
     }
 
-    private void updatePathologyOrderItsAndResults(String sourceMessagePrefix, String resourcePath, int count, PathologyOrder order) throws IOException {
-        String orderDefaultPath = resourcePath.replace(".yaml", "_order_defaults.yaml");
+    /**
+     * Update a pathology order and its pathology results from yaml defaults files
+     * @param order              pathology order
+     * @param sourceMessageId    messageId
+     * @param resourcePathPrefix prefix in the form '{directory}/{file_stem}'
+     * @throws IOException if files don't exist
+     */
+    private void updatePathologyOrderItsAndResults(PathologyOrder order, final String sourceMessageId, final String resourcePathPrefix) throws IOException {
+        order.setSourceMessageId(sourceMessageId);
+        // update order with yaml data
         ObjectReader orderReader = mapper.readerForUpdating(order);
-        PathologyOrder updatedOrder = orderReader.readValue(ResourceUtils.getFile(orderDefaultPath));
-        updatedOrder.setSourceMessageId(sourceMessagePrefix + "_" + String.format("%02d", count));
-        updatePathologyResults(order, resourcePath);
-        }
+        String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
+        order = orderReader.readValue(ResourceUtils.getFile(orderDefaultPath));
 
-    private void updatePathologySensitivities(String sourceMessagePrefix, String resourcePath, int count, PathologyOrder order) throws IOException {
-        for (PathologyResult result: order.getPathologyResults()) {
+        updatePathologyResults(order, resourcePathPrefix);
+    }
+
+    /**
+     * If a pathology order's results has a sensitivity, update the sensitivity with default values
+     * @param order           pathology order
+     * @param sourceMessageId message Id
+     * @param resourcePath    resource path in form '{directory}/{file_stem}_sens_'
+     * @throws IOException if file doesn't exist
+     */
+    private void updatePathologySensitivities(PathologyOrder order, final String sourceMessageId, final String resourcePath) throws IOException {
+        for (PathologyResult result : order.getPathologyResults()) {
             if (!result.getPathologySensitivities().isEmpty()) {
-                for (PathologyOrder subOrder: result.getPathologySensitivities()) {
-                    updatePathologyOrderItsAndResults(sourceMessagePrefix, resourcePath, count, subOrder);
+                for (PathologyOrder sensitivityPathologyOrder : result.getPathologySensitivities()) {
+                    updatePathologyOrderItsAndResults(sensitivityPathologyOrder, sourceMessageId, resourcePath);
                 }
             }
         }
