@@ -1,5 +1,4 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_01"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -47,7 +46,6 @@
   testBatteryLocalDescription: "BONE PROFILE"
   statusChangeTime: "2013-07-25T12:58:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_02"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -95,7 +93,6 @@
   testBatteryLocalDescription: "IRON PROFILE"
   statusChangeTime: "2013-07-25T12:59:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_03"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -125,7 +122,6 @@
   testBatteryLocalDescription: "HAEMOGLOBIN A1C"
   statusChangeTime: "2013-07-25T11:29:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_04"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "FT"
@@ -143,7 +139,6 @@
   testBatteryLocalDescription: "GLUCOSE"
   statusChangeTime: "2013-07-26T11:21:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_05"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -202,7 +197,6 @@
   testBatteryLocalDescription: "LIPID PROFILE"
   statusChangeTime: "2013-07-25T12:59:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_06"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -232,7 +226,6 @@
   testBatteryLocalDescription: "VITAMIN B12 & SERUM FOLAT"
   statusChangeTime: "2013-07-25T18:14:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_07"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -340,7 +333,6 @@
   testBatteryLocalDescription: "FULL BLOOD COUNT"
   statusChangeTime: "2013-07-24T18:26:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_08"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -398,7 +390,6 @@
   testBatteryLocalDescription: "DIFFERENTIAL"
   statusChangeTime: "2013-07-24T18:26:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_09"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
@@ -416,7 +407,6 @@
   testBatteryLocalDescription: "25-HYDROXY VITAMIN D"
   statusChangeTime: "2013-07-29T08:41:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
-  sourceMessageId: "0000000000_10"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
       valueType: "NM"
