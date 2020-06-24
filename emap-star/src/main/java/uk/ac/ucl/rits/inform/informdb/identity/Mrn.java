@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb;
+package uk.ac.ucl.rits.inform.informdb.identity;
 
 import java.io.Serializable;
 import java.time.Instant;

@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb;
+package uk.ac.ucl.rits.inform.informdb.identity;
 
 import java.io.Serializable;
 
@@ -13,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 /**
  * An MRN has multiple encounters, and an hospitalVisit may (over time) be

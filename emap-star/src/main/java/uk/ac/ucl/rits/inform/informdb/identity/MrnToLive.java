@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb;
+package uk.ac.ucl.rits.inform.informdb.identity;
 
 import java.io.Serializable;
 
@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 /**
  * Over time Mrns are merged into others as more is found out about a patient.
