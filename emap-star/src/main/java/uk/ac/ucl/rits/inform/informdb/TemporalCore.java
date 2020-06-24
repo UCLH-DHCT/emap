@@ -113,19 +113,19 @@ public abstract class TemporalCore {
     }
 
     /**
-     * Is this row valid now? We are assuming that from/until
+     * Is this row current now? We are assuming that from/until
      * dates will never be in the future, or if they are it
      * will only be due to system clocks being slightly adrift
      * and nothing should be read into it.
-     * This means that you can check for validity as of
-     * the present by checking the nullness of the until date.
+     * This means that you can check for currentness as of
+     * the present by checking the nullness of the until dates.
      * This is subtly different from calling isValidAsOf
      * and passing in the current time, which can give unexpected
      * results due to clock mismatches.
      *
-     * @return whether this row is valid as of now
+     * @return whether this row is current as of now
      */
-    public boolean isValid() {
+    public boolean isCurrent() {
         return validUntil == null && storedUntil == null;
     }
 
