@@ -32,17 +32,18 @@ public class InterchangeMessageFactory {
      *                 and pathology order values overwritten from 'ORU_R01_pathology_order_defaults.yaml'
      * @return List of pathology orders deserialised from the files
      */
-    public List<PathologyOrder> getPathologyOrders(String fileName, String sourceMessagePrefix) {
+    public List<PathologyOrder> getPathologyOrders(final String fileName, final String sourceMessagePrefix) {
         List<PathologyOrder> pathologyOrders = new ArrayList<>();
+        String resourcePath = "classpath:PathologyOrders/" + fileName;
         try {
-            File file = ResourceUtils.getFile("classpath:" + fileName);
+            File file = ResourceUtils.getFile(resourcePath);
             pathologyOrders = mapper.readValue(file, new TypeReference<List<PathologyOrder>>() {});
             int count = 1;
             for (PathologyOrder order : pathologyOrders) {
-                String orderDefaultPath = fileName.replace(".yaml", "_pathology_order_defaults.yaml");
+                String orderDefaultPath = resourcePath.replace(".yaml", "_order_defaults.yaml");
                 updatePathologyOrder(order, orderDefaultPath, sourceMessagePrefix, count);
                 for (PathologyResult result : order.getPathologyResults()) {
-                    String resultDefaultPath = fileName.replace(".yaml", "_pathology_result_defaults.yaml");
+                    String resultDefaultPath = resourcePath.replace(".yaml", "_result_defaults.yaml");
                     updatePathologyResult(result, resultDefaultPath, order);
                 }
                 count++;
@@ -53,16 +54,16 @@ public class InterchangeMessageFactory {
         return pathologyOrders;
     }
 
-    private void updatePathologyOrder(PathologyOrder order, final String fileName,
+    private void updatePathologyOrder(PathologyOrder order, final String resourcePath,
                                       final String sourceMessagePrefix, final int count) throws IOException {
         ObjectReader orderReader = mapper.readerForUpdating(order);
-        PathologyOrder updatedOrder = orderReader.readValue(ResourceUtils.getFile("classpath:" + fileName));
+        PathologyOrder updatedOrder = orderReader.readValue(ResourceUtils.getFile(resourcePath));
         updatedOrder.setSourceMessageId(sourceMessagePrefix + "_" + String.format("%02d", count));
     }
 
-    private void updatePathologyResult(PathologyResult result, final String fileName, final PathologyOrder order) throws IOException {
+    private void updatePathologyResult(PathologyResult result, final String resourcePath, final PathologyOrder order) throws IOException {
         ObjectReader resultReader = mapper.readerForUpdating(result);
-        PathologyResult updatedResult = resultReader.readValue(ResourceUtils.getFile("classpath:" + fileName));
+        PathologyResult updatedResult = resultReader.readValue(ResourceUtils.getFile(resourcePath));
         updatedResult.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
         updatedResult.setResultTime(order.getStatusChangeTime());
     }
