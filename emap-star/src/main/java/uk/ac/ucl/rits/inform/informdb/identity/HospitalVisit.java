@@ -60,39 +60,39 @@ public class HospitalVisit implements Serializable {
      * This may be prior to their admission.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           presentation_time;
+    private Instant           presentationTime;
 
     /**
      * The time the patient was formally admitted.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           admission_time;
+    private Instant           admissionTime;
 
     /**
      * The time the patient was discharged.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           discharge_time;
+    private Instant           dischargeTime;
 
     /**
      * The patient class. E.g. Inpatient or Outpaitent.
      */
-    private String            patient_class;
+    private String            patientClass;
 
     /**
      * The patient's arrival method at hospital.
      */
-    private String            arrival_method;
+    private String            arrivalMethod;
 
     /**
      * Where the patient went after their departure.
      */
-    private String            discharge_destination;
+    private String            dischargeDestination;
 
     /**
      * The patient's disposition on departure.
      */
-    private String            discharge_disposition;
+    private String            dischargeDisposition;
 
     /**
      * @return the hospitalVisitId
@@ -151,101 +151,101 @@ public class HospitalVisit implements Serializable {
     }
 
     /**
-     * @return the presentation_time
+     * @return the presentationTime
      */
-    public Instant getPresentation_time() {
-        return presentation_time;
+    public Instant getPresentationTime() {
+        return presentationTime;
     }
 
     /**
-     * @param presentation_time the presentation_time to set
+     * @param presentationTime the presentationTime to set
      */
-    public void setPresentation_time(Instant presentation_time) {
-        this.presentation_time = presentation_time;
+    public void setPresentationTime(Instant presentationTime) {
+        this.presentationTime = presentationTime;
     }
 
     /**
-     * @return the admission_time
+     * @return the admissionTime
      */
-    public Instant getAdmission_time() {
-        return admission_time;
+    public Instant getAdmissionTime() {
+        return admissionTime;
     }
 
     /**
-     * @param admission_time the admission_time to set
+     * @param admissionTime the admissionTime to set
      */
-    public void setAdmission_time(Instant admission_time) {
-        this.admission_time = admission_time;
+    public void setAdmissionTime(Instant admissionTime) {
+        this.admissionTime = admissionTime;
     }
 
     /**
-     * @return the discharge_time
+     * @return the dischargeTime
      */
-    public Instant getDischarge_time() {
-        return discharge_time;
+    public Instant getDischargeTime() {
+        return dischargeTime;
     }
 
     /**
-     * @param discharge_time the discharge_time to set
+     * @param dischargeTime the dischargeTime to set
      */
-    public void setDischarge_time(Instant discharge_time) {
-        this.discharge_time = discharge_time;
+    public void setDischargeTime(Instant dischargeTime) {
+        this.dischargeTime = dischargeTime;
     }
 
     /**
-     * @return the patient_class
+     * @return the patientClass
      */
-    public String getPatient_class() {
-        return patient_class;
+    public String getPatientClass() {
+        return patientClass;
     }
 
     /**
-     * @param patient_class the patient_class to set
+     * @param patientClass the patientClass to set
      */
-    public void setPatient_class(String patient_class) {
-        this.patient_class = patient_class;
+    public void setPatientClass(String patientClass) {
+        this.patientClass = patientClass;
     }
 
     /**
-     * @return the arrival_method
+     * @return the arrivalMethod
      */
-    public String getArrival_method() {
-        return arrival_method;
+    public String getArrivalMethod() {
+        return arrivalMethod;
     }
 
     /**
-     * @param arrival_method the arrival_method to set
+     * @param arrivalMethod the arrivalMethod to set
      */
-    public void setArrival_method(String arrival_method) {
-        this.arrival_method = arrival_method;
+    public void setArrivalMethod(String arrivalMethod) {
+        this.arrivalMethod = arrivalMethod;
     }
 
     /**
-     * @return the discharge_destination
+     * @return the dischargeDestination
      */
-    public String getDischarge_destination() {
-        return discharge_destination;
+    public String getDischargeDestination() {
+        return dischargeDestination;
     }
 
     /**
-     * @param discharge_destination the discharge_destination to set
+     * @param dischargeDestination the dischargeDestination to set
      */
-    public void setDischarge_destination(String discharge_destination) {
-        this.discharge_destination = discharge_destination;
+    public void setDischargeDestination(String dischargeDestination) {
+        this.dischargeDestination = dischargeDestination;
     }
 
     /**
-     * @return the discharge_disposition
+     * @return the dischargeDisposition
      */
-    public String getDischarge_disposition() {
-        return discharge_disposition;
+    public String getDischargeDisposition() {
+        return dischargeDisposition;
     }
 
     /**
-     * @param discharge_disposition the discharge_disposition to set
+     * @param dischargeDisposition the dischargeDisposition to set
      */
-    public void setDischarge_disposition(String discharge_disposition) {
-        this.discharge_disposition = discharge_disposition;
+    public void setDischargeDisposition(String dischargeDisposition) {
+        this.dischargeDisposition = dischargeDisposition;
     }
 
     @Override

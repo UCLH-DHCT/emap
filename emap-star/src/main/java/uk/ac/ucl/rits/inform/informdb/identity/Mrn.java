@@ -119,7 +119,7 @@ public class Mrn implements Serializable {
     }
 
     /**
-     * Get the list of relationships where this Mrn is linked to a HospitalVisit
+     * Get the list of relationships where this Mrn is linked to a HospitalVisit.
      *
      * @return the list of all Hospital Visit relationships
      */
@@ -128,7 +128,7 @@ public class Mrn implements Serializable {
     }
 
     /**
-     * @param encounters the encounters to set
+     * @param hospitalVisits the encounters to set
      */
     public void setHospitalVisits(List<MrnHospitalVisit> hospitalVisits) {
         this.hospitalVisits = hospitalVisits;

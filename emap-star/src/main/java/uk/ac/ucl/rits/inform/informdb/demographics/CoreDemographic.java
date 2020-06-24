@@ -29,69 +29,69 @@ public class CoreDemographic extends TemporalCore implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long              core_demographic_id;
+    private long              coreDemographicId;
     @Column(nullable = false)
-    private long              core_demographic_durable_id;
+    private long              coreDemographicDurableId;
 
     @Column(nullable = false)
-    private long              mrn_id;
+    private long              mrnId;
 
     private String            firstname;
     private String            middlename;
     private String            lastname;
 
-    private LocalDate         date_of_birth;
-    private LocalDate         date_of_death;
+    private LocalDate         dateOfBirth;
+    private LocalDate         dateOfDeath;
 
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           datetime_of_birth;
+    private Instant           datetimeOfBirth;
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           datetime_of_death;
+    private Instant           datetimeOfDeath;
 
     private boolean           alive;
-    private String            home_postcode;
+    private String            homePostcode;
     private String            sex;
 
     /**
-     * @return the core_demographic_id
+     * @return the coreDemographicId
      */
-    public long getCore_demographic_id() {
-        return core_demographic_id;
+    public long getCoreDemographicId() {
+        return coreDemographicId;
     }
 
     /**
-     * @param core_demographic_id the core_demographic_id to set
+     * @param coreDemographicId the coreDemographicId to set
      */
-    public void setCore_demographic_id(long core_demographic_id) {
-        this.core_demographic_id = core_demographic_id;
+    public void setCoreDemographicId(long coreDemographicId) {
+        this.coreDemographicId = coreDemographicId;
     }
 
     /**
-     * @return the core_demographic_durable_id
+     * @return the coreDemographicDurableId
      */
-    public long getCore_demographic_durable_id() {
-        return core_demographic_durable_id;
+    public long getCoreDemographicDurableId() {
+        return coreDemographicDurableId;
     }
 
     /**
-     * @param core_demographic_durable_id the core_demographic_durable_id to set
+     * @param coreDemographicDurableId the coreDemographicDurableId to set
      */
-    public void setCore_demographic_durable_id(long core_demographic_durable_id) {
-        this.core_demographic_durable_id = core_demographic_durable_id;
+    public void setCoreDemographicDurableId(long coreDemographicDurableId) {
+        this.coreDemographicDurableId = coreDemographicDurableId;
     }
 
     /**
-     * @return the mrn_id
+     * @return the mrnId
      */
-    public long getMrn_id() {
-        return mrn_id;
+    public long getMrnId() {
+        return mrnId;
     }
 
     /**
-     * @param mrn_id the mrn_id to set
+     * @param mrnId the mrnId to set
      */
-    public void setMrn_id(long mrn_id) {
-        this.mrn_id = mrn_id;
+    public void setMrnId(long mrnId) {
+        this.mrnId = mrnId;
     }
 
     /**
@@ -137,59 +137,59 @@ public class CoreDemographic extends TemporalCore implements Serializable {
     }
 
     /**
-     * @return the date_of_birth
+     * @return the dateOfBirth
      */
-    public LocalDate getDate_of_birth() {
-        return date_of_birth;
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
     /**
-     * @param date_of_birth the date_of_birth to set
+     * @param dateOfBirth the dateOfBirth to set
      */
-    public void setDate_of_birth(LocalDate date_of_birth) {
-        this.date_of_birth = date_of_birth;
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     /**
-     * @return the date_of_death
+     * @return the dateOfDeath
      */
-    public LocalDate getDate_of_death() {
-        return date_of_death;
+    public LocalDate getDateOfDeath() {
+        return dateOfDeath;
     }
 
     /**
-     * @param date_of_death the date_of_death to set
+     * @param dateOfDeath the dateOfDeath to set
      */
-    public void setDate_of_death(LocalDate date_of_death) {
-        this.date_of_death = date_of_death;
+    public void setDateOfDeath(LocalDate dateOfDeath) {
+        this.dateOfDeath = dateOfDeath;
     }
 
     /**
-     * @return the datetime_of_birth
+     * @return the datetimeOfBirth
      */
-    public Instant getDatetime_of_birth() {
-        return datetime_of_birth;
+    public Instant getDatetimeOfBirth() {
+        return datetimeOfBirth;
     }
 
     /**
-     * @param datetime_of_birth the datetime_of_birth to set
+     * @param datetimeOfBirth the datetimeOfBirth to set
      */
-    public void setDatetime_of_birth(Instant datetime_of_birth) {
-        this.datetime_of_birth = datetime_of_birth;
+    public void setDatetimeOfBirth(Instant datetimeOfBirth) {
+        this.datetimeOfBirth = datetimeOfBirth;
     }
 
     /**
-     * @return the datetime_of_death
+     * @return the datetimeOfDeath
      */
-    public Instant getDatetime_of_death() {
-        return datetime_of_death;
+    public Instant getDatetimeOfDeath() {
+        return datetimeOfDeath;
     }
 
     /**
-     * @param datetime_of_death the datetime_of_death to set
+     * @param datetimeOfDeath the datetimeOfDeath to set
      */
-    public void setDatetime_of_death(Instant datetime_of_death) {
-        this.datetime_of_death = datetime_of_death;
+    public void setDatetimeOfDeath(Instant datetimeOfDeath) {
+        this.datetimeOfDeath = datetimeOfDeath;
     }
 
     /**
@@ -207,17 +207,17 @@ public class CoreDemographic extends TemporalCore implements Serializable {
     }
 
     /**
-     * @return the home_postcode
+     * @return the homePostcode
      */
-    public String getHome_postcode() {
-        return home_postcode;
+    public String getHomePostcode() {
+        return homePostcode;
     }
 
     /**
-     * @param home_postcode the home_postcode to set
+     * @param homePostcode the homePostcode to set
      */
-    public void setHome_postcode(String home_postcode) {
-        this.home_postcode = home_postcode;
+    public void setHomePostcode(String homePostcode) {
+        this.homePostcode = homePostcode;
     }
 
     /**

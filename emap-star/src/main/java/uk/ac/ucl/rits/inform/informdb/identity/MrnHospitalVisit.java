@@ -46,7 +46,7 @@ public class MrnHospitalVisit extends TemporalCore implements Serializable {
     private Long   mrnHospitalVisitId;
 
     /**
-     * The MRN this hospital visit happened under
+     * The MRN this hospital visit happened under.
      */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
@@ -67,7 +67,7 @@ public class MrnHospitalVisit extends TemporalCore implements Serializable {
      * Create a new MRN/HospitalVisit association.
      *
      * @param mrn the MRN
-     * @param enc the HospitalVisit
+     * @param hospitalVisitDurableId the HospitalVisitDurableId
      */
     public MrnHospitalVisit(Mrn mrn, long hospitalVisitDurableId) {
         this.mrnId = mrn;
@@ -91,15 +91,15 @@ public class MrnHospitalVisit extends TemporalCore implements Serializable {
     /**
      * @return the mrnHospitalVisitId
      */
-    public Long getMrnEncounterId() {
+    public Long getMrnHospitalVisitId() {
         return mrnHospitalVisitId;
     }
 
     /**
      * @param mrnHospitalVisitId the mrnHospitalVisitId to set
      */
-    public void setMrnEncounterId(Long mrnEncounterId) {
-        this.mrnHospitalVisitId = mrnEncounterId;
+    public void setMrnEncounterId(Long mrnHospitalVisitId) {
+        this.mrnHospitalVisitId = mrnHospitalVisitId;
     }
 
     /**
@@ -110,7 +110,7 @@ public class MrnHospitalVisit extends TemporalCore implements Serializable {
     }
 
     /**
-     * @param hospitalVisit the hospitalVisit to set
+     * @param hospitalVisitDurableId the hospitalVisit to set
      */
     public void setHospitalVisitDurableId(long hospitalVisitDurableId) {
         this.hospitalVisitDurableId = hospitalVisitDurableId;

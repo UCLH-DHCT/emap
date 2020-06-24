@@ -34,103 +34,102 @@ public class LocationVisit extends TemporalCore implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long              bed_visit_id;
+    private long              bedVisitId;
     @Column(nullable = false)
-    private long              bed_visit_durable_id;
+    private long              bedVisitDurableIid;
 
     @Column(nullable = false)
-    private long              parent_hospital_visit_durable_id;
-    private long              parent_bed_visit_durable_id;
+    private long              parentHospitalVisitDurableId;
+    private long              parentBedVisitDurableId;
 
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           admission_time;
+    private Instant           admissionTime;
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           discharge_time;
+    private Instant           dischargeTime;
     private String            location;
 
     /**
-     * @return the bed_visit_id
+     * @return the bedVisitId
      */
-    public long getBed_visit_id() {
-        return bed_visit_id;
+    public long getBedVisitId() {
+        return bedVisitId;
     }
 
     /**
-     * @param bed_visit_id the bed_visit_id to set
+     * @param bedVisitId the bedVisitId to set
      */
-    public void setBed_visit_id(long bed_visit_id) {
-        this.bed_visit_id = bed_visit_id;
+    public void setBedVisitId(long bedVisitId) {
+        this.bedVisitId = bedVisitId;
     }
 
     /**
-     * @return the bed_visit_durable_id
+     * @return the bedVisitDurableIid
      */
-    public long getBed_visit_durable_id() {
-        return bed_visit_durable_id;
+    public long getBedVisitDurableIid() {
+        return bedVisitDurableIid;
     }
 
     /**
-     * @param bed_visit_durable_id the bed_visit_durable_id to set
+     * @param bedVisitDurableIid the bedVisitDurableIid to set
      */
-    public void setBed_visit_durable_id(long bed_visit_durable_id) {
-        this.bed_visit_durable_id = bed_visit_durable_id;
+    public void setBedVisitDurableIid(long bedVisitDurableIid) {
+        this.bedVisitDurableIid = bedVisitDurableIid;
     }
 
     /**
-     * @return the parent_hospital_visit_durable_id
+     * @return the parentHospitalVisitDurableId
      */
-    public long getParent_hospital_visit_durable_id() {
-        return parent_hospital_visit_durable_id;
+    public long getParentHospitalVisitDurableId() {
+        return parentHospitalVisitDurableId;
     }
 
     /**
-     * @param parent_hospital_visit_durable_id the parent_hospital_visit_durable_id
-     *                                         to set
+     * @param parentHospitalVisitDurableId the parentHospitalVisitDurableId to set
      */
-    public void setParent_hospital_visit_durable_id(long parent_hospital_visit_durable_id) {
-        this.parent_hospital_visit_durable_id = parent_hospital_visit_durable_id;
+    public void setParentHospitalVisitDurableId(long parentHospitalVisitDurableId) {
+        this.parentHospitalVisitDurableId = parentHospitalVisitDurableId;
     }
 
     /**
-     * @return the parent_bed_visit_durable_id
+     * @return the parentBedVisitDurableId
      */
-    public long getParent_bed_visit_durable_id() {
-        return parent_bed_visit_durable_id;
+    public long getParentBedVisitDurableId() {
+        return parentBedVisitDurableId;
     }
 
     /**
-     * @param parent_bed_visit_durable_id the parent_bed_visit_durable_id to set
+     * @param parentBedVisitDurableId the parentBedVisitDurableId to set
      */
-    public void setParent_bed_visit_durable_id(long parent_bed_visit_durable_id) {
-        this.parent_bed_visit_durable_id = parent_bed_visit_durable_id;
+    public void setParentBedVisitDurableId(long parentBedVisitDurableId) {
+        this.parentBedVisitDurableId = parentBedVisitDurableId;
     }
 
     /**
-     * @return the admission_time
+     * @return the admissionTime
      */
-    public Instant getAdmission_time() {
-        return admission_time;
+    public Instant getAdmissionTime() {
+        return admissionTime;
     }
 
     /**
-     * @param admission_time the admission_time to set
+     * @param admissionTime the admissionTime to set
      */
-    public void setAdmission_time(Instant admission_time) {
-        this.admission_time = admission_time;
+    public void setAdmissionTime(Instant admissionTime) {
+        this.admissionTime = admissionTime;
     }
 
     /**
-     * @return the discharge_time
+     * @return the dischargeTime
      */
-    public Instant getDischarge_time() {
-        return discharge_time;
+    public Instant getDischargeTime() {
+        return dischargeTime;
     }
 
     /**
-     * @param discharge_time the discharge_time to set
+     * @param dischargeTime the dischargeTime to set
      */
-    public void setDischarge_time(Instant discharge_time) {
-        this.discharge_time = discharge_time;
+    public void setDischargeTime(Instant dischargeTime) {
+        this.dischargeTime = dischargeTime;
     }
 
     /**
