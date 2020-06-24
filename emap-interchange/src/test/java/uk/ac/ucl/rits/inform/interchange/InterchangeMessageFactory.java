@@ -42,7 +42,8 @@ public class InterchangeMessageFactory {
                 String orderDefaultPath = fileName.replace(".yaml", "_pathology_order_defaults.yaml");
                 updatePathologyOrder(order, orderDefaultPath, sourceMessagePrefix, count);
                 for (PathologyResult result : order.getPathologyResults()) {
-                    updatePathologyResult(result, fileName.replace(".yaml", "_pathology_result_defaults.yaml"));
+                    String resultDefaultPath = fileName.replace(".yaml", "_pathology_result_defaults.yaml");
+                    updatePathologyResult(result, resultDefaultPath, order.getEpicCareOrderNumber());
                 }
                 count++;
             }
@@ -59,8 +60,9 @@ public class InterchangeMessageFactory {
         updatedOrder.setSourceMessageId(sourceMessagePrefix + "_" + String.format("%02d", count));
     }
 
-    private PathologyResult updatePathologyResult(PathologyResult result, String fileName) throws IOException {
+    private void updatePathologyResult(PathologyResult result, final String fileName, final String epicCareOrderNumber) throws IOException {
         ObjectReader resultReader = mapper.readerForUpdating(result);
-        return resultReader.readValue(ResourceUtils.getFile("classpath:" + fileName));
+        PathologyResult updatedResult = resultReader.readValue(ResourceUtils.getFile("classpath:" + fileName));
+        updatedResult.setEpicCareOrderNumber(epicCareOrderNumber);
     }
 }
