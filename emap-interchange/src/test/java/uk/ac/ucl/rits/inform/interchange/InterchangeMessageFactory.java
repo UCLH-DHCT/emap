@@ -58,12 +58,8 @@ public class InterchangeMessageFactory {
             pathologyOrders = mapper.readValue(file, new TypeReference<List<PathologyOrder>>() {});
             int count = 1;
             for (PathologyOrder order : pathologyOrders) {
-                String orderDefaultPath = resourcePath.replace(".yaml", "_order_defaults.yaml");
-                updatePathologyOrder(order, orderDefaultPath, sourceMessagePrefix, count);
-                for (PathologyResult result : order.getPathologyResults()) {
-                    String resultDefaultPath = resourcePath.replace(".yaml", "_result_defaults.yaml");
-                    updatePathologyResult(result, resultDefaultPath, order);
-                }
+                updatePathologyOrderItsAndResults(sourceMessagePrefix, resourcePath, count, order);
+                updatePathologySensitivities(sourceMessagePrefix, resourcePath, count, order);
                 count++;
             }
         } catch (IOException e) {
@@ -72,17 +68,31 @@ public class InterchangeMessageFactory {
         return pathologyOrders;
     }
 
-    private void updatePathologyOrder(PathologyOrder order, final String resourcePath,
-                                      final String sourceMessagePrefix, final int count) throws IOException {
-        ObjectReader orderReader = mapper.readerForUpdating(order);
-        PathologyOrder updatedOrder = orderReader.readValue(ResourceUtils.getFile(resourcePath));
-        updatedOrder.setSourceMessageId(sourceMessagePrefix + "_" + String.format("%02d", count));
+    private void updatePathologyResults(PathologyOrder order, final String resourcePath) throws IOException {
+        String resultDefaultPath = resourcePath.replace(".yaml", "_result_defaults.yaml");
+        for (PathologyResult result : order.getPathologyResults()) {
+            ObjectReader resultReader = mapper.readerForUpdating(result);
+            PathologyResult updatedResult = resultReader.readValue(ResourceUtils.getFile(resultDefaultPath));
+            updatedResult.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
+            updatedResult.setResultTime(order.getStatusChangeTime());
+        }
     }
 
-    private void updatePathologyResult(PathologyResult result, final String resourcePath, final PathologyOrder order) throws IOException {
-        ObjectReader resultReader = mapper.readerForUpdating(result);
-        PathologyResult updatedResult = resultReader.readValue(ResourceUtils.getFile(resourcePath));
-        updatedResult.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
-        updatedResult.setResultTime(order.getStatusChangeTime());
+    private void updatePathologyOrderItsAndResults(String sourceMessagePrefix, String resourcePath, int count, PathologyOrder order) throws IOException {
+        String orderDefaultPath = resourcePath.replace(".yaml", "_order_defaults.yaml");
+        ObjectReader orderReader = mapper.readerForUpdating(order);
+        PathologyOrder updatedOrder = orderReader.readValue(ResourceUtils.getFile(orderDefaultPath));
+        updatedOrder.setSourceMessageId(sourceMessagePrefix + "_" + String.format("%02d", count));
+        updatePathologyResults(order, resourcePath);
+        }
+
+    private void updatePathologySensitivities(String sourceMessagePrefix, String resourcePath, int count, PathologyOrder order) throws IOException {
+        for (PathologyResult result: order.getPathologyResults()) {
+            if (!result.getPathologySensitivities().isEmpty()) {
+                for (PathologyOrder subOrder: result.getPathologySensitivities()) {
+                    updatePathologyOrderItsAndResults(sourceMessagePrefix, resourcePath, count, subOrder);
+                }
+            }
+        }
     }
 }
