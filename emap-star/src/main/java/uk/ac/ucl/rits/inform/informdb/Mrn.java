@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -20,7 +19,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * This class represents the association of Medical Resource Identifier (MRN) to
- * an individual patient (a Person).
+ * an individual patient (a Person). This represents nothing more than a list of
+ * all MRNs the system is aware of.
  * <p>
  * Over the course of its lifetime a single MRN may be associated with any
  * number of patients. However, it may only be associated with a single patient
@@ -34,30 +34,34 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
-    private static final long  serialVersionUID = -4125275916062604528L;
+    private static final long      serialVersionUID = -4125275916062604528L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long            mrnId;
+    private Long                   mrnId;
 
-    @OneToMany(targetEntity = MrnEncounter.class, mappedBy = "mrn", cascade = CascadeType.ALL)
-    private List<MrnEncounter> encounters;
-
-    @OneToMany(targetEntity = PersonMrn.class, mappedBy = "mrn")
-    private List<PersonMrn>    persons          = new ArrayList<>();
+    @OneToMany(targetEntity = MrnHospitalVisit.class, mappedBy = "mrn_id", cascade = CascadeType.ALL)
+    private List<MrnHospitalVisit> hospitalVisits;
 
     /**
      * The value of the MRN identifier.
      */
     @Column(unique = true, nullable = false)
-    private String             mrn;
-    private String             sourceSystem;
+    private String                 mrn;
 
+    /**
+     * The system from which this MRN was initially discovered.
+     */
+    private String                 sourceSystem;
+
+    /**
+     * The datetime this row was written.
+     */
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant            storedFrom;
+    private Instant                storedFrom;
 
     /**
      * @return the mrnId
@@ -102,44 +106,32 @@ public class Mrn implements Serializable {
     }
 
     /**
-     * Add a new encounter to this MRN.
+     * Add an MrnHospitalVisit to the relation list. Does not add the inverse
+     * relationship.
      *
-     * @param enc        the encounter to add
-     * @param validFrom  when the association became true
-     * @param storedFrom when the association was stored
+     * @param mrnHospitalVisit The MrnHospitaVisit to add.
      */
-    public void addEncounter(Encounter enc, Instant validFrom, Instant storedFrom) {
-        MrnEncounter mrnEncounter = new MrnEncounter(this, enc);
-        mrnEncounter.setValidFrom(validFrom);
-        mrnEncounter.setStoredFrom(storedFrom);
-        enc.linkMrn(mrnEncounter);
-        this.linkEncounter(mrnEncounter);
-    }
-
-    /**
-     * Add an MrnEncounter to the encounters list.
-     *
-     * @param mrnEnc The MrnEncouter to add.
-     */
-    public void linkEncounter(MrnEncounter mrnEnc) {
-        if (this.encounters == null) {
-            this.encounters = new ArrayList<>();
+    public void linkMrnHospitalVisit(MrnHospitalVisit mrnHospitalVisit) {
+        if (this.hospitalVisits == null) {
+            this.hospitalVisits = new ArrayList<>();
         }
-        this.encounters.add(mrnEnc);
+        this.hospitalVisits.add(mrnHospitalVisit);
     }
 
     /**
-     * @return the encounters
+     * Get the list of relationships where this Mrn is linked to a HospitalVisit
+     *
+     * @return the list of all Hospital Visit relationships
      */
-    public List<MrnEncounter> getEncounters() {
-        return encounters;
+    public List<MrnHospitalVisit> getHospitalVisits() {
+        return hospitalVisits;
     }
 
     /**
      * @param encounters the encounters to set
      */
-    public void setEncounters(List<MrnEncounter> encounters) {
-        this.encounters = encounters;
+    public void setHospitalVisits(List<MrnHospitalVisit> hospitalVisits) {
+        this.hospitalVisits = hospitalVisits;
     }
 
     @Override
@@ -161,69 +153,4 @@ public class Mrn implements Serializable {
         this.storedFrom = storedFrom;
     }
 
-    /**
-     * @return all Persons that are or have ever been associated with this Mrn
-     */
-    public List<PersonMrn> getPersons() {
-        return persons;
-    }
-
-    /**
-     * Add a backlink to a person.
-     *
-     * @param p The person mrn relationship.
-     */
-    public void linkPerson(PersonMrn p) {
-        if (this.persons == null) {
-            this.persons = new ArrayList<>();
-        }
-        this.persons.add(p);
-    }
-
-    /**
-     * Add a Mrn / person association. This will create all the necessary backlinks
-     * in the person.
-     *
-     * @param p          The person to link to.
-     * @param validFrom  When this link was created.
-     * @param storedFrom When we saved this link to the database.
-     */
-    public void addPerson(Person p, Instant validFrom, Instant storedFrom) {
-        PersonMrn perMrn = new PersonMrn(p, this);
-        perMrn.setValidFrom(validFrom);
-        perMrn.setStoredFrom(storedFrom);
-        p.linkMrn(perMrn);
-        this.linkPerson(perMrn);
-    }
-
-    /**
-     * Apply a function to all currently valid encounters connected to this mrn and
-     * collect the results.
-     *
-     * @param func The function to apply
-     * @return List of results
-     * @param <R> return type of each function
-     */
-    public <R> List<R> mapEncounter(Function<Encounter, R> func) {
-        List<R> results = new ArrayList<R>();
-        for (MrnEncounter me : encounters) {
-            if (!me.isValid()) {
-                continue;
-            }
-            Encounter e = me.getEncounter();
-            results.add(e.map(func));
-        }
-        return results;
-    }
-
-    /**
-     * Apply a function to to this mrn.
-     *
-     * @param func The function to apply
-     * @return The results
-     * @param <R> return type of the function
-     */
-    public <R> R map(Function<Mrn, R> func) {
-        return func.apply(this);
-    }
 }
