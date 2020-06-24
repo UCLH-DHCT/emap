@@ -24,6 +24,24 @@ public class InterchangeMessageFactory {
         mapper.findAndRegisterModules();
     }
 
+    /**
+     * Builds an ADT message from yaml file Not sure it's as useful as other message factories
+     * @param fileName filename within test resources/AdtMessages
+     * @return ADT message
+     */
+    public AdtMessage getAdtMessage(final String fileName, final String sourceMessageId){
+        AdtMessage adtMessage = new AdtMessage();
+        String resourcePath = "classpath:AdtMessages/" + fileName;
+        try {
+            File file = ResourceUtils.getFile(resourcePath);
+            adtMessage = mapper.readValue(file, AdtMessage.class);
+            adtMessage.setSourceMessageId(sourceMessageId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return adtMessage;
+    }
+
 
     /**
      * Builds pathology orders from yaml file given, overriding default values for pathology orders and pathology results
