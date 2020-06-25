@@ -73,6 +73,36 @@ public class InterchangeMessageFactory {
     }
 
     /**
+     * Builds Vitalsigns from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
+     * @param fileName            yaml filename in test resouces/VitalSigns, default values from '{file_stem}_defaults.yaml'
+     * @param sourceMessagePrefix message prefix - TODO: does emap star care about this or should I just get rid of it?
+     * @return List of vitalsigns
+     */
+    public List<VitalSigns> getVitalSigns(final String fileName, final String sourceMessagePrefix) {
+        List<VitalSigns> vitalSigns = new ArrayList<>();
+        String resourcePath = "classpath:VitalSigns/" + fileName;
+        try {
+            File file = ResourceUtils.getFile(resourcePath);
+            vitalSigns = mapper.readValue(file, new TypeReference<List<VitalSigns>>() {});
+            int count = 1;
+            for (VitalSigns vitalsign : vitalSigns) {
+                String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
+                vitalsign.setSourceMessageId(sourceMessageId);
+
+                // update order with yaml data
+                ObjectReader orderReader = mapper.readerForUpdating(vitalsign);
+                String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
+                orderReader.readValue(ResourceUtils.getFile(orderDefaultPath));
+
+                count++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return vitalSigns;
+    }
+
+    /**
      * Update all of a pathology order's pathology results from yaml file
      * @param order              pathology order
      * @param resourcePathPrefix prefix in the form '{directory}/{file_stem}'
