@@ -25,14 +25,14 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  * @author Jeremy Stein
  *
  */
-public class TestOru extends Hl7StreamEndToEndTestCase {
+public class TestOru extends InterchangeMessageEndToEndTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.
      */
     public TestOru() {
         super();
-        hl7StreamFileNames.add("ORU_R01.txt");
+        interchangeMessages.addAll(messageFactory.getPathologyOrders("ORU_R01.yaml", "0000000042"));
     }
 
     /**
