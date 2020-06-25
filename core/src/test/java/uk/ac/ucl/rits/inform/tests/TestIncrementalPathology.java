@@ -19,10 +19,10 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  * New results should be added taking care to avoid duplicating existing ones.
  * @author Jeremy Stein
  */
-public class TestIncrementalPathology extends Hl7StreamEndToEndTestCase {
+public class TestIncrementalPathology extends InterchangeMessageEndToEndTestCase {
     public TestIncrementalPathology() {
         super();
-        hl7StreamFileNames.add("IncrementalPathology.txt");
+        interchangeMessages.addAll(messageFactory.getPathologyOrders("incremental.yaml", "0000000042"));
     }
 
     @Test

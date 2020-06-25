@@ -23,10 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Should parse the messages, adding in the new result but not adding in the duplicate albumin fact.
  * @author Stef Piatek
  */
-public class TestIncrementalPathologyDuplicateResultSegment extends Hl7StreamEndToEndTestCase {
+public class TestIncrementalPathologyDuplicateResultSegment extends InterchangeMessageEndToEndTestCase {
     public TestIncrementalPathologyDuplicateResultSegment() {
         super();
-        hl7StreamFileNames.add("TestIncrementalPathologyDuplicateFactSegment.txt");
+        interchangeMessages.addAll(messageFactory.getPathologyOrders("incremental_duplicate_result_segment.yaml", "0000000042"));
     }
 
     /**
