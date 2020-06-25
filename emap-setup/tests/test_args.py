@@ -1,6 +1,6 @@
 from pytest import fixture
-
 from emap_setup import define_arguments
+
 
 @fixture(scope="module")
 def arg_parser():

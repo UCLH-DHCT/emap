@@ -1,1 +1,1 @@
-from emap_setup.emap import define_arguments
+from emap_setup.emap_runner import define_arguments
