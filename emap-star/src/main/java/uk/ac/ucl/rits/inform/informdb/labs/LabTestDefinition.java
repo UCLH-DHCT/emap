@@ -32,6 +32,11 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition> {
     private String labProvider;
 
     /**
+     * The department within the lab responsible for the test.
+     */
+    private String labDepartment;
+
+    /**
      * The code for this test as reported by the lab.
      */
     @Column(nullable = false)
@@ -52,6 +57,8 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition> {
     public LabTestDefinition(LabTestDefinition other) {
         super(other);
         this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
+        this.labProvider = other.labProvider;
+        this.labDepartment = other.labDepartment;
         this.testLabCode = other.testLabCode;
         this.testStandardCode = other.testStandardCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
