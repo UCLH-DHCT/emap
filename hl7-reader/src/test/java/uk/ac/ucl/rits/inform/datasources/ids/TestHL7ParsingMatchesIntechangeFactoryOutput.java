@@ -1,20 +1,13 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -38,6 +31,17 @@ public class TestHL7ParsingMatchesIntechangeFactoryOutput extends TestHl7Message
     public void testPathologyIncrementalLoad() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/Incremental.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental.yaml", "0000000042");
+        assertEquals(messagesFromHl7Message, expectedOrders);
+    }
+
+    @Test
+    public void testPathologyIncrementalDuplicateResultSegment() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/PathologyDuplicateResultSegment.txt");
+        List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental_duplicate_result_segment.yaml", "0000000042");
+        for (int i = 0; i < expectedOrders.size(); i++) {
+            assertEquals(messagesFromHl7Message.get(i), expectedOrders.get(i));
+
+        }
         assertEquals(messagesFromHl7Message, expectedOrders);
     }
 
