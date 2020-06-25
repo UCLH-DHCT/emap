@@ -1,7 +1,10 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.springframework.test.context.ActiveProfiles;
 
 import ca.uhn.hl7v2.model.Message;
@@ -51,5 +54,21 @@ public abstract class TestHl7MessageStream {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         return IdsOperations.messageFromHl7Message(hl7Msg, 42);
+    }
+
+    /**
+     * Convert multiple HL7 messages into interchange format, determining the correct type
+     * @param resourceFileName
+     * @return
+     * @throws Exception
+     */
+    protected List<? extends EmapOperationMessage> processMultiplePathologyOrderMessages(String resourceFileName) throws Exception {
+        Hl7InputStreamMessageIterator hl7Iter = HL7Utils.hl7Iterator(new File(HL7Utils.getPathFromResource(resourceFileName)));
+        List<PathologyOrder> messagesFromHl7Message = new ArrayList<>();
+        while (hl7Iter.hasNext()) {
+            Message hl7Msg = hl7Iter.next();
+            messagesFromHl7Message.addAll((List<PathologyOrder>) IdsOperations.messageFromHl7Message(hl7Msg, 42));
+        }
+        return messagesFromHl7Message;
     }
 }
