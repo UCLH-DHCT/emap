@@ -23,7 +23,7 @@ public class TestVitalSignBuilder {
 
     @BeforeEach
     public void setUp() throws IOException, HL7Exception {
-        String hl7 = HL7Utils.readHl7FromResource("vitalsigns/VitalSignHL7Message.txt");
+        String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MixedHL7Message.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
         firstVitalSign = vitalSigns.get(0);
@@ -140,7 +140,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testMultipleOBRs() throws IOException, HL7Exception {
-        String hl7 = HL7Utils.readHl7FromResource("vitalsigns/VitalSignMultiOBR.txt");
+        String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MultiOBR.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
         assertEquals(4, vitalSigns.size());

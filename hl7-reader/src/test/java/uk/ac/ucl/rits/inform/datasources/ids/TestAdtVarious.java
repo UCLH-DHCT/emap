@@ -21,7 +21,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
 
     @BeforeEach
     public void setup() throws Exception {
-        msg = processSingleAdtMessage("TestForJunit.txt");
+        msg = processSingleAdtMessage("Adt/TestForJunit.txt");
     }
 
     /**
