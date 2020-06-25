@@ -231,7 +231,7 @@
   labDepartment: "H1"
   testBatteryLocalCode: "FBC"
   testBatteryLocalDescription: "FBC AND DIFFERENTIAL"
-  statusChangeTime: "2019-07-16T23:04:00Z"
+  statusChangeTime: "2019-07-16T23:05:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyOrder"
   pathologyResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.PathologyResult"
