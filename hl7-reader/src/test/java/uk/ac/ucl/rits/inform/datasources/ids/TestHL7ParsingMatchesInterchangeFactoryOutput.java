@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  *
  */
 @ActiveProfiles("test")
-public class TestHL7ParsingMatchesIntechangeFactoryOutput extends TestHl7MessageStream {
+public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
     @Test
