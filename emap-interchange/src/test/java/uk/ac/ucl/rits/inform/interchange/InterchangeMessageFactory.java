@@ -25,8 +25,10 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Builds an ADT message from yaml file Not sure it's as useful as other message factories
-     * @param fileName filename within test resources/AdtMessages
+     * Builds an ADT message from yaml file.
+     * Not sure it's as useful as other message factories but may be useful for testing a complex set of ADT messages together?
+     * @param fileName        filename within test resources/AdtMessages
+     * @param sourceMessageId source message ID
      * @return ADT message
      */
     public AdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
@@ -45,9 +47,10 @@ public class InterchangeMessageFactory {
 
     /**
      * Builds pathology orders from yaml file given, overriding default values for pathology orders and pathology results
-     * @param fileName filename in test resources, this is also the basename for the defaults
-     *                 e.g. 'ORU_R01.yaml' has pathology result values overwritten from 'ORU_R01_pathology_result_defaults.yaml'
-     *                 and pathology order values overwritten from 'ORU_R01_pathology_order_defaults.yaml'
+     * @param fileName            filename in test resources/PathologyOrders,
+     *                            defaults are '{file_stem}_order_defaults.yaml' and '{file_stem}_order_defaults.yaml'
+     *                            sensitivity defaults are '{file_stem}_sens_order_defaults.yaml' and '{file_stem}_sens_order_defaults.yaml'
+     * @param sourceMessagePrefix message prefix
      * @return List of pathology orders deserialised from the files
      */
     public List<PathologyOrder> getPathologyOrders(final String fileName, final String sourceMessagePrefix) {
