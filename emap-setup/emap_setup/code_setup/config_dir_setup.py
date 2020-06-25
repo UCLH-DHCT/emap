@@ -63,13 +63,17 @@ class ConfigDirSetup:
             if line.startswith('CABOODLE'):
                 code = line.split('=')
                 if 'URL' in code[0]:
-                    newline = code[0] + '=' + self.caboodle_data['jdbc_url'] + '\n'
+                    newline = code[0] + '=' + self.caboodle_data['jdbc_url'] \
+                              + '\n'
                 elif 'USER' in code[0]:
-                    newline = code[0] + '=' + self.caboodle_data['username'] + '\n'
+                    newline = code[0] + '=' + self.caboodle_data['username'] \
+                              + '\n'
                 elif 'PASS' in code[0]:
-                    newline = code[0] + '=' + self.caboodle_data['password'] + '\n'
+                    newline = code[0] + '=' + self.caboodle_data['password'] \
+                              + '\n'
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN\n'
             else:
                 newline = line
@@ -101,7 +105,8 @@ class ConfigDirSetup:
                 elif 'SCHEMA' in code[0]:
                     newline = code[0] + '=' + self.uds_data['schema'] + '\n'
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
             else:
                 newline = line
@@ -127,14 +132,17 @@ class ConfigDirSetup:
                 if 'HOST' in code[0]:
                     newline = code[0] + '=' + self.rabbitmq_data['host'] + '\n'
                 elif 'USER' in code[0]:
-                    newline = code[0] + '=' + self.rabbitmq_data['username'] + '\n'
+                    newline = code[0] + '=' + self.rabbitmq_data['username'] \
+                              + '\n'
                 elif 'PASS' in code[0]:
-                    newline = code[0] + '=' + self.rabbitmq_data['password'] + '\n'
+                    newline = code[0] + '=' + self.rabbitmq_data['password'] \
+                              + '\n'
                 elif 'PORT' in code[0]:
                     newline = code[0] + '={0}\n'
                     newline = newline.format(self.rabbitmq_data['spring_port'])
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
             elif line.startswith('RABBITMQ'):
                 code = line.split('=')
@@ -145,11 +153,14 @@ class ConfigDirSetup:
                     newline = code[0] + '={0}\n'
                     newline = newline.format(self.rabbitmq_data['port'])
                 elif 'USER' in code[0]:
-                    newline = code[0] + '=' + self.rabbitmq_data['username'] + '\n'
+                    newline = code[0] + '=' + self.rabbitmq_data['username'] \
+                              + '\n'
                 elif 'PASS' in code[0]:
-                    newline = code[0] + '=' + self.rabbitmq_data['password'] + '\n'
+                    newline = code[0] + '=' + self.rabbitmq_data['password'] \
+                              + '\n'
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
             else:
                 newline = line
@@ -193,7 +204,8 @@ class ConfigDirSetup:
                         newline = code[0] + '={0}\n'
                         newline = newline.format(self.dates_data['end'])
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
             else:
                 newline = line
@@ -218,15 +230,20 @@ class ConfigDirSetup:
             if line.startswith('INFORMDB'):
                 code = line.split('=')
                 if 'URL' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data[repo]['jdbc_url'] + '\n'
+                    newline = code[0] + '=' \
+                              + self.informdb_data[repo]['jdbc_url'] + '\n'
                 elif 'USER' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data[repo]['username'] + '\n'
+                    newline = code[0] + '=' \
+                              + self.informdb_data[repo]['username'] + '\n'
                 elif 'PASS' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data[repo]['password'] + '\n'
+                    newline = code[0] + '=' \
+                              + self.informdb_data[repo]['password'] + '\n'
                 elif 'SCHEMA' in code[0]:
-                    newline = code[0] + '=' + self.informdb_data[repo]['schema'] + '\n'
+                    newline = code[0] + '=' \
+                              + self.informdb_data[repo]['schema'] + '\n'
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
             else:
                 newline = line
@@ -255,7 +272,8 @@ class ConfigDirSetup:
                 elif 'SCHEMA' in code[0]:
                     newline = code[0] + '=' + self.omop_data['schema'] + '\n'
                 else:
-                    print('Unknown configuration element ' + code[0] + ' found')
+                    print('Unknown configuration element ' + code[0]
+                          + ' found')
                     newline = code[0] + '=PLEASE FILL IN'
             else:
                 newline = line
