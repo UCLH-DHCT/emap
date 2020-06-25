@@ -34,6 +34,62 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement> {
         this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
     }
 
+    /**
+     * @return the labBatteryTypeId
+     */
+    public long getLabBatteryTypeId() {
+        return labBatteryTypeId;
+    }
+
+    /**
+     * @param labBatteryTypeId the labBatteryTypeId to set
+     */
+    public void setLabBatteryTypeId(long labBatteryTypeId) {
+        this.labBatteryTypeId = labBatteryTypeId;
+    }
+
+    /**
+     * @return the labBatteryTypeDurableId
+     */
+    public long getLabBatteryTypeDurableId() {
+        return labBatteryTypeDurableId;
+    }
+
+    /**
+     * @param labBatteryTypeDurableId the labBatteryTypeDurableId to set
+     */
+    public void setLabBatteryTypeDurableId(long labBatteryTypeDurableId) {
+        this.labBatteryTypeDurableId = labBatteryTypeDurableId;
+    }
+
+    /**
+     * @return the battery
+     */
+    public String getBattery() {
+        return battery;
+    }
+
+    /**
+     * @param battery the battery to set
+     */
+    public void setBattery(String battery) {
+        this.battery = battery;
+    }
+
+    /**
+     * @return the labTestDefinitionDurableId
+     */
+    public String getLabTestDefinitionDurableId() {
+        return labTestDefinitionDurableId;
+    }
+
+    /**
+     * @param labTestDefinitionDurableId the labTestDefinitionDurableId to set
+     */
+    public void setLabTestDefinitionDurableId(String labTestDefinitionDurableId) {
+        this.labTestDefinitionDurableId = labTestDefinitionDurableId;
+    }
+
     @Override
     public LabBatteryElement copy() {
         return new LabBatteryElement(this);

@@ -44,6 +44,76 @@ public class LabOrder extends TemporalCore<LabOrder> {
         this.orderDatetime = other.orderDatetime;
     }
 
+    /**
+     * @return the labOrderId
+     */
+    public long getLabOrderId() {
+        return labOrderId;
+    }
+
+    /**
+     * @param labOrderId the labOrderId to set
+     */
+    public void setLabOrderId(long labOrderId) {
+        this.labOrderId = labOrderId;
+    }
+
+    /**
+     * @return the labOrderDurableId
+     */
+    public long getLabOrderDurableId() {
+        return labOrderDurableId;
+    }
+
+    /**
+     * @param labOrderDurableId the labOrderDurableId to set
+     */
+    public void setLabOrderDurableId(long labOrderDurableId) {
+        this.labOrderDurableId = labOrderDurableId;
+    }
+
+    /**
+     * @return the labNumberId
+     */
+    public long getLabNumberId() {
+        return labNumberId;
+    }
+
+    /**
+     * @param labNumberId the labNumberId to set
+     */
+    public void setLabNumberId(long labNumberId) {
+        this.labNumberId = labNumberId;
+    }
+
+    /**
+     * @return the labBatteryTypeDurableId
+     */
+    public long getLabBatteryTypeDurableId() {
+        return labBatteryTypeDurableId;
+    }
+
+    /**
+     * @param labBatteryTypeDurableId the labBatteryTypeDurableId to set
+     */
+    public void setLabBatteryTypeDurableId(long labBatteryTypeDurableId) {
+        this.labBatteryTypeDurableId = labBatteryTypeDurableId;
+    }
+
+    /**
+     * @return the orderDatetime
+     */
+    public Instant getOrderDatetime() {
+        return orderDatetime;
+    }
+
+    /**
+     * @param orderDatetime the orderDatetime to set
+     */
+    public void setOrderDatetime(Instant orderDatetime) {
+        this.orderDatetime = orderDatetime;
+    }
+
     @Override
     public LabOrder copy() {
         return new LabOrder(this);

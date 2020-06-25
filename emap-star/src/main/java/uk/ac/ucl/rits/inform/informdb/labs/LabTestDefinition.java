@@ -64,6 +64,104 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition> {
         this.standardisedVocabulary = other.standardisedVocabulary;
     }
 
+    /**
+     * @return the labTestDefinitionId
+     */
+    public long getLabTestDefinitionId() {
+        return labTestDefinitionId;
+    }
+
+    /**
+     * @param labTestDefinitionId the labTestDefinitionId to set
+     */
+    public void setLabTestDefinitionId(long labTestDefinitionId) {
+        this.labTestDefinitionId = labTestDefinitionId;
+    }
+
+    /**
+     * @return the labTestDefinitionDurableId
+     */
+    public long getLabTestDefinitionDurableId() {
+        return labTestDefinitionDurableId;
+    }
+
+    /**
+     * @param labTestDefinitionDurableId the labTestDefinitionDurableId to set
+     */
+    public void setLabTestDefinitionDurableId(long labTestDefinitionDurableId) {
+        this.labTestDefinitionDurableId = labTestDefinitionDurableId;
+    }
+
+    /**
+     * @return the labProvider
+     */
+    public String getLabProvider() {
+        return labProvider;
+    }
+
+    /**
+     * @param labProvider the labProvider to set
+     */
+    public void setLabProvider(String labProvider) {
+        this.labProvider = labProvider;
+    }
+
+    /**
+     * @return the labDepartment
+     */
+    public String getLabDepartment() {
+        return labDepartment;
+    }
+
+    /**
+     * @param labDepartment the labDepartment to set
+     */
+    public void setLabDepartment(String labDepartment) {
+        this.labDepartment = labDepartment;
+    }
+
+    /**
+     * @return the testLabCode
+     */
+    public String getTestLabCode() {
+        return testLabCode;
+    }
+
+    /**
+     * @param testLabCode the testLabCode to set
+     */
+    public void setTestLabCode(String testLabCode) {
+        this.testLabCode = testLabCode;
+    }
+
+    /**
+     * @return the testStandardCode
+     */
+    public String getTestStandardCode() {
+        return testStandardCode;
+    }
+
+    /**
+     * @param testStandardCode the testStandardCode to set
+     */
+    public void setTestStandardCode(String testStandardCode) {
+        this.testStandardCode = testStandardCode;
+    }
+
+    /**
+     * @return the standardisedVocabulary
+     */
+    public String getStandardisedVocabulary() {
+        return standardisedVocabulary;
+    }
+
+    /**
+     * @param standardisedVocabulary the standardisedVocabulary to set
+     */
+    public void setStandardisedVocabulary(String standardisedVocabulary) {
+        this.standardisedVocabulary = standardisedVocabulary;
+    }
+
     @Override
     public LabTestDefinition copy() {
         return new LabTestDefinition(this);
