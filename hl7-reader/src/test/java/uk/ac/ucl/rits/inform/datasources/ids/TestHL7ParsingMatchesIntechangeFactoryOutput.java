@@ -26,16 +26,6 @@ import static org.junit.Assert.assertEquals;
 public class TestHL7ParsingMatchesIntechangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
-    public List<? extends EmapOperationMessage> parseHL7File(String resFile) throws IOException, HL7Exception, Hl7InconsistencyException {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = new ArrayList<>();
-        Hl7InputStreamMessageIterator hl7Iter = HL7Utils.hl7Iterator(new File(HL7Utils.getPathFromResource(resFile)));
-        while (hl7Iter.hasNext()) {
-            Message hl7Msg = hl7Iter.next();
-            messagesFromHl7Message = IdsOperations.messageFromHl7Message(hl7Msg, 0);
-        }
-        return messagesFromHl7Message;
-    }
-
     @Test
     public void testAdtA01() throws Exception {
         AdtMessage messagesFromHl7Message = processSingleAdtMessage("Adt/A01.txt");
