@@ -588,40 +588,41 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", AdtMessage.class.getSimpleName() + "[", "]")
-                .add("operationType=" + operationType)
-                .add("recordedDateTime=" + recordedDateTime)
-                .add("eventReasonCode='" + eventReasonCode + "'")
-                .add("eventOccurredDateTime=" + eventOccurredDateTime)
-                .add("operatorId='" + operatorId + "'")
-                .add("admissionDateTime=" + admissionDateTime)
-                .add("admitSource='" + admitSource + "'")
-                .add("currentBed='" + currentBed + "'")
-                .add("currentRoomCode='" + currentRoomCode + "'")
-                .add("currentWardCode='" + currentWardCode + "'")
-                .add("dischargeDateTime=" + dischargeDateTime)
-                .add("dischargeDisposition='" + dischargeDisposition + "'")
-                .add("dischargeLocation='" + dischargeLocation + "'")
-                .add("ethnicGroup='" + ethnicGroup + "'")
-                .add("fullLocationString='" + fullLocationString + "'")
-                .add("hospitalService='" + hospitalService + "'")
-                .add("mrn='" + mrn + "'")
-                .add("mergedPatientId='" + mergedPatientId + "'")
-                .add("nhsNumber='" + nhsNumber + "'")
-                .add("patientBirthDate=" + patientBirthDate)
-                .add("patientClass='" + patientClass + "'")
-                .add("patientDeathDateTime=" + patientDeathDateTime)
-                .add("patientDeathIndicator=" + patientDeathIndicator)
-                .add("patientFamilyName='" + patientFamilyName + "'")
-                .add("patientFullName='" + patientFullName + "'")
-                .add("patientGivenName='" + patientGivenName + "'")
-                .add("patientMiddleName='" + patientMiddleName + "'")
-                .add("patientReligion='" + patientReligion + "'")
-                .add("patientSex='" + patientSex + "'")
-                .add("patientTitle='" + patientTitle + "'")
-                .add("patientType='" + patientType + "'")
-                .add("patientZipOrPostalCode='" + patientZipOrPostalCode + "'")
-                .add("visitNumber='" + visitNumber + "'")
-                .toString();
+        final StringBuilder sb = new StringBuilder("AdtMessage{");
+        sb.append("operationType=").append(operationType);
+        sb.append(", recordedDateTime=").append(recordedDateTime);
+        sb.append(", eventReasonCode='").append(eventReasonCode).append('\'');
+        sb.append(", eventOccurredDateTime=").append(eventOccurredDateTime);
+        sb.append(", operatorId='").append(operatorId).append('\'');
+        sb.append(", admissionDateTime=").append(admissionDateTime);
+        sb.append(", admitSource='").append(admitSource).append('\'');
+        sb.append(", currentBed='").append(currentBed).append('\'');
+        sb.append(", currentRoomCode='").append(currentRoomCode).append('\'');
+        sb.append(", currentWardCode='").append(currentWardCode).append('\'');
+        sb.append(", dischargeDateTime=").append(dischargeDateTime);
+        sb.append(", dischargeDisposition='").append(dischargeDisposition).append('\'');
+        sb.append(", dischargeLocation='").append(dischargeLocation).append('\'');
+        sb.append(", ethnicGroup='").append(ethnicGroup).append('\'');
+        sb.append(", fullLocationString='").append(fullLocationString).append('\'');
+        sb.append(", hospitalService='").append(hospitalService).append('\'');
+        sb.append(", mrn='").append(mrn).append('\'');
+        sb.append(", mergedPatientId='").append(mergedPatientId).append('\'');
+        sb.append(", nhsNumber='").append(nhsNumber).append('\'');
+        sb.append(", patientBirthDate=").append(patientBirthDate);
+        sb.append(", patientClass='").append(patientClass).append('\'');
+        sb.append(", patientDeathDateTime=").append(patientDeathDateTime);
+        sb.append(", patientDeathIndicator=").append(patientDeathIndicator);
+        sb.append(", patientFamilyName='").append(patientFamilyName).append('\'');
+        sb.append(", patientFullName='").append(patientFullName).append('\'');
+        sb.append(", patientGivenName='").append(patientGivenName).append('\'');
+        sb.append(", patientMiddleName='").append(patientMiddleName).append('\'');
+        sb.append(", patientReligion='").append(patientReligion).append('\'');
+        sb.append(", patientSex='").append(patientSex).append('\'');
+        sb.append(", patientTitle='").append(patientTitle).append('\'');
+        sb.append(", patientType='").append(patientType).append('\'');
+        sb.append(", patientZipOrPostalCode='").append(patientZipOrPostalCode).append('\'');
+        sb.append(", visitNumber='").append(visitNumber).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }
