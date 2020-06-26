@@ -22,13 +22,13 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  * sequence works.
  * @author Jeremy Stein
  */
-public class TestCancelDischarge extends Hl7StreamEndToEndTestCase {
+public class TestCancelDischarge extends InterchangeMessageEndToEndTestCase {
     public TestCancelDischarge() {
         super();
-        hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/A03.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/A13.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/A03_2.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/FirstA01.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A03.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A13.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A03_2.yaml", "0000000042"));
     }
 
     /**

@@ -13,14 +13,14 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 @Disabled
-public class TestOrm extends Hl7StreamEndToEndTestCase {
+public class TestOrm extends InterchangeMessageEndToEndTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.
      */
     public TestOrm() {
         super();
-        hl7StreamFileNames.add("PathologyWorkflow1.txt");
+//        interchangeMessages.add("PathologyWorkflow1.txt");
     }
 
     @Test
