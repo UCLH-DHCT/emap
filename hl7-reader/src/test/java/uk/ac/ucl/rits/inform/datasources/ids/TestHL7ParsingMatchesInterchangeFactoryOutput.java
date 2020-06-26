@@ -29,6 +29,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
     private void testAdtMessage(String adtFileStem) throws Exception {
+        System.out.println("Testing ADT message with stem:" + adtFileStem);
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem +".txt");
         AdtMessage expectedOrders = interchangeFactory.getAdtMessage(adtFileStem + ".yaml", "0000000042");
         assertEquals(1, messagesFromHl7Message.size());
@@ -38,11 +39,43 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testGenericAdtA01() throws Exception {
         testAdtMessage("generic/A01");
+        testAdtMessage("generic/A01_b");
+
     }
 
     @Test
     public void testGenericAdtA02() throws Exception {
         testAdtMessage("generic/A02");
+    }
+
+    @Test
+    public void testGenericAdtA03() throws Exception {
+        testAdtMessage("generic/A03");
+        testAdtMessage("generic/A03_death");
+        testAdtMessage("generic/A03_death_2");
+        testAdtMessage("generic/A03_death_3");
+
+    }
+
+    @Test
+    public void testGenericAdtA04() throws Exception {
+        testAdtMessage("generic/A04");
+    }
+
+    @Test
+    public void testGenericAdtA06() throws Exception {
+        testAdtMessage("generic/A06");
+    }
+
+    @Test
+    public void testGenericAdtA08() throws Exception {
+        testAdtMessage("generic/A08_v1");
+        testAdtMessage("generic/A08_v2");
+    }
+
+    @Test
+    public void testGenericAdtA40() throws Exception {
+        testAdtMessage("generic/A40");
     }
 
 
