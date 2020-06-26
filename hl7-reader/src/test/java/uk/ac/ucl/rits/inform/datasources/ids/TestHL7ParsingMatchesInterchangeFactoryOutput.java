@@ -90,10 +90,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testPathologyIncrementalDuplicateResultSegment() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/PathologyDuplicateResultSegment.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental_duplicate_result_segment.yaml", "0000000042");
-        for (int i = 0; i < expectedOrders.size(); i++) {
-            assertEquals(messagesFromHl7Message.get(i), expectedOrders.get(i));
-
-        }
         assertEquals(messagesFromHl7Message, expectedOrders);
     }
 
