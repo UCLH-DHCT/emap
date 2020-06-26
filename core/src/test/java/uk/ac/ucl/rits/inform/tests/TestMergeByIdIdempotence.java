@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
@@ -30,7 +29,7 @@ public class TestMergeByIdIdempotence extends TestMergeById {
     @Override
     @BeforeEach
     public void setup()
-            throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
+            throws IOException, HL7Exception, EmapOperationMessageProcessingException {
         assertThrows(MessageIgnoredException.class, () -> super.setup());
     }
 

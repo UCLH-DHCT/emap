@@ -18,8 +18,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
-import uk.ac.ucl.rits.inform.datasources.ids.IdsOperations;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
@@ -47,8 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class InterchangeMessageEndToEndTestCase {
     @Autowired
-    protected IdsOperations idsOps;
-    @Autowired
     protected InformDbOperations dbOps;
     @Autowired
     protected EncounterRepository encounterRepo;
@@ -73,12 +69,11 @@ public abstract class InterchangeMessageEndToEndTestCase {
      * Load in a sequence of HL7 message(s) in preparation for the tests.
      * @throws IOException               if trouble reading the test messages
      * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if sequence of HL7 data does not make sense
      * @throws MessageIgnoredException   if one or more messages can't be processed
      */
     @BeforeEach
     @Transactional
-    public void setup() throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
+    public void setup() throws IOException, HL7Exception, EmapOperationMessageProcessingException {
         totalMessages = 0;
         processedMessages = 0;
         if (mrnRepo.count() == 0) {
