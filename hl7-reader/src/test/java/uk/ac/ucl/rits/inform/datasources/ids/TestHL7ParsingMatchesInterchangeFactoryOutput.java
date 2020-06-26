@@ -78,6 +78,14 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("generic/A40");
     }
 
+    @Test
+    public void testDoubleA01WithA13() throws Exception {
+        testAdtMessage("DoubleA01WithA13/A03");
+        testAdtMessage("DoubleA01WithA13/A03_2");
+        testAdtMessage("DoubleA01WithA13/A13");
+        testAdtMessage("DoubleA01WithA13/FirstA01");
+        testAdtMessage("DoubleA01WithA13/SecondA01");
+    }
 
     @Test
     public void testPathologyIncrementalLoad() throws Exception {
