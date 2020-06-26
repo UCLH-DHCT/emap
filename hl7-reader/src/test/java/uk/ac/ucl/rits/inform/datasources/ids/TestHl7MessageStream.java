@@ -1,17 +1,16 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import org.springframework.test.context.ActiveProfiles;
-
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for writing tests which take HL7 message(s) as input, and check
@@ -53,7 +52,8 @@ public abstract class TestHl7MessageStream {
     protected List<? extends EmapOperationMessage> processSingleMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        return IdsOperations.messageFromHl7Message(hl7Msg, 42);
+        List<? extends EmapOperationMessage> messages = IdsOperations.messageFromHl7Message(hl7Msg, 42);
+        return messages;
     }
 
     /**

@@ -1,5 +1,13 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
@@ -11,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -19,11 +28,21 @@ import static org.junit.Assert.assertEquals;
 public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
+    private void testAdtMessage(String adtFileStem) throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem +".txt");
+        AdtMessage expectedOrders = interchangeFactory.getAdtMessage(adtFileStem + ".yaml", "0000000042");
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(messagesFromHl7Message.get(0), expectedOrders);
+    }
+
     @Test
-    public void testAdtA01() throws Exception {
-        AdtMessage messagesFromHl7Message = processSingleAdtMessage("Adt/A01.txt");
-        AdtMessage expectedOrders = interchangeFactory.getAdtMessage("A01.yaml", "0000000042");
-        assertEquals(messagesFromHl7Message, expectedOrders);
+    public void testGenericAdtA01() throws Exception {
+        testAdtMessage("generic/A01");
+    }
+
+    @Test
+    public void testGenericAdtA02() throws Exception {
+        testAdtMessage("generic/A02");
     }
 
 
