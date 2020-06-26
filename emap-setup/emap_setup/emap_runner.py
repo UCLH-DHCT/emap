@@ -2,9 +2,10 @@ import os
 import sys
 import argparse
 
-from emap_setup.code_setup import ReadConfig
-from emap_setup.code_setup import ConfigDirSetup
-from emap_setup.code_setup import RepoSetup
+#import emap_setup.code_setup
+from emap_setup.code_setup.read_config import ReadConfig
+from emap_setup.code_setup.config_dir_setup import ConfigDirSetup
+from emap_setup.code_setup.repo_setup import RepoSetup
 
 
 def create_repositories(main_dir, repos, git_dir):
@@ -32,11 +33,26 @@ def create_or_update_config_dir(main_dir, config_file):
 def define_arguments():
     parser = argparse.ArgumentParser(
         description='Set up or update emap installation.')
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-init',
+    group = parser.add_argument_group()
+    group.add_argument('init',
+                        help='Initialise/update repository directories',
+                        nargs='?')
+    group1 = group.add_mutually_exclusive_group()
+    group1.add_argument('-init',
                        help='clone repositories and create config dir',
                        required=False)
-    group.add_argument('-update',
+    group1.add_argument('-update',
+                       help='update repositories and config files',
+                       required=False)
+    group2 = parser.add_argument_group()
+    group2.add_argument('docker',
+                        help='Initialise/update repository directories',
+                        nargs='?')
+    group3 = group2.add_mutually_exclusive_group()
+    group3.add_argument('-up',
+                       help='clone repositories and create config dir',
+                       required=False)
+    group3.add_argument('-build',
                        help='update repositories and config files',
                        required=False)
     return parser
@@ -45,8 +61,7 @@ def define_arguments():
 def main(args):
     parser = define_arguments()
     args = parser.parse_args()
-    print(args)
-    print(args.init)
+
     # set up main variables
     main_dir = os.getcwd()
     filename = os.path.join(main_dir, '..', 'emap-setup',
