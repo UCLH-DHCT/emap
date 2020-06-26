@@ -24,14 +24,14 @@ import uk.ac.ucl.rits.inform.informdb.PersonMrn;
  *
  * @author Jeremy Stein
  */
-public class TestMergeById extends Hl7StreamEndToEndTestCase {
+public class TestMergeById extends InterchangeMessageEndToEndTestCase {
     @Autowired
     private PersonMrnRepository personMrnRepo;
     public TestMergeById() {
         super();
-        hl7StreamFileNames.add("GenericAdt/A01.txt");
-        hl7StreamFileNames.add("GenericAdt/A01_b.txt");
-        hl7StreamFileNames.add("GenericAdt/A40.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A01.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A01_b.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A40.yaml", "0000000042"));
     }
 
     @Test

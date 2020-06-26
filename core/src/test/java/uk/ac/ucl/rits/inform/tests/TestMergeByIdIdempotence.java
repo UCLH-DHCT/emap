@@ -24,7 +24,7 @@ public class TestMergeByIdIdempotence extends TestMergeById {
 
     public TestMergeByIdIdempotence() {
         // do the merge a second time, should get a MessageIgnoredException
-        hl7StreamFileNames.add("GenericAdt/A40.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A40.yaml", "0000000042"));
     }
 
     @Override
@@ -37,7 +37,7 @@ public class TestMergeByIdIdempotence extends TestMergeById {
     @Override
     @Test
     public void testAllProcessed() {
-        assertTrue(!hl7StreamFileNames.isEmpty(), "You must specify some HL7 containing files");
+        assertTrue(!interchangeMessages.isEmpty(), "You must specify some HL7 containing files");
         assertEquals(totalMessages, 1 + processedMessages, "All messages were processed - one should have been ignored");
         assertTrue(totalMessages > 0, "No messages got processed");
     }

@@ -12,14 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestDischargeUnknown extends Hl7StreamEndToEndTestCase {
+public class TestDischargeUnknown extends InterchangeMessageEndToEndTestCase {
     /**
      * Discharging a patient we have not previously seen should create the patient and then discharge them.
      * Transfer record won't be known but that could potentially be filled in later (from eg. Caboodle).
      */
     public TestDischargeUnknown() {
         super();
-        hl7StreamFileNames.add("GenericAdt/A03.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A03.yaml", "0000000042"));
     }
 
     /**

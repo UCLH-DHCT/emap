@@ -8,9 +8,9 @@ package uk.ac.ucl.rits.inform.tests;
 public class TestMergeByIdImpliedRecord1 extends TestMergeById {
 
     public TestMergeByIdImpliedRecord1() {
-        hl7StreamFileNames.clear();
-        hl7StreamFileNames.add("GenericAdt/A01.txt");
-        hl7StreamFileNames.add("GenericAdt/A40.txt");
+        interchangeMessages.clear();
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A01.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A40.yaml", "0000000042"));
     }
 
 }
