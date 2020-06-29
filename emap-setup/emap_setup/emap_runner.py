@@ -8,26 +8,18 @@ from emap_setup.code_setup.config_dir_setup import ConfigDirSetup
 from emap_setup.code_setup.repo_setup import RepoSetup
 
 
-def create_repositories(main_dir, repos, git_dir):
+def create_or_update_repositories(main_dir, config_file, initial):
     """
     Create repositories
     :param main_dir: Directory to work in
-    :param repos: dictionary items describing repos
-    :param git_dir: path of main git repositories
+    :param config_file
     """
-    r_setup = RepoSetup(main_dir, git_dir, repos)
-    r_setup.clone_necessary_repos()
-
-
-def update_repostories(main_dir, git_dir, repos):
-    """
-    Create repositories
-    :param main_dir: Directory to work in
-    :param git_dir: path of main git repositories
-    :param repos: dictionary items describing repos
-    """
-    r_setup = RepoSetup(main_dir, git_dir, repos)
-    r_setup.update_necessary_repositories()
+    r_setup = RepoSetup(main_dir, config_file.get_git_dir(),
+                        config_file.get_repo_info())
+    if initial:
+        r_setup.clone_necessary_repos()
+    else:
+        r_setup.update_necessary_repositories()
 
 
 def create_or_update_config_dir(main_dir, config_file):
@@ -81,7 +73,7 @@ def main(args):
 
     # set up main variables
     main_dir = os.getcwd()
-    filename = os.path.join(main_dir, '..', '..', 'emap-setup',
+    filename = os.path.join(main_dir, '..', 'emap-setup',
                             'global-configuration.yaml')
     if os.path.exists(filename):
         config_file = ReadConfig(filename)
@@ -90,18 +82,9 @@ def main(args):
         exit(1)
     print(args.init)
 
-    if args.setup and args.init:
-        create_repositories(main_dir,
-                            config_file.get_repo_info(),
-                            config_file.get_git_dir())
+    if args.setup:
+        create_or_update_repositories(main_dir, config_file, args.init)
         create_or_update_config_dir(main_dir, config_file)
-    elif args.setup and args.update:
-        create_repositories(main_dir,
-                            config_file.get_repo_info(),
-                            config_file.get_git_dir())
-    elif opts[0] == '-update':
-        config_file = ReadConfig(filename)
-        update_repostories(main_dir, config_file.get_git_dir(), config_file.get_repo_info())
 
     print("All done")
 

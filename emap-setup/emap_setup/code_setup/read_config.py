@@ -25,8 +25,7 @@ class ReadConfig:
         for repo in self.config_options['config']['repositories']:
             if 'repo_name' in \
                     self.config_options['config']['repositories'][repo]:
-                repo_name = self.config_options['config']['repositories']
-                [repo]['repo_name']
+                repo_name = self.config_options['config']['repositories'][repo]['repo_name']
             else:
                 repo_name = repo
             this_repo = {'name': repo_name,
