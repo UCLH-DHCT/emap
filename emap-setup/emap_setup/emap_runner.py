@@ -32,29 +32,35 @@ def create_or_update_config_dir(main_dir, config_file):
 
 def define_arguments():
     parser = argparse.ArgumentParser(
-        description='Set up or update emap installation.')
+        description='Setup, update and run an instance of emap'
+    )
     group = parser.add_argument_group()
-    group.add_argument('init',
-                        help='Initialise/update repository directories',
-                        nargs='?')
+    group.add_argument('setup',
+                       help='Initialise/update repository directories',
+                       nargs='?')
     group1 = group.add_mutually_exclusive_group()
-    group1.add_argument('-init',
-                       help='clone repositories and create config dir',
-                       required=False)
-    group1.add_argument('-update',
-                       help='update repositories and config files',
-                       required=False)
+    group1.add_argument('-i', '--init',
+                        help='clone repositories and create config dir',
+                        default=False,
+                        action='store_true')
+    group1.add_argument('-u', '--update',
+                        help='update repositories and config files',
+                        default=False,
+                        action='store_true')
+    # place holder for second group
     group2 = parser.add_argument_group()
     group2.add_argument('docker',
-                        help='Initialise/update repository directories',
-                        nargs='?')
+                       help='something',
+                       nargs='?')
     group3 = group2.add_mutually_exclusive_group()
-    group3.add_argument('-up',
-                       help='clone repositories and create config dir',
-                       required=False)
-    group3.add_argument('-build',
-                       help='update repositories and config files',
-                       required=False)
+    group3.add_argument('-r', '--run',
+                        help='run ',
+                        default=False,
+                        action='store_true')
+    group3.add_argument('-up', '--up',
+                        help='up',
+                        default=False,
+                        action='store_true')
     return parser
 
 
@@ -64,22 +70,21 @@ def main(args):
 
     # set up main variables
     main_dir = os.getcwd()
-    filename = os.path.join(main_dir, '..', 'emap-setup',
+    filename = os.path.join(main_dir, '..', '..', 'emap-setup',
                             'global-configuration.yaml')
     if os.path.exists(filename):
         config_file = ReadConfig(filename)
     else:
-        # TODO put in errr mess
+        print(f'configuration file {filename} not found')
         exit(1)
     print(args.init)
 
-    # run chosen action
-    if args[0] == 'init':
+    if args.setup and args.init:
         create_repositories(main_dir,
                             config_file.get_repo_info(),
                             config_file.get_git_dir())
         create_or_update_config_dir(main_dir, config_file)
-    elif args[0] == '-tests':
+    elif args.setup and args.update:
         create_repositories(main_dir,
                             config_file.get_repo_info(),
                             config_file.get_git_dir())
