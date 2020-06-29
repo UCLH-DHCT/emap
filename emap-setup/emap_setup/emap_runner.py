@@ -15,8 +15,19 @@ def create_repositories(main_dir, repos, git_dir):
     :param repos: dictionary items describing repos
     :param git_dir: path of main git repositories
     """
-    r_setup = RepoSetup(main_dir, repos, git_dir)
+    r_setup = RepoSetup(main_dir, git_dir, repos)
     r_setup.clone_necessary_repos()
+
+
+def update_repostories(main_dir, git_dir, repos):
+    """
+    Create repositories
+    :param main_dir: Directory to work in
+    :param git_dir: path of main git repositories
+    :param repos: dictionary items describing repos
+    """
+    r_setup = RepoSetup(main_dir, git_dir, repos)
+    r_setup.update_necessary_repositories()
 
 
 def create_or_update_config_dir(main_dir, config_file):
@@ -88,6 +99,10 @@ def main(args):
         create_repositories(main_dir,
                             config_file.get_repo_info(),
                             config_file.get_git_dir())
+    elif opts[0] == '-update':
+        config_file = ReadConfig(filename)
+        update_repostories(main_dir, config_file.get_git_dir(), config_file.get_repo_info())
+
     print("All done")
 
 
