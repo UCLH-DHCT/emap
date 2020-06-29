@@ -8,7 +8,9 @@ from emap_setup.code_setup.config_dir_setup import ConfigDirSetup
 from emap_setup.code_setup.repo_setup import RepoSetup
 
 
-def create_or_update_repositories(main_dir, config_file, initial):
+def create_or_update_repositories(main_dir: str,
+                                  config_file: str,
+                                  initial: bool) -> None:
     """
     Create repositories
     :param main_dir: Directory to work in
@@ -22,7 +24,8 @@ def create_or_update_repositories(main_dir, config_file, initial):
         r_setup.update_necessary_repositories()
 
 
-def create_or_update_config_dir(main_dir, config_file):
+def create_or_update_config_dir(main_dir: str,
+                                config_file: str) -> None:
     """
     Create the config dir populating and copying any envs files
     from the repositories present

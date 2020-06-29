@@ -7,7 +7,7 @@ class ReadConfig:
     and extract required data
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename: str) -> None:
         """
         Read the file and create sets representing different data
         :param filename:
@@ -30,7 +30,7 @@ class ReadConfig:
                 repo_name = repo
             this_repo = {'name': repo_name,
                          'branch': self.config_options['config']['repositories'][repo]['branch']}
-            repos[repo] =  this_repo
+            repos[repo] = this_repo
         return repos
 
     def get_git_dir(self):
