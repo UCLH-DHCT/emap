@@ -2,10 +2,11 @@ import os
 import shutil
 import fnmatch
 
+from emap_setup.code_setup.read_config import ReadConfig
 
 class ConfigDirSetup:
 
-    def __init__(self, main_dir, config_file):
+    def __init__(self, main_dir: str, config_file: ReadConfig) -> None:
         self.main_dir = main_dir
         self.config_dir = os.path.join(main_dir, 'config')
         self.caboodle_data = config_file.get_caboodle_info()
@@ -35,7 +36,7 @@ class ConfigDirSetup:
                 self._substitute_informdb_info(target, this_dir)
                 self._substitute_omop_info(target)
 
-    def _get_envs_examples(self, this_dir):
+    def _get_envs_examples(self, this_dir: str) -> []:
         """
         Return a list of *envs.EXAMPLE files
         :param this_dir: the directory to search

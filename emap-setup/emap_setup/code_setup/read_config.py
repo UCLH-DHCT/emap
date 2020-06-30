@@ -16,7 +16,7 @@ class ReadConfig:
         with open(filename) as f:
             self.config_options = yaml.load(f, Loader=yaml.FullLoader)
 
-    def get_repo_info(self):
+    def get_repo_info(self) -> dict:
         """
         Return a list of dictionary items with repository name and branch
         :return: list of repo dictionary items
@@ -33,7 +33,7 @@ class ReadConfig:
             repos[repo] = this_repo
         return repos
 
-    def get_git_dir(self):
+    def get_git_dir(self) -> str:
         """
         Return the main git directory specified
         """

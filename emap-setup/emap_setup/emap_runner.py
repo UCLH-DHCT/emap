@@ -9,12 +9,14 @@ from emap_setup.code_setup.repo_setup import RepoSetup
 
 
 def create_or_update_repositories(main_dir: str,
-                                  config_file: str,
+                                  config_file: ReadConfig,
                                   initial: bool) -> None:
     """
     Create repositories
     :param main_dir: Directory to work in
-    :param config_file
+    :param config_file: ReadConfig class
+    :param initial: bool indicating whether this is an initial setup or
+    an update
     """
     r_setup = RepoSetup(main_dir, config_file.get_git_dir(),
                         config_file.get_repo_info())
@@ -25,7 +27,7 @@ def create_or_update_repositories(main_dir: str,
 
 
 def create_or_update_config_dir(main_dir: str,
-                                config_file: str) -> None:
+                                config_file: ReadConfig) -> None:
     """
     Create the config dir populating and copying any envs files
     from the repositories present

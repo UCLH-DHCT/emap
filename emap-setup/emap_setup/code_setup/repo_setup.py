@@ -11,7 +11,7 @@ class MyProgressPrinter(RemoteProgress):
         print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message)
 
 
-def _report_error(message):
+def _report_error(message: str):
     print(message)
 
 
@@ -19,20 +19,20 @@ class RepoSetup:
     """Clones the relevant inform repositories.
     """
 
-    def __init__(self, main_dir, git_dir, repos):
+    def __init__(self, main_dir: str, git_dir: str , repos: dict) -> None:
         """
         Initialise the repository setup
         :param main_dir: the working directory in which to clone repositories
+        :param git_dir: the main git repository path
         :param repos: a dictionary items with name
                       and branch of each repositories
-        :param git_dir: the main git repository path
         """
         self.main_dir = main_dir
         self.main_github = git_dir
         self.repos = repos
         self.current_repos = self.detect_repos()
 
-    def clone_necessary_repos(self):
+    def clone_necessary_repos(self) -> None:
         """
         Clone the requested repositories and branches
         and make the self.current_repos list in line
@@ -56,7 +56,7 @@ class RepoSetup:
                               + e.stderr)
                 break
 
-    def update_necessary_repositories(self):
+    def update_necessary_repositories(self) -> None:
         for repo in self.repos:
             if self._branches_match(repo):
                 try:
@@ -89,7 +89,13 @@ class RepoSetup:
                                             e.stderr))
                     break
 
-    def _branches_match(self, repo):
+    def _branches_match(self, repo: str) -> bool:
+        """
+        Check that the name and branch of the repository match.
+
+        :param repo: string name of repository
+        :return: True if match, otherwise False
+        """
         match = True
         if repo not in self.current_repos:
             match = False
@@ -99,7 +105,7 @@ class RepoSetup:
             match = False
         return match
 
-    def detect_repos(self):
+    def detect_repos(self) -> dict:
         """
         Repositories already exist; determine the names, directories and
         branches
