@@ -1,0 +1,38 @@
+
+config:
+
+  main_git_dir:
+    https://github.com/test
+
+  emap_project_name:
+    my_project_name
+
+  repositories:
+    InformDB:
+      branch:  develop
+    hl7-vitals:
+      branch:  vitalsigns
+      repo_name: Emap-Core
+
+  informdb:
+    Emap-Core:
+      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+      schema: inform_schema_for_core
+      username: someuser
+      password: redacted
+    hl7-vitals:
+      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+      schema: inform_schema_for_branch
+      username: someuseraaa
+      password: redactedaaa
+    OMOP-ETL:
+      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+      schema: inform_schema_for_omop
+      username: someuser_omop
+      password: redacted_omop
+
+  caboodle:
+    jdbc_url: jdbc:sqlserver://caboodle_db
+    username: cab_user
+    password: cab_password
+

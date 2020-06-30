@@ -45,4 +45,6 @@ class ReadConfig:
         :param dataname: str name of data requested
         :return: dictionary of data for dataname
         """
-        return self.config_options['config'][dataname]
+        if dataname in self.config_options['config']:
+            return self.config_options['config'][dataname]
+        return None
