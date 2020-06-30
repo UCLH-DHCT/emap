@@ -39,48 +39,10 @@ class ReadConfig:
         """
         return self.config_options['config']['main_git_dir']
 
-    def get_caboodle_info(self):
+    def get_data_for(self, dataname: str) -> dict:
         """
-        Return the information relating to caboodle environment
+        Retrun information for dataname specified.
+        :param dataname: str name of data requested
+        :return: dictionary of data for dataname
         """
-        return self.config_options['config']['caboodle']
-
-    def get_uds_info(self):
-        """
-        Return the information relating to uds environment
-        """
-        return self.config_options['config']['uds']
-
-    def get_rabbitmq_info(self):
-        """
-        Return the information relating to rabbitmq environment
-        """
-        return self.config_options['config']['rabbitmq']
-
-    def get_ids_info(self):
-        """
-        Return the information relating to ids environment
-        """
-        return self.config_options['config']['ids']
-
-    def get_informdb_info(self):
-        """
-        Return the information relating to informdb environment
-        """
-        return self.config_options['config']['informdb']
-
-    def get_dates_info(self):
-        """
-        Return the information relating to dates specified
-        """
-        return self.config_options['config']['dates']
-
-    def get_omop_info(self):
-        """
-        Return the information relating to omop environment
-        """
-        return self.config_options['config']['omop']
-
-    def print_content(self):
-        """ here for development"""
-        print(self.config_options)
+        return self.config_options['config'][dataname]

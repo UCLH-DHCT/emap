@@ -4,18 +4,19 @@ import fnmatch
 
 from emap_setup.code_setup.read_config import ReadConfig
 
+
 class ConfigDirSetup:
 
     def __init__(self, main_dir: str, config_file: ReadConfig) -> None:
         self.main_dir = main_dir
         self.config_dir = os.path.join(main_dir, 'config')
-        self.caboodle_data = config_file.get_caboodle_info()
-        self.uds_data = config_file.get_uds_info()
-        self.rabbitmq_data = config_file.get_rabbitmq_info()
-        self.informdb_data = config_file.get_informdb_info()
-        self.ids_data = config_file.get_ids_info()
-        self.dates_data = config_file.get_dates_info()
-        self.omop_data = config_file.get_omop_info()
+        self.caboodle_data = config_file.get_data_for('caboodle')
+        self.uds_data = config_file.get_data_for('uds')
+        self.rabbitmq_data = config_file.get_data_for('rabbitmq')
+        self.informdb_data = config_file.get_data_for('informdb')
+        self.ids_data = config_file.get_data_for('ids')
+        self.dates_data = config_file.get_data_for('dates')
+        self.omop_data = config_file.get_data_for('omop')
 
     def create_or_update_config_dir(self):
         if not os.path.isdir(self.config_dir):
