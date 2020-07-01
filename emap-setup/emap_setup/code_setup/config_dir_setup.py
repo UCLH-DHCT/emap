@@ -8,8 +8,11 @@ from emap_setup.code_setup.read_config import ReadConfig
 class ConfigDirSetup:
 
     def __init__(self, main_dir: str, config_file: ReadConfig) -> None:
+        # config directory next to repositories
         self.main_dir = main_dir
         self.config_dir = os.path.join(main_dir, 'config')
+
+        # save the different categories of data
         self.caboodle_data = config_file.get_data_for('caboodle')
         self.uds_data = config_file.get_data_for('uds')
         self.rabbitmq_data = config_file.get_data_for('rabbitmq')
@@ -23,7 +26,9 @@ class ConfigDirSetup:
             os.mkdir(self.config_dir)
         list_of_dirs = os.listdir(self.main_dir)
         for this_dir in list_of_dirs:
-            list_of_envs_files = self._get_envs_examples(this_dir)
+            list_of_envs_files = []
+            if os.path.isdir(this_dir):
+                list_of_envs_files = self._get_envs_examples(this_dir)
 
             for env_file in list_of_envs_files:
                 original = os.path.join(self.main_dir, this_dir, env_file)
@@ -44,7 +49,7 @@ class ConfigDirSetup:
         :return:
         """
         list_of_envs_files = []
-        list_of_files = os.listdir(this_dir)
+        list_of_files = os.listdir(os.path.join(self.main_dir, this_dir))
         pattern = "*-envs.EXAMPLE"
         for entry in list_of_files:
             if fnmatch.fnmatch(entry, pattern):

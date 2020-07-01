@@ -1,7 +1,7 @@
 from pytest import fixture
 from emap_setup.code_setup.read_config import ReadConfig
 
-# Tests the ReadConfig class thatt reads the gloobal configuration file
+# Tests the ReadConfig class that reads the global configuration file
 
 
 @fixture(scope="module")
