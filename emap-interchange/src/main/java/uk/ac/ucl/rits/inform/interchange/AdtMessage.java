@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * An interchange message describing patient movements or info. Closely corresponds
