@@ -30,7 +30,8 @@ jobs:
               mvn install -Dmaven.test.skip=true
               git clone git@github.com:inform-health-informatics/Emap-Interchange.git
               cd Emap-Interchange
-              mvn install -Dmaven.test.skip=true
+              # run tests so that test classes can be used in current testing
+              mvn install
       - run:
           command: |
              mvn dependency:go-offline
