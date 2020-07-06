@@ -4,10 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +32,10 @@ public class InterchangeMessageFactory {
      */
     public AdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
         AdtMessage adtMessage = new AdtMessage();
-        String resourcePath = "classpath:AdtMessages/" + fileName;
+        String resourcePath = "/AdtMessages/" + fileName;
         try {
-            File file = ResourceUtils.getFile(resourcePath);
-            adtMessage = mapper.readValue(file, AdtMessage.class);
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+            adtMessage = mapper.readValue(inputStream, AdtMessage.class);
             adtMessage.setSourceMessageId(sourceMessageId);
         } catch (IOException e) {
             e.printStackTrace();
@@ -55,10 +54,10 @@ public class InterchangeMessageFactory {
      */
     public List<PathologyOrder> getPathologyOrders(final String fileName, final String sourceMessagePrefix) {
         List<PathologyOrder> pathologyOrders = new ArrayList<>();
-        String resourcePath = "classpath:PathologyOrders/" + fileName;
+        String resourcePath = "/PathologyOrders/" + fileName;
         try {
-            File file = ResourceUtils.getFile(resourcePath);
-            pathologyOrders = mapper.readValue(file, new TypeReference<List<PathologyOrder>>() {});
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+            pathologyOrders = mapper.readValue(inputStream, new TypeReference<List<PathologyOrder>>() {});
             int count = 1;
             for (PathologyOrder order : pathologyOrders) {
                 String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
@@ -80,10 +79,11 @@ public class InterchangeMessageFactory {
      */
     public List<VitalSigns> getVitalSigns(final String fileName, final String sourceMessagePrefix) {
         List<VitalSigns> vitalSigns = new ArrayList<>();
-        String resourcePath = "classpath:VitalSigns/" + fileName;
+
+        String resourcePath = "/VitalSigns/" + fileName;
         try {
-            File file = ResourceUtils.getFile(resourcePath);
-            vitalSigns = mapper.readValue(file, new TypeReference<List<VitalSigns>>() {});
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+            vitalSigns = mapper.readValue(inputStream, new TypeReference<List<VitalSigns>>() {});
             int count = 1;
             for (VitalSigns vitalsign : vitalSigns) {
                 String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
@@ -92,7 +92,7 @@ public class InterchangeMessageFactory {
                 // update order with yaml data
                 ObjectReader orderReader = mapper.readerForUpdating(vitalsign);
                 String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
-                orderReader.readValue(ResourceUtils.getFile(orderDefaultPath));
+                orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
                 count++;
             }
@@ -116,7 +116,7 @@ public class InterchangeMessageFactory {
             result.setResultTime(order.getStatusChangeTime());
             // update result with yaml data
             ObjectReader resultReader = mapper.readerForUpdating(result);
-            resultReader.readValue(ResourceUtils.getFile(resultDefaultPath));
+            resultReader.readValue(getClass().getResourceAsStream(resultDefaultPath));
         }
     }
 
@@ -132,7 +132,7 @@ public class InterchangeMessageFactory {
         // update order with yaml data
         ObjectReader orderReader = mapper.readerForUpdating(order);
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
-        order = orderReader.readValue(ResourceUtils.getFile(orderDefaultPath));
+        order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
         updatePathologyResults(order, resourcePathPrefix);
     }
