@@ -1,0 +1,25 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$5"
+  stringValue: "140/90"
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$6"
+  numericValue: 102.2
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$8"
+  numericValue: 90.0
+  comment: "patient was running really fast (on a hamster wheel)"
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$10"
+  numericValue: 95.0
+  comment: "comment 1a\ncomment 1b\ncomment 2"
+  unit: "%"
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$6466"
+  stringValue: "A"
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$28315"
+  stringValue: '""'
+  resultStatus: "DELETE"
+- "@class": "uk.ac.ucl.rits.inform.interchange.VitalSigns"
+  vitalSignIdentifier: "EPIC$3040109304"
+  stringValue: "Supplemental Oxygen\nextra line"

@@ -1,14 +1,15 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.io.Serializable;
 import java.time.Instant;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * An interchange message describing patient movements or info. Closely corresponds
  * to the HL7 ADT message type.
- *
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
@@ -529,5 +530,99 @@ public class AdtMessage extends EmapOperationMessage implements Serializable {
     @Override
     public String getMessageType() {
         return "Adt:" + getOperationType().toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AdtMessage that = (AdtMessage) o;
+        return Objects.equals(recordedDateTime, that.recordedDateTime)
+                && operationType == that.operationType
+                && Objects.equals(eventReasonCode, that.eventReasonCode)
+                && Objects.equals(eventOccurredDateTime, that.eventOccurredDateTime)
+                && Objects.equals(operatorId, that.operatorId)
+                && Objects.equals(admissionDateTime, that.admissionDateTime)
+                && Objects.equals(admitSource, that.admitSource)
+                && Objects.equals(currentBed, that.currentBed)
+                && Objects.equals(currentRoomCode, that.currentRoomCode)
+                && Objects.equals(currentWardCode, that.currentWardCode)
+                && Objects.equals(dischargeDateTime, that.dischargeDateTime)
+                && Objects.equals(dischargeDisposition, that.dischargeDisposition)
+                && Objects.equals(dischargeLocation, that.dischargeLocation)
+                && Objects.equals(ethnicGroup, that.ethnicGroup)
+                && Objects.equals(fullLocationString, that.fullLocationString)
+                && Objects.equals(hospitalService, that.hospitalService)
+                && Objects.equals(mrn, that.mrn)
+                && Objects.equals(mergedPatientId, that.mergedPatientId)
+                && Objects.equals(nhsNumber, that.nhsNumber)
+                && Objects.equals(patientBirthDate, that.patientBirthDate)
+                && Objects.equals(patientClass, that.patientClass)
+                && Objects.equals(patientDeathDateTime, that.patientDeathDateTime)
+                && Objects.equals(patientDeathIndicator, that.patientDeathIndicator)
+                && Objects.equals(patientFamilyName, that.patientFamilyName)
+                && Objects.equals(patientFullName, that.patientFullName)
+                && Objects.equals(patientGivenName, that.patientGivenName)
+                && Objects.equals(patientMiddleName, that.patientMiddleName)
+                && Objects.equals(patientReligion, that.patientReligion)
+                && Objects.equals(patientSex, that.patientSex)
+                && Objects.equals(patientTitle, that.patientTitle)
+                && Objects.equals(patientType, that.patientType)
+                && Objects.equals(patientZipOrPostalCode, that.patientZipOrPostalCode)
+                && Objects.equals(visitNumber, that.visitNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operationType, recordedDateTime, eventReasonCode, eventOccurredDateTime, operatorId,
+                admissionDateTime, admitSource, currentBed, currentRoomCode, currentWardCode, dischargeDateTime,
+                dischargeDisposition, dischargeLocation, ethnicGroup, fullLocationString, hospitalService, mrn,
+                mergedPatientId, nhsNumber, patientBirthDate, patientClass, patientDeathDateTime, patientDeathIndicator,
+                patientFamilyName, patientFullName, patientGivenName, patientMiddleName, patientReligion, patientSex,
+                patientTitle, patientType, patientZipOrPostalCode, visitNumber);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("AdtMessage{");
+        sb.append("operationType=").append(operationType);
+        sb.append(", recordedDateTime=").append(recordedDateTime);
+        sb.append(", eventReasonCode='").append(eventReasonCode).append('\'');
+        sb.append(", eventOccurredDateTime=").append(eventOccurredDateTime);
+        sb.append(", operatorId='").append(operatorId).append('\'');
+        sb.append(", admissionDateTime=").append(admissionDateTime);
+        sb.append(", admitSource='").append(admitSource).append('\'');
+        sb.append(", currentBed='").append(currentBed).append('\'');
+        sb.append(", currentRoomCode='").append(currentRoomCode).append('\'');
+        sb.append(", currentWardCode='").append(currentWardCode).append('\'');
+        sb.append(", dischargeDateTime=").append(dischargeDateTime);
+        sb.append(", dischargeDisposition='").append(dischargeDisposition).append('\'');
+        sb.append(", dischargeLocation='").append(dischargeLocation).append('\'');
+        sb.append(", ethnicGroup='").append(ethnicGroup).append('\'');
+        sb.append(", fullLocationString='").append(fullLocationString).append('\'');
+        sb.append(", hospitalService='").append(hospitalService).append('\'');
+        sb.append(", mrn='").append(mrn).append('\'');
+        sb.append(", mergedPatientId='").append(mergedPatientId).append('\'');
+        sb.append(", nhsNumber='").append(nhsNumber).append('\'');
+        sb.append(", patientBirthDate=").append(patientBirthDate);
+        sb.append(", patientClass='").append(patientClass).append('\'');
+        sb.append(", patientDeathDateTime=").append(patientDeathDateTime);
+        sb.append(", patientDeathIndicator=").append(patientDeathIndicator);
+        sb.append(", patientFamilyName='").append(patientFamilyName).append('\'');
+        sb.append(", patientFullName='").append(patientFullName).append('\'');
+        sb.append(", patientGivenName='").append(patientGivenName).append('\'');
+        sb.append(", patientMiddleName='").append(patientMiddleName).append('\'');
+        sb.append(", patientReligion='").append(patientReligion).append('\'');
+        sb.append(", patientSex='").append(patientSex).append('\'');
+        sb.append(", patientTitle='").append(patientTitle).append('\'');
+        sb.append(", patientType='").append(patientType).append('\'');
+        sb.append(", patientZipOrPostalCode='").append(patientZipOrPostalCode).append('\'');
+        sb.append(", visitNumber='").append(visitNumber).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

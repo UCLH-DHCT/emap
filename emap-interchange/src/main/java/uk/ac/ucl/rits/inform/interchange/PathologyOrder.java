@@ -1,18 +1,18 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.Objects;
 
 /**
  * The top level of the pathology tree, the order. Only the interchange format
  * is declared here, for serialisation purposes. Builder classes (eg. HL7
  * parser) construct this class.
- *
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
@@ -73,7 +73,7 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
 
     /**
      * @return the lab number with an extra character appended (known as the OCS
-     *         number in WinPath)
+     * number in WinPath)
      */
     public String getLabSpecimenNumberOCS() {
         return labSpecimenNumberOCS;
@@ -130,7 +130,7 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
 
     /**
      * @return Order status (final, incomplete, etc.). A,CA,CM,DC,ER,HD,IP,RP,SC
-     *         (HL7 Table 0038)
+     * (HL7 Table 0038)
      */
     public String getOrderStatus() {
         return orderStatus;
@@ -173,9 +173,9 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
 
     /**
      * @return the HL7 field to indicate the test identifier of the parent order for
-     *         this order, if it has one. Arguably this shouldn't be stored in the
-     *         JSON as it's a temporary value we use for building the structure and
-     *         is HL7 specific.
+     * this order, if it has one. Arguably this shouldn't be stored in the
+     * JSON as it's a temporary value we use for building the structure and
+     * is HL7 specific.
      */
     public String getParentObservationIdentifier() {
         return parentObservationIdentifier;
@@ -190,9 +190,9 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
 
     /**
      * @return the HL7 field to indicate the sub ID of the parent order for this
-     *         order, if it has one. Arguably this shouldn't be stored in the JSON
-     *         as it's a temporary value we use for building the structure and is
-     *         HL7 specific.
+     * order, if it has one. Arguably this shouldn't be stored in the JSON
+     * as it's a temporary value we use for building the structure and is
+     * HL7 specific.
      */
     public String getParentSubId() {
         return parentSubId;
@@ -207,7 +207,7 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
 
     /**
      * @return The results for this order (will be empty if constructed from an ORM
-     *         message)
+     * message)
      */
     public List<PathologyResult> getPathologyResults() {
         return pathologyResults;
@@ -365,7 +365,6 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     /**
      * Call back to the processor so it knows what type this object is (ie. double
      * dispatch).
-     *
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be
      *                                                 processed
@@ -374,5 +373,61 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     public String processMessage(EmapOperationMessageProcessor processor)
             throws EmapOperationMessageProcessingException {
         return processor.processMessage(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PathologyOrder that = (PathologyOrder) o;
+        return Objects.equals(orderControlId, that.orderControlId)
+                && Objects.equals(pathologyResults, that.pathologyResults)
+                && Objects.equals(epicCareOrderNumber, that.epicCareOrderNumber)
+                && Objects.equals(labSpecimenNumber, that.labSpecimenNumber)
+                && Objects.equals(labSpecimenNumberOCS, that.labSpecimenNumberOCS)
+                && Objects.equals(orderDateTime, that.orderDateTime)
+                && Objects.equals(sampleEnteredTime, that.sampleEnteredTime)
+                && Objects.equals(labDepartment, that.labDepartment)
+                && Objects.equals(orderStatus, that.orderStatus)
+                && Objects.equals(resultStatus, that.resultStatus)
+                && Objects.equals(orderType, that.orderType)
+                && Objects.equals(mrn, that.mrn)
+                && Objects.equals(visitNumber, that.visitNumber)
+                && Objects.equals(requestedDateTime, that.requestedDateTime)
+                && Objects.equals(observationDateTime, that.observationDateTime)
+                && Objects.equals(testBatteryLocalCode, that.testBatteryLocalCode)
+                && Objects.equals(testBatteryLocalDescription, that.testBatteryLocalDescription)
+                && Objects.equals(testBatteryCodingSystem, that.testBatteryCodingSystem)
+                && Objects.equals(statusChangeTime, that.statusChangeTime)
+                && Objects.equals(parentObservationIdentifier, that.parentObservationIdentifier)
+                && Objects.equals(parentSubId, that.parentSubId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pathologyResults, orderControlId, epicCareOrderNumber, labSpecimenNumber,
+                labSpecimenNumberOCS, orderDateTime, sampleEnteredTime, labDepartment, orderStatus,
+                resultStatus, orderType, mrn, visitNumber, requestedDateTime, observationDateTime,
+                testBatteryLocalCode, testBatteryLocalDescription, testBatteryCodingSystem, statusChangeTime,
+                parentObservationIdentifier, parentSubId);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(new StringBuilder()
+                        .append("\nPathologyOrder{pathologyResults=%s, orderControlId='%s', epicCareOrderNumber='%s', ")
+                        .append("labSpecimenNumber='%s', labSpecimenNumberOCS='%s', orderDateTime=%s, sampleEnteredTime=%s, labDepartment='%s', ")
+                        .append("orderStatus='%s', resultStatus='%s', orderType='%s', mrn='%s', visitNumber='%s', requestedDateTime=%s, ")
+                        .append("observationDateTime=%s, testBatteryLocalCode='%s', testBatteryLocalDescription='%s', ")
+                        .append("testBatteryCodingSystem='%s', statusChangeTime=%s, parentObservationIdentifier='%s', parentSubId='%s'}")
+                        .toString(),
+                pathologyResults, orderControlId, epicCareOrderNumber, labSpecimenNumber, labSpecimenNumberOCS,
+                orderDateTime, sampleEnteredTime, labDepartment, orderStatus, resultStatus, orderType, mrn,
+                visitNumber, requestedDateTime, observationDateTime, testBatteryLocalCode, testBatteryLocalDescription,
+                testBatteryCodingSystem, statusChangeTime, parentObservationIdentifier, parentSubId);
     }
 }
