@@ -79,10 +79,7 @@ public abstract class InterchangeMessageEndToEndTestCase {
         if (mrnRepo.count() == 0) {
             for (EmapOperationMessage interchangeMessage : interchangeMessages) {
                 totalMessages++;
-                // We are bypassing the queue and processing the message immediately, so
-                // this is still an end-to-end test (for now).
-                // This won't be possible when the HL7 reader is properly split off, then we'll have
-                // to split the tests in two as well.
+                // Directly process interchange messages for end to end tests
                 interchangeMessage.processMessage(dbOps);
                 processedMessages++;
             }
