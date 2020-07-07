@@ -14,6 +14,24 @@ config:
       branch:  vitalsigns
       repo_name: Emap-Core
 
+  rabbitmq:
+    host: rabbitmq
+    spring_port: 5673
+    username: my_name
+    password: my_pw
+    port: 5678
+    admin_port: 5679
+
+  ids:
+    jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
+    schema: schemaname
+    username: someuserids
+    password: redactedids
+
+  dates:
+    start: 2020-06-04T00:00:00.000Z
+    end:
+
   informdb:
     Emap-Core:
       jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids

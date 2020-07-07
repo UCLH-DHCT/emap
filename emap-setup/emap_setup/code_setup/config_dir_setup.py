@@ -27,8 +27,9 @@ class ConfigDirSetup:
         list_of_dirs = os.listdir(self.main_dir)
         for this_dir in list_of_dirs:
             list_of_envs_files = []
-            if os.path.isdir(this_dir):
-                list_of_envs_files = self._get_envs_examples(this_dir)
+            this_dir_full = os.path.join(self.main_dir, this_dir)
+            if os.path.isdir(this_dir_full):
+                list_of_envs_files = self._get_envs_examples(this_dir_full)
 
             for env_file in list_of_envs_files:
                 original = os.path.join(self.main_dir, this_dir, env_file)
