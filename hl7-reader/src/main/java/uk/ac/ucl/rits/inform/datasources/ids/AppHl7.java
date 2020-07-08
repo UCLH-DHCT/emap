@@ -1,8 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.parser.PipeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -10,15 +9,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.parser.PipeParser;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 
 /**
  * Entry point class for the HL7 reader application.
- *
  * @author Jeremy Stein
  */
 @SpringBootApplication(scanBasePackages = {
@@ -37,9 +32,8 @@ public class AppHl7 {
 
     /**
      * The entry point for processing HL7 messages and writing interchange messages to the queue.
-     *
-     * @param publisher     the local AMQP handling class
-     * @param idsOps        Inform-db operations object
+     * @param publisher the local AMQP handling class
+     * @param idsOps    Inform-db operations object
      * @return The CommandLineRunner
      */
     @Bean
