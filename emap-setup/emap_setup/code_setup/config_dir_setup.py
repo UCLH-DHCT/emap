@@ -50,7 +50,7 @@ class ConfigDirSetup:
         :return:
         """
         list_of_envs_files = []
-        list_of_files = os.listdir(os.path.join(self.main_dir, this_dir))
+        list_of_files = os.listdir(this_dir)
         pattern = "*-envs.EXAMPLE"
         for entry in list_of_files:
             if fnmatch.fnmatch(entry, pattern):
