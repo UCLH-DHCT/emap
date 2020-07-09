@@ -2,7 +2,6 @@ import os
 import sys
 import argparse
 
-#import emap_setup.code_setup
 from emap_setup.code_setup.read_config import ReadConfig
 from emap_setup.code_setup.config_dir_setup import ConfigDirSetup
 from emap_setup.code_setup.repo_setup import RepoSetup
@@ -58,8 +57,8 @@ def define_arguments():
     # place holder for second group
     group2 = parser.add_argument_group()
     group2.add_argument('docker',
-                       help='something',
-                       nargs='?')
+                        help='something',
+                        nargs='?')
     group3 = group2.add_mutually_exclusive_group()
     group3.add_argument('-r', '--run',
                         help='run ',

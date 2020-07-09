@@ -14,7 +14,9 @@ config:
   main_git_dir:
     https://github.com/inform-health-informatics
 
-  EMAP_PROJECT_NAME:
+  # this is whatever name you have chosen for this installation
+  #NOTE: this must be unique on the docker host
+  emap_project_name:
     my_project_name
 
   # list of required repositories and the branch you require
@@ -43,20 +45,22 @@ config:
 
   # Configuration data for the rabbitmq instance used by Spring in the pipeline
 
-  rabbitmq:
+# @Jeremy the username and pw are also used in rabbitmq-config-envs
+  # but with RABBITMQ_DEFAULT_USER/RABBITMQ_DEFAULT_PASSWORD
+  # Will they always be the same ??
+  spring_rabbitmq:
     SPRING_RABBITMQ_HOST: rabbitmq
     SPRING_RABBITMQ_PORT: 5672
     SPRING_RABBITMQ_USERNAME: my_name
     SPRING_RABBITMQ_PASSWORD: my_pw
-    RABBITMQ_DEFAULT_USER : my_name
-    RABBITMQ_DEFAULT_PASS: my_pw
 
   # Configuration used by global configuration
-  
-  global:
+
+  # @Jeremy These appear in global-config-envs. Do they need to ??
+  rabbitmq_global:
     RABBITMQ_PORT: 5678
     RABBITMQ_ADMIN_PORT: 5679
-  
+
   # Configuration for the IDS
   ids:
     IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
@@ -65,12 +69,24 @@ config:
     IDS_PASSWORD: redactedids
 
   # These dates are used to set the start and end dates between which data should be collected
+  # they will be used for reading from both the IDS and caboodle
+  # NOTE: if �end� is left blank then the current date is used
+  # @Jeremy Is this accurate ??  
+  # @Jeremy Will there ever be a case where you sets different dates for each reader ??  
+  # @Jeremy What is the default if �start� is left blank ??
   dates:
     start: 2020-06-04T00:00:00.000Z
-    end:
+    end: and
+
+ # These are the configurations for the InformDB.
+ # The global section contains the environmental variables that will be used in every instance when InformDB is specified.
+
+# @Jeremy It seems like the schema at will be the same for both core and OMOP but if we have included another branch of emap core this may have a different scheme.  Is that correct ??
+
+# @Jeremy If the schemas used by emap-core and OMOP are the same why do they appear to have different the user names and passwords ?
 
   informdb:
-    common:
+    global:
       INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
     Emap-Core:
       INFORMDB_SCHEMA: inform_schema
@@ -80,6 +96,7 @@ config:
       INFORMDB_SCHEMA: inform_schema
       INFORMDB_USERNAME: someuser_omop
       INFORMDB_PASSWORD: redacted_omop
+ # @Jeremy these next 2 items do not appear in the example-envs file for OMOP-ETL and but they are in the actual envs file in validation instance.  Are these necessary or where they are only in the validation instance ?
       INFORMDB_DDL_AUTO: update
       INFORM_INIT_MODE: always
     hl7-vitals:
@@ -104,6 +121,7 @@ config:
 
 # These are the configurations for the omop.
 
+# @Jeremy Is it true that the schema useds by ops and that used by emap-core and should match?  So what if one is star_foo the other should be ops_foo; where foo might be live or validaton etc
   omop:
     OPS_DROP_AND_CREATE_SCHEMA: false
     OPS_SCHEMA: ops_dev

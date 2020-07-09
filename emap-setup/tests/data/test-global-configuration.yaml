@@ -4,7 +4,7 @@ config:
   main_git_dir:
     https://github.com/test
 
-  emap_project_name:
+  EMAP_PROJECT_NAME:
     my_project_name
 
   repositories:
@@ -14,43 +14,56 @@ config:
       branch:  vitalsigns
       repo_name: Emap-Core
 
+  # Configuration data for the rabbitmq instance used by Spring in the pipeline
+
   rabbitmq:
-    host: rabbitmq
-    spring_port: 5673
-    username: my_name
-    password: my_pw
-    port: 5678
-    admin_port: 5679
+    SPRING_RABBITMQ_HOST: rabbitmq
+    SPRING_RABBITMQ_PORT: 5672
+    SPRING_RABBITMQ_USERNAME: my_name
+    SPRING_RABBITMQ_PASSWORD: my_pw
+    RABBITMQ_DEFAULT_USER : my_name
+    RABBITMQ_DEFAULT_PASS: my_pw
 
+  # Configuration used by global configuration
+  
+  global:
+    RABBITMQ_PORT: 5678
+    RABBITMQ_ADMIN_PORT: 5679
+  
+  # Configuration for the IDS
   ids:
-    jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
-    schema: schemaname
-    username: someuserids
-    password: redactedids
+    IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+    IDS_SCHEMA: schemaname
+    IDS_USERNAME: someuserids
+    IDS_PASSWORD: redactedids
 
+  # These dates are used to set the start and end dates between which data should be collected
   dates:
     start: 2020-06-04T00:00:00.000Z
     end:
 
   informdb:
+    common:
+      INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
     Emap-Core:
-      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
-      schema: inform_schema_for_core
-      username: someuser
-      password: redacted
-    hl7-vitals:
-      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
-      schema: inform_schema_for_branch
-      username: someuseraaa
-      password: redactedaaa
+      INFORMDB_SCHEMA: inform_schema
+      INFORMDB_USERNAME: someuser
+      INFORMDB_PASSWORD: redacted
     OMOP-ETL:
-      jdbc_url: jdbc:postgresql://host.docker.internal:5432/ids
-      schema: inform_schema_for_omop
-      username: someuser_omop
-      password: redacted_omop
+      INFORMDB_SCHEMA: inform_schema
+      INFORMDB_USERNAME: someuser_omop
+      INFORMDB_PASSWORD: redacted_omop
+      INFORMDB_DDL_AUTO: update
+      INFORM_INIT_MODE: always
+    hl7-vitals:
+      INFORMDB_SCHEMA: inform_schema_for_branch
+      INFORMDB_USERNAME: someuseraaa
+      INFORMDB_PASSWORD: redactedaaa
+
+# These are the configurations for the caboodle.
 
   caboodle:
-    jdbc_url: jdbc:sqlserver://caboodle_db
-    username: cab_user
-    password: cab_password
+    CABOODLE_JDBC_URL: jdbc:sqlserver://caboodle_db
+    CABOODLE_USERNAME: cab_user
+    CABOODLE_PASSWORD: cab_password
 

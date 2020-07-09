@@ -18,12 +18,13 @@ def test_get_git_dir(config_file: ReadConfig):
     """
     assert config_file.get_git_dir() == 'https://github.com/test'
 
+
 def test_get_data_for(config_file: ReadConfig):
     """
     Test data for an entry we know exists
     :param config_file: ReadConfig class for test configuration
     """
-    cab = config_file.get_data_for('caboodle')
+    cab = config_file.get_data_for('caboodle', 'element')
     assert cab
 
 
@@ -32,7 +33,7 @@ def test_get_data_for_nonexistent(config_file: ReadConfig):
     Test data for an entry we know does not exist
     :param config_file: ReadConfig class for test configuration
     """
-    mydict = config_file.get_data_for('mydict')
+    mydict = config_file.get_data_for('mydict', 'element')
     assert not mydict
 
 

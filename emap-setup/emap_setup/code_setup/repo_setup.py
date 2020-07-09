@@ -8,7 +8,8 @@ from git import RemoteProgress
 
 class MyProgressPrinter(RemoteProgress):
     def update(self, op_code, cur_count, max_count=None, message=''):
-        print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message)
+        print(op_code, cur_count, max_count, cur_count / (max_count or 100.0),
+              message)
 
 
 def _report_error(message: str):
@@ -19,7 +20,7 @@ class RepoSetup:
     """Clones the relevant inform repositories.
     """
 
-    def __init__(self, main_dir: str, git_dir: str , repos: dict) -> None:
+    def __init__(self, main_dir: str, git_dir: str, repos: dict) -> None:
         """
         Initialise the repository setup
         :param main_dir: the working directory in which to clone repositories
@@ -67,7 +68,7 @@ class RepoSetup:
                     this_repo.remotes[0].pull(progress=MyProgressPrinter())
                 except GitCommandError as e:
                     _report_error('{0} with repo {1} and branch {2} could '
-                                  'not be pulled due to {4}'
+                                  'not be pulled due to {3}'
                                   ''.format(repo,
                                             self.repos[repo]['name'],
                                             self.repos[repo]['branch'],
@@ -82,7 +83,7 @@ class RepoSetup:
                     this_repo.git.checkout(self.repos[repo]['branch'])
                 except GitCommandError as e:
                     _report_error('Cannot checkout repo {1}, branch {2} into'
-                                  ' {0} due to {4}'
+                                  ' {0} due to {3}'
                                   ''.format(repo,
                                             self.repos[repo]['name'],
                                             self.repos[repo]['branch'],

@@ -20,7 +20,6 @@ def test_create_config_dir(dir_setup):
     assert not os.path.isdir('./data/config')
     dir_setup.create_or_update_config_dir()
     assert os.path.isdir('./data/config')
-#    _clean_up()
 
 
 def test_files_written():
@@ -29,7 +28,7 @@ def test_files_written():
     different = dircmp(dir1, dir2).diff_files
     assert len(different) == 0
     _clean_up()
-    
+
 
 def _clean_up():
     shutil.rmtree('./data/config')
