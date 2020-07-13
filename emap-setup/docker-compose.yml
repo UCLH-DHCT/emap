@@ -1,0 +1,11 @@
+version: '3.2'
+services:
+  emap-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./output:/app/output
+    environment:
+      - HOST_CWD=${PWD}
+    entrypoint: python emap_setup emap_runner.py
