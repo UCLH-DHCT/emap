@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 @Disabled
-public class TestOrm extends InterchangeMessageEndToEndTestCase {
+public class TestOrm extends InterchangeMessageToDbTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestPatientTransferUnknown extends InterchangeMessageEndToEndTestCase {
+public class TestPatientTransferUnknown extends InterchangeMessageToDbTestCase {
     public TestPatientTransferUnknown() {
         super();
         interchangeMessages.add(messageFactory.getAdtMessage("generic/A02.yaml", "0000000042"));

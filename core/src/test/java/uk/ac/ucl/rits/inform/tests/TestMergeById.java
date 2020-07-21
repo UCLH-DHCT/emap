@@ -24,7 +24,7 @@ import uk.ac.ucl.rits.inform.informdb.PersonMrn;
  *
  * @author Jeremy Stein
  */
-public class TestMergeById extends InterchangeMessageEndToEndTestCase {
+public class TestMergeById extends InterchangeMessageToDbTestCase {
     @Autowired
     private PersonMrnRepository personMrnRepo;
     public TestMergeById() {

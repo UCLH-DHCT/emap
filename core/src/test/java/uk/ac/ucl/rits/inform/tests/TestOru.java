@@ -25,7 +25,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  * @author Jeremy Stein
  *
  */
-public class TestOru extends InterchangeMessageEndToEndTestCase {
+public class TestOru extends InterchangeMessageToDbTestCase {
     /**
      * Load in a sequence of pathology message(s) and preceding A01/whatever
      * message(s) to give it somewhere to put the pathology data.

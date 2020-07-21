@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "uk.ac.ucl.rits.inform.testutils",
         "uk.ac.ucl.rits.inform.informdb"})
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public abstract class InterchangeMessageEndToEndTestCase {
+public abstract class InterchangeMessageToDbTestCase {
     @Autowired
     protected InformDbOperations dbOps;
     @Autowired

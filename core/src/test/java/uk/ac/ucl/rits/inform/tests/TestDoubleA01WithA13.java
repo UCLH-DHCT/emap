@@ -32,7 +32,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-public class TestDoubleA01WithA13 extends InterchangeMessageEndToEndTestCase {
+public class TestDoubleA01WithA13 extends InterchangeMessageToDbTestCase {
     public TestDoubleA01WithA13() {
         super();
         interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/FirstA01.yaml", "0000000042"));

@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestDoubleA01Fix extends InterchangeMessageEndToEndTestCase {
+public class TestDoubleA01Fix extends InterchangeMessageToDbTestCase {
     public TestDoubleA01Fix() {
         super();
         interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/FirstA01.yaml", "0000000042"));

@@ -19,7 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  * New results should be added taking care to avoid duplicating existing ones.
  * @author Jeremy Stein
  */
-public class TestIncrementalPathology extends InterchangeMessageEndToEndTestCase {
+public class TestIncrementalPathology extends InterchangeMessageToDbTestCase {
     public TestIncrementalPathology() {
         super();
         interchangeMessages.addAll(messageFactory.getPathologyOrders("incremental.yaml", "0000000042"));

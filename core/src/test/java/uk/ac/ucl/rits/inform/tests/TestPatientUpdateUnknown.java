@@ -18,7 +18,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
  *
  * @author Jeremy Stein
  */
-public class TestPatientUpdateUnknown extends InterchangeMessageEndToEndTestCase {
+public class TestPatientUpdateUnknown extends InterchangeMessageToDbTestCase {
     /**
      * Updating info for a patient we have not previously seen should create the encounter but no visits.
      */

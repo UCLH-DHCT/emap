@@ -14,7 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
  * Test adding results with antibiotic sensitivities included.
  * @author Jeremy Stein
  */
-public class TestPathologySensitivity extends InterchangeMessageEndToEndTestCase {
+public class TestPathologySensitivity extends InterchangeMessageToDbTestCase {
     public TestPathologySensitivity() {
         super();
         interchangeMessages.addAll(messageFactory.getPathologyOrders("sensitivity.yaml", "0000000042"));

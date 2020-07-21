@@ -21,7 +21,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-public class TestA08Diff extends InterchangeMessageEndToEndTestCase {
+public class TestA08Diff extends InterchangeMessageToDbTestCase {
     public TestA08Diff() {
         super();
         interchangeMessages.add(messageFactory.getAdtMessage("generic/A01.yaml", "0000000042"));
