@@ -14,25 +14,37 @@ import java.time.Instant;
 public class PatientInfection extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = 9025316128466696423L;
     private String mrn;
+
     /**
      * Infection name.
      */
     private String infection;
+
+    /**
+     * Line number for infection.
+     * Allows for multiple infections per patient to be tracked separately
+     */
+    private Long line;
+
     /**
      * Status of infection.
      */
     private String status;
+
     @Nullable
     private String comment;
+
     /**
      * Infection added at...
      */
     private Instant infectionAdded;
+
     /**
      * Infection resolved at...
      */
     @Nullable
     private Instant infectionResolved;
+
     /**
      * Onset of infection known at...
      */
@@ -65,6 +77,20 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
      */
     public void setInfection(String infection) {
         this.infection = infection;
+    }
+
+    /**
+     * @return {@link PatientInfection#line}
+     */
+    public Long getLine() {
+        return line;
+    }
+
+    /**
+     * @param line {@link PatientInfection#line}
+     */
+    public void setLine(Long line) {
+        this.line = line;
     }
 
     /**
