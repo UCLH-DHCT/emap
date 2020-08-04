@@ -25,4 +25,11 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the PatientInfection message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    String processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
 }
