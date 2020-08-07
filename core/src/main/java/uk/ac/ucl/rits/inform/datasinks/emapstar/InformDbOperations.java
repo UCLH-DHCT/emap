@@ -226,7 +226,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public String processMessage(AdtMessage adtMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
+        AdtOperationInterface adtOperation = adtOperationFactory(adtMsg, storedFrom);
         return adtOperation.processMessage();
     }
 
@@ -726,7 +726,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the newly constructed object
      * @throws MessageIgnoredException if message is being ignored
      */
-    private AdtOperation adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private AdtOperationInterface adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         return new AdtOperation(this, adtMsg, storedFrom);
     }
 
