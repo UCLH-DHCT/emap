@@ -728,6 +728,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     private AdtOperationInterface adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         return new AdtOperation(this, adtMsg, storedFrom);
+//        return new AdtOperationDbV2(this, adtMsg, storedFrom);
     }
 
     /**
