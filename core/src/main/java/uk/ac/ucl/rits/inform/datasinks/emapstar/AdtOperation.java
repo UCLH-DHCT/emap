@@ -66,13 +66,7 @@ public class AdtOperation {
         this.dbOps = dbOps;
         this.storedFrom = storedFrom;
         determineTimestamps();
-        if (adtMsg.getVisitNumber() != null) {
-            encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);
-            onlyOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
-        } else if (!adtMsg.getOperationType().equals(AdtOperationType.MERGE_BY_ID)) {
-            // CSNs are not present in merge by ID messages, but in other messages this is an error
-            throw new MessageIgnoredException(adtMsg, "CSN missing in a non-merge message: " + adtMsg.getOperationType());
-        }
+        getCreateEncounterOrVisit(dbOps, adtMsg, storedFrom);
     }
 
     /**
@@ -86,33 +80,16 @@ public class AdtOperation {
         returnCode = "OK";
         switch (adtMsg.getOperationType()) {
         case ADMIT_PATIENT:
-            ensureAdmissionExists();
-            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
-            ensurePatientClass();
-            ensureLocation();
+            performAdmit();
             break;
         case TRANSFER_PATIENT:
-            boolean anyChanges = false;
-            anyChanges |= ensureAdmissionExists();
-            anyChanges |= InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
-            anyChanges |= ensurePatientClass();
-            anyChanges |= ensureLocation();
-            if (!anyChanges) {
-                String err = String.format(
-                        "REDUNDANT transfer: location (%s), patient class (%s), demographics and death status have not changed",
-                        newTransferLocation, adtMsg.getPatientClass());
-                logger.warn(err);
-                throw new MessageIgnoredException(adtMsg, err);
-            }
+            performTransfer();
             break;
         case DISCHARGE_PATIENT:
             this.performDischarge();
             break;
         case UPDATE_PATIENT_INFO:
-            ensureAdmissionExists();
-            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
-            ensurePatientClass();
-            ensureLocation();
+            performAdmit();
             break;
         case CANCEL_ADMIT_PATIENT:
             this.performCancelAdmit();
@@ -209,6 +186,24 @@ public class AdtOperation {
         } else {
             locationVisitStartTime = admissionDateTime;
             locationVisitValidFrom = admissionDateTime;
+        }
+    }
+
+    /**
+     * Get or create the encounter and/or visit, as appropriate for the implementation.
+     * @param dbOps      the dp ops service
+     * @param adtMsg     the ADT Interchange message
+     * @param storedFrom the storedFrom time to use if an object needs to be newly created
+     * @throws MessageIgnoredException
+     */
+    public void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom)
+            throws MessageIgnoredException {
+        if (adtMsg.getVisitNumber() != null) {
+            encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);
+            onlyOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
+        } else if (!adtMsg.getOperationType().equals(AdtOperationType.MERGE_BY_ID)) {
+            // CSNs are not present in merge by ID messages, but in other messages this is an error
+            throw new MessageIgnoredException(adtMsg, "CSN missing in a non-merge message: " + adtMsg.getOperationType());
         }
     }
 
@@ -448,6 +443,40 @@ public class AdtOperation {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Admit a patient, checking if already admitted first.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
+    public void performAdmit() throws MessageIgnoredException {
+        ensureAdmissionExists();
+        InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+        ensurePatientClass();
+        ensureLocation();
+    }
+
+    /**
+     * Transfer a patient, recognising that any, none or all of the following may
+     * have changed: location, patient class, demographics, and the admission may or
+     * may not exist.
+     *
+     * @throws MessageIgnoredException if message can't be processed
+     */
+    public void performTransfer() throws MessageIgnoredException {
+        boolean anyChanges = false;
+        anyChanges |= ensureAdmissionExists();
+        anyChanges |= InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+        anyChanges |= ensurePatientClass();
+        anyChanges |= ensureLocation();
+        if (!anyChanges) {
+            String err = String.format(
+                    "REDUNDANT transfer: location (%s), patient class (%s), demographics and death status have not changed",
+                    newTransferLocation, adtMsg.getPatientClass());
+            logger.warn(err);
+            throw new MessageIgnoredException(adtMsg, err);
+        }
     }
 
     /**
