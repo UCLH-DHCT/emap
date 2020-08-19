@@ -32,7 +32,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
@@ -83,7 +83,7 @@ public class PathologyOrderBuilder {
                 } else {
                     orders.add(pathologyOrder);
                 }
-            } catch (MessageIgnoredException e) {
+            } catch (Hl7MessageIgnoredException e) {
                 // if the entire message is being skipped, stop now
                 return orders;
             }
@@ -175,10 +175,10 @@ public class PathologyOrderBuilder {
      * @param ormO01 the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
-     * @throws MessageIgnoredException if the entire message should be ignored
+     * @throws Hl7MessageIgnoredException if the entire message should be ignored
      */
     public PathologyOrderBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
-            throws HL7Exception, Hl7InconsistencyException, MessageIgnoredException {
+            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         msg.setSourceMessageId(subMessageSourceId);
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
@@ -189,7 +189,7 @@ public class PathologyOrderBuilder {
         msg.setMrn(patientHl7.getMrn());
         String sendingApplication = patientHl7.getSendingApplication();
         if (!sendingApplication.equals("WinPath")) {
-            throw new MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
+            throw new Hl7MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
         }
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();

@@ -25,17 +25,14 @@ jobs:
 
       - run:
           command: |
-              git clone --branch develop git@github.com:inform-health-informatics/Inform-DB.git
-              cd Inform-DB
-              mvn install -Dmaven.test.skip=true
               git clone git@github.com:inform-health-informatics/Emap-Interchange.git
               cd Emap-Interchange
-              mvn install -Dmaven.test.skip=true
+              # run tests so that test classes can be used in current testing
+              mvn install
       - run:
           command: |
              mvn dependency:go-offline
-
       - run:
           command: |
-             TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
-             TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+             TZ="Europe/London" mvn test
+             TZ="America/Chicago" mvn test
