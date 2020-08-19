@@ -172,4 +172,18 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         return processor.processMessage(this);
     }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append("PatientInfection(")
+                .append("mrn='").append(mrn).append('\'')
+                .append(", infection='").append(infection).append('\'')
+                .append(", line=").append(line)
+                .append(", status='").append(status).append('\'')
+                .append(", comment='").append(comment).append('\'')
+                .append(", infectionAdded=").append(infectionAdded)
+                .append(", infectionResolved=").append(infectionResolved)
+                .append(", infectionOnset=").append(infectionOnset)
+                .append(')').toString();
+    }
 }
