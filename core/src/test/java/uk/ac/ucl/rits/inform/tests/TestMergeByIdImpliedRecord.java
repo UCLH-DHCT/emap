@@ -8,8 +8,8 @@ package uk.ac.ucl.rits.inform.tests;
 public class TestMergeByIdImpliedRecord extends TestMergeById {
 
     public TestMergeByIdImpliedRecord() {
-        hl7StreamFileNames.clear();
-        hl7StreamFileNames.add("GenericAdt/A40.txt");
+        interchangeMessages.clear();
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A40.yaml", "0000000042"));
     }
 
 }

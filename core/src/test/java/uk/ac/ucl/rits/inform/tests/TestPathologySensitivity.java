@@ -14,10 +14,10 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
  * Test adding results with antibiotic sensitivities included.
  * @author Jeremy Stein
  */
-public class TestPathologySensitivity extends Hl7StreamEndToEndTestCase {
+public class TestPathologySensitivity extends InterchangeMessageToDbTestCase {
     public TestPathologySensitivity() {
         super();
-        hl7StreamFileNames.add("PathologySensitivity.txt");
+        interchangeMessages.addAll(messageFactory.getPathologyOrders("sensitivity.yaml", "0000000042"));
     }
 
     @Test

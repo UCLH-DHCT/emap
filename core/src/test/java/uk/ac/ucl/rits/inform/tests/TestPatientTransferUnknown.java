@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestPatientTransferUnknown extends Hl7StreamEndToEndTestCase {
+public class TestPatientTransferUnknown extends InterchangeMessageToDbTestCase {
     public TestPatientTransferUnknown() {
         super();
-        hl7StreamFileNames.add("GenericAdt/A02.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A02.yaml", "0000000042"));
     }
 
     /**

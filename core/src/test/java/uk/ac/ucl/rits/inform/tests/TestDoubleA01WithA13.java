@@ -32,15 +32,15 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-public class TestDoubleA01WithA13 extends Hl7StreamEndToEndTestCase {
+public class TestDoubleA01WithA13 extends InterchangeMessageToDbTestCase {
     public TestDoubleA01WithA13() {
         super();
-        hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/A03.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/A13.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/SecondA01.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/FirstA01.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A03.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A13.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/SecondA01.yaml", "0000000042"));
         // bug is not triggered until you then tried to change the demographics again
-        hl7StreamFileNames.add("DoubleA01WithA13/A08.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A08.yaml", "0000000042"));
     }
 
     /**

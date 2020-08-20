@@ -12,14 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jeremy Stein
  */
-public class TestDoubleA01Fix extends Hl7StreamEndToEndTestCase {
+public class TestDoubleA01Fix extends InterchangeMessageToDbTestCase {
     public TestDoubleA01Fix() {
         super();
-        hl7StreamFileNames.add("DoubleA01WithA13/FirstA01.txt");
-        hl7StreamFileNames.add("DoubleA01WithA13/SecondA01.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/FirstA01.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/SecondA01.yaml", "0000000042"));
         // For extra robustness check that demographics can be changed
         // (this is needed to trigger at least one bug)
-        hl7StreamFileNames.add("DoubleA01WithA13/A08.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("DoubleA01WithA13/A08.yaml", "0000000042"));
+
     }
 
     /**

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import ca.uhn.hl7v2.HL7Exception;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
@@ -24,20 +23,20 @@ public class TestMergeByIdIdempotence extends TestMergeById {
 
     public TestMergeByIdIdempotence() {
         // do the merge a second time, should get a MessageIgnoredException
-        hl7StreamFileNames.add("GenericAdt/A40.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A40.yaml", "0000000042"));
     }
 
     @Override
     @BeforeEach
     public void setup()
-            throws IOException, HL7Exception, Hl7InconsistencyException, EmapOperationMessageProcessingException {
+            throws IOException, HL7Exception, EmapOperationMessageProcessingException {
         assertThrows(MessageIgnoredException.class, () -> super.setup());
     }
 
     @Override
     @Test
     public void testAllProcessed() {
-        assertTrue(!hl7StreamFileNames.isEmpty(), "You must specify some HL7 containing files");
+        assertTrue(!interchangeMessages.isEmpty(), "You must specify some HL7 containing files");
         assertEquals(totalMessages, 1 + processedMessages, "All messages were processed - one should have been ignored");
         assertTrue(totalMessages > 0, "No messages got processed");
     }

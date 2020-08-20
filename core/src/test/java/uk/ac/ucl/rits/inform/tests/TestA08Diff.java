@@ -21,12 +21,12 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
  *
  * @author Jeremy Stein
  */
-public class TestA08Diff extends Hl7StreamEndToEndTestCase {
+public class TestA08Diff extends InterchangeMessageToDbTestCase {
     public TestA08Diff() {
         super();
-        hl7StreamFileNames.add("GenericAdt/A01.txt");
-        hl7StreamFileNames.add("GenericAdt/A08_v1.txt");
-        hl7StreamFileNames.add("GenericAdt/A08_v2.txt");
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A01.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A08_v1.yaml", "0000000042"));
+        interchangeMessages.add(messageFactory.getAdtMessage("generic/A08_v2.yaml", "0000000042"));
     }
 
     /**
