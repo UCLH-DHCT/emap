@@ -51,6 +51,8 @@ import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -77,6 +79,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private PersonMrnRepository        personMrnRepo;
 
+    
+    // V2
+    @Autowired
+    private HospitalVisitRepository     hospitalVisitRepo;
+
+    
+
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     @Value("${:classpath:vocab.csv}")
@@ -95,6 +104,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return encounterRepo.save(encounter);
     }
 
+    
+    public HospitalVisit findHospitalVisitByEncounter(String encounter) {
+        return hospitalVisitRepo.findByEncounterString(encounter);
+    }
+    
     /**
      * @param encounterStr encounter string to search by
      * @return the encounter found, or null if not found
@@ -727,8 +741,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws MessageIgnoredException if message is being ignored
      */
     private AdtOperationInterface adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
-        return new AdtOperation(this, adtMsg, storedFrom);
-//        return new AdtOperationDbV2(this, adtMsg, storedFrom);
+//        return new AdtOperation(this, adtMsg, storedFrom);
+        return new AdtOperationDbV2(this, adtMsg, storedFrom);
     }
 
     /**

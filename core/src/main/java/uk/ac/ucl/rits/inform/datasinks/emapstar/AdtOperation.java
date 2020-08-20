@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
