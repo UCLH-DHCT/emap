@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>uk.ac.ucl.rits.inform</groupId>
 	<artifactId>inform-db</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.9.0</version>
 	<name>Inform-DB</name>
 	<description>Inform-DB Spring JPA classes</description>
 
