@@ -5,7 +5,7 @@
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>HL7Processor</artifactId>
   <packaging>jar</packaging>
-  <version>0.5-ALPHA</version>
+  <version>0.5.0</version>
   <name>HL7Processor</name>
   <url>http://maven.apache.org</url>
 
@@ -15,7 +15,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <checkstyle.version>8.19</checkstyle.version>
     <checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
-    <emap-interchange.version>0.0.1-SNAPSHOT</emap-interchange.version>
+    <emap-interchange.version>0.0.2</emap-interchange.version>
   </properties>
 
   <profiles>
@@ -220,27 +220,4 @@
       </plugins>
     </pluginManagement>
   </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.11.0</version>
-        <configuration>
-          <linkXref>true</linkXref>
-          <sourceEncoding>utf-8</sourceEncoding>
-          <minimumTokens>100</minimumTokens>
-          <targetJdk>1.8</targetJdk>
-          <excludes>
-            <exclude>**/*Bean.java</exclude>
-            <exclude>**/generated/*.java</exclude>
-          </excludes>
-          <excludeRoots>
-            <excludeRoot>target/generated-sources/stubs</excludeRoot>
-          </excludeRoots>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>
