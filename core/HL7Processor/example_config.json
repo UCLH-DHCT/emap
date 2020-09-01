@@ -1,8 +1,0 @@
-{"__comment__":"Edit as required then rename this file as config.json",
-"idshost":"x.x.x.x",
-"udshost":"x.x.x.x",
-"idsusername":"joebloggs",
-"udsusername":"joebloggs",
-"idspassword":"apassword",
-"udspassword":"anotherpassword",
-"debugging":"false"}
