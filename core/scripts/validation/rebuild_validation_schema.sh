@@ -24,7 +24,7 @@ configure_time_window() {
             s/^(CABOODLE_DATE_FROM)=.*$/$1=$ENV{"window_start"}/;
             s/^(CABOODLE_DATE_UNTIL)=.*$/$1=$ENV{"window_end"}/;
         ' \
-        ../config/hl7-vitals-config-envs \
+        ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
         ../config/caboodle-envs
 }
@@ -57,8 +57,6 @@ run_pipeline() {
 
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source > ${log_file_prefix}_hl7source.txt
-    bash emap-live.sh ps
-    bash emap-live.sh up --exit-code-from hl7vitals hl7vitals > ${log_file_prefix}_hl7vitals.txt
     bash emap-live.sh ps
     bash emap-live.sh up --exit-code-from caboodle caboodle > ${log_file_prefix}_caboodle.txt
     bash emap-live.sh ps
