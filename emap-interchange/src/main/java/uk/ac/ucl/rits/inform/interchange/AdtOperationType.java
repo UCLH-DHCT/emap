@@ -3,7 +3,7 @@ package uk.ac.ucl.rits.inform.interchange;
 /**
  * The ADT operations possible in our interchange format.
  * These do (at least currently) map quite closely to HL7 trigger events.
- *
+ * TODO: Remove this once adt subclasses for each of these operations are created and implemented in emap core.
  * @author Jeremy Stein
  */
 public enum AdtOperationType {

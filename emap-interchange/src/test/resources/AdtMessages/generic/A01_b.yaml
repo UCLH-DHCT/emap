@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase"
 operationType: "ADMIT_PATIENT"
 recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"

@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase"
 operationType: "DISCHARGE_PATIENT"
 recordedDateTime: "2013-02-11T13:45:57Z"
 eventReasonCode: "DISCH"
