@@ -49,6 +49,11 @@
 		<property name="maximum" value="0" />
 		<property name="message" value="Line has trailing spaces." />
 	</module>
+	<!-- Checks for line length -->
+	<!-- See http://checkstyle.sf.net/config_sizes.html -->
+	<module name="LineLength">
+		<property name="max" value="150" />
+	</module>
 
 	<!-- Checks for Headers -->
 	<!-- See http://checkstyle.sf.net/config_header.html -->
@@ -94,13 +99,8 @@
 
 		<!-- Checks for Size Violations. -->
 		<!-- See http://checkstyle.sf.net/config_sizes.html -->
-		<module name="LineLength">
-			<property name="max" value="150" />
-		</module>
 		<module name="MethodLength" />
-		<module name="ParameterNumber">
-			<property name="max" value="8" />
-		</module>
+		<module name="ParameterNumber" />
 
 		<!-- Checks for whitespace -->
 		<!-- See http://checkstyle.sf.net/config_whitespace.html -->
