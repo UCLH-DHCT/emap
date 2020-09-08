@@ -1,10 +1,6 @@
-package uk.ac.ucl.rits.inform.interchange.adt;
+package uk.ac.ucl.rits.inform.interchange;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -16,11 +12,15 @@ import java.util.Objects;
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public class AdtMessageBase extends EmapOperationMessage implements Serializable {
+public class OldAdtMessage extends EmapOperationMessage implements Serializable {
+    private static final long serialVersionUID = -3352058605994102510L;
 
     /**
-     * TODO: remove adt operation type.
+     * Only expecting the deserialiser to call this.
      */
+    public OldAdtMessage() {
+    }
+
     private AdtOperationType operationType;
     private Instant recordedDateTime;
     private String eventReasonCode;
@@ -31,19 +31,19 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
     private String currentBed;
     private String currentRoomCode;
     private String currentWardCode;
+    private Instant dischargeDateTime;
+    private String dischargeDisposition;
+    private String dischargeLocation;
     private String ethnicGroup;
     private String fullLocationString;
     private String hospitalService;
     private String mrn;
+    private String mergedPatientId;
     private String nhsNumber;
     private Instant patientBirthDate;
     private String patientClass;
-    /**
-     * only A01, A02 and A03 implements death in theory for HL7, though comment in hl7source says otherwise.
-     */
     private Instant patientDeathDateTime;
     private Boolean patientDeathIndicator;
-
     private String patientFamilyName;
     private String patientFullName;
     private String patientGivenName;
@@ -182,6 +182,48 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
     }
 
     /**
+     * @return the dischargeDateTime
+     */
+    public Instant getDischargeDateTime() {
+        return dischargeDateTime;
+    }
+
+    /**
+     * @param dischargeDateTime the dischargeDateTime to set
+     */
+    public void setDischargeDateTime(Instant dischargeDateTime) {
+        this.dischargeDateTime = dischargeDateTime;
+    }
+
+    /**
+     * @return the dischargeDisposition
+     */
+    public String getDischargeDisposition() {
+        return dischargeDisposition;
+    }
+
+    /**
+     * @param dischargeDisposition the dischargeDisposition to set
+     */
+    public void setDischargeDisposition(String dischargeDisposition) {
+        this.dischargeDisposition = dischargeDisposition;
+    }
+
+    /**
+     * @return the dischargeLocation
+     */
+    public String getDischargeLocation() {
+        return dischargeLocation;
+    }
+
+    /**
+     * @param dischargeLocation the dischargeLocation to set
+     */
+    public void setDischargeLocation(String dischargeLocation) {
+        this.dischargeLocation = dischargeLocation;
+    }
+
+    /**
      * @return the ethnicGroup
      */
     public String getEthnicGroup() {
@@ -235,6 +277,20 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
      */
     public void setMrn(String mrn) {
         this.mrn = mrn;
+    }
+
+    /**
+     * @return the mergedPatientId
+     */
+    public String getMergedPatientId() {
+        return mergedPatientId;
+    }
+
+    /**
+     * @param mergedPatientId the mergedPatientId to set
+     */
+    public void setMergedPatientId(String mergedPatientId) {
+        this.mergedPatientId = mergedPatientId;
     }
 
     /**
@@ -483,7 +539,7 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        AdtMessageBase that = (AdtMessageBase) o;
+        OldAdtMessage that = (OldAdtMessage) o;
         return Objects.equals(recordedDateTime, that.recordedDateTime)
                 && operationType == that.operationType
                 && Objects.equals(eventReasonCode, that.eventReasonCode)
@@ -494,10 +550,14 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
                 && Objects.equals(currentBed, that.currentBed)
                 && Objects.equals(currentRoomCode, that.currentRoomCode)
                 && Objects.equals(currentWardCode, that.currentWardCode)
+                && Objects.equals(dischargeDateTime, that.dischargeDateTime)
+                && Objects.equals(dischargeDisposition, that.dischargeDisposition)
+                && Objects.equals(dischargeLocation, that.dischargeLocation)
                 && Objects.equals(ethnicGroup, that.ethnicGroup)
                 && Objects.equals(fullLocationString, that.fullLocationString)
                 && Objects.equals(hospitalService, that.hospitalService)
                 && Objects.equals(mrn, that.mrn)
+                && Objects.equals(mergedPatientId, that.mergedPatientId)
                 && Objects.equals(nhsNumber, that.nhsNumber)
                 && Objects.equals(patientBirthDate, that.patientBirthDate)
                 && Objects.equals(patientClass, that.patientClass)
@@ -518,9 +578,9 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
     @Override
     public int hashCode() {
         return Objects.hash(operationType, recordedDateTime, eventReasonCode, eventOccurredDateTime, operatorId,
-                admissionDateTime, admitSource, currentBed, currentRoomCode, currentWardCode,
-                ethnicGroup, fullLocationString, hospitalService, mrn,
-                nhsNumber, patientBirthDate, patientClass, patientDeathDateTime, patientDeathIndicator,
+                admissionDateTime, admitSource, currentBed, currentRoomCode, currentWardCode, dischargeDateTime,
+                dischargeDisposition, dischargeLocation, ethnicGroup, fullLocationString, hospitalService, mrn,
+                mergedPatientId, nhsNumber, patientBirthDate, patientClass, patientDeathDateTime, patientDeathIndicator,
                 patientFamilyName, patientFullName, patientGivenName, patientMiddleName, patientReligion, patientSex,
                 patientTitle, patientType, patientZipOrPostalCode, visitNumber);
     }
@@ -538,10 +598,14 @@ public class AdtMessageBase extends EmapOperationMessage implements Serializable
         sb.append(", currentBed='").append(currentBed).append('\'');
         sb.append(", currentRoomCode='").append(currentRoomCode).append('\'');
         sb.append(", currentWardCode='").append(currentWardCode).append('\'');
+        sb.append(", dischargeDateTime=").append(dischargeDateTime);
+        sb.append(", dischargeDisposition='").append(dischargeDisposition).append('\'');
+        sb.append(", dischargeLocation='").append(dischargeLocation).append('\'');
         sb.append(", ethnicGroup='").append(ethnicGroup).append('\'');
         sb.append(", fullLocationString='").append(fullLocationString).append('\'');
         sb.append(", hospitalService='").append(hospitalService).append('\'');
         sb.append(", mrn='").append(mrn).append('\'');
+        sb.append(", mergedPatientId='").append(mergedPatientId).append('\'');
         sb.append(", nhsNumber='").append(nhsNumber).append('\'');
         sb.append(", patientBirthDate=").append(patientBirthDate);
         sb.append(", patientClass='").append(patientClass).append('\'');

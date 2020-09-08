@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
-
 /**
  * Define the message types that an Emap processor
  * must process.
@@ -20,7 +18,7 @@ public interface EmapOperationMessageProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(AdtMessageBase msg) throws EmapOperationMessageProcessingException;
+    String processMessage(OldAdtMessage msg) throws EmapOperationMessageProcessingException;
     /**
      * @param msg the vital signs message to process
      * @return return code

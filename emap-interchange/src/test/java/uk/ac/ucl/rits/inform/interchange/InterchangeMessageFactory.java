@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +30,12 @@ public class InterchangeMessageFactory {
      * @param sourceMessageId source message ID
      * @return ADT message
      */
-    public AdtMessageBase getAdtMessage(final String fileName, final String sourceMessageId) {
-        AdtMessageBase adtMessage = new AdtMessageBase();
+    public OldAdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
+        OldAdtMessage adtMessage = new OldAdtMessage();
         String resourcePath = "/AdtMessages/" + fileName;
         try {
             InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            adtMessage = mapper.readValue(inputStream, AdtMessageBase.class);
+            adtMessage = mapper.readValue(inputStream, OldAdtMessage.class);
             adtMessage.setSourceMessageId(sourceMessageId);
         } catch (IOException e) {
             e.printStackTrace();
