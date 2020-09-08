@@ -103,7 +103,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
 
     public HospitalVisit findHospitalVisitByEncounter(String encounter) {
-        return hospitalVisitRepo.findByEncounterString(encounter);
+        return hospitalVisitRepo.findByEncounter(encounter);
     }
 
     /**

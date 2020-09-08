@@ -12,5 +12,5 @@ public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, I
      * @param encounter the encounter string
      * @return the HospitalVisit
      */
-    HospitalVisit findByEncounterString(String encounter);
+    HospitalVisit findByEncounter(String encounter);
 }

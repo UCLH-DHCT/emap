@@ -305,7 +305,7 @@ public class OldAdtOperation implements AdtOperationInterface {
             // we'll create it under the wrong MRN.
             String infoStr = "";
             MrnEncounter mrnMatching = InformDbOperations.getOnlyElement(existingEnc.getMrns().stream()
-                    .filter(mrn -> mrn.getMrn().getMrn().equals(mrnStr)).collect(Collectors.toList()));
+                    .filter(mrn -> mrn.getOldMrn().getMrn().equals(mrnStr)).collect(Collectors.toList()));
             if (mrnMatching == null) {
                 infoStr = String.format("MRN %s was not associated with this encounter", mrnStr);
             } else {

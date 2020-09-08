@@ -108,7 +108,7 @@ public class VitalSignsTestCase extends MessageStreamBaseCase {
         assertEquals(1, vitalSigns.size());
         PatientFact vit = vitalSigns.get(0);
         Encounter encounter = vit.getEncounter();
-        assertEquals(mrnStr, encounter.getMrns().get(0).getMrn().getMrn());
+        assertEquals(mrnStr, encounter.getMrns().get(0).getOldMrn().getMrn());
         assertEquals(new Double(expectedHeartRate),
                 vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE).get(0).getValueAsReal());
         assertEquals("HEART_RATE", vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER).get(0)
