@@ -367,7 +367,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         this.ensureAdmitted();
         this.dischargeTime = this.nextTime();
 
-        DischargePatient discharge = new DischargePatient();
+        OldAdtMessage discharge = new OldAdtMessage();
 
         discharge.setOperationType(AdtOperationType.DISCHARGE_PATIENT);
         discharge.setAdmissionDateTime(this.admissionTime);
@@ -411,7 +411,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      * @param survivingMrn The mrn that will be used going forwards
      */
     public void queueMerge(String mergedMrn, String survivingMrn) {
-        MergeById merge = new MergeById();
+        OldAdtMessage merge = new OldAdtMessage();
 
         merge.setOperationType(AdtOperationType.MERGE_BY_ID);
         merge.setRecordedDateTime(this.nextTime());

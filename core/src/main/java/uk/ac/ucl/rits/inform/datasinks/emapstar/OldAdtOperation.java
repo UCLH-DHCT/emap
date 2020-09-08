@@ -1,38 +1,33 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
+import uk.ac.ucl.rits.inform.informdb.OldAttribute;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldMrn;
+import uk.ac.ucl.rits.inform.informdb.PatientFact;
+import uk.ac.ucl.rits.inform.informdb.PatientProperty;
+import uk.ac.ucl.rits.inform.informdb.Person;
+import uk.ac.ucl.rits.inform.informdb.PersonMrn;
+import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.informdb.OldAttribute;
-import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.informdb.OldMrn;
-import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
-import uk.ac.ucl.rits.inform.informdb.PatientFact;
-import uk.ac.ucl.rits.inform.informdb.PatientProperty;
-import uk.ac.ucl.rits.inform.informdb.Person;
-import uk.ac.ucl.rits.inform.informdb.PersonMrn;
-import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
-import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
-
 /**
  * One instance of this class covers a single ADT operation.
- *
  * @author Jeremy Stein
- *
  */
 public class OldAdtOperation implements AdtOperationInterface {
-    private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
+    private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     private InformDbOperations dbOps;
     private OldAdtMessage adtMsg;
@@ -49,9 +44,6 @@ public class OldAdtOperation implements AdtOperationInterface {
     private PatientFact onlyOpenBedVisit;
 
     private String newTransferLocation;
-    // Temporary fields to confirm that tests pass when using subclasses
-    private DischargePatient dischargeMsg;
-    private MergeById mergeMsg;
 
     /**
      * @return the encounter that is being manipulated
@@ -84,34 +76,34 @@ public class OldAdtOperation implements AdtOperationInterface {
         String returnCode;
         returnCode = "OK";
         switch (adtMsg.getOperationType()) {
-        case ADMIT_PATIENT:
-            performAdmit();
-            break;
-        case TRANSFER_PATIENT:
-            performTransfer();
-            break;
-        case DISCHARGE_PATIENT:
-            this.performDischarge();
-            break;
-        case UPDATE_PATIENT_INFO:
-            performAdmit();
-            break;
-        case CANCEL_ADMIT_PATIENT:
-            this.performCancelAdmit();
-            break;
-        case CANCEL_TRANSFER_PATIENT:
-            this.performCancelTransfer();
-            break;
-        case CANCEL_DISCHARGE_PATIENT:
-            this.performCancelDischarge();
-            break;
-        case MERGE_BY_ID:
-            this.performMergeById();
-            break;
-        default:
-            returnCode = "Not implemented";
-            logger.error(adtMsg.getOperationType() + " message type not implemented");
-            break;
+            case ADMIT_PATIENT:
+                performAdmit();
+                break;
+            case TRANSFER_PATIENT:
+                performTransfer();
+                break;
+            case DISCHARGE_PATIENT:
+                this.performDischarge();
+                break;
+            case UPDATE_PATIENT_INFO:
+                performAdmit();
+                break;
+            case CANCEL_ADMIT_PATIENT:
+                this.performCancelAdmit();
+                break;
+            case CANCEL_TRANSFER_PATIENT:
+                this.performCancelTransfer();
+                break;
+            case CANCEL_DISCHARGE_PATIENT:
+                this.performCancelDischarge();
+                break;
+            case MERGE_BY_ID:
+                this.performMergeById();
+                break;
+            default:
+                returnCode = "Not implemented";
+                logger.error(adtMsg.getOperationType() + " message type not implemented");
+                break;
         }
         return returnCode;
     }
@@ -125,9 +117,7 @@ public class OldAdtOperation implements AdtOperationInterface {
         admissionDateTime = adtMsg.getAdmissionDateTime();
         recordedDateTime = adtMsg.getRecordedDateTime();
 
-        if (dischargeMsg != null) {
-            dischargeDateTime = dischargeMsg.getDischargeDateTime();
-        }
+        dischargeDateTime = adtMsg.getDischargeDateTime();
 
         // true for all message types? Yes for admit, transfer and update_info...
         newTransferLocation = adtMsg.getFullLocationString();
@@ -146,7 +136,7 @@ public class OldAdtOperation implements AdtOperationInterface {
                     // This can happen occasionally, seems to be only/usually where EVN-4 = "ED_AFTER_DISMISS".
                     // In this unusual case, use the discharge date instead. Note that this will only be used
                     // if we have no prior record of the patient and are creating their admission record now.
-                    admissionDateTime = dischargeMsg.getDischargeDateTime();
+                    admissionDateTime = adtMsg.getDischargeDateTime();
                 }
                 break;
             case UPDATE_PATIENT_INFO:
@@ -189,7 +179,7 @@ public class OldAdtOperation implements AdtOperationInterface {
             locationVisitValidFrom = adtMsg.getRecordedDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
             locationVisitStartTime = null;
-            locationVisitValidFrom = dischargeMsg.getDischargeDateTime();
+            locationVisitValidFrom = adtMsg.getDischargeDateTime();
         } else {
             locationVisitStartTime = admissionDateTime;
             locationVisitValidFrom = admissionDateTime;
@@ -214,7 +204,6 @@ public class OldAdtOperation implements AdtOperationInterface {
     /**
      * Find an existing Mrn by its string representation, optionally creating it
      * first if it doesn't exist.
-     *
      * @param mrnStr           The mrn
      * @param validFrom        If createIfNotExist, when did the Mrn first come into
      *                         existence (valid from). Ignored if !createIfNotExist
@@ -222,7 +211,7 @@ public class OldAdtOperation implements AdtOperationInterface {
      * @param createIfNotExist whether to create if it doesn't exist
      * @param dbOps            db ops service
      * @return the Mrn, pre-existing or newly created, or null if it doesn't exist
-     *         and !createIfNotExist
+     * and !createIfNotExist
      */
     static OldMrn getCreateMrn(String mrnStr, Instant validFrom, Instant storedFrom, boolean createIfNotExist, InformDbOperations dbOps) {
         if (createIfNotExist && (storedFrom == null || validFrom == null || mrnStr == null || mrnStr.isEmpty())) {
@@ -466,25 +455,25 @@ public class OldAdtOperation implements AdtOperationInterface {
         // It's not possible to tell when to start the bed visit from.
         ensureAdmissionExists();
 
-        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", dischargeMsg.getMrn(),
-                dischargeMsg.getVisitNumber(), dischargeMsg.getEventOccurredDateTime(), dischargeDateTime));
+        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", adtMsg.getMrn(),
+                adtMsg.getVisitNumber(), adtMsg.getEventOccurredDateTime(), dischargeDateTime));
         if (dischargeDateTime == null) {
-            throw new MessageIgnoredException(dischargeMsg, "Trying to discharge but the discharge date is null");
+            throw new MessageIgnoredException(adtMsg, "Trying to discharge but the discharge date is null");
         } else {
             // Discharge from the bed visit and the hospital visit
             OldAdtOperation.addDischargeToVisit(onlyOpenBedVisit, dischargeDateTime, storedFrom);
             PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
             OldAdtOperation.addDischargeToVisit(hospVisit, dischargeDateTime, storedFrom);
 
-            String dischargeDisposition = dischargeMsg.getDischargeDisposition();
+            String dischargeDisposition = adtMsg.getDischargeDisposition();
             // Add discharge disposition to hospital visit only, not bed.
             hospVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, dischargeDateTime,
                     OldAttributeKeyMap.DISCHARGE_DISPOSITION, dischargeDisposition));
-            String dischargeLocation = dischargeMsg.getDischargeLocation();
+            String dischargeLocation = adtMsg.getDischargeLocation();
             hospVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, dischargeDateTime,
                     OldAttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
             // demographics may have changed
-            InformDbOperations.addOrUpdateDemographics(encounter, dischargeMsg, storedFrom);
+            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
         }
     }
 
@@ -637,13 +626,13 @@ public class OldAdtOperation implements AdtOperationInterface {
      */
     @Override
     public void performMergeById() throws MessageIgnoredException {
-        String retiredMrnStr = mergeMsg.getMergedPatientId();
-        String survivingMrnStr = mergeMsg.getMrn();
-        Instant mergeTime = mergeMsg.getRecordedDateTime();
+        String retiredMrnStr = adtMsg.getMergedPatientId();
+        String survivingMrnStr = adtMsg.getMrn();
+        Instant mergeTime = adtMsg.getRecordedDateTime();
         logger.info(String.format("MERGE: surviving mrn %s, retiredMrn = %s, merge time = %s", survivingMrnStr, retiredMrnStr,
                 mergeTime));
         if (mergeTime == null) {
-            throw new MessageIgnoredException(mergeMsg, "event occurred null");
+            throw new MessageIgnoredException(adtMsg, "event occurred null");
         }
 
         // The non-surviving Mrn is invalidated but still points to the old person
@@ -652,20 +641,20 @@ public class OldAdtOperation implements AdtOperationInterface {
         OldMrn retiredMrn = getCreateMrn(retiredMrnStr, mergeTime, storedFrom, true, dbOps);
         OldMrn survivingMrn = getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, dbOps);
         if (survivingMrn == null || retiredMrn == null) {
-            throw new MessageIgnoredException(mergeMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
+            throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     retiredMrnStr, survivingMrnStr, retiredMrn, survivingMrn));
         }
         PersonMrn retiredPersonMrn = InformDbOperations.getOnlyElementWhere(retiredMrn.getPersons(), pm -> pm.isValid());
         PersonMrn survivingPersonMrn = InformDbOperations.getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
         if (survivingPersonMrn == null || retiredPersonMrn == null) {
-            throw new MessageIgnoredException(mergeMsg, String.format(
+            throw new MessageIgnoredException(adtMsg, String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
                     retiredMrnStr, survivingMrnStr, retiredPersonMrn, survivingPersonMrn));
         }
 
         // If we already thought they were the same person, do nothing further.
         if (retiredPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
-            throw new MessageIgnoredException(mergeMsg,
+            throw new MessageIgnoredException(adtMsg,
                     String.format("We already thought that MRNs %s and %s were the same person (%s)", retiredMrnStr,
                             survivingMrnStr, retiredPersonMrn.getPerson().getPersonId()));
         }

@@ -39,8 +39,12 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
+import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -237,8 +241,38 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public String processMessage(OldAdtMessage adtMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
+        OldAdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
         return adtOperation.processMessage();
+    }
+
+    /**
+     * @param msg the ADT message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException {
+        return null;
+    }
+
+    /**
+     * @param msg the MergeById message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public String processMessage(MergeById msg) throws EmapOperationMessageProcessingException {
+        return null;
+    }
+
+    /**
+     * @param msg the DischargePatient message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public String processMessage(DischargePatient msg) throws EmapOperationMessageProcessingException {
+        return null;
     }
 
     @Override
@@ -274,6 +308,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         enc.addFact(vitalSign);
         enc = encounterRepo.save(enc);
         return returnCode;
+    }
+
+    /**
+     * @param msg the PatientInfection message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public String processMessage(PatientInfection msg) {
+        return null;
     }
 
     /**
@@ -723,9 +767,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the newly constructed object
      * @throws MessageIgnoredException if message is being ignored
      */
-    private AdtOperation adtOperationFactory(OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private OldAdtOperation adtOperationFactory(OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
 //        return new AdtOperation(this, adtMsg, storedFrom);
-        return new AdtOperation(this, adtMsg, storedFrom);
+        return new OldAdtOperation(this, adtMsg, storedFrom);
     }
 
     /**
