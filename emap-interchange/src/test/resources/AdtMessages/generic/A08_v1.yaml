@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase"
+"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessageBase"
 operationType: "UPDATE_PATIENT_INFO"
 recordedDateTime: "2013-03-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"

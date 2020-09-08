@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase"
+"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessageBase"
 operationType: "TRANSFER_PATIENT"
 recordedDateTime: "2013-03-12T11:44:20Z"
 eventReasonCode: "ADT_EVENT"

@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase"
+"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessageBase"
 operationType: "CANCEL_DISCHARGE_PATIENT"
 recordedDateTime: "2013-02-11T13:58:34Z"
 eventOccurredDateTime: "2013-02-11T13:45:00Z"
