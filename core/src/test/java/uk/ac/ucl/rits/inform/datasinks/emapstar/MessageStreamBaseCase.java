@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
@@ -189,7 +189,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         }
         setPatientClass(patientClass, this.currentTime);
 
-        AdtMessageBase update = new AdtMessageBase();
+        OldAdtMessage update = new OldAdtMessage();
         update.setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
         update.setAdmissionDateTime(this.admissionTime);
         update.setRecordedDateTime(this.admissionTime);
@@ -240,7 +240,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             this.stepLocation();
         }
 
-        AdtMessageBase admit = new AdtMessageBase();
+        OldAdtMessage admit = new OldAdtMessage();
         admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
         admit.setAdmissionDateTime(this.admissionTime);
         admit.setEventOccurredDateTime(eventTime);
@@ -289,7 +289,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             location = currentLocation();
         }
 
-        AdtMessageBase transfer = new AdtMessageBase();
+        OldAdtMessage transfer = new OldAdtMessage();
         transfer.setOperationType(AdtOperationType.TRANSFER_PATIENT);
         transfer.setAdmissionDateTime(this.admissionTime);
         transfer.setEventOccurredDateTime(tTime);
@@ -309,7 +309,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     public void queueCancelAdmit() {
         this.ensureAdmitted();
-        AdtMessageBase cancelAdmit = new AdtMessageBase();
+        OldAdtMessage cancelAdmit = new OldAdtMessage();
         Instant expectedCancellationDateTime = this.nextTime();
 
         cancelAdmit.setOperationType(AdtOperationType.CANCEL_ADMIT_PATIENT);
@@ -344,7 +344,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             // This is really acting as a place holder for NULL
             this.transferTime.add(Instant.MIN);
         }
-        AdtMessageBase cancelTransfer = new AdtMessageBase();
+        OldAdtMessage cancelTransfer = new OldAdtMessage();
         cancelTransfer.setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
         cancelTransfer.setAdmissionDateTime(this.admissionTime);
         cancelTransfer.setEventOccurredDateTime(erroneousTransferDateTime);
@@ -391,7 +391,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     public void queueCancelDischarge() {
         this.ensureAdmitted();
-        AdtMessageBase cancelDischarge = new AdtMessageBase();
+        OldAdtMessage cancelDischarge = new OldAdtMessage();
         cancelDischarge.setOperationType(AdtOperationType.CANCEL_DISCHARGE_PATIENT);
         cancelDischarge.setAdmissionDateTime(this.admissionTime);
         cancelDischarge.setRecordedDateTime(this.nextTime());

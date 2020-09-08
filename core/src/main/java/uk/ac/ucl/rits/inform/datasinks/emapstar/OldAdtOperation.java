@@ -20,7 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
@@ -35,7 +35,7 @@ public class OldAdtOperation implements AdtOperationInterface {
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     private InformDbOperations dbOps;
-    private AdtMessageBase adtMsg;
+    private OldAdtMessage adtMsg;
     private Encounter encounter;
 
     private Instant storedFrom;
@@ -66,31 +66,12 @@ public class OldAdtOperation implements AdtOperationInterface {
      * @param storedFrom time to use for any new records that might be created
      * @throws MessageIgnoredException if message can be ignored
      */
-    public OldAdtOperation(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    public OldAdtOperation(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.adtMsg = adtMsg;
         this.dbOps = dbOps;
         this.storedFrom = storedFrom;
-        determineSubTypes();
         determineTimestamps();
         getCreateEncounterOrVisit(dbOps, adtMsg, storedFrom);
-    }
-
-    /* (non-Javadoc)
-     * @see uk.ac.ucl.rits.inform.datasinks.emapstar.AdtOperationInterface#processMessage()
-    /**
-     * Temporary function to set subtype field for permutation testing check.
-     */
-    private void determineSubTypes() {
-        switch (adtMsg.getOperationType()) {
-            case DISCHARGE_PATIENT:
-                dischargeMsg = (DischargePatient) adtMsg;
-                break;
-            case MERGE_BY_ID:
-                mergeMsg = (MergeById) adtMsg;
-                break;
-            default:
-                break;
-        }
     }
 
     /**
@@ -219,7 +200,7 @@ public class OldAdtOperation implements AdtOperationInterface {
      * @see uk.ac.ucl.rits.inform.datasinks.emapstar.AdtOperationInterface#getCreateEncounterOrVisit(uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations, uk.ac.ucl.rits.inform.interchange.AdtMessage, java.time.Instant)
      */
     @Override
-    public void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom)
+    public void getCreateEncounterOrVisit(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom)
             throws MessageIgnoredException {
         if (adtMsg.getVisitNumber() != null) {
             encounter = OldAdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);

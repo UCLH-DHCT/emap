@@ -6,7 +6,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.informdb.Movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 
 import java.time.Instant;
 
@@ -30,13 +30,13 @@ public class AdtOperation {
      * @param storedFrom time to use for any new records that might be created
      * @throws MessageIgnoredException if message can be ignored
      */
-    public AdtOperation(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    public AdtOperation(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.dbOps = dbOps;
         this.storedFrom = storedFrom;
         getCreateEncounterOrVisit(dbOps, adtMsg, storedFrom);
     }
 
-    public void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom)
+    public void getCreateEncounterOrVisit(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom)
             throws MessageIgnoredException {
         if (adtMsg.getVisitNumber() != null) {
             // V2

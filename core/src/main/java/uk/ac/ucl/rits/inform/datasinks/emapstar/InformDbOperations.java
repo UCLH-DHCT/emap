@@ -40,7 +40,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -235,7 +235,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     @Transactional
-    public String processMessage(AdtMessageBase adtMsg) throws EmapOperationMessageProcessingException {
+    public String processMessage(OldAdtMessage adtMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
         return adtOperation.processMessage();
@@ -473,7 +473,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param storedFrom storedFrom value to use for new records
      * @return whether any demographics were actually added/modified
      */
-    static boolean addOrUpdateDemographics(Encounter encounter, AdtMessageBase adtMsg, Instant storedFrom) {
+    static boolean addOrUpdateDemographics(Encounter encounter, OldAdtMessage adtMsg, Instant storedFrom) {
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = InformDbOperations.buildPatientDemographics(adtMsg, storedFrom);
         Map<String, PatientFact> currentDemographics = InformDbOperations.getValidStoredDemographicFacts(encounter).stream()
@@ -489,7 +489,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param storedFrom storedFrom value to use for new records
      * @return Attribute->Fact key-value pairs
      */
-    static Map<String, PatientFact> buildPatientDemographics(AdtMessageBase adtMsg, Instant storedFrom) {
+    static Map<String, PatientFact> buildPatientDemographics(OldAdtMessage adtMsg, Instant storedFrom) {
         Map<String, PatientFact> demographics = new HashMap<>();
         Instant validFrom = adtMsg.getEventOccurredDateTime();
         if (validFrom == null) {
@@ -723,7 +723,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the newly constructed object
      * @throws MessageIgnoredException if message is being ignored
      */
-    private AdtOperation adtOperationFactory(AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private AdtOperation adtOperationFactory(OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
 //        return new AdtOperation(this, adtMsg, storedFrom);
         return new AdtOperation(this, adtMsg, storedFrom);
     }

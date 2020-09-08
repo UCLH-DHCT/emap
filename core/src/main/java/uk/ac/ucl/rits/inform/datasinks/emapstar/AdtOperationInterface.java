@@ -3,7 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import java.time.Instant;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 
 public interface AdtOperationInterface {
 
@@ -22,7 +22,7 @@ public interface AdtOperationInterface {
      * @param storedFrom the storedFrom time to use if an object needs to be newly created
      * @throws MessageIgnoredException
      */
-    void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom)
+    void getCreateEncounterOrVisit(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom)
             throws MessageIgnoredException;
 
     /**

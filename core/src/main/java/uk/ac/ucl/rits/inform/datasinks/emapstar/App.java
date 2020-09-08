@@ -24,7 +24,7 @@ import com.rabbitmq.client.Channel;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
@@ -90,8 +90,8 @@ public class App {
         Instant startTime = Instant.now();
         idsEffectLogging.setProcessingStartTime(startTime);
         idsEffectLogging.setMessageType(msg.getMessageType());
-        if (msg instanceof AdtMessageBase) {
-            idsEffectLogging.setEventReasonCode(((AdtMessageBase) msg).getEventReasonCode());
+        if (msg instanceof OldAdtMessage) {
+            idsEffectLogging.setEventReasonCode(((OldAdtMessage) msg).getEventReasonCode());
         }
         idsEffectLogging.setSourceId(msg.getSourceMessageId());
         try {
