@@ -43,7 +43,7 @@ public class Mrn implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long                   mrnId;
 
-    @OneToMany(targetEntity = MrnHospitalVisit.class, mappedBy = "mrn_id", cascade = CascadeType.ALL)
+    @OneToMany(targetEntity = MrnHospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
     private List<MrnHospitalVisit> hospitalVisits;
 
     /**

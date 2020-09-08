@@ -26,8 +26,8 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  */
 @Entity
 @Table(name = "mrn_encounter", indexes = {
-        @Index(columnList = "mrn", unique = false),
-        @Index(columnList = "hospitalVisit", unique = false),
+        @Index(columnList = "mrnId", unique = false),
+        @Index(columnList = "mrnHospitalVisitId", unique = false),
         @Index(name = "mrn_encounter_stored_from_index", columnList = "storedFrom", unique = false),
         @Index(name = "mrn_encounter_stored_until_index", columnList = "storedUntil", unique = false),
         @Index(name = "mrn_encounter_valid_from_index", columnList = "validFrom", unique = false),
