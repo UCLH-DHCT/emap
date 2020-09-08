@@ -32,11 +32,11 @@ public class MrnToLive extends TemporalCore<MrnToLive> implements Serializable {
     private Long              mrnToLiveId;
 
     @ManyToOne
-    @JoinColumn(name = "mrn_id", nullable = false)
+    @JoinColumn(name = "mrnId", nullable = false)
     private Mrn               mrnId;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "live_mrn_id", nullable = false)
+    @JoinColumn(name = "liveMrnId", nullable = false)
     private Mrn               liveMrnId;
 
     public MrnToLive() {}
