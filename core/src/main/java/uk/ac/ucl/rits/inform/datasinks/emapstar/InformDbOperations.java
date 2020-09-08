@@ -1,22 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -29,13 +12,13 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.EmapStarIntegrityException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
@@ -52,44 +35,58 @@ import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.ResultType;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * All the operations that can be performed on Inform-db.
  */
 @Component
-@EntityScan({ "uk.ac.ucl.rits.inform.datasinks.emapstar.repos", "uk.ac.ucl.rits.inform.informdb" })
+@EntityScan({"uk.ac.ucl.rits.inform.datasinks.emapstar.repos", "uk.ac.ucl.rits.inform.informdb"})
 public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
-    private AttributeRepository        attributeRepo;
+    private AttributeRepository attributeRepo;
     @Autowired
-    private PersonRepository           personRepo;
+    private PersonRepository personRepo;
     @Autowired
-    private MrnRepository              mrnRepo;
+    private MrnRepository mrnRepo;
     @Autowired
-    private EncounterRepository        encounterRepo;
+    private EncounterRepository encounterRepo;
     @Autowired
-    private PatientFactRepository      patientFactRepo;
+    private PatientFactRepository patientFactRepo;
     @Autowired
-    private PersonMrnRepository        personMrnRepo;
+    private PersonMrnRepository personMrnRepo;
 
-    
+
     // V2
     @Autowired
-    private HospitalVisitRepository     hospitalVisitRepo;
+    private HospitalVisitRepository hospitalVisitRepo;
 
-    
 
-    private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
+    private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     @Value("${:classpath:vocab.csv}")
-    private Resource                   vocabFile;
+    private Resource vocabFile;
 
     /**
      * Call when you are finished with this object.
@@ -104,11 +101,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return encounterRepo.save(encounter);
     }
 
-    
+
     public HospitalVisit findHospitalVisitByEncounter(String encounter) {
         return hospitalVisitRepo.findByEncounterString(encounter);
     }
-    
+
     /**
      * @param encounterStr encounter string to search by
      * @return the encounter found, or null if not found
@@ -238,7 +235,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     @Transactional
-    public String processMessage(AdtMessage adtMsg) throws EmapOperationMessageProcessingException {
+    public String processMessage(AdtMessageBase adtMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         AdtOperationInterface adtOperation = adtOperationFactory(adtMsg, storedFrom);
         return adtOperation.processMessage();
@@ -281,7 +278,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Search for encounters in the Mrn with a given encounter number.
-     *
      * @param mrn       the Mrn to search
      * @param encounter the encounter ID to search for
      * @return all encounters that match
@@ -298,7 +294,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * All patient facts are in one table so some filtering is needed.
-     *
      * @param pf the patient fact
      * @return whether it is a visit fact (ie. what used to be the VisitFact class)
      */
@@ -310,7 +305,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Filter for facts that are related to vital signs.
      * Better attribute metadata would be a better solution than this.
-     *
      * @param pf the patient fact
      * @return true if this is a vital signs fact
      */
@@ -323,7 +317,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Filter for facts that are related to pathology.
-     *
      * @param pf the patient fact
      * @return true if this is a pathology fact
      */
@@ -338,7 +331,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param encounter the Encounter to search in
      * @param pred      the predicate to check against each visit fact
      * @return all PatientFact objects in encounter which are visit facts AND match
-     *         predicate pred
+     * predicate pred
      */
     @Transactional
     public static List<PatientFact> getVisitFactWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
@@ -367,7 +360,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * @param facts the list of facts to search in
-     * @param pred      the predicate to check for each PatientFact
+     * @param pred  the predicate to check for each PatientFact
      * @return all PatientFact objects which match predicate pred
      */
     @Transactional
@@ -382,7 +375,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * @param encounter the Encounter to search in
      * @return all PatientFact objects in encounter which are NOT visit facts and
-     *         are valid and stored as of the present moment
+     * are valid and stored as of the present moment
      */
     static List<PatientFact> getValidStoredDemographicFacts(Encounter encounter) {
         return getDemographicFactsWhere(encounter, f -> f.isValid() && factIsStored(f));
@@ -392,7 +385,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param encounter the Encounter to search in
      * @param pred      the predicate to check against each demographic fact
      * @return all PatientFact objects in encounter which are NOT visit facts and
-     *         match pred
+     * match pred
      */
     private static List<PatientFact> getDemographicFactsWhere(Encounter encounter, Predicate<? super PatientFact> pred) {
         /*
@@ -407,7 +400,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Check whether PatientFact has no discharge time property, indicating it's
      * still open.
-     *
      * @param vf the visit fact to check
      * @return whether visit is still open (ie. not discharged)
      */
@@ -420,7 +412,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Check whether PatientFact is still open, and its valid until column is null, indicating that it has never
      * been invalidated.
-     *
      * @param vf the visit fact to check
      * @return whether visit is still open and valid as of the present moment
      */
@@ -433,7 +424,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * has not been unstored (deleted). Note: this does not perform time travel (ie.
      * check whether stored_until is null or in the future) Note: the storedness of the
      * underlying properties is not checked
-     *
      * @param pf the patient fact to check
      * @return whether fact is stored as of the present moment
      */
@@ -446,7 +436,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param encounter the Encounter to search in
      * @param attr      the type to match against
      * @return all open and valid Visit objects of the specified type for the
-     *         Encounter
+     * Encounter
      */
     @Transactional
     public static List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
@@ -456,7 +446,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * @param encounter the Encounter to search in
      * @return all closed and valid location Visits for the
-     *         Encounter
+     * Encounter
      */
     public static List<PatientFact> getClosedLocationVisitFact(Encounter encounter) {
         return getVisitFactWhere(encounter,
@@ -483,7 +473,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param storedFrom storedFrom value to use for new records
      * @return whether any demographics were actually added/modified
      */
-    static boolean addOrUpdateDemographics(Encounter encounter, AdtMessage adtMsg, Instant storedFrom) {
+    static boolean addOrUpdateDemographics(Encounter encounter, AdtMessageBase adtMsg, Instant storedFrom) {
         // Compare new demographics with old
         Map<String, PatientFact> newDemographics = InformDbOperations.buildPatientDemographics(adtMsg, storedFrom);
         Map<String, PatientFact> currentDemographics = InformDbOperations.getValidStoredDemographicFacts(encounter).stream()
@@ -495,12 +485,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Build the demographics objects from a message but don't actually do anything
      * with them. Include visit related facts like patient class because these are
      * treated very similarly.
-     *
-     * @param adtMsg the msg to build demographics from
+     * @param adtMsg     the msg to build demographics from
      * @param storedFrom storedFrom value to use for new records
      * @return Attribute->Fact key-value pairs
      */
-    static Map<String, PatientFact> buildPatientDemographics(AdtMessage adtMsg, Instant storedFrom) {
+    static Map<String, PatientFact> buildPatientDemographics(AdtMessageBase adtMsg, Instant storedFrom) {
         Map<String, PatientFact> demographics = new HashMap<>();
         Instant validFrom = adtMsg.getEventOccurredDateTime();
         if (validFrom == null) {
@@ -552,7 +541,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * A little mapping table to convert HL7 sex to Inform-db sex.
-     *
      * @param hl7Sex hl7 sex
      * @return Inform-db sex
      */
@@ -561,24 +549,23 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             return AttributeKeyMap.UNKNOWN;
         }
         switch (hl7Sex) {
-        case "M":
-            return AttributeKeyMap.MALE;
-        case "F":
-            return AttributeKeyMap.FEMALE;
-        case "A":
-            return AttributeKeyMap.OTHER;
-        case "O":
-            return AttributeKeyMap.OTHER;
-        case "U":
-        default:
-            return AttributeKeyMap.UNKNOWN;
+            case "M":
+                return AttributeKeyMap.MALE;
+            case "F":
+                return AttributeKeyMap.FEMALE;
+            case "A":
+                return AttributeKeyMap.OTHER;
+            case "O":
+                return AttributeKeyMap.OTHER;
+            case "U":
+            default:
+                return AttributeKeyMap.UNKNOWN;
         }
     }
 
     /**
      * Add a hospital visit fact to the specified Encounter. This visit is open, ie.
      * ongoing.
-     *
      * @param enc            the Encounter to add to
      * @param storedFrom     storedFrom value to use for new records
      * @param visitBeginTime The start time of the visit
@@ -620,7 +607,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     /**
      * Add a property to a fact if it doesn't already exist with an identical value,
      * otherwise replace it with new version.
-     *
      * @param fact    fact to update
      * @param newProp new version of property to use as replacement if necessary
      * @return true iff anything was changed
@@ -669,7 +655,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Return a cached, persisted Attribute object with the given enum value.
-     *
      * @param attrKM the enum value of the attribute
      * @return the Attribute object from the cache
      */
@@ -685,13 +670,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Add a property (key-value pair) to a pre-existing fact, only if its value is non-null.
-     *
+     * <p>
      * Mainly kept for backwards compatibility, consider using buildPatientProperty directly instead.
-     *
-     * @param fact      the fact to add to
-     * @param storedFrom storedFrom time to use for new records
-     * @param propertyType    the property key
-     * @param factValue the property value
+     * @param fact         the fact to add to
+     * @param storedFrom   storedFrom time to use for new records
+     * @param propertyType the property key
+     * @param factValue    the property value
      */
     private static void addPropertyToFact(PatientFact fact, Instant storedFrom, AttributeKeyMap propertyType, Object factValue) {
         if (factValue != null) {
@@ -701,8 +685,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Filter on a predicate where at most one element should satisfy it.
-     *
-     * @param      <E> the type of the list elements
+     * @param <E>  the type of the list elements
      * @param list the list to look in
      * @param pred the predicate to test with
      * @return the only element that satisfies it, or null if there are none that do
@@ -714,7 +697,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
-     * @param      <E> the type of the list elements
+     * @param <E>  the type of the list elements
      * @param list the given list
      * @return the only element in the given list, or null if empty or null, throws if >1
      * @throws DuplicateValueException if >1 element in list
@@ -724,30 +707,29 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             return null;
         }
         switch (list.size()) {
-        case 0:
-            return null;
-        case 1:
-            return list.get(0);
-        default:
-            throw new DuplicateValueException(String.format("List contained %d elements instead of 0-1", list.size()));
+            case 0:
+                return null;
+            case 1:
+                return list.get(0);
+            default:
+                throw new DuplicateValueException(String.format("List contained %d elements instead of 0-1", list.size()));
         }
     }
 
     /**
      * Construct an ADT handler wrapper object.
-     * @param adtMsg the ADT Interchange message
+     * @param adtMsg     the ADT Interchange message
      * @param storedFrom storedFrom time to use for new records
      * @return the newly constructed object
      * @throws MessageIgnoredException if message is being ignored
      */
-    private AdtOperationInterface adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private AdtOperationInterface adtOperationFactory(AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
 //        return new AdtOperation(this, adtMsg, storedFrom);
         return new AdtOperationDbV2(this, adtMsg, storedFrom);
     }
 
     /**
      * If demographics have changed, update them and invalidate the old.
-     *
      * @param encounter           the existing encounter that we may need to modify
      *                            demographics of
      * @param currentDemographics existing demographics (eg. from the db)
@@ -755,7 +737,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return whether any demographics were actually added/modified
      */
     static boolean updateDemographics(Encounter encounter, Map<String, PatientFact> currentDemographics,
-            Map<String, PatientFact> newDemographics) {
+                                      Map<String, PatientFact> newDemographics) {
         logger.info(String.format("Update demographics (CSN = %s): comparing %d existing demographic facts to %d new facts",
                 encounter.getEncounter(), currentDemographics.size(), newDemographics.size()));
         boolean anyChanged = false;
@@ -788,8 +770,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Convert the simplified data from the pathology message into Inform-db structures,
      * and merge with existing data depending on whether it's a new order or changes to an existing one.
      * @param pathologyOrder the pathology order details, may contain results
-     * @param storedFrom storedFrom time to use for new records
-     * @throws MessageIgnoredException if message can't be processed
+     * @param storedFrom     storedFrom time to use for new records
+     * @throws MessageIgnoredException    if message can't be processed
      * @throws EmapStarIntegrityException contradiction in DB
      */
     @Transactional
@@ -832,7 +814,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // Which facts in resultFactsFromOrder are actually already present in existingOrderRootFact?
             List<PatientFact> existingFacts = getFactWhere(existingOrderRootFact.getChildFacts(),
                     f -> f.isValid()
-                    && f.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
+                            && f.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
             Map<String, PatientFact> existingFactsAsMap = existingFacts.stream()
                     .collect(Collectors.toMap(ef -> uniqueKeyFromPathologyResultFact(ef), ef -> ef));
             Iterator<Entry<String, PatientFact>> newFacts = newPathologyResults.entrySet().iterator();
@@ -895,7 +877,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private void updatePathologyResult(PatientFact existingResult, PatientFact newFact, Instant storedFromUntil) {
         Instant invalidationDate = getOnlyElement(
                 newFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME, PatientProperty::isValid))
-                        .getValueAsDatetime();
+                .getValueAsDatetime();
         PatientFact order = existingResult.getParentFact();
         existingResult.invalidateAll(storedFromUntil, invalidationDate);
         logger.warn(String.format("Old fact validity %s -> %s", existingResult.getValidFrom(), invalidationDate));
@@ -922,7 +904,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * A key for uniquely identifying pathology results *from an interchange message*.
      * Must give equivalent results to method {@link #uniqueKeyFromPathologyResultFact}.
      * Allows updated results to be compared with existing results.
-     * @param testBatteryLocalCode the battery code for the message
+     * @param testBatteryLocalCode   the battery code for the message
      * @param pathologyResultMessage the pathology result message
      * @return a key for the result that is unique within the order
      */
@@ -933,7 +915,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Convert order details from an Emap-Interchange message to Emap-Star structures.
-     * @param order the pathology order details
+     * @param order      the pathology order details
      * @param storedFrom storedFrom time to use for new records
      * @return a PatientFact object that represents the order
      */
@@ -988,7 +970,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Build a patient property given the key/value pair.
-     *
      * @param storedFrom the stored from temporal field
      * @param validFrom  the valid from temporal field
      * @param attrKM     the attribute key value
@@ -996,7 +977,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the constructed PatientProperty
      */
     public static PatientProperty buildPatientProperty(Instant storedFrom, Instant validFrom, AttributeKeyMap attrKM,
-            Object value) {
+                                                       Object value) {
         PatientProperty prop = new PatientProperty();
         prop.setValidFrom(validFrom);
         prop.setStoredFrom(storedFrom);
@@ -1011,15 +992,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Make a PatientFact from each pathology result. Return in an indexed
      * collection for easy diffing (we expect to get partial results and final
      * results at different times and this might be useful).
-     *
-     * @param parent the parent PatientFact, either from the DB or newly constructed
-     * @param storedFrom storedFrom time to use for new records
-     * @param pathResults the pathology results
+     * @param parent               the parent PatientFact, either from the DB or newly constructed
+     * @param storedFrom           storedFrom time to use for new records
+     * @param pathResults          the pathology results
      * @param testBatteryLocalCode the battery local code for the order
      * @return all descendant PatientFact objects indexed by a unique identifier
      */
     private Map<String, PatientFact> buildPathologyResultsFacts(PatientFact parent, Instant storedFrom,
-            List<? extends PathologyResult> pathResults, String testBatteryLocalCode) {
+                                                                List<? extends PathologyResult> pathResults, String testBatteryLocalCode) {
         Map<String, PatientFact> facts = new HashMap<>();
         for (PathologyResult pr : pathResults) {
             Instant resultTime = pr.getResultTime();
@@ -1085,17 +1065,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * the order is previously unknown.
      * Move to repo?
      * @param epicCareOrderNumber the Epic order number to search by
-     * @param visitNumber the encounter/visit number to search by
-     * @param mrnStr MRN string to use if an MRN record needs creating
-     * @param storedFrom storedFrom time to use for new records
-     * @param backupValidFrom validFrom time to use if encounter/mrn/person needs creating
+     * @param visitNumber         the encounter/visit number to search by
+     * @param mrnStr              MRN string to use if an MRN record needs creating
+     * @param storedFrom          storedFrom time to use for new records
+     * @param backupValidFrom     validFrom time to use if encounter/mrn/person needs creating
      * @return Pair containing the Encounter object that this order is attached to and the PatientFact object that is the root
      * object representing the order, if it exists (else null).
-     * @throws MessageIgnoredException if the Encounter can't be found by any method
+     * @throws MessageIgnoredException    if the Encounter can't be found by any method
      * @throws EmapStarIntegrityException contradiction in DB
      */
     private Pair<Encounter, PatientFact> getEncounterForOrder(String epicCareOrderNumber, String visitNumber,
-            String mrnStr, Instant storedFrom, Instant backupValidFrom)
+                                                              String mrnStr, Instant storedFrom, Instant backupValidFrom)
             throws MessageIgnoredException, EmapStarIntegrityException {
         // We do get messages with blank Epic order numbers,
         // however searching on a blank order number will never do the right

@@ -20,9 +20,10 @@ import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
 import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 /**
  * One instance of this class covers a single ADT operation.
@@ -34,7 +35,7 @@ public class AdtOperation implements AdtOperationInterface {
     private static final Logger        logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     private InformDbOperations dbOps;
-    private AdtMessage adtMsg;
+    private AdtMessageBase adtMsg;
     private Encounter encounter;
 
     private Instant storedFrom;
@@ -48,6 +49,9 @@ public class AdtOperation implements AdtOperationInterface {
     private PatientFact onlyOpenBedVisit;
 
     private String newTransferLocation;
+    // Temporary fields to confirm that tests pass when using subclasses
+    private DischargePatient dischargeMsg;
+    private MergeById mergeMsg;
 
     /**
      * @return the encounter that is being manipulated
@@ -62,16 +66,37 @@ public class AdtOperation implements AdtOperationInterface {
      * @param storedFrom time to use for any new records that might be created
      * @throws MessageIgnoredException if message can be ignored
      */
-    public AdtOperation(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    public AdtOperation(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.adtMsg = adtMsg;
         this.dbOps = dbOps;
         this.storedFrom = storedFrom;
+        determineSubTypes();
         determineTimestamps();
         getCreateEncounterOrVisit(dbOps, adtMsg, storedFrom);
     }
 
     /* (non-Javadoc)
      * @see uk.ac.ucl.rits.inform.datasinks.emapstar.AdtOperationInterface#processMessage()
+    /**
+     * Temporary function to set subtype field for permutation testing check.
+     */
+    private void determineSubTypes() {
+        switch (adtMsg.getOperationType()) {
+            case DISCHARGE_PATIENT:
+                dischargeMsg = (DischargePatient) adtMsg;
+                break;
+            case MERGE_BY_ID:
+                mergeMsg = (MergeById) adtMsg;
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Go ahead and process the ADT message.
+     * @return a status string
+     * @throws MessageIgnoredException if message is being ignored
      */
     @Override
     public String processMessage() throws MessageIgnoredException {
@@ -119,7 +144,9 @@ public class AdtOperation implements AdtOperationInterface {
         admissionDateTime = adtMsg.getAdmissionDateTime();
         recordedDateTime = adtMsg.getRecordedDateTime();
 
-        dischargeDateTime = adtMsg.getDischargeDateTime();
+        if (dischargeMsg != null) {
+            dischargeDateTime = dischargeMsg.getDischargeDateTime();
+        }
 
         // true for all message types? Yes for admit, transfer and update_info...
         newTransferLocation = adtMsg.getFullLocationString();
@@ -127,31 +154,31 @@ public class AdtOperation implements AdtOperationInterface {
         // Transfers can be inferred from non-transfer messages, but
         // different fields will indicate the transfer time.
         switch (adtMsg.getOperationType()) {
-        case ADMIT_PATIENT:
-            transferOccurred = adtMsg.getEventOccurredDateTime();
-            break;
-        case TRANSFER_PATIENT:
-            transferOccurred = adtMsg.getEventOccurredDateTime();
-            break;
-        case DISCHARGE_PATIENT:
-            if (admissionDateTime == null) {
-                // This can happen occasionally, seems to be only/usually where EVN-4 = "ED_AFTER_DISMISS".
-                // In this unusual case, use the discharge date instead. Note that this will only be used
-                // if we have no prior record of the patient and are creating their admission record now.
-                admissionDateTime = adtMsg.getDischargeDateTime();
-            }
-            break;
-        case UPDATE_PATIENT_INFO:
-            // A08 doesn't have an event time, so use the recorded time instead
-            // Downside: recorded time is later than event time, so subsequent discharge
-            // time
-            // for this visit can be *earlier* than the arrival time if it's a very short
-            // visit
-            // or there was a big gap between A08 event + recorded time.
-            transferOccurred = adtMsg.getRecordedDateTime();
-            break;
-        default:
-            break;
+            case ADMIT_PATIENT:
+                transferOccurred = adtMsg.getEventOccurredDateTime();
+                break;
+            case TRANSFER_PATIENT:
+                transferOccurred = adtMsg.getEventOccurredDateTime();
+                break;
+            case DISCHARGE_PATIENT:
+                if (admissionDateTime == null) {
+                    // This can happen occasionally, seems to be only/usually where EVN-4 = "ED_AFTER_DISMISS".
+                    // In this unusual case, use the discharge date instead. Note that this will only be used
+                    // if we have no prior record of the patient and are creating their admission record now.
+                    admissionDateTime = dischargeMsg.getDischargeDateTime();
+                }
+                break;
+            case UPDATE_PATIENT_INFO:
+                // A08 doesn't have an event time, so use the recorded time instead
+                // Downside: recorded time is later than event time, so subsequent discharge
+                // time
+                // for this visit can be *earlier* than the arrival time if it's a very short
+                // visit
+                // or there was a big gap between A08 event + recorded time.
+                transferOccurred = adtMsg.getRecordedDateTime();
+                break;
+            default:
+                break;
         }
 
         // Location visit start time is normally the same as (hospital) admission time.
@@ -181,7 +208,7 @@ public class AdtOperation implements AdtOperationInterface {
             locationVisitValidFrom = adtMsg.getRecordedDateTime();
         } else if (adtMsg.getOperationType().equals(AdtOperationType.DISCHARGE_PATIENT)) {
             locationVisitStartTime = null;
-            locationVisitValidFrom = adtMsg.getDischargeDateTime();
+            locationVisitValidFrom = dischargeMsg.getDischargeDateTime();
         } else {
             locationVisitStartTime = admissionDateTime;
             locationVisitValidFrom = admissionDateTime;
@@ -192,7 +219,7 @@ public class AdtOperation implements AdtOperationInterface {
      * @see uk.ac.ucl.rits.inform.datasinks.emapstar.AdtOperationInterface#getCreateEncounterOrVisit(uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations, uk.ac.ucl.rits.inform.interchange.AdtMessage, java.time.Instant)
      */
     @Override
-    public void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom)
+    public void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessageBase adtMsg, Instant storedFrom)
             throws MessageIgnoredException {
         if (adtMsg.getVisitNumber() != null) {
             encounter = AdtOperation.getCreateEncounter(adtMsg.getMrn(), adtMsg.getVisitNumber(), storedFrom, admissionDateTime, dbOps);
@@ -249,17 +276,16 @@ public class AdtOperation implements AdtOperationInterface {
     /**
      * Get existing encounter or create a new one if it doesn't exist.
      * Also create the MRN and/or Person if necessary.
-     *
-     * @param mrnStr            the MRN string to find/create
-     * @param encounterStr      encounter ID (visit ID) to find/create
-     * @param storedFrom        storedFrom time to use for newly created records - should be a time very close to the present
-     * @param validFrom         validFrom times to use for newly created records - usually the admission time
-     * @param dbOps             the db ops service
+     * @param mrnStr       the MRN string to find/create
+     * @param encounterStr encounter ID (visit ID) to find/create
+     * @param storedFrom   storedFrom time to use for newly created records - should be a time very close to the present
+     * @param validFrom    validFrom times to use for newly created records - usually the admission time
+     * @param dbOps        the db ops service
      * @return the Encounter, existing or newly created
      * @throws MessageIgnoredException if message can't be processed
      */
     public static Encounter getCreateEncounter(String mrnStr, String encounterStr, Instant storedFrom,
-            Instant validFrom, InformDbOperations dbOps) throws MessageIgnoredException {
+                                               Instant validFrom, InformDbOperations dbOps) throws MessageIgnoredException {
         logger.info(String.format("getCreateEncounter looking for existing encounter %s in MRN %s", encounterStr, mrnStr));
         // look for encounter by its encounter number only as this is sufficiently unique without also using the MRN
         Encounter existingEnc = dbOps.findEncounterByEncounter(encounterStr);
@@ -283,7 +309,7 @@ public class AdtOperation implements AdtOperationInterface {
             if (mrnMatching == null) {
                 infoStr = String.format("MRN %s was not associated with this encounter", mrnStr);
             } else {
-                infoStr = String.format("MRN %s is associated with this encounter (valid = %s)",  mrnStr, mrnMatching.isValid());
+                infoStr = String.format("MRN %s is associated with this encounter (valid = %s)", mrnStr, mrnMatching.isValid());
             }
             logger.info(String.format("getCreateEncounter RETURNING EXISTING encounter %s (%s)", existingEnc.getEncounter(), infoStr));
             return existingEnc;
@@ -293,7 +319,6 @@ public class AdtOperation implements AdtOperationInterface {
     /**
      * Add a new open bed/outpatient/ED ("location") visit to an existing
      * higher-level (hospital) visit.
-     *
      * @param enc             the encounter to add the Visit to
      * @param visitType       the fact type of the location visit, should only be
      *                        BED_VISIT or OUTPATIENT_VISIT or similar
@@ -309,9 +334,8 @@ public class AdtOperation implements AdtOperationInterface {
      * @param patientClass    the patient class
      */
     @Transactional
-    static
-    void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant storedFrom, Instant validFrom,
-            Instant visitBeginTime, PatientFact hospitalVisit, String currentLocation, String patientClass) {
+    static void addOpenLocationVisit(Encounter enc, AttributeKeyMap visitType, Instant storedFrom, Instant validFrom,
+                                     Instant visitBeginTime, PatientFact hospitalVisit, String currentLocation, String patientClass) {
         PatientFact visitFact = new PatientFact();
         visitFact.setStoredFrom(storedFrom);
         visitFact.setValidFrom(validFrom);
@@ -333,14 +357,12 @@ public class AdtOperation implements AdtOperationInterface {
      * Mark a Visit as finished, which can happen either when transferring or
      * discharging a patient.
      * This could use buildPatientProperty rather than being deprecated?
-     *
      * @param visit             the visit to mark as finished
      * @param dischargeDateTime the discharge/transfer time
-     * @param storedFrom storedFrom value to use for new records
+     * @param storedFrom        storedFrom value to use for new records
      */
     @Deprecated
-    static
-    void addDischargeToVisit(PatientFact visit, Instant dischargeDateTime, Instant storedFrom) {
+    static void addDischargeToVisit(PatientFact visit, Instant dischargeDateTime, Instant storedFrom) {
         Attribute dischargeTime = InformDbOperations.getCreateAttribute(AttributeKeyMap.DISCHARGE_TIME);
         PatientProperty visProp = new PatientProperty();
         visProp.setValidFrom(dischargeDateTime);
@@ -374,7 +396,6 @@ public class AdtOperation implements AdtOperationInterface {
 
     /**
      * Ensure that the hospital visit's patient class is up to date.
-     *
      * @return true iff anything was actually updated
      * @throws MessageIgnoredException probably shouldn't do this...
      */
@@ -464,25 +485,25 @@ public class AdtOperation implements AdtOperationInterface {
         // It's not possible to tell when to start the bed visit from.
         ensureAdmissionExists();
 
-        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", adtMsg.getMrn(),
-                adtMsg.getVisitNumber(), adtMsg.getEventOccurredDateTime(), dischargeDateTime));
+        logger.info(String.format("DISCHARGE: MRN %s, visit %s, eventoccurred %s, dischargetime %s", dischargeMsg.getMrn(),
+                dischargeMsg.getVisitNumber(), dischargeMsg.getEventOccurredDateTime(), dischargeDateTime));
         if (dischargeDateTime == null) {
-            throw new MessageIgnoredException(adtMsg, "Trying to discharge but the discharge date is null");
+            throw new MessageIgnoredException(dischargeMsg, "Trying to discharge but the discharge date is null");
         } else {
             // Discharge from the bed visit and the hospital visit
             AdtOperation.addDischargeToVisit(onlyOpenBedVisit, dischargeDateTime, storedFrom);
             PatientFact hospVisit = onlyOpenBedVisit.getParentFact();
             AdtOperation.addDischargeToVisit(hospVisit, dischargeDateTime, storedFrom);
 
-            String dischargeDisposition = adtMsg.getDischargeDisposition();
+            String dischargeDisposition = dischargeMsg.getDischargeDisposition();
             // Add discharge disposition to hospital visit only, not bed.
             hospVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, dischargeDateTime,
                     AttributeKeyMap.DISCHARGE_DISPOSITION, dischargeDisposition));
-            String dischargeLocation = adtMsg.getDischargeLocation();
+            String dischargeLocation = dischargeMsg.getDischargeLocation();
             hospVisit.addProperty(InformDbOperations.buildPatientProperty(storedFrom, dischargeDateTime,
                     AttributeKeyMap.DISCHARGE_LOCATION, dischargeLocation));
             // demographics may have changed
-            InformDbOperations.addOrUpdateDemographics(encounter, adtMsg, storedFrom);
+            InformDbOperations.addOrUpdateDemographics(encounter, dischargeMsg, storedFrom);
         }
     }
 
@@ -542,7 +563,7 @@ public class AdtOperation implements AdtOperationInterface {
         // reopen the previous bed visit by invalidating its discharge time property
         Optional<PatientFact> mostRecentBedVisitOptional = InformDbOperations.getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
-                        .max((vf1, vf2) -> InformDbOperations.sortVisitByDischargeTime(vf1, vf2));
+                .max((vf1, vf2) -> InformDbOperations.sortVisitByDischargeTime(vf1, vf2));
 
         if (mostRecentBedVisitOptional.isPresent()) {
             /**
@@ -591,7 +612,7 @@ public class AdtOperation implements AdtOperationInterface {
         // Get the most recent bed visit, open or closed. It will hopefully be closed.
         Optional<PatientFact> mostRecentBedVisitOptional = InformDbOperations.getVisitFactWhere(encounter,
                 vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && vf.isValid()).stream()
-                        .max((vf1, vf2) -> InformDbOperations.sortVisitByDischargeTime(vf1, vf2));
+                .max((vf1, vf2) -> InformDbOperations.sortVisitByDischargeTime(vf1, vf2));
 
         if (!mostRecentBedVisitOptional.isPresent()) {
             // If we have no existing visit, admit the patient.
@@ -635,13 +656,13 @@ public class AdtOperation implements AdtOperationInterface {
      */
     @Override
     public void performMergeById() throws MessageIgnoredException {
-        String retiredMrnStr = adtMsg.getMergedPatientId();
-        String survivingMrnStr = adtMsg.getMrn();
-        Instant mergeTime = adtMsg.getRecordedDateTime();
+        String retiredMrnStr = mergeMsg.getMergedPatientId();
+        String survivingMrnStr = mergeMsg.getMrn();
+        Instant mergeTime = mergeMsg.getRecordedDateTime();
         logger.info(String.format("MERGE: surviving mrn %s, retiredMrn = %s, merge time = %s", survivingMrnStr, retiredMrnStr,
                 mergeTime));
         if (mergeTime == null) {
-            throw new MessageIgnoredException(adtMsg, "event occurred null");
+            throw new MessageIgnoredException(mergeMsg, "event occurred null");
         }
 
         // The non-surviving Mrn is invalidated but still points to the old person
@@ -650,20 +671,20 @@ public class AdtOperation implements AdtOperationInterface {
         Mrn retiredMrn = getCreateMrn(retiredMrnStr, mergeTime, storedFrom, true, dbOps);
         Mrn survivingMrn = getCreateMrn(survivingMrnStr, mergeTime, storedFrom, true, dbOps);
         if (survivingMrn == null || retiredMrn == null) {
-            throw new MessageIgnoredException(adtMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
+            throw new MessageIgnoredException(mergeMsg, String.format("MRNs %s or %s (%s or %s) are not previously known, do nothing",
                     retiredMrnStr, survivingMrnStr, retiredMrn, survivingMrn));
         }
         PersonMrn retiredPersonMrn = InformDbOperations.getOnlyElementWhere(retiredMrn.getPersons(), pm -> pm.isValid());
         PersonMrn survivingPersonMrn = InformDbOperations.getOnlyElementWhere(survivingMrn.getPersons(), pm -> pm.isValid());
         if (survivingPersonMrn == null || retiredPersonMrn == null) {
-            throw new MessageIgnoredException(adtMsg, String.format(
+            throw new MessageIgnoredException(mergeMsg, String.format(
                     "MRNs %s and %s exist but there was no currently valid person for one/both of them (%s and %s)",
                     retiredMrnStr, survivingMrnStr, retiredPersonMrn, survivingPersonMrn));
         }
 
         // If we already thought they were the same person, do nothing further.
         if (retiredPersonMrn.getPerson().equals(survivingPersonMrn.getPerson())) {
-            throw new MessageIgnoredException(adtMsg,
+            throw new MessageIgnoredException(mergeMsg,
                     String.format("We already thought that MRNs %s and %s were the same person (%s)", retiredMrnStr,
                             survivingMrnStr, retiredPersonMrn.getPerson().getPersonId()));
         }

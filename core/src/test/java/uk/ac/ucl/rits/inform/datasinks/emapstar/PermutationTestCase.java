@@ -308,7 +308,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
         List<PatientFact> deaths = factsAsMap.getOrDefault(AttributeKeyMap.PATIENT_DEATH_FACT, new ArrayList<>())
                 .stream().filter(PatientFact::isValid).collect(Collectors.toList());
-        assertTrue(2 > deaths.size(), "Must only have 1 or 0 death facts");
+        assertTrue(2 >= deaths.size(), "Must only have 1 or 0 death facts");
 
         if (deaths.isEmpty()) {
             return;

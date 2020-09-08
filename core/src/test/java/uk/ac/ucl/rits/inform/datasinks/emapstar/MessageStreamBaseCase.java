@@ -1,40 +1,41 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
+import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessageBase;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
-
 /**
  * Create a stream of messages to simulate a chain of HL7 messages firing.
- *
  * @author Jeremy Stein & Roma Klapaukh
  */
 public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
-    protected Instant             currentTime          = Instant.parse("2020-03-01T06:30:00.000Z");
-    protected final String[]      allLocations         = { "T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
-            "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN" };
-    protected int                 currentLocation      = 0;
-    protected String              mrn                  = "1234ABCD";
-    protected String              csn                  = "1234567890";
-    private String                patientClass         = "E";
-    private Instant               latestPatientClassChangeTime = null;
-    protected Instant             admissionTime        = null;
-    protected Instant             dischargeTime        = null;
-    protected String              nhsNumber            = "9999999999";
-    protected String              name                 = "Fred Blogger";
-    protected final List<Instant> transferTime         = new ArrayList<>();
+    protected Instant currentTime = Instant.parse("2020-03-01T06:30:00.000Z");
+    protected final String[] allLocations = {"T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
+            "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN"};
+    protected int currentLocation = 0;
+    protected String mrn = "1234ABCD";
+    protected String csn = "1234567890";
+    private String patientClass = "E";
+    private Instant latestPatientClassChangeTime = null;
+    protected Instant admissionTime = null;
+    protected Instant dischargeTime = null;
+    protected String nhsNumber = "9999999999";
+    protected String name = "Fred Blogger";
+    protected final List<Instant> transferTime = new ArrayList<>();
 
-    protected String              dischargeDisposition = "Peachy";
-    protected String              dischargeLocation    = "Home";
-    protected boolean             patientDied          = false;
-    protected Instant             deathTime            = null;
+    protected String dischargeDisposition = "Peachy";
+    protected String dischargeLocation = "Home";
+    protected boolean patientDied = false;
+    protected Instant deathTime = null;
 
-    protected double              vitalReading         = 92.;
-    protected List<Instant>       vitalTime            = new ArrayList<>();
+    protected double vitalReading = 92.;
+    protected List<Instant> vitalTime = new ArrayList<>();
 
     /**
      * Create a new MessageStreamBaseCase.
@@ -44,7 +45,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Reset the state to allow for a new stream of stream of tests to be run with
      * the same instance.
-     *
+     * <p>
      * This does not reset the class to how it is instantiated though.
      */
     protected void reinitialise() {
@@ -72,7 +73,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Return a time and advance the clock.
-     *
      * @return A time later than all the previous ones.
      */
     protected Instant nextTime() {
@@ -82,7 +82,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Get the current location of the patient.
-     *
      * @return Current location.
      */
     protected String currentLocation() {
@@ -109,7 +108,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Get the current location and advance to the next one.
-     *
      * @return A location.
      */
     protected String nextLocation() {
@@ -127,7 +125,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Return to the previous location and return it.
-     *
      * @return A location.
      */
     protected String previousLocation() {
@@ -137,7 +134,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Get the time of the last transfer
-     *
      * @return The time of the last transfer
      */
     protected Instant lastTransferTime() {
@@ -193,7 +189,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         }
         setPatientClass(patientClass, this.currentTime);
 
-        AdtMessage update = new AdtMessage();
+        AdtMessageBase update = new AdtMessageBase();
         update.setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
         update.setAdmissionDateTime(this.admissionTime);
         update.setRecordedDateTime(this.admissionTime);
@@ -220,7 +216,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue an admit message that may or may not perform a transfer.
-     *
      * @param transfer If true will also advance the patient to the next location.
      */
     public void queueAdmit(boolean transfer) {
@@ -229,7 +224,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue an admit message that may or may not perform a transfer.
-     *
      * @param transfer If true will also advance the patient to the next location.
      */
     public void queueAdmit(boolean transfer, String patientClass) {
@@ -246,7 +240,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             this.stepLocation();
         }
 
-        AdtMessage admit = new AdtMessage();
+        AdtMessageBase admit = new AdtMessageBase();
         admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
         admit.setAdmissionDateTime(this.admissionTime);
         admit.setEventOccurredDateTime(eventTime);
@@ -269,7 +263,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a transfer message.
-     *
      * @param updateLocation if false the patient location will not be advanced.
      */
     public void queueTransfer(boolean updateLocation) {
@@ -278,7 +271,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a transfer message.
-     *
      * @param updateLocation if false the patient location will not be advanced.
      */
     public void queueTransfer(boolean updateLocation, String patientClass) {
@@ -297,7 +289,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             location = currentLocation();
         }
 
-        AdtMessage transfer = new AdtMessage();
+        AdtMessageBase transfer = new AdtMessageBase();
         transfer.setOperationType(AdtOperationType.TRANSFER_PATIENT);
         transfer.setAdmissionDateTime(this.admissionTime);
         transfer.setEventOccurredDateTime(tTime);
@@ -317,7 +309,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     public void queueCancelAdmit() {
         this.ensureAdmitted();
-        AdtMessage cancelAdmit = new AdtMessage();
+        AdtMessageBase cancelAdmit = new AdtMessageBase();
         Instant expectedCancellationDateTime = this.nextTime();
 
         cancelAdmit.setOperationType(AdtOperationType.CANCEL_ADMIT_PATIENT);
@@ -348,11 +340,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             erroneousTransferDateTime = this.transferTime.remove(this.transferTime.size() - 1);
         }
 
-        if(this.transferTime.isEmpty()) {
+        if (this.transferTime.isEmpty()) {
             // This is really acting as a place holder for NULL
             this.transferTime.add(Instant.MIN);
         }
-        AdtMessage cancelTransfer = new AdtMessage();
+        AdtMessageBase cancelTransfer = new AdtMessageBase();
         cancelTransfer.setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
         cancelTransfer.setAdmissionDateTime(this.admissionTime);
         cancelTransfer.setEventOccurredDateTime(erroneousTransferDateTime);
@@ -375,7 +367,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         this.ensureAdmitted();
         this.dischargeTime = this.nextTime();
 
-        AdtMessage discharge = new AdtMessage();
+        DischargePatient discharge = new DischargePatient();
 
         discharge.setOperationType(AdtOperationType.DISCHARGE_PATIENT);
         discharge.setAdmissionDateTime(this.admissionTime);
@@ -399,7 +391,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     public void queueCancelDischarge() {
         this.ensureAdmitted();
-        AdtMessage cancelDischarge = new AdtMessage();
+        AdtMessageBase cancelDischarge = new AdtMessageBase();
         cancelDischarge.setOperationType(AdtOperationType.CANCEL_DISCHARGE_PATIENT);
         cancelDischarge.setAdmissionDateTime(this.admissionTime);
         cancelDischarge.setRecordedDateTime(this.nextTime());
@@ -415,12 +407,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a merge MRN message
-     *
      * @param mergedMrn    The mrn that will stop being used
      * @param survivingMrn The mrn that will be used going forwards
      */
     public void queueMerge(String mergedMrn, String survivingMrn) {
-        AdtMessage merge = new AdtMessage();
+        MergeById merge = new MergeById();
 
         merge.setOperationType(AdtOperationType.MERGE_BY_ID);
         merge.setRecordedDateTime(this.nextTime());
@@ -440,7 +431,6 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Set just the patient class without checking for changes.
      * Shouldn't be called from a test directly.
-     *
      * @param patientClass the patientClass to set
      */
     private void setPatientClass(String patientClass) {
@@ -450,8 +440,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Smarter setter that checks for changes and updates the change time.
      * If you really want to call this from a test you have to know what time it changed.
-     * @param patientClass  the patientClass to set
-     * @param eventTime     the current event time
+     * @param patientClass the patientClass to set
+     * @param eventTime    the current event time
      */
     protected void setPatientClass(String patientClass, Instant eventTime) {
         // if it's an actual change, remember this time
