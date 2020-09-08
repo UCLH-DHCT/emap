@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessageBase"
+"@class": "uk.ac.ucl.rits.inform.interchange.OldAdtMessage"
 operationType: "MERGE_BY_ID"
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
