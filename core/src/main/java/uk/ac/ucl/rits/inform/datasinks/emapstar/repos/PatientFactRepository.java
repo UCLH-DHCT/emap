@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 /**
@@ -48,7 +48,7 @@ public interface PatientFactRepository extends CrudRepository<PatientFact, Long>
      * @param factType the fact type to search for
      * @return all facts for the encounter that are of type factType
      */
-    default List<PatientFact> findAllByEncounterAndFactType(String encounter, AttributeKeyMap factType) {
+    default List<PatientFact> findAllByEncounterAndFactType(String encounter, OldAttributeKeyMap factType) {
         return findAllByEncounterAndFactTypeString(encounter, factType.getShortname());
     }
 
@@ -58,6 +58,6 @@ public interface PatientFactRepository extends CrudRepository<PatientFact, Long>
      * @return matching pathology orders as PatientFacts
      */
     default List<PatientFact> findAllPathologyOrdersByOrderNumber(String orderNumber) {
-        return findAllWithProperty(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER.getShortname(), orderNumber);
+        return findAllWithProperty(OldAttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER.getShortname(), orderNumber);
     }
 }

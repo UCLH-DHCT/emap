@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -69,18 +69,18 @@ public class TransferTestCase extends MessageStreamBaseCase {
 
         // Check right time / place / class
         assertEquals(thisLocation,
-                lastVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+                lastVisit.getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString());
         assertEquals(thisLocationStartTime,
-                lastVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+                lastVisit.getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
         // The patient class may have changed, so make sure it is up to date
         PatientFact hospVisit = lastVisit.getParentFact();
-        PatientProperty patClass = hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()
+        PatientProperty patClass = hospVisit.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS).stream()
                 .filter(x -> x.isValid()).findAny().get();
         assertEquals(thisPatientClass, patClass.getValueAsString());
         assertEquals(eventTime, patClass.getValidFrom());
 
         // Check correct invalidation date of patient class (if relevant)
-        Optional<PatientProperty> invPatClass = lastVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()
+        Optional<PatientProperty> invPatClass = lastVisit.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS).stream()
                 .filter(x -> !x.isValid()).findAny();
         if (invPatClass.isPresent()) {
             assertEquals(thisLocationStartTime, invPatClass.get().getValidFrom());
@@ -90,7 +90,7 @@ public class TransferTestCase extends MessageStreamBaseCase {
         // Check that the last visit closed correctly
         if (precedingVisit != null ) {
             assertEquals(thisLocationStartTime,
-                    precedingVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).get(0).getValueAsDatetime());
+                    precedingVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME).get(0).getValueAsDatetime());
         }
 
     }

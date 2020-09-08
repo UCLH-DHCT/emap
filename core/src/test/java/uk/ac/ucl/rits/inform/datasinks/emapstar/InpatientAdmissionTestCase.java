@@ -13,7 +13,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -35,10 +35,10 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         this.processRest();
 
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
-        Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
-        List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
-        List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
-        List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsGroupByType.get(OldAttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsGroupByType.get(OldAttributeKeyMap.BED_VISIT);
+        List<PatientFact> outpVisits = factsGroupByType.get(OldAttributeKeyMap.OUTPATIENT_VISIT);
         assertEquals(1, hospVisits.size());
         PatientFact onlyHospVisit = hospVisits.get(0);
         assertNull(outpVisits);
@@ -46,7 +46,7 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
         assertEquals(this.getPatientClass(),
-                onlyHospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+                onlyHospVisit.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 
     @Test
@@ -63,10 +63,10 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         this.processRest();
 
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
-        Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
-        List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
-        List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
-        List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsGroupByType.get(OldAttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsGroupByType.get(OldAttributeKeyMap.BED_VISIT);
+        List<PatientFact> outpVisits = factsGroupByType.get(OldAttributeKeyMap.OUTPATIENT_VISIT);
         assertEquals(3, hospVisits.size());
         assertEquals(3, bedVisits.size());
         assertNull(outpVisits);
@@ -86,13 +86,13 @@ public class InpatientAdmissionTestCase extends MessageStreamBaseCase {
         assertEquals(cancellationTime, bedVisitsByValidity.get(new ImmutablePair<>(true, false)).get(0).getValidUntil());
 
         List<PatientProperty> allLocationPropertiesForBedVisit = bedVisits.stream()
-                .map(v -> v.getPropertyByAttribute(AttributeKeyMap.LOCATION)).flatMap(List::stream)
+                .map(v -> v.getPropertyByAttribute(OldAttributeKeyMap.LOCATION)).flatMap(List::stream)
                 .collect(Collectors.toList());
         emapStarTestUtils._testPropertyValuesOverTime(allLocationPropertiesForBedVisit, wrongLocation, correctLocation,
                 erroneousAdmitTime, cancellationTime, correctAdmitTime);
 
         List<PatientProperty> allArrivalTimePropertiesForBedVisit = bedVisits.stream()
-                .map(v -> v.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME)).flatMap(List::stream)
+                .map(v -> v.getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME)).flatMap(List::stream)
                 .collect(Collectors.toList());
         emapStarTestUtils._testPropertyValuesOverTime(allArrivalTimePropertiesForBedVisit, erroneousAdmitTime, correctAdmitTime,
                 erroneousAdmitTime, cancellationTime, correctAdmitTime);

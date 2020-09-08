@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -65,27 +65,27 @@ public class TestOru extends InterchangeMessageToDbTestCase {
         PatientFact pathOrder = _getSingleOrderByOrderNumber("12121218", "123412341234");
 
         // check some attributes of the order
-        List<PatientProperty> collectionTimes = pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_COLLECTION_TIME);
+        List<PatientProperty> collectionTimes = pathOrder.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_COLLECTION_TIME);
         assertEquals(1, collectionTimes.size());
         assertEquals(Instant.parse("2013-07-24T15:41:00Z"), collectionTimes.get(0).getValueAsDatetime());
         assertEquals("F",
-                pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS).get(0).getValueAsString());
+                pathOrder.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS).get(0).getValueAsString());
         assertEquals("H1",
-                pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE).get(0).getValueAsString());
+                pathOrder.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE).get(0).getValueAsString());
         assertEquals("CM",
-                pathOrder.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS).get(0).getValueAsString());
+                pathOrder.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS).get(0).getValueAsString());
 
         List<PatientFact> childFacts = pathOrder.getChildFacts();
         // the order must have a child of type test result that has a battery code value of FBCY
         assertTrue(childFacts.stream().anyMatch(
-                pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)
-                        && pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE).get(0)
+                pf -> pf.isOfType(OldAttributeKeyMap.PATHOLOGY_TEST_RESULT)
+                        && pf.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE).get(0)
                                 .getValueAsString().equals("FBCY")));
 
         Map<String, List<PatientFact>> resultsByTestCode = childFacts.stream()
-                .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
+                .filter(pf -> pf.isOfType(OldAttributeKeyMap.PATHOLOGY_TEST_RESULT))
                 .collect(Collectors
-                        .groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));
+                        .groupingBy(pf -> pf.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));
 
         // within FBCY, check that all the tests exist
         assertEquals(
@@ -100,13 +100,13 @@ public class TestOru extends InterchangeMessageToDbTestCase {
         PatientFact wccResult = wccResults.get(0);
         assertTrue(wccResult.getChildFacts().isEmpty());
         assertEquals("WCC",
-                wccResult.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString());
+                wccResult.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString());
         assertEquals(new Double(7.28),
-                wccResult.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0).getValueAsReal());
+                wccResult.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0).getValueAsReal());
         assertEquals("3.0-10.0",
-                wccResult.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_REFERENCE_RANGE).get(0).getValueAsString());
+                wccResult.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_REFERENCE_RANGE).get(0).getValueAsString());
         assertEquals("x10^9/L",
-                wccResult.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_UNITS).get(0).getValueAsString());
+                wccResult.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_UNITS).get(0).getValueAsString());
     }
 
     @Test
@@ -115,8 +115,8 @@ public class TestOru extends InterchangeMessageToDbTestCase {
         PatientFact pathOrder = _getSingleOrderByOrderNumber("12121214", "123412341234");
         List<PatientFact> childFacts = pathOrder.getChildFacts();
         List<PatientFact> hbaResults = childFacts.stream()
-                .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT)
-                        && pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString().equals("HBA")).collect(Collectors.toList());
+                .filter(pf -> pf.isOfType(OldAttributeKeyMap.PATHOLOGY_TEST_RESULT)
+                        && pf.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString().equals("HBA")).collect(Collectors.toList());
 
         assertEquals(1, hbaResults.size());
         PatientFact hbaResult = hbaResults.get(0);
@@ -124,6 +124,6 @@ public class TestOru extends InterchangeMessageToDbTestCase {
                 "method effective 26th April 2010\n" +
                 "Please note analyser changed from Tosoh G7 to G8\n" +
                 "on 06/05/2010",
-                hbaResult.getPropertyByAttribute(AttributeKeyMap.RESULT_NOTES).get(0).getValueAsString());
+                hbaResult.getPropertyByAttribute(OldAttributeKeyMap.RESULT_NOTES).get(0).getValueAsString());
     }
 }

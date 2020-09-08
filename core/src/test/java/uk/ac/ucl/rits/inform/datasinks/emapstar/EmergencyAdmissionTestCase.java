@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -38,10 +38,10 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         processRest();
 
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
-        Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
-        List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
-        List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
-        List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsGroupByType.get(OldAttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsGroupByType.get(OldAttributeKeyMap.BED_VISIT);
+        List<PatientFact> outpVisits = factsGroupByType.get(OldAttributeKeyMap.OUTPATIENT_VISIT);
         assertTrue(bedVisits.stream().allMatch(v -> v.isValid()));
         assertEquals(1, hospVisits.size());
         assertEquals(2, bedVisits.size());
@@ -53,7 +53,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         // routinely change during a visit,
         // except when explicitly signalled, eg. and O->I transfer.
         assertEquals("E",
-                hospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
+                hospVisits.get(0).getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS).get(0).getValueAsString());
     }
 
     /**
@@ -77,9 +77,9 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         processRest();
 
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
-        Map<AttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
-        List<PatientFact> hospVisits = factsByType.get(AttributeKeyMap.HOSPITAL_VISIT);
-        List<PatientFact> bedVisits = factsByType.get(AttributeKeyMap.BED_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsByType.get(OldAttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsByType.get(OldAttributeKeyMap.BED_VISIT);
 
         assertEquals(3, hospVisits.size());
         Map<Boolean, List<PatientFact>> hospVisitsByValidity =
@@ -100,16 +100,16 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         assertEquals(validHospVisits.get(0), validBedVisits.get(0).getParentFact());
 
         assertEquals(this.lastTransferTime(), validHospVisits.get(0)
-                .getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+                .getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
 
         assertEquals(this.lastTransferTime(),
-                validBedVisits.get(0).getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+                validBedVisits.get(0).getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
         assertEquals(this.currentLocation(),
-                validBedVisits.get(0).getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+                validBedVisits.get(0).getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString());
 
         // visits are still open
-        assertTrue(validHospVisits.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).isEmpty());
-        assertTrue(validBedVisits.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).isEmpty());
+        assertTrue(validHospVisits.get(0).getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME).isEmpty());
+        assertTrue(validBedVisits.get(0).getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME).isEmpty());
     }
 
 
@@ -133,9 +133,9 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         processRest();
 
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
-        Map<AttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
-        List<PatientFact> hospVisits = factsByType.get(AttributeKeyMap.HOSPITAL_VISIT);
-        List<PatientFact> bedVisits = factsByType.get(AttributeKeyMap.BED_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsByType.get(OldAttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsByType.get(OldAttributeKeyMap.BED_VISIT);
         assertTrue(bedVisits.stream().allMatch(v -> v.isValid()));
         assertEquals(1, hospVisits.size());
         assertEquals(3, bedVisits.size());
@@ -144,7 +144,7 @@ public class EmergencyAdmissionTestCase extends MessageStreamBaseCase {
         assertIsParentOfChildren(onlyHospVisit, bedVisits);
 
         List<PatientProperty> allPatientClasses = onlyHospVisit
-                .getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS);
+                .getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS);
 
         emapStarTestUtils._testPropertyValuesOverTime(allPatientClasses, "E", "I", emergencyStartTime, toInpatientTime, toInpatientTime);
     }

@@ -23,17 +23,17 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
-import uk.ac.ucl.rits.inform.informdb.Attribute;
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttribute;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
-import uk.ac.ucl.rits.inform.informdb.Mrn;
+import uk.ac.ucl.rits.inform.informdb.OldMrn;
 import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
-import uk.ac.ucl.rits.inform.informdb.ResultType;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.OldResultType;
+import uk.ac.ucl.rits.inform.informdb.OldTemporalCore;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -118,7 +118,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param mrnStr mrn string to search by
      * @return mrn found, or null if not found
      */
-    public Mrn findByMrnString(String mrnStr) {
+    public OldMrn findByMrnString(String mrnStr) {
         return mrnRepo.findByMrnString(mrnStr);
     }
 
@@ -157,24 +157,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             for (CSVRecord record : records) {
                 long attributeId = Long.parseLong(record.get("attribute_id"));
                 logger.trace("Testing " + attributeId);
-                Attribute newAttr = new Attribute();
+                OldAttribute newAttr = new OldAttribute();
                 newAttr.setAttributeId(attributeId);
                 String shortname = record.get("short_name");
                 newAttr.setShortName(shortname);
                 String description = record.get("description");
                 newAttr.setDescription(description);
                 String resultType = record.get("result_type");
-                newAttr.setResultType(ResultType.valueOf(resultType));
+                newAttr.setResultType(OldResultType.valueOf(resultType));
                 String validFrom = record.get("valid_from");
                 newAttr.setValidFrom(Instant.parse(validFrom));
                 String validUntil = record.get("valid_until");
                 if (!validUntil.isEmpty()) {
                     newAttr.setValidUntil(Instant.parse(validUntil));
                 }
-                Optional<Attribute> findExistingAttr = attributeRepo.findByAttributeId(attributeId);
+                Optional<OldAttribute> findExistingAttr = attributeRepo.findByAttributeId(attributeId);
                 if (findExistingAttr.isPresent()) {
                     // If there is pre-existing data check everything matches
-                    Attribute existingAttr = findExistingAttr.get();
+                    OldAttribute existingAttr = findExistingAttr.get();
                     if (!existingAttr.getShortName().equals(newAttr.getShortName())) {
                         throw new AttributeError(
                                 String.format("Attribute id %d: Short name for attribute has changed from %s to %s",
@@ -205,8 +205,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         logger.info("populating attribute cache");
         if (attributeCache == null) {
             attributeCache = new HashMap<>();
-            Set<Attribute> allAttrs = attributeRepo.findAll();
-            for (Attribute a : allAttrs) {
+            Set<OldAttribute> allAttrs = attributeRepo.findAll();
+            for (OldAttribute a : allAttrs) {
                 logger.info("adding to attribute cache attribute " + a.getShortName());
                 attributeCache.put(a.getShortName(), a);
             }
@@ -237,7 +237,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public String processMessage(AdtMessageBase adtMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        AdtOperationInterface adtOperation = adtOperationFactory(adtMsg, storedFrom);
+        AdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
         return adtOperation.processMessage();
     }
 
@@ -249,27 +249,27 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String mrnStr = msg.getMrn();
         Instant storedFrom = Instant.now();
         Instant observationTime = msg.getObservationTimeTaken();
-        Encounter enc = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime, this);
+        Encounter enc = OldAdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime, this);
 
         PatientFact vitalSign = new PatientFact();
-        vitalSign.setFactType(getCreateAttribute(AttributeKeyMap.VITAL_SIGN));
+        vitalSign.setFactType(getCreateAttribute(OldAttributeKeyMap.VITAL_SIGN));
         vitalSign.setValidFrom(observationTime);
         vitalSign.setStoredFrom(storedFrom);
 
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER, msg.getVitalSignIdentifier()));
+                OldAttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER, msg.getVitalSignIdentifier()));
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_UNIT, msg.getUnit()));
+                OldAttributeKeyMap.VITAL_SIGNS_UNIT, msg.getUnit()));
         if (msg.getStringValue() != null) {
             vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                    AttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
+                    OldAttributeKeyMap.VITAL_SIGNS_STRING_VALUE, msg.getStringValue()));
         }
         if (msg.getNumericValue() != null) {
             vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                    AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
+                    OldAttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE, msg.getNumericValue()));
         }
         vitalSign.addProperty(buildPatientProperty(storedFrom, observationTime,
-                AttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME, msg.getObservationTimeTaken()));
+                OldAttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME, msg.getObservationTimeTaken()));
 
         enc.addFact(vitalSign);
         enc = encounterRepo.save(enc);
@@ -282,7 +282,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param encounter the encounter ID to search for
      * @return all encounters that match
      */
-    private List<Encounter> getEncounterWhere(Mrn mrn, String encounter) {
+    private List<Encounter> getEncounterWhere(OldMrn mrn, String encounter) {
         List<MrnEncounter> existingMrnEncs = mrn.getEncounters();
         if (existingMrnEncs == null) {
             return null;
@@ -298,8 +298,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return whether it is a visit fact (ie. what used to be the VisitFact class)
      */
     private static boolean factIsVisitFact(PatientFact pf) {
-        return pf.isOfType(AttributeKeyMap.HOSPITAL_VISIT)
-                || AttributeKeyMap.isLocationVisitType(pf.getFactType());
+        return pf.isOfType(OldAttributeKeyMap.HOSPITAL_VISIT)
+                || OldAttributeKeyMap.isLocationVisitType(pf.getFactType());
     }
 
     /**
@@ -355,7 +355,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public static List<PatientFact> getOpenValidLocationVisit(Encounter encounter) {
         return getFactWhere(encounter.getFacts(),
-                f -> visitFactIsOpenAndValid(f) && AttributeKeyMap.isLocationVisitType(f.getFactType()));
+                f -> visitFactIsOpenAndValid(f) && OldAttributeKeyMap.isLocationVisitType(f.getFactType()));
     }
 
     /**
@@ -404,7 +404,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return whether visit is still open (ie. not discharged)
      */
     public static boolean visitFactIsOpen(PatientFact vf) {
-        PatientProperty validDischargeTime = getOnlyElement(vf.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream()
+        PatientProperty validDischargeTime = getOnlyElement(vf.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME).stream()
                 .filter(p -> p.isValid()).collect(Collectors.toList()));
         return validDischargeTime == null;
     }
@@ -427,7 +427,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param pf the patient fact to check
      * @return whether fact is stored as of the present moment
      */
-    private static boolean factIsStored(TemporalCore pf) {
+    private static boolean factIsStored(OldTemporalCore pf) {
         Instant storedUntil = pf.getStoredUntil();
         return storedUntil == null;
     }
@@ -439,7 +439,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * Encounter
      */
     @Transactional
-    public static List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, AttributeKeyMap attr) {
+    public static List<PatientFact> getOpenVisitFactWhereVisitType(Encounter encounter, OldAttributeKeyMap attr) {
         return getVisitFactWhere(encounter, vf -> vf.isOfType(attr) && visitFactIsOpenAndValid(vf));
     }
 
@@ -450,7 +450,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     public static List<PatientFact> getClosedLocationVisitFact(Encounter encounter) {
         return getVisitFactWhere(encounter,
-                vf -> AttributeKeyMap.isLocationVisitType(vf.getFactType()) && !visitFactIsOpen(vf) && vf.isValid());
+                vf -> OldAttributeKeyMap.isLocationVisitType(vf.getFactType()) && !visitFactIsOpen(vf) && vf.isValid());
     }
 
     /**
@@ -461,10 +461,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      *                                 shouldn't appear in a visit-generating
      *                                 message
      */
-    public static AttributeKeyMap visitTypeFromPatientClass(String patientClass) throws MessageIgnoredException {
+    public static OldAttributeKeyMap visitTypeFromPatientClass(String patientClass) throws MessageIgnoredException {
         // For now everything's a bed visit, and we're not using AttributeKeyMap.OUTPATIENT_VISIT.
         // The patient class is also being separately recorded so this can be used if needed.
-        return AttributeKeyMap.BED_VISIT;
+        return OldAttributeKeyMap.BED_VISIT;
     }
 
     /**
@@ -499,39 +499,39 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact nameFact = new PatientFact();
         nameFact.setValidFrom(validFrom);
         nameFact.setStoredFrom(storedFrom);
-        Attribute nameAttr = getCreateAttribute(AttributeKeyMap.NAME_FACT);
+        OldAttribute nameAttr = getCreateAttribute(OldAttributeKeyMap.NAME_FACT);
         nameFact.setFactType(nameAttr);
-        addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
-        addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.MIDDLE_NAMES, adtMsg.getPatientMiddleName());
-        addPropertyToFact(nameFact, storedFrom, AttributeKeyMap.FAMILY_NAME, adtMsg.getPatientFamilyName());
+        addPropertyToFact(nameFact, storedFrom, OldAttributeKeyMap.FIRST_NAME, adtMsg.getPatientGivenName());
+        addPropertyToFact(nameFact, storedFrom, OldAttributeKeyMap.MIDDLE_NAMES, adtMsg.getPatientMiddleName());
+        addPropertyToFact(nameFact, storedFrom, OldAttributeKeyMap.FAMILY_NAME, adtMsg.getPatientFamilyName());
         demographics.put(nameFact.getFactType().getShortName(), nameFact);
 
         PatientFact generalDemoFact = new PatientFact();
         generalDemoFact.setValidFrom(validFrom);
         generalDemoFact.setStoredFrom(storedFrom);
-        generalDemoFact.setFactType(getCreateAttribute(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
+        generalDemoFact.setFactType(getCreateAttribute(OldAttributeKeyMap.GENERAL_DEMOGRAPHIC));
         // will we have to worry about Instants and timezones shifting the date?
-        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.DOB, adtMsg.getPatientBirthDate());
+        addPropertyToFact(generalDemoFact, storedFrom, OldAttributeKeyMap.DOB, adtMsg.getPatientBirthDate());
         String hl7Sex = adtMsg.getPatientSex();
-        Attribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
-        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.SEX, sexAttrValue);
-        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.NHS_NUMBER, adtMsg.getNhsNumber());
-        addPropertyToFact(generalDemoFact, storedFrom, AttributeKeyMap.POST_CODE, adtMsg.getPatientZipOrPostalCode());
+        OldAttribute sexAttrValue = getCreateAttribute(mapSex(hl7Sex));
+        addPropertyToFact(generalDemoFact, storedFrom, OldAttributeKeyMap.SEX, sexAttrValue);
+        addPropertyToFact(generalDemoFact, storedFrom, OldAttributeKeyMap.NHS_NUMBER, adtMsg.getNhsNumber());
+        addPropertyToFact(generalDemoFact, storedFrom, OldAttributeKeyMap.POST_CODE, adtMsg.getPatientZipOrPostalCode());
         demographics.put(generalDemoFact.getFactType().getShortName(), generalDemoFact);
 
         // death fact
-        Attribute deathIndicator = getBooleanAttribute(adtMsg.getPatientDeathIndicator());
+        OldAttribute deathIndicator = getBooleanAttribute(adtMsg.getPatientDeathIndicator());
         PatientFact deathFact = new PatientFact();
-        deathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATIENT_DEATH_FACT));
+        deathFact.setFactType(getCreateAttribute(OldAttributeKeyMap.PATIENT_DEATH_FACT));
         deathFact.setValidFrom(validFrom);
         deathFact.setStoredFrom(storedFrom);
         deathFact.addProperty(
-                buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_DEATH_INDICATOR, deathIndicator));
+                buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATIENT_DEATH_INDICATOR, deathIndicator));
         // set death time regardless of whether death boolean is set, sometimes they
         // contradict each other and we need to delegate interpretation of this
         // further down the pipeline :(
         if (adtMsg.getPatientDeathDateTime() != null) {
-            deathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATIENT_DEATH_TIME,
+            deathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATIENT_DEATH_TIME,
                     adtMsg.getPatientDeathDateTime()));
         }
         demographics.put(deathFact.getFactType().getShortName(), deathFact);
@@ -544,22 +544,22 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param hl7Sex hl7 sex
      * @return Inform-db sex
      */
-    private static AttributeKeyMap mapSex(String hl7Sex) {
+    private static OldAttributeKeyMap mapSex(String hl7Sex) {
         if (hl7Sex == null) {
-            return AttributeKeyMap.UNKNOWN;
+            return OldAttributeKeyMap.UNKNOWN;
         }
         switch (hl7Sex) {
             case "M":
-                return AttributeKeyMap.MALE;
+                return OldAttributeKeyMap.MALE;
             case "F":
-                return AttributeKeyMap.FEMALE;
+                return OldAttributeKeyMap.FEMALE;
             case "A":
-                return AttributeKeyMap.OTHER;
+                return OldAttributeKeyMap.OTHER;
             case "O":
-                return AttributeKeyMap.OTHER;
+                return OldAttributeKeyMap.OTHER;
             case "U":
             default:
-                return AttributeKeyMap.UNKNOWN;
+                return OldAttributeKeyMap.UNKNOWN;
         }
     }
 
@@ -577,14 +577,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         PatientFact visitFact = new PatientFact();
         visitFact.setValidFrom(visitBeginTime);
         visitFact.setStoredFrom(storedFrom);
-        Attribute hosp = getCreateAttribute(AttributeKeyMap.HOSPITAL_VISIT);
+        OldAttribute hosp = getCreateAttribute(OldAttributeKeyMap.HOSPITAL_VISIT);
         visitFact.setFactType(hosp);
         visitFact.addProperty(
-                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
+                buildPatientProperty(storedFrom, visitBeginTime, OldAttributeKeyMap.ARRIVAL_TIME, visitBeginTime));
         // Patient Class belongs in the hospital visit because it's then easier to query it if needed
         // instead of digging it out of bed visits.
         visitFact.addProperty(
-                buildPatientProperty(storedFrom, visitBeginTime, AttributeKeyMap.PATIENT_CLASS, patientClass));
+                buildPatientProperty(storedFrom, visitBeginTime, OldAttributeKeyMap.PATIENT_CLASS, patientClass));
         enc.addFact(visitFact);
         return visitFact;
     }
@@ -594,13 +594,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param booleanValue the normal Boolean
      * @return Emap-Star attributes BOOLEAN_TRUE and BOOLEAN_FALSE for true and false, or null for null
      */
-    private static Attribute getBooleanAttribute(Boolean booleanValue) {
+    private static OldAttribute getBooleanAttribute(Boolean booleanValue) {
         if (booleanValue == null) {
             return null;
         } else if (booleanValue.booleanValue()) {
-            return getCreateAttribute(AttributeKeyMap.BOOLEAN_TRUE);
+            return getCreateAttribute(OldAttributeKeyMap.BOOLEAN_TRUE);
         } else {
-            return getCreateAttribute(AttributeKeyMap.BOOLEAN_FALSE);
+            return getCreateAttribute(OldAttributeKeyMap.BOOLEAN_FALSE);
         }
     }
 
@@ -612,7 +612,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return true iff anything was changed
      */
     public boolean addOrUpdateProperty(PatientFact fact, PatientProperty newProp) {
-        Attribute propertyType = newProp.getPropertyType();
+        OldAttribute propertyType = newProp.getPropertyType();
         List<PatientProperty> currentProps = fact.getPropertyByAttribute(propertyType, PatientProperty::isValid);
         // In the specific case where there is exactly one valid property and it matches the new value, do nothing.
         // Otherwise invalidate all properties and create a new property.
@@ -638,12 +638,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return result of compareTo called on the discharge timestamps, ie. dischV1.compareTo(dischV2)
      */
     public static int sortVisitByDischargeTime(PatientFact v1, PatientFact v2) {
-        PatientProperty dischProp1 = getOnlyElement(v1.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
+        PatientProperty dischProp1 = getOnlyElement(v1.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         Instant dischV1 = Instant.MAX;
         if (dischProp1 != null) {
             dischV1 = dischProp1.getValueAsDatetime();
         }
-        PatientProperty dischProp2 = getOnlyElement(v2.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
+        PatientProperty dischProp2 = getOnlyElement(v2.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME, p -> p.isValid()));
         Instant dischV2 = Instant.MAX;
         if (dischProp2 != null) {
             dischV2 = dischProp2.getValueAsDatetime();
@@ -651,7 +651,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return dischV1.compareTo(dischV2);
     }
 
-    private static Map<String, Attribute> attributeCache = null;
+    private static Map<String, OldAttribute> attributeCache = null;
 
     /**
      * Return a cached, persisted Attribute object with the given enum value.
@@ -659,8 +659,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the Attribute object from the cache
      */
     @Transactional
-    public static Attribute getCreateAttribute(AttributeKeyMap attrKM) {
-        Attribute attribute = attributeCache.get(attrKM.getShortname());
+    public static OldAttribute getCreateAttribute(OldAttributeKeyMap attrKM) {
+        OldAttribute attribute = attributeCache.get(attrKM.getShortname());
         if (attribute != null) {
             return attribute;
         } else {
@@ -677,7 +677,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param propertyType the property key
      * @param factValue    the property value
      */
-    private static void addPropertyToFact(PatientFact fact, Instant storedFrom, AttributeKeyMap propertyType, Object factValue) {
+    private static void addPropertyToFact(PatientFact fact, Instant storedFrom, OldAttributeKeyMap propertyType, Object factValue) {
         if (factValue != null) {
             fact.addProperty(buildPatientProperty(storedFrom, fact.getValidFrom(), propertyType, factValue));
         }
@@ -723,9 +723,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return the newly constructed object
      * @throws MessageIgnoredException if message is being ignored
      */
-    private AdtOperationInterface adtOperationFactory(AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private AdtOperation adtOperationFactory(AdtMessageBase adtMsg, Instant storedFrom) throws MessageIgnoredException {
 //        return new AdtOperation(this, adtMsg, storedFrom);
-        return new AdtOperationDbV2(this, adtMsg, storedFrom);
+        return new AdtOperation(this, adtMsg, storedFrom);
     }
 
     /**
@@ -814,7 +814,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // Which facts in resultFactsFromOrder are actually already present in existingOrderRootFact?
             List<PatientFact> existingFacts = getFactWhere(existingOrderRootFact.getChildFacts(),
                     f -> f.isValid()
-                            && f.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
+                            && f.isOfType(OldAttributeKeyMap.PATHOLOGY_TEST_RESULT));
             Map<String, PatientFact> existingFactsAsMap = existingFacts.stream()
                     .collect(Collectors.toMap(ef -> uniqueKeyFromPathologyResultFact(ef), ef -> ef));
             Iterator<Entry<String, PatientFact>> newFacts = newPathologyResults.entrySet().iterator();
@@ -876,7 +876,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     private void updatePathologyResult(PatientFact existingResult, PatientFact newFact, Instant storedFromUntil) {
         Instant invalidationDate = getOnlyElement(
-                newFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME, PatientProperty::isValid))
+                newFact.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_RESULT_TIME, PatientProperty::isValid))
                 .getValueAsDatetime();
         PatientFact order = existingResult.getParentFact();
         existingResult.invalidateAll(storedFromUntil, invalidationDate);
@@ -893,9 +893,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     private String uniqueKeyFromPathologyResultFact(PatientFact pathologyResultFact) {
         PatientFact orderFact = pathologyResultFact.getParentFact();
-        PatientProperty testCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE));
-        PatientProperty batteryCode = getOnlyElement(orderFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE));
-        PatientProperty isolCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_ISOLATE_CODE));
+        PatientProperty testCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_CODE));
+        PatientProperty batteryCode = getOnlyElement(orderFact.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE));
+        PatientProperty isolCode = getOnlyElement(pathologyResultFact.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_ISOLATE_CODE));
         return String.format("%s_%s_%s", batteryCode.getValueAsString(), testCode.getValueAsString(),
                 isolCode == null ? "" : isolCode.getValueAsString());
     }
@@ -932,37 +932,37 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         }
 
         PatientFact pathFact = new PatientFact();
-        pathFact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_ORDER));
+        pathFact.setFactType(getCreateAttribute(OldAttributeKeyMap.PATHOLOGY_ORDER));
         pathFact.setValidFrom(validFrom);
         pathFact.setStoredFrom(storedFrom);
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_CONTROL_ID,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_ORDER_CONTROL_ID,
                 order.getOrderControlId()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER,
                 order.getEpicCareOrderNumber()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
                 order.getTestBatteryLocalCode()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_NUMBER,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_LAB_NUMBER,
                 order.getLabSpecimenNumber()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_OCS_NUMBER,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_OCS_NUMBER,
                 order.getLabSpecimenNumberOCS()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_COLLECTION_TIME,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_COLLECTION_TIME,
                 order.getObservationDateTime()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_TIME,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_ORDER_TIME,
                 order.getOrderDateTime()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_PATIENT_TYPE,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_ORDER_PATIENT_TYPE,
                 order.getOrderType()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_ORDER_ORDER_STATUS,
                 order.getOrderStatus()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_ORDER_RESULT_STATUS,
                 order.getResultStatus()));
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_LAB_DEPARTMENT_CODE,
                 order.getLabDepartment()));
 
         // Status change time is only given to us once per order/battery result, but we apply it
         // to each result within the order and call it the result time, because results can be returned bit by bit
         // so results within a battery may have different times.
         // Here, we also save it as the generic last status change time.
-        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, AttributeKeyMap.PATHOLOGY_STATUS_CHANGE_TIME,
+        pathFact.addProperty(buildPatientProperty(storedFrom, validFrom, OldAttributeKeyMap.PATHOLOGY_STATUS_CHANGE_TIME,
                 order.getStatusChangeTime()));
 
         return pathFact;
@@ -976,7 +976,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param value      the actual value
      * @return the constructed PatientProperty
      */
-    public static PatientProperty buildPatientProperty(Instant storedFrom, Instant validFrom, AttributeKeyMap attrKM,
+    public static PatientProperty buildPatientProperty(Instant storedFrom, Instant validFrom, OldAttributeKeyMap attrKM,
                                                        Object value) {
         PatientProperty prop = new PatientProperty();
         prop.setValidFrom(validFrom);
@@ -1006,30 +1006,30 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             PatientFact fact = new PatientFact();
             fact.setStoredFrom(storedFrom);
             fact.setValidFrom(resultTime);
-            fact.setFactType(getCreateAttribute(AttributeKeyMap.PATHOLOGY_TEST_RESULT));
+            fact.setFactType(getCreateAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_RESULT));
 
             String key = uniqueKeyFromPathologyResultMessage(testBatteryLocalCode, pr);
 
-            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_TEST_BATTERY_CODE,
                     testBatteryLocalCode));
-            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_TEST_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_TEST_CODE,
                     pr.getTestItemLocalCode()));
-            fact.addProperty(buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_ISOLATE_CODE,
+            fact.addProperty(buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_ISOLATE_CODE,
                     pr.getIsolateLocalCode()));
-            PatientProperty result = buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
+            PatientProperty result = buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_NUMERIC_VALUE,
                     pr.getNumericValue());
             result.setValueAsString(pr.getStringValue());
             fact.addProperty(result);
             fact.addProperty(
-                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
+                    buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_UNITS, pr.getUnits()));
             fact.addProperty(
-                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_REFERENCE_RANGE, pr.getReferenceRange()));
+                    buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_REFERENCE_RANGE, pr.getReferenceRange()));
             fact.addProperty(
-                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_TIME, resultTime));
+                    buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_RESULT_TIME, resultTime));
             fact.addProperty(
-                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
+                    buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.PATHOLOGY_RESULT_STATUS, pr.getResultStatus()));
             fact.addProperty(
-                    buildPatientProperty(storedFrom, resultTime, AttributeKeyMap.RESULT_NOTES, pr.getNotes()));
+                    buildPatientProperty(storedFrom, resultTime, OldAttributeKeyMap.RESULT_NOTES, pr.getNotes()));
 
             // Check for duplicates within the given set of results; warn of their presence
             // and just monitor for differences for the time being.
@@ -1099,7 +1099,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
             // (also our test depends on this being allowed)
             logger.error(String.format("Couldn't find order with order number %s, searching by visit number instead", epicCareOrderNumber));
             if (!visitNumber.isEmpty()) {
-                encounter = AdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, backupValidFrom, this);
+                encounter = OldAdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, backupValidFrom, this);
             } else {
                 throw new MessageIgnoredException("Can't find encounter - can't search on empty visit number");
             }

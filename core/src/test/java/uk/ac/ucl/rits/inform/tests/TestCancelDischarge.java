@@ -10,7 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -37,24 +37,24 @@ public class TestCancelDischarge extends InterchangeMessageToDbTestCase {
     @Transactional
     public void testCancelDischargeWorked() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
-        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
-        List<PatientFact> generalDemoFacts = factsAsMap.get(AttributeKeyMap.GENERAL_DEMOGRAPHIC);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
+        List<PatientFact> generalDemoFacts = factsAsMap.get(OldAttributeKeyMap.GENERAL_DEMOGRAPHIC);
         assertEquals(1, generalDemoFacts.size());
-        List<PatientFact> hospitalVisitFacts = factsAsMap.get(AttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> hospitalVisitFacts = factsAsMap.get(OldAttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospitalVisitFacts.size());
         assertTrue(hospitalVisitFacts.get(0).isValid());
-        List<PatientFact> bedVisitFacts = factsAsMap.get(AttributeKeyMap.BED_VISIT);
+        List<PatientFact> bedVisitFacts = factsAsMap.get(OldAttributeKeyMap.BED_VISIT);
         assertEquals(1, bedVisitFacts.size());
         assertTrue(bedVisitFacts.get(0).isValid());
 
-        List<PatientProperty> bedArrival = bedVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
+        List<PatientProperty> bedArrival = bedVisitFacts.get(0).getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, bedArrival.size());
-        List<PatientProperty> bedDisch = bedVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
+        List<PatientProperty> bedDisch = bedVisitFacts.get(0).getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME);
         assertEquals(3, bedDisch.size());
 
-        List<PatientProperty> arrivalTimes = hospitalVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME);
+        List<PatientProperty> arrivalTimes = hospitalVisitFacts.get(0).getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME);
         assertEquals(1, arrivalTimes.size());
-        List<PatientProperty> dischargeTimes = hospitalVisitFacts.get(0).getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
+        List<PatientProperty> dischargeTimes = hospitalVisitFacts.get(0).getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME);
         Instant expectedOldValue = Instant.parse("2013-02-11T13:45:00.000Z");
         Instant expectedCurrentValue = Instant.parse("2013-02-11T18:43:00.000Z");
         Instant expectedOldValidUntil = Instant.parse("2013-02-11T13:58:34.000Z");

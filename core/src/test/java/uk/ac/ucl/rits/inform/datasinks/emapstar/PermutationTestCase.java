@@ -20,8 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import uk.ac.ucl.rits.inform.informdb.Attribute;
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttribute;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -230,16 +230,16 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         // Check right time / place
         PatientProperty actualLocation =
-                lastVisit.getPropertyByAttribute(AttributeKeyMap.LOCATION, PatientProperty::isValid).get(0);
+                lastVisit.getPropertyByAttribute(OldAttributeKeyMap.LOCATION, PatientProperty::isValid).get(0);
         assertEquals(thisLocation, actualLocation.getValueAsString());
         if (!thisLocationStartTime.equals(Instant.MIN)) {
             assertEquals(thisLocationStartTime,
-                    lastVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+                    lastVisit.getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
         }
         assertEquals(eventTime, actualLocation.getValidFrom());
 
         // Check correct invalidation date of patient class (if relevant)
-        Optional<PatientProperty> invPatClass = lastVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS).stream()
+        Optional<PatientProperty> invPatClass = lastVisit.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS).stream()
                 .filter(x -> !x.isValid()).findAny();
         if (invPatClass.isPresent()) {
             assertEquals(thisLocationStartTime, invPatClass.get().getValidFrom());
@@ -249,7 +249,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         // Check that the last visit closed correctly
         if (precedingVisit != null) {
             assertEquals(thisLocationStartTime,
-                    precedingVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).get(0).getValueAsDatetime());
+                    precedingVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME).get(0).getValueAsDatetime());
         }
 
     }
@@ -263,9 +263,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         }
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
         assertNotNull(enc, "encounter did not exist");
-        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
+        Map<OldAttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
         assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
-        List<PatientFact> hospVisits = factsAsMap.getOrDefault(AttributeKeyMap.HOSPITAL_VISIT, new ArrayList<>())
+        List<PatientFact> hospVisits = factsAsMap.getOrDefault(OldAttributeKeyMap.HOSPITAL_VISIT, new ArrayList<>())
                 .stream().filter(PatientFact::isValid).collect(Collectors.toList());
         assertEquals(1, hospVisits.size());
         // check hospital visit arrival time
@@ -273,21 +273,21 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         { // Ensure that the arrival time is correct
             List<PatientProperty> _hospArrivalTimes =
-                    hospVisit.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid);
+                    hospVisit.getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid);
             assertEquals(1, _hospArrivalTimes.size());
             PatientProperty hospArrivalTime = _hospArrivalTimes.get(0);
             assertEquals(this.admissionTime, hospArrivalTime.getValueAsDatetime());
         }
         { // Ensure that the patient class is correct
             List<PatientProperty> patClasses =
-                    hospVisit.getPropertyByAttribute(AttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
+                    hospVisit.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_CLASS, PatientProperty::isValid);
             assertEquals(1, patClasses.size());
             PatientProperty patClass = patClasses.get(0);
             assertEquals(super.getPatientClass(), patClass.getValueAsString());
         }
         {
             List<PatientProperty> _hospDischTimes =
-                    hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid);
+                    hospVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME, PatientProperty::isValid);
             if (this.dischargeTime != null) {
                 assertEquals(1, _hospDischTimes.size());
                 PatientProperty hospDichargeTime = _hospDischTimes.get(0);
@@ -304,9 +304,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private void checkDeath() {
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
         assertNotNull(enc, "encounter did not exist");
-        Map<AttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
+        Map<OldAttributeKeyMap, List<PatientFact>> factsAsMap = enc.getFactsGroupByType();
         assertTrue(!factsAsMap.isEmpty(), "Encounter has no patient facts");
-        List<PatientFact> deaths = factsAsMap.getOrDefault(AttributeKeyMap.PATIENT_DEATH_FACT, new ArrayList<>())
+        List<PatientFact> deaths = factsAsMap.getOrDefault(OldAttributeKeyMap.PATIENT_DEATH_FACT, new ArrayList<>())
                 .stream().filter(PatientFact::isValid).collect(Collectors.toList());
         assertTrue(2 >= deaths.size(), "Must only have 1 or 0 death facts");
 
@@ -319,17 +319,17 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         { // Ensure that the arrival time is correct
             List<PatientProperty> death_inds =
-                    death.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR, PatientProperty::isValid);
+                    death.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_DEATH_INDICATOR, PatientProperty::isValid);
             assertEquals(1, death_inds.size());
             PatientProperty death_ind = death_inds.get(0);
-            Attribute deathInd = death_ind.getValueAsAttribute();
+            OldAttribute deathInd = death_ind.getValueAsAttribute();
             assertNotNull(deathInd, "Patient death indicator shouldn't be null");
-            assertEquals(this.patientDied ? AttributeKeyMap.BOOLEAN_TRUE.getShortname()
-                    : AttributeKeyMap.BOOLEAN_FALSE.getShortname(), deathInd.getShortName());
+            assertEquals(this.patientDied ? OldAttributeKeyMap.BOOLEAN_TRUE.getShortname()
+                    : OldAttributeKeyMap.BOOLEAN_FALSE.getShortname(), deathInd.getShortName());
         }
         {
             List<PatientProperty> deathDates =
-                    death.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME, PatientProperty::isValid);
+                    death.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_DEATH_TIME, PatientProperty::isValid);
             if (this.deathTime != null) {
                 assertEquals(1, deathDates.size());
                 PatientProperty deathDate = deathDates.get(0);
@@ -345,8 +345,8 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      */
     public void testCancelTransfer() {
         Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
-        Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
-        List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
+        List<PatientFact> bedVisits = factsGroupByType.get(OldAttributeKeyMap.BED_VISIT);
 
         // The number of valid bed moves needs to be correct (which may be up to one less before, or may not)
         // That's because a cancel transfer can reveal a previously unknown location.
@@ -358,7 +358,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             .stream()
             .filter(PatientFact::isValid)
             // It likely has a discharge time. It's just now invalid / unstored.
-            .filter( v -> v.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME).stream().filter(p -> p.isValid()).count() == 0)
+            .filter( v -> v.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME).stream().filter(p -> p.isValid()).count() == 0)
             .collect(Collectors.toList());
 
             // After a cancellation there should be exactly 1  open bed visit - the previous one.
@@ -368,20 +368,20 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
             // It should be at the current  location
             assertEquals(this.currentLocation(),
-                    bd.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+                    bd.getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString());
 
             // And at the current start time (unless it is unknown)
             if (this.lastTransferTime().equals(Instant.MIN)) {
                 // If you don't know, arrival time == null
-                assertNull(bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid).get(0).getValueAsDatetime());
+                assertNull(bd.getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME, PatientProperty::isValid).get(0).getValueAsDatetime());
             } else {
                 assertEquals(this.lastTransferTime(),
-                        bd.getPropertyByAttribute(AttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
+                        bd.getPropertyByAttribute(OldAttributeKeyMap.ARRIVAL_TIME).get(0).getValueAsDatetime());
 
 
                 // It should have a two invalid discharges with the current event time stamp.
                 // But only if it existed beforehand
-                assertEquals(2, bd.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME,
+                assertEquals(2, bd.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME,
                         p -> !p.isValid() &&
                         (p.getStoredUntil() != null || this.currentTime.equals(p.getValidUntil()))).size());
             }
@@ -408,7 +408,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
             //  It should be at the next  location
             assertEquals(wrongLocation,
-                    iv.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+                    iv.getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString());
 
             // All properties should have been invalidated the same way
             assertTrue(iv.getProperties()
@@ -436,7 +436,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
             //  It should be at the next  location
             assertEquals(wrongLocation,
-                    iv.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+                    iv.getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString());
 
             // All properties should have been invalidated the same way
             assertTrue(iv.getProperties()

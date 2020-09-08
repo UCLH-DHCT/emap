@@ -13,7 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -81,10 +81,10 @@ public class CancelTransfer extends MessageStreamBaseCase {
     @Transactional
     public void testCancelTransfer() {
         Encounter enc = encounterRepo.findEncounterByEncounter("1234567890");
-        Map<AttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
-        List<PatientFact> hospVisits = factsGroupByType.get(AttributeKeyMap.HOSPITAL_VISIT);
-        List<PatientFact> bedVisits = factsGroupByType.get(AttributeKeyMap.BED_VISIT);
-        List<PatientFact> outpVisits = factsGroupByType.get(AttributeKeyMap.OUTPATIENT_VISIT);
+        Map<OldAttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
+        List<PatientFact> hospVisits = factsGroupByType.get(OldAttributeKeyMap.HOSPITAL_VISIT);
+        List<PatientFact> bedVisits = factsGroupByType.get(OldAttributeKeyMap.BED_VISIT);
+        List<PatientFact> outpVisits = factsGroupByType.get(OldAttributeKeyMap.OUTPATIENT_VISIT);
         assertEquals(1, hospVisits.size());
         assertEquals(4, bedVisits.size());
         assertNull(outpVisits);
@@ -102,12 +102,12 @@ public class CancelTransfer extends MessageStreamBaseCase {
         // check the properties are all valid/invalid as appropriate
         List<PatientProperty> propertiesForCancelledBedVisit = bedVisitsByValidity.get(false).get(0).getProperties();
         assertEquals(erroneousTransferLocation, bedVisitsByValidity.get(false).get(0)
-                .getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString());
+                .getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString());
 
         // don't forget get(1)
         Map<String, List<PatientFact>> validBedVisitsByLocation =
                 bedVisitsByValidity.get(true).stream().collect(Collectors.groupingBy(
-                        vis -> vis.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString()));
+                        vis -> vis.getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString()));
 
         // whatever route we took to get here, the current location should be the correct one
         List<PatientFact> correctLocations = validBedVisitsByLocation.get(correctTransferLocation);
@@ -119,7 +119,7 @@ public class CancelTransfer extends MessageStreamBaseCase {
         // in all paths, the erroneous locations should not be valid (one deleted, one invalid)
         Map<String, List<PatientFact>> allBedVisitsByLocation =
                 bedVisits.stream().collect(Collectors.groupingBy(
-                        vis -> vis.getPropertyByAttribute(AttributeKeyMap.LOCATION).get(0).getValueAsString()));
+                        vis -> vis.getPropertyByAttribute(OldAttributeKeyMap.LOCATION).get(0).getValueAsString()));
         List<PatientFact> allErroniousBedVisits = allBedVisitsByLocation.get(erroneousTransferLocation);
         assertTrue(allErroniousBedVisits.stream().allMatch(v -> !v.isValid() && v.getProperties().stream().allMatch(p -> !p.isValid())));
 
@@ -136,7 +136,7 @@ public class CancelTransfer extends MessageStreamBaseCase {
             assertEquals(1,  originalBedVisits.size());
             PatientFact originalBedVisit = originalBedVisits.get(0);
             List<PatientProperty> allDischargeTimes = originalBedVisit
-                    .getPropertyByAttribute(AttributeKeyMap.DISCHARGE_TIME);
+                    .getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_TIME);
 
             emapStarTestUtils._testPropertyValuesOverTime(allDischargeTimes, erroneousTransferTime, correctTransferTime,
                     erroneousTransferTime, cancellationTime, correctTransferTime);
@@ -144,7 +144,7 @@ public class CancelTransfer extends MessageStreamBaseCase {
             assertTrue(propertiesForCancelledBedVisit.stream().allMatch(p -> !p.isValid()));
             // all properties except discharge time should be valid
             assertTrue(originalBedVisit.getProperties().stream()
-                    .filter(p -> !p.getPropertyType().getShortName().equals(AttributeKeyMap.DISCHARGE_TIME.getShortname()))
+                    .filter(p -> !p.getPropertyType().getShortName().equals(OldAttributeKeyMap.DISCHARGE_TIME.getShortname()))
                     .allMatch(p -> p.isValid()));
         }
 

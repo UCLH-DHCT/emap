@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
@@ -30,6 +30,6 @@ public class TestOrm extends InterchangeMessageToDbTestCase {
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
         System.out.println(factsAsMap);
         assertTrue(!factsAsMap.isEmpty());
-        assertTrue(factsAsMap.containsKey(AttributeKeyMap.PATHOLOGY_ORDER.getShortname()));
+        assertTrue(factsAsMap.containsKey(OldAttributeKeyMap.PATHOLOGY_ORDER.getShortname()));
     }
 }

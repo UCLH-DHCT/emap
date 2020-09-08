@@ -22,8 +22,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
-import uk.ac.ucl.rits.inform.informdb.Attribute;
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttribute;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 
 /**
  * Test that our attributes are consistent between the enum (AttributeKeyMap) and the
@@ -49,7 +49,7 @@ public class TestAttributes {
     @BeforeEach
     public void setUp() {
         enumShortNames = new TreeSet<>();
-        for (AttributeKeyMap attr: AttributeKeyMap.values()) {
+        for (OldAttributeKeyMap attr: OldAttributeKeyMap.values()) {
             enumShortNames.add(attr.getShortname());
         }
     }
@@ -77,7 +77,7 @@ public class TestAttributes {
      */
     @Test
     public void testAllPresent() {
-        Set<Attribute> inDb = attributeRepo.findAll();
+        Set<OldAttribute> inDb = attributeRepo.findAll();
         SortedSet<String> shortNamesInDb = new TreeSet<>(inDb.stream().map(attr -> attr.getShortName()).collect(Collectors.toSet()));
 
         Collection<Serializable> enumOnly = CollectionUtils.subtract(enumShortNames, shortNamesInDb);
@@ -91,7 +91,7 @@ public class TestAttributes {
      */
     @Test
     public void checkAttributeDeprecation() {
-        Field[] declaredFields = AttributeKeyMap.class.getDeclaredFields();
+        Field[] declaredFields = OldAttributeKeyMap.class.getDeclaredFields();
         int numChecked = 0;
         for (Field field: declaredFields) {
             // exclude the non-enum constants like shortname
@@ -99,9 +99,9 @@ public class TestAttributes {
                 numChecked++;
                 Deprecated annotation = field.getAnnotation(Deprecated.class);
                 boolean isDeprecated = annotation != null;
-                AttributeKeyMap attrKM = AttributeKeyMap.valueOf(field.getName());
-                Optional<Attribute> attr = attributeRepo.findByShortName(attrKM.getShortname());
-                Attribute attribute = attr.get();
+                OldAttributeKeyMap attrKM = OldAttributeKeyMap.valueOf(field.getName());
+                Optional<OldAttribute> attr = attributeRepo.findByShortName(attrKM.getShortname());
+                OldAttribute attribute = attr.get();
                 boolean hasValidUntil = attribute.getValidUntil() != null;
                 assertTrue(String.format("Attr %s has deprecation status %b but validUntil status %b",
                         attribute.getShortName(), isDeprecated, hasValidUntil), isDeprecated == hasValidUntil);

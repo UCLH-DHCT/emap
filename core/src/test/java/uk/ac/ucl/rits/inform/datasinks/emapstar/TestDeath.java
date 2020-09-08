@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -50,22 +50,22 @@ public class TestDeath extends MessageStreamBaseCase {
         processRest();
 
         List<PatientFact> hospVisits =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.HOSPITAL_VISIT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospVisits.size());
         PatientFact hospVisit = hospVisits.get(0);
-        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION, PatientProperty::isValid);
+        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_DISPOSITION, PatientProperty::isValid);
         assertEquals(1, dischDisp.size());
         assertEquals(dischargeDisposition, dischDisp.get(0).getValueAsString());
 
-        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION, PatientProperty::isValid);
+        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_LOCATION, PatientProperty::isValid);
         assertEquals(1, dischLocation.size());
         assertEquals(dischargeLocation, dischLocation.get(0).getValueAsString());
 
         List<PatientFact> deathFacts =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.PATIENT_DEATH_FACT);
         Map<Boolean, List<PatientFact>> deathByValidity =
                 deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_TRUE, deathTime);
+        _checkDeathFact(deathByValidity, OldAttributeKeyMap.BOOLEAN_TRUE, deathTime);
     }
 
     /**
@@ -84,22 +84,22 @@ public class TestDeath extends MessageStreamBaseCase {
         processRest();
 
         List<PatientFact> hospVisits =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.HOSPITAL_VISIT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.HOSPITAL_VISIT);
         assertEquals(1, hospVisits.size());
         PatientFact hospVisit = hospVisits.get(0);
-        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_DISPOSITION);
+        List<PatientProperty> dischDisp = hospVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_DISPOSITION);
         assertEquals(1, dischDisp.size());
         assertEquals(dischargeDisposition, dischDisp.get(0).getValueAsString());
 
-        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(AttributeKeyMap.DISCHARGE_LOCATION);
+        List<PatientProperty> dischLocation = hospVisit.getPropertyByAttribute(OldAttributeKeyMap.DISCHARGE_LOCATION);
         assertEquals(1, dischLocation.size());
         assertEquals(dischargeLocation, dischLocation.get(0).getValueAsString());
 
         List<PatientFact> deathFacts =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.PATIENT_DEATH_FACT);
         Map<Boolean, List<PatientFact>> deathByValidity =
                 deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_FALSE, null);
+        _checkDeathFact(deathByValidity, OldAttributeKeyMap.BOOLEAN_FALSE, null);
     }
 
     /**
@@ -118,10 +118,10 @@ public class TestDeath extends MessageStreamBaseCase {
         processRest();
 
         List<PatientFact> deathFacts =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.PATIENT_DEATH_FACT);
         Map<Boolean, List<PatientFact>> deathByValidity =
                 deathFacts.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidity, AttributeKeyMap.BOOLEAN_TRUE, deathTime);
+        _checkDeathFact(deathByValidity, OldAttributeKeyMap.BOOLEAN_TRUE, deathTime);
     }
 
     /**
@@ -144,10 +144,10 @@ public class TestDeath extends MessageStreamBaseCase {
 
         // check for the contradictory death status
         List<PatientFact> deathFactsContradictory =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.PATIENT_DEATH_FACT);
         Map<Boolean, List<PatientFact>> deathByValidityContradictory =
                 deathFactsContradictory.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidityContradictory, AttributeKeyMap.BOOLEAN_FALSE, deathTime);
+        _checkDeathFact(deathByValidityContradictory, OldAttributeKeyMap.BOOLEAN_FALSE, deathTime);
 
         // Notify death through a transfer where nothing else has changed (not common - usually an A08)
         patientDied = true;
@@ -157,10 +157,10 @@ public class TestDeath extends MessageStreamBaseCase {
 
         // check for the new, consistent death status
         List<PatientFact> deathFactsConsistent =
-                patientFactRepo.findAllByEncounterAndFactType(this.csn, AttributeKeyMap.PATIENT_DEATH_FACT);
+                patientFactRepo.findAllByEncounterAndFactType(this.csn, OldAttributeKeyMap.PATIENT_DEATH_FACT);
         Map<Boolean, List<PatientFact>> deathByValidityConsistent =
                 deathFactsConsistent.stream().collect(Collectors.partitioningBy(PatientFact::isValid));
-        _checkDeathFact(deathByValidityConsistent, AttributeKeyMap.BOOLEAN_TRUE, deathTime);
+        _checkDeathFact(deathByValidityConsistent, OldAttributeKeyMap.BOOLEAN_TRUE, deathTime);
     }
 
     /**
@@ -172,16 +172,16 @@ public class TestDeath extends MessageStreamBaseCase {
      * @param expectedDeathDateTime  expected valid death datetime
      */
     private void _checkDeathFact(Map<Boolean, List<PatientFact>> deathByValidity,
-            AttributeKeyMap expectedDeathIndicator, Instant expectedDeathDateTime) {
+                                 OldAttributeKeyMap expectedDeathIndicator, Instant expectedDeathDateTime) {
         assertEquals(1, deathByValidity.get(true).size());
         PatientFact deathFact = deathByValidity.get(true).get(0);
 
         List<PatientProperty> deathIndicator =
-                deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_INDICATOR);
+                deathFact.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_DEATH_INDICATOR);
         assertEquals(1, deathIndicator.size());
         assertEquals(expectedDeathIndicator.getShortname(), deathIndicator.get(0).getValueAsAttribute().getShortName());
 
-        List<PatientProperty> deathTime = deathFact.getPropertyByAttribute(AttributeKeyMap.PATIENT_DEATH_TIME);
+        List<PatientProperty> deathTime = deathFact.getPropertyByAttribute(OldAttributeKeyMap.PATIENT_DEATH_TIME);
         if (expectedDeathDateTime == null) {
             assertEquals(0, deathTime.size());
         } else {

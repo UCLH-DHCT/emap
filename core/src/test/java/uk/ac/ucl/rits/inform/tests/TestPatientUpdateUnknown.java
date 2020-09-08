@@ -10,7 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
@@ -35,11 +35,11 @@ public class TestPatientUpdateUnknown extends InterchangeMessageToDbTestCase {
     public void testEncounterAndFacts() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
         assertNotNull(enc, "encounter does not exist");
-        Map<AttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
-        assertTrue(factsByType.containsKey(AttributeKeyMap.NAME_FACT));
-        assertTrue(factsByType.containsKey(AttributeKeyMap.GENERAL_DEMOGRAPHIC));
-        assertTrue(factsByType.containsKey(AttributeKeyMap.PATIENT_DEATH_FACT));
-        assertTrue(factsByType.containsKey(AttributeKeyMap.HOSPITAL_VISIT));
-        assertTrue(factsByType.containsKey(AttributeKeyMap.BED_VISIT));
+        Map<OldAttributeKeyMap, List<PatientFact>> factsByType = enc.getFactsGroupByType();
+        assertTrue(factsByType.containsKey(OldAttributeKeyMap.NAME_FACT));
+        assertTrue(factsByType.containsKey(OldAttributeKeyMap.GENERAL_DEMOGRAPHIC));
+        assertTrue(factsByType.containsKey(OldAttributeKeyMap.PATIENT_DEATH_FACT));
+        assertTrue(factsByType.containsKey(OldAttributeKeyMap.HOSPITAL_VISIT));
+        assertTrue(factsByType.containsKey(OldAttributeKeyMap.BED_VISIT));
     }
 }

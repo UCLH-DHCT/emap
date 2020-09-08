@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
-import uk.ac.ucl.rits.inform.informdb.Mrn;
+import uk.ac.ucl.rits.inform.informdb.OldMrn;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 
 /**
@@ -37,7 +37,7 @@ public class TestMergeById extends InterchangeMessageToDbTestCase {
     @Test
     @Transactional
     public void testMergeHasHappened() {
-        Mrn survivingMrn = mrnRepo.findByMrnString("40800001");
+        OldMrn survivingMrn = mrnRepo.findByMrnString("40800001");
 
         // Surviving MRN is simpler as it shouldn't have changed - test this first.
         // the surviving MRN should retain its single, valid, live link to the person
@@ -47,7 +47,7 @@ public class TestMergeById extends InterchangeMessageToDbTestCase {
         assertTrue(survivingMrnPersons.get(0).isLive());
 
         // Retired MRN has three rows in total
-        Mrn retiredMrn = mrnRepo.findByMrnString("40800000");
+        OldMrn retiredMrn = mrnRepo.findByMrnString("40800000");
         Map<Pair<Boolean, Boolean>, List<PersonMrn>> retiredMrnPersons = retiredMrn.getPersons().stream()
                 .collect(Collectors.groupingBy(p -> new ImmutablePair<>(p.getStoredUntil() == null, p.getValidUntil() == null)));
 

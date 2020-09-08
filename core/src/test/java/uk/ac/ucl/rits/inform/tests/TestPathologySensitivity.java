@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 
 /**
@@ -26,8 +26,8 @@ public class TestPathologySensitivity extends InterchangeMessageToDbTestCase {
         List<PatientFact> orders = patientFactRepo.findAllPathologyOrdersByOrderNumber("93939393");
         assertEquals(1, orders.size());
         PatientFact ord = orders.get(0);
-        assertEquals("93939393", ord.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString());
-        assertEquals("20V042424", ord.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_LAB_NUMBER).get(0).getValueAsString());
+        assertEquals("93939393", ord.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString());
+        assertEquals("20V042424", ord.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_LAB_NUMBER).get(0).getValueAsString());
         List<PatientFact> results = ord.getChildFacts();
         // should be 2 results, each with 1 sensitivity order with 5 results
         assertEquals(2, results.size());
@@ -43,8 +43,8 @@ public class TestPathologySensitivity extends InterchangeMessageToDbTestCase {
         List<PatientFact> orders = patientFactRepo.findAllPathologyOrdersByOrderNumber("93939395");
         assertEquals(1, orders.size());
         PatientFact ord = orders.get(0);
-        assertEquals("93939395", ord.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString());
-        assertEquals("20V042424", ord.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_LAB_NUMBER).get(0).getValueAsString());
+        assertEquals("93939395", ord.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_EPIC_ORDER_NUMBER).get(0).getValueAsString());
+        assertEquals("20V042424", ord.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_LAB_NUMBER).get(0).getValueAsString());
         List<PatientFact> results = ord.getChildFacts();
         // should be 5 microscopy results (no sensitivities)
         assertEquals(5, results.size());

@@ -10,7 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -51,8 +51,8 @@ public class TestDoubleA01WithA13 extends InterchangeMessageToDbTestCase {
     public void testEncounterExists() {
         Encounter enc = encounterRepo.findEncounterByEncounter("123412341234");
         Map<String, PatientFact> factsAsMap = enc.getFactsAsMap();
-        PatientFact generalDemo = factsAsMap.get(AttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname());
-        List<PatientProperty> dob = generalDemo.getPropertyByAttribute(AttributeKeyMap.DOB, p -> p.isValid());
+        PatientFact generalDemo = factsAsMap.get(OldAttributeKeyMap.GENERAL_DEMOGRAPHIC.getShortname());
+        List<PatientProperty> dob = generalDemo.getPropertyByAttribute(OldAttributeKeyMap.DOB, p -> p.isValid());
         assertEquals(1, dob.size(), "There should be exactly one dob property");
         PatientProperty d = dob.get(0);
         assertTrue(d.isValid());

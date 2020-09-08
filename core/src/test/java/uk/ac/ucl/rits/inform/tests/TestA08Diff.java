@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
@@ -40,15 +40,15 @@ public class TestA08Diff extends InterchangeMessageToDbTestCase {
         List<PatientFact> facts = enc.getFacts();
         assertTrue(!facts.isEmpty(), "Encounter has no patient facts");
         List<PatientFact> generalDemographicFacts = facts.stream()
-                .filter(f -> f.isOfType(AttributeKeyMap.GENERAL_DEMOGRAPHIC))
+                .filter(f -> f.isOfType(OldAttributeKeyMap.GENERAL_DEMOGRAPHIC))
                 .sorted((d1, d2) -> d1.getValidFrom().compareTo(d2.getValidFrom())).collect(Collectors.toList());
 
         // Get all FAMILY_NAME attributes in all NAME_FACT facts.
         // This will work whether the implementation invalidates property by property or
         // invalidates entire facts.
         List<PatientProperty> allFamilyNames = facts.stream()
-                .filter(f -> f.isOfType(AttributeKeyMap.NAME_FACT))
-                .map(f -> f.getPropertyByAttribute(AttributeKeyMap.FAMILY_NAME))
+                .filter(f -> f.isOfType(OldAttributeKeyMap.NAME_FACT))
+                .map(f -> f.getPropertyByAttribute(OldAttributeKeyMap.FAMILY_NAME))
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         Instant origValueTime = Instant.parse("2013-02-11T10:00:52Z");

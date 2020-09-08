@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.tests;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 
@@ -42,8 +42,8 @@ public class TestIncrementalPathologyDuplicateResultSegment extends InterchangeM
         assertEquals(encounter, allOrders.get(0).getEncounter().getEncounter());
         List<PatientFact> childFacts = allOrders.get(0).getChildFacts();
         Map<String, List<PatientFact>> resultsByTestCode = childFacts.stream()
-                .filter(pf -> pf.isOfType(AttributeKeyMap.PATHOLOGY_TEST_RESULT))
-                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));
+                .filter(pf -> pf.isOfType(OldAttributeKeyMap.PATHOLOGY_TEST_RESULT))
+                .collect(Collectors.groupingBy(pf -> pf.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_TEST_CODE).get(0).getValueAsString()));
 
         return resultsByTestCode;
     }
@@ -65,13 +65,13 @@ public class TestIncrementalPathologyDuplicateResultSegment extends InterchangeM
 
         // value should be valid and correct and with the correct valid from
         PatientFact alanineTransaminaseFact = alanineTransaminaseFacts.get(0);
-        PatientProperty altProp = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0);
+        PatientProperty altProp = alanineTransaminaseFact.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_NUMERIC_VALUE).get(0);
         assertEquals(58, altProp.getValueAsReal());
         assertEquals(expectedValidFrom, altProp.getValidFrom());
         assertTrue(altProp.isValid());
 
         // date time should be the second datetime message
-        Instant resultTime = alanineTransaminaseFact.getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME).get(0).getValueAsDatetime();
+        Instant resultTime = alanineTransaminaseFact.getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_RESULT_TIME).get(0).getValueAsDatetime();
         assertEquals(expectedValidFrom, resultTime);
     }
 
@@ -88,7 +88,7 @@ public class TestIncrementalPathologyDuplicateResultSegment extends InterchangeM
         assertEquals(1, albuminFactList.size());
 
         // result was released in first message, and not updated in the second so keep the first message result time
-        PatientProperty albuminProperty = albuminFactList.get(0).getPropertyByAttribute(AttributeKeyMap.PATHOLOGY_RESULT_TIME).get(0);
+        PatientProperty albuminProperty = albuminFactList.get(0).getPropertyByAttribute(OldAttributeKeyMap.PATHOLOGY_RESULT_TIME).get(0);
         assertEquals(expectedValidFrom, albuminProperty.getValueAsDatetime());
         assertEquals(expectedValidFrom, albuminProperty.getValidFrom());
         assertTrue(albuminProperty.isValid());

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ucl.rits.inform.informdb.AttributeKeyMap;
+import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -104,18 +104,18 @@ public class VitalSignsTestCase extends MessageStreamBaseCase {
     @Transactional
     public void _testHeartRatePresent(String mrnStr, String encounterStr, int expectedHeartRate, Instant expectedTime) {
         List<PatientFact> vitalSigns =
-                patientFactRepo.findAllByEncounterAndFactType(encounterStr, AttributeKeyMap.VITAL_SIGN);
+                patientFactRepo.findAllByEncounterAndFactType(encounterStr, OldAttributeKeyMap.VITAL_SIGN);
         assertEquals(1, vitalSigns.size());
         PatientFact vit = vitalSigns.get(0);
         Encounter encounter = vit.getEncounter();
         assertEquals(mrnStr, encounter.getMrns().get(0).getMrn().getMrn());
         assertEquals(new Double(expectedHeartRate),
-                vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE).get(0).getValueAsReal());
-        assertEquals("HEART_RATE", vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER).get(0)
+                vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_NUMERIC_VALUE).get(0).getValueAsReal());
+        assertEquals("HEART_RATE", vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_OBSERVATION_IDENTIFIER).get(0)
                 .getValueAsString());
-        assertTrue(vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_STRING_VALUE).isEmpty());
-        assertEquals("/min", vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_UNIT).get(0).getValueAsString());
+        assertTrue(vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_STRING_VALUE).isEmpty());
+        assertEquals("/min", vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_UNIT).get(0).getValueAsString());
         assertEquals(expectedTime,
-                vit.getPropertyByAttribute(AttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME).get(0).getValueAsDatetime());
+                vit.getPropertyByAttribute(OldAttributeKeyMap.VITAL_SIGNS_OBSERVATION_TIME).get(0).getValueAsDatetime());
     }
 }
