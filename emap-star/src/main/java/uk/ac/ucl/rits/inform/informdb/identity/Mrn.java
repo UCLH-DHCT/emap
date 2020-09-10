@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.Check;
 
 /**
  * This class represents the association of Medical Resource Identifier (MRN) to
@@ -31,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = true) })
+@Check(constraints = "mrn is not null and nhs_number is not null")
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
@@ -49,8 +51,14 @@ public class Mrn implements Serializable {
     /**
      * The value of the MRN identifier.
      */
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String                 mrn;
+
+    /**
+     *
+     */
+    @Column(unique = true)
+    private String                 nhsNumber;
 
     /**
      * The system from which this MRN was initially discovered.
@@ -89,6 +97,20 @@ public class Mrn implements Serializable {
      */
     public void setMrn(String mrn) {
         this.mrn = mrn;
+    }
+
+    /**
+     * @return the nhsNumber.
+     */
+    public String getNhsNumber() {
+        return nhsNumber;
+    }
+
+    /**
+     * @param nhsNumber the nhsNumber to set.
+     */
+    public void setNhsNumber(String nhsNumber) {
+        this.nhsNumber = nhsNumber;
     }
 
     /**
@@ -136,7 +158,7 @@ public class Mrn implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Mrn [mrnId=%d, mrn=%s, sourceSystem=%s]", mrnId, mrn, sourceSystem);
+        return String.format("Mrn [mrnId=%d, mrn=%s, nhsNumber=%s, sourceSystem=%s]", mrnId, mrn, nhsNumber, sourceSystem);
     }
 
     /**
