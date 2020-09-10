@@ -32,7 +32,7 @@ public class InterchangeMessageFactory {
      */
     public OldAdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
         OldAdtMessage adtMessage = new OldAdtMessage();
-        String resourcePath = "/AdtMessages/" + fileName;
+        String resourcePath = "/OldAdtMessages/" + fileName;
         try {
             InputStream inputStream = getClass().getResourceAsStream(resourcePath);
             adtMessage = mapper.readValue(inputStream, OldAdtMessage.class);
