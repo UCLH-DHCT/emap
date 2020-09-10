@@ -1,8 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,54 +9,49 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * A core demographic represents the main demographics stored around patients.
  * These are attached to an MRN and describe patient level, rather than visit
  * level, data.
- *
  * @author UCL RITS
- *
  */
 @Entity
-@Table(indexes = {
-        @Index(name = "core_demographic_durable_id", columnList = "coreDemographicDurableId", unique = false) })
+@Table
 public class CoreDemographic extends TemporalCore<CoreDemographic> implements Serializable {
 
     private static final long serialVersionUID = -8269778602198494673L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long              coreDemographicId;
-    @Column(nullable = false)
-    private long              coreDemographicDurableId;
+    private long coreDemographicId;
 
     @Column(nullable = false)
-    private long              mrnId;
+    private long mrnId;
 
-    private String            firstname;
-    private String            middlename;
-    private String            lastname;
+    private String firstname;
+    private String middlename;
+    private String lastname;
 
-    private LocalDate         dateOfBirth;
-    private LocalDate         dateOfDeath;
+    private LocalDate dateOfBirth;
+    private LocalDate dateOfDeath;
 
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           datetimeOfBirth;
+    private Instant datetimeOfBirth;
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           datetimeOfDeath;
+    private Instant datetimeOfDeath;
 
-    private boolean           alive;
-    private String            homePostcode;
-    private String            sex;
+    private boolean alive;
+    private String homePostcode;
+    private String sex;
 
     public CoreDemographic() {}
 
     public CoreDemographic(CoreDemographic other) {
         super(other);
-        this.coreDemographicDurableId = other.coreDemographicDurableId;
         this.mrnId = other.mrnId;
         this.firstname = other.firstname;
         this.middlename = other.middlename;
@@ -87,20 +80,6 @@ public class CoreDemographic extends TemporalCore<CoreDemographic> implements Se
      */
     public void setCoreDemographicId(long coreDemographicId) {
         this.coreDemographicId = coreDemographicId;
-    }
-
-    /**
-     * @return the coreDemographicDurableId
-     */
-    public long getCoreDemographicDurableId() {
-        return coreDemographicDurableId;
-    }
-
-    /**
-     * @param coreDemographicDurableId the coreDemographicDurableId to set
-     */
-    public void setCoreDemographicDurableId(long coreDemographicDurableId) {
-        this.coreDemographicDurableId = coreDemographicDurableId;
     }
 
     /**
