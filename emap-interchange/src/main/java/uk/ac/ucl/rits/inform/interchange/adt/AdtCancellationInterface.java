@@ -2,8 +2,17 @@ package uk.ac.ucl.rits.inform.interchange.adt;
 
 import java.time.Instant;
 
-public interface AdtCancellationInterface {
+/**
+ * Additional data requirements for a cancellation adt message.
+ */
+public interface AdtCancellationInterface extends AdtMessageInterface {
+    /**
+     * @return cancelledDatetime.
+     */
     Instant getCancelledDateTime();
 
+    /**
+     * @param cancelledDateTime to set.
+     */
     void setCancelledDateTime(Instant cancelledDateTime);
 }

@@ -1,115 +1,288 @@
 package uk.ac.ucl.rits.inform.interchange.adt;
 
-public interface AdtMessageInterface {
-    java.time.Instant getRecordedDateTime();
+import java.time.Instant;
 
+/**
+ * Interface for data that is in all Adt Messages.
+ */
+public interface AdtMessageInterface {
+    /**
+     * @return recordedDateTime
+     */
+    Instant getRecordedDateTime();
+
+    /**
+     * @return eventReasonCode
+     */
     String getEventReasonCode();
 
-    java.time.Instant getEventOccurredDateTime();
+    /**
+     * @return eventOccuredDatetime.
+     */
+    Instant getEventOccurredDateTime();
 
+    /**
+     * @return operatorId
+     */
     String getOperatorId();
 
-    java.time.Instant getAdmissionDateTime();
+    /**
+     * @return admissionDateTime
+     */
+    Instant getAdmissionDateTime();
 
+    /**
+     * @return admitSource
+     */
     String getAdmitSource();
 
+    /**
+     * @return currentBed
+     */
     String getCurrentBed();
 
+    /**
+     * @return currentRoomCode
+     */
     String getCurrentRoomCode();
 
+    /**
+     * @return currentWardCode
+     */
     String getCurrentWardCode();
 
+    /**
+     * @return ethnicGroup
+     */
     String getEthnicGroup();
 
+    /**
+     * @return fullLocationString
+     */
     String getFullLocationString();
 
+    /**
+     * @return hospitalService
+     */
     String getHospitalService();
 
+    /**
+     * @return mrn
+     */
     String getMrn();
 
+    /**
+     * @return nhsNumber
+     */
     String getNhsNumber();
 
-    java.time.Instant getPatientBirthDate();
+    /**
+     * @return patientBirthDate
+     */
+    Instant getPatientBirthDate();
 
+    /**
+     * @return patientClass
+     */
     String getPatientClass();
 
-    java.time.Instant getPatientDeathDateTime();
+    /**
+     * @return patientDeathDateTime
+     */
+    Instant getPatientDeathDateTime();
 
+    /**
+     * @return patientDeathIndicator
+     */
     Boolean getPatientDeathIndicator();
 
+    /**
+     * @return patientFamilyName
+     */
     String getPatientFamilyName();
 
+    /**
+     * @return patientFullName TODO: keep this? seems redundant?
+     */
     String getPatientFullName();
 
+    /**
+     * @return patientGivenName
+     */
     String getPatientGivenName();
 
+    /**
+     * @return patientMiddleName
+     */
     String getPatientMiddleName();
 
+    /**
+     * @return patientReligion
+     */
     String getPatientReligion();
 
+    /**
+     * @return patientSex
+     */
     String getPatientSex();
 
+    /**
+     * @return patientTitle
+     */
     String getPatientTitle();
 
+    /**
+     * @return patientType
+     */
     String getPatientType();
 
+    /**
+     * @return patientZipOrPostalCode
+     */
     String getPatientZipOrPostalCode();
 
+    /**
+     * @return visitNumber
+     */
     String getVisitNumber();
 
-    void setRecordedDateTime(java.time.Instant recordedDateTime);
+    /**
+     * @param recordedDateTime to set
+     */
+    void setRecordedDateTime(Instant recordedDateTime);
 
+    /**
+     * @param eventReasonCode to set
+     */
     void setEventReasonCode(String eventReasonCode);
 
-    void setEventOccurredDateTime(java.time.Instant eventOccurredDateTime);
+    /**
+     * @param eventOccurredDateTime to set
+     */
+    void setEventOccurredDateTime(Instant eventOccurredDateTime);
 
+    /**
+     * @param operatorId to set
+     */
     void setOperatorId(String operatorId);
 
-    void setAdmissionDateTime(java.time.Instant admissionDateTime);
+    /**
+     * @param admissionDateTime to set
+     */
+    void setAdmissionDateTime(Instant admissionDateTime);
 
+    /**
+     * @param admitSource to set
+     */
     void setAdmitSource(String admitSource);
 
+    /**
+     * @param currentBed to set
+     */
     void setCurrentBed(String currentBed);
 
+    /**
+     * @param currentRoomCode to set
+     */
     void setCurrentRoomCode(String currentRoomCode);
 
+    /**
+     * @param currentWardCode to set
+     */
     void setCurrentWardCode(String currentWardCode);
 
+    /**
+     * @param ethnicGroup to set
+     */
     void setEthnicGroup(String ethnicGroup);
 
+    /**
+     * @param fullLocationString to set
+     */
     void setFullLocationString(String fullLocationString);
 
+    /**
+     * @param hospitalService to set
+     */
     void setHospitalService(String hospitalService);
 
+    /**
+     * @param mrn to set
+     */
     void setMrn(String mrn);
 
+    /**
+     * @param nhsNumber to set
+     */
     void setNhsNumber(String nhsNumber);
 
-    void setPatientBirthDate(java.time.Instant patientBirthDate);
+    /**
+     * @param patientBirthDate to set
+     */
+    void setPatientBirthDate(Instant patientBirthDate);
 
+    /**
+     * @param patientClass to set
+     */
     void setPatientClass(String patientClass);
 
-    void setPatientDeathDateTime(java.time.Instant patientDeathDateTime);
+    /**
+     * @param patientDeathDateTime to set
+     */
+    void setPatientDeathDateTime(Instant patientDeathDateTime);
 
+    /**
+     * @param patientDeathIndicator to set
+     */
     void setPatientDeathIndicator(Boolean patientDeathIndicator);
 
+    /**
+     * @param patientFamilyName to set
+     */
     void setPatientFamilyName(String patientFamilyName);
 
+    /**
+     * @param patientFullName to set
+     */
     void setPatientFullName(String patientFullName);
 
+    /**
+     * @param patientGivenName to set
+     */
     void setPatientGivenName(String patientGivenName);
 
+    /**
+     * @param patientMiddleName to set
+     */
     void setPatientMiddleName(String patientMiddleName);
 
+    /**
+     * @param patientReligion to set
+     */
     void setPatientReligion(String patientReligion);
 
+    /**
+     * @param patientSex to set
+     */
     void setPatientSex(String patientSex);
 
+    /**
+     * @param patientTitle to set
+     */
     void setPatientTitle(String patientTitle);
 
+    /**
+     * @param patientType to set
+     */
     void setPatientType(String patientType);
 
+    /**
+     * @param patientZipOrPostalCode to set
+     */
     void setPatientZipOrPostalCode(String patientZipOrPostalCode);
 
+    /**
+     * @param visitNumber to set
+     */
     void setVisitNumber(String visitNumber);
 }
