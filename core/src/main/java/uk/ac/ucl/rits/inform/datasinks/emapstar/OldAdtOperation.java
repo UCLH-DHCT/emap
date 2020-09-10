@@ -303,11 +303,10 @@ public class OldAdtOperation implements AdtOperationInterface {
      *                        can be null if the start time can't be determined
      * @param hospitalVisit   the (hospital) visit to add the new location visit to
      * @param currentLocation location
-     * @param patientClass    the patient class
      */
     @Transactional
     static void addOpenLocationVisit(Encounter enc, OldAttributeKeyMap visitType, Instant storedFrom, Instant validFrom,
-                                     Instant visitBeginTime, PatientFact hospitalVisit, String currentLocation, String patientClass) {
+                                     Instant visitBeginTime, PatientFact hospitalVisit, String currentLocation) {
         PatientFact visitFact = new PatientFact();
         visitFact.setStoredFrom(storedFrom);
         visitFact.setValidFrom(validFrom);
@@ -357,7 +356,7 @@ public class OldAdtOperation implements AdtOperationInterface {
             // create a new location visit with the new (or updated) location
             OldAttributeKeyMap visitType = InformDbOperations.visitTypeFromPatientClass(adtMsg.getPatientClass());
             OldAdtOperation.addOpenLocationVisit(encounter, visitType, storedFrom, locationVisitValidFrom, locationVisitStartTime, hospitalVisit,
-                    adtMsg.getFullLocationString(), adtMsg.getPatientClass());
+                    adtMsg.getFullLocationString());
             encounter = dbOps.save(encounter);
             logger.info(String.format("Encounter: %s", encounter.toString()));
             onlyOpenBedVisit = InformDbOperations.getOnlyElement(InformDbOperations.getOpenValidLocationVisit(encounter));
@@ -412,7 +411,7 @@ public class OldAdtOperation implements AdtOperationInterface {
             // link the bed visit to the parent (hospital) visit
             OldAttributeKeyMap visitType = InformDbOperations.visitTypeFromPatientClass(adtMsg.getPatientClass());
             addOpenLocationVisit(encounter, visitType, storedFrom, transferOccurred, transferOccurred, hospVisit,
-                    newTransferLocation, adtMsg.getPatientClass());
+                    newTransferLocation);
             return true;
         }
         return false;
@@ -562,7 +561,7 @@ public class OldAdtOperation implements AdtOperationInterface {
              */
             OldAttributeKeyMap visitType = InformDbOperations.visitTypeFromPatientClass(adtMsg.getPatientClass());
             OldAdtOperation.addOpenLocationVisit(encounter, visitType, storedFrom, originalTransferDateTime, null, hospVisit,
-                    newCorrectLocation, adtMsg.getPatientClass());
+                    newCorrectLocation);
         }
     }
 

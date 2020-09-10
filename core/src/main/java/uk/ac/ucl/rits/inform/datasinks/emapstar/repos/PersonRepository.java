@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * Interactions with patients at the person level: MRN and core demographics
+ * Interactions with patients at the person level: MRN and core demographics.
  * @author Stef Piatek
  */
 @Component
