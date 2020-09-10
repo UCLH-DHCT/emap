@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -42,7 +42,7 @@ public abstract class MessageProcessingBaseCase {
     @Autowired
     protected EncounterRepository encounterRepo;
     @Autowired
-    protected MrnRepository mrnRepo;
+    protected OldMrnRepository mrnRepo;
     @Autowired
     protected PatientFactRepository patientFactRepo;
 

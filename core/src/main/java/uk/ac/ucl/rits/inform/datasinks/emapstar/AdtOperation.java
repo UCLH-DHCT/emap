@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.Movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
-import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 import java.time.Instant;
 
@@ -30,22 +30,22 @@ public class AdtOperation {
      * @param storedFrom time to use for any new records that might be created
      * @throws MessageIgnoredException if message can be ignored
      */
-    public AdtOperation(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    public AdtOperation(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
         this.dbOps = dbOps;
         this.storedFrom = storedFrom;
         getCreateEncounterOrVisit(dbOps, adtMsg, storedFrom);
     }
 
-    public void getCreateEncounterOrVisit(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom)
+    public void getCreateEncounterOrVisit(InformDbOperations dbOps, AdtMessage adtMsg, Instant storedFrom)
             throws MessageIgnoredException {
         if (adtMsg.getVisitNumber() != null) {
             // V2
             // need a "getcreate" here
             onlyOpenHospitalVisit = dbOps.findHospitalVisitByEncounter(adtMsg.getVisitNumber());
             // onlyOpenLocationVisit = ... ;
-        } else if (!adtMsg.getOperationType().equals(AdtOperationType.MERGE_BY_ID)) {
+        } else if (!(adtMsg instanceof MergeById)) {
             // CSNs are not present in merge by ID messages, but in other messages this is an error
-            throw new MessageIgnoredException(adtMsg, "CSN missing in a non-merge message: " + adtMsg.getOperationType());
+            throw new MessageIgnoredException(adtMsg, "CSN missing in a non-merge message: " + adtMsg.getClass());
         }
     }
 

@@ -187,7 +187,9 @@ public class OldAdtOperation implements AdtOperationInterface {
     }
 
     /* (non-Javadoc)
-     * @see uk.ac.ucl.rits.inform.datasinks.emapstar.AdtOperationInterface#getCreateEncounterOrVisit(uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations, uk.ac.ucl.rits.inform.interchange.AdtMessage, java.time.Instant)
+     * @see uk.ac.ucl.rits.inform.datasinks.emapstar.AdtOperationInterface#getCreateEncounterOrVisit(
+     * uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations,
+     * uk.ac.ucl.rits.inform.interchange.AdtMessage, java.time.Instant)
      */
     @Override
     public void getCreateEncounterOrVisit(InformDbOperations dbOps, OldAdtMessage adtMsg, Instant storedFrom)

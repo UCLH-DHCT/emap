@@ -19,10 +19,10 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldPersonRepository;
 import uk.ac.ucl.rits.inform.informdb.OldAttribute;
 import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
@@ -71,9 +71,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private AttributeRepository attributeRepo;
     @Autowired
-    private PersonRepository personRepo;
+    private OldPersonRepository personRepo;
     @Autowired
-    private MrnRepository mrnRepo;
+    private OldMrnRepository mrnRepo;
     @Autowired
     private EncounterRepository encounterRepo;
     @Autowired
@@ -241,7 +241,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public String processMessage(OldAdtMessage adtMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        OldAdtOperation adtOperation = adtOperationFactory(adtMsg, storedFrom);
+        OldAdtOperation adtOperation = oldAdtOperationFactory(adtMsg, storedFrom);
         return adtOperation.processMessage();
     }
 
@@ -252,8 +252,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     public String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException {
-        return null;
-    }
+        Instant storedFrom = Instant.now();
+        AdtOperation adtOperation = adtOperationFactory(msg, storedFrom);
+        return adtOperation.processMessage();    }
 
     /**
      * @param msg the MergeById message to process
@@ -262,7 +263,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     public String processMessage(MergeById msg) throws EmapOperationMessageProcessingException {
-        return null;
+        throw new MessageIgnoredException("Not implemented yet");
     }
 
     /**
@@ -272,7 +273,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     public String processMessage(DischargePatient msg) throws EmapOperationMessageProcessingException {
-        return null;
+        throw new MessageIgnoredException("Not implemented yet");
     }
 
     @Override
@@ -761,15 +762,26 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     }
 
     /**
+     * Construct an old ADT handler wrapper object.
+     * @param adtMsg     the ADT Interchange message
+     * @param storedFrom storedFrom time to use for new records
+     * @return the newly constructed object
+     * @throws MessageIgnoredException if message is being ignored
+     */
+    private OldAdtOperation oldAdtOperationFactory(OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+        return new OldAdtOperation(this, adtMsg, storedFrom);
+    }
+
+    /**
      * Construct an ADT handler wrapper object.
      * @param adtMsg     the ADT Interchange message
      * @param storedFrom storedFrom time to use for new records
      * @return the newly constructed object
      * @throws MessageIgnoredException if message is being ignored
      */
-    private OldAdtOperation adtOperationFactory(OldAdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
+    private AdtOperation adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
 //        return new AdtOperation(this, adtMsg, storedFrom);
-        return new OldAdtOperation(this, adtMsg, storedFrom);
+        return new AdtOperation(this, adtMsg, storedFrom);
     }
 
     /**
