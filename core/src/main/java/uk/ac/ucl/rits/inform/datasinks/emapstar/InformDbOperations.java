@@ -20,28 +20,28 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AttributeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.EncounterRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldMrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldPersonRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldPersonRepository;
+import uk.ac.ucl.rits.inform.informdb.Encounter;
+import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.OldAttribute;
 import uk.ac.ucl.rits.inform.informdb.OldAttributeKeyMap;
-import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.OldMrn;
-import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
+import uk.ac.ucl.rits.inform.informdb.OldResultType;
+import uk.ac.ucl.rits.inform.informdb.OldTemporalCore;
 import uk.ac.ucl.rits.inform.informdb.PatientFact;
 import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
-import uk.ac.ucl.rits.inform.informdb.OldResultType;
-import uk.ac.ucl.rits.inform.informdb.OldTemporalCore;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PathologyResult;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
-import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
@@ -71,7 +71,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private AttributeRepository attributeRepo;
     @Autowired
-    private OldPersonRepository personRepo;
+    private OldPersonRepository oldPersonRepository;
     @Autowired
     private OldMrnRepository mrnRepo;
     @Autowired
@@ -81,11 +81,11 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private PersonMrnRepository personMrnRepo;
 
-
     // V2
     @Autowired
     private HospitalVisitRepository hospitalVisitRepo;
-
+    @Autowired
+    private AdtOperation adtOperation;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -131,7 +131,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @return new saved person
      */
     public Person save(Person person) {
-        return personRepo.save(person);
+        return oldPersonRepository.save(person);
     }
 
     /**
@@ -253,8 +253,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     public String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        AdtOperation adtOperation = adtOperationFactory(msg, storedFrom);
-        return adtOperation.processMessage();    }
+        return adtOperation.processMessage(msg, storedFrom);
+    }
 
     /**
      * @param msg the MergeById message to process
@@ -772,17 +772,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return new OldAdtOperation(this, adtMsg, storedFrom);
     }
 
-    /**
-     * Construct an ADT handler wrapper object.
-     * @param adtMsg     the ADT Interchange message
-     * @param storedFrom storedFrom time to use for new records
-     * @return the newly constructed object
-     * @throws MessageIgnoredException if message is being ignored
-     */
-    private AdtOperation adtOperationFactory(AdtMessage adtMsg, Instant storedFrom) throws MessageIgnoredException {
-//        return new AdtOperation(this, adtMsg, storedFrom);
-        return new AdtOperation(this, adtMsg, storedFrom);
-    }
 
     /**
      * If demographics have changed, update them and invalidate the old.

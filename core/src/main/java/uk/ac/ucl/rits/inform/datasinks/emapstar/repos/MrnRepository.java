@@ -6,9 +6,5 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import java.util.Optional;
 
 public interface MrnRepository extends CrudRepository<Mrn, Integer> {
-    Optional<Mrn> getMrnByMrnEquals(String mrn);
-
-    Optional<Mrn> getByMrnIsNullAndNhsNumberEquals(String nhsNumber);
-
-    Optional<Mrn> getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(String identfier);
+    Optional<Mrn> getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(String mrn, String nhsNumber);
 }
