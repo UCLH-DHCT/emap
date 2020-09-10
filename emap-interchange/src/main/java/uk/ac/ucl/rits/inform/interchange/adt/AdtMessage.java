@@ -16,7 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public abstract class AdtMessage extends EmapOperationMessage implements Serializable {
+public abstract class AdtMessage extends EmapOperationMessage implements Serializable, AdtMessageInterface {
     private static final long serialVersionUID = 804256024384466435L;
     private Instant recordedDateTime;
     private String eventReasonCode;

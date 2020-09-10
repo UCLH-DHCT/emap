@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdmitPatient"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient"
 recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
@@ -19,5 +19,4 @@ patientFullName: "null BLOOD null ORANGE"
 patientGivenName: "BLOOD"
 patientSex: "F"
 visitNumber: "123412341234"
-
-
+nhsNumber: "9999999999"

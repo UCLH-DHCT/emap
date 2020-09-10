@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.TransferPatient"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.TransferPatient"
 recordedDateTime: "2020-04-01T21:22:22Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2020-04-01T21:22:21Z"

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +27,7 @@ public class InterchangeMessageFactory {
     /**
      * Builds an ADT message from yaml file.
      * Not sure it's as useful as other message factories but may be useful for testing a complex set of ADT messages together?
-     * @param fileName        filename within test resources/AdtMessages
+     * @param fileName        filename within test resources/OldAdtMessages
      * @param sourceMessageId source message ID
      * @return ADT message
      */
@@ -37,6 +38,23 @@ public class InterchangeMessageFactory {
             InputStream inputStream = getClass().getResourceAsStream(resourcePath);
             adtMessage = mapper.readValue(inputStream, OldAdtMessage.class);
             adtMessage.setSourceMessageId(sourceMessageId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return adtMessage;
+    }
+
+    /**
+     * Builds an ADT message from yaml file.
+     * @param fileName filename within test resources/AdtMessages
+     * @return ADT message
+     */
+    public <T extends AdtMessage> T getAdtMessage(final String fileName) {
+        T adtMessage = null;
+        String resourcePath = "/AdtMessages/" + fileName;
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+            adtMessage = mapper.readValue(inputStream, new TypeReference<AdtMessage>() {});
         } catch (IOException e) {
             e.printStackTrace();
         }
