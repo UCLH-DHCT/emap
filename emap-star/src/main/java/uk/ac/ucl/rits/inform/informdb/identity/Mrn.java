@@ -32,7 +32,7 @@ import org.hibernate.annotations.Check;
  */
 @Entity
 @Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = true) })
-@Check(constraints = "mrn is not null and nhs_number is not null")
+@Check(constraints = "(mrn is not null) or (nhs_number is not null)")
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
