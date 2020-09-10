@@ -5,12 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
 
 /**
- * Implement ADT for the Emap-Star DB v2.
+ * Handle processing of ADT messages.
  * @author Stef Piatek
  */
 @Component
@@ -18,12 +19,22 @@ public class AdtOperation {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonRepository personRepo;
 
+    /**
+     * @param personRepo person repository.
+     */
     public AdtOperation(PersonRepository personRepo) {
         this.personRepo = personRepo;
     }
 
 
-    public String processMessage(AdtMessage msg, Instant storedFrom) {
+    /**
+     * Default processing of an ADT message.
+     * @param msg        ADT message
+     * @param storedFrom time that emap-core started processing the message.
+     * @return return Code
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    public String processMessage(AdtMessage msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         String sourceSystem = "EPIC";
         Mrn mrn = personRepo.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), sourceSystem, msg.getEventOccurredDateTime(), storedFrom);
