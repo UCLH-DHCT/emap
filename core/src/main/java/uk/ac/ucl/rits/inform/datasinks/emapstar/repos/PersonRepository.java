@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -7,6 +9,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,6 +18,8 @@ import java.util.Optional;
  */
 @Component
 public class PersonRepository {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private MrnRepository mrnRepo;
     private MrnToLiveRepository mrnToLiveRepo;
     private CoreDemographicRepository coreDemographicRepo;
@@ -31,11 +36,30 @@ public class PersonRepository {
         this.coreDemographicRepo = coreDemographicRepo;
     }
 
-    public Mrn mergeMrns(String originalIdentifier, Mrn survivingMrn, Instant mergeTime) {
-        // get original mrn by mrn or nhsNumber
-        Optional<Mrn> originalMrn = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(originalIdentifier, originalIdentifier);
-        //TODO
-        //
+    /**
+     * Merge two MRNs, setting the surviving mrn to be live.
+     * @param retiringMrn     MRN to retire and merge from
+     * @param survivingMrn    live MRN to merge into
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return live MRN for the patient.
+     */
+    public Mrn mergeMrns(String retiringMrn, Mrn survivingMrn, Instant messageDateTime, Instant storedFrom) {
+        // get original mrn object
+        Optional<Mrn> originalMrnResult = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(retiringMrn, retiringMrn);
+        Mrn originalMrn;
+        if (originalMrnResult.isPresent()) {
+            originalMrn = originalMrnResult.get();
+        } else {
+            logger.info(String.format("Retiring MRN in merge (%s) doesn't exist, creating MRN", retiringMrn));
+            originalMrn = createNewLiveMrn(retiringMrn, null, "EPIC", messageDateTime, storedFrom);
+        }
+        // change all live mrns from original mrn to surviving mrn
+        List<MrnToLive> mrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(originalMrn);
+        for (MrnToLive mrnToLive : mrnToLiveRows) {
+            mrnToLive.setLiveMrnId(survivingMrn);
+            mrnToLiveRepo.save(mrnToLive);
+        }
         return survivingMrn;
     }
 

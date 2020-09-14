@@ -15,4 +15,10 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      * @return optional MRN
      */
     Optional<Mrn> getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(String mrn, String nhsNumber);
+
+    /**
+     * @param mrn MRN string
+     * @return MRN
+     */
+    Mrn getByMrnEquals(String mrn);
 }

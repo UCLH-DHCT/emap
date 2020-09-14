@@ -263,7 +263,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     public String processMessage(MergeById msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Not implemented yet");
+        Instant storedFrom = Instant.now();
+        return adtOperation.processMessage(msg, storedFrom);
     }
 
     /**

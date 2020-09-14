@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,14 +35,16 @@ import static org.junit.Assert.assertNotNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TestMrn {
     @Autowired
-    MrnRepository mrnRepo;
+    private MrnRepository mrnRepo;
     @Autowired
-    MrnToLiveRepository mrnToLiveRepo;
+    private MrnToLiveRepository mrnToLiveRepo;
     @Autowired
-    PersonRepository personRepo;
+    private PersonRepository personRepo;
 
     @Autowired
-    InformDbOperations dbOps;
+    private InformDbOperations dbOps;
+
+    private final String defaultMrn = "40800000";
 
 
     InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
@@ -86,13 +89,13 @@ public class TestMrn {
         int startingMrnCount = getAllMrns().size();
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals("40800000", null).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
-        assertEquals(1L, mrn.getMrnId().longValue());
+        assertEquals(1001L, mrn.getMrnId().longValue());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
-        assertEquals(1L, mrnToLive.getLiveMrnId().getMrnId().longValue());
+        assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
     }
 
     /**
@@ -110,15 +113,62 @@ public class TestMrn {
 
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrnString, null).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(mrnString);
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
-        assertEquals(2L, mrn.getMrnId().longValue());
+        assertEquals(1002L, mrn.getMrnId().longValue());
 
         //person repo should return the live mrn only
         Mrn liveMrn = personRepo.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), null, null, null);
-        assertEquals(3L, liveMrn.getMrnId().longValue());
+        assertEquals(1003L, liveMrn.getMrnId().longValue());
         // TODO: when demographics are added, check that the demographics get added to the live MRN only
+    }
+
+    /**
+     * retire existing mrn, merge into new mrn
+     * should change the mrnToLive for retired MRN to surviving Mrn and create a new
+     */
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testMergeKnownRetiringNewSurviving() throws EmapOperationMessageProcessingException {
+        MergeById msg = messageFactory.getAdtMessage("generic/A40.yaml");
+
+        // process message
+        dbOps.processMessage(msg);
+        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrnRepo.getByMrnEquals(defaultMrn));
+        Mrn newMrn = mrnRepo.getByMrnEquals("40800001");
+        assertEquals(newMrn, retiredMrnToLive.getLiveMrnId());
+        // check number of mrn to live rows by live mrn
+        List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(newMrn);
+        assertEquals(2,  survivingMrnToLiveRows.size());
+        }
+
+    /**
+     * retire mrn that hasn't been seen before, merging into MRN which has already been merged
+     * should create a new mrn for the unseen mrn, then merge it directly to the final live mrn
+     */
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testMergeNewRetiringAlreadyMergedSurviving() throws EmapOperationMessageProcessingException {
+        String messageSurvivingMrn = "60600000";
+        String retiringMrnString = "60600005";
+        MergeById msg = messageFactory.getAdtMessage("generic/A40.yaml");
+        msg.setRetiredMrn(retiringMrnString);
+        msg.setMrn(messageSurvivingMrn);
+
+        String liveMrnString = "30700000";
+
+        // process message
+        dbOps.processMessage(msg);
+        // retiring mrn created and linked to surviving mrn
+        Mrn retiringMrn = mrnRepo.getByMrnEquals(retiringMrnString);
+        assertNotNull(retiringMrn);
+        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
+        Mrn survivingMrn = mrnRepo.getByMrnEquals(liveMrnString);
+        assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
+        // check number of mrn to live rows by live mrn
+        List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
+        assertEquals(3,  survivingMrnToLiveRows.size());
     }
 
 }

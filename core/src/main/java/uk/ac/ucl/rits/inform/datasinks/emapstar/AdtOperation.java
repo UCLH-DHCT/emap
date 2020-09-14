@@ -7,6 +7,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 import java.time.Instant;
 
@@ -37,7 +38,12 @@ public class AdtOperation {
     public String processMessage(AdtMessage msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         String sourceSystem = "EPIC";
-        Mrn mrn = personRepo.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), sourceSystem, msg.getEventOccurredDateTime(), storedFrom);
+        Mrn mrn = personRepo.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), sourceSystem, msg.getRecordedDateTime(), storedFrom);
+
+        if (msg instanceof MergeById) {
+            MergeById mergeById = (MergeById) msg;
+            personRepo.mergeMrns(mergeById.getRetiredMrn(), mrn, mergeById.getRecordedDateTime(), storedFrom);
+        }
         return returnCode;
     }
 }
