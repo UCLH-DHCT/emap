@@ -7,11 +7,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * A core demographic represents the main demographics stored around patients.
@@ -241,4 +241,32 @@ public class CoreDemographic extends TemporalCore<CoreDemographic> implements Se
         return new CoreDemographic(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CoreDemographic that = (CoreDemographic) o;
+        return mrnId == that.mrnId
+                && coreDemographicId == that.coreDemographicId
+                && alive == that.alive
+                && Objects.equals(firstname, that.firstname)
+                && Objects.equals(middlename, that.middlename)
+                && Objects.equals(lastname, that.lastname)
+                && Objects.equals(dateOfBirth, that.dateOfBirth)
+                && Objects.equals(dateOfDeath, that.dateOfDeath)
+                && Objects.equals(datetimeOfBirth, that.datetimeOfBirth)
+                && Objects.equals(datetimeOfDeath, that.datetimeOfDeath)
+                && Objects.equals(homePostcode, that.homePostcode)
+                && Objects.equals(sex, that.sex);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(coreDemographicId, mrnId, firstname, middlename, lastname, dateOfBirth, dateOfDeath,
+                datetimeOfBirth, datetimeOfDeath, alive, homePostcode, sex);
+    }
 }
