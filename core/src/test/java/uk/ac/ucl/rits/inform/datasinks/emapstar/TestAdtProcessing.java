@@ -10,9 +10,11 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -22,22 +24,26 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @SpringJUnitConfig
 @SpringBootTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class TestMrn {
+public class TestAdtProcessing {
     @Autowired
     private MrnRepository mrnRepo;
     @Autowired
     private MrnToLiveRepository mrnToLiveRepo;
+    @Autowired
+    private CoreDemographicRepository coreDemographicRepository;
     @Autowired
     private PersonRepository personRepo;
 
@@ -67,16 +73,20 @@ public class TestMrn {
 
 
     /**
-     * no existing mrns, so new mrn and mrn_to_live should be created
+     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
      */
     @Test
-    public void testCreateNewMrn() throws EmapOperationMessageProcessingException {
+    public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         dbOps.processMessage(msg);
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrns.get(0).getMrnId());
+        assertTrue(demographic.isPresent());
+        assertEquals("ORANGE", demographic.get().getLastname());
+        assertTrue(demographic.get().isAlive());
     }
 
     /**
@@ -100,11 +110,11 @@ public class TestMrn {
 
     /**
      * Mrn (id=2) already exists and has been merged (live id=3)
-     * No new mrns should be created, processing should be done on the live id only
+     * No new mrns should be created, processing should be done on the live id only and demographics should be udated
      */
     @Test
     @Sql(value = "/populate_mrn.sql")
-    public void testMrnExistsAndWasMerged() throws EmapOperationMessageProcessingException {
+    public void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String mrnString = "60600000";
         msg.setMrn(mrnString);
@@ -118,10 +128,15 @@ public class TestMrn {
         assertEquals(startingMrnCount, getAllMrns().size());
         assertEquals(1002L, mrn.getMrnId().longValue());
 
+        long liveMrnId = 1003L;
         //person repo should return the live mrn only
         Mrn liveMrn = personRepo.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), null, null, null);
-        assertEquals(1003L, liveMrn.getMrnId().longValue());
-        // TODO: when demographics are added, check that the demographics get added to the live MRN only
+        assertEquals(liveMrnId, liveMrn.getMrnId().longValue());
+
+        // demographics that are updated should be the live mrn
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(liveMrnId);
+        assertTrue(demographic.isPresent());
+        assertEquals("ORANGE", demographic.get().getLastname());
     }
 
     /**

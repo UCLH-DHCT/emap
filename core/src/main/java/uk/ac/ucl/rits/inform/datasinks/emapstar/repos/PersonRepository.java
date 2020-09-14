@@ -9,6 +9,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,9 +22,9 @@ import java.util.Optional;
 public class PersonRepository {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private MrnRepository mrnRepo;
-    private MrnToLiveRepository mrnToLiveRepo;
-    private CoreDemographicRepository coreDemographicRepo;
+    private final MrnRepository mrnRepo;
+    private final MrnToLiveRepository mrnToLiveRepo;
+    private final CoreDemographicRepository coreDemographicRepo;
 
     /**
      * Constructor implicitly autowiring beans.
@@ -85,13 +87,44 @@ public class PersonRepository {
         return mrn;
     }
 
-    public CoreDemographic updateOrCreateDemographics(long mrnId, AdtMessage adtMessage, Instant storedFrom) {
-        // TODO
-        // create demographics from the adtMessage
+    public void updateOrCreateDemographics(long mrnId, AdtMessage adtMessage, Instant storedFrom) {
+        CoreDemographic messageDemographics = buildCoreDemographic(mrnId, adtMessage, storedFrom);
+        Optional<CoreDemographic> existingDemographicResult = coreDemographicRepo.getByMrnIdEquals(mrnId);
+        if (existingDemographicResult.isPresent()) {
+            CoreDemographic existingDemographics = existingDemographicResult.get();
+            // if the demographics are not the same, update the demographics
+            if (existingDemographics.equals(messageDemographics)) {
+                return;
+            } else {
+                messageDemographics.setCoreDemographicId(existingDemographics.getCoreDemographicId());
+            }
+        }
+        coreDemographicRepo.save(messageDemographics);
+    }
+
+    private CoreDemographic buildCoreDemographic(long mrnId, AdtMessage adtMessage, Instant storedFrom) {
         CoreDemographic coreDemographic = new CoreDemographic();
-        // get current demographics by mrnId
-        // if the demographics are not the same, update the demographics
+        coreDemographic.setMrnId(mrnId);
+        coreDemographic.setFirstname(adtMessage.getPatientGivenName());
+        coreDemographic.setMiddlename(adtMessage.getPatientMiddleName());
+        coreDemographic.setLastname(adtMessage.getPatientFamilyName());
+        coreDemographic.setDateOfBirth(convertToLocalDate(adtMessage.getPatientBirthDate()));
+        coreDemographic.setDatetimeOfBirth(adtMessage.getPatientBirthDate());
+        coreDemographic.setSex(adtMessage.getPatientSex());
+        coreDemographic.setHomePostcode(adtMessage.getPatientZipOrPostalCode());
+        // death
+        coreDemographic.setAlive(!adtMessage.getPatientDeathIndicator());
+        coreDemographic.setDateOfDeath(convertToLocalDate(adtMessage.getPatientDeathDateTime()));
+        coreDemographic.setDatetimeOfDeath(adtMessage.getPatientDeathDateTime());
+        // from dates
+        coreDemographic.setStoredFrom(storedFrom);
+        coreDemographic.setValidFrom(adtMessage.getRecordedDateTime());
+
         return coreDemographic;
+    }
+
+    private LocalDate convertToLocalDate(Instant instant) {
+        return (instant == null) ? null : instant.atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     private Mrn createNewLiveMrn(String mrnString, String nhsNumber, String sourceSystem, Instant messageDateTime, Instant storedFrom) {

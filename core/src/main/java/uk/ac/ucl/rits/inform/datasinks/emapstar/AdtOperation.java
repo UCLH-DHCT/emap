@@ -39,6 +39,7 @@ public class AdtOperation {
         String returnCode = "OK";
         String sourceSystem = "EPIC";
         Mrn mrn = personRepo.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), sourceSystem, msg.getRecordedDateTime(), storedFrom);
+        personRepo.updateOrCreateDemographics(mrn.getMrnId(), msg, storedFrom);
 
         if (msg instanceof MergeById) {
             MergeById mergeById = (MergeById) msg;

@@ -9,7 +9,20 @@ INSERT INTO public.mrn (mrn_id, mrn, nhs_number, source_system, stored_from) VAL
 -- Add mrn_to_live
 
 INSERT INTO public.mrn_to_live (mrn_to_live_id, stored_from, stored_until, valid_from, valid_until, live_mrn_id, mrn_id) VALUES
-    (1001, '2020-09-01 11:04:04.794000', null, '2020-09-01 11:04:04.794000', null, 1001, 1001),
-    (1002, '2020-09-03 10:05:04.794000', null, '2020-09-03 11:04:04.794000', null, 1003, 1002),
-    (1003, '2020-09-10 16:01:05.371000', null, '2020-09-03 13:06:05.794000', null, 1003, 1003),
-    (1004, '2020-09-10 17:02:08.000000', null, '2020-09-05 14:05:04.794000', null, 1004, 1004);
+    (2001, '2020-09-01 11:04:04.794000', null, '2020-09-01 11:04:04.794000', null, 1001, 1001),
+    (2002, '2020-09-03 10:05:04.794000', null, '2020-09-03 11:04:04.794000', null, 1003, 1002),
+    (2003, '2020-09-10 16:01:05.371000', null, '2020-09-03 13:06:05.794000', null, 1003, 1003),
+    (2004, '2020-09-10 17:02:08.000000', null, '2020-09-05 14:05:04.794000', null, 1004, 1004);
+
+
+-- Add to core_demographic
+INSERT INTO public.core_demographic (
+    core_demographic_id, stored_from, valid_from, alive, date_of_birth, date_of_death,
+    datetime_of_birth, datetime_of_death, firstname, home_postcode, lastname, middlename, mrn_id, sex
+    ) VALUES
+        (3001, '2019-09-17 13:25:00.650000', '2020-09-14 15:27:00.933000', true, '1970-05-05', null,
+         '1970-05-05 04:10:00.000000', null, 'Sesame', 'W12 0HG', 'Snaps', null, 1003, 'F'),
+        (3002, '2020-09-01 11:04:04.794000', '2013-02-11 10:00:52.000000', true, '1980-01-01', null,
+         '1980-01-01 00:00:00.000000', null, 'lemon', null, 'zest', null, 1001, 'F'),
+        (3003, '2020-06-17 13:25:00.650000', '2017-02-16 10:00:52.000000', false, '1972-06-14', '2020-05-05',
+         '1972-06-14 13:00:00.000000', '2020-05-05 00:00:00.000000', 'Terry', 'T5 1TT', 'AGBTESTD', null, 1002, 'M');
