@@ -92,7 +92,7 @@ public class InterchangeMessageFactory {
     /**
      * Builds Vitalsigns from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
      * @param fileName            yaml filename in test resouces/VitalSigns, default values from '{file_stem}_defaults.yaml'
-     * @param sourceMessagePrefix message prefix - TODO: does emap star care about this or should I just get rid of it?
+     * @param sourceMessagePrefix message prefix
      * @return List of vitalsigns
      */
     public List<VitalSigns> getVitalSigns(final String fileName, final String sourceMessagePrefix) {

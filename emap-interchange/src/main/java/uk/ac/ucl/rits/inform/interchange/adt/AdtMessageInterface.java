@@ -102,7 +102,8 @@ public interface AdtMessageInterface {
     String getPatientFamilyName();
 
     /**
-     * @return patientFullName TODO: keep this? seems redundant?
+     * @return patientFullName
+     * keep this? seems redundant and not used?
      */
     String getPatientFullName();
 
