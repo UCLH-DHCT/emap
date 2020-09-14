@@ -42,9 +42,8 @@ public class PersonRepository {
      * @param survivingMrn    live MRN to merge into
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
-     * @return live MRN for the patient.
      */
-    public Mrn mergeMrns(String retiringMrn, Mrn survivingMrn, Instant messageDateTime, Instant storedFrom) {
+    public void mergeMrns(String retiringMrn, Mrn survivingMrn, Instant messageDateTime, Instant storedFrom) {
         // get original mrn object
         Optional<Mrn> originalMrnResult = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(retiringMrn, retiringMrn);
         Mrn originalMrn;
@@ -60,7 +59,6 @@ public class PersonRepository {
             mrnToLive.setLiveMrnId(survivingMrn);
             mrnToLiveRepo.save(mrnToLive);
         }
-        return survivingMrn;
     }
 
     /**
