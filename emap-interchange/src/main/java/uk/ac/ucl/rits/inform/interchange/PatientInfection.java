@@ -5,6 +5,7 @@ import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * Interchange format of a PatientInterchange message.
@@ -185,5 +186,29 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
                 .append(", infectionResolved=").append(infectionResolved)
                 .append(", infectionOnset=").append(infectionOnset)
                 .append(')').toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PatientInfection that = (PatientInfection) o;
+        return Objects.equals(infection, that.infection)
+                && Objects.equals(mrn, that.mrn)
+                && Objects.equals(line, that.line)
+                && Objects.equals(status, that.status)
+                && Objects.equals(comment, that.comment)
+                && Objects.equals(infectionAdded, that.infectionAdded)
+                && Objects.equals(infectionResolved, that.infectionResolved)
+                && Objects.equals(infectionOnset, that.infectionOnset);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mrn, infection, line, status, comment, infectionAdded, infectionResolved, infectionOnset);
     }
 }
