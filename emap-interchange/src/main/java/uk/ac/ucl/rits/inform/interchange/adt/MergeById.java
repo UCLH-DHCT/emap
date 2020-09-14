@@ -16,7 +16,10 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 public class MergeById extends AdtMessage {
     private static final long serialVersionUID = -2500473433999508161L;
 
-    private String mergedPatientId;
+    /**
+     * MRN to be merged and retired.
+     */
+    private String retiredMrn;
 
     @Override
     public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
