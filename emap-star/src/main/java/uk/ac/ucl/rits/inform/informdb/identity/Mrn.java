@@ -1,9 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.Check;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -14,9 +12,11 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.hibernate.annotations.Check;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * This class represents the association of Medical Resource Identifier (MRN) to
@@ -26,24 +26,22 @@ import org.hibernate.annotations.Check;
  * Over the course of its lifetime a single MRN may be associated with any
  * number of patients. However, it may only be associated with a single patient
  * at any given point in history.
- *
  * @author UCL RITS
- *
  */
 @Entity
-@Table(indexes = { @Index(name = "mrnIndex", columnList = "mrn", unique = true) })
+@Table(indexes = {@Index(name = "mrnIndex", columnList = "mrn", unique = true)})
 @Check(constraints = "(mrn is not null) or (nhs_number is not null)")
 @JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
-    private static final long      serialVersionUID = -4125275916062604528L;
+    private static final long serialVersionUID = -4125275916062604528L;
 
     /**
      * The MrnId is the UID for the association of an MRN value to a Person.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long                   mrnId;
+    private Long mrnId;
 
     @OneToMany(targetEntity = MrnHospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
     private List<MrnHospitalVisit> hospitalVisits;
@@ -52,7 +50,7 @@ public class Mrn implements Serializable {
      * The value of the MRN identifier.
      */
     @Column(unique = true)
-    private String                 mrn;
+    private String mrn;
 
     /**
      *
@@ -63,13 +61,13 @@ public class Mrn implements Serializable {
     /**
      * The system from which this MRN was initially discovered.
      */
-    private String                 sourceSystem;
+    private String sourceSystem;
 
     /**
      * The datetime this row was written.
      */
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
-    private Instant                storedFrom;
+    private Instant storedFrom;
 
     /**
      * @return the mrnId
@@ -130,7 +128,6 @@ public class Mrn implements Serializable {
     /**
      * Add an MrnHospitalVisit to the relation list. Does not add the inverse
      * relationship.
-     *
      * @param mrnHospitalVisit The MrnHospitaVisit to add.
      */
     public void linkMrnHospitalVisit(MrnHospitalVisit mrnHospitalVisit) {
@@ -142,7 +139,6 @@ public class Mrn implements Serializable {
 
     /**
      * Get the list of relationships where this Mrn is linked to a HospitalVisit.
-     *
      * @return the list of all Hospital Visit relationships
      */
     public List<MrnHospitalVisit> getHospitalVisits() {
@@ -175,4 +171,25 @@ public class Mrn implements Serializable {
         this.storedFrom = storedFrom;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Mrn mrn1 = (Mrn) o;
+        return mrnId.equals(mrn1.mrnId)
+                // not including hospital visits
+                && Objects.equals(mrn, mrn1.mrn)
+                && Objects.equals(nhsNumber, mrn1.nhsNumber)
+                && Objects.equals(sourceSystem, mrn1.sourceSystem)
+                && storedFrom.equals(mrn1.storedFrom);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mrnId, hospitalVisits, mrn, nhsNumber, sourceSystem, storedFrom);
+    }
 }
