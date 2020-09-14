@@ -53,10 +53,9 @@ public class Mrn implements Serializable {
     private String mrn;
 
     /**
-     *
+     * NHS number.
      */
-    @Column(unique = true)
-    private String                 nhsNumber;
+    private String nhsNumber;
 
     /**
      * The system from which this MRN was initially discovered.
