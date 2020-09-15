@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PathologyProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.EmapStarIntegrityException;
@@ -93,6 +94,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private AdtProcessor adtProcessor;
     @Autowired
     private FlowsheetProcessor flowsheetProcessor;
+    @Autowired
+    private PathologyProcessor pathologyProcessor;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -234,6 +237,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public String processMessage(PathologyOrder pathologyOrder) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
+        pathologyProcessor.processMessage(pathologyOrder, storedFrom);
         addOrUpdatePathologyOrder(pathologyOrder, storedFrom);
         // be more specific about the type of OK in future
         return "OK";
