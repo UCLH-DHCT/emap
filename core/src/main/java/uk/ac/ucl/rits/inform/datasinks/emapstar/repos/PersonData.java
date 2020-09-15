@@ -19,7 +19,7 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 @Component
-public class PersonRepository {
+public class PersonData {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final MrnRepository mrnRepo;
@@ -32,7 +32,7 @@ public class PersonRepository {
      * @param mrnToLiveRepo       mrnToLiveRepo
      * @param coreDemographicRepo coreDemographicRepo
      */
-    public PersonRepository(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo) {
+    public PersonData(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
         this.coreDemographicRepo = coreDemographicRepo;

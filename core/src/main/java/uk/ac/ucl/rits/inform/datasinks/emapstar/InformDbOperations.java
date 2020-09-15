@@ -26,7 +26,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldPersonRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.OldAttribute;
@@ -86,8 +85,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private PersonMrnRepository personMrnRepo;
 
     // V2
-    @Autowired
-    private PersonRepository personRepo;
     @Autowired
     private HospitalVisitRepository hospitalVisitRepo;
     @Autowired

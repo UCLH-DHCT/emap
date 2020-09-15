@@ -3,7 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonData;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
@@ -17,13 +17,13 @@ import java.time.Instant;
 @Component
 public class PathologyProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final PersonRepository personRepo;
+    private final PersonData personData;
 
     /**
-     * @param personRepo person repository.
+     * @param personData person data.
      */
-    public PathologyProcessor(PersonRepository personRepo) {
-        this.personRepo = personRepo;
+    public PathologyProcessor(PersonData personData) {
+        this.personData = personData;
     }
 
     /**
@@ -40,7 +40,7 @@ public class PathologyProcessor {
 
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
-        Mrn mrn = personRepo.getOrCreateMrn(mrnStr, null, sourceSystem, observationTime, storedFrom);
+        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, sourceSystem, observationTime, storedFrom);
         return returnCode;
     }
 }

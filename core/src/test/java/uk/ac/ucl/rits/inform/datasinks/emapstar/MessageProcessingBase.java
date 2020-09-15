@@ -11,7 +11,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonData;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -34,7 +34,7 @@ public abstract class MessageProcessingBase {
     @Autowired
     protected CoreDemographicRepository coreDemographicRepository;
     @Autowired
-    protected PersonRepository personRepo;
+    protected PersonData personData;
 
     @Autowired
     protected InformDbOperations dbOps;
