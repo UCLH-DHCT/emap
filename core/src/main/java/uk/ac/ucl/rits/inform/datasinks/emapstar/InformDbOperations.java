@@ -23,6 +23,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldMrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.OldPersonRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientFactRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonMrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.Encounter;
 import uk.ac.ucl.rits.inform.informdb.MrnEncounter;
 import uk.ac.ucl.rits.inform.informdb.OldAttribute;
@@ -35,6 +36,7 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
@@ -82,6 +84,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private PersonMrnRepository personMrnRepo;
 
     // V2
+    @Autowired
+    private PersonRepository personRepo;
     @Autowired
     private HospitalVisitRepository hospitalVisitRepo;
     @Autowired
@@ -285,6 +289,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         String mrnStr = msg.getMrn();
         Instant storedFrom = Instant.now();
         Instant observationTime = msg.getObservationTimeTaken();
+        String sourceSystem = msg.getVitalSignIdentifier().split("\\$")[0];
+        Mrn mrn = personRepo.getOrCreateMrn(mrnStr, null, sourceSystem, observationTime, storedFrom);
+
+        // v1
         Encounter enc = OldAdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime, this);
 
         PatientFact vitalSign = new PatientFact();
