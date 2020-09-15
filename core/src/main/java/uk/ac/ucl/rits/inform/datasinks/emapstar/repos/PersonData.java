@@ -69,18 +69,12 @@ public class PersonData {
      */
     public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
                               final Instant storedFrom) {
-        // get existing mrn by mrn or (mrn is null and nhsnumber equals)
-        Optional<Mrn> optionalMrn = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrnString, nhsNumber);
-        Mrn mrn;
-        if (optionalMrn.isPresent()) {
-            // mrn exists, get the live mrn
-            Mrn messageMrn = optionalMrn.get();
-            mrn = mrnToLiveRepo.getByMrnIdEquals(messageMrn).getLiveMrnId();
-        } else {
-            // create new mrn and mrn_to_live row
-            mrn = createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom);
-        }
-        return mrn;
+        return mrnRepo
+                .getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrnString, nhsNumber)
+                // mrn exists, get the live mrn
+                .map(mrn1 -> mrnToLiveRepo.getByMrnIdEquals(mrn1).getLiveMrnId())
+                // otherwise create new mrn and mrn_to_live row
+                .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
 
     public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
