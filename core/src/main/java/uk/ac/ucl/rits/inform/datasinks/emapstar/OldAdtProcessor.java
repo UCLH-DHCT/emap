@@ -5,7 +5,7 @@ import java.time.Instant;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
 
-public interface AdtOperationInterface {
+public interface OldAdtProcessor {
 
     /**
      * Go ahead and process the ADT message.

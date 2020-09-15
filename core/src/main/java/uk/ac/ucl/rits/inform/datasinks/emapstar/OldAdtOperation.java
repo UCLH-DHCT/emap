@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * One instance of this class covers a single ADT operation.
  * @author Jeremy Stein
  */
-public class OldAdtOperation implements AdtOperationInterface {
+public class OldAdtOperation implements OldAdtProcessor {
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
     private InformDbOperations dbOps;
