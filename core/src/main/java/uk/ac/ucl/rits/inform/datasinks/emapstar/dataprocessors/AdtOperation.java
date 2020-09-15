@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

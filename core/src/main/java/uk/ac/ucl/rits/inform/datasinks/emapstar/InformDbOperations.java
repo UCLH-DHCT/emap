@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtOperation;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.EmapStarIntegrityException;
