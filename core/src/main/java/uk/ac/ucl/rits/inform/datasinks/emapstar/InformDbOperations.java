@@ -13,6 +13,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtOperation;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.EmapStarIntegrityException;
@@ -37,7 +38,6 @@ import uk.ac.ucl.rits.inform.informdb.PatientProperty;
 import uk.ac.ucl.rits.inform.informdb.Person;
 import uk.ac.ucl.rits.inform.informdb.PersonMrn;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.OldAdtMessage;
@@ -91,6 +91,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private HospitalVisitRepository hospitalVisitRepo;
     @Autowired
     private AdtOperation adtOperation;
+    @Autowired
+    private FlowsheetProcessor flowsheetProcessor;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -286,14 +288,13 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
-        String visitNumber = msg.getVisitNumber();
-        String mrnStr = msg.getMrn();
         Instant storedFrom = Instant.now();
-        Instant observationTime = msg.getObservationTimeTaken();
-        String sourceSystem = msg.getVitalSignIdentifier().split("\\$")[0];
-        Mrn mrn = personRepo.getOrCreateMrn(mrnStr, null, sourceSystem, observationTime, storedFrom);
+        flowsheetProcessor.processMessage(msg, storedFrom);
 
         // v1
+        String visitNumber = msg.getVisitNumber();
+        String mrnStr = msg.getMrn();
+        Instant observationTime = msg.getObservationTimeTaken();
         Encounter enc = OldAdtOperation.getCreateEncounter(mrnStr, visitNumber, storedFrom, observationTime, this);
 
         PatientFact vitalSign = new PatientFact();
