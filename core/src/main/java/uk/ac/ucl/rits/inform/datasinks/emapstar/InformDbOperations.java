@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtOperation;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.AttributeError;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.DuplicateValueException;
@@ -90,7 +90,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private HospitalVisitRepository hospitalVisitRepo;
     @Autowired
-    private AdtOperation adtOperation;
+    private AdtProcessor adtProcessor;
     @Autowired
     private FlowsheetProcessor flowsheetProcessor;
 
@@ -260,7 +260,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     public String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        return adtOperation.processMessage(msg, storedFrom);
+        return adtProcessor.processMessage(msg, storedFrom);
     }
 
     /**
@@ -271,7 +271,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     public String processMessage(MergeById msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        return adtOperation.processMessage(msg, storedFrom);
+        return adtProcessor.processMessage(msg, storedFrom);
     }
 
     /**

@@ -16,14 +16,14 @@ import java.time.Instant;
  * @author Stef Piatek
  */
 @Component
-public class AdtOperation {
+public class AdtProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonRepository personRepo;
 
     /**
      * @param personRepo person repository.
      */
-    public AdtOperation(PersonRepository personRepo) {
+    public AdtProcessor(PersonRepository personRepo) {
         this.personRepo = personRepo;
     }
 
