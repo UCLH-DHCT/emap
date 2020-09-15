@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.concurrent;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -48,6 +49,51 @@ public class MrnLock {
         }
         lock.acquire();
     }
+
+
+    /**
+     * Block until you get an exclusive lock on a pair of mrns.
+     *
+     * @param mrn1 One of the mrns to get a lock on
+     * @param mrn2 The other mrn to get a lock on
+     * @throws InterruptedException If the thread is interrupted
+     */
+    public void acquire(String mrn1, String mrn2) throws InterruptedException {
+        if (mrn1 == null || mrn2 == null) {
+            throw new NullPointerException(String.format("Neither of mrn1 (%s) nor mrn2 (%s) can be null", mrn1, mrn2));
+        }
+
+        int comparisson = mrn1.compareTo(mrn2);
+
+        if (comparisson < 0) {
+            this.acquire(mrn1);
+            this.acquire(mrn2);
+        } else if (comparisson > 0) {
+            this.acquire(mrn2);
+            this.acquire(mrn1);
+        } else {
+            throw new IllegalArgumentException("mrn1 must be different from mrn2");
+        }
+    }
+
+    /**
+     * Block until you get an exclusive lock on a list of mrns.
+     *
+     * @param mrns The mrns to get a lock on
+     * @throws InterruptedException If the thread is interrupted
+     */
+    public void acquire(List<String> mrns) throws InterruptedException {
+        if (mrns.isEmpty()) {
+            throw new IllegalArgumentException("mrns cannot be empty");
+        }
+
+        mrns.sort((a, b) -> a.compareTo(b));
+
+        for (String mrn : mrns) {
+            this.acquire(mrn);
+        }
+    }
+
 
     /**
      * Release a previously acquired lock. You must not release a lock
