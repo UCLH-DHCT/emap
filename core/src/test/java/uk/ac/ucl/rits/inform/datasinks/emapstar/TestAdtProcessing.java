@@ -33,6 +33,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertTrue(demographic.isPresent());
         assertEquals("ORANGE", demographic.get().getLastname());
         assertTrue(demographic.get().isAlive());
+        assertNotNull(demographic.get().getDatetimeOfBirth());
     }
 
     /**
