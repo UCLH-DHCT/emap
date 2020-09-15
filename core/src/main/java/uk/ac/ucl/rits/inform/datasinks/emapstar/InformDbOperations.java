@@ -10,7 +10,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PathologyProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
