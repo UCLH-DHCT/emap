@@ -259,6 +259,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         return adtProcessor.processMessage(msg, storedFrom);
@@ -270,6 +271,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public String processMessage(MergeById msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         return adtProcessor.processMessage(msg, storedFrom);
@@ -281,6 +283,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public String processMessage(DischargePatient msg) throws EmapOperationMessageProcessingException {
         throw new MessageIgnoredException("Not implemented yet");
     }

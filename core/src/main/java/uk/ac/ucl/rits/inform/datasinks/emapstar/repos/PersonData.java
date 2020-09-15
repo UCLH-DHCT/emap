@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
@@ -12,7 +13,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -45,6 +45,7 @@ public class PersonData {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      */
+    @Transactional
     public void mergeMrns(final String retiringMrn, final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom) {
         // get original mrn object
         Mrn originalMrn = mrnRepo
@@ -67,6 +68,7 @@ public class PersonData {
      * @param storedFrom      when the message has been read by emap core
      * @return The live MRN for the patient.
      */
+    @Transactional
     public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
                               final Instant storedFrom) {
         return mrnRepo
@@ -77,11 +79,12 @@ public class PersonData {
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
 
+    @Transactional
     public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
         CoreDemographic messageDemographics = new CoreDemographic();
         updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
         // get existing demographics and update if they have changed. If none existing, save message demographics
-        CoreDemographic demographicsToSave = coreDemographicRepo
+        coreDemographicRepo
                 .getByMrnIdEquals(mrnId)
                 .map(existingDemographic -> {
                     if (!existingDemographic.equals(messageDemographics)) {
@@ -90,12 +93,11 @@ public class PersonData {
                     }
                     return existingDemographic;
                 })
-                .orElse(messageDemographics);
-        coreDemographicRepo.save(demographicsToSave);
+                .orElseGet(() -> coreDemographicRepo.save(messageDemographics));
     }
 
-    private CoreDemographic updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,
-                                                        CoreDemographic coreDemographic) {
+    private void updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,
+                                             CoreDemographic coreDemographic) {
         coreDemographic.setMrnId(mrnId);
         coreDemographic.setFirstname(adtMessage.getPatientGivenName());
         coreDemographic.setMiddlename(adtMessage.getPatientMiddleName());
@@ -111,7 +113,6 @@ public class PersonData {
         // from dates
         coreDemographic.setStoredFrom(storedFrom);
         coreDemographic.setValidFrom(adtMessage.getRecordedDateTime());
-        return coreDemographic;
     }
 
     private LocalDate convertToLocalDate(Instant instant) {

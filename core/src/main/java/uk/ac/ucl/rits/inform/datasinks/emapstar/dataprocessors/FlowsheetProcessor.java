@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonData;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -33,6 +34,7 @@ public class FlowsheetProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
+    @Transactional
     public String processMessage(final VitalSigns msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         String mrnStr = msg.getMrn();
