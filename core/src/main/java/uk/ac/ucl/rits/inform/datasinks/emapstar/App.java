@@ -78,7 +78,7 @@ public class App {
      * @throws IOException if rabbitmq channel has a problem
      */
     @Profile("default")
-    @RabbitListener(queues = {"hl7Queue", "caboodleQueue", "themeHospitalQueue"})
+    @RabbitListener(queues = {"hl7Queue", "caboodleQueue"})
     public void receiveMessage(EmapOperationMessage msg, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag)
             throws IOException {
         try {
