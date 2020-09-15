@@ -87,13 +87,17 @@ public class PersonData {
         coreDemographicRepo
                 .getByMrnIdEquals(mrnId)
                 .map(existingDemographic -> {
-                    if (!existingDemographic.equals(messageDemographics)) {
+                    if (messageDemographicsIsDifferentAndIsNewer(messageDemographics, existingDemographic)) {
                         // log current state to audit table and then update current row
                         updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
                     }
                     return existingDemographic;
                 })
                 .orElseGet(() -> coreDemographicRepo.save(messageDemographics));
+    }
+
+    private boolean messageDemographicsIsDifferentAndIsNewer(CoreDemographic messageDemographics, CoreDemographic existingDemographic) {
+        return !existingDemographic.equals(messageDemographics) && existingDemographic.getValidFrom().isBefore(messageDemographics.getValidFrom());
     }
 
     private void updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,

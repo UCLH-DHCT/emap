@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +54,25 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
+    }
+
+    /**
+     * Message is older than current information, so demographics should stay the same
+     */
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testOldDemographicsData() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        msg.setEventOccurredDateTime(Instant.MIN);
+
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+
+        // process message
+        dbOps.processMessage(msg);
+
+        CoreDemographic postDemographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+        assertEquals(preDemographic, postDemographic);
     }
 
     /**
