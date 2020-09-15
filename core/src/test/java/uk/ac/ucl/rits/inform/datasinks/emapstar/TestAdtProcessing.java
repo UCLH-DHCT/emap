@@ -1,76 +1,22 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonRepository;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@SpringJUnitConfig
-@SpringBootTest
-@AutoConfigureTestDatabase
-@ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class TestAdtProcessing {
-    @Autowired
-    private MrnRepository mrnRepo;
-    @Autowired
-    private MrnToLiveRepository mrnToLiveRepo;
-    @Autowired
-    private CoreDemographicRepository coreDemographicRepository;
-    @Autowired
-    private PersonRepository personRepo;
-
-    @Autowired
-    private InformDbOperations dbOps;
-
-    private final String defaultMrn = "40800000";
-
-
-    InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
-
-
-    @Transactional
-    protected void processSingleMessage(boolean allowMessageIgnored, EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
-        try {
-            msg.processMessage(dbOps);
-        } catch (MessageIgnoredException e) {
-            if (!allowMessageIgnored) {
-                throw e;
-            }
-        }
-    }
-
-    private List<Mrn> getAllMrns() {
-        return StreamSupport.stream(mrnRepo.findAll().spliterator(), false).collect(Collectors.toList());
-    }
-
+public class TestAdtProcessing extends MessageProcessingBase {
 
     /**
      * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
@@ -155,8 +101,8 @@ public class TestAdtProcessing {
         assertEquals(newMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(newMrn);
-        assertEquals(2,  survivingMrnToLiveRows.size());
-        }
+        assertEquals(2, survivingMrnToLiveRows.size());
+    }
 
     /**
      * retire mrn that hasn't been seen before, merging into MRN which has already been merged
@@ -183,7 +129,7 @@ public class TestAdtProcessing {
         assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
-        assertEquals(3,  survivingMrnToLiveRows.size());
+        assertEquals(3, survivingMrnToLiveRows.size());
     }
 
 }
