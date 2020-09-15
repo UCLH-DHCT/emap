@@ -11,8 +11,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <checkstyle.version>8.32</checkstyle.version>
     <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
     <apache.commons.csv.version>1.6</apache.commons.csv.version>
@@ -22,12 +22,6 @@
   </properties>
 
   <profiles>
-    <profile>
-      <id>hl7source</id>
-      <properties>
-        <spring.boot.mainclass>uk.ac.ucl.rits.inform.datasources.ids.AppHl7</spring.boot.mainclass>
-      </properties>
-    </profile>
     <profile>
       <id>emapstar</id>
       <properties>
@@ -39,7 +33,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.6.RELEASE</version>
+    <version>2.3.3.RELEASE</version>
   </parent>
 
   <dependencies>
