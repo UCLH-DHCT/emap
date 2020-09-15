@@ -47,14 +47,9 @@ public class PersonData {
      */
     public void mergeMrns(final String retiringMrn, final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom) {
         // get original mrn object
-        Optional<Mrn> originalMrnResult = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(retiringMrn, retiringMrn);
-        Mrn originalMrn;
-        if (originalMrnResult.isPresent()) {
-            originalMrn = originalMrnResult.get();
-        } else {
-            logger.info(String.format("Retiring MRN in merge (%s) doesn't exist, creating MRN", retiringMrn));
-            originalMrn = createNewLiveMrn(retiringMrn, null, "EPIC", messageDateTime, storedFrom);
-        }
+        Mrn originalMrn = mrnRepo
+                .getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(retiringMrn, null)
+                .orElseGet(() -> createNewLiveMrn(retiringMrn, null, "EPIC", messageDateTime, storedFrom));
         // change all live mrns from original mrn to surviving mrn
         List<MrnToLive> mrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(originalMrn);
         for (MrnToLive mrnToLive : mrnToLiveRows) {
@@ -91,18 +86,17 @@ public class PersonData {
     public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
         CoreDemographic messageDemographics = new CoreDemographic();
         updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
-        Optional<CoreDemographic> existingDemographicResult = coreDemographicRepo.getByMrnIdEquals(mrnId);
-        CoreDemographic demographicsToSave = messageDemographics;
-        if (existingDemographicResult.isPresent()) {
-            CoreDemographic existingDemographics = existingDemographicResult.get();
-            // if the demographics are not the same, update the demographics
-            if (existingDemographics.equals(messageDemographics)) {
-                return;
-            } else {
-                // log current state in audit table and then update the row
-                demographicsToSave = updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographics);
-            }
-        }
+        // get existing demographics and update if they have changed. If none existing, save message demographics
+        CoreDemographic demographicsToSave = coreDemographicRepo
+                .getByMrnIdEquals(mrnId)
+                .map(existingDemographic -> {
+                    if (!existingDemographic.equals(messageDemographics)) {
+                        // log current state to audit table and then update current row
+                        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
+                    }
+                    return existingDemographic;
+                })
+                .orElse(messageDemographics);
         coreDemographicRepo.save(demographicsToSave);
     }
 
@@ -132,6 +126,7 @@ public class PersonData {
 
     private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
                                  final Instant storedFrom) {
+        logger.debug(String.format("Creating new MRN (mrn=%s, nhsNumber=%s)", mrnString, nhsNumber));
         Mrn mrn = new Mrn();
         mrn.setMrn(mrnString);
         mrn.setNhsNumber(nhsNumber);
