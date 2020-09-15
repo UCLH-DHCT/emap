@@ -24,23 +24,24 @@ jobs:
       - checkout
 
       - run:
-          command: |
-              git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Inform-DB.git || git clone --branch develop git@github.com:inform-health-informatics/Inform-DB.git
-              cd Inform-DB
-              mvn install -Dmaven.test.skip=true
-              git clone --branch v1 git@github.com:inform-health-informatics/Inform-DB.git Inform-DB1
-              cd Inform-DB1
-              mvn install -Dmaven.test.skip=true
-              git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Emap-Interchange.git || git clone --branch develop git@github.com:inform-health-informatics/Emap-Interchange.git
-
-              cd Emap-Interchange
-              # run tests so that test classes can be used in current testing
-              mvn install
+        name: Inform-DB
+        command: |
+            git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Inform-DB.git || git clone --branch develop git@github.com:inform-health-informatics/Inform-DB.git
+            cd Inform-DB
+            mvn install -Dmaven.test.skip=true
       - run:
-          command: |
-             mvn dependency:go-offline
-
+        name: Emap-Interchange
+        command: |
+            git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Emap-Interchange.git || git clone --branch develop git@github.com:inform-health-informatics/Emap-Interchange.git
+            cd Emap-Interchange
+            # run tests so that test classes can be used in current testing
+            mvn install
       - run:
-          command: |
-             TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
-             TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+        name: Maven dependencies
+        command: |
+           mvn dependency:go-offline
+      - run:
+        name: Maven tests
+        command: |
+           TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+           TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
