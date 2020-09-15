@@ -87,23 +87,26 @@ public class PersonData {
         return mrn;
     }
 
-    public void updateOrCreateDemographics(long mrnId, AdtMessage adtMessage, Instant storedFrom) {
-        CoreDemographic messageDemographics = buildCoreDemographic(mrnId, adtMessage, storedFrom);
+    public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
+        CoreDemographic messageDemographics = new CoreDemographic();
+        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
         Optional<CoreDemographic> existingDemographicResult = coreDemographicRepo.getByMrnIdEquals(mrnId);
+        CoreDemographic demographicsToSave = messageDemographics;
         if (existingDemographicResult.isPresent()) {
             CoreDemographic existingDemographics = existingDemographicResult.get();
             // if the demographics are not the same, update the demographics
             if (existingDemographics.equals(messageDemographics)) {
                 return;
             } else {
-                messageDemographics.setCoreDemographicId(existingDemographics.getCoreDemographicId());
+                // log current state in audit table and then update the row
+                demographicsToSave = updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographics);
             }
         }
-        coreDemographicRepo.save(messageDemographics);
+        coreDemographicRepo.save(demographicsToSave);
     }
 
-    private CoreDemographic buildCoreDemographic(long mrnId, AdtMessage adtMessage, Instant storedFrom) {
-        CoreDemographic coreDemographic = new CoreDemographic();
+    private CoreDemographic updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,
+                                                        CoreDemographic coreDemographic) {
         coreDemographic.setMrnId(mrnId);
         coreDemographic.setFirstname(adtMessage.getPatientGivenName());
         coreDemographic.setMiddlename(adtMessage.getPatientMiddleName());
@@ -119,7 +122,6 @@ public class PersonData {
         // from dates
         coreDemographic.setStoredFrom(storedFrom);
         coreDemographic.setValidFrom(adtMessage.getRecordedDateTime());
-
         return coreDemographic;
     }
 
