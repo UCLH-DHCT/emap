@@ -45,7 +45,7 @@ public class PersonData {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      */
-    public void mergeMrns(String retiringMrn, Mrn survivingMrn, Instant messageDateTime, Instant storedFrom) {
+    public void mergeMrns(final String retiringMrn, final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom) {
         // get original mrn object
         Optional<Mrn> originalMrnResult = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(retiringMrn, retiringMrn);
         Mrn originalMrn;
@@ -72,7 +72,8 @@ public class PersonData {
      * @param storedFrom      when the message has been read by emap core
      * @return The live MRN for the patient.
      */
-    public Mrn getOrCreateMrn(String mrnString, String nhsNumber, String sourceSystem, Instant messageDateTime, Instant storedFrom) {
+    public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
+                              final Instant storedFrom) {
         // get existing mrn by mrn or (mrn is null and nhsnumber equals)
         Optional<Mrn> optionalMrn = mrnRepo.getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrnString, nhsNumber);
         Mrn mrn;
@@ -129,7 +130,8 @@ public class PersonData {
         return (instant == null) ? null : instant.atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
-    private Mrn createNewLiveMrn(String mrnString, String nhsNumber, String sourceSystem, Instant messageDateTime, Instant storedFrom) {
+    private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
+                                 final Instant storedFrom) {
         Mrn mrn = new Mrn();
         mrn.setMrn(mrnString);
         mrn.setNhsNumber(nhsNumber);

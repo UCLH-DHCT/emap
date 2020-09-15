@@ -33,7 +33,7 @@ public class PathologyProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    public String processMessage(PathologyOrder msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
+    public String processMessage(final PathologyOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         // or use test coding system from the message (e.g. winpath)
         String sourceSystem = "EPIC";

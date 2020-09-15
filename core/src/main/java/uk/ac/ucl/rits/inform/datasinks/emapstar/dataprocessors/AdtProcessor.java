@@ -35,11 +35,11 @@ public class AdtProcessor {
      * @return return Code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    public String processMessage(AdtMessage msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
+    public String processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         String sourceSystem = "EPIC";
         Mrn mrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), sourceSystem, msg.getRecordedDateTime(), storedFrom);
-        personData.updateOrCreateDemographics(mrn.getMrnId(), msg, storedFrom);
+        personData.updateOrCreateDemographic(mrn.getMrnId(), msg, storedFrom);
 
         if (msg instanceof MergeById) {
             MergeById mergeById = (MergeById) msg;

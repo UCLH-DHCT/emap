@@ -33,7 +33,7 @@ public class FlowsheetProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    public String processMessage(VitalSigns msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
+    public String processMessage(final VitalSigns msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationTimeTaken();
