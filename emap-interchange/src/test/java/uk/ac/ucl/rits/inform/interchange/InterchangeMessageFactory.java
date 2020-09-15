@@ -26,26 +26,6 @@ public class InterchangeMessageFactory {
 
     /**
      * Builds an ADT message from yaml file.
-     * Not sure it's as useful as other message factories but may be useful for testing a complex set of ADT messages together?
-     * @param fileName        filename within test resources/OldAdtMessages
-     * @param sourceMessageId source message ID
-     * @return ADT message
-     */
-    public OldAdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
-        OldAdtMessage adtMessage = new OldAdtMessage();
-        String resourcePath = "/OldAdtMessages/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            adtMessage = mapper.readValue(inputStream, OldAdtMessage.class);
-            adtMessage.setSourceMessageId(sourceMessageId);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return adtMessage;
-    }
-
-    /**
-     * Builds an ADT message from yaml file.
      * @param fileName filename within test resources/AdtMessages
      * @return ADT message
      */

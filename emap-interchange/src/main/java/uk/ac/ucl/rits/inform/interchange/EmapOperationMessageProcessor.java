@@ -22,13 +22,6 @@ public interface EmapOperationMessageProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(OldAdtMessage msg) throws EmapOperationMessageProcessingException;
-
-    /**
-     * @param msg the ADT message to process
-     * @return return code
-     * @throws EmapOperationMessageProcessingException if message cannot be processed
-     */
     String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException;
 
     /**
