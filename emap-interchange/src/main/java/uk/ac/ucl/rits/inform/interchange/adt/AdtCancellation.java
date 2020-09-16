@@ -5,7 +5,7 @@ import java.time.Instant;
 /**
  * Additional data requirements for a cancellation adt message.
  */
-public interface AdtCancellationInterface extends AdtMessageInterface {
+public interface AdtCancellation extends AdtMessageInterface {
     /**
      * @return cancelledDatetime.
      */
