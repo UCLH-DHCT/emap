@@ -103,17 +103,18 @@ public class PersonData {
     private void updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,
                                              CoreDemographic coreDemographic) {
         coreDemographic.setMrnId(mrnId);
-        coreDemographic.setFirstname(adtMessage.getPatientGivenName());
-        coreDemographic.setMiddlename(adtMessage.getPatientMiddleName());
-        coreDemographic.setLastname(adtMessage.getPatientFamilyName());
-        coreDemographic.setDateOfBirth(convertToLocalDate(adtMessage.getPatientBirthDate()));
-        coreDemographic.setDatetimeOfBirth(adtMessage.getPatientBirthDate());
-        coreDemographic.setSex(adtMessage.getPatientSex());
-        coreDemographic.setHomePostcode(adtMessage.getPatientZipOrPostalCode());
+        adtMessage.getPatientGivenName().assignTo(coreDemographic::setFirstname);
+        adtMessage.getPatientMiddleName().assignTo(coreDemographic::setMiddlename);
+        adtMessage.getPatientFamilyName().assignTo(coreDemographic::setLastname);
+        adtMessage.getPatientBirthDate().assignTo(instant -> coreDemographic.setDateOfBirth(convertToLocalDate(instant)));
+        adtMessage.getPatientBirthDate().assignTo(coreDemographic::setDatetimeOfBirth);
+        adtMessage.getPatientSex().assignTo(coreDemographic::setSex);
+        adtMessage.getPatientZipOrPostalCode().assignTo(coreDemographic::setHomePostcode);
         // death
-        coreDemographic.setAlive(!adtMessage.getPatientDeathIndicator());
-        coreDemographic.setDateOfDeath(convertToLocalDate(adtMessage.getPatientDeathDateTime()));
-        coreDemographic.setDatetimeOfDeath(adtMessage.getPatientDeathDateTime());
+        adtMessage.getPatientDeathIndicator().assignTo(dead -> coreDemographic.setAlive(!dead));
+        adtMessage.getPatientDeathDateTime().assignTo(instant -> coreDemographic.setDateOfDeath(convertToLocalDate(instant)));
+        adtMessage.getPatientDeathDateTime().assignTo(coreDemographic::setDatetimeOfDeath);
+        adtMessage.getPatientMiddleName().assignTo(coreDemographic::setMiddlename);
         // from dates
         coreDemographic.setStoredFrom(storedFrom);
         coreDemographic.setValidFrom(adtMessage.getRecordedDateTime());

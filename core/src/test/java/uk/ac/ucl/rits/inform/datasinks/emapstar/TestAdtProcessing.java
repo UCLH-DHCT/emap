@@ -6,6 +6,7 @@ import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
 
@@ -84,7 +85,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
     public void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String mrnString = "60600000";
-        msg.setMrn(mrnString);
+        msg.setMrn(new Hl7Value<>(mrnString));
 
         int startingMrnCount = getAllMrns().size();
 
@@ -97,7 +98,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         long liveMrnId = 1003L;
         //person repo should return the live mrn only
-        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), null, null, null);
+        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn().get(), msg.getNhsNumber().get(), null, null, null);
         assertEquals(liveMrnId, liveMrn.getMrnId().longValue());
 
         // demographics that are updated should be the live mrn
@@ -136,7 +137,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         String retiringMrnString = "60600005";
         MergeById msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setRetiredMrn(retiringMrnString);
-        msg.setMrn(messageSurvivingMrn);
+        msg.setMrn(new Hl7Value<>(messageSurvivingMrn));
 
         String liveMrnString = "30700000";
 
