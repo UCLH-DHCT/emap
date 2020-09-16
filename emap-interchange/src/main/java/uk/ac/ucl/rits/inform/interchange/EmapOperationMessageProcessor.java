@@ -50,5 +50,5 @@ public interface EmapOperationMessageProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(PatientInfection msg);
+    String processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
 }

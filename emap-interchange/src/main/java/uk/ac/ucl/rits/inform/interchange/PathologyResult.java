@@ -16,6 +16,7 @@ import java.util.Objects;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class PathologyResult implements Serializable {
+    private static final long serialVersionUID = 140970942335476554L;
     private String valueType = "";
 
     private String testItemLocalCode = "";

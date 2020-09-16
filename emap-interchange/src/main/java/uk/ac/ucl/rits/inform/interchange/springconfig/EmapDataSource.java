@@ -13,13 +13,9 @@ public enum EmapDataSource {
     /**
      * The message queue from Caboodle data.
      */
-    CABOODLE("caboodleQueue"),
-    /**
-     * The message queue from Theme Hospital.
-     */
-    THEME_HOSPITAL_QUEUE("themeHospitalQueue");
+    CABOODLE("caboodleQueue");
 
-    private String queueName;
+    private final String queueName;
 
     /**
      * @param queueName name of the AMQP queue for this data source

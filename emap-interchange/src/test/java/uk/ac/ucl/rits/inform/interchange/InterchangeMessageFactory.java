@@ -16,7 +16,7 @@ import java.util.List;
  * Allows for easier setup for integration testing in hl7 sources and emap star
  */
 public class InterchangeMessageFactory {
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     public InterchangeMessageFactory() {
         mapper = new ObjectMapper(new YAMLFactory());
