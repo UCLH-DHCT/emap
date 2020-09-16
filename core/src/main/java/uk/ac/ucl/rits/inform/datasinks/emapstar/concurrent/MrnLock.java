@@ -53,6 +53,11 @@ public class MrnLock {
             if (lock == null) {
                 lock = new MutableInteger();
                 licences.put(mrn, lock);
+            } else {
+                // A unheld lock should have been removed from the map
+                if (lock.isUnheld()) {
+                    throw new IllegalStateException("Lock with no holders was stored in licenses map");
+                }
             }
             lock.increment();
         }
@@ -103,7 +108,13 @@ public class MrnLock {
             throw new IllegalArgumentException("mrns cannot be empty");
         }
 
-        mrns.sort((a, b) -> a.compareTo(b));
+        mrns.sort((a, b) -> {
+            int value = a.compareTo(b);
+            if (value == 0) {
+                throw new IllegalArgumentException("All mrns must be unique");
+            }
+            return value;
+        });
 
         for (String mrn : mrns) {
             this.acquire(mrn);

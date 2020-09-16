@@ -212,4 +212,30 @@ public class TestMrnLock {
         });
         lock.release(mrn1);
     }
+
+
+    /**
+     * Test that trying to lock a duplicate throws an exception.
+     */
+    @Test
+    public void testDuplicates() {
+        MrnLock lock = new MrnLock();
+
+        String mrn1 = "1";
+
+        assertThrows(IllegalArgumentException.class, () -> lock.acquire(mrn1, mrn1));
+
+        assertThrows(NullPointerException.class, () -> lock.acquire(mrn1, null));
+
+        assertThrows(NullPointerException.class, () -> lock.acquire((String) null));
+        assertThrows(NullPointerException.class, () -> lock.acquire((List<String>) null));
+
+        List<String> mrns = new ArrayList<>();
+        assertThrows(IllegalArgumentException.class, () -> lock.acquire(mrns));
+
+        mrns.add(mrn1);
+        mrns.add(mrn1);
+
+        assertThrows(IllegalArgumentException.class, () -> lock.acquire(mrns));
+    }
 }
