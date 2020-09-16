@@ -39,7 +39,8 @@ public class TestAdtProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Mrn already exists so no new Mrns should be created
+     * Mrn already exists
+     * no new Mrns should be created but demographics should be updated with known data from the message.
      */
     @Test
     @Sql(value = "/populate_mrn.sql")
@@ -55,6 +56,11 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
+
+        // unknown demographics should not be set
+        CoreDemographic demographic =  coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+        assertEquals("middle", demographic.getMiddlename()); // unknown value so shouldn't change
+        assertEquals("ORANGE", demographic.getLastname());  // known value so should change
     }
 
     /**
@@ -64,7 +70,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
     @Sql(value = "/populate_mrn.sql")
     public void testOldDemographicsData() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg.setEventOccurredDateTime(Instant.MIN);
+        msg.setRecordedDateTime(Instant.MIN);
 
         Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
         CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);

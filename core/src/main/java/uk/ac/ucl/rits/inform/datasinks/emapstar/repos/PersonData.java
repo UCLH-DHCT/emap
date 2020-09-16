@@ -79,27 +79,52 @@ public class PersonData {
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
 
+    /**
+     * Update existing demographics if they have changed and are newer, otherwise create new demographics.
+     * @param mrnId      Id of the mrn
+     * @param adtMessage adt message
+     * @param storedFrom when the message has been read by emap core
+     */
     @Transactional
     public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
-        CoreDemographic messageDemographics = new CoreDemographic();
-        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
-        // get existing demographics and update if they have changed. If none existing, save message demographics
         coreDemographicRepo
                 .getByMrnIdEquals(mrnId)
                 .map(existingDemographic -> {
-                    if (messageDemographicsIsDifferentAndIsNewer(messageDemographics, existingDemographic)) {
+                    if (messageIsDifferentAndIsNewer(mrnId, adtMessage, storedFrom, existingDemographic)) {
                         // log current state to audit table and then update current row
                         updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
                     }
                     return existingDemographic;
                 })
-                .orElseGet(() -> coreDemographicRepo.save(messageDemographics));
+                .orElseGet(() -> {
+                    CoreDemographic messageDemographics = new CoreDemographic();
+                    updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
+                    return coreDemographicRepo.save(messageDemographics);
+                });
     }
 
-    private boolean messageDemographicsIsDifferentAndIsNewer(CoreDemographic messageDemographics, CoreDemographic existingDemographic) {
+    /**
+     * ADT message has different values and is newer than the existing core demographics.
+     * @param mrnId               Id of the mrn
+     * @param adtMessage          adt message
+     * @param storedFrom          when the message has been read by emap core
+     * @param existingDemographic core demographics from the database
+     * @return true if the demographics should be updated
+     */
+    private boolean messageIsDifferentAndIsNewer(final long mrnId, final AdtMessage adtMessage,
+                                                 final Instant storedFrom, CoreDemographic existingDemographic) {
+        CoreDemographic messageDemographics = existingDemographic.copy();
+        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
         return !existingDemographic.equals(messageDemographics) && existingDemographic.getValidFrom().isBefore(messageDemographics.getValidFrom());
     }
 
+    /**
+     * Update core demographics fields from known values of the adt message.
+     * @param mrnId           Id of the mrn
+     * @param adtMessage      adt message
+     * @param storedFrom      when the message has been read by emap core
+     * @param coreDemographic original core demographic object
+     */
     private void updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,
                                              CoreDemographic coreDemographic) {
         coreDemographic.setMrnId(mrnId);
@@ -120,10 +145,24 @@ public class PersonData {
         coreDemographic.setValidFrom(adtMessage.getRecordedDateTime());
     }
 
+    /**
+     * Convert instant to local date, allowing for nulls.
+     * @param instant instant
+     * @return LocalDate
+     */
     private LocalDate convertToLocalDate(Instant instant) {
         return (instant == null) ? null : instant.atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
+    /**
+     * Create new Mrn and MrnToLive.
+     * @param mrnString       MRN
+     * @param nhsNumber       NHS number
+     * @param sourceSystem    source system
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return new MRN
+     */
     private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
                                  final Instant storedFrom) {
         logger.debug(String.format("Creating new MRN (mrn=%s, nhsNumber=%s)", mrnString, nhsNumber));
