@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.concurrent;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
@@ -9,6 +10,10 @@ import java.util.concurrent.Semaphore;
  * An MrnLock allows us to lock either individual or groups of MRNs
  * individually. The implementation will seek to run in memory proportional to
  * the number of currently held locks, not the total number seen.
+ *
+ * Holders must acquire all desired locks with a single call to acquire. Once
+ * aquire is called it may not be called again until all aquired locks are
+ * released. Unlike aquiring, locks can be released individually in any order.
  *
  * Note that it may be possible for many locks for the same mrn to exist at the
  * same time and all to have granted access at the same time. The restriction is
@@ -30,6 +35,10 @@ public class MrnLock {
     /**
      * Block until you get an exclusive lock on a single mrn.
      *
+     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock,
+     * you are not allowed to acquire more until you release all those you already
+     * hold.
+     *
      * @param mrn The mrn to get a lock on
      * @throws InterruptedException If the thread is interrupted
      */
@@ -50,9 +59,12 @@ public class MrnLock {
         lock.acquire();
     }
 
-
     /**
      * Block until you get an exclusive lock on a pair of mrns.
+     *
+     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock,
+     * you are not allowed to acquire more until you release all those you already
+     * hold.
      *
      * @param mrn1 One of the mrns to get a lock on
      * @param mrn2 The other mrn to get a lock on
@@ -79,6 +91,10 @@ public class MrnLock {
     /**
      * Block until you get an exclusive lock on a list of mrns.
      *
+     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock,
+     * you are not allowed to acquire more until you release all those you already
+     * hold.
+     *
      * @param mrns The mrns to get a lock on
      * @throws InterruptedException If the thread is interrupted
      */
@@ -94,10 +110,9 @@ public class MrnLock {
         }
     }
 
-
     /**
-     * Release a previously acquired lock. You must not release a lock
-     * that you do not already hold. This is not checked for.
+     * Release a previously acquired lock. You must not release a lock that you do
+     * not already hold. This is not checked for.
      *
      * @param mrn The mrn to release the lock for.
      */
@@ -109,12 +124,49 @@ public class MrnLock {
         MutableInteger lock;
         synchronized (licences) {
             lock = licences.get(mrn);
+            if (lock == null) {
+                throw new NoSuchElementException(String.format("No lock held for %s", mrn));
+            }
             lock.decrement();
             if (lock.isUnheld()) {
                 this.licences.remove(mrn);
             }
         }
         lock.release();
+    }
+
+    /**
+     * Release two previously acquired locks. You must not release a lock that you
+     * do not already hold. This is not checked for.
+     *
+     * @param mrn1 One mrn to release the lock for.
+     * @param mrn2 Another mrn to release the lock for.
+     */
+    public void release(String mrn1, String mrn2) {
+        if (mrn1 == null || mrn2 == null || mrn1.equals(mrn2)) {
+            throw new IllegalArgumentException(
+                    String.format("mrn1 (%s) and mrn2 (%s) must be non-null and different", mrn1, mrn2));
+        }
+
+        this.release(mrn1);
+        this.release(mrn2);
+    }
+
+    /**
+     * Release a list of previously acquired locks. You must not release a lock that
+     * you do not already hold. This is not checked for.
+     *
+     * @param mrns Iterable of locks to release. Must be non-null, non-empty, and
+     *             contain no duplicates.
+     */
+    public void release(Iterable<String> mrns) {
+        if (mrns == null) {
+            throw new IllegalArgumentException("mrns must not be null");
+        }
+
+        for (String mrn : mrns) {
+            this.release(mrn);
+        }
     }
 
     /**
