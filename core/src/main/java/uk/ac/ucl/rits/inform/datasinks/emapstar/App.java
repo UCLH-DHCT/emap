@@ -23,7 +23,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Entry point class for the HL7 pipeline.
@@ -58,10 +57,6 @@ public class App {
         SpringApplication.run(App.class, args);
     }
 
-    /**
-     * For ensuring vocab gets loaded before any processing happens.
-     */
-    private CountDownLatch vocabLoaded = new CountDownLatch(1);
 
     /**
      * The listener for processing messages and writing to Emap-Star. The ordering
@@ -76,11 +71,6 @@ public class App {
     @RabbitListener(queues = {"hl7Queue", "caboodleQueue"})
     public void receiveMessage(EmapOperationMessage msg, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag)
             throws IOException {
-        try {
-            vocabLoaded.await();
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
         IdsEffectLogging idsEffectLogging = new IdsEffectLogging();
         Instant startTime = Instant.now();
         idsEffectLogging.setProcessingStartTime(startTime);
@@ -119,18 +109,6 @@ public class App {
         }
     }
 
-    /**
-     * Initialise vocab (attributes). Perform early in the init process.
-     * @return The CommandLineRunner
-     */
-    @Bean
-    @Profile("default")
-    public CommandLineRunner loadVocab() {
-        return (args) -> {
-//            dbOps.ensureVocabLoaded();
-            vocabLoaded.countDown();
-        };
-    }
 
     /**
      * Don't want to do any normal HL7 message processing if running test profile.
