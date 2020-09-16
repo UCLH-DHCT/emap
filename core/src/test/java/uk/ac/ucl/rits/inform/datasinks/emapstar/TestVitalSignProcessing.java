@@ -28,7 +28,7 @@ public class TestVitalSignProcessing extends MessageProcessingBase {
     @Test
     public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
         for (VitalSigns msg : messages) {
-            processSingleMessage(false, msg);
+            processSingleMessage(msg);
         }
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());

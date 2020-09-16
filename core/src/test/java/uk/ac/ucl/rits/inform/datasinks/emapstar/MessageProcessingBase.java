@@ -42,15 +42,15 @@ public abstract class MessageProcessingBase {
     protected final String defaultMrn = "40800000";
 
 
-    protected InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
+    protected final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
 
 
     @Transactional
-    protected void processSingleMessage(boolean allowMessageIgnored, EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
+    protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
         try {
             msg.processMessage(dbOps);
         } catch (MessageIgnoredException e) {
-            if (!allowMessageIgnored) {
+            if (!false) {
                 throw e;
             }
         }

@@ -109,7 +109,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
-    public String processMessage(PatientInfection msg) {
+    public String processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
         return null;
     }
 

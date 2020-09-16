@@ -27,7 +27,7 @@ public class TestPathologyProcessing extends MessageProcessingBase {
     @Test
     public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
         for (PathologyOrder msg : messages) {
-            processSingleMessage(false, msg);
+            processSingleMessage(msg);
         }
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
