@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * This class represents the association of Medical Resource Identifier (MRN) to
+ * This class represents the association of Medical Resource Number (MRN) to
  * an individual patient (a Person). This represents nothing more than a list of
  * all MRNs the system is aware of.
  * <p>
