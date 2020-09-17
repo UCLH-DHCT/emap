@@ -92,7 +92,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
     public void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String mrnString = "60600000";
-        msg.setMrn(new Hl7Value<>(mrnString));
+        msg.setMrn(mrnString);
 
         int startingMrnCount = getAllMrns().size();
 
@@ -105,7 +105,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         long liveMrnId = 1003L;
         //person repo should return the live mrn only
-        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn().get(), msg.getNhsNumber().get(), null, null, null);
+        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), null, null, null);
         assertEquals(liveMrnId, liveMrn.getMrnId().longValue());
 
         // demographics that are updated should be the live mrn
@@ -144,7 +144,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         String retiringMrnString = "60600005";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setRetiredMrn(retiringMrnString);
-        msg.setMrn(new Hl7Value<>(messageSurvivingMrn));
+        msg.setMrn(messageSurvivingMrn);
 
         String liveMrnString = "30700000";
 
@@ -173,7 +173,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setRetiredMrn(retiringMrnString);
         msg.setRetiredNhsNumber(retiringNhsNumber);
-        msg.setMrn(new Hl7Value<>(survivingMrnString));
+        msg.setMrn(survivingMrnString);
 
         // process message
         dbOps.processMessage(msg);
