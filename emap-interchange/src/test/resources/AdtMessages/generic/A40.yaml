@@ -3,10 +3,8 @@ recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
 operatorId: "U444444"
 retiredMrn: "40800000"
-mrn:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "40800001"
+mrn: "40800001"
+nhsNumber: "9999999999"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -35,7 +33,3 @@ patientTitle:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "MR"
-nhsNumber:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "9999999999"

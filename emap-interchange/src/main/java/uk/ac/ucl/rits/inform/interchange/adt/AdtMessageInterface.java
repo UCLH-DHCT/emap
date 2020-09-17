@@ -71,12 +71,12 @@ public interface AdtMessageInterface {
     /**
      * @return mrn
      */
-    Hl7Value<String> getMrn();
+    String getMrn();
 
     /**
      * @return nhsNumber
      */
-    Hl7Value<String> getNhsNumber();
+    String getNhsNumber();
 
     /**
      * @return patientBirthDate
@@ -212,12 +212,12 @@ public interface AdtMessageInterface {
     /**
      * @param mrn to set
      */
-    void setMrn(Hl7Value<String> mrn);
+    void setMrn(String mrn);
 
     /**
      * @param nhsNumber to set
      */
-    void setNhsNumber(Hl7Value<String> nhsNumber);
+    void setNhsNumber(String nhsNumber);
 
     /**
      * @param patientBirthDate to set

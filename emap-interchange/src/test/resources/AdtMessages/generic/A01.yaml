@@ -3,6 +3,8 @@ recordedDateTime: "2013-02-11T10:00:52Z"
 operatorId: "IPUC"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
+mrn: "40800000"
+nhsNumber: "9999999999"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -30,10 +32,6 @@ fullLocationString:
 hospitalService:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value:  "Anaes"
-  status: "SAVE"
-mrn:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "40800000"
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
@@ -67,7 +65,4 @@ visitNumber:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value:  "123412341234"
   status: "SAVE"
-nhsNumber:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "9999999999"
-  status: "SAVE"
+

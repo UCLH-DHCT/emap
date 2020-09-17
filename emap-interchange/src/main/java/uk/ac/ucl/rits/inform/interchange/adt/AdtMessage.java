@@ -23,6 +23,8 @@ public abstract class AdtMessage extends EmapOperationMessage implements Seriali
     private String eventReasonCode;
     private Instant eventOccurredDateTime;
     private String operatorId;
+    private String mrn;
+    private String nhsNumber;
     private Hl7Value<Instant> admissionDateTime = Hl7Value.unknown();
     private Hl7Value<String> admitSource = Hl7Value.unknown();
     private Hl7Value<String> currentBed = Hl7Value.unknown();
@@ -31,8 +33,6 @@ public abstract class AdtMessage extends EmapOperationMessage implements Seriali
     private Hl7Value<String> ethnicGroup = Hl7Value.unknown();
     private Hl7Value<String> fullLocationString = Hl7Value.unknown();
     private Hl7Value<String> hospitalService = Hl7Value.unknown();
-    private Hl7Value<String> mrn = Hl7Value.unknown();
-    private Hl7Value<String> nhsNumber = Hl7Value.unknown();
     private Hl7Value<Instant> patientBirthDate = Hl7Value.unknown();
     private Hl7Value<String> patientClass = Hl7Value.unknown();
     private Hl7Value<Instant> patientDeathDateTime = Hl7Value.unknown();
