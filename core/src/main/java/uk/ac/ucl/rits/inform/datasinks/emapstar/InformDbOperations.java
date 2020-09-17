@@ -17,7 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
 
@@ -78,7 +78,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     @Transactional
-    public String processMessage(MergeById msg) throws EmapOperationMessageProcessingException {
+    public String processMessage(MergePatient msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         return adtProcessor.processMessage(msg, storedFrom);
     }

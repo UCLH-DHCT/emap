@@ -8,7 +8,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonData;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
 
@@ -43,9 +43,9 @@ public class AdtProcessor {
         Mrn mrn = personData.getOrCreateMrn(msg.getMrn().get(), msg.getNhsNumber().get(), sourceSystem, msg.getRecordedDateTime(), storedFrom);
         personData.updateOrCreateDemographic(mrn.getMrnId(), msg, storedFrom);
 
-        if (msg instanceof MergeById) {
-            MergeById mergeById = (MergeById) msg;
-            personData.mergeMrns(mergeById.getRetiredMrn(), mrn, mergeById.getRecordedDateTime(), storedFrom);
+        if (msg instanceof MergePatient) {
+            MergePatient mergePatient = (MergePatient) msg;
+            personData.mergeMrns(mergePatient.getRetiredMrn(), mergePatient.getRetiredNhsNumber(), mrn, mergePatient.getRecordedDateTime(), storedFrom);
         }
         return returnCode;
     }

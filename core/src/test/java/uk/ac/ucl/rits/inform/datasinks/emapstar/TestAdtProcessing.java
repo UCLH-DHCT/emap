@@ -8,11 +8,12 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
-import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -120,7 +121,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
     @Test
     @Sql(value = "/populate_mrn.sql")
     public void testMergeKnownRetiringNewSurviving() throws EmapOperationMessageProcessingException {
-        MergeById msg = messageFactory.getAdtMessage("generic/A40.yaml");
+        MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
 
         // process message
         dbOps.processMessage(msg);
@@ -141,7 +142,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
     public void testMergeNewRetiringAlreadyMergedSurviving() throws EmapOperationMessageProcessingException {
         String messageSurvivingMrn = "60600000";
         String retiringMrnString = "60600005";
-        MergeById msg = messageFactory.getAdtMessage("generic/A40.yaml");
+        MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setRetiredMrn(retiringMrnString);
         msg.setMrn(new Hl7Value<>(messageSurvivingMrn));
 
@@ -154,6 +155,34 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertNotNull(retiringMrn);
         MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
         Mrn survivingMrn = mrnRepo.getByMrnEquals(liveMrnString);
+        assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
+        // check number of mrn to live rows by live mrn
+        List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
+        assertEquals(3, survivingMrnToLiveRows.size());
+    }
+
+    /**
+     * Merging patient that is known by Mrn and Nhs number
+     */
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testMergeByNhsNumber() throws EmapOperationMessageProcessingException {
+        String survivingMrnString = "30700000";
+        String retiringMrnString = "60600000";
+        String retiringNhsNumber = "1111111111";
+        MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
+        msg.setRetiredMrn(retiringMrnString);
+        msg.setRetiredNhsNumber(retiringNhsNumber);
+        msg.setMrn(new Hl7Value<>(survivingMrnString));
+
+        // process message
+        dbOps.processMessage(msg);
+        // retiring mrn created and linked to surviving mrn
+        Mrn retiringMrn = mrnRepo.getAllByNhsNumberEquals(retiringNhsNumber).stream()
+                .filter(mrn -> mrn.getMrn() == null)
+                .findFirst().orElseThrow(NullPointerException::new);
+        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
+        Mrn survivingMrn = mrnRepo.getByMrnEquals(survivingMrnString);
         assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
@@ -39,24 +40,28 @@ public class PersonData {
     }
 
     /**
-     * Merge two MRNs, setting the surviving mrn to be live.
-     * @param retiringMrn     MRN to retire and merge from
-     * @param survivingMrn    live MRN to merge into
-     * @param messageDateTime date time of the message
-     * @param storedFrom      when the message has been read by emap core
+     * Merge at least two MRNs, setting the surviving mrn to be live.
+     * @param retiringMrn       MRN to retire and merge from
+     * @param retiringNhsNumber nhsNumber to retire and merge from
+     * @param survivingMrn      live MRN to merge into
+     * @param messageDateTime   date time of the message
+     * @param storedFrom        when the message has been read by emap core
+     * @throws MessageIgnoredException if no retiring mrn information
      */
     @Transactional
-    public void mergeMrns(final String retiringMrn, final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom) {
-        // get original mrn object
-        Mrn originalMrn = mrnRepo
-                .getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(retiringMrn, null)
-                .orElseGet(() -> createNewLiveMrn(retiringMrn, null, "EPIC", messageDateTime, storedFrom));
-        // change all live mrns from original mrn to surviving mrn
-        List<MrnToLive> mrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(originalMrn);
-        for (MrnToLive mrnToLive : mrnToLiveRows) {
-            mrnToLive.setLiveMrnId(survivingMrn);
-            mrnToLiveRepo.save(mrnToLive);
+    public void mergeMrns(final String retiringMrn, final String retiringNhsNumber, final Mrn survivingMrn,
+                          final Instant messageDateTime, final Instant storedFrom) throws MessageIgnoredException {
+        if (retiringMrn == null && retiringNhsNumber == null) {
+            throw new MessageIgnoredException("Retiring MRN's Mrn string and NHS number were null");
         }
+        // get original mrn objects by mrn or nhs number
+        List<Mrn> originalMrns = mrnRepo
+                .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(retiringMrn, retiringNhsNumber)
+                .orElseGet(() -> List.of(createNewLiveMrn(retiringMrn, retiringNhsNumber, "EPIC", messageDateTime, storedFrom)));
+        // change all live mrns from original mrn to surviving mrn
+        originalMrns.stream()
+                .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
+                .forEach(mrnToLive -> mrnToLive.setLiveMrnId(survivingMrn));
     }
 
     /**
