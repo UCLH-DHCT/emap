@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.MergeById"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.MergePatient"
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
 operatorId: "U444444"

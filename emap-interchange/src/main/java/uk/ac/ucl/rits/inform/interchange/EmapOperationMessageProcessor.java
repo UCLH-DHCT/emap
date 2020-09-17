@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.interchange;
 
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.MergeById;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 /**
  * Define the message types that an Emap processor
@@ -29,7 +29,7 @@ public interface EmapOperationMessageProcessor {
      * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(MergeById msg) throws EmapOperationMessageProcessingException;
+    String processMessage(MergePatient msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the DischargePatient message to process
