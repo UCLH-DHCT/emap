@@ -1,13 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -19,7 +11,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -30,10 +21,10 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     private void testAdtMessage(String adtFileStem) throws Exception {
         System.out.println("Testing ADT message with stem:" + adtFileStem);
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem +".txt");
-        AdtMessage expectedOrders = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem + ".txt");
+        AdtMessage expectedAdtMessage = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
         assertEquals(1, messagesFromHl7Message.size());
-        assertEquals(messagesFromHl7Message.get(0), expectedOrders);
+        assertEquals(expectedAdtMessage, messagesFromHl7Message.get(0));
     }
 
     @Test
