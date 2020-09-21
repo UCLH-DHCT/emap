@@ -147,7 +147,7 @@ public interface AdtMessageInterface {
     /**
      * @return visitNumber
      */
-    Hl7Value<String> getVisitNumber();
+    String getVisitNumber();
 
     /**
      * @param recordedDateTime to set
@@ -287,5 +287,5 @@ public interface AdtMessageInterface {
     /**
      * @param visitNumber to set
      */
-    void setVisitNumber(Hl7Value<String> visitNumber);
+    void setVisitNumber(String visitNumber);
 }
