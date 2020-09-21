@@ -1,4 +1,6 @@
-FROM maven:3.5.4-jdk-8-alpine
+FROM maven:3.6.3-jdk-11-slim
+# Run commands through bash so source is found
+SHELL ["/bin/bash", "-c"]
 WORKDIR /app
 COPY Emap-Core/set_mvn_proxy.sh /app/
 COPY Emap-Interchange/ /app/Emap-Interchange/
