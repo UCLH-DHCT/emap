@@ -25,7 +25,7 @@ jobs:
 
       - run:
           command: |
-              git clone git@github.com:inform-health-informatics/Emap-Interchange.git
+              git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Emap-Interchange.git || git clone --branch develop git@github.com:inform-health-informatics/Emap-Interchange.git
               cd Emap-Interchange
               # run tests so that test classes can be used in current testing
               mvn install
