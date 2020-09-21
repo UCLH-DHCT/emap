@@ -11,10 +11,10 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <checkstyle.version>8.32</checkstyle.version>
-    <checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
+    <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
     <emap-interchange.version>0.0.2</emap-interchange.version>
   </properties>
 
@@ -30,7 +30,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.6.RELEASE</version>
+    <version>2.3.3.RELEASE</version>
   </parent>
 
   <dependencies>
