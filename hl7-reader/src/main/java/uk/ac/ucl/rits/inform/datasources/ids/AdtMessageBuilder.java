@@ -1,11 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.group.ADT_A39_PATIENT;
@@ -15,9 +9,18 @@ import ca.uhn.hl7v2.model.v26.segment.MRG;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 /**
  * Build an AdtMessage Emap interchange object from an HL7 message.
@@ -26,77 +29,26 @@ import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 public class AdtMessageBuilder {
     private static final long serialVersionUID = 2925921017121050081L;
     private static final Logger logger = LoggerFactory.getLogger(AdtMessageBuilder.class);
-
-    private static final Map<String, AdtOperationType> HL7_TRIGGER_EVENT_TO_OPERATION_TYPE = new HashMap<String, AdtOperationType>() {
-        {
-            put("A01", AdtOperationType.ADMIT_PATIENT);
-            put("A02", AdtOperationType.TRANSFER_PATIENT);
-            put("A03", AdtOperationType.DISCHARGE_PATIENT);
-            put("A04", AdtOperationType.ADMIT_PATIENT);
-            put("A06", AdtOperationType.TRANSFER_PATIENT);
-            put("A07", AdtOperationType.TRANSFER_PATIENT);
-            put("A08", AdtOperationType.UPDATE_PATIENT_INFO);
-            put("A11", AdtOperationType.CANCEL_ADMIT_PATIENT);
-            put("A12", AdtOperationType.CANCEL_TRANSFER_PATIENT);
-            put("A13", AdtOperationType.CANCEL_DISCHARGE_PATIENT);
-            put("A40", AdtOperationType.MERGE_BY_ID);
-        }
-    };
-
     private MSH msh;
     private PV1 pv1;
     private MRG mrg;
     private PID pid;
     private EVN evn;
-
     private Hl7MessageNotImplementedException delayedException;
-
-    private AdtMessage msg = new AdtMessage();
+    private AdtMessage msg;
 
     /**
      * Construct from an HL7 message.
-     * @param hl7Msg the HL7 message
+     * @param hl7Msg   the HL7 message
      * @param sourceId the unique source Id message
      * @throws HL7Exception if HAPI does
      */
     public AdtMessageBuilder(Message hl7Msg, String sourceId) throws HL7Exception {
+        PatientInfoHl7 patientInfoHl7 = initialiseSegments(hl7Msg);
+
+        buildAdtMessageSubclass(patientInfoHl7);
         msg.setSourceMessageId(sourceId);
-        msh = (MSH) hl7Msg.get("MSH");
 
-        try {
-            pv1 = (PV1) hl7Msg.get("PV1");
-        } catch (HL7Exception e) {
-            // some sections are allowed not to exist
-        }
-
-        // I want the "MRG" segment for A40 messages, is this really
-        // the best way to get it? Why do we have to get the PID segment in
-        // a different way for an A39/A40 message?
-        if (hl7Msg instanceof ADT_A39) {
-            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
-            mrg = a39Patient.getMRG();
-            pid = a39Patient.getPID();
-        } else {
-            try {
-                pid = (PID) hl7Msg.get("PID");
-            } catch (HL7Exception e) {
-            }
-        }
-        try {
-            evn = (EVN) hl7Msg.get("EVN");
-        } catch (HL7Exception e) {
-            // EVN is allowed not to exist
-        }
-
-        String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
-        AdtOperationType adtOperationType = HL7_TRIGGER_EVENT_TO_OPERATION_TYPE.get(triggerEvent);
-        if (adtOperationType == null) {
-            delayedException = new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
-        }
-        msg.setOperationType(adtOperationType);
-
-        // PatientInfoHl7 uses mshwrap, pidwrap, pv1wrap - XXX: these wrappers could be combined and then moved into PatientInfoHl7?
-        PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(msh, pid, pv1);
 
         if (pv1 != null) {
             // will we want demographics to be included in pathology messages too?
@@ -105,9 +57,6 @@ public class AdtMessageBuilder {
             msg.setCurrentBed(patientInfoHl7.getCurrentBed());
             msg.setCurrentRoomCode(patientInfoHl7.getCurrentRoomCode());
             msg.setCurrentWardCode(patientInfoHl7.getCurrentWardCode());
-            msg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
-            msg.setDischargeDisposition(patientInfoHl7.getDischargeDisposition());
-            msg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
             msg.setFullLocationString(patientInfoHl7.getFullLocationString());
             msg.setHospitalService(patientInfoHl7.getHospitalService());
             msg.setPatientClass(patientInfoHl7.getPatientClass()); // make an enum
@@ -147,9 +96,97 @@ public class AdtMessageBuilder {
             msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
         }
-        if (mrg != null) {
-            msg.setMergedPatientId(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
+    }
+
+    /**
+     * Build correct AdtMessage subtype based on triggerEvent string.
+     * @param patientInfoHl7 Patient HL7 info
+     * @throws HL7Exception if hl7 message can't be parsed
+     */
+    private void buildAdtMessageSubclass(PatientInfoHl7 patientInfoHl7) throws HL7Exception {
+        String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
+
+        switch (triggerEvent) {
+            case "A01":
+            case "A04":
+                msg = new AdmitPatient();
+                break;
+            case "A02":
+            case "A06":
+            case "A07":
+                msg = new TransferPatient();
+                break;
+            case "A03":
+                DischargePatient dischargeMsg = new DischargePatient();
+                dischargeMsg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
+                dischargeMsg.setDischargeDisposition(patientInfoHl7.getDischargeDisposition());
+                dischargeMsg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
+                msg = dischargeMsg;
+                break;
+            case "A08":
+                msg = new UpdatePatientInfo();
+                break;
+            case "A11":
+                msg = new CancelAdmitPatient();
+                break;
+            case "A12":
+                msg = new CancelTransferPatient();
+                break;
+            case "A13":
+                msg = new CancelDischargePatient();
+                break;
+            case "A40":
+                MergePatient mergeMsg = new MergePatient();
+                if (mrg != null) {
+                    mergeMsg.setRetiredMrn(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
+                    mergeMsg.setRetiredNhsNumber(mrg.getMrg1_PriorPatientIdentifierList(1).getIDNumber().toString());
+                }
+                msg = mergeMsg;
+                break;
+            default:
+                // to keep processes running even if it does not build a valid interchange message, delay exception
+                // and create default message type
+                delayedException = new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
+                msg = new UpdatePatientInfo();
+                break;
         }
+    }
+
+    /**
+     * Read HL7 segments and initialise class data for these.
+     * @param hl7Msg HL7 message
+     * @return Patient info class
+     * @throws HL7Exception if required segments can't be parsed
+     */
+    private PatientInfoHl7 initialiseSegments(Message hl7Msg) throws HL7Exception {
+        msh = (MSH) hl7Msg.get("MSH");
+        try {
+            pv1 = (PV1) hl7Msg.get("PV1");
+        } catch (HL7Exception e) {
+            // some sections are allowed not to exist
+        }
+
+        // I want the "MRG" segment for A40 messages, is this really
+        // the best way to get it? Why do we have to get the PID segment in
+        // a different way for an A39/A40 message?
+        if (hl7Msg instanceof ADT_A39) {
+            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
+            mrg = a39Patient.getMRG();
+            pid = a39Patient.getPID();
+        } else {
+            try {
+                pid = (PID) hl7Msg.get("PID");
+            } catch (HL7Exception e) {
+                // empty PID is allowed
+            }
+        }
+        try {
+            evn = (EVN) hl7Msg.get("EVN");
+        } catch (HL7Exception e) {
+            // EVN is allowed not to exist
+        }
+        // PatientInfoHl7 uses mshwrap, pidwrap, pv1wrap - XXX: these wrappers could be combined and then moved into PatientInfoHl7?
+        return new PatientInfoHl7(msh, pid, pv1);
     }
 
     /**
