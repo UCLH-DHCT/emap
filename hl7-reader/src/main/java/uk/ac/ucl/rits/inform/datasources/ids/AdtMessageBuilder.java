@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.group.ADT_A39_PATIENT;
 import ca.uhn.hl7v2.model.v26.message.ADT_A39;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -128,13 +130,19 @@ public class AdtMessageBuilder {
                 msg = new UpdatePatientInfo();
                 break;
             case "A11":
-                msg = new CancelAdmitPatient();
+                CancelAdmitPatient cancelAdmitPatient = new CancelAdmitPatient();
+                setCancellationTime(cancelAdmitPatient);
+                msg = cancelAdmitPatient;
                 break;
             case "A12":
-                msg = new CancelTransferPatient();
+                CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
+                setCancellationTime(cancelTransferPatient);
+                msg = cancelTransferPatient;
                 break;
             case "A13":
-                msg = new CancelDischargePatient();
+                CancelDischargePatient cancelDischargePatient = new CancelDischargePatient();
+                setCancellationTime(cancelDischargePatient);
+                msg = cancelDischargePatient;
                 break;
             case "A40":
                 MergePatient mergeMsg = new MergePatient();
@@ -188,6 +196,15 @@ public class AdtMessageBuilder {
         }
         // PatientInfoHl7 uses mshwrap, pidwrap, pv1wrap - XXX: these wrappers could be combined and then moved into PatientInfoHl7?
         return new PatientInfoHl7(msh, pid, pv1);
+    }
+
+    /**
+     * Set cancellation time from the evn segment.
+     * @param adtCancellation adt cancellation message
+     * @throws DataTypeException if the datetime can't be interpreted as local time
+     */
+    private void setCancellationTime(AdtCancellation adtCancellation) throws DataTypeException {
+        adtCancellation.setCancelledDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
     }
 
     /**
