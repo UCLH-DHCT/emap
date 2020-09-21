@@ -12,6 +12,7 @@ import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
@@ -52,43 +53,43 @@ public class AdtMessageBuilder {
 
         if (pv1 != null) {
             // will we want demographics to be included in pathology messages too?
-            msg.setAdmissionDateTime(patientInfoHl7.getAdmissionDateTime());
-            msg.setAdmitSource(patientInfoHl7.getAdmitSource());
-            msg.setCurrentBed(patientInfoHl7.getCurrentBed());
-            msg.setCurrentRoomCode(patientInfoHl7.getCurrentRoomCode());
-            msg.setCurrentWardCode(patientInfoHl7.getCurrentWardCode());
-            msg.setFullLocationString(patientInfoHl7.getFullLocationString());
-            msg.setHospitalService(patientInfoHl7.getHospitalService());
-            msg.setPatientClass(patientInfoHl7.getPatientClass()); // make an enum
-            msg.setPatientType(patientInfoHl7.getPatientType());
-            msg.setVisitNumber(patientInfoHl7.getVisitNumber());
+            msg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+            msg.setAdmitSource(Hl7Value.buildFromHl7(patientInfoHl7.getAdmitSource()));
+            msg.setCurrentBed(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentBed()));
+            msg.setCurrentRoomCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentRoomCode()));
+            msg.setCurrentWardCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentWardCode()));
+            msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
+            msg.setHospitalService(Hl7Value.buildFromHl7(patientInfoHl7.getHospitalService()));
+            msg.setPatientClass(Hl7Value.buildFromHl7(patientInfoHl7.getPatientClass())); // make an enum
+            msg.setPatientType(Hl7Value.buildFromHl7(patientInfoHl7.getPatientType()));
+            msg.setVisitNumber(Hl7Value.buildFromHl7(patientInfoHl7.getVisitNumber()));
         }
         if (pid != null) {
-            msg.setEthnicGroup(patientInfoHl7.getEthnicGroup());
+            msg.setEthnicGroup(Hl7Value.buildFromHl7(patientInfoHl7.getEthnicGroup()));
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
-            msg.setPatientBirthDate(patientInfoHl7.getPatientBirthDate());
+            msg.setPatientBirthDate(Hl7Value.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
 
             // Despite what the HL7 spec hints at, this death information can occur
             // in any message, not just A03
             String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
             if (hl7DeathIndicator.equals("Y")) {
-                msg.setPatientDeathIndicator(true);
+                msg.setPatientDeathIndicator(new Hl7Value<>(true));
             } else if (hl7DeathIndicator.equals("N")
                     || hl7DeathIndicator.equals("")) {
-                msg.setPatientDeathIndicator(false);
+                msg.setPatientDeathIndicator(new Hl7Value<>(false));
             }
             // set the death time even if indicator says they're not dead (it happens...)
-            msg.setPatientDeathDateTime(patientInfoHl7.getPatientDeathDateTime());
+            msg.setPatientDeathDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getPatientDeathDateTime()));
 
-            msg.setPatientFamilyName(patientInfoHl7.getPatientFamilyName());
-            msg.setPatientFullName(patientInfoHl7.getPatientFullName());
-            msg.setPatientGivenName(patientInfoHl7.getPatientGivenName());
-            msg.setPatientMiddleName(patientInfoHl7.getPatientMiddleName());
-            msg.setPatientReligion(patientInfoHl7.getPatientReligion());
-            msg.setPatientSex(patientInfoHl7.getPatientSex());
-            msg.setPatientTitle(patientInfoHl7.getPatientTitle());
-            msg.setPatientZipOrPostalCode(patientInfoHl7.getPatientZipOrPostalCode());
+            msg.setPatientFamilyName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFamilyName()));
+            msg.setPatientFullName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFullName()));
+            msg.setPatientGivenName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientGivenName()));
+            msg.setPatientMiddleName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
+            msg.setPatientReligion(Hl7Value.buildFromHl7(patientInfoHl7.getPatientReligion()));
+            msg.setPatientSex(Hl7Value.buildFromHl7(patientInfoHl7.getPatientSex()));
+            msg.setPatientTitle(Hl7Value.buildFromHl7(patientInfoHl7.getPatientTitle()));
+            msg.setPatientZipOrPostalCode(Hl7Value.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
         }
         if (evn != null) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
