@@ -62,7 +62,7 @@ public class AdtMessageBuilder {
             msg.setHospitalService(Hl7Value.buildFromHl7(patientInfoHl7.getHospitalService()));
             msg.setPatientClass(Hl7Value.buildFromHl7(patientInfoHl7.getPatientClass())); // make an enum
             msg.setPatientType(Hl7Value.buildFromHl7(patientInfoHl7.getPatientType()));
-            msg.setVisitNumber(Hl7Value.buildFromHl7(patientInfoHl7.getVisitNumber()));
+            msg.setVisitNumber(patientInfoHl7.getVisitNumber());
         }
         if (pid != null) {
             msg.setEthnicGroup(Hl7Value.buildFromHl7(patientInfoHl7.getEthnicGroup()));

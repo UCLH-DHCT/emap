@@ -8,8 +8,9 @@ import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 
 /**
  * Test an A03 with a death indicator set.
@@ -28,7 +29,8 @@ public class TestAdtDeath extends TestHl7MessageStream {
      */
     @Test
     public void testTimeOfDeath()  {
-        Instant result = msg.getPatientDeathDateTime();
+
+        Instant result = msg.getPatientDeathDateTime().get();
         assertEquals(Instant.parse("2013-02-11T08:34:56.00Z"), result);
     }
 
@@ -36,11 +38,12 @@ public class TestAdtDeath extends TestHl7MessageStream {
      */
     @Test
     public void testIsDead()  {
-        assertTrue(msg.getPatientDeathIndicator());
+        assertTrue(msg.getPatientDeathIndicator().get());
     }
 
     @Test
     public void testDischargeDisposition() {
-        assertEquals("Home", msg.getDischargeDisposition());
+        DischargePatient dischargePatient = (DischargePatient) msg;
+        assertEquals("Home", dischargePatient.getDischargeDisposition());
     }
 }

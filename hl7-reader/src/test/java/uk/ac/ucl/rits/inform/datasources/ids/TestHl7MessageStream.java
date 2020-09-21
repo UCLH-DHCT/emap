@@ -4,9 +4,9 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.File;
 import java.util.ArrayList;

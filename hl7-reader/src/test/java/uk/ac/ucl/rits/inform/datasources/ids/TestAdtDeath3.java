@@ -1,12 +1,15 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 
 /**
  * Test an A03 with a death indicator set to N.
@@ -23,11 +26,11 @@ public class TestAdtDeath3 extends TestHl7MessageStream {
 
     @Test
     public void testTimeOfDeath()  {
-        assertNull(msg.getPatientDeathDateTime());
+        assertEquals(Hl7Value.unknown(), msg.getPatientDeathDateTime());
     }
 
     @Test
     public void testIsDead()  {
-        assertFalse(msg.getPatientDeathIndicator());
+        assertFalse(msg.getPatientDeathIndicator().get());
     }
 }
