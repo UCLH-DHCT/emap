@@ -1,16 +1,16 @@
 version: '3.2'
 services:
-    hl7source:
-        build:
-            context: ..
-            dockerfile: emap-hl7-processor/Dockerfile
-            args:
-                HTTP_PROXY: ${HTTP_PROXY}
-                http_proxy: ${http_proxy}
-                HTTPS_PROXY: ${HTTPS_PROXY}
-                https_proxy: ${https_proxy}
-        env_file:
-            - ../config/emap-hl7processor-config-envs
-        logging:
-            driver: "json-file"
-        restart: on-failure
+  hl7source:
+    build:
+      context: ..
+      dockerfile: emap-hl7-processor/Dockerfile
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        http_proxy: ${http_proxy}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        https_proxy: ${https_proxy}
+    env_file:
+      - ../config/emap-hl7processor-config-envs
+    logging:
+      driver: "json-file"
+    restart: on-failure
