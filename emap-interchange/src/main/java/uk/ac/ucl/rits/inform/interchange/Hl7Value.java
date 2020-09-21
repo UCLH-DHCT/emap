@@ -46,6 +46,21 @@ public class Hl7Value<T> implements Serializable {
         return new Hl7Value<T>(ResultStatus.DELETE);
     }
 
+    /**
+     * Builds HL7Value class from hl7 field value
+     * @param hl7Value value from HL7 message
+     * @param <T>      type of the value
+     * @return Hl7Value class set with the correct status and data.
+     */
+    public static <T> Hl7Value<T> buildFromHl7(T hl7Value) {
+        if (hl7Value == null || hl7Value.equals("")) {
+            return unknown();
+        } else if (hl7Value.equals("\"\"")) {
+            return delete();
+        }
+        return new Hl7Value<>(hl7Value);
+    }
+
 
     /**
      * Construct with a known value, a null value causes.
