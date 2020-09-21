@@ -3,20 +3,62 @@ recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
 operatorId: "IPUC"
-admissionDateTime: "2013-02-11T10:00:52Z"
-admitSource: "Usual"
-currentBed: "BY02-17"
-currentRoomCode: "T42E BY02"
-currentWardCode: "T42E"
-fullLocationString: "T42E^T42E BY02^BY02-17"
-hospitalService: "Anaes"
-mrn: "40800000"
-patientBirthDate: "1980-01-01T00:00:00Z"
-patientClass: "O"
-patientDeathIndicator: false
-patientFamilyName: "ORANGE"
-patientFullName: "null BLOOD null ORANGE"
-patientGivenName: "BLOOD"
-patientSex: "F"
 visitNumber: "123412341234"
 nhsNumber: "9999999999"
+mrn: "40800000"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+admitSource:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Usual"
+currentBed:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BY02-17"
+currentRoomCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T42E BY02"
+currentWardCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T42E"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T42E^T42E BY02^BY02-17"
+hospitalService:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Anaes"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "1980-01-01T00:00:00Z"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "O"
+patientDeathIndicator:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: false
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ORANGE"
+patientFullName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "null BLOOD null ORANGE"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BLOOD"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "F"

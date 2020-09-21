@@ -1,15 +1,14 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.TransferPatient"
-recordedDateTime: "2013-03-12T11:44:20Z"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient"
+recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
-eventOccurredDateTime: "2013-03-12T11:44:19Z"
-operatorId: "IPRN"
-visitNumber: "123412341234"
-nhsNumber: "9999999999"
-mrn: "40800000"
+eventOccurredDateTime: "2013-02-11T10:00:52Z"
+operatorId: "IPUC"
+visitNumber: "123412341235"
+mrn: "40800001"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "2012-10-17T11:24:53Z"
+  value: "2013-02-11T10:00:52Z"
 admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -17,23 +16,23 @@ admitSource:
 currentBed:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "BY05-33"
+  value: "BY02-17"
 currentRoomCode:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T12S BY05"
+  value: "T42E BY02"
 currentWardCode:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T12S"
+  value: "T42E"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T12S^T12S BY05^BY05-33"
+  value: "T42E^T42E BY02^BY02-17"
 hospitalService:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "Acute Med"
+  value: "Anaes"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -49,20 +48,17 @@ patientDeathIndicator:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "YYTMRTTEST"
+  value: "ORANGE"
 patientFullName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "null ZEROONE null YYTMRTTEST"
+  value: "null BLOOD null ORANGE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "ZEROONE"
+  value: "BLOOD"
 patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "F"
-patientZipOrPostalCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "CL22 1AA"
+

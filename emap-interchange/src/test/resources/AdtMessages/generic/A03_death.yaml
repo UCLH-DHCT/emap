@@ -1,39 +1,40 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.TransferPatient"
-recordedDateTime: "2013-03-12T11:44:20Z"
-eventReasonCode: "ADT_EVENT"
-eventOccurredDateTime: "2013-03-12T11:44:19Z"
-operatorId: "IPRN"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.DischargePatient"
+recordedDateTime: "2013-02-11T10:00:52Z"
+eventReasonCode: "DISCH"
+operatorId: "U999999"
 visitNumber: "123412341234"
-nhsNumber: "9999999999"
 mrn: "40800000"
+dischargeDateTime: "2013-02-11T10:00:00Z"
+dischargeDisposition: "Home"
+dischargeLocation: "1"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "2012-10-17T11:24:53Z"
+  value: "2013-02-11T10:00:52Z"
 admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "Usual"
+  value: "19"
 currentBed:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "BY05-33"
+  value: "BY02-17"
 currentRoomCode:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T12S BY05"
+  value: "T11E BY02"
 currentWardCode:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T12S"
+  value: "T11E"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T12S^T12S BY05^BY05-33"
+  value: "T11E^T11E BY02^BY02-17"
 hospitalService:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "Acute Med"
+  value: "35276"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -42,27 +43,39 @@ patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "I"
+patientDeathDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T08:34:56Z"
 patientDeathIndicator:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: false
+  value: true
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "YYTMRTTEST"
+  value: "AGBTESTD"
 patientFullName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "null ZEROONE null YYTMRTTEST"
+  value: "MRS Satesta null AGBTESTD"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "ZEROONE"
+  value: "Satesta"
+patientReligion:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2A"
 patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "F"
+patientTitle:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "MRS"
 patientZipOrPostalCode:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "CL22 1AA"
+  value: "T5 1TT"

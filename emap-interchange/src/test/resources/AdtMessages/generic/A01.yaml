@@ -5,6 +5,7 @@ eventOccurredDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
 mrn: "40800000"
 nhsNumber: "9999999999"
+visitNumber: "123412341234"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -61,8 +62,3 @@ patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "F"
   status: "SAVE"
-visitNumber:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value:  "123412341234"
-  status: "SAVE"
-

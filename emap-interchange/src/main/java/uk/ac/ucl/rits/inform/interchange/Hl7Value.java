@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.interchange;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -47,7 +48,7 @@ public class Hl7Value<T> implements Serializable {
     }
 
     /**
-     * Builds HL7Value class from hl7 field value
+     * Builds HL7Value class from hl7 field value.
      * @param hl7Value value from HL7 message
      * @param <T>      type of the value
      * @return Hl7Value class set with the correct status and data.
@@ -108,5 +109,28 @@ public class Hl7Value<T> implements Serializable {
             return;
         }
         setterLambda.accept(value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Hl7Value<?> hl7Value = (Hl7Value<?>) o;
+        return Objects.equals(value, hl7Value.value)
+                && status == hl7Value.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, status);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Hl7Value{value=%s, status=%s}", value, status);
     }
 }
