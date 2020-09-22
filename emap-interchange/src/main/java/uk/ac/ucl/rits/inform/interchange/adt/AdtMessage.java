@@ -37,7 +37,7 @@ public abstract class AdtMessage extends EmapOperationMessage implements Seriali
     private Hl7Value<Instant> patientBirthDate = Hl7Value.unknown();
     private Hl7Value<String> patientClass = Hl7Value.unknown();
     private Hl7Value<Instant> patientDeathDateTime = Hl7Value.unknown();
-    private Hl7Value<Boolean> patientDeathIndicator = Hl7Value.unknown();
+    private Hl7Value<Boolean> patientIsAlive = Hl7Value.unknown();
 
     private Hl7Value<String> patientFamilyName = Hl7Value.unknown();
     private Hl7Value<String> patientFullName = Hl7Value.unknown();

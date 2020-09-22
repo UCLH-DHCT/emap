@@ -94,9 +94,9 @@ public interface AdtMessageInterface {
     Hl7Value<Instant> getPatientDeathDateTime();
 
     /**
-     * @return patientDeathIndicator
+     * @return patientIsAlive
      */
-    Hl7Value<Boolean> getPatientDeathIndicator();
+    Hl7Value<Boolean> getPatientIsAlive();
 
     /**
      * @return patientFamilyName
@@ -235,9 +235,9 @@ public interface AdtMessageInterface {
     void setPatientDeathDateTime(Hl7Value<Instant> patientDeathDateTime);
 
     /**
-     * @param patientDeathIndicator to set
+     * @param patientIsAlive to set
      */
-    void setPatientDeathIndicator(Hl7Value<Boolean> patientDeathIndicator);
+    void setPatientIsAlive(Hl7Value<Boolean> patientIsAlive);
 
     /**
      * @param patientFamilyName to set

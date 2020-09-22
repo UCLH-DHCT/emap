@@ -42,9 +42,9 @@ patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "I"
   status: "SAVE"
-patientDeathIndicator:
+patientIsAlive:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: false
+  value: true
   status: "SAVE"
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
