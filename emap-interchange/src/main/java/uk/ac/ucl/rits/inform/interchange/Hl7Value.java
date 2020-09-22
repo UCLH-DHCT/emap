@@ -89,24 +89,17 @@ public class Hl7Value<T> implements Serializable {
     }
 
     /**
-     * @param value to set.
-     */
-    private void setValue(T value) {
-        this.value = value;
+    * @return the value for serialisation
+    */
+    public T getValue() {
+        return value;
     }
 
     /**
      * @return result status
      */
-    private ResultStatus getStatus() {
+    public ResultStatus getStatus() {
         return status;
-    }
-
-    /**
-     * @param status to set.
-     */
-    private void setStatus(ResultStatus status) {
-        this.status = status;
     }
 
     /**
