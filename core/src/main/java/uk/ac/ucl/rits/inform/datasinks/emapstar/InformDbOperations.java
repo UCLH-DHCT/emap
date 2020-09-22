@@ -91,7 +91,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public String processMessage(DischargePatient msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Not implemented yet");
+        Instant storedFrom = Instant.now();
+        return adtProcessor.processMessage(msg, storedFrom);
     }
 
     @Override
@@ -110,7 +111,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      */
     @Override
     public String processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
-        return null;
+        throw new MessageIgnoredException("Not implemented yet");
     }
 
 }
