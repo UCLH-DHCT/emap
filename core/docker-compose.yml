@@ -22,3 +22,12 @@ services:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_ADMIN_PORT}:15672"
     restart: on-failure
+  cassandra:
+    image: cassandra
+    restart: on-failure
+  glowroot-central:
+    built:
+      context: ..
+      dockerfile: Emap-Core/Dockerfile.glowroot-central
+      restart: on-failure
+
