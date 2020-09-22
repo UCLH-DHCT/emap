@@ -37,12 +37,10 @@ public class PathologyProcessor {
     @Transactional
     public String processMessage(final PathologyOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
-        // or use test coding system from the message (e.g. winpath)
-        String sourceSystem = "EPIC";
 
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
-        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, sourceSystem, observationTime, storedFrom);
+        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, msg.getTestBatteryCodingSystem(), observationTime, storedFrom);
         return returnCode;
     }
 }
