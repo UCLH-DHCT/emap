@@ -29,9 +29,6 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
         @Index(columnList = "mrnId", unique = false),
         @Index(columnList = "mrnHospitalVisitId", unique = false),
         @Index(name = "mrn_encounter_stored_from_index", columnList = "storedFrom", unique = false),
-        @Index(name = "mrn_encounter_stored_until_index", columnList = "storedUntil", unique = false),
-        @Index(name = "mrn_encounter_valid_from_index", columnList = "validFrom", unique = false),
-        @Index(name = "mrn_encounter_valid_until_index", columnList = "validUntil", unique = false),
 })
 @JsonIgnoreProperties({"mrn", "valid"})
 public class MrnHospitalVisit extends TemporalCore<MrnHospitalVisit> implements Serializable {
