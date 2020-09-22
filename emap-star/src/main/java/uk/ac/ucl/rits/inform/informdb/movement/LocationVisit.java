@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.Movement;
+package uk.ac.ucl.rits.inform.informdb.movement;
 
 import java.io.Serializable;
 import java.time.Instant;
