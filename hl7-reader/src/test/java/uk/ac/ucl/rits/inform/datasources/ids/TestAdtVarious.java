@@ -183,8 +183,8 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientType1() {
-        String result = msg.getPatientType().get();
-        assertEquals(null, result);
+        Hl7Value<String> result = msg.getPatientType();
+        assertEquals(Hl7Value.unknown(), result);
     }
 
     /**
