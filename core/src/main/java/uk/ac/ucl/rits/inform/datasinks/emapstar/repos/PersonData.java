@@ -141,7 +141,7 @@ public class PersonData {
         adtMessage.getPatientSex().assignTo(coreDemographic::setSex);
         adtMessage.getPatientZipOrPostalCode().assignTo(coreDemographic::setHomePostcode);
         // death
-        adtMessage.getPatientDeathIndicator().assignTo(dead -> coreDemographic.setAlive(!dead));
+        adtMessage.getPatientIsAlive().assignTo(coreDemographic::setAlive);
         adtMessage.getPatientDeathDateTime().assignTo(instant -> coreDemographic.setDateOfDeath(convertToLocalDate(instant)));
         adtMessage.getPatientDeathDateTime().assignTo(coreDemographic::setDatetimeOfDeath);
         adtMessage.getPatientMiddleName().assignTo(coreDemographic::setMiddlename);
