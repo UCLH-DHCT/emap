@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.function.Consumer;
  * Wrapper for data in hl7 fields that can either be unknown or known.
  * @param <T> HL7 field data type.
  */
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class Hl7Value<T> implements Serializable {
     private static final long serialVersionUID = -8863675097743487929L;
@@ -86,20 +88,6 @@ public class Hl7Value<T> implements Serializable {
             throw new IllegalStateException("Hl7Value get method shouldn't be called when the result is unknown");
         }
         return value;
-    }
-
-    /**
-    * @return the value for serialisation
-    */
-    public T getValue() {
-        return value;
-    }
-
-    /**
-     * @return result status
-     */
-    public ResultStatus getStatus() {
-        return status;
     }
 
     /**
