@@ -7,7 +7,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
@@ -47,13 +46,7 @@ public abstract class MessageProcessingBase {
 
     @Transactional
     protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
-        try {
-            msg.processMessage(dbOps);
-        } catch (MessageIgnoredException e) {
-            if (!false) {
-                throw e;
-            }
-        }
+        msg.processMessage(dbOps);
     }
 
     protected List<Mrn> getAllMrns() {

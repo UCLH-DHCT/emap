@@ -6,14 +6,12 @@ import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -59,7 +57,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
 
         // unknown demographics should not be set
-        CoreDemographic demographic =  coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+        CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
         assertEquals("middle", demographic.getMiddlename()); // unknown value so shouldn't change
         assertEquals("ORANGE", demographic.getLastname());  // known value so should change
     }
