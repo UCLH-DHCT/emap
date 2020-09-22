@@ -17,7 +17,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public abstract class AdtMessage extends EmapOperationMessage implements Serializable, AdtMessageInterface {
+public abstract class AdtMessage extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = 804256024384466435L;
     private Instant recordedDateTime;
     private String eventReasonCode;
