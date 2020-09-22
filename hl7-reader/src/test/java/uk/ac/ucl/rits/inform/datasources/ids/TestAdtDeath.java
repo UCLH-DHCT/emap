@@ -1,20 +1,19 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.time.Instant;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 
+import java.time.Instant;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Test an A03 with a death indicator set.
- *
  * @author Jeremy Stein
  */
 public class TestAdtDeath extends TestHl7MessageStream {
@@ -26,9 +25,10 @@ public class TestAdtDeath extends TestHl7MessageStream {
     }
 
     /**
+     *
      */
     @Test
-    public void testTimeOfDeath()  {
+    public void testTimeOfDeath() {
 
         Instant result = msg.getPatientDeathDateTime().get();
         assertEquals(Instant.parse("2013-02-11T08:34:56.00Z"), result);
@@ -37,8 +37,8 @@ public class TestAdtDeath extends TestHl7MessageStream {
     /**
      */
     @Test
-    public void testIsDead()  {
-        assertTrue(msg.getPatientDeathIndicator().get());
+    public void testIsDead() {
+        assertFalse(msg.getPatientIsAlive().get());
     }
 
     @Test

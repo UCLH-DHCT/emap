@@ -76,10 +76,9 @@ public class AdtMessageBuilder {
             // in any message, not just A03
             String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
             if (hl7DeathIndicator.equals("Y")) {
-                msg.setPatientDeathIndicator(new Hl7Value<>(true));
-            } else if (hl7DeathIndicator.equals("N")
-                    || hl7DeathIndicator.equals("")) {
-                msg.setPatientDeathIndicator(new Hl7Value<>(false));
+                msg.setPatientIsAlive(new Hl7Value<>(false));
+            } else if (hl7DeathIndicator.equals("N") || hl7DeathIndicator.equals("")) {
+                msg.setPatientIsAlive(new Hl7Value<>(true));
             }
             // set the death time even if indicator says they're not dead (it happens...)
             msg.setPatientDeathDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getPatientDeathDateTime()));

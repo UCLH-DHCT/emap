@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 
@@ -37,6 +37,6 @@ public class TestAdtDeath2 extends TestHl7MessageStream {
      */
     @Test
     public void testIsNotDead()  {
-        assertFalse(msg.getPatientDeathIndicator().get());
+        assertTrue(msg.getPatientIsAlive().get());
     }
 }

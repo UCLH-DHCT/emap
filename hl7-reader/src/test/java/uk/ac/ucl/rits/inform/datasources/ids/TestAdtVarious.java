@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 
 
 /**
@@ -222,6 +221,6 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testDeathIndicator()  {
-        assertFalse(msg.getPatientDeathIndicator().get());
+        assertTrue(msg.getPatientIsAlive().get());
     }
 }
