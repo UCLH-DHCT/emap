@@ -26,6 +26,9 @@ public class Hl7Value<T> implements Serializable {
      * @param status status to set.
      */
     private Hl7Value(ResultStatus status) {
+        if (status == ResultStatus.SAVE) {
+            throw new IllegalArgumentException("Hl7Value with no value set cannot have a status of SAVE");
+        }
         this.status = status;
     }
 
@@ -64,18 +67,24 @@ public class Hl7Value<T> implements Serializable {
 
 
     /**
-     * Construct with a known value, a null value causes.
-     * @param value of the field
+     * Construct with a known value.
+     * @param value of the field, cannot be null
      */
     public Hl7Value(T value) {
+        if (value == null) {
+            throw new IllegalStateException("Hl7Value with a status of SAVE can't have a null value set");
+        }
         this.value = value;
         status = ResultStatus.SAVE;
     }
 
     /**
-     * @return the value.
+     * @return the known value.
      */
     public T get() {
+        if (status == ResultStatus.IGNORE) {
+            throw new IllegalStateException("Hl7Value get method shouldn't be called when the result is unknown");
+        }
         return value;
     }
 
