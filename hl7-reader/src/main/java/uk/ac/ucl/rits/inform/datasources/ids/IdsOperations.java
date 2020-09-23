@@ -58,6 +58,7 @@ public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
 
     private SessionFactory idsFactory;
+    private AdtMessageFactory adtMessageFactory;
     private boolean idsEmptyOnInit;
 
     /**
@@ -65,16 +66,19 @@ public class IdsOperations implements AutoCloseable {
      * @param defaultStartDatetime the start date to use if no progress has been previously recorded in the DB
      * @param endDatetime          the datetime to finish processing messages, regardless of previous progress
      * @param environment          injected param
+     * @param adtMessageFactory    injected AdtMessageFactory
      */
     public IdsOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
             @Value("${ids.cfg.default-start-datetime}") Instant defaultStartDatetime,
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
-            @Autowired Environment environment) {
+            @Autowired Environment environment,
+            @Autowired AdtMessageFactory adtMessageFactory) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
         }
+        this.adtMessageFactory = adtMessageFactory;
         logger.info("IdsOperations() opening config file " + idsCfgXml);
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
@@ -127,7 +131,7 @@ public class IdsOperations implements AutoCloseable {
      * @return Is the IDS currently empty?
      */
     private boolean getIdsIsEmpty() {
-        try (Session idsSession = idsFactory.openSession();) {
+        try (Session idsSession = idsFactory.openSession()) {
             idsSession.setDefaultReadOnly(true);
             // check is empty
             Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
@@ -149,7 +153,7 @@ public class IdsOperations implements AutoCloseable {
             // bypass this slow query if no bound was requested
             return null;
         }
-        try (Session idsSession = idsFactory.openSession();) {
+        try (Session idsSession = idsFactory.openSession()) {
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qexists = idsSession.createQuery(
                     "from IdsMaster where persistdatetime >= :fromDatetime order by unid", IdsMaster.class);
@@ -309,9 +313,7 @@ public class IdsOperations implements AutoCloseable {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg, String.format("%010d", count));
-                PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
-                        adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
+                PatientInfoHl7 patientInfoHl7 = adtMessageFactory.getPatientInfo(msg);
 
                 this.writeToIds(singleMessageText, count, patientInfoHl7);
             }
@@ -453,7 +455,7 @@ public class IdsOperations implements AutoCloseable {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contradicts itself
      */
-    public static List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
+    public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
             throws HL7Exception, Hl7InconsistencyException {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
@@ -471,8 +473,7 @@ public class IdsOperations implements AutoCloseable {
         if (messageType.equals("ADT")) {
             List<AdtMessage> adtMsg = new ArrayList<>();
             try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, sourceId);
-                adtMsg.add(msgBuilder.getAdtMessage());
+                adtMsg.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
             } catch (Hl7MessageNotImplementedException e) {
                 logger.warn("Ignoring message: " + e.toString());
             }

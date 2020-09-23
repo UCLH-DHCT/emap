@@ -3,6 +3,8 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
@@ -17,7 +19,12 @@ import java.util.List;
  * the correctness of the resultant interchange message(s) (eg. AdtMessage).
  */
 @ActiveProfiles("test")
+@SpringBootTest
 public abstract class TestHl7MessageStream {
+    @Autowired
+    private AdtMessageFactory adtMessageFactory;
+    @Autowired
+    private IdsOperations idsOperations;
 
     /**
      * processSingleMessage is preferred.
@@ -28,7 +35,7 @@ public abstract class TestHl7MessageStream {
     protected AdtMessage processSingleAdtMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        return new AdtMessageBuilder(hl7Msg, "42").getAdtMessage();
+        return adtMessageFactory.getAdtMessage(hl7Msg, "42");
     }
 
     /**
@@ -52,7 +59,7 @@ public abstract class TestHl7MessageStream {
     protected List<? extends EmapOperationMessage> processSingleMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        List<? extends EmapOperationMessage> messages = IdsOperations.messageFromHl7Message(hl7Msg, 42);
+        List<? extends EmapOperationMessage> messages = idsOperations.messageFromHl7Message(hl7Msg, 42);
         return messages;
     }
 
@@ -67,7 +74,7 @@ public abstract class TestHl7MessageStream {
         List<PathologyOrder> messagesFromHl7Message = new ArrayList<>();
         while (hl7Iter.hasNext()) {
             Message hl7Msg = hl7Iter.next();
-            messagesFromHl7Message.addAll((List<PathologyOrder>) IdsOperations.messageFromHl7Message(hl7Msg, 42));
+            messagesFromHl7Message.addAll((List<PathologyOrder>) idsOperations.messageFromHl7Message(hl7Msg, 42));
         }
         return messagesFromHl7Message;
     }
