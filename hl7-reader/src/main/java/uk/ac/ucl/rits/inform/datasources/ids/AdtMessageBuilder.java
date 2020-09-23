@@ -22,6 +22,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
@@ -62,7 +63,11 @@ public class AdtMessageBuilder {
             msg.setCurrentWardCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentWardCode()));
             msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
             msg.setHospitalService(Hl7Value.buildFromHl7(patientInfoHl7.getHospitalService()));
-            msg.setPatientClass(Hl7Value.buildFromHl7(patientInfoHl7.getPatientClass())); // make an enum
+            try {
+                msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.valueOf(patientInfoHl7.getPatientClass())));
+            } catch (IllegalArgumentException e) {
+                throw new HL7Exception("Patient class was not recognised", e);
+            }
             msg.setPatientType(Hl7Value.buildFromHl7(patientInfoHl7.getPatientType()));
             msg.setVisitNumber(patientInfoHl7.getVisitNumber());
         }

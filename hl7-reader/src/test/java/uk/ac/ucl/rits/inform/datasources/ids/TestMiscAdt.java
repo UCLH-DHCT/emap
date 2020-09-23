@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,7 @@ public class TestMiscAdt extends TestHl7MessageStream {
     @Test
     public void testOutpatientRegistration() throws Exception {
         AdtMessage msg = processSingleAdtMessage("Adt/generic/A04.txt");
-        assertEquals("O", msg.getPatientClass().get());
+        assertEquals(PatientClass.O, msg.getPatientClass().get());
         // A04 is considered the same sort of event as A01, although the patient class
         // is usually different.
         assertEquals(AdmitPatient.class.getName(), msg.getMessageType());
@@ -31,7 +32,7 @@ public class TestMiscAdt extends TestHl7MessageStream {
     @Test
     public void testInpatientAdmission() throws Exception {
         AdtMessage msg = processSingleAdtMessage("Adt/generic/A01.txt");
-        assertEquals("I", msg.getPatientClass().get());
+        assertEquals(PatientClass.I, msg.getPatientClass().get());
         assertTrue(msg instanceof AdmitPatient);
         assertEquals(AdmitPatient.class.getName(), msg.getMessageType());
     }
