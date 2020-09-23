@@ -59,26 +59,32 @@ public class IdsOperations implements AutoCloseable {
 
     private SessionFactory idsFactory;
     private AdtMessageFactory adtMessageFactory;
+    private IdsProgressRepository idsProgressRepository;
     private boolean idsEmptyOnInit;
+    private Integer defaultStartUnid;
+    private Integer endUnid;
 
     /**
-     * @param idsCfgXml            injected param
-     * @param defaultStartDatetime the start date to use if no progress has been previously recorded in the DB
-     * @param endDatetime          the datetime to finish processing messages, regardless of previous progress
-     * @param environment          injected param
-     * @param adtMessageFactory    injected AdtMessageFactory
+     * @param idsCfgXml             injected param
+     * @param defaultStartDatetime  the start date to use if no progress has been previously recorded in the DB
+     * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
+     * @param environment           injected param
+     * @param adtMessageFactory     injected AdtMessageFactory
+     * @param idsProgressRepository injected IdsProgressRepository
      */
     public IdsOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
             @Value("${ids.cfg.default-start-datetime}") Instant defaultStartDatetime,
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
             @Autowired Environment environment,
-            @Autowired AdtMessageFactory adtMessageFactory) {
+            @Autowired AdtMessageFactory adtMessageFactory,
+            @Autowired IdsProgressRepository idsProgressRepository) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
         }
         this.adtMessageFactory = adtMessageFactory;
+        this.idsProgressRepository = idsProgressRepository;
         logger.info("IdsOperations() opening config file " + idsCfgXml);
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
@@ -94,11 +100,6 @@ public class IdsOperations implements AutoCloseable {
                 defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid));
     }
 
-    private Integer defaultStartUnid;
-    private Integer endUnid;
-
-    @Autowired
-    private IdsProgressRepository idsProgressRepository;
 
     /**
      * We are writing to the HL7 queue.
@@ -134,7 +135,7 @@ public class IdsOperations implements AutoCloseable {
         try (Session idsSession = idsFactory.openSession()) {
             idsSession.setDefaultReadOnly(true);
             // check is empty
-            Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
+            Query<IdsMaster> qexists = idsSession.createQuery("select i from IdsMaster i", IdsMaster.class);
             qexists.setMaxResults(1);
             boolean idsIsEmpty = qexists.list().isEmpty();
             return idsIsEmpty;
@@ -156,7 +157,7 @@ public class IdsOperations implements AutoCloseable {
         try (Session idsSession = idsFactory.openSession()) {
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qexists = idsSession.createQuery(
-                    "from IdsMaster where persistdatetime >= :fromDatetime order by unid", IdsMaster.class);
+                    "select i from IdsMaster i where i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class);
             qexists.setParameter("fromDatetime", fromDateTime);
             qexists.setMaxResults(1);
             List<IdsMaster> msgs = qexists.list();
@@ -214,7 +215,7 @@ public class IdsOperations implements AutoCloseable {
      * @return the unique ID for the last IDS message we have successfully processed
      */
     @Transactional
-    private int getLatestProcessedId() {
+    int getLatestProcessedId() {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
 
         if (onlyRow == null) {
@@ -238,7 +239,7 @@ public class IdsOperations implements AutoCloseable {
      * @param processingEnd        the time this message was actually processed
      */
     @Transactional
-    private void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
+    void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
         onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
         onlyRow.setLastProcessedMessageDatetime(messageDatetime);
@@ -336,7 +337,7 @@ public class IdsOperations implements AutoCloseable {
         try (Session idsSession = idsFactory.openSession();) {
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qnext =
-                    idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
+                    idsSession.createQuery("SELECT i FROM IdsMaster i where i.unid > :lastProcessedId order by i.unid", IdsMaster.class);
             qnext.setParameter("lastProcessedId", lastProcessedId);
             qnext.setMaxResults(1);
             List<IdsMaster> nextMsgOrEmpty = qnext.list();
