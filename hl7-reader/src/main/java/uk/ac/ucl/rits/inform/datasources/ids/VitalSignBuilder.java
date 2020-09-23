@@ -95,6 +95,7 @@ public class VitalSignBuilder {
         vitalSign.setMrn(patientHl7.getMrn());
         vitalSign.setVisitNumber(patientHl7.getVisitNumber());
         vitalSign.setSourceMessageId(subMessageSourceId);
+        vitalSign.setSourceSystem(patientHl7.getSendingApplication());
 
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();

@@ -52,6 +52,7 @@ public class AdtMessageBuilder {
 
         buildAdtMessageSubclass(patientInfoHl7);
         msg.setSourceMessageId(sourceId);
+        msg.setSourceSystem(patientInfoHl7.getSendingApplication());
 
 
         if (pv1 != null) {

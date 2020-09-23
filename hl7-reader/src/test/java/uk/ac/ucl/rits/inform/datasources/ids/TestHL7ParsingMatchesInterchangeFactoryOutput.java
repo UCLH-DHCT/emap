@@ -82,28 +82,28 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testPathologyIncrementalLoad() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/Incremental.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental.yaml", "0000000042");
-        assertEquals(messagesFromHl7Message, expectedOrders);
+        assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testPathologyIncrementalDuplicateResultSegment() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/PathologyDuplicateResultSegment.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental_duplicate_result_segment.yaml", "0000000042");
-        assertEquals(messagesFromHl7Message, expectedOrders);
+        assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testPathologyOrder() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("PathologyOrder/ORU_R01.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("ORU_R01.yaml", "0000000042");
-        assertEquals(messagesFromHl7Message, expectedOrders);
+        assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testPathologySensitivity() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("PathologyOrder/Sensitivity.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("sensitivity.yaml", "0000000042");
-        assertEquals(messagesFromHl7Message, expectedOrders);
+        assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
 
@@ -111,6 +111,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testVitalSigns() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("VitalSigns/MixedHL7Message.txt");
         List<VitalSigns> expectedOrders = interchangeFactory.getVitalSigns("hl7.yaml", "0000000042");
-        assertEquals(messagesFromHl7Message, expectedOrders);
+        assertEquals(expectedOrders, messagesFromHl7Message);
     }
 }
