@@ -31,7 +31,7 @@ public class TestPathologyProcessing extends MessageProcessingBase {
         }
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
-        assertEquals("WinPath", mrns.get(0).getSourceSystem());
+        assertEquals("Corepoint", mrns.get(0).getSourceSystem());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);

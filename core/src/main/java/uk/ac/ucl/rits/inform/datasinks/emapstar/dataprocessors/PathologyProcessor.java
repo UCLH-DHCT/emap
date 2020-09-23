@@ -40,7 +40,7 @@ public class PathologyProcessor {
 
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
-        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, msg.getTestBatteryCodingSystem(), observationTime, storedFrom);
+        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         return returnCode;
     }
 }

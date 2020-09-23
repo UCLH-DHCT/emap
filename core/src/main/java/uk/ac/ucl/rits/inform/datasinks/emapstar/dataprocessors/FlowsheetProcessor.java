@@ -39,8 +39,7 @@ public class FlowsheetProcessor {
         String returnCode = "OK";
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationTimeTaken();
-        String sourceSystem = msg.getVitalSignIdentifier().split("\\$")[0];
-        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, sourceSystem, observationTime, storedFrom);
+        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         return returnCode;
     }
 }
