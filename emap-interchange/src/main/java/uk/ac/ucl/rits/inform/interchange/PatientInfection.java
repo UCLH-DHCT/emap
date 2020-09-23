@@ -10,7 +10,7 @@ import java.time.Instant;
  * Interchange format of a PatientInterchange message.
  * @author Stef Piatek
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientInfection extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = 9025316128466696423L;
     private String mrn;
@@ -184,6 +184,7 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
                 .append(", infectionAdded=").append(infectionAdded)
                 .append(", infectionResolved=").append(infectionResolved)
                 .append(", infectionOnset=").append(infectionOnset)
+                .append(", sourceSystem=").append(getSourceSystem())
                 .append(')').toString();
     }
 }

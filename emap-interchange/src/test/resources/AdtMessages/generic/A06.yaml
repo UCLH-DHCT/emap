@@ -4,6 +4,7 @@ eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2020-04-01T21:22:21Z"
 operatorId: "10000000"
 visitNumber: "1234567890"
+sourceSystem: "EPIC"
 mrn: "A/AA1111"
 nhsNumber: "9999999999"
 admissionDateTime:

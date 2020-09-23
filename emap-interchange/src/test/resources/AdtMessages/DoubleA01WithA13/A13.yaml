@@ -3,6 +3,7 @@ recordedDateTime: "2013-02-11T13:58:34Z"
 eventOccurredDateTime: "2013-02-11T13:45:00Z"
 operatorId: "U999999"
 visitNumber: "123412341234"
+sourceSystem: "EPIC"
 mrn: "40800000"
 cancelledDateTime: "2013-02-11T13:45:00Z"
 admissionDateTime:

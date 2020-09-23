@@ -5,6 +5,7 @@ eventOccurredDateTime: "2013-03-12T11:44:19Z"
 operatorId: "IPRN"
 visitNumber: "123412341234"
 nhsNumber: "9999999999"
+sourceSystem: "EPIC"
 mrn: "40800000"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"

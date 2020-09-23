@@ -214,11 +214,12 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
                 && Objects.equals(stringValue, that.stringValue)
                 && Objects.equals(comment, that.comment)
                 && Objects.equals(unit, that.unit)
-                && Objects.equals(observationTimeTaken, that.observationTimeTaken);
+                && Objects.equals(observationTimeTaken, that.observationTimeTaken)
+                && Objects.equals(getSourceSystem(), that.getSourceSystem());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, comment, unit, observationTimeTaken);
+        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, comment, unit, observationTimeTaken, getSourceSystem());
     }
 }

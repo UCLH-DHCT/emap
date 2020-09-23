@@ -4,6 +4,7 @@ eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
 operatorId: "IPUC"
 visitNumber: "123412341235"
+sourceSystem: "EPIC"
 mrn: "40800001"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"

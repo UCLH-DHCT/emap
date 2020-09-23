@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.interchange.adt;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 
@@ -15,7 +16,8 @@ import java.time.Instant;
  * @author Jeremy Stein
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public abstract class AdtMessage extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = 804256024384466435L;

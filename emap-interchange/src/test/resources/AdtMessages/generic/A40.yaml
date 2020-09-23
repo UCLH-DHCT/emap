@@ -3,6 +3,7 @@ recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
 operatorId: "U444444"
 retiredMrn: "40800000"
+sourceSystem: "UCLH4"
 mrn: "40800001"
 nhsNumber: "9999999999"
 patientBirthDate:

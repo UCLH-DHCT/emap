@@ -15,7 +15,7 @@ import java.util.Objects;
  * parser) construct this class.
  * @author Jeremy Stein
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PathologyOrder extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -8476559759815762054L;
 
@@ -404,7 +404,8 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
                 && Objects.equals(testBatteryCodingSystem, that.testBatteryCodingSystem)
                 && Objects.equals(statusChangeTime, that.statusChangeTime)
                 && Objects.equals(parentObservationIdentifier, that.parentObservationIdentifier)
-                && Objects.equals(parentSubId, that.parentSubId);
+                && Objects.equals(parentSubId, that.parentSubId)
+                && Objects.equals(getSourceSystem(), that.getSourceSystem());
     }
 
     @Override
@@ -413,7 +414,7 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
                 labSpecimenNumberOCS, orderDateTime, sampleEnteredTime, labDepartment, orderStatus,
                 resultStatus, orderType, mrn, visitNumber, requestedDateTime, observationDateTime,
                 testBatteryLocalCode, testBatteryLocalDescription, testBatteryCodingSystem, statusChangeTime,
-                parentObservationIdentifier, parentSubId);
+                parentObservationIdentifier, parentSubId, getSourceSystem());
     }
 
     @Override
@@ -423,11 +424,12 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
                         .append("labSpecimenNumber='%s', labSpecimenNumberOCS='%s', orderDateTime=%s, sampleEnteredTime=%s, labDepartment='%s', ")
                         .append("orderStatus='%s', resultStatus='%s', orderType='%s', mrn='%s', visitNumber='%s', requestedDateTime=%s, ")
                         .append("observationDateTime=%s, testBatteryLocalCode='%s', testBatteryLocalDescription='%s', ")
-                        .append("testBatteryCodingSystem='%s', statusChangeTime=%s, parentObservationIdentifier='%s', parentSubId='%s'}")
+                        .append("testBatteryCodingSystem='%s', statusChangeTime=%s, parentObservationIdentifier='%s', parentSubId='%s', ")
+                        .append("sourceSystem='%s'}")
                         .toString(),
                 pathologyResults, orderControlId, epicCareOrderNumber, labSpecimenNumber, labSpecimenNumberOCS,
                 orderDateTime, sampleEnteredTime, labDepartment, orderStatus, resultStatus, orderType, mrn,
                 visitNumber, requestedDateTime, observationDateTime, testBatteryLocalCode, testBatteryLocalDescription,
-                testBatteryCodingSystem, statusChangeTime, parentObservationIdentifier, parentSubId);
+                testBatteryCodingSystem, statusChangeTime, parentObservationIdentifier, parentSubId, getSourceSystem());
     }
 }

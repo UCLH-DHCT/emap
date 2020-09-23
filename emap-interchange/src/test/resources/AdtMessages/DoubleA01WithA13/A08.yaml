@@ -2,6 +2,7 @@
 recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
 operatorId: "IPUC"
+sourceSystem: "EPIC"
 mrn: "40800000"
 visitNumber: "123412341234"
 admissionDateTime:
