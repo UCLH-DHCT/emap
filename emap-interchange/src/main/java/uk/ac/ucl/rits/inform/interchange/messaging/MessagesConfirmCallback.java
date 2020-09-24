@@ -11,8 +11,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  * @author Stef Piatek
  */
 public class MessagesConfirmCallback implements RabbitTemplate.ConfirmCallback {
-    private Releasable releasable;
-    private Logger logger = LoggerFactory.getLogger(MessagesConfirmCallback.class);
+    private final Releasable releasable;
+    private final Logger logger = LoggerFactory.getLogger(MessagesConfirmCallback.class);
 
     /**
      * @param releasable Implementation of releasable

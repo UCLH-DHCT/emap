@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +16,7 @@ import java.util.List;
  * Allows for easier setup for integration testing in hl7 sources and emap star
  */
 public class InterchangeMessageFactory {
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     public InterchangeMessageFactory() {
         mapper = new ObjectMapper(new YAMLFactory());
@@ -25,18 +26,15 @@ public class InterchangeMessageFactory {
 
     /**
      * Builds an ADT message from yaml file.
-     * Not sure it's as useful as other message factories but may be useful for testing a complex set of ADT messages together?
-     * @param fileName        filename within test resources/AdtMessages
-     * @param sourceMessageId source message ID
+     * @param fileName filename within test resources/AdtMessages
      * @return ADT message
      */
-    public AdtMessage getAdtMessage(final String fileName, final String sourceMessageId) {
-        AdtMessage adtMessage = new AdtMessage();
+    public <T extends AdtMessage> T getAdtMessage(final String fileName) {
+        T adtMessage = null;
         String resourcePath = "/AdtMessages/" + fileName;
         try {
             InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            adtMessage = mapper.readValue(inputStream, AdtMessage.class);
-            adtMessage.setSourceMessageId(sourceMessageId);
+            adtMessage = mapper.readValue(inputStream, new TypeReference<AdtMessage>() {});
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -74,7 +72,7 @@ public class InterchangeMessageFactory {
     /**
      * Builds Vitalsigns from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
      * @param fileName            yaml filename in test resouces/VitalSigns, default values from '{file_stem}_defaults.yaml'
-     * @param sourceMessagePrefix message prefix - TODO: does emap star care about this or should I just get rid of it?
+     * @param sourceMessagePrefix message prefix
      * @return List of vitalsigns
      */
     public List<VitalSigns> getVitalSigns(final String fileName, final String sourceMessagePrefix) {

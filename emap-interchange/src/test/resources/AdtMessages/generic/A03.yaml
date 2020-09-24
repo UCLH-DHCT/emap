@@ -1,27 +1,79 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
-operationType: "DISCHARGE_PATIENT"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.DischargePatient"
 recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "DISCH"
 operatorId: "U999999"
-admissionDateTime: "2013-02-11T10:00:52Z"
-admitSource: "19"
-currentBed: "BY02-17"
-currentRoomCode: "T11E BY02"
-currentWardCode: "T11E"
+visitNumber: "123412341234"
+nhsNumber: "9999999999"
+sourceSystem: "EPIC"
+mrn: "40800000"
 dischargeDateTime: "2013-02-11T10:00:00Z"
 dischargeDisposition: "19"
 dischargeLocation: "1"
-fullLocationString: "T11E^T11E BY02^BY02-17"
-hospitalService: "35276"
-mrn: "40800000"
-patientBirthDate: "1980-01-01T00:00:00Z"
-patientClass: "I"
-patientDeathIndicator: false
-patientFamilyName: "AGBTESTD"
-patientFullName: "MRS Satesta null AGBTESTD"
-patientGivenName: "Satesta"
-patientReligion: "2A"
-patientSex: "F"
-patientTitle: "MRS"
-patientZipOrPostalCode: "T5 1TT"
-visitNumber: "123412341234"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+admitSource:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "19"
+currentBed:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BY02-17"
+currentRoomCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T11E BY02"
+currentWardCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T11E"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T11E^T11E BY02^BY02-17"
+hospitalService:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "35276"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "1980-01-01T00:00:00Z"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "AGBTESTD"
+patientFullName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "MRS Satesta null AGBTESTD"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Satesta"
+patientReligion:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2A"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "F"
+patientTitle:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "MRS"
+patientZipOrPostalCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T5 1TT"

@@ -1,26 +1,69 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
-operationType: "TRANSFER_PATIENT"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.TransferPatient"
 recordedDateTime: "2020-04-01T21:22:22Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2020-04-01T21:22:21Z"
 operatorId: "10000000"
-admissionDateTime: "2020-04-01T18:30:00Z"
-currentBed: "SR41-41"
-currentRoomCode: "T06C SR41"
-currentWardCode: "T06C"
-dischargeDisposition: ""
-dischargeLocation: ""
-fullLocationString: "T06C^T06C SR41^SR41-41"
-hospitalService: "ENT Ears"
+visitNumber: "1234567890"
+sourceSystem: "EPIC"
 mrn: "A/AA1111"
 nhsNumber: "9999999999"
-patientBirthDate: "2001-01-01T00:00:00Z"
-patientClass: "I"
-patientDeathIndicator: false
-patientFamilyName: "AAA"
-patientFullName: "MR. BBB C AAA"
-patientGivenName: "BBB"
-patientMiddleName: "C"
-patientSex: "M"
-patientTitle: "MR."
-visitNumber: "1234567890"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2020-04-01T18:30:00Z"
+currentBed:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "SR41-41"
+currentRoomCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T06C SR41"
+currentWardCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T06C"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T06C^T06C SR41^SR41-41"
+hospitalService:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ENT Ears"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2001-01-01T00:00:00Z"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "AAA"
+patientFullName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "MR. BBB C AAA"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BBB"
+patientMiddleName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "C"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "M"
+patientTitle:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "MR."

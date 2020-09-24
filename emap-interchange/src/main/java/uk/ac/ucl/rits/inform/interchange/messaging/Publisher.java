@@ -30,25 +30,25 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class Publisher implements Runnable, Releasable {
-    private RabbitTemplate rabbitTemplate;
-    private Semaphore semaphore;
+    private final RabbitTemplate rabbitTemplate;
+    private final Semaphore semaphore;
     private final BlockingQueue<MessageBatch<? extends EmapOperationMessage>> blockingQueue;
-    private Map<String, EmapOperationMessage> waitingMap;
-    private Map<String, ImmutablePair<Integer, Runnable>> batchWaitingMap;
-    private ScheduledThreadPoolExecutor executorService;
+    private final Map<String, EmapOperationMessage> waitingMap;
+    private final Map<String, ImmutablePair<Integer, Runnable>> batchWaitingMap;
+    private final ScheduledThreadPoolExecutor executorService;
     private final int maxInTransit;
     private volatile boolean failedSend = false;
-    private int initialDelay;
+    private final int initialDelay;
     private int currentDelay;
     private int countMessagesAtCurrentDelay = 0;
-    private int delayMultiplier = 2;
+    private final int delayMultiplier = 2;
     private @Value("${rabbitmq.retry.delay.maximum:600}")
     int maximumDelay;
-    private Thread mainThread;
+    private final Thread mainThread;
     private volatile boolean isFinished;
 
 
-    private Logger logger = LoggerFactory.getLogger(Publisher.class);
+    private final Logger logger = LoggerFactory.getLogger(Publisher.class);
 
     @Autowired
     private EmapDataSource getEmapDataSource;
