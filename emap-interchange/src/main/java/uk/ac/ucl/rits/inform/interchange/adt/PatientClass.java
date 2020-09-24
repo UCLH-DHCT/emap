@@ -5,52 +5,58 @@ package uk.ac.ucl.rits.inform.interchange.adt;
  */
 public enum PatientClass {
     /**
+     * Day case.
+     */
+    DAY_CASE("DAY CASE"),
+
+    /**
      * Emergency.
      */
-    E,
+    EMERGENCY("E"),
 
     /**
      * Inpatient.
      */
-    I,
+    INPATIENT("I"),
 
     /**
-     * Outpatient.
+     * Not applicable.
      */
-    O,
+    NOT_APPLICABLE("N"),
+
+    /**
+     * New Born in EPIC, obstetrics in HL7.
+     */
+    NEW_BORN("B"),
+
+    /**
+     * Surgery admit.
+     */
+    SURGICAL_ADMISSION("SURG ADMIT"),
 
     /**
      * Pre-admit.
      */
-    P,
+    PRE_ADMIT("P"),
 
     /**
-     * Recurring Patient.
+     * Outpatient.
      */
-    R,
+    OUTPATIENT("O");
 
-    /**
-     * Obstetrics.
-     */
-    B,
+    final String hl7Code;
 
-    /**
-     * Day Hospital.
-     */
-    D,
+    PatientClass(String hl7Code) {
+        this.hl7Code = hl7Code;
+    }
 
-    /**
-     * Week Hospital.
-     */
-    W,
+    public static PatientClass findByHl7Code(String hl7Code) {
+        for (PatientClass patientClass : values()) {
+            if (patientClass.hl7Code.equals(hl7Code)) {
+                return patientClass;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Patient Class %s is not a known type", hl7Code));
+    }
 
-    /**
-     * Psychiatric.
-     */
-    S,
-
-    /**
-     * Newborn.
-     */
-    K
 }
