@@ -185,6 +185,7 @@ public class PathologyOrderBuilder {
         PID pid = patient.getPID();
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
+        msg.setSourceSystem(patientHl7.getSendingApplication());
         msg.setVisitNumber(patientHl7.getVisitNumber());
         msg.setMrn(patientHl7.getMrn());
         String sendingApplication = patientHl7.getSendingApplication();
@@ -252,6 +253,7 @@ public class PathologyOrderBuilder {
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         msg.setVisitNumber(patientHl7.getVisitNumber());
         msg.setMrn(patientHl7.getMrn());
+        msg.setSourceSystem(patientHl7.getSendingApplication());
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
         populateFromOrcObr(orc, obr);

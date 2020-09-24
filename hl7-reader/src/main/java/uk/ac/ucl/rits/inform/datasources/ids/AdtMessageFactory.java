@@ -1,0 +1,298 @@
+package uk.ac.ucl.rits.inform.datasources.ids;
+
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.group.ADT_A39_PATIENT;
+import ca.uhn.hl7v2.model.v26.message.ADT_A39;
+import ca.uhn.hl7v2.model.v26.segment.EVN;
+import ca.uhn.hl7v2.model.v26.segment.MRG;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.model.v26.segment.PID;
+import ca.uhn.hl7v2.model.v26.segment.PV1;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
+
+/**
+ * Build an AdtMessage Emap interchange object from an HL7 message.
+ * @author Jeremy Stein
+ */
+@Component
+public class AdtMessageFactory {
+    private static final Logger logger = LoggerFactory.getLogger(AdtMessageFactory.class);
+
+    /**
+     * Default constructor.
+     */
+    public AdtMessageFactory() {
+    }
+
+    /**
+     * Construct from an HL7 message.
+     * @param hl7Msg   the HL7 message
+     * @param sourceId the unique source Id message
+     * @return AdtMessage built from the hl7 message
+     * @throws HL7Exception                      if HAPI does
+     * @throws Hl7MessageNotImplementedException if the ADT type hasn't been implemented
+     */
+    public AdtMessage getAdtMessage(final Message hl7Msg, final String sourceId) throws HL7Exception, Hl7MessageNotImplementedException {
+        MSH msh = getMsh(hl7Msg);
+        PID pid = getPid(hl7Msg);
+        PV1 pv1 = getPv1(hl7Msg);
+
+        PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(msh, pid, pv1);
+        EVN evn = getEvn(hl7Msg);
+        AdtMessage msg = buildAdtMessageSubclass(patientInfoHl7, hl7Msg, evn, msh.getMessageType().getTriggerEvent().getValueOrEmpty());
+        addGenericDataToAdtMessage(sourceId, pv1, pid, evn, patientInfoHl7, msg);
+
+        return msg;
+    }
+
+    /**
+     * Add data that all ADT messages may have.
+     * @param sourceId       source Id
+     * @param pv1            PV1 segment
+     * @param pid            PID segment
+     * @param evn            EVN segment
+     * @param patientInfoHl7 patientInfo
+     * @param msg            AdtMessage to be altered
+     * @throws HL7Exception If HAPI does
+     */
+    private void addGenericDataToAdtMessage(final String sourceId, final PV1 pv1, final PID pid, final EVN evn,
+                                            final PatientInfoHl7 patientInfoHl7, AdtMessage msg) throws HL7Exception {
+        msg.setSourceMessageId(sourceId);
+        msg.setSourceSystem(patientInfoHl7.getSendingApplication());
+        if (pv1 != null) {
+            // will we want demographics to be included in pathology messages too?
+            msg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+            msg.setAdmitSource(Hl7Value.buildFromHl7(patientInfoHl7.getAdmitSource()));
+            msg.setCurrentBed(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentBed()));
+            msg.setCurrentRoomCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentRoomCode()));
+            msg.setCurrentWardCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentWardCode()));
+            msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
+            msg.setHospitalService(Hl7Value.buildFromHl7(patientInfoHl7.getHospitalService()));
+            try {
+                msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
+            } catch (IllegalArgumentException e) {
+                throw new HL7Exception("Patient class was not recognised", e);
+            }
+            msg.setPatientType(Hl7Value.buildFromHl7(patientInfoHl7.getPatientType()));
+            msg.setVisitNumber(patientInfoHl7.getVisitNumber());
+        }
+        if (pid != null) {
+            msg.setEthnicGroup(Hl7Value.buildFromHl7(patientInfoHl7.getEthnicGroup()));
+            msg.setMrn(patientInfoHl7.getMrn());
+            msg.setNhsNumber(patientInfoHl7.getNHSNumber());
+            msg.setPatientBirthDate(Hl7Value.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
+
+            // Despite what the HL7 spec hints at, this death information can occur
+            // in any message, not just A03
+            String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
+            if (hl7DeathIndicator.equals("Y")) {
+                msg.setPatientIsAlive(new Hl7Value<>(false));
+            } else if (hl7DeathIndicator.equals("N") || hl7DeathIndicator.equals("")) {
+                msg.setPatientIsAlive(new Hl7Value<>(true));
+            }
+            // set the death time even if indicator says they're not dead (it happens...)
+            msg.setPatientDeathDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getPatientDeathDateTime()));
+
+            msg.setPatientFamilyName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFamilyName()));
+            msg.setPatientFullName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFullName()));
+            msg.setPatientGivenName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientGivenName()));
+            msg.setPatientMiddleName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
+            msg.setPatientReligion(Hl7Value.buildFromHl7(patientInfoHl7.getPatientReligion()));
+            msg.setPatientSex(Hl7Value.buildFromHl7(patientInfoHl7.getPatientSex()));
+            msg.setPatientTitle(Hl7Value.buildFromHl7(patientInfoHl7.getPatientTitle()));
+            msg.setPatientZipOrPostalCode(Hl7Value.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
+        }
+        if (evn != null) {
+            msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
+            msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
+            msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
+            msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
+        }
+    }
+
+    /**
+     * For building up test IDS, get patient information from HL7 message.
+     * @param hl7Msg HL7 message
+     * @return PatientInfoHl7 object
+     * @throws HL7Exception if HAPI does
+     */
+    public PatientInfoHl7 getPatientInfo(final Message hl7Msg) throws HL7Exception {
+        MSH msh = getMsh(hl7Msg);
+        PID pid = getPid(hl7Msg);
+        PV1 pv1 = getPv1(hl7Msg);
+        return new PatientInfoHl7(msh, pid, pv1);
+    }
+
+    /**
+     * Build correct AdtMessage subtype and add any specific data.
+     * @param patientInfoHl7 Patient HL7 info
+     * @param hl7Msg         HL7 message
+     * @param evn            EVN segment, required for any cancellation event
+     * @param triggerEvent   ADT message trigger event
+     * @return ADT Message build with specific subtype added
+     * @throws HL7Exception                      if hl7 message can't be parsed
+     * @throws Hl7MessageNotImplementedException if message hasn't been implemented yet
+     */
+    private AdtMessage buildAdtMessageSubclass(final PatientInfoHl7 patientInfoHl7, final Message hl7Msg,
+                                               final EVN evn, final String triggerEvent) throws HL7Exception, Hl7MessageNotImplementedException {
+
+        AdtMessage msg;
+        switch (triggerEvent) {
+            case "A01":
+            case "A04":
+                msg = new AdmitPatient();
+                break;
+            case "A02":
+            case "A06":
+            case "A07":
+                msg = new TransferPatient();
+                break;
+            case "A03":
+                DischargePatient dischargeMsg = new DischargePatient();
+                dischargeMsg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
+                dischargeMsg.setDischargeDisposition(patientInfoHl7.getDischargeDisposition());
+                dischargeMsg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
+                msg = dischargeMsg;
+                break;
+            case "A08":
+                msg = new UpdatePatientInfo();
+                break;
+            case "A11":
+                CancelAdmitPatient cancelAdmitPatient = new CancelAdmitPatient();
+                setCancellationTime(cancelAdmitPatient, evn);
+                msg = cancelAdmitPatient;
+                break;
+            case "A12":
+                CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
+                setCancellationTime(cancelTransferPatient, evn);
+                msg = cancelTransferPatient;
+                break;
+            case "A13":
+                CancelDischargePatient cancelDischargePatient = new CancelDischargePatient();
+                setCancellationTime(cancelDischargePatient, evn);
+                msg = cancelDischargePatient;
+                break;
+            case "A40":
+                MergePatient mergeMsg = new MergePatient();
+                MRG mrg = getMrg(hl7Msg);
+                if (mrg != null) {
+                    mergeMsg.setRetiredMrn(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
+                    mergeMsg.setRetiredNhsNumber(mrg.getMrg1_PriorPatientIdentifierList(1).getIDNumber().toString());
+                }
+                msg = mergeMsg;
+                break;
+            default:
+                // to keep processes running even if it does not build a valid interchange message, delay exception
+                // and create default message type
+                throw new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
+        }
+        return msg;
+    }
+
+    /**
+     * get MRG segment from hl7 message.
+     * @param hl7Msg hl7 message
+     * @return MRG segment
+     * @throws HL7Exception if HAPI does
+     */
+    private MRG getMrg(Message hl7Msg) throws HL7Exception {
+        MRG mrg = null;
+        if (hl7Msg instanceof ADT_A39) {
+            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
+            mrg = a39Patient.getMRG();
+        }
+        return mrg;
+    }
+
+
+    /**
+     * get EVN segment if it exists.
+     * @param hl7Msg hl7 message
+     * @return EVN segment
+     */
+    private EVN getEvn(Message hl7Msg) {
+        EVN evn = null;
+        try {
+            evn = (EVN) hl7Msg.get("EVN");
+        } catch (HL7Exception e) {
+            // EVN is allowed not to exist
+        }
+        return evn;
+    }
+
+    /**
+     * get PV1 segment if it exists.
+     * @param hl7Msg hl7 message
+     * @return PV1
+     */
+    private PV1 getPv1(Message hl7Msg) {
+        PV1 pv1 = null;
+        try {
+            pv1 = (PV1) hl7Msg.get("PV1");
+        } catch (HL7Exception e) {
+            // some sections are allowed not to exist
+        }
+        return pv1;
+    }
+
+    /**
+     * Get PID if it exists.
+     * @param hl7Msg hl7 message
+     * @return PID
+     * @throws HL7Exception if PID doesn't exist for a merge message
+     */
+    private PID getPid(Message hl7Msg) throws HL7Exception {
+        // I want the "MRG" segment for A40 messages, is this really
+        // the best way to get it? Why do we have to get the PID segment in
+        // a different way for an A39/A40 message?
+        PID pid = null;
+        if (hl7Msg instanceof ADT_A39) {
+            ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
+            pid = a39Patient.getPID();
+        } else {
+            try {
+                pid = (PID) hl7Msg.get("PID");
+            } catch (HL7Exception e) {
+                // empty PID is allowed
+            }
+        }
+        return pid;
+    }
+
+    /**
+     * get MSH segment.
+     * @param hl7Msg hl7 message
+     * @return MSH segment
+     * @throws HL7Exception if MSH doesn't exist
+     */
+    private MSH getMsh(Message hl7Msg) throws HL7Exception {
+        return (MSH) hl7Msg.get("MSH");
+    }
+
+    /**
+     * Set cancellation time from the evn segment.
+     * @param adtCancellation adt cancellation message
+     * @param evn             EVN segment
+     * @throws DataTypeException if the datetime can't be interpreted as local time
+     */
+    private void setCancellationTime(AdtCancellation adtCancellation, EVN evn) throws DataTypeException {
+        adtCancellation.setCancelledDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
+    }
+}

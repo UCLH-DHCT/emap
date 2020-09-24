@@ -3,14 +3,16 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.AdtOperationType;
 
 /**
  * Take an HL7 ADT message as input, and check the correctness of the resultant
@@ -64,9 +66,8 @@ public class TestAdtVarious extends TestHl7MessageStream {
      * Test event code
      */
     @Test
-    public void testGetOperationType() {
-        AdtOperationType result = msg.getOperationType();
-        assertEquals(AdtOperationType.ADMIT_PATIENT, result);
+    public void testAdtClass() {
+        assertTrue(msg instanceof AdmitPatient);
     }
 
     /**
@@ -92,7 +93,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientFamilyName1()  {
-        String result = msg.getPatientFamilyName();
+        String result = msg.getPatientFamilyName().get();
         assertEquals("INTERFACES", result);
     }
 
@@ -101,7 +102,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientGivenName1()  {
-        String result = msg.getPatientGivenName();
+        String result = msg.getPatientGivenName().get();
         assertEquals("Amendadmission", result);
     }
 
@@ -110,7 +111,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientMiddleName1()  {
-        String result = msg.getPatientMiddleName();
+        String result = msg.getPatientMiddleName().get();
         assertEquals("Longforenamesecondfn", result);
     }
 
@@ -119,7 +120,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientTitle1()  {
-        String result = msg.getPatientTitle();
+        String result = msg.getPatientTitle().get();
         assertEquals("LADY", result);
     }
 
@@ -128,7 +129,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientFullName1()  {
-        String result = msg.getPatientFullName();
+        String result = msg.getPatientFullName().get();
         assertEquals("LADY Amendadmission Longforenamesecondfn INTERFACES", result);
     }
 
@@ -137,7 +138,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetCurrentWardCode1() {
-        String result = msg.getCurrentWardCode();
+        String result = msg.getCurrentWardCode().get();
         assertEquals("H2HH", result);
     }
 
@@ -146,7 +147,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetCurrentRoomCode1() {
-        String result = msg.getCurrentRoomCode();
+        String result = msg.getCurrentRoomCode().get();
         assertEquals("H203", result);
     }
 
@@ -155,7 +156,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetCurrentBed1() {
-        String result = msg.getCurrentBed();
+        String result = msg.getCurrentBed().get();
         assertEquals("H203-11", result);
     }
 
@@ -164,7 +165,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetHospitalService1() {
-        String result = msg.getHospitalService();
+        String result = msg.getHospitalService().get();
         assertEquals("41008", result);
     }
 
@@ -173,7 +174,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetAdmitSource1() {
-        String result = msg.getAdmitSource();
+        String result = msg.getAdmitSource().get();
         assertEquals("19", result);
     }
 
@@ -182,8 +183,8 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testGetPatientType1() {
-        String result = msg.getPatientType();
-        assertEquals(null, result);
+        Hl7Value<String> result = msg.getPatientType();
+        assertEquals(Hl7Value.unknown(), result);
     }
 
     /**
@@ -195,10 +196,6 @@ public class TestAdtVarious extends TestHl7MessageStream {
         assertEquals("1234TESTVISITNUM", result);
     }
 
-    @Test
-    public void testGetDischargeLocation() {
-        assertEquals("Home", msg.getDischargeLocation());
-    }
 
     /**
      * PV1-44.1.
@@ -207,25 +204,16 @@ public class TestAdtVarious extends TestHl7MessageStream {
     public void testGetAdmissionDateTime1() {
         assertEquals(
                 Instant.parse("2012-09-21T17:40:00.00Z"),
-                msg.getAdmissionDateTime());
+                msg.getAdmissionDateTime().get());
     }
 
-    /**
-     * PV1-45.1.
-     */
-    @Test
-    public void testGetDischargeDateTime1() {
-        assertEquals(
-                null,
-                msg.getDischargeDateTime());
-    }
 
     /**
      * Death time should be null.
      */
     @Test
     public void testNoTimeOfDeath()  {
-        assertNull(msg.getPatientDeathDateTime());
+        assertEquals(Hl7Value.unknown(), msg.getPatientDeathDateTime());
     }
 
     /**
@@ -233,6 +221,6 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testDeathIndicator()  {
-        assertFalse(msg.getPatientDeathIndicator());
+        assertTrue(msg.getPatientIsAlive().get());
     }
 }
