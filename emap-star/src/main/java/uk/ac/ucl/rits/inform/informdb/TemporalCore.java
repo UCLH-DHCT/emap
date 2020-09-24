@@ -1,6 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import javax.persistence.Column;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.MappedSuperclass;
 import java.time.Instant;
 
@@ -18,6 +20,7 @@ import java.time.Instant;
  * @author UCL RITS
  */
 @MappedSuperclass
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class TemporalCore<T extends TemporalCore<T>> {
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")

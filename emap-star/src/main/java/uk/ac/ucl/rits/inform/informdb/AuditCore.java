@@ -63,13 +63,6 @@ public interface AuditCore<T extends TemporalCore<T>> {
     void setStoredUntil(Instant storedUntil);
 
     /**
-     * Builds audit table from original entity with all values except for storedUntil and validUntil.
-     * @param originalEntity Original entity.
-     * @return audit table
-     */
-    AuditCore<T> buildFromOriginalEntity(T originalEntity);
-
-    /**
      * Time-travel validity.
      * Note that this assumes the current state of the database is correct.
      * @param asOfTime The time to test validity at,
@@ -81,19 +74,4 @@ public interface AuditCore<T extends TemporalCore<T>> {
                 && (getValidUntil() == null || asOfTime.compareTo(getValidUntil()) < 0);
     }
 
-
-    /**
-     * Build and return an audit row for the original table.
-     * @param originalEntity original entity to be audited.
-     * @param storedUntil    the time that this change is being made in the DB
-     * @param validUntil     the time at which this fact stopped being true,
-     *                       can be any amount of time in the past
-     * @return the newly created row
-     */
-    default AuditCore<T> createAuditRow(T originalEntity, Instant storedUntil, Instant validUntil) {
-        AuditCore<T> audit = buildFromOriginalEntity(originalEntity);
-        audit.setStoredUntil(storedUntil);
-        audit.setValidUntil(validUntil);
-        return audit;
-    }
 }
