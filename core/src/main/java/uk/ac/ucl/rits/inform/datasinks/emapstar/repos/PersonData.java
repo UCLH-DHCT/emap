@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
@@ -26,17 +27,21 @@ public class PersonData {
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
     private final CoreDemographicRepository coreDemographicRepo;
+    private final AuditCoreDemographicRepository auditCoreDemographicRepo;
 
     /**
      * Constructor implicitly autowiring beans.
-     * @param mrnRepo             mrnRepo
-     * @param mrnToLiveRepo       mrnToLiveRepo
-     * @param coreDemographicRepo coreDemographicRepo
+     * @param mrnRepo                  mrnRepo
+     * @param mrnToLiveRepo            mrnToLiveRepo
+     * @param coreDemographicRepo      coreDemographicRepo
+     * @param auditCoreDemographicRepo auditCoreDemographicRepo
      */
-    public PersonData(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo) {
+    public PersonData(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo,
+                      AuditCoreDemographicRepository auditCoreDemographicRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
         this.coreDemographicRepo = coreDemographicRepo;
+        this.auditCoreDemographicRepo = auditCoreDemographicRepo;
     }
 
     /**
@@ -86,17 +91,20 @@ public class PersonData {
 
     /**
      * Update existing demographics if they have changed and are newer, otherwise create new demographics.
-     * @param mrnId      Id of the mrn
-     * @param adtMessage adt message
-     * @param storedFrom when the message has been read by emap core
+     * @param mrnId           Id of the mrn
+     * @param adtMessage      adt message
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
      */
     @Transactional
-    public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
+    public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant messageDateTime, final Instant storedFrom) {
         coreDemographicRepo
                 .getByMrnIdEquals(mrnId)
                 .map(existingDemographic -> {
                     if (messageIsDifferentAndIsNewer(mrnId, adtMessage, storedFrom, existingDemographic)) {
                         // log current state to audit table and then update current row
+                        AuditCoreDemographic auditCoreDemographic = new AuditCoreDemographic(existingDemographic, messageDateTime, storedFrom);
+                        auditCoreDemographicRepo.save(auditCoreDemographic);
                         updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
                     }
                     return existingDemographic;

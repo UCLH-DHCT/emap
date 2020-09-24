@@ -31,8 +31,6 @@ public abstract class MessageProcessingBase {
     @Autowired
     protected MrnToLiveRepository mrnToLiveRepo;
     @Autowired
-    protected CoreDemographicRepository coreDemographicRepository;
-    @Autowired
     protected PersonData personData;
 
     @Autowired

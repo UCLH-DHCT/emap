@@ -1,7 +1,11 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
+import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
@@ -12,12 +16,24 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class TestAdtProcessing extends MessageProcessingBase {
+    @Autowired
+    CoreDemographicRepository coreDemographicRepository;
+
+    @Autowired
+    AuditCoreDemographicRepository auditCoreDemographicRepository;
+
+    private List<AuditCoreDemographic> getAllAuditCoreDemographics() {
+        return StreamSupport.stream(auditCoreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
+    }
 
     /**
      * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
@@ -56,10 +72,17 @@ public class TestAdtProcessing extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
 
+        // audit log for demographics should be populated
+        List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
+        assertFalse(audit.isEmpty());
+
+        List<CoreDemographic> demographics = StreamSupport.stream(coreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
+
         // unknown demographics should not be set
         CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
         assertEquals("middle", demographic.getMiddlename()); // unknown value so shouldn't change
         assertEquals("ORANGE", demographic.getLastname());  // known value so should change
+
     }
 
     /**
@@ -79,11 +102,15 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         CoreDemographic postDemographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
         assertEquals(preDemographic, postDemographic);
+
+        List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
+        assertTrue(audit.isEmpty());
+
     }
 
     /**
      * Mrn (id=2) already exists and has been merged (live id=3)
-     * No new mrns should be created, processing should be done on the live id only and demographics should be udated
+     * No new mrns should be created, processing should be done on the live id only and demographics should be updated
      */
     @Test
     @Sql(value = "/populate_mrn.sql")
@@ -103,7 +130,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         long liveMrnId = 1003L;
         //person repo should return the live mrn only
-        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), null, null, null);
+        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), "EPIC", Instant.now(), Instant.now());
         assertEquals(liveMrnId, liveMrn.getMrnId().longValue());
 
         // demographics that are updated should be the live mrn

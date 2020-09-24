@@ -40,7 +40,7 @@ public class AdtProcessor {
     public String processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         Mrn mrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
-        personData.updateOrCreateDemographic(mrn.getMrnId(), msg, storedFrom);
+        personData.updateOrCreateDemographic(mrn.getMrnId(), msg, msg.getRecordedDateTime(), storedFrom);
 
         if (msg instanceof MergePatient) {
             MergePatient mergePatient = (MergePatient) msg;
