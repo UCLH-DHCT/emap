@@ -1,9 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.time.Instant;
-
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
+import java.time.Instant;
 
 /**
  * This models the common core of the temporal variables stored in almost all
@@ -15,25 +14,19 @@ import javax.persistence.MappedSuperclass;
  * later date may be considered true from when the original event happened), and
  * from when it was available in the database (so a repeat export of data won't
  * be contaminated by new data in reproducibility studies).
- *
- * @author UCL RITS
- *
  * @param <T> The Class type returned by the invalidation method.
- *
+ * @author UCL RITS
  */
 @MappedSuperclass
 public abstract class TemporalCore<T extends TemporalCore<T>> {
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant validFrom;
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant validUntil;
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant storedFrom;
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant storedUntil;
 
     /**
+     * Default constructor.
      */
     public TemporalCore() {
     }
@@ -44,15 +37,12 @@ public abstract class TemporalCore<T extends TemporalCore<T>> {
      */
     public TemporalCore(TemporalCore<T> other) {
         validFrom = other.validFrom;
-        validUntil = other.validUntil;
         storedFrom = other.storedFrom;
-        storedUntil = other.storedUntil;
     }
 
     /**
      * Get the time from when this bit of data was considered true or extant.
      * Historically loaded data is back dated to its original occurrence time.
-     *
      * @return the validFrom time and date.
      */
     public Instant getValidFrom() {
@@ -62,28 +52,10 @@ public abstract class TemporalCore<T extends TemporalCore<T>> {
     /**
      * Set the time from which this fact was considered true within the hospital
      * system.
-     *
      * @param validFrom the validFrom to set
      */
     public void setValidFrom(Instant validFrom) {
         this.validFrom = validFrom;
-    }
-
-    /**
-     * Get the time when this fact stopped being true within the hospital system.
-     * This would occur if a correction was made, and the old value was now invalid.
-     *
-     * @return the validUntil
-     */
-    public Instant getValidUntil() {
-        return validUntil;
-    }
-
-    /**
-     * @param validUntil the validUntil to set
-     */
-    public void setValidUntil(Instant validUntil) {
-        this.validUntil = validUntil;
     }
 
     /**
@@ -100,69 +72,7 @@ public abstract class TemporalCore<T extends TemporalCore<T>> {
         this.storedFrom = storedFrom;
     }
 
-    /**
-     * @return the storedUntil
-     */
-    public Instant getStoredUntil() {
-        return storedUntil;
-    }
-
-    /**
-     * @param storedUntil the storedUntil to set
-     */
-    public void setStoredUntil(Instant storedUntil) {
-        this.storedUntil = storedUntil;
-    }
-
-    /**
-     * Is this row current now? We are assuming that from/until
-     * dates will never be in the future, or if they are it
-     * will only be due to system clocks being slightly adrift
-     * and nothing should be read into it.
-     * This means that you can check for currentness as of
-     * the present by checking the nullness of the until dates.
-     * This is subtly different from calling isValidAsOf
-     * and passing in the current time, which can give unexpected
-     * results due to clock mismatches.
-     *
-     * @return whether this row is current as of now
-     */
-    public boolean isCurrent() {
-        return validUntil == null && storedUntil == null;
-    }
-
-    /**
-     * Time-travel validity. If you want validity as of now,
-     * do not use this method, use the parameter-free method.
-     * Note that this assumes the current state of the database..
-     *
-     * @param asOfTime The time to test validity at,
-     * ie. the simulated "now" point. Cannot be null.
-     *
-     * @return whether this row was valid as of the given time
-     */
-    public boolean isValidAsOf(Instant asOfTime) {
-        return storedUntil == null && asOfTime.compareTo(validFrom) >= 0
-                && (validUntil == null
-                        || asOfTime.compareTo(validUntil) < 0);
-    }
 
     public abstract T copy();
 
-    /**
-     * Invalidate this object by deleting it and creating a new row showing the
-     * now-closed validity interval.
-     *
-     * @param storedFromUntil  the time that this change is being made in the DB
-     * @param invalidationDate the time at which this fact stopped being true, can
-     *                         be any amount of time in the past
-     * @return the newly created row
-     */
-    public T invalidate(Instant storedFromUntil, Instant invalidationDate) {
-        T copiedInstance = this.copy();
-        this.setStoredUntil(storedFromUntil);
-        copiedInstance.setStoredFrom(storedFromUntil);
-        copiedInstance.setValidUntil(invalidationDate);
-        return copiedInstance;
-    }
 }

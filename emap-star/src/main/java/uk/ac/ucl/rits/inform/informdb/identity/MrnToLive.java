@@ -91,7 +91,7 @@ public class MrnToLive extends TemporalCore<MrnToLive> implements Serializable {
 
     @Override
     public String toString() {
-        return "MrnToLive [mrn_id=" + mrnId + ", live_mrn_id=" + liveMrnId + ", current=" + this.isCurrent() + "]";
+        return String.format("MrnToLive [mrn_id=%s, live_mrn_id=%s]", mrnId, liveMrnId);
     }
 
     @Override
