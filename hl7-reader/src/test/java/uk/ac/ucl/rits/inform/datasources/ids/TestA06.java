@@ -41,7 +41,7 @@ public class TestA06 extends TestHl7MessageStream {
      */
     @Test
     public void testPatientClass() {
-        assertEquals(PatientClass.I, msg.getPatientClass().get());
+        assertEquals(PatientClass.INPATIENT, msg.getPatientClass().get());
     }
 
     @Test

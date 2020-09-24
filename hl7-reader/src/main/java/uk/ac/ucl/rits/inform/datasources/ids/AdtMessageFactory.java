@@ -86,7 +86,7 @@ public class AdtMessageFactory {
             msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
             msg.setHospitalService(Hl7Value.buildFromHl7(patientInfoHl7.getHospitalService()));
             try {
-                msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.valueOf(patientInfoHl7.getPatientClass())));
+                msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
             } catch (IllegalArgumentException e) {
                 throw new HL7Exception("Patient class was not recognised", e);
             }
