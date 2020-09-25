@@ -12,6 +12,9 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.Instant;
 
+/**
+ * Audit table of {@link CoreDemographic}.
+ */
 @Entity
 @Table
 @Data

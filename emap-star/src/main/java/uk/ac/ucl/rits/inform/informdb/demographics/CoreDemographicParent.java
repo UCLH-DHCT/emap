@@ -12,9 +12,7 @@ import java.util.Objects;
 /**
  * Parent class that is not created as an entity to avoid polymorphic queries based on the original and audit table.
  * <p>
- * A core demographic represents the main demographics stored around patients.
- * These are attached to an MRN and describe patient level, rather than visit
- * level, data.
+ * See {@link CoreDemographic} for more details
  * @author UCL RITS
  */
 @MappedSuperclass
