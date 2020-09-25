@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Check;
 
 import javax.persistence.CascadeType;
@@ -31,7 +30,6 @@ import java.util.Objects;
 @Entity
 @Table(indexes = {@Index(name = "mrnIndex", columnList = "mrn", unique = true)})
 @Check(constraints = "(mrn is not null) or (nhs_number is not null)")
-@JsonIgnoreProperties("persons")
 public class Mrn implements Serializable {
 
     private static final long serialVersionUID = -4125275916062604528L;
@@ -43,8 +41,8 @@ public class Mrn implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnId;
 
-    @OneToMany(targetEntity = MrnHospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
-    private List<MrnHospitalVisit> hospitalVisits;
+    @OneToMany(targetEntity = HospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
+    private List<HospitalVisit> hospitalVisits;
 
     /**
      * The value of the MRN identifier.
@@ -125,29 +123,29 @@ public class Mrn implements Serializable {
     }
 
     /**
-     * Add an MrnHospitalVisit to the relation list. Does not add the inverse
+     * Add an HospitalVisit to the relation list. Does not add the inverse
      * relationship.
-     * @param mrnHospitalVisit The MrnHospitaVisit to add.
+     * @param hospitalVisit The HospitalVisit to add.
      */
-    public void linkMrnHospitalVisit(MrnHospitalVisit mrnHospitalVisit) {
+    public void linkHospitalVisit(HospitalVisit hospitalVisit) {
         if (this.hospitalVisits == null) {
             this.hospitalVisits = new ArrayList<>();
         }
-        this.hospitalVisits.add(mrnHospitalVisit);
+        this.hospitalVisits.add(hospitalVisit);
     }
 
     /**
      * Get the list of relationships where this Mrn is linked to a HospitalVisit.
      * @return the list of all Hospital Visit relationships
      */
-    public List<MrnHospitalVisit> getHospitalVisits() {
+    public List<HospitalVisit> getHospitalVisits() {
         return hospitalVisits;
     }
 
     /**
      * @param hospitalVisits the encounters to set
      */
-    public void setHospitalVisits(List<MrnHospitalVisit> hospitalVisits) {
+    public void setHospitalVisits(List<HospitalVisit> hospitalVisits) {
         this.hospitalVisits = hospitalVisits;
     }
 

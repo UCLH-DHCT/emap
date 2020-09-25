@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import java.io.Serializable;
-import java.time.Instant;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,21 +8,20 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * This a single visit to the hospital. This is not necessarily an inpatient
  * visit, but includes outpatients, imaging, etc.
- *
  * @author UCL RITS
- *
  */
 @Entity
-@Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
-@JsonIgnoreProperties({ "mrns" })
-public class HospitalVisit implements Serializable {
+@Table(indexes = {@Index(name = "encounterIndex", columnList = "encounter", unique = false)})
+public class HospitalVisit extends TemporalCore<HospitalVisit> implements Serializable {
 
     private static final long serialVersionUID = -6495238097074592105L;
 
@@ -33,66 +31,91 @@ public class HospitalVisit implements Serializable {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long              hospitalVisitId;
+    private Long hospitalVisitId;
 
     /**
-     * A persistent key for this hospital visit. As data is updated, the durable key
-     * will stay the same. This should be used for all joins.
+     * The MRN this hospital visit happened under.
      */
-    @Column(nullable = false)
-    private Long              hospitalVisitDurableId;
+    @ManyToOne
+    @JoinColumn(name = "mrnId", nullable = false)
+    private Mrn mrnId;
 
     /**
      * The source system identifier of this hospital visit. In Epic this corresponds
      * to the CSN.
      */
     @Column(nullable = false)
-    private String            encounter;
+    private String encounter;
 
     /**
      * The source system from which we learnt about this hospital visit.
      */
     @Column(nullable = false)
-    private String            sourceSystem;
+    private String sourceSystem;
 
     /**
      * The time the patient was first seen in the hospital as part of their visit.
      * This may be prior to their admission.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           presentationTime;
+    private Instant presentationTime;
 
     /**
      * The time the patient was formally admitted.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           admissionTime;
+    private Instant admissionTime;
 
     /**
      * The time the patient was discharged.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           dischargeTime;
+    private Instant dischargeTime;
 
     /**
      * The patient class. E.g. Inpatient or Outpaitent.
      */
-    private String            patientClass;
+    private String patientClass;
 
     /**
      * The patient's arrival method at hospital.
      */
-    private String            arrivalMethod;
+    private String arrivalMethod;
 
     /**
      * Where the patient went after their departure.
      */
-    private String            dischargeDestination;
+    private String dischargeDestination;
 
     /**
      * The patient's disposition on departure.
      */
-    private String            dischargeDisposition;
+    private String dischargeDisposition;
+
+    /**
+     * Default constructor.
+     */
+    public HospitalVisit() {
+    }
+
+    /**
+     * Build a hospital visit from an existing object.
+     * @param other hospital visit
+     */
+    public HospitalVisit(HospitalVisit other) {
+        super(other);
+        this.admissionTime = other.admissionTime;
+        this.arrivalMethod = other.arrivalMethod;
+        this.dischargeDestination = other.dischargeDestination;
+        this.dischargeDisposition = other.dischargeDisposition;
+        this.dischargeTime = other.dischargeTime;
+        this.encounter = other.encounter;
+        this.mrnId = other.mrnId;
+        this.hospitalVisitId = other.hospitalVisitId;
+        this.patientClass = other.patientClass;
+        this.presentationTime = other.presentationTime;
+        this.sourceSystem = other.sourceSystem;
+    }
 
     /**
      * @return the hospitalVisitId
@@ -106,20 +129,6 @@ public class HospitalVisit implements Serializable {
      */
     public void setHospitalVisitId(Long hospitalVisitId) {
         this.hospitalVisitId = hospitalVisitId;
-    }
-
-    /**
-     * @return the hospitalVisitDurableId
-     */
-    public Long getHospitalVisitDurableId() {
-        return hospitalVisitDurableId;
-    }
-
-    /**
-     * @param hospitalVisitDurableId the hospitalVisitDurableId to set
-     */
-    public void setHospitalVisitDurableId(Long hospitalVisitDurableId) {
-        this.hospitalVisitDurableId = hospitalVisitDurableId;
     }
 
     /**
@@ -250,8 +259,11 @@ public class HospitalVisit implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("HospitalVisit [hospital_visit_durable_id=%d, encounter=%s, source_system=%s]",
-                this.hospitalVisitDurableId, encounter, sourceSystem);
+        return String.format("HospitalVisit [encounter=%s, source_system=%s]", encounter, sourceSystem);
     }
 
+    @Override
+    public HospitalVisit copy() {
+        return new HospitalVisit(this);
+    }
 }
