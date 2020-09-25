@@ -6,6 +6,9 @@ import uk.ac.ucl.rits.inform.informdb.AuditCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.Instant;
 
@@ -15,8 +18,11 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 public class AuditCoreDemographic extends CoreDemographicParent implements AuditCore<CoreDemographicParent> {
     private static final long serialVersionUID = -8516988957488992519L;
-    @Column
-    private long originalEntityId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long auditCoreDemographicId;
+    @Column(nullable = false)
+    private long coreDemographicId;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant validUntil;
     @Column(columnDefinition = "timestamp with time zone")
@@ -40,6 +46,6 @@ public class AuditCoreDemographic extends CoreDemographicParent implements Audit
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        this.originalEntityId = originalEntity.getCoreDemographicId();
+        this.coreDemographicId = originalEntity.getCoreDemographicId();
     }
 }

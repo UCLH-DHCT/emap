@@ -25,9 +25,7 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
 
     private static final long serialVersionUID = -8269778602198494673L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long coreDemographicId;
+
 
     @Column(nullable = false)
     private long mrnId;
@@ -66,20 +64,6 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
         this.alive = other.alive;
         this.homePostcode = other.homePostcode;
         this.sex = other.sex;
-    }
-
-    /**
-     * @return the coreDemographicId
-     */
-    public long getCoreDemographicId() {
-        return coreDemographicId;
-    }
-
-    /**
-     * @param coreDemographicId the coreDemographicId to set
-     */
-    public void setCoreDemographicId(long coreDemographicId) {
-        this.coreDemographicId = coreDemographicId;
     }
 
     /**
@@ -251,7 +235,6 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
         }
         CoreDemographicParent that = (CoreDemographicParent) o;
         return mrnId == that.mrnId
-                && coreDemographicId == that.coreDemographicId
                 && alive == that.alive
                 && Objects.equals(firstname, that.firstname)
                 && Objects.equals(middlename, that.middlename)
@@ -266,7 +249,7 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
 
     @Override
     public int hashCode() {
-        return Objects.hash(coreDemographicId, mrnId, firstname, middlename, lastname, dateOfBirth, dateOfDeath,
+        return Objects.hash(mrnId, firstname, middlename, lastname, dateOfBirth, dateOfDeath,
                 datetimeOfBirth, datetimeOfDeath, alive, homePostcode, sex);
     }
 }
