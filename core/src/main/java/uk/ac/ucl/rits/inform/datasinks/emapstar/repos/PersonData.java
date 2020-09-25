@@ -100,20 +100,32 @@ public class PersonData {
     public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant messageDateTime, final Instant storedFrom) {
         coreDemographicRepo
                 .getByMrnIdEquals(mrnId)
-                .map(existingDemographic -> {
-                    if (messageIsDifferentAndIsNewer(mrnId, adtMessage, storedFrom, existingDemographic)) {
-                        // log current state to audit table and then update current row
-                        AuditCoreDemographic auditCoreDemographic = new AuditCoreDemographic(existingDemographic, messageDateTime, storedFrom);
-                        auditCoreDemographicRepo.save(auditCoreDemographic);
-                        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
-                    }
-                    return existingDemographic;
-                })
+                .map(existingDemographic -> updateDemographicsIfNewer(mrnId, adtMessage, messageDateTime, storedFrom, existingDemographic))
                 .orElseGet(() -> {
                     CoreDemographic messageDemographics = new CoreDemographic();
                     updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
                     return coreDemographicRepo.save(messageDemographics);
                 });
+    }
+
+    /**
+     * Updates demographics if newer and different, logging original version in audit table.
+     * @param mrnId               Id of the mrn
+     * @param adtMessage          adt message
+     * @param messageDateTime     date time of the message
+     * @param storedFrom          when the message has been read by emap core
+     * @param existingDemographic core demographics from the database that may be updated
+     * @return existing demographic, with fields updated if relevant
+     */
+    private CoreDemographic updateDemographicsIfNewer(final long mrnId, final AdtMessage adtMessage, final Instant messageDateTime,
+                                                      final Instant storedFrom, CoreDemographic existingDemographic) {
+        if (messageIsDifferentAndIsNewer(mrnId, adtMessage, storedFrom, existingDemographic)) {
+            // log current state to audit table and then update current row
+            AuditCoreDemographic auditCoreDemographic = new AuditCoreDemographic(existingDemographic, messageDateTime, storedFrom);
+            auditCoreDemographicRepo.save(auditCoreDemographic);
+            updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
+        }
+        return existingDemographic;
     }
 
     /**
@@ -125,7 +137,7 @@ public class PersonData {
      * @return true if the demographics should be updated
      */
     private boolean messageIsDifferentAndIsNewer(final long mrnId, final AdtMessage adtMessage,
-                                                 final Instant storedFrom, CoreDemographic existingDemographic) {
+                                                 final Instant storedFrom, final CoreDemographic existingDemographic) {
         CoreDemographic messageDemographics = existingDemographic.copy();
         updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
         return !existingDemographic.equals(messageDemographics) && existingDemographic.getValidFrom().isBefore(messageDemographics.getValidFrom());
