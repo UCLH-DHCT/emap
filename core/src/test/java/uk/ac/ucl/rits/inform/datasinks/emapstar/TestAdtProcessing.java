@@ -4,9 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
+import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -15,6 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +34,9 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
     @Autowired
     AuditCoreDemographicRepository auditCoreDemographicRepository;
+
+    @Autowired
+    AuditMrnToLiveRepository auditMrnToLiveRepository;
 
     private List<AuditCoreDemographic> getAllAuditCoreDemographics() {
         return StreamSupport.stream(auditCoreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
@@ -73,7 +79,8 @@ public class TestAdtProcessing extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
 
-        List<CoreDemographic> demographics = StreamSupport.stream(coreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
+        List<CoreDemographic> demographics = StreamSupport.stream(coreDemographicRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
 
         // unknown demographics should not be set
         CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
@@ -82,11 +89,11 @@ public class TestAdtProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Message is older than current information, so demographics should stay the same
+     * Message is older than current information, so demographics should stay the same and no audit log rows should be added
      */
     @Test
     @Sql(value = "/populate_mrn.sql")
-    public void testOldDemographicsData() throws EmapOperationMessageProcessingException {
+    public void testOldAdtMessage() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(Instant.MIN);
 
@@ -102,6 +109,10 @@ public class TestAdtProcessing extends MessageProcessingBase {
         List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
         assertTrue(audit.isEmpty());
 
+        // audit mrn to live should not be added to
+        List<AuditMrnToLive> auditMrnToLive = StreamSupport.stream(auditMrnToLiveRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
+        assertTrue(auditMrnToLive.isEmpty());
     }
 
     /**
@@ -143,6 +154,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
     @Sql(value = "/populate_mrn.sql")
     public void testMergeKnownRetiringNewSurviving() throws EmapOperationMessageProcessingException {
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
+        msg.setRecordedDateTime(msg.getRecordedDateTime().plus(1, ChronoUnit.HOURS));
 
         // process message
         dbOps.processMessage(msg);
@@ -216,7 +228,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_mrn.sql")
-    public void testAuditLogging() throws EmapOperationMessageProcessingException {
+    public void testCoreDemographicsAuditLog() throws EmapOperationMessageProcessingException {
         // first message as MrnExists
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
@@ -245,5 +257,32 @@ public class TestAdtProcessing extends MessageProcessingBase {
                 .max(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
                 .orElseThrow(NullPointerException::new);
         assertEquals("ORANGE", secondAudit.getLastname());
+    }
+
+    /**
+     * One merge message for MRN that is live for two rows in mrn_to_live.
+     * Two rows should be added to audit log, both with the retiring Mrn as the live mrn
+     */
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testMrnToLiveAuditLog() throws EmapOperationMessageProcessingException {
+        // exists and has two entities mapped
+        String retiringMrnString = "30700000";
+        String messageSurvivingMrn = "44444444";
+        MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
+        msg.setRetiredMrn(retiringMrnString);
+        msg.setMrn(messageSurvivingMrn);
+
+        // process message
+        dbOps.processMessage(msg);
+
+        // audit log for demographics should be populated
+        List<AuditMrnToLive> audits = auditMrnToLiveRepository.getAllByLiveMrnIdMrn(retiringMrnString);
+        assertEquals(2, audits.size());
+
+        // original live should be saved to audit
+        for (AuditMrnToLive audit: audits) {
+            assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
+        }
     }
 }

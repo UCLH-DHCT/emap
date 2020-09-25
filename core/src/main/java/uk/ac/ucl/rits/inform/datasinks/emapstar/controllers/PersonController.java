@@ -6,11 +6,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
 import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
+import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -30,6 +32,7 @@ public class PersonController {
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
+    private final AuditMrnToLiveRepository auditMrnToLiveRepo;
     private final CoreDemographicRepository coreDemographicRepo;
     private final AuditCoreDemographicRepository auditCoreDemographicRepo;
 
@@ -37,13 +40,15 @@ public class PersonController {
      * Constructor implicitly autowiring beans.
      * @param mrnRepo                  mrnRepo
      * @param mrnToLiveRepo            mrnToLiveRepo
+     * @param auditMrnToLiveRepo       auditMrnToLiveRepo
      * @param coreDemographicRepo      coreDemographicRepo
      * @param auditCoreDemographicRepo auditCoreDemographicRepo
      */
-    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo,
-                            AuditCoreDemographicRepository auditCoreDemographicRepo) {
+    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, AuditMrnToLiveRepository auditMrnToLiveRepo,
+                            CoreDemographicRepository coreDemographicRepo, AuditCoreDemographicRepository auditCoreDemographicRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
+        this.auditMrnToLiveRepo = auditMrnToLiveRepo;
         this.coreDemographicRepo = coreDemographicRepo;
         this.auditCoreDemographicRepo = auditCoreDemographicRepo;
     }
@@ -70,7 +75,35 @@ public class PersonController {
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> mrnToLive.setLiveMrnId(survivingMrn));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, messageDateTime, storedFrom, mrnToLive));
+    }
+
+    /**
+     * Update MrnToLive with surviving MRN and log current state in audit table.
+     * Only happens if live MRN id is different and the message date time is the same or later than the mrnToLive value.
+     * @param survivingMrn    current live mrn
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @param mrnToLive       mrn to live entity
+     */
+    private void updateMrnToLiveIfMessageIsNotBefore(final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom,
+                                                     MrnToLive mrnToLive) {
+        if (liveMrnIdIsDifferentAndMessageIsNotBefore(survivingMrn, messageDateTime, mrnToLive)) {
+            // log current state to audit table and then update current row
+            AuditMrnToLive audit = new AuditMrnToLive(mrnToLive, messageDateTime, storedFrom);
+            auditMrnToLiveRepo.save(audit);
+            mrnToLive.setLiveMrnId(survivingMrn);
+        }
+    }
+
+    /**
+     * @param survivingMrn    current live mrn
+     * @param messageDateTime date time of the message
+     * @param mrnToLive       mrn to live entity
+     * @return true if mrn to live should be updated
+     */
+    private boolean liveMrnIdIsDifferentAndMessageIsNotBefore(Mrn survivingMrn, Instant messageDateTime, MrnToLive mrnToLive) {
+        return !(mrnToLive.getLiveMrnId().getMrnId().equals(survivingMrn.getMrnId()) && mrnToLive.getValidFrom().isAfter(messageDateTime));
     }
 
     /**
@@ -192,7 +225,8 @@ public class PersonController {
      * @param storedFrom      when the message has been read by emap core
      * @return new MRN
      */
-    private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
+    private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem,
+                                 final Instant messageDateTime,
                                  final Instant storedFrom) {
         logger.debug(String.format("Creating new MRN (mrn=%s, nhsNumber=%s)", mrnString, nhsNumber));
         Mrn mrn = new Mrn();
