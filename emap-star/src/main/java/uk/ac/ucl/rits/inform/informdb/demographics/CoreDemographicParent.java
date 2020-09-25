@@ -3,9 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.demographics;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 import java.time.Instant;
@@ -24,7 +21,6 @@ import java.util.Objects;
 public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> implements Serializable {
 
     private static final long serialVersionUID = -8269778602198494673L;
-
 
 
     @Column(nullable = false)
