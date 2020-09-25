@@ -1,10 +1,14 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
 import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -21,7 +25,7 @@ import java.util.List;
  * @author Stef Piatek
  */
 @Component
-public class PersonData {
+public class PersonController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final MrnRepository mrnRepo;
@@ -36,8 +40,8 @@ public class PersonData {
      * @param coreDemographicRepo      coreDemographicRepo
      * @param auditCoreDemographicRepo auditCoreDemographicRepo
      */
-    public PersonData(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo,
-                      AuditCoreDemographicRepository auditCoreDemographicRepo) {
+    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo,
+                            AuditCoreDemographicRepository auditCoreDemographicRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
         this.coreDemographicRepo = coreDemographicRepo;

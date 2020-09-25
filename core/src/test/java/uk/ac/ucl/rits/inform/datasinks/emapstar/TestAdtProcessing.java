@@ -126,7 +126,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
 
         long liveMrnId = 1003L;
         //person repo should return the live mrn only
-        Mrn liveMrn = personData.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), "EPIC", Instant.now(), Instant.now());
+        Mrn liveMrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), "EPIC", Instant.now(), Instant.now());
         assertEquals(liveMrnId, liveMrn.getMrnId().longValue());
 
         // demographics that are updated should be the live mrn

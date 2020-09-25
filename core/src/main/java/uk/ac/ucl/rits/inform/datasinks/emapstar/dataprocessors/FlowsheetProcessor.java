@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonData;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
@@ -18,13 +18,13 @@ import java.time.Instant;
 @Component
 public class FlowsheetProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final PersonData personData;
+    private final PersonController personController;
 
     /**
-     * @param personData person data.
+     * @param personController person data.
      */
-    public FlowsheetProcessor(PersonData personData) {
-        this.personData = personData;
+    public FlowsheetProcessor(PersonController personController) {
+        this.personController = personController;
     }
 
     /**
@@ -39,7 +39,7 @@ public class FlowsheetProcessor {
         String returnCode = "OK";
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationTimeTaken();
-        Mrn mrn = personData.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
+        Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         return returnCode;
     }
 }
