@@ -10,17 +10,18 @@ import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -72,17 +73,12 @@ public class TestAdtProcessing extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
 
-        // audit log for demographics should be populated
-        List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
-        assertFalse(audit.isEmpty());
-
         List<CoreDemographic> demographics = StreamSupport.stream(coreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
 
         // unknown demographics should not be set
         CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
         assertEquals("middle", demographic.getMiddlename()); // unknown value so shouldn't change
         assertEquals("ORANGE", demographic.getLastname());  // known value so should change
-
     }
 
     /**
@@ -214,4 +210,40 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertEquals(3, survivingMrnToLiveRows.size());
     }
 
+    /**
+     * Two messages for an existing MRN are both newer and different are being processed.
+     * Audit log should have two entries that are the original state when updated.
+     */
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testAuditLogging() throws EmapOperationMessageProcessingException {
+        // first message as MrnExists
+        AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
+        AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
+        msg2.setRecordedDateTime(Instant.parse("2020-10-01T00:00:00Z"));
+        msg2.setCurrentBed(Hl7Value.buildFromHl7("new bed"));
+
+        // process messages
+        dbOps.processMessage(msg1);
+        dbOps.processMessage(msg2);
+
+        long coreDemographicId = 3002;
+
+        // audit log for demographics should be populated
+        List<AuditCoreDemographic> audit = auditCoreDemographicRepository.getAllByCoreDemographicId(coreDemographicId);
+        assertEquals(2, audit.size());
+
+
+        // original state of the demographics should be saved to audit
+        AuditCoreDemographic firstAudit = audit.stream()
+                .min(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
+                .orElseThrow(NullPointerException::new);
+        assertEquals("zest", firstAudit.getLastname());
+
+        // second message should have the updates from the first message being saved in audit
+        AuditCoreDemographic secondAudit = audit.stream()
+                .max(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
+                .orElseThrow(NullPointerException::new);
+        assertEquals("ORANGE", secondAudit.getLastname());
+    }
 }
