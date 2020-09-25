@@ -23,6 +23,8 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
     private static final long serialVersionUID = -8269778602198494673L;
 
 
+    // TODO: should this be a foreign key now?
+    // if so, would having it as a FK in the real table and the audit table be an issue?
     @Column(nullable = false)
     private long mrnId;
 
