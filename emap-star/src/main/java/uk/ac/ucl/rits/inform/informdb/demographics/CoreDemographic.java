@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,7 +17,6 @@ import javax.persistence.Table;
 @Entity
 @Table
 @Data
-@EqualsAndHashCode(callSuper = true)
 public class CoreDemographic extends CoreDemographicParent {
     private static final long serialVersionUID = -5997494172438793019L;
 
@@ -44,5 +42,25 @@ public class CoreDemographic extends CoreDemographicParent {
     @Override
     public CoreDemographic copy() {
         return new CoreDemographic(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        CoreDemographic that = (CoreDemographic) o;
+        return super.equals(that);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }
