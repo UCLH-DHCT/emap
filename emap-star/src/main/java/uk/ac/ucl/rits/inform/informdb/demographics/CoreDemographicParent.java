@@ -1,9 +1,12 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import javax.persistence.Column;
+import javax.persistence.JoinColumn;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.OneToOne;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,10 +24,9 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
     private static final long serialVersionUID = -8269778602198494673L;
 
 
-    // TODO: should this be a foreign key now?
-    // if so, would having it as a FK in the real table and the audit table be an issue?
-    @Column(nullable = false)
-    private long mrnId;
+    @OneToOne
+    @JoinColumn(name = "mrnId", nullable = false)
+    private Mrn mrnId;
 
     private String firstname;
     private String middlename;
@@ -65,14 +67,14 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
     /**
      * @return the mrnId
      */
-    public long getMrnId() {
+    public Mrn getMrnId() {
         return mrnId;
     }
 
     /**
      * @param mrnId the mrnId to set
      */
-    public void setMrnId(long mrnId) {
+    public void setMrnId(Mrn mrnId) {
         this.mrnId = mrnId;
     }
 
@@ -230,7 +232,7 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
             return false;
         }
         CoreDemographicParent that = (CoreDemographicParent) o;
-        return mrnId == that.mrnId
+        return mrnId.getMrnId().equals(that.mrnId.getMrnId())
                 && alive == that.alive
                 && Objects.equals(firstname, that.firstname)
                 && Objects.equals(middlename, that.middlename)
