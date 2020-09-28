@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class TestAdtProcessing extends MessageProcessingBase {
+public class TestPersonProcessing extends MessageProcessingBase {
     @Autowired
     CoreDemographicRepository coreDemographicRepository;
 
@@ -233,7 +233,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
         msg2.setRecordedDateTime(Instant.parse("2020-10-01T00:00:00Z"));
-        msg2.setCurrentBed(Hl7Value.buildFromHl7("new bed"));
+        msg2.setPatientMiddleName(Hl7Value.buildFromHl7("lime"));
 
         // process messages
         dbOps.processMessage(msg1);
@@ -259,6 +259,26 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertEquals("ORANGE", secondAudit.getLastname());
     }
 
+
+    @Test
+    @Sql(value = "/populate_mrn.sql")
+    public void testCoreDemographicsAuditWithDuplicateDemographics() throws EmapOperationMessageProcessingException {
+        // first message as MrnExists
+        AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
+        AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
+        msg2.setRecordedDateTime(Instant.parse("2020-10-01T00:00:00Z"));
+
+        // process messages
+        dbOps.processMessage(msg1);
+        dbOps.processMessage(msg2);
+
+        long coreDemographicId = 3002;
+
+        // audit log for demographics should be populated only by the first message
+        List<AuditCoreDemographic> audit = auditCoreDemographicRepository.getAllByCoreDemographicId(coreDemographicId);
+        assertEquals(1, audit.size());
+    }
+
     /**
      * One merge message for MRN that is live for two rows in mrn_to_live.
      * Two rows should be added to audit log, both with the retiring Mrn as the live mrn
@@ -281,7 +301,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertEquals(2, audits.size());
 
         // original live should be saved to audit
-        for (AuditMrnToLive audit: audits) {
+        for (AuditMrnToLive audit : audits) {
             assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
         }
     }
