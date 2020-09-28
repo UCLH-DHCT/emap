@@ -4,7 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.EncounterController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
+import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -20,12 +23,15 @@ import java.time.Instant;
 public class AdtProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
+    private final EncounterController encounterController;
 
     /**
-     * @param personController person data.
+     * @param personController    person interactions.
+     * @param encounterController encounter interactions.
      */
-    public AdtProcessor(PersonController personController) {
+    public AdtProcessor(PersonController personController, EncounterController encounterController) {
         this.personController = personController;
+        this.encounterController = encounterController;
     }
 
 
@@ -39,14 +45,20 @@ public class AdtProcessor {
     @Transactional
     public String processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
+        Instant messageDateTime = msg.getRecordedDateTime();
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
-        personController.updateOrCreateDemographic(mrn, msg, msg.getRecordedDateTime(), storedFrom);
+        personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
 
         if (msg instanceof MergePatient) {
             MergePatient mergePatient = (MergePatient) msg;
             personController.mergeMrns(mergePatient.getRetiredMrn(), mergePatient.getRetiredNhsNumber(),
                     mrn, mergePatient.getRecordedDateTime(), storedFrom);
         }
+        HospitalVisit visit = encounterController.getOrCreateHospitalVisit(
+                msg.getVisitNumber(), mrn, msg.getSourceSystem(), messageDateTime, storedFrom, true);
+        AuditHospitalVisit auditHospitalVisit = encounterController.updateVisitIfUntrustedSystemOrNewlyCreated(
+                msg, messageDateTime, storedFrom, visit);
+
         return returnCode;
     }
 }
