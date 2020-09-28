@@ -53,7 +53,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertEquals(1, mrns.size());
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
-        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrns.get(0).getMrnId());
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrns.get(0));
         assertTrue(demographic.isPresent());
         assertEquals("ORANGE", demographic.get().getLastname());
         assertTrue(demographic.get().isAlive());
@@ -83,7 +83,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
                 .collect(Collectors.toList());
 
         // unknown demographics should not be set
-        CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+        CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
         assertEquals("middle", demographic.getMiddlename()); // unknown value so shouldn't change
         assertEquals("ORANGE", demographic.getLastname());  // known value so should change
     }
@@ -98,12 +98,12 @@ public class TestAdtProcessing extends MessageProcessingBase {
         msg.setRecordedDateTime(Instant.MIN);
 
         Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
-        CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+        CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
 
         // process message
         dbOps.processMessage(msg);
 
-        CoreDemographic postDemographic = coreDemographicRepository.getByMrnIdEquals(mrn.getMrnId()).orElseThrow(NullPointerException::new);
+        CoreDemographic postDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
         assertEquals(preDemographic, postDemographic);
 
         List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
@@ -141,7 +141,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
         assertEquals(liveMrnId, liveMrn.getMrnId().longValue());
 
         // demographics that are updated should be the live mrn
-        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(liveMrnId);
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdMrnIdEquals(liveMrnId);
         assertTrue(demographic.isPresent());
         assertEquals("ORANGE", demographic.get().getLastname());
     }
