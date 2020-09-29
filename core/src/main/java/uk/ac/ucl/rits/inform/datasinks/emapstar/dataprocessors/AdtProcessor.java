@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.EncounterController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -23,15 +23,15 @@ import java.time.Instant;
 public class AdtProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
-    private final EncounterController encounterController;
+    private final VisitController visitController;
 
     /**
-     * @param personController    person interactions.
-     * @param encounterController encounter interactions.
+     * @param personController person interactions.
+     * @param visitController  encounter interactions.
      */
-    public AdtProcessor(PersonController personController, EncounterController encounterController) {
+    public AdtProcessor(PersonController personController, VisitController visitController) {
         this.personController = personController;
-        this.encounterController = encounterController;
+        this.visitController = visitController;
     }
 
 
@@ -54,10 +54,13 @@ public class AdtProcessor {
             personController.mergeMrns(mergePatient.getRetiredMrn(), mergePatient.getRetiredNhsNumber(),
                     mrn, mergePatient.getRecordedDateTime(), storedFrom);
         }
-        HospitalVisit visit = encounterController.getOrCreateHospitalVisit(
+        HospitalVisit visit = visitController.getOrCreateHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), messageDateTime, storedFrom, true);
-        AuditHospitalVisit auditHospitalVisit = encounterController.updateVisitIfUntrustedSystemOrNewlyCreated(
+        AuditHospitalVisit auditHospitalVisit = visitController.updateVisitIfUntrustedSystemOrNewlyCreated(
                 msg, messageDateTime, storedFrom, visit);
+
+        visitController.saveAuditIfExists(auditHospitalVisit);
+
 
         return returnCode;
     }

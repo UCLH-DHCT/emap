@@ -2,7 +2,9 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
@@ -13,15 +15,15 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import java.time.Instant;
 
 /**
- * Interactions with encounters.
+ * Interactions with visits.
  */
 @Component
-public class EncounterController {
+public class VisitController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final HospitalVisitRepository hospitalVisitRepo;
     private final AuditHospitalVisitRepository auditHospitalVisitRepo;
 
-    public EncounterController(HospitalVisitRepository hospitalVisitRepo, AuditHospitalVisitRepository auditHospitalVisitRepo) {
+    public VisitController(HospitalVisitRepository hospitalVisitRepo, AuditHospitalVisitRepository auditHospitalVisitRepo) {
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.auditHospitalVisitRepo = auditHospitalVisitRepo;
     }
@@ -71,10 +73,21 @@ public class EncounterController {
     private void addAdtInformation(final AdtMessage adtMessage, final Instant storedFrom,
                                    HospitalVisit hospitalVisit) {
         adtMessage.getPatientClass().assignTo(pc -> hospitalVisit.setPatientClass(pc.toString()));
-        adtMessage.getAdmissionDateTime().assignTo(hospitalVisit::setAdmissionTime);
+        adtMessage.getModeOfArrival().assignTo(hospitalVisit::setArrivalMethod);
         // update source system
         hospitalVisit.setSourceSystem(adtMessage.getSourceSystem());
         hospitalVisit.setStoredFrom(storedFrom);
         hospitalVisit.setValidFrom(adtMessage.getRecordedDateTime());
+    }
+
+    /**
+     * Save audit hospital visit.
+     * @param audit Audit hospital visit
+     */
+    @Transactional
+    public void saveAuditIfExists(@Nullable final AuditHospitalVisit audit) {
+        if (audit != null) {
+            auditHospitalVisitRepo.save(audit);
+        }
     }
 }
