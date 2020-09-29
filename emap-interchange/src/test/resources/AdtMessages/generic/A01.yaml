@@ -15,6 +15,10 @@ admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "Usual"
   status: "SAVE"
+modeOfArrival:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Ambulance"
 currentBed:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "BY02-17"
