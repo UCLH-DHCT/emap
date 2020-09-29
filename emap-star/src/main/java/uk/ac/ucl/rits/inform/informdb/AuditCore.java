@@ -24,13 +24,6 @@ public interface AuditCore<T extends TemporalCore<T>> {
     Instant getValidFrom();
 
     /**
-     * Set the time from which this fact was considered true within the hospital
-     * system.
-     * @param validFrom the validFrom to set
-     */
-    void setValidFrom(Instant validFrom);
-
-    /**
      * Get the time when this fact stopped being true within the hospital system.
      * This would occur if a correction was made, and the old value was now invalid.
      * @return the validUntil
@@ -41,16 +34,6 @@ public interface AuditCore<T extends TemporalCore<T>> {
      * @param validUntil the validUntil to set
      */
     void setValidUntil(Instant validUntil);
-
-    /**
-     * @return the storedFrom
-     */
-    Instant getStoredFrom();
-
-    /**
-     * @param storedFrom the storedFrom to set
-     */
-    void setStoredFrom(Instant storedFrom);
 
     /**
      * @return the storedUntil
