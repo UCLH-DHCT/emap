@@ -176,9 +176,12 @@ public class PersonController {
      */
     private boolean messageIsDifferentAndIsNewer(final Mrn originalMrn, final AdtMessage adtMessage,
                                                  final Instant storedFrom, final CoreDemographic existingDemographic) {
+        if (adtMessage.getRecordedDateTime().isBefore(existingDemographic.getValidFrom())) {
+            return false;
+        }
         CoreDemographic messageDemographics = existingDemographic.copy();
         updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, messageDemographics);
-        return !existingDemographic.equals(messageDemographics) && existingDemographic.getValidFrom().isBefore(messageDemographics.getValidFrom());
+        return !existingDemographic.equals(messageDemographics);
     }
 
     /**
