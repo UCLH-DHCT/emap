@@ -10,6 +10,7 @@ import ca.uhn.hl7v2.model.v26.segment.MRG;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
+import ca.uhn.hl7v2.model.v26.segment.PV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -53,11 +54,12 @@ public class AdtMessageFactory {
         MSH msh = getMsh(hl7Msg);
         PID pid = getPid(hl7Msg);
         PV1 pv1 = getPv1(hl7Msg);
+        PV2 pv2 = getPv2(hl7Msg);
 
-        PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(msh, pid, pv1);
+        PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(msh, pid, pv1, pv2);
         EVN evn = getEvn(hl7Msg);
         AdtMessage msg = buildAdtMessageSubclass(patientInfoHl7, hl7Msg, evn, msh.getMessageType().getTriggerEvent().getValueOrEmpty());
-        addGenericDataToAdtMessage(sourceId, pv1, pid, evn, patientInfoHl7, msg);
+        addGenericDataToAdtMessage(sourceId, patientInfoHl7, evn, msg);
 
         return msg;
     }
@@ -65,18 +67,16 @@ public class AdtMessageFactory {
     /**
      * Add data that all ADT messages may have.
      * @param sourceId       source Id
-     * @param pv1            PV1 segment
-     * @param pid            PID segment
-     * @param evn            EVN segment
      * @param patientInfoHl7 patientInfo
+     * @param evn            EVN segment
      * @param msg            AdtMessage to be altered
      * @throws HL7Exception If HAPI does
      */
-    private void addGenericDataToAdtMessage(final String sourceId, final PV1 pv1, final PID pid, final EVN evn,
-                                            final PatientInfoHl7 patientInfoHl7, AdtMessage msg) throws HL7Exception {
+    private void addGenericDataToAdtMessage(final String sourceId, final PatientInfoHl7 patientInfoHl7, final EVN evn,
+                                            AdtMessage msg) throws HL7Exception {
         msg.setSourceMessageId(sourceId);
         msg.setSourceSystem(patientInfoHl7.getSendingApplication());
-        if (pv1 != null) {
+        if (patientInfoHl7.pv1SegmentExists()) {
             // will we want demographics to be included in pathology messages too?
             msg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
             msg.setAdmitSource(Hl7Value.buildFromHl7(patientInfoHl7.getAdmitSource()));
@@ -93,7 +93,10 @@ public class AdtMessageFactory {
             msg.setPatientType(Hl7Value.buildFromHl7(patientInfoHl7.getPatientType()));
             msg.setVisitNumber(patientInfoHl7.getVisitNumber());
         }
-        if (pid != null) {
+        if (patientInfoHl7.pv2SegmentExists()) {
+            msg.setModeOfArrival(Hl7Value.buildFromHl7(patientInfoHl7.getModeOfArrivalCode()));
+        }
+        if (patientInfoHl7.pidSegmentExists()) {
             msg.setEthnicGroup(Hl7Value.buildFromHl7(patientInfoHl7.getEthnicGroup()));
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
@@ -250,6 +253,16 @@ public class AdtMessageFactory {
             // some sections are allowed not to exist
         }
         return pv1;
+    }
+
+    private PV2 getPv2(Message hl7Msg) {
+        PV2 pv2 = null;
+        try {
+            pv2 = (PV2) hl7Msg.get("PV2");
+        } catch (HL7Exception e) {
+            // allowed to not exist
+        }
+        return pv2;
     }
 
     /**
