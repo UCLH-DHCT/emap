@@ -16,4 +16,4 @@ COPY Emap-Core/. /app/Emap-Core/
 #RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
 # -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
-CMD ["java", "-jar", "./target/EmapCore.jar"]
+CMD ["java", "-jar", "./target/Emap-Core.jar"]

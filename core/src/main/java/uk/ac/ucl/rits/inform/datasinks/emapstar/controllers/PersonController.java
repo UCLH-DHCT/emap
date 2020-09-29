@@ -1,11 +1,18 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
+import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
+import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -20,23 +27,30 @@ import java.util.List;
  * @author Stef Piatek
  */
 @Component
-public class PersonData {
+public class PersonController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
+    private final AuditMrnToLiveRepository auditMrnToLiveRepo;
     private final CoreDemographicRepository coreDemographicRepo;
+    private final AuditCoreDemographicRepository auditCoreDemographicRepo;
 
     /**
      * Constructor implicitly autowiring beans.
-     * @param mrnRepo             mrnRepo
-     * @param mrnToLiveRepo       mrnToLiveRepo
-     * @param coreDemographicRepo coreDemographicRepo
+     * @param mrnRepo                  mrnRepo
+     * @param mrnToLiveRepo            mrnToLiveRepo
+     * @param auditMrnToLiveRepo       auditMrnToLiveRepo
+     * @param coreDemographicRepo      coreDemographicRepo
+     * @param auditCoreDemographicRepo auditCoreDemographicRepo
      */
-    public PersonData(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, CoreDemographicRepository coreDemographicRepo) {
+    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, AuditMrnToLiveRepository auditMrnToLiveRepo,
+                            CoreDemographicRepository coreDemographicRepo, AuditCoreDemographicRepository auditCoreDemographicRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
+        this.auditMrnToLiveRepo = auditMrnToLiveRepo;
         this.coreDemographicRepo = coreDemographicRepo;
+        this.auditCoreDemographicRepo = auditCoreDemographicRepo;
     }
 
     /**
@@ -61,7 +75,35 @@ public class PersonData {
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> mrnToLive.setLiveMrnId(survivingMrn));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, messageDateTime, storedFrom, mrnToLive));
+    }
+
+    /**
+     * Update MrnToLive with surviving MRN and log current state in audit table.
+     * Only happens if live MRN id is different and the message date time is the same or later than the mrnToLive value.
+     * @param survivingMrn    current live mrn
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @param mrnToLive       mrn to live entity
+     */
+    private void updateMrnToLiveIfMessageIsNotBefore(final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom,
+                                                     MrnToLive mrnToLive) {
+        if (liveMrnIdIsDifferentAndMessageIsNotBefore(survivingMrn, messageDateTime, mrnToLive)) {
+            // log current state to audit table and then update current row
+            AuditMrnToLive audit = new AuditMrnToLive(mrnToLive, messageDateTime, storedFrom);
+            auditMrnToLiveRepo.save(audit);
+            mrnToLive.setLiveMrnId(survivingMrn);
+        }
+    }
+
+    /**
+     * @param survivingMrn    current live mrn
+     * @param messageDateTime date time of the message
+     * @param mrnToLive       mrn to live entity
+     * @return true if mrn to live should be updated
+     */
+    private boolean liveMrnIdIsDifferentAndMessageIsNotBefore(Mrn survivingMrn, Instant messageDateTime, MrnToLive mrnToLive) {
+        return !(mrnToLive.getLiveMrnId().getMrnId().equals(survivingMrn.getMrnId()) && mrnToLive.getValidFrom().isAfter(messageDateTime));
     }
 
     /**
@@ -86,41 +128,60 @@ public class PersonData {
 
     /**
      * Update existing demographics if they have changed and are newer, otherwise create new demographics.
-     * @param mrnId      Id of the mrn
-     * @param adtMessage adt message
-     * @param storedFrom when the message has been read by emap core
+     * @param originalMrn     Id of the mrn
+     * @param adtMessage      adt message
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
      */
     @Transactional
-    public void updateOrCreateDemographic(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom) {
+    public void updateOrCreateDemographic(final Mrn originalMrn, final AdtMessage adtMessage, final Instant messageDateTime,
+                                          final Instant storedFrom) {
         coreDemographicRepo
-                .getByMrnIdEquals(mrnId)
-                .map(existingDemographic -> {
-                    if (messageIsDifferentAndIsNewer(mrnId, adtMessage, storedFrom, existingDemographic)) {
-                        // log current state to audit table and then update current row
-                        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, existingDemographic);
-                    }
-                    return existingDemographic;
-                })
+                .getByMrnIdEquals(originalMrn)
+                .map(existingDemographic -> updateDemographicsIfNewer(originalMrn, adtMessage, messageDateTime, storedFrom, existingDemographic))
                 .orElseGet(() -> {
                     CoreDemographic messageDemographics = new CoreDemographic();
-                    updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
+                    updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, messageDemographics);
                     return coreDemographicRepo.save(messageDemographics);
                 });
     }
 
     /**
+     * Updates demographics if newer and different, logging original version in audit table.
+     * @param originalMrn         The MRN
+     * @param adtMessage          adt message
+     * @param messageDateTime     date time of the message
+     * @param storedFrom          when the message has been read by emap core
+     * @param existingDemographic core demographics from the database that may be updated
+     * @return existing demographic, with fields updated if relevant
+     */
+    private CoreDemographic updateDemographicsIfNewer(final Mrn originalMrn, final AdtMessage adtMessage, final Instant messageDateTime,
+                                                      final Instant storedFrom, CoreDemographic existingDemographic) {
+        if (messageIsDifferentAndIsNewer(originalMrn, adtMessage, storedFrom, existingDemographic)) {
+            // log current state to audit table and then update current row
+            AuditCoreDemographic auditCoreDemographic = new AuditCoreDemographic(existingDemographic, messageDateTime, storedFrom);
+            auditCoreDemographicRepo.save(auditCoreDemographic);
+            updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, existingDemographic);
+        }
+        return existingDemographic;
+    }
+
+    /**
      * ADT message has different values and is newer than the existing core demographics.
-     * @param mrnId               Id of the mrn
+     * @param originalMrn         The Mrn
      * @param adtMessage          adt message
      * @param storedFrom          when the message has been read by emap core
      * @param existingDemographic core demographics from the database
      * @return true if the demographics should be updated
      */
-    private boolean messageIsDifferentAndIsNewer(final long mrnId, final AdtMessage adtMessage,
-                                                 final Instant storedFrom, CoreDemographic existingDemographic) {
+    private boolean messageIsDifferentAndIsNewer(final Mrn originalMrn, final AdtMessage adtMessage,
+                                                 final Instant storedFrom, final CoreDemographic existingDemographic) {
+        if (adtMessage.getRecordedDateTime().isBefore(existingDemographic.getValidFrom())) {
+            return false;
+        }
         CoreDemographic messageDemographics = existingDemographic.copy();
-        updateCoreDemographicFields(mrnId, adtMessage, storedFrom, messageDemographics);
-        return !existingDemographic.equals(messageDemographics) && existingDemographic.getValidFrom().isBefore(messageDemographics.getValidFrom());
+        updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, messageDemographics);
+        return !existingDemographic.equals(messageDemographics);
     }
 
     /**
@@ -130,7 +191,7 @@ public class PersonData {
      * @param storedFrom      when the message has been read by emap core
      * @param coreDemographic original core demographic object
      */
-    private void updateCoreDemographicFields(final long mrnId, final AdtMessage adtMessage, final Instant storedFrom,
+    private void updateCoreDemographicFields(final Mrn mrnId, final AdtMessage adtMessage, final Instant storedFrom,
                                              CoreDemographic coreDemographic) {
         coreDemographic.setMrnId(mrnId);
         adtMessage.getPatientGivenName().assignTo(coreDemographic::setFirstname);
@@ -168,7 +229,8 @@ public class PersonData {
      * @param storedFrom      when the message has been read by emap core
      * @return new MRN
      */
-    private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
+    private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem,
+                                 final Instant messageDateTime,
                                  final Instant storedFrom) {
         logger.debug(String.format("Creating new MRN (mrn=%s, nhsNumber=%s)", mrnString, nhsNumber));
         Mrn mrn = new Mrn();
