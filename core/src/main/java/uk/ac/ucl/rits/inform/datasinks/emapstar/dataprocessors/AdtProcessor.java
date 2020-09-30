@@ -93,10 +93,11 @@ public class AdtProcessor {
             // process message based on the class type
             if (msg instanceof AdmitPatient) {
                 AdmitPatient admit = (AdmitPatient) msg;
-                addAdmissionInformation(admit, visitAndOriginalState.getLeft());
+                addAdmissionInformation(admit, storedFrom, visitAndOriginalState.getLeft());
             } else if (msg instanceof RegisterPatient) {
                 RegisterPatient registerPatient = (RegisterPatient) msg;
-                addRegistrationInformation(registerPatient, visitAndOriginalState.getLeft());
+                addRegistrationInformation(registerPatient, storedFrom, visitAndOriginalState.getLeft());
+
             }
             visitController.manuallySaveVisitOrAuditIfRequired(visitAndOriginalState, created, messageDateTime, storedFrom);
         }
@@ -107,7 +108,7 @@ public class AdtProcessor {
      * @param messageDateTime date time of the message
      * @param created         has the visit just been created
      * @param originalVisit   original visit from
-     * @return
+     * @return true if the message is newer or was created
      */
     private boolean messageIsNewerOrNewVisit(final Instant messageDateTime, final AtomicBoolean created,
                                              final HospitalVisit originalVisit) {
@@ -115,21 +116,45 @@ public class AdtProcessor {
     }
 
 
+    private void updateStoredFromAndValidFrom(final AdtMessage msg, final Instant storedFrom, HospitalVisit visit) {
+        visit.setValidFrom(msg.getRecordedDateTime());
+        visit.setStoredFrom(storedFrom);
+    }
+
     /**
      * Add admission specific information.
-     * @param admitPatient adt message
-     * @param visit        hospital visit to update
+     * @param msg        adt message
+     * @param storedFrom time that emap-core started processing the message.
+     * @param visit      hospital visit to update
      */
-    private void addAdmissionInformation(final AdmitPatient admitPatient, HospitalVisit visit) {
-        admitPatient.getAdmissionDateTime().assignTo(visit::setAdmissionTime);
+    private void addAdmissionInformation(final AdmitPatient msg, Instant storedFrom, HospitalVisit visit) {
+        try {
+            if (msg.getAdmissionDateTime().get().equals(visit.getAdmissionTime())) {
+                return;
+            }
+        } catch (IllegalStateException e) {
+            logger.error("Admission message with no admission date time", e);
+        }
+
+        msg.getAdmissionDateTime().assignTo(visit::setAdmissionTime);
+        updateStoredFromAndValidFrom(msg, storedFrom, visit);
     }
 
     /**
      * Add registration specific information.
-     * @param registerPatient adt message
-     * @param visit           hospital visit to update
+     * @param msg        adt message
+     * @param storedFrom time that emap-core started processing the message.
+     * @param visit      hospital visit to update
      */
-    private void addRegistrationInformation(final RegisterPatient registerPatient, HospitalVisit visit) {
-        registerPatient.getPresentationDateTime().assignTo(visit::setPresentationTime);
+    private void addRegistrationInformation(final RegisterPatient msg, Instant storedFrom, HospitalVisit visit) {
+        try {
+            if (msg.getPresentationDateTime().get().equals(visit.getPresentationTime())) {
+                return;
+            }
+        } catch (IllegalStateException e) {
+            logger.error("Registration message with no Presentation date time", e);
+        }
+        msg.getPresentationDateTime().assignTo(visit::setPresentationTime);
+        updateStoredFromAndValidFrom(msg, storedFrom, visit);
     }
 }

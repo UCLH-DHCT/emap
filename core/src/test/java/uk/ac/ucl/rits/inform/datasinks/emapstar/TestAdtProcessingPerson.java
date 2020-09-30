@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class TestAdtProcessing extends MessageProcessingBase {
+public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Autowired
     CoreDemographicRepository coreDemographicRepository;
 
@@ -65,7 +65,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * no new Mrns should be created but demographics should be updated with known data from the message.
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testMrnExists() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         int startingMrnCount = getAllMrns().size();
@@ -92,7 +92,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * Message is older than current information, so demographics should stay the same and no audit log rows should be added
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testOldAdtMessage() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(Instant.parse("2010-01-01T01:01:01Z"));
@@ -120,7 +120,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * No new mrns should be created, processing should be done on the live id only and demographics should be updated
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String mrnString = "60600000";
@@ -151,7 +151,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * should change the mrnToLive for retired MRN to surviving Mrn and create a new
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testMergeKnownRetiringNewSurviving() throws EmapOperationMessageProcessingException {
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setRecordedDateTime(msg.getRecordedDateTime().plus(1, ChronoUnit.HOURS));
@@ -171,7 +171,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * should create a new mrn for the unseen mrn, then merge it directly to the final live mrn
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testMergeNewRetiringAlreadyMergedSurviving() throws EmapOperationMessageProcessingException {
         String messageSurvivingMrn = "60600000";
         String retiringMrnString = "60600005";
@@ -198,7 +198,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * Merging patient that is known by Mrn and Nhs number
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testMergeByNhsNumber() throws EmapOperationMessageProcessingException {
         String survivingMrnString = "30700000";
         String retiringMrnString = "60600000";
@@ -227,7 +227,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * Audit log should have two entries that are the original state when updated.
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testCoreDemographicsAuditLog() throws EmapOperationMessageProcessingException {
         // first message as MrnExists
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
@@ -264,7 +264,7 @@ public class TestAdtProcessing extends MessageProcessingBase {
      * Two rows should be added to audit log, both with the retiring Mrn as the live mrn
      */
     @Test
-    @Sql(value = "/populate_mrn.sql")
+    @Sql(value = "/populate_db.sql")
     public void testMrnToLiveAuditLog() throws EmapOperationMessageProcessingException {
         // exists and has two entities mapped
         String retiringMrnString = "30700000";

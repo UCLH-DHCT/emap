@@ -87,6 +87,7 @@ public class VisitController {
         if (created.get() || !visit.getSourceSystem().equals("EPIC")) {
             adtMessage.getPatientClass().assignTo(pc -> visit.setPatientClass(pc.toString()));
             adtMessage.getModeOfArrival().assignTo(visit::setArrivalMethod);
+            adtMessage.setSourceSystem(adtMessage.getSourceSystem());
         }
     }
 
