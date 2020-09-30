@@ -16,4 +16,6 @@ public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, I
      * @return the HospitalVisit
      */
     Optional<HospitalVisit> findByEncounter(String encounter);
+
+    Optional<List<HospitalVisit>> findAllByMrnIdMrnId(Long mrnId);
 }

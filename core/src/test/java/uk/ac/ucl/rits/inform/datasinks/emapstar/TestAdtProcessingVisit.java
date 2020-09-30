@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 
 import java.time.Instant;
 import java.util.List;
@@ -38,6 +39,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * No existing hospital visits, so should make a new visit. Admission date time should be set, but presentation time should not.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
     public void testCreateNewAdmit() throws EmapOperationMessageProcessingException {
@@ -57,6 +59,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * hospital visit already exists for encounter, with a presentation time, but no admission time
      * Admission time should be added, but presentation time should not be added. Stored/valid from should be updated
+     * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
@@ -77,7 +80,63 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         // Auditlog should now have have one row
         List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
         assertEquals(1, audits.size());
+    }
 
+    /**
+     * Database has newer information than the message, and the message source is trusted
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testOlderMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        msg.setRecordedDateTime(Instant.parse("2000-01-01T01:01:01Z"));
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        // admission time should not be updated
+        assertNull(visit.getAdmissionTime());
+    }
+
+    /**
+     * Database has information that is not from a trusted source, older message should update the generic data
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testOlderAdtMessageUpdatesMinimalCase() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        String encounter = "0999999999";
+        msg.setVisitNumber(encounter);
+        msg.setRecordedDateTime(Instant.parse("2000-01-01T01:01:01Z"));
+
+        dbOps.processMessage(msg);
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(encounter).orElseThrow(NullPointerException::new);
+        assertEquals(PatientClass.INPATIENT.toString(), visit.getPatientClass());
+        assertEquals("Ambulance", visit.getArrivalMethod());
+        assertNotNull(visit.getAdmissionTime());
+        assertEquals("EPIC", visit.getSourceSystem());
+    }
+
+
+
+    /**
+     * Duplicate admit message should not create another audit table row
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testDuplicateAdmitMessage() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        dbOps.processMessage(msg);
+        dbOps.processMessage(msg);
+
+        // should only be one encounter for this mrn
+        List<HospitalVisit> mrnVisits = hospitalVisitRepository.findAllByMrnIdMrnId(1001L).orElseThrow(NullPointerException::new);
+        assertEquals(1, mrnVisits.size());
+        // Auditlog should now have have one row
+        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        assertEquals(1, audits.size());
     }
 
 }
