@@ -11,8 +11,10 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -72,11 +74,24 @@ public class AdtProcessor {
         AtomicBoolean created = new AtomicBoolean(false);
         Pair<HospitalVisit, HospitalVisit> visitAndOriginalState = visitController.getCreateOrUpdateHospitalVisit(mrn, msg, storedFrom, created);
         // process message based on the class type
-
+        if (msg instanceof AdmitPatient) {
+            AdmitPatient admit = (AdmitPatient) msg;
+            addAdmissionInformation(admit, storedFrom, visitAndOriginalState.getLeft());
+        } else if (msg instanceof RegisterPatient) {
+            RegisterPatient registerPatient = (RegisterPatient) msg;
+            addRegistrationInformation(registerPatient, storedFrom, visitAndOriginalState.getLeft());
+        }
         visitController.manuallySaveVisitOrAuditIfRequired(visitAndOriginalState, created, messageDateTime, storedFrom);
 
         return visitAndOriginalState.getLeft();
     }
 
 
+    private void addAdmissionInformation(final AdmitPatient admitPatient, final Instant storedFrom, HospitalVisit visit) {
+        admitPatient.getAdmissionDateTime().assignTo(visit::setAdmissionTime);
+    }
+
+    private void addRegistrationInformation(final RegisterPatient registerPatient, final Instant storedFrom, HospitalVisit visit) {
+        registerPatient.getPresentationDateTime().assignTo(visit::setPresentationTime);
+    }
 }
