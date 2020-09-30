@@ -16,7 +16,7 @@ import javax.persistence.Id;
  */
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class MrnToLive extends MrnToLiveParent {
 
     private static final long serialVersionUID = 8891761742756656453L;
