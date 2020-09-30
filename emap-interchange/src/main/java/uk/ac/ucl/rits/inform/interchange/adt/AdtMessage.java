@@ -28,7 +28,6 @@ public abstract class AdtMessage extends EmapOperationMessage implements Seriali
     private String mrn;
     private String nhsNumber;
     private String visitNumber;
-    private Hl7Value<Instant> admissionDateTime = Hl7Value.unknown();
     private Hl7Value<String> admitSource = Hl7Value.unknown();
     private Hl7Value<String> modeOfArrival = Hl7Value.unknown();
     private Hl7Value<String> currentBed = Hl7Value.unknown();

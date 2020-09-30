@@ -10,16 +10,15 @@ import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import java.time.Instant;
 
 /**
- * Inpatient, outpatient or emergency admission.
- * HL7 messages: A01
+ * Registration of a patient, not an admission.
+ * HL7 messages: A04
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdmitPatient extends AdtMessage {
-    private static final long serialVersionUID = -4310475980149363358L;
-    private Hl7Value<Instant> admissionDateTime = Hl7Value.unknown();
-
+public class RegisterPatient extends AdtMessage {
+    private static final long serialVersionUID = 6241822001508655468L;
+    private Hl7Value<Instant> presentationDateTime = Hl7Value.unknown();
 
     @Override
     public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
