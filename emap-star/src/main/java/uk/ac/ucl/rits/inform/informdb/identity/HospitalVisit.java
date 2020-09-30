@@ -37,6 +37,7 @@ public class HospitalVisit extends HospitalVisitParent {
      */
     public HospitalVisit(HospitalVisit other) {
         super(other);
+        hospitalVisitId = other.getHospitalVisitId();
     }
 
     /**
