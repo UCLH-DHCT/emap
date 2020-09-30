@@ -47,6 +47,7 @@ public class FlowsheetProcessor {
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
+        // TODO: the source system here is EPIC, should we add some information to the HL7 message here? to update patient class and so on
         return returnCode;
     }
 }

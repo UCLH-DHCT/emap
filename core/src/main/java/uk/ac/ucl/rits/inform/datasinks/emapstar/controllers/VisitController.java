@@ -104,8 +104,11 @@ public class VisitController {
             } else if (msg instanceof RegisterPatient) {
                 RegisterPatient registerPatient = (RegisterPatient) msg;
                 addRegistrationInformation(registerPatient, storedFrom, visit);
-
             }
+            // TODO: discharge
+            // TODO: cancel discharge
+            // TODO: cancel admit? to remove admission time or is this just location
+            // TODO: anything else that I'm missing
             manuallySaveVisitOrAuditIfRequired(visit, originalVisit, created, messageDateTime, storedFrom);
         }
         return visit;
@@ -185,7 +188,7 @@ public class VisitController {
      * @param storedFrom      when the message has been read by emap core
      */
     private void manuallySaveVisitOrAuditIfRequired(final HospitalVisit visit, final HospitalVisit originalVisit, final AtomicBoolean created,
-                                                   final Instant messageDateTime, final Instant storedFrom) {
+                                                    final Instant messageDateTime, final Instant storedFrom) {
         if (!visit.equals(originalVisit)) {
             if (created.get()) {
                 hospitalVisitRepo.save(visit);
