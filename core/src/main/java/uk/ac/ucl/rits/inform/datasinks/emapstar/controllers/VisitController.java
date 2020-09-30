@@ -1,8 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
@@ -13,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Interactions with visits.
@@ -28,66 +30,91 @@ public class VisitController {
         this.auditHospitalVisitRepo = auditHospitalVisitRepo;
     }
 
-    public HospitalVisit getOrCreateHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                                  final Instant storedFrom, final boolean isFromAdt) {
-        return hospitalVisitRepo.findByEncounter(encounter)
-                .orElseGet(() -> createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom, isFromAdt));
-    }
-
     /**
-     * Update visit with adt message information if it is from an untrusted source or the encounter has just been created from an adt message.
-     * @param adtMessage      nullable adt message
-     * @param messageDateTime message date time
-     * @param storedFrom      date time the message was processed by emap core
-     * @param visit           hospital visit
-     * @return audit entity if the visit wasn't just created.
+     * Get or create hospital visit from non-adt source.
+     * Will create a minimum hospital visit and save it it can't match one by the encounter string.
+     * @param encounter       encounter number
+     * @param mrn             Mrn
+     * @param sourceSystem    source system
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return hospital visit
      */
-    public AuditHospitalVisit updateVisitIfUntrustedSystemOrNewlyCreated(final AdtMessage adtMessage, final Instant messageDateTime, final Instant storedFrom,
-                                                                         HospitalVisit visit) {
-        AuditHospitalVisit audit = null;
-        if (!visit.getSourceSystem().equals("EPIC")) {
-            if (!visit.getSourceSystem().isEmpty()) {
-                // save current state to audit table if this is not a newly created adt message
-                audit = new AuditHospitalVisit(visit, messageDateTime, storedFrom);
-            }
-            addAdtInformation(adtMessage, storedFrom, visit);
-        }
-        return audit;
-    }
-
-    private HospitalVisit createHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                              final Instant storedFrom, final boolean isFromAdt) {
-        HospitalVisit visit = new HospitalVisit();
-        visit.setMrnId(mrn);
-        visit.setEncounter(encounter);
-        // Adt encounter should be further processed before saving
-        if (!isFromAdt) {
-            visit.setSourceSystem(sourceSystem);
-            visit.setStoredFrom(storedFrom);
-            visit.setValidFrom(messageDateTime);
+    public HospitalVisit getOrCreateNonAdtHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
+                                                        final Instant storedFrom) {
+        AtomicBoolean created = new AtomicBoolean(false);
+        HospitalVisit visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom, created);
+        if (created.get()) {
             hospitalVisitRepo.save(visit);
         }
         return visit;
     }
 
-    private void addAdtInformation(final AdtMessage adtMessage, final Instant storedFrom,
-                                   HospitalVisit hospitalVisit) {
-        adtMessage.getPatientClass().assignTo(pc -> hospitalVisit.setPatientClass(pc.toString()));
-        adtMessage.getModeOfArrival().assignTo(hospitalVisit::setArrivalMethod);
-        // update source system
-        hospitalVisit.setSourceSystem(adtMessage.getSourceSystem());
-        hospitalVisit.setStoredFrom(storedFrom);
-        hospitalVisit.setValidFrom(adtMessage.getRecordedDateTime());
+    /**
+     * Note: does not save the entity if created as further processing is expected.
+     * @param mrn        MRN
+     * @param adtMessage ADT message
+     * @param storedFrom when the message has been read by emap core
+     * @param created    initial value for whether an entity was created
+     * @return Pair of: existing, updated or created hospital visit; original state of the visit after get or create
+     */
+    @Transactional
+    public Pair<HospitalVisit, HospitalVisit> getCreateOrUpdateHospitalVisit(final Mrn mrn, final AdtMessage adtMessage,
+                                                                             final Instant storedFrom, AtomicBoolean created) {
+        HospitalVisit visit = getOrCreateHospitalVisit(
+                adtMessage.getVisitNumber(), mrn, adtMessage.getSourceSystem(), adtMessage.getRecordedDateTime(), storedFrom, created);
+        HospitalVisit originalVisit = visit.copy();
+        updateGenericAdtData(adtMessage, created, visit);
+        return new MutablePair<>(visit, originalVisit);
+    }
+
+    private HospitalVisit getOrCreateHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
+                                                   final Instant messageDateTime, final Instant storedFrom, AtomicBoolean created) {
+        return hospitalVisitRepo.findByEncounter(encounter)
+                .orElseGet(() -> {
+                    created.set(true);
+                    return createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
+                });
     }
 
     /**
-     * Save audit hospital visit.
-     * @param audit Audit hospital visit
+     * Update visit with adt message information if it is from an untrusted source or the encounter has just been created.
+     * @param adtMessage nullable adt message
+     * @param created
+     * @param visit
      */
-    @Transactional
-    public void saveAuditIfExists(@Nullable final AuditHospitalVisit audit) {
-        if (audit != null) {
-            auditHospitalVisitRepo.save(audit);
+    public void updateGenericAdtData(final AdtMessage adtMessage, final AtomicBoolean created, HospitalVisit visit) {
+        if (created.get() || !visit.getSourceSystem().equals("EPIC")) {
+            adtMessage.getPatientClass().assignTo(pc -> visit.setPatientClass(pc.toString()));
+            adtMessage.getModeOfArrival().assignTo(visit::setArrivalMethod);
         }
+    }
+
+    private HospitalVisit createHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
+                                              final Instant storedFrom) {
+        HospitalVisit visit = new HospitalVisit();
+        visit.setMrnId(mrn);
+        visit.setEncounter(encounter);
+        visit.setSourceSystem(sourceSystem);
+        visit.setStoredFrom(storedFrom);
+        visit.setValidFrom(messageDateTime);
+        return visit;
+    }
+
+    @Transactional
+    public void manuallySaveVisitOrAuditIfRequired(final Pair<HospitalVisit, HospitalVisit> visitAndOriginalState, final AtomicBoolean created,
+                                                   final Instant messageDateTime, final Instant storedFrom) {
+        if (originalAndVisitStateAreDifferent(visitAndOriginalState)) {
+            if (created.get()) {
+                hospitalVisitRepo.save(visitAndOriginalState.getLeft());
+            } else {
+                AuditHospitalVisit audit = new AuditHospitalVisit(visitAndOriginalState.getRight(), messageDateTime, storedFrom);
+                auditHospitalVisitRepo.save(audit);
+            }
+        }
+    }
+
+    private boolean originalAndVisitStateAreDifferent(Pair<HospitalVisit, HospitalVisit> visitAndOriginalState) {
+        return !visitAndOriginalState.getLeft().equals(visitAndOriginalState.getRight());
     }
 }
