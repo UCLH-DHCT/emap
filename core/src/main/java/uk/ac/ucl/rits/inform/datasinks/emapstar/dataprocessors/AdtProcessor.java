@@ -50,14 +50,22 @@ public class AdtProcessor {
     public String processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String returnCode = "OK";
         Instant messageDateTime = msg.getRecordedDateTime();
-        Mrn mrn = processMrn(msg, storedFrom, messageDateTime);
+        Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
         HospitalVisit visit = processHospitalVisit(msg, storedFrom, messageDateTime, mrn);
 
         return returnCode;
     }
 
+    /**
+     * Process person level information, saving changes to database.
+     * @param msg             adt message
+     * @param storedFrom      time that emap-core started processing the message.
+     * @param messageDateTime date time of the message
+     * @return MRN
+     * @throws MessageIgnoredException if message is not set up to be processed yet
+     */
     @Transactional
-    public Mrn processMrn(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws MessageIgnoredException {
+    public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws MessageIgnoredException {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
         personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
 
@@ -69,29 +77,59 @@ public class AdtProcessor {
         return mrn;
     }
 
+    /**
+     * Process information about hospital visits, saving any changes to the database.
+     * @param msg             adt message
+     * @param storedFrom      time that emap-core started processing the message.
+     * @param messageDateTime date time of the message
+     * @param mrn             mrn
+     * @return hospital visit
+     */
     @Transactional
     public HospitalVisit processHospitalVisit(AdtMessage msg, Instant storedFrom, Instant messageDateTime, Mrn mrn) {
         AtomicBoolean created = new AtomicBoolean(false);
         Pair<HospitalVisit, HospitalVisit> visitAndOriginalState = visitController.getCreateOrUpdateHospitalVisit(mrn, msg, storedFrom, created);
-        // process message based on the class type
-        if (msg instanceof AdmitPatient) {
-            AdmitPatient admit = (AdmitPatient) msg;
-            addAdmissionInformation(admit, storedFrom, visitAndOriginalState.getLeft());
-        } else if (msg instanceof RegisterPatient) {
-            RegisterPatient registerPatient = (RegisterPatient) msg;
-            addRegistrationInformation(registerPatient, storedFrom, visitAndOriginalState.getLeft());
+        if (messageIsNewerOrNewVisit(messageDateTime, created, visitAndOriginalState.getRight())) {
+            // process message based on the class type
+            if (msg instanceof AdmitPatient) {
+                AdmitPatient admit = (AdmitPatient) msg;
+                addAdmissionInformation(admit, visitAndOriginalState.getLeft());
+            } else if (msg instanceof RegisterPatient) {
+                RegisterPatient registerPatient = (RegisterPatient) msg;
+                addRegistrationInformation(registerPatient, visitAndOriginalState.getLeft());
+            }
+            visitController.manuallySaveVisitOrAuditIfRequired(visitAndOriginalState, created, messageDateTime, storedFrom);
         }
-        visitController.manuallySaveVisitOrAuditIfRequired(visitAndOriginalState, created, messageDateTime, storedFrom);
-
         return visitAndOriginalState.getLeft();
     }
 
+    /**
+     * @param messageDateTime date time of the message
+     * @param created         has the visit just been created
+     * @param originalVisit   original visit from
+     * @return
+     */
+    private boolean messageIsNewerOrNewVisit(final Instant messageDateTime, final AtomicBoolean created,
+                                             final HospitalVisit originalVisit) {
+        return originalVisit.getValidFrom().isBefore(messageDateTime) || created.get();
+    }
 
-    private void addAdmissionInformation(final AdmitPatient admitPatient, final Instant storedFrom, HospitalVisit visit) {
+
+    /**
+     * Add admission specific information.
+     * @param admitPatient adt message
+     * @param visit        hospital visit to update
+     */
+    private void addAdmissionInformation(final AdmitPatient admitPatient, HospitalVisit visit) {
         admitPatient.getAdmissionDateTime().assignTo(visit::setAdmissionTime);
     }
 
-    private void addRegistrationInformation(final RegisterPatient registerPatient, final Instant storedFrom, HospitalVisit visit) {
+    /**
+     * Add registration specific information.
+     * @param registerPatient adt message
+     * @param visit           hospital visit to update
+     */
+    private void addRegistrationInformation(final RegisterPatient registerPatient, HospitalVisit visit) {
         registerPatient.getPresentationDateTime().assignTo(visit::setPresentationTime);
     }
 }
