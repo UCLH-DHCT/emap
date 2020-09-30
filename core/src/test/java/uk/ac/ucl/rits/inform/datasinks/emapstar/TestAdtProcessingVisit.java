@@ -27,8 +27,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
     AuditHospitalVisitRepository auditHospitalVisitRepository;
 
-    String defaultEncounter = "123412341234";
-
     private List<HospitalVisit> getAllHospitalVisits() {
         return StreamSupport.stream(hospitalVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }

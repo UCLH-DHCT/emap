@@ -36,7 +36,7 @@ public abstract class MessageProcessingBase {
     protected InformDbOperations dbOps;
 
     protected final String defaultMrn = "40800000";
-
+    protected final String defaultEncounter = "123412341234";
 
     protected final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
 

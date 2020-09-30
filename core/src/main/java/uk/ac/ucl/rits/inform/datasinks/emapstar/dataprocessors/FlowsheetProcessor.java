@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
@@ -19,12 +21,15 @@ import java.time.Instant;
 public class FlowsheetProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
+    private final VisitController visitController;
 
     /**
-     * @param personController person data.
+     * @param personController person controller.
+     * @param visitController  visit controller
      */
-    public FlowsheetProcessor(PersonController personController) {
+    public FlowsheetProcessor(PersonController personController, VisitController visitController) {
         this.personController = personController;
+        this.visitController = visitController;
     }
 
     /**
@@ -40,6 +45,8 @@ public class FlowsheetProcessor {
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationTimeTaken();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
+        HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
+                msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
         return returnCode;
     }
 }

@@ -2,6 +2,10 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -11,9 +15,14 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class TestPathologyProcessing extends MessageProcessingBase {
     List<PathologyOrder> messages;
+    @Autowired
+    HospitalVisitRepository hospitalVisitRepository;
+    @Autowired
+    AuditHospitalVisitRepository auditHospitalVisitRepository;
 
 
     @BeforeEach
@@ -22,7 +31,7 @@ public class TestPathologyProcessing extends MessageProcessingBase {
     }
 
     /**
-     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
+     * no existing data. rows should be created for: mrns, so new mrn, mrn_to_live, core_demographics, hospital visit
      */
     @Test
     public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
@@ -35,7 +44,14 @@ public class TestPathologyProcessing extends MessageProcessingBase {
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
-        // then new encounter and results...
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        assertEquals("Corepoint", visit.getSourceSystem());
+        assertNull(visit.getPatientClass());
+        assertNull(visit.getArrivalMethod());
+        assertNull(visit.getAdmissionTime());
+        // then new results
+
     }
 
 
