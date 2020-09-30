@@ -1,4 +1,4 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient"
 recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
@@ -7,7 +7,7 @@ visitNumber: "123412341234"
 nhsNumber: "9999999999"
 sourceSystem: "EPIC"
 mrn: "40800000"
-admissionDateTime:
+presentationDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "2013-02-11T10:00:52Z"

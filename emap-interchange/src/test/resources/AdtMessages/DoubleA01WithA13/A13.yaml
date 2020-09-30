@@ -6,10 +6,6 @@ visitNumber: "123412341234"
 sourceSystem: "EPIC"
 mrn: "40800000"
 cancelledDateTime: "2013-02-11T13:45:00Z"
-admissionDateTime:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "2013-02-11T10:00:52Z"
 admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
