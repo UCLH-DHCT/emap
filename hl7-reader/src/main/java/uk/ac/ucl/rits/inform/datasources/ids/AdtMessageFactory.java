@@ -25,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
@@ -78,7 +79,6 @@ public class AdtMessageFactory {
         msg.setSourceSystem(patientInfoHl7.getSendingApplication());
         if (patientInfoHl7.pv1SegmentExists()) {
             // will we want demographics to be included in pathology messages too?
-            msg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
             msg.setAdmitSource(Hl7Value.buildFromHl7(patientInfoHl7.getAdmitSource()));
             msg.setCurrentBed(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentBed()));
             msg.setCurrentRoomCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentRoomCode()));
@@ -159,8 +159,14 @@ public class AdtMessageFactory {
         AdtMessage msg;
         switch (triggerEvent) {
             case "A01":
+                AdmitPatient admitPatient = new AdmitPatient();
+                admitPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                msg = admitPatient;
+                break;
             case "A04":
-                msg = new AdmitPatient();
+                RegisterPatient registerPatient = new RegisterPatient();
+                registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                msg = registerPatient;
                 break;
             case "A02":
             case "A06":

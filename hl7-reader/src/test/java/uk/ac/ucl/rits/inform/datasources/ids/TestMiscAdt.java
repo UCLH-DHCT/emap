@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,7 +24,7 @@ public class TestMiscAdt extends TestHl7MessageStream {
         assertEquals(PatientClass.OUTPATIENT, msg.getPatientClass().get());
         // A04 is considered the same sort of event as A01, although the patient class
         // is usually different.
-        assertEquals(AdmitPatient.class.getName(), msg.getMessageType());
+        assertEquals(RegisterPatient.class.getName(), msg.getMessageType());
     }
 
     /**
