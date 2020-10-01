@@ -16,7 +16,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdmitPatient extends AdtMessage {
+public class AdmitPatient extends AdtMessage implements AdmissionDateTime  {
     private static final long serialVersionUID = -4310475980149363358L;
     private Hl7Value<Instant> admissionDateTime = Hl7Value.unknown();
 

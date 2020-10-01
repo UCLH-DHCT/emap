@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 
 import java.time.Instant;
 
@@ -15,8 +16,9 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class DischargePatient extends AdtMessage {
+public class DischargePatient extends AdtMessage implements AdmissionDateTime {
     private static final long serialVersionUID = -1528594767815651653L;
+    private Hl7Value<Instant> admissionDateTime = Hl7Value.unknown();
 
     private Instant dischargeDateTime;
     private String dischargeDisposition;
