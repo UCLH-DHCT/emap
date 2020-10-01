@@ -175,6 +175,7 @@ public class AdtMessageFactory {
                 break;
             case "A03":
                 DischargePatient dischargeMsg = new DischargePatient();
+                dischargeMsg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 dischargeMsg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
                 dischargeMsg.setDischargeDisposition(patientInfoHl7.getDischargeDisposition());
                 dischargeMsg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
