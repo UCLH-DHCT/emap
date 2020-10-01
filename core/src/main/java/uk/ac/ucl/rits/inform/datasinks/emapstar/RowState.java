@@ -1,12 +1,13 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 
 import java.time.Instant;
 import java.util.function.Consumer;
 
-public class RowState<T> {
+public class RowState<T extends TemporalCore<?>> {
     private T entity;
     private final boolean entityCreated;
     private final Instant messageDateTime;
@@ -42,7 +43,7 @@ public class RowState<T> {
 
 
     public void assignHl7ValueIfDifferent(Hl7Value<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
-        assignIfDifferent(newValue.toString(), currentValue, setPatientClass);
+        assignIfDifferent(newValue.get().toString(), currentValue, setPatientClass);
     }
 
     public <R> void assignHl7ValueIfDifferent(Hl7Value<R> newValue, R currentValue, Consumer<R> setter) {
@@ -53,10 +54,13 @@ public class RowState<T> {
     }
 
     public <R> void assignIfDifferent(R newValue, R currentValue, Consumer<R> setter) {
-        if (!newValue.equals(currentValue)) {
-            entityUpdated = true;
-            setter.accept(newValue);
+        if (newValue.equals(currentValue)) {
+            return;
         }
+        entityUpdated = true;
+        entity.setStoredFrom(storedFrom);
+        entity.setValidFrom(messageDateTime);
+        setter.accept(newValue);
     }
 
 
