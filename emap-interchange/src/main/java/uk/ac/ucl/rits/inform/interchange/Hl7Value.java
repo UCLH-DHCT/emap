@@ -91,6 +91,13 @@ public class Hl7Value<T> implements Serializable {
     }
 
     /**
+     * @return if the value is unknown.
+     */
+    public boolean isUnknown() {
+        return status.equals(ResultStatus.IGNORE);
+    }
+
+    /**
      * Assign value using the setter Lambda.
      * @param setterLambda method or lambda to set an objects value
      */
