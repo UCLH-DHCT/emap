@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
@@ -39,9 +40,10 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return Hospital visit from database or minimal hospital visit
+     * @throws MessageIgnoredException if no encounter
      */
-    public HospitalVisit getOrCreateMinimalHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                                         final Instant storedFrom) {
+    public HospitalVisit getOrCreateMinimalHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
+                                                         final Instant messageDateTime, final Instant storedFrom) throws MessageIgnoredException {
         AtomicBoolean created = new AtomicBoolean(false);
         HospitalVisit visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom, created);
         if (created.get()) {
@@ -51,8 +53,23 @@ public class VisitController {
         return visit;
     }
 
-    private HospitalVisit getOrCreateHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
-                                                   final Instant messageDateTime, final Instant storedFrom, AtomicBoolean created) {
+    /**
+     * Get or create minimal hospital visit, and update whether it was created.
+     * @param encounter       encounter number
+     * @param mrn             Mrn
+     * @param sourceSystem    source system
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @param created         boolean value to be updated
+     * @return existing visit or created minimal visit
+     * @throws MessageIgnoredException if no encounter
+     */
+    private HospitalVisit getOrCreateHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
+                                                   final Instant storedFrom, AtomicBoolean created) throws MessageIgnoredException {
+        if (encounter == null || encounter.isEmpty()) {
+            throw new MessageIgnoredException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
+                    mrn, sourceSystem, messageDateTime));
+        }
         return hospitalVisitRepo.findByEncounter(encounter)
                 .orElseGet(() -> {
                     created.set(true);
@@ -90,7 +107,11 @@ public class VisitController {
      * @return hospital visit
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(AdtMessage msg, Instant storedFrom, Instant messageDateTime, Mrn mrn) {
+    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Instant messageDateTime,
+                                                     final Mrn mrn) throws MessageIgnoredException {
+        if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
+            throw new MessageIgnoredException(String.format("ADT message doesn't have a visit number: %s", msg));
+        }
         AtomicBoolean created = new AtomicBoolean(false);
         HospitalVisit visit = getOrCreateHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom, created);
@@ -137,6 +158,12 @@ public class VisitController {
         visit.setSourceSystem(msg.getSourceSystem());
     }
 
+    /**
+     * Update visit with stored from and valid from, useful for any time the data has been updated.
+     * @param msg        adt message
+     * @param storedFrom stored from
+     * @param visit      hospital visit to update
+     */
     private void updateStoredFromAndValidFrom(final AdtMessage msg, final Instant storedFrom, HospitalVisit visit) {
         visit.setValidFrom(msg.getRecordedDateTime());
         visit.setStoredFrom(storedFrom);

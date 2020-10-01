@@ -10,13 +10,10 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Handle processing of ADT messages.
@@ -50,7 +47,10 @@ public class AdtProcessor {
         String returnCode = "OK";
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
-        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, messageDateTime, mrn);
+        // Patient merges have no encounter information, all other messages should
+        if (!(msg instanceof MergePatient)) {
+            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, messageDateTime, mrn);
+        }
 
         return returnCode;
     }
