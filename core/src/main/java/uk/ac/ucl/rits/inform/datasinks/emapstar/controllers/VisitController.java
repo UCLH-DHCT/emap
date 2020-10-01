@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
@@ -15,7 +16,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Interactions with visits.
@@ -44,13 +44,12 @@ public class VisitController {
      */
     public HospitalVisit getOrCreateMinimalHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
                                                          final Instant messageDateTime, final Instant storedFrom) throws MessageIgnoredException {
-        AtomicBoolean created = new AtomicBoolean(false);
-        HospitalVisit visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom, created);
-        if (created.get()) {
-            logger.debug("Minimal encounter created and saved. encounter: {}, mrn: {}", encounter, mrn);
-            hospitalVisitRepo.save(visit);
+        RowState<HospitalVisit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
+        if (visit.isEntityCreated()) {
+            logger.debug("Minimal encounter created. encounter: {}, mrn: {}", encounter, mrn);
+            hospitalVisitRepo.save(visit.getEntity());
         }
-        return visit;
+        return visit.getEntity();
     }
 
     /**
@@ -60,21 +59,18 @@ public class VisitController {
      * @param sourceSystem    source system
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
-     * @param created         boolean value to be updated
      * @return existing visit or created minimal visit
      * @throws MessageIgnoredException if no encounter
      */
-    private HospitalVisit getOrCreateHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                                   final Instant storedFrom, AtomicBoolean created) throws MessageIgnoredException {
+    private RowState<HospitalVisit> getOrCreateHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
+                                                             final Instant storedFrom) throws MessageIgnoredException {
         if (encounter == null || encounter.isEmpty()) {
             throw new MessageIgnoredException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
                     mrn, sourceSystem, messageDateTime));
         }
         return hospitalVisitRepo.findByEncounter(encounter)
-                .orElseGet(() -> {
-                    created.set(true);
-                    return createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
-                });
+                .map(visit -> new RowState<HospitalVisit>(visit, messageDateTime, storedFrom, false))
+                .orElseGet(() -> createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom));
     }
 
 
@@ -87,15 +83,15 @@ public class VisitController {
      * @param storedFrom      when the message has been read by emap core
      * @return new hospital visit
      */
-    private HospitalVisit createHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                              final Instant storedFrom) {
+    private RowState<HospitalVisit> createHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
+                                                        final Instant storedFrom) {
         HospitalVisit visit = new HospitalVisit();
         visit.setMrnId(mrn);
         visit.setEncounter(encounter);
         visit.setSourceSystem(sourceSystem);
         visit.setStoredFrom(storedFrom);
         visit.setValidFrom(messageDateTime);
-        return visit;
+        return new RowState<>(visit, messageDateTime, storedFrom, true);
     }
 
     /**
@@ -105,6 +101,7 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param mrn             mrn
      * @return hospital visit
+     * @throws MessageIgnoredException
      */
     @Transactional
     public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Instant messageDateTime,
@@ -112,50 +109,49 @@ public class VisitController {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             throw new MessageIgnoredException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
-        AtomicBoolean created = new AtomicBoolean(false);
-        HospitalVisit visit = getOrCreateHospitalVisit(
-                msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom, created);
-        final HospitalVisit originalVisit = visit.copy();
-        if (messageShouldBeUpdated(messageDateTime, created, originalVisit)) {
-            updateGenericData(msg, visit);
+        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
+                msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        final HospitalVisit originalVisit = visitState.getEntity().copy();
+        if (messageShouldBeUpdated(messageDateTime, visitState)) {
+            updateGenericData(msg, visitState);
             // process message based on the class type
             if (msg instanceof AdmitPatient) {
                 AdmitPatient admit = (AdmitPatient) msg;
-                addAdmissionInformation(admit, storedFrom, visit);
-            } else if (msg instanceof RegisterPatient) {
-                RegisterPatient registerPatient = (RegisterPatient) msg;
-                addRegistrationInformation(registerPatient, storedFrom, visit);
+                addAdmissionInformation(admit, visitState);
             }
-            // TODO: discharge
-            // TODO: cancel discharge
-            // TODO: cancel admit? to remove admission time or is this just location
-            // TODO: anything else that I'm missing
-            manuallySaveVisitOrAuditIfRequired(visit, originalVisit, created, messageDateTime, storedFrom);
+//            else if (msg instanceof RegisterPatient) {
+//                RegisterPatient registerPatient = (RegisterPatient) msg;
+//                addRegistrationInformation(registerPatient, storedFrom, visit);
+//            }
+//            // TODO: discharge
+//            // TODO: cancel discharge
+//            // TODO: cancel admit? to remove admission time or is this just location
+//            // TODO: anything else that I'm missing
+            manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
-        return visit;
+        return visitState.getEntity();
     }
 
     /**
      * If message is newer than the database, newly created or if the database has data from untrusted source.
      * @param messageDateTime date time of the message
-     * @param created         has the visit just been created
-     * @param originalVisit   original visit from
+     * @param visitState      visit state
      * @return true if the message is newer or was created
      */
-    private boolean messageShouldBeUpdated(final Instant messageDateTime, final AtomicBoolean created,
-                                           final HospitalVisit originalVisit) {
-        return originalVisit.getValidFrom().isBefore(messageDateTime) || created.get() || !originalVisit.getSourceSystem().equals("EPIC");
+    private boolean messageShouldBeUpdated(final Instant messageDateTime, RowState<HospitalVisit> visitState) {
+        return visitState.getEntity().getValidFrom().isBefore(messageDateTime) || visitState.isEntityCreated() || !visitState.getEntity().getSourceSystem().equals("EPIC");
     }
 
     /**
      * Update visit with generic ADT information.
-     * @param msg   adt message
-     * @param visit hospital visit to update
+     * @param msg        adt message
+     * @param visitState hospital visit to update
      */
-    public void updateGenericData(final AdtMessage msg, HospitalVisit visit) {
-        msg.getPatientClass().assignTo(pc -> visit.setPatientClass(pc.toString()));
-        msg.getModeOfArrival().assignTo(visit::setArrivalMethod);
-        visit.setSourceSystem(msg.getSourceSystem());
+    public void updateGenericData(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignHl7ValueIfDifferent(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
+        visitState.assignHl7ValueIfDifferent(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
+        visitState.assignIfDifferent(msg.getSourceSystem(), visit.getSourceSystem(), visit::setSourceSystem);
     }
 
     /**
@@ -172,20 +168,11 @@ public class VisitController {
     /**
      * Add admission specific information.
      * @param msg        adt message
-     * @param storedFrom time that emap-core started processing the message.
-     * @param visit      hospital visit to update
+     * @param visitState
      */
-    private void addAdmissionInformation(final AdmitPatient msg, Instant storedFrom, HospitalVisit visit) {
-        try {
-            if (msg.getAdmissionDateTime().get().equals(visit.getAdmissionTime())) {
-                return;
-            }
-        } catch (IllegalStateException e) {
-            logger.error("Admission message with no admission date time", e);
-        }
-
-        msg.getAdmissionDateTime().assignTo(visit::setAdmissionTime);
-        updateStoredFromAndValidFrom(msg, storedFrom, visit);
+    private void addAdmissionInformation(final AdmitPatient msg, RowState<HospitalVisit> visitState) {
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
     }
 
     /**
@@ -208,23 +195,17 @@ public class VisitController {
 
     /**
      * Save a newly created hospital visit, or the audit table for original visit if this has been updated.
-     * @param visit           potentially updated visit
-     * @param originalVisit   original visit
-     * @param created         has the visit just been created
-     * @param messageDateTime date time of the message
-     * @param storedFrom      when the message has been read by emap core
+     * @param visitState
+     * @param originalVisit original visit
      */
-    private void manuallySaveVisitOrAuditIfRequired(final HospitalVisit visit, final HospitalVisit originalVisit, final AtomicBoolean created,
-                                                    final Instant messageDateTime, final Instant storedFrom) {
-        if (!visit.equals(originalVisit)) {
-            if (created.get()) {
-                hospitalVisitRepo.save(visit);
-                logger.debug("New HospitalVisit being saved: {}", visit);
-            } else {
-                AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, messageDateTime, storedFrom);
-                auditHospitalVisitRepo.save(audit);
-                logger.debug("New AuditHospitalVisit being saved: {}", audit);
-            }
+    private void manuallySaveVisitOrAuditIfRequired(final RowState<HospitalVisit> visitState, final HospitalVisit originalVisit) {
+        if (visitState.isEntityCreated()) {
+            hospitalVisitRepo.save(visitState.getEntity());
+            logger.debug("New HospitalVisit being saved: {}", visitState.getEntity());
+        } else if (visitState.isEntityUpdated()) {
+            AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, visitState.getMessageDateTime(), visitState.getStoredFrom());
+            auditHospitalVisitRepo.save(audit);
+            logger.debug("New AuditHospitalVisit being saved: {}", audit);
         }
     }
 
