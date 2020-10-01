@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
@@ -116,14 +117,12 @@ public class VisitController {
             updateGenericData(msg, visitState);
             // process message based on the class type
             if (msg instanceof AdmitPatient) {
-                AdmitPatient admit = (AdmitPatient) msg;
-                addAdmissionInformation(admit, visitState);
+                addAdmissionInformation((AdmitPatient) msg, visitState);
+            } else if (msg instanceof RegisterPatient) {
+                addRegistrationInformation((RegisterPatient) msg, visitState);
+            } else if (msg instanceof DischargePatient) {
+                addDischargeInformation((DischargePatient) msg, visitState);
             }
-//            else if (msg instanceof RegisterPatient) {
-//                RegisterPatient registerPatient = (RegisterPatient) msg;
-//                addRegistrationInformation(registerPatient, storedFrom, visit);
-//            }
-//            // TODO: discharge
 //            // TODO: cancel discharge
 //            // TODO: cancel admit? to remove admission time or is this just location
 //            // TODO: anything else that I'm missing
@@ -135,17 +134,18 @@ public class VisitController {
     /**
      * If message is newer than the database, newly created or if the database has data from untrusted source.
      * @param messageDateTime date time of the message
-     * @param visitState      visit state
+     * @param visitState      visit wrapped in state class
      * @return true if the message is newer or was created
      */
     private boolean messageShouldBeUpdated(final Instant messageDateTime, RowState<HospitalVisit> visitState) {
-        return visitState.getEntity().getValidFrom().isBefore(messageDateTime) || visitState.isEntityCreated() || !visitState.getEntity().getSourceSystem().equals("EPIC");
+        HospitalVisit visit = visitState.getEntity();
+        return visit.getValidFrom().isBefore(messageDateTime) || visitState.isEntityCreated() || !visit.getSourceSystem().equals("EPIC");
     }
 
     /**
      * Update visit with generic ADT information.
      * @param msg        adt message
-     * @param visitState hospital visit to update
+     * @param visitState visit wrapped in state class
      */
     public void updateGenericData(final AdtMessage msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
@@ -155,20 +155,9 @@ public class VisitController {
     }
 
     /**
-     * Update visit with stored from and valid from, useful for any time the data has been updated.
-     * @param msg        adt message
-     * @param storedFrom stored from
-     * @param visit      hospital visit to update
-     */
-    private void updateStoredFromAndValidFrom(final AdtMessage msg, final Instant storedFrom, HospitalVisit visit) {
-        visit.setValidFrom(msg.getRecordedDateTime());
-        visit.setStoredFrom(storedFrom);
-    }
-
-    /**
      * Add admission specific information.
      * @param msg        adt message
-     * @param visitState
+     * @param visitState visit wrapped in state class
      */
     private void addAdmissionInformation(final AdmitPatient msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
@@ -178,24 +167,34 @@ public class VisitController {
     /**
      * Add registration specific information.
      * @param msg        adt message
-     * @param storedFrom time that emap-core started processing the message.
-     * @param visit      hospital visit to update
+     * @param visitState visit wrapped in state class
      */
-    private void addRegistrationInformation(final RegisterPatient msg, Instant storedFrom, HospitalVisit visit) {
-        try {
-            if (msg.getPresentationDateTime().get().equals(visit.getPresentationTime())) {
-                return;
-            }
-        } catch (IllegalStateException e) {
-            logger.error("Registration message with no Presentation date time", e);
+    private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit> visitState) {
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignHl7ValueIfDifferent(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
+    }
+
+    /**
+     * Add discharge specific information.
+     * If no value for admission time, add this in from the discharge message.
+     * @param msg        adt message
+     * @param visitState visit wrapped in state class
+     */
+    private void addDischargeInformation(final DischargePatient msg, RowState<HospitalVisit> visitState) {
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignIfDifferent(msg.getDischargeDateTime(), visit.getDischargeTime(), visit::setDischargeTime);
+        visitState.assignIfDifferent(msg.getDischargeDisposition(), visit.getDischargeDisposition(), visit::setDischargeDisposition);
+        visitState.assignIfDifferent(msg.getDischargeLocation(), visit.getDischargeDestination(), visit::setDischargeDestination);
+
+        // If started mid-stream, no admission information so add this in on discharge
+        if (visit.getAdmissionTime() == null && !msg.getAdmissionDateTime().isUnknown()) {
+            visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
         }
-        msg.getPresentationDateTime().assignTo(visit::setPresentationTime);
-        updateStoredFromAndValidFrom(msg, storedFrom, visit);
     }
 
     /**
      * Save a newly created hospital visit, or the audit table for original visit if this has been updated.
-     * @param visitState
+     * @param visitState    visit wrapped in state class
      * @param originalVisit original visit
      */
     private void manuallySaveVisitOrAuditIfRequired(final RowState<HospitalVisit> visitState, final HospitalVisit originalVisit) {

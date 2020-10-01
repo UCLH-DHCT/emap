@@ -9,7 +9,9 @@ import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
 import java.util.List;
@@ -55,6 +57,23 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
+     * No existing hospital visits, so should make a new visit. Presentation time should be set, admission time should not.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    public void testCreateNewRegistration() throws EmapOperationMessageProcessingException {
+        RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
+        dbOps.processMessage(msg);
+
+        List<HospitalVisit> visits = getAllHospitalVisits();
+        assertEquals(1, visits.size());
+
+        HospitalVisit visit = visits.get(0);
+        assertNull(visit.getAdmissionTime());
+        assertNotNull(visit.getPresentationTime());
+    }
+
+    /**
      * hospital visit already exists for encounter, with a presentation time, but no admission time
      * Admission time should be added, but presentation time should not be added. Stored/valid from should be updated
      * @throws EmapOperationMessageProcessingException shouldn't happen
@@ -81,6 +100,30 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
+     * Discharge from visit with minimal information from untrusted source.
+     * Admission information should be added, along with discharge.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testDischargePatientWithNoKnownAdmission() throws EmapOperationMessageProcessingException {
+        DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
+        String visitNumber = "0999999999";
+        msg.setVisitNumber(visitNumber);
+
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(visitNumber).orElseThrow(NullPointerException::new);
+        // generic information should be added
+        assertNotNull(visit.getPatientClass());
+        // admission information should be added
+        assertNotNull(visit.getAdmissionTime());
+        // discharge information should be added
+        assertNotNull(visit.getDischargeDestination());
+        assertNotNull(visit.getDischargeDisposition());
+        assertNotNull(visit.getDischargeTime());
+    }
+
+    /**
      * Database has newer information than the message, and the message source is trusted
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
@@ -96,7 +139,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Database has information that is not from a trusted source, older message should update the generic data
+     * Database has information that is not from a trusted source, older message should still be processed
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -115,7 +158,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertNotNull(visit.getAdmissionTime());
         assertEquals("EPIC", visit.getSourceSystem());
     }
-
 
 
     /**
