@@ -127,9 +127,9 @@ public class VisitController {
                 addRegistrationInformation((RegisterPatient) msg, visitState);
             } else if (msg instanceof DischargePatient) {
                 addDischargeInformation((DischargePatient) msg, visitState);
+            } else if (msg instanceof CancelDischargePatient) {
+                removeDischargeInformation(visitState);
             }
-//            // TODO: cancel discharge
-//            // TODO: cancel admit? to remove admission time or is this just location
             manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
         return visitState.getEntity();
@@ -203,6 +203,17 @@ public class VisitController {
         if (visit.getAdmissionTime() == null && !msg.getAdmissionDateTime().isUnknown()) {
             visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
         }
+    }
+
+    /**
+     * Remove discharge specific information.
+     * @param visitState visit wrapped in state class
+     */
+    private void removeDischargeInformation(RowState<HospitalVisit> visitState) {
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignIfDifferent(null, visit.getDischargeTime(), visit::setDischargeTime);
+        visitState.assignIfDifferent(null, visit.getDischargeDisposition(), visit::setDischargeDisposition);
+        visitState.assignIfDifferent(null, visit.getDischargeDestination(), visit::setDischargeDestination);
     }
 
     /**
