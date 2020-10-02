@@ -1,6 +1,6 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.DischargePatient"
 recordedDateTime: "2013-02-11T13:45:57Z"
-eventReasonCode: "DISCH"
+eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T13:45:00Z"
 operatorId: "U999999"
 sourceSystem: "EPIC"
