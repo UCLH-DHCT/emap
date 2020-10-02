@@ -192,6 +192,8 @@ public class AdtMessageFactory {
                 // 2 maybe stage 3
             case "A07": // maybe merge with A02
             case "A08":
+            case "A28":
+            case "A31":
                 msg = new UpdatePatientInfo();
                 break;
             case "A11":
@@ -215,11 +217,6 @@ public class AdtMessageFactory {
             case "A17":
                 // SwapPatients
                 // special swap locations part 2
-                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
-            case "A28":
-            case "A31":
-                // UpdatePersonInformation
-                // person trigger stage 1/2
                 throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
             case "A29":
                 //DeletePersonInformation
