@@ -166,7 +166,9 @@ public class AdtMessageFactory {
                 break;
             case "A02":
                 // 3
-                msg = new TransferPatient();
+                TransferPatient transferPatient = new TransferPatient();
+                transferPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                msg = transferPatient;
                 break;
             case "A03":
                 //3
