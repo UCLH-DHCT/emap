@@ -113,4 +113,17 @@ public class RowState<T extends TemporalCore<?>> {
     }
 
 
+    /**
+     * If current value exists, remove it and set validFrom cancellation time.
+     * @param currentValue      current value
+     * @param setter            setter lambda
+     * @param cancelledDateTime Time of cancellation
+     * @param <R>               type of the value in the hibernate entity
+     */
+    public <R> void removeIfExists(@Nullable R currentValue, Consumer<R> setter, Instant cancelledDateTime) {
+        assignIfDifferent(null, currentValue, setter);
+        if (entityUpdated && cancelledDateTime != null) {
+            entity.setValidFrom(cancelledDateTime);
+        }
+    }
 }

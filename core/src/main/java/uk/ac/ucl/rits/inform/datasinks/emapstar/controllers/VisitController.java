@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -121,13 +122,13 @@ public class VisitController {
             if (msg instanceof AdmitPatient) {
                 addAdmissionInformation((AdmitPatient) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
-                removeAdmissionInformation(visitState);
+                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
             } else if (msg instanceof RegisterPatient) {
                 addRegistrationInformation((RegisterPatient) msg, visitState);
             } else if (msg instanceof DischargePatient) {
                 addDischargeInformation((DischargePatient) msg, visitState);
             } else if (msg instanceof CancelDischargePatient) {
-                removeDischargeInformation(visitState);
+                removeDischargeInformation((CancelDischargePatient) msg, visitState);
             }
             manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
@@ -169,11 +170,12 @@ public class VisitController {
 
     /**
      * Delete admission specific information.
+     * @param msg        cancellation message
      * @param visitState visit wrapped in state class
      */
-    private void removeAdmissionInformation(RowState<HospitalVisit> visitState) {
+    private void removeAdmissionInformation(final AdtCancellation msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignIfDifferent(null, visit.getAdmissionTime(), visit::setAdmissionTime);
+        visitState.removeIfExists(visit.getAdmissionTime(), visit::setAdmissionTime, msg.getCancelledDateTime());
     }
 
     /**
@@ -206,13 +208,15 @@ public class VisitController {
 
     /**
      * Remove discharge specific information.
+     * @param msg        cancellation message
      * @param visitState visit wrapped in state class
      */
-    private void removeDischargeInformation(RowState<HospitalVisit> visitState) {
+    private void removeDischargeInformation(final AdtCancellation msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignIfDifferent(null, visit.getDischargeTime(), visit::setDischargeTime);
-        visitState.assignIfDifferent(null, visit.getDischargeDisposition(), visit::setDischargeDisposition);
-        visitState.assignIfDifferent(null, visit.getDischargeDestination(), visit::setDischargeDestination);
+        visitState.removeIfExists(visit.getDischargeTime(), visit::setDischargeTime, msg.getCancelledDateTime());
+        visitState.removeIfExists(visit.getDischargeDisposition(), visit::setDischargeDisposition, msg.getCancelledDateTime());
+        visitState.removeIfExists(visit.getDischargeDestination(), visit::setDischargeDestination, msg.getCancelledDateTime());
+
     }
 
     /**
