@@ -9,11 +9,14 @@ import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -28,6 +31,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     HospitalVisitRepository hospitalVisitRepository;
     @Autowired
     AuditHospitalVisitRepository auditHospitalVisitRepository;
+
+    private Instant past = Instant.parse("2000-01-01T01:01:01Z");
 
     private List<HospitalVisit> getAllHospitalVisits() {
         return StreamSupport.stream(hospitalVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
@@ -100,6 +105,26 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
+     * Admit a patient and then cancel the admit
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testAdmitThenCancelAdmit() throws EmapOperationMessageProcessingException {
+        AdmitPatient addMsg = messageFactory.getAdtMessage("generic/A01.yaml");
+        CancelAdmitPatient removeMsg = messageFactory.getAdtMessage("generic/A11.yaml");
+        Instant removeMsgTime = addMsg.getRecordedDateTime().plus(1, ChronoUnit.MINUTES);
+        removeMsg.setRecordedDateTime(removeMsgTime);
+
+        dbOps.processMessage(addMsg);
+        dbOps.processMessage(removeMsg);
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        assertNull(visit.getAdmissionTime());
+        assertEquals(removeMsgTime, visit.getValidFrom());
+    }
+
+    /**
      * Discharge from visit with minimal information from untrusted source.
      * Admission information should be added, along with discharge.
      * @throws EmapOperationMessageProcessingException shouldn't happen
@@ -123,6 +148,26 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertNotNull(visit.getDischargeTime());
     }
 
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testDischargeThenCancelDischarge() throws EmapOperationMessageProcessingException {
+        DischargePatient addMsg = messageFactory.getAdtMessage("generic/A03.yaml");
+        CancelDischargePatient removeMsg = messageFactory.getAdtMessage("generic/A13.yaml");
+        Instant removeMsgTime = addMsg.getRecordedDateTime().plus(1, ChronoUnit.MINUTES);
+        removeMsg.setRecordedDateTime(removeMsgTime);
+
+        dbOps.processMessage(addMsg);
+        dbOps.processMessage(removeMsg);
+
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        // discharge information should be removed
+        assertNull(visit.getDischargeDestination());
+        assertNull(visit.getDischargeDisposition());
+        assertNull(visit.getDischargeTime());
+    }
+
+
     /**
      * Database has newer information than the message, and the message source is trusted
      * @throws EmapOperationMessageProcessingException shouldn't happen
@@ -131,7 +176,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testOlderMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg.setRecordedDateTime(Instant.parse("2000-01-01T01:01:01Z"));
+        msg.setRecordedDateTime(past);
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
@@ -148,7 +193,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String encounter = "0999999999";
         msg.setVisitNumber(encounter);
-        msg.setRecordedDateTime(Instant.parse("2000-01-01T01:01:01Z"));
+        msg.setRecordedDateTime(past);
 
         dbOps.processMessage(msg);
 
