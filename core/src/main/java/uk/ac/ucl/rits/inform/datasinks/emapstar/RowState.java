@@ -101,15 +101,17 @@ public class RowState<T extends TemporalCore<?>> {
      * @param currentValue current value
      * @param setter       setter lambda
      * @param <R>          type of the value in the hibernate entity
+     * @return true if state has been updated
      */
-    public <R> void assignIfDifferent(@Nullable R newValue, @Nullable R currentValue, Consumer<R> setter) {
+    public <R> boolean assignIfDifferent(@Nullable R newValue, @Nullable R currentValue, Consumer<R> setter) {
         if (Objects.equals(newValue, currentValue)) {
-            return;
+            return false;
         }
         entityUpdated = true;
         entity.setStoredFrom(storedFrom);
         entity.setValidFrom(messageDateTime);
         setter.accept(newValue);
+        return true;
     }
 
 
@@ -121,8 +123,8 @@ public class RowState<T extends TemporalCore<?>> {
      * @param <R>               type of the value in the hibernate entity
      */
     public <R> void removeIfExists(@Nullable R currentValue, Consumer<R> setter, Instant cancelledDateTime) {
-        assignIfDifferent(null, currentValue, setter);
-        if (entityUpdated && cancelledDateTime != null) {
+        boolean removed = assignIfDifferent(null, currentValue, setter);
+        if (removed && cancelledDateTime != null) {
             entity.setValidFrom(cancelledDateTime);
         }
     }
