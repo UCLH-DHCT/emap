@@ -13,6 +13,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
@@ -63,8 +65,9 @@ public class VisitController {
      * @return existing visit or created minimal visit
      * @throws MessageIgnoredException if no encounter
      */
-    private RowState<HospitalVisit> getOrCreateHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                                             final Instant storedFrom) throws MessageIgnoredException {
+    private RowState<HospitalVisit> getOrCreateHospitalVisit(
+            final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
+            final Instant storedFrom) throws MessageIgnoredException {
         if (encounter == null || encounter.isEmpty()) {
             throw new MessageIgnoredException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
                     mrn, sourceSystem, messageDateTime));
@@ -118,6 +121,8 @@ public class VisitController {
             // process message based on the class type
             if (msg instanceof AdmitPatient) {
                 addAdmissionInformation((AdmitPatient) msg, visitState);
+            } else if (msg instanceof CancelAdmitPatient) {
+                removeAdmissionInformation(visitState);
             } else if (msg instanceof RegisterPatient) {
                 addRegistrationInformation((RegisterPatient) msg, visitState);
             } else if (msg instanceof DischargePatient) {
@@ -125,7 +130,6 @@ public class VisitController {
             }
 //            // TODO: cancel discharge
 //            // TODO: cancel admit? to remove admission time or is this just location
-//            // TODO: anything else that I'm missing
             manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
         return visitState.getEntity();
@@ -162,6 +166,15 @@ public class VisitController {
     private void addAdmissionInformation(final AdmitPatient msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+    }
+
+    /**
+     * Delete admission specific information.
+     * @param visitState visit wrapped in state class
+     */
+    private void removeAdmissionInformation(RowState<HospitalVisit> visitState) {
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignIfDifferent(null, visit.getAdmissionTime(), visit::setAdmissionTime);
     }
 
     /**
