@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmissionDateTime;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
@@ -121,16 +121,16 @@ public class VisitController {
         if (messageShouldBeUpdated(messageDateTime, visitState)) {
             updateGenericData(msg, visitState);
             // process message based on the class type
-            if (msg instanceof AdmitPatient) {
-                addAdmissionInformation((AdmitPatient) msg, visitState);
-            } else if (msg instanceof CancelAdmitPatient) {
-                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
-            } else if (msg instanceof RegisterPatient) {
+            if (msg instanceof RegisterPatient) {
                 addRegistrationInformation((RegisterPatient) msg, visitState);
             } else if (msg instanceof DischargePatient) {
                 addDischargeInformation((DischargePatient) msg, visitState);
             } else if (msg instanceof CancelDischargePatient) {
                 removeDischargeInformation((CancelDischargePatient) msg, visitState);
+            } else if (msg instanceof AdmissionDateTime) {
+                addAdmissionDateTime((AdmissionDateTime) msg, visitState);
+            } else if (msg instanceof CancelAdmitPatient) {
+                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
             }
             manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
@@ -161,11 +161,11 @@ public class VisitController {
     }
 
     /**
-     * Add admission specific information.
-     * @param msg        adt message
+     * Add admission date time.
+     * @param msg        AdmissionDateTime
      * @param visitState visit wrapped in state class
      */
-    private void addAdmissionInformation(final AdmitPatient msg, RowState<HospitalVisit> visitState) {
+    private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
     }
