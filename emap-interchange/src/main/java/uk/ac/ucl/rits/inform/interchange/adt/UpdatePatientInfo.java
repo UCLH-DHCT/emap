@@ -8,7 +8,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 /**
  * Change patient demographics/other info.
- * HL7 messages: A08
+ * HL7 messages: A06, A07, A08, A28, A31
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
