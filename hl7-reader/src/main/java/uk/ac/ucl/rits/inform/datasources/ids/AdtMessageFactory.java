@@ -159,21 +159,17 @@ public class AdtMessageFactory {
         AdtMessage msg;
         switch (triggerEvent) {
             case "A01":
+                //3
                 AdmitPatient admitPatient = new AdmitPatient();
                 admitPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 msg = admitPatient;
                 break;
-            case "A04":
-                RegisterPatient registerPatient = new RegisterPatient();
-                registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
-                msg = registerPatient;
-                break;
             case "A02":
-            case "A06":
-            case "A07":
+                // 3
                 msg = new TransferPatient();
                 break;
             case "A03":
+                //3
                 DischargePatient dischargeMsg = new DischargePatient();
                 dischargeMsg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 dischargeMsg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
@@ -181,24 +177,54 @@ public class AdtMessageFactory {
                 dischargeMsg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
                 msg = dischargeMsg;
                 break;
+            case "A04":
+                //3
+                RegisterPatient registerPatient = new RegisterPatient();
+                registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                msg = registerPatient;
+                break;
+            // We are receiving A05 and A14, A38 messages but not doing any scheduling yet
+            case "A05":
+            case "A14":
+            case "A38":
+                throw new Hl7MessageNotImplementedException(String.format("Scheduling ADT trigger event not implemented: %s", triggerEvent));
+            case "A06":
+                // 2 maybe stage 3
+            case "A07": // maybe merge with A02
             case "A08":
                 msg = new UpdatePatientInfo();
                 break;
             case "A11":
+                //3
                 CancelAdmitPatient cancelAdmitPatient = new CancelAdmitPatient();
                 setCancellationTime(cancelAdmitPatient, evn);
                 msg = cancelAdmitPatient;
                 break;
             case "A12":
+                //3
                 CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
                 setCancellationTime(cancelTransferPatient, evn);
                 msg = cancelTransferPatient;
                 break;
             case "A13":
+                //3
                 CancelDischargePatient cancelDischargePatient = new CancelDischargePatient();
                 setCancellationTime(cancelDischargePatient, evn);
                 msg = cancelDischargePatient;
                 break;
+            case "A17":
+                // SwapPatients
+                // special swap locations part 2
+                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
+            case "A28":
+            case "A31":
+                // UpdatePersonInformation
+                // person trigger stage 1/2
+                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
+            case "A29":
+                //DeletePersonInformation
+                // delete all demographic information - erroneous encounter?  stage 1/2
+                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
             case "A40":
                 MergePatient mergeMsg = new MergePatient();
                 MRG mrg = getMrg(hl7Msg);
@@ -208,10 +234,15 @@ public class AdtMessageFactory {
                 }
                 msg = mergeMsg;
                 break;
+            case "A45":
+            case "A47":
+                // MoveVisitInformation
+                // swap or merge visit - stage 2
+                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
             default:
                 // to keep processes running even if it does not build a valid interchange message, delay exception
                 // and create default message type
-                throw new Hl7MessageNotImplementedException("Unimplemented ADT trigger event " + triggerEvent);
+                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
         }
         return msg;
     }
