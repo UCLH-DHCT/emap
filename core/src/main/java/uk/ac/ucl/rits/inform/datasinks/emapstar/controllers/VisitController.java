@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
@@ -43,10 +42,10 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return Hospital visit from database or minimal hospital visit
-     * @throws MessageIgnoredException if no encounter
+     * @throws NullPointerException if no encounter
      */
     public HospitalVisit getOrCreateMinimalHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
-                                                         final Instant messageDateTime, final Instant storedFrom) throws MessageIgnoredException {
+                                                         final Instant messageDateTime, final Instant storedFrom) throws NullPointerException {
         RowState<HospitalVisit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
         if (visit.isEntityCreated()) {
             logger.debug("Minimal encounter created. encounter: {}, mrn: {}", encounter, mrn);
@@ -63,17 +62,17 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return existing visit or created minimal visit
-     * @throws MessageIgnoredException if no encounter
+     * @throws NullPointerException if no encounter
      */
     private RowState<HospitalVisit> getOrCreateHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-            final Instant storedFrom) throws MessageIgnoredException {
+            final Instant storedFrom) throws NullPointerException {
         if (encounter == null || encounter.isEmpty()) {
-            throw new MessageIgnoredException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
+            throw new NullPointerException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
                     mrn, sourceSystem, messageDateTime));
         }
         return hospitalVisitRepo.findByEncounter(encounter)
-                .map(visit -> new RowState<HospitalVisit>(visit, messageDateTime, storedFrom, false))
+                .map(visit -> new RowState<>(visit, messageDateTime, storedFrom, false))
                 .orElseGet(() -> createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom));
     }
 
@@ -105,13 +104,13 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param mrn             mrn
      * @return hospital visit
-     * @throws MessageIgnoredException
+     * @throws NullPointerException if adt message has no visit number set
      */
     @Transactional
     public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Instant messageDateTime,
-                                                     final Mrn mrn) throws MessageIgnoredException {
+                                                     final Mrn mrn) throws NullPointerException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
-            throw new MessageIgnoredException(String.format("ADT message doesn't have a visit number: %s", msg));
+            throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
