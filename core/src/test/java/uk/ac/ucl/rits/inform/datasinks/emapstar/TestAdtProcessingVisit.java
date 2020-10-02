@@ -113,15 +113,14 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     public void testAdmitThenCancelAdmit() throws EmapOperationMessageProcessingException {
         AdmitPatient addMsg = messageFactory.getAdtMessage("generic/A01.yaml");
         CancelAdmitPatient removeMsg = messageFactory.getAdtMessage("generic/A11.yaml");
-        Instant removeMsgTime = addMsg.getRecordedDateTime().plus(1, ChronoUnit.MINUTES);
-        removeMsg.setRecordedDateTime(removeMsgTime);
 
         dbOps.processMessage(addMsg);
         dbOps.processMessage(removeMsg);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         assertNull(visit.getAdmissionTime());
-        assertEquals(removeMsgTime, visit.getValidFrom());
+        assertEquals(removeMsg.getCancelledDateTime(), visit.getValidFrom());
+        assertEquals(PatientClass.OUTPATIENT.toString(), visit.getPatientClass());
     }
 
     /**
@@ -153,8 +152,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     public void testDischargeThenCancelDischarge() throws EmapOperationMessageProcessingException {
         DischargePatient addMsg = messageFactory.getAdtMessage("generic/A03.yaml");
         CancelDischargePatient removeMsg = messageFactory.getAdtMessage("generic/A13.yaml");
-        Instant removeMsgTime = addMsg.getRecordedDateTime().plus(1, ChronoUnit.MINUTES);
-        removeMsg.setRecordedDateTime(removeMsgTime);
 
         dbOps.processMessage(addMsg);
         dbOps.processMessage(removeMsg);
@@ -165,6 +162,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertNull(visit.getDischargeDestination());
         assertNull(visit.getDischargeDisposition());
         assertNull(visit.getDischargeTime());
+        // cancelled date time is missing from message, so should use recordedDateTime
+        assertEquals(removeMsg.getRecordedDateTime(), visit.getValidFrom());
     }
 
 
