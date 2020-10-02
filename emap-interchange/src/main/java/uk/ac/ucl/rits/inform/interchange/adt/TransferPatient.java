@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+
+import java.time.Instant;
 
 /**
  * Transfer a patient to a different location.
@@ -13,8 +16,9 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TransferPatient extends AdtMessage {
+public class TransferPatient extends AdtMessage implements AdmissionDateTime {
     private static final long serialVersionUID = 1811745798929900545L;
+    private Hl7Value<Instant> admissionDateTime;
 
     @Override
     public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {

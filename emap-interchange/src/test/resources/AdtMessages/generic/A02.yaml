@@ -11,6 +11,10 @@ admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "Usual"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2012-10-17T11:24:53Z"
 currentBed:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
