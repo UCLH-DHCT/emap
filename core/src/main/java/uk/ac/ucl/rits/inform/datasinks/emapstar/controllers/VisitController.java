@@ -115,25 +115,27 @@ public class VisitController {
         }
         Instant validFrom = (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
-        // get original state for audit logging at the end if changed
-        final HospitalVisit originalVisit = visitState.getEntity().copy();
 
-        if (messageShouldBeUpdated(messageDateTime, visitState)) {
-            updateGenericData(msg, visitState);
-            // process message based on the class type
-            if (msg instanceof RegisterPatient) {
-                addRegistrationInformation((RegisterPatient) msg, visitState);
-            } else if (msg instanceof DischargePatient) {
-                addDischargeInformation((DischargePatient) msg, visitState);
-            } else if (msg instanceof CancelDischargePatient) {
-                removeDischargeInformation((CancelDischargePatient) msg, visitState);
-            } else if (msg instanceof AdmissionDateTime) {
-                addAdmissionDateTime((AdmissionDateTime) msg, visitState);
-            } else if (msg instanceof CancelAdmitPatient) {
-                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
-            }
-            manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        if (!messageShouldBeUpdated(messageDateTime, visitState)) {
+            return visitState.getEntity();
         }
+
+        final HospitalVisit originalVisit = visitState.getEntity().copy();
+        updateGenericData(msg, visitState);
+
+        // process message based on the class type
+        if (msg instanceof RegisterPatient) {
+            addRegistrationInformation((RegisterPatient) msg, visitState);
+        } else if (msg instanceof DischargePatient) {
+            addDischargeInformation((DischargePatient) msg, visitState);
+        } else if (msg instanceof CancelDischargePatient) {
+            removeDischargeInformation((CancelDischargePatient) msg, visitState);
+        } else if (msg instanceof AdmissionDateTime) {
+            addAdmissionDateTime((AdmissionDateTime) msg, visitState);
+        } else if (msg instanceof CancelAdmitPatient) {
+            removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
+        }
+        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         return visitState.getEntity();
     }
 
