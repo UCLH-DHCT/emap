@@ -113,9 +113,11 @@ public class VisitController {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
-                msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        Instant validFrom = (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
+        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
+        // get original state for audit logging at the end if changed
         final HospitalVisit originalVisit = visitState.getEntity().copy();
+
         if (messageShouldBeUpdated(messageDateTime, visitState)) {
             updateGenericData(msg, visitState);
             // process message based on the class type
