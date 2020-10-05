@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
 import lombok.Data;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -30,6 +31,15 @@ public class CoreDemographic extends CoreDemographicParent {
     public CoreDemographic() {
     }
 
+    /**
+     * Construct with the Mrn.
+     * @param mrnId MRN object.
+     */
+    public CoreDemographic(Mrn mrnId) {
+        super();
+        setMrnId(mrnId);
+    }
+
 
     /**
      * Copy constructor.
@@ -37,6 +47,7 @@ public class CoreDemographic extends CoreDemographicParent {
      */
     public CoreDemographic(CoreDemographic other) {
         super(other);
+        coreDemographicId = other.getCoreDemographicId();
     }
 
     @Override
