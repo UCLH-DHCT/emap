@@ -234,4 +234,15 @@ public class PersonController {
         mrnToLiveRepo.save(mrnToLive);
         return mrn;
     }
+
+    public void deleteDemographic(final Mrn mrn, final Instant messageDateTime, final Instant storedFrom) {
+        coreDemographicRepo.getByMrnIdEquals(mrn).ifPresentOrElse(
+                demo -> {
+                    AuditCoreDemographic audit = new AuditCoreDemographic(demo, messageDateTime, storedFrom);
+                    auditCoreDemographicRepo.save(audit);
+                    coreDemographicRepo.delete(demo);
+                },
+                () -> logger.warn("No demographics to delete for for mrn: {} ", mrn)
+                );
+    }
 }

@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
@@ -66,7 +67,11 @@ public class AdtProcessor {
     @Transactional
     public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws MessageIgnoredException {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
-        personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
+        if (!(msg instanceof DeletePersonInformation)) {
+            personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
+        } else {
+            personController.deleteDemographic(mrn, messageDateTime, storedFrom);
+        }
 
         if (msg instanceof MergePatient) {
             MergePatient mergePatient = (MergePatient) msg;

@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -305,4 +307,21 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
             assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
         }
     }
+
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        // process message
+        dbOps.processMessage(msg);
+
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        // no demographics should exist
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
+        assertFalse(demographic.isPresent());
+        // audit should have one row for deleted demographics
+        List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
+        assertEquals(1, audits.size());
+    }
+
 }
