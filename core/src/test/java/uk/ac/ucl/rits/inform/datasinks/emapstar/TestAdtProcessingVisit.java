@@ -11,17 +11,19 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -176,6 +178,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     public void testOlderMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(past);
+        msg.setEventOccurredDateTime(null);
+
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
@@ -221,6 +225,45 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         // Auditlog should now have have one row
         List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
         assertEquals(1, audits.size());
+    }
+
+    /**
+     * All visits should be logged to audit table and deleted.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        dbOps.processMessage(msg);
+
+        // visit should no longer exist
+        Optional<HospitalVisit> visit = hospitalVisitRepository.findByEncounter(defaultEncounter);
+        assertFalse(visit.isPresent());
+
+        // Auditlog should now have have one row
+        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        assertEquals(1, audits.size());
+    }
+
+    /**
+     * Older message should to nothing
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testOlderMessageDeleteDoesNothing() throws EmapOperationMessageProcessingException {
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        msg.setEventOccurredDateTime(past);
+        dbOps.processMessage(msg);
+
+        // visit should no longer exist
+        Optional<HospitalVisit> visit = hospitalVisitRepository.findByEncounter(defaultEncounter);
+        assertTrue(visit.isPresent());
+
+        // no audit rows
+        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        assertEquals(0, audits.size());
     }
 
 }

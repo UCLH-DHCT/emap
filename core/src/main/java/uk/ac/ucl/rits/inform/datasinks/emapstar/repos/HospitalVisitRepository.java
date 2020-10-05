@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,5 +18,17 @@ public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, I
      */
     Optional<HospitalVisit> findByEncounter(String encounter);
 
+    /**
+     * @param mrnId Get visits by Mrn
+     * @return hospital visits
+     */
+    Optional<List<HospitalVisit>> findAllByMrnId(Mrn mrnId);
+
+
+    /**
+     * Get visits by the mrn's mrnId, used for testing.
+     * @param mrnId MrnId
+     * @return hospital visits
+     */
     Optional<List<HospitalVisit>> findAllByMrnIdMrnId(Long mrnId);
 }

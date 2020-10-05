@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
@@ -100,23 +101,21 @@ public class VisitController {
 
     /**
      * Process information about hospital visits, saving any changes to the database.
-     * @param msg             adt message
-     * @param storedFrom      time that emap-core started processing the message.
-     * @param messageDateTime date time of the message
-     * @param mrn             mrn
+     * @param msg        adt message
+     * @param storedFrom time that emap-core started processing the message.
+     * @param mrn        mrn
      * @return hospital visit
      * @throws NullPointerException if adt message has no visit number set
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Instant messageDateTime,
-                                                     final Mrn mrn) throws NullPointerException {
+    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
-        Instant validFrom = (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
+        Instant validFrom = getValidFrom(msg);
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
-        if (!messageShouldBeUpdated(messageDateTime, visitState)) {
+        if (!messageShouldBeUpdated(validFrom, visitState)) {
             return visitState.getEntity();
         }
 
@@ -137,6 +136,15 @@ public class VisitController {
         }
         manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         return visitState.getEntity();
+    }
+
+    /**
+     * If the event occured exists, use it. Otherwise use the event recorded date time.
+     * @param msg Adt message
+     * @return the correct Instant for valid from.
+     */
+    private Instant getValidFrom(AdtMessage msg) {
+        return (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
     }
 
     /**
@@ -239,4 +247,31 @@ public class VisitController {
         }
     }
 
+    /**
+     * Delete all visits that are older than the current message.
+     * @param mrn        MRN
+     * @param msg        Delete person information message
+     * @param storedFrom time that emap-core started processing the message.
+     */
+    public void deleteOlderVisits(final Mrn mrn, final DeletePersonInformation msg, final Instant storedFrom) {
+        hospitalVisitRepo.findAllByMrnIdMrnId(mrn.getMrnId()).ifPresentOrElse(
+                visits -> visits.forEach(visit -> deleteVisitIfMessageIsNewer(msg, storedFrom, visit)),
+                () -> logger.warn("No visits to delete for for mrn: {} ", mrn)
+        );
+    }
+
+    /**
+     * Delete the visit if older than the current message.
+     * @param visit      Hospital visit
+     * @param msg        Delete person information message
+     * @param storedFrom time that emap-core started processing the message.
+     */
+    private void deleteVisitIfMessageIsNewer(final DeletePersonInformation msg, final Instant storedFrom, HospitalVisit visit) {
+        Instant validFrom = getValidFrom(msg);
+        if (validFrom.isAfter(visit.getValidFrom())) {
+            AuditHospitalVisit audit = new AuditHospitalVisit(visit, validFrom, storedFrom);
+            auditHospitalVisitRepo.save(audit);
+            hospitalVisitRepo.delete(visit);
+        }
+    }
 }

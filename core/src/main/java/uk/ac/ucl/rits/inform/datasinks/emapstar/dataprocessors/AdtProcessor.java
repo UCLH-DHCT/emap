@@ -48,10 +48,16 @@ public class AdtProcessor {
         String returnCode = "OK";
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
-        // Patient merges have no encounter information, all other messages should
-        if (!(msg instanceof MergePatient)) {
-            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, messageDateTime, mrn);
+
+        if (!(msg instanceof DeletePersonInformation)) {
+            // Patient merges have no encounter information, so skip
+            if (!(msg instanceof MergePatient)) {
+                HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+            }
+        } else {
+            visitController.deleteOlderVisits(mrn, (DeletePersonInformation) msg, messageDateTime);
         }
+
 
         return returnCode;
     }
