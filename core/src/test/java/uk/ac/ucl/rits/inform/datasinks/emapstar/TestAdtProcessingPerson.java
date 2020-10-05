@@ -308,6 +308,10 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         }
     }
 
+    /**
+     * Delete person information should delete the core demographics and log a row in the audit table.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     @Sql(value = "/populate_db.sql")
     public void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
@@ -322,6 +326,27 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // audit should have one row for deleted demographics
         List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
         assertEquals(1, audits.size());
+    }
+
+    /**
+     * Message is older than database, so no deletes should take place.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testOldDeleteMessageHasNoEffect() throws EmapOperationMessageProcessingException {
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        msg.setRecordedDateTime(Instant.parse("2000-01-01T00:00:00Z"));
+        // process message
+        dbOps.processMessage(msg);
+
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        // should still exist
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
+        assertTrue(demographic.isPresent());
+        // no audit row
+        List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
+        assertEquals(0, audits.size());
     }
 
 }

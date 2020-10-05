@@ -235,14 +235,30 @@ public class PersonController {
         return mrn;
     }
 
+    /**
+     * Deletes the core demographic if the message date time is newer than the database.
+     * @param mrn             MRN
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     */
     public void deleteDemographic(final Mrn mrn, final Instant messageDateTime, final Instant storedFrom) {
         coreDemographicRepo.getByMrnIdEquals(mrn).ifPresentOrElse(
-                demo -> {
-                    AuditCoreDemographic audit = new AuditCoreDemographic(demo, messageDateTime, storedFrom);
-                    auditCoreDemographicRepo.save(audit);
-                    coreDemographicRepo.delete(demo);
-                },
+                demo -> deleteIfMessageIsNewer(demo, messageDateTime, storedFrom),
                 () -> logger.warn("No demographics to delete for for mrn: {} ", mrn)
-                );
+        );
+    }
+
+    /**
+     * Delete the core demographic if the message date time is newer than the database.
+     * @param demo            core demographics entity
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     */
+    private void deleteIfMessageIsNewer(CoreDemographic demo, Instant messageDateTime, Instant storedFrom) {
+        if (messageDateTime.isAfter(demo.getValidFrom())) {
+            AuditCoreDemographic audit = new AuditCoreDemographic(demo, messageDateTime, storedFrom);
+            auditCoreDemographicRepo.save(audit);
+            coreDemographicRepo.delete(demo);
+        }
     }
 }
