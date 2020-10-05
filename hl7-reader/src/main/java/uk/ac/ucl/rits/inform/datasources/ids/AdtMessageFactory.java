@@ -22,6 +22,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
@@ -222,9 +223,8 @@ public class AdtMessageFactory {
                 msg = buildSwapLocations(hl7Msg);
                 break;
             case "A29":
-                //DeletePersonInformation
-                // delete all demographic information - erroneous encounter?  stage 1/2
-                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
+                msg = new DeletePersonInformation();
+                break;
             case "A40":
                 MergePatient mergeMsg = new MergePatient();
                 MRG mrg = getMrg(hl7Msg);
