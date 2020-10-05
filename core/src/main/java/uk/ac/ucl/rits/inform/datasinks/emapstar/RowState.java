@@ -6,6 +6,8 @@ import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -80,6 +82,23 @@ public class RowState<T extends TemporalCore<?>> {
     public void assignHl7ValueIfDifferent(Hl7Value<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
         assignIfDifferent(newValue.get().toString(), currentValue, setPatientClass);
     }
+
+
+    /**
+     * Assign new Instant value to LocalDate if different.
+     * @param newValue        new value
+     * @param currentValue    current value
+     * @param setPatientClass setter lambda
+     */
+    public void assignHl7ValueIfDifferent(Hl7Value<Instant> newValue, LocalDate currentValue, Consumer<LocalDate> setPatientClass) {
+        if (newValue.isUnknown()) {
+            return;
+        }
+        Instant unpackedValue = newValue.get();
+        LocalDate dateTime = (unpackedValue == null) ? null : unpackedValue.atZone(ZoneId.systemDefault()).toLocalDate();
+        assignIfDifferent(dateTime, currentValue, setPatientClass);
+    }
+
 
     /**
      * If new value is different assign from HL7Value to a setter taking the same type.
