@@ -26,6 +26,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
@@ -53,8 +54,8 @@ public class AdtMessageFactory {
      */
     public AdtMessage getAdtMessage(final Message hl7Msg, final String sourceId) throws HL7Exception, Hl7MessageNotImplementedException {
         MSH msh = getMsh(hl7Msg);
-        PID pid = getPid(hl7Msg);
-        PV1 pv1 = getPv1(hl7Msg);
+        PID pid = getPid(hl7Msg, false);
+        PV1 pv1 = getPv1(hl7Msg, false);
         PV2 pv2 = getPv2(hl7Msg);
 
         PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(msh, pid, pv1, pv2);
@@ -138,8 +139,8 @@ public class AdtMessageFactory {
      */
     public PatientInfoHl7 getPatientInfo(final Message hl7Msg) throws HL7Exception {
         MSH msh = getMsh(hl7Msg);
-        PID pid = getPid(hl7Msg);
-        PV1 pv1 = getPv1(hl7Msg);
+        PID pid = getPid(hl7Msg, false);
+        PV1 pv1 = getPv1(hl7Msg, false);
         return new PatientInfoHl7(msh, pid, pv1);
     }
 
@@ -191,11 +192,11 @@ public class AdtMessageFactory {
             case "A38":
                 throw new Hl7MessageNotImplementedException(String.format("Scheduling ADT trigger event not implemented: %s", triggerEvent));
             case "A06":
-                // 2 maybe stage 3
             case "A07": // maybe merge with A02
             case "A08":
             case "A28":
             case "A31":
+                // 2 maybe stage 3. check which ones have location and move to Transfer Patient?
                 msg = new UpdatePatientInfo();
                 break;
             case "A11":
@@ -217,9 +218,9 @@ public class AdtMessageFactory {
                 msg = cancelDischargePatient;
                 break;
             case "A17":
-                // SwapPatients
-                // special swap locations part 2
-                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
+                // special swap locations part 3
+                msg = buildSwapLocations(hl7Msg);
+                break;
             case "A29":
                 //DeletePersonInformation
                 // delete all demographic information - erroneous encounter?  stage 1/2
@@ -243,6 +244,24 @@ public class AdtMessageFactory {
                 // and create default message type
                 throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
         }
+        return msg;
+    }
+
+    private SwapLocations buildSwapLocations(Message hl7Msg) throws HL7Exception {
+        PID pid = getPid(hl7Msg, true);
+        PV1 pv1 = getPv1(hl7Msg, true);
+
+        PatientInfoHl7 otherPatientInfo = new PatientInfoHl7(null, pid, pv1, null);
+        SwapLocations msg = new SwapLocations();
+        msg.setOtherVisitNumber(otherPatientInfo.getVisitNumber());
+        msg.setOtherCurrentBed(Hl7Value.buildFromHl7(otherPatientInfo.getCurrentBed()));
+        msg.setOtherCurrentRoomCode(Hl7Value.buildFromHl7(otherPatientInfo.getCurrentRoomCode()));
+        msg.setOtherCurrentWardCode(Hl7Value.buildFromHl7(otherPatientInfo.getCurrentWardCode()));
+        msg.setOtherFullLocationString(Hl7Value.buildFromHl7(otherPatientInfo.getFullLocationString()));
+
+        msg.setOtherMrn(otherPatientInfo.getMrn());
+        msg.setOtherNhsNumber(otherPatientInfo.getNHSNumber());
+
         return msg;
     }
 
@@ -279,13 +298,16 @@ public class AdtMessageFactory {
 
     /**
      * get PV1 segment if it exists.
-     * @param hl7Msg hl7 message
+     * @param hl7Msg        hl7 message
+     * @param secondSegment get the second segment
      * @return PV1
      */
-    private PV1 getPv1(Message hl7Msg) {
+    private PV1 getPv1(Message hl7Msg, boolean secondSegment) {
         PV1 pv1 = null;
+        String segmentName = secondSegment ? "PV12" : "PV1";
+
         try {
-            pv1 = (PV1) hl7Msg.get("PV1");
+            pv1 = (PV1) hl7Msg.get(segmentName);
         } catch (HL7Exception e) {
             // some sections are allowed not to exist
         }
@@ -304,11 +326,12 @@ public class AdtMessageFactory {
 
     /**
      * Get PID if it exists.
-     * @param hl7Msg hl7 message
+     * @param hl7Msg        hl7 message
+     * @param secondSegment Get the second segment
      * @return PID
      * @throws HL7Exception if PID doesn't exist for a merge message
      */
-    private PID getPid(Message hl7Msg) throws HL7Exception {
+    private PID getPid(Message hl7Msg, boolean secondSegment) throws HL7Exception {
         // I want the "MRG" segment for A40 messages, is this really
         // the best way to get it? Why do we have to get the PID segment in
         // a different way for an A39/A40 message?
@@ -317,10 +340,12 @@ public class AdtMessageFactory {
             ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
             pid = a39Patient.getPID();
         } else {
+            String segmentName = secondSegment ? "PID2" : "PID";
+
             try {
-                pid = (PID) hl7Msg.get("PID");
+                pid = (PID) hl7Msg.get(segmentName);
             } catch (HL7Exception e) {
-                // empty PID is allowed
+                // empty PID2 is allowed
             }
         }
         return pid;

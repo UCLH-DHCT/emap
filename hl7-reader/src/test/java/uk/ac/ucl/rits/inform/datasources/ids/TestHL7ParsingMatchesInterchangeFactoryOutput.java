@@ -74,6 +74,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testGenericAdtA17() throws Exception {
+        testAdtMessage("generic/A17");
+    }
+
+    @Test
     public void testGenericAdtA40() throws Exception {
         testAdtMessage("generic/A40");
     }
