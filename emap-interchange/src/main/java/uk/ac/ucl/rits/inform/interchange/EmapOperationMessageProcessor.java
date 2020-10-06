@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
@@ -45,6 +46,13 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     String processMessage(MoveVisitInformation msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the ChangePatientIdentifiers message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    String processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the vital signs message to process
