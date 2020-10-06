@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 /**
@@ -32,11 +32,11 @@ public interface EmapOperationMessageProcessor {
     String processMessage(MergePatient msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the DischargePatient message to process
+     * @param msg the DeletePersonInformation message to process
      * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(DischargePatient msg) throws EmapOperationMessageProcessingException;
+    String processMessage(DeletePersonInformation msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the vital signs message to process
