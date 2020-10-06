@@ -25,6 +25,7 @@ import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -283,5 +284,26 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
         assertEquals(0, audits.size());
     }
+
+    /**
+     * MoveVisitInformation for existing MRNs and visits
+     * Should change the MRN and encounter string,
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testMoveVisitInformation() throws EmapOperationMessageProcessingException {
+        MoveVisitInformation msg = messageFactory.getAdtMessage("generic/A45.yaml");
+        dbOps.processMessage(msg);
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        // should be changed from default Mrn value
+        assertNotEquals(defaultMrn, visit.getMrnId().getMrn());
+
+        // Audit log should exist
+        AuditHospitalVisit audit = auditHospitalVisitRepository.findByEncounter(defaultEncounter);
+        assertEquals(defaultMrn, audit.getMrnId().getMrn());
+    }
+
 
 }

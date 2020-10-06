@@ -276,11 +276,23 @@ public class VisitController {
         }
     }
 
+    /**
+     * Move visit information from previous MRN to current MRN.
+     * @param msg         MoveVisitInformation message
+     * @param storedFrom  time that emap-core started processing the message.
+     * @param previousMrn previous MRN
+     * @param currentMrn  new MRN that the encounter should be linked with
+     * @return
+     */
     @Transactional
     public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn) {
         if (msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && previousMrn.equals(currentMrn)) {
             throw new IllegalArgumentException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
         }
+        if (visitNumberChangeAndFinalEncounterAlreadyExists(msg)) {
+            throw new IllegalStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
+        }
+
         Instant validFrom = getValidFrom(msg);
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
@@ -296,6 +308,14 @@ public class VisitController {
         visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
 
         manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
-        return  visit;
+        return visit;
+    }
+
+    /**
+     * @param msg MoveVisitInformation
+     * @return true if the message visit number changes and the final encounter already exists
+     */
+    private boolean visitNumberChangeAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
+        return !msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && hospitalVisitRepo.findByEncounter(msg.getVisitNumber()).isPresent();
     }
 }
