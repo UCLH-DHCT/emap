@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 
 import java.time.Instant;
 import java.util.List;
@@ -260,5 +261,37 @@ public class PersonController {
             auditCoreDemographicRepo.save(audit);
             coreDemographicRepo.delete(demo);
         }
+    }
+
+    /**
+     * Update the patient identifiers for an MRN. Because new MRN doesn't already exist, this is a modify instead of a merge.
+     * <p>
+     * It looks very rare that this is done, neonates and unusual cases where there are only a few ADT messages, no other result types
+     * found so it should be fine even if mid-stream.
+     * @param msg             ChangePatientIdentifiers
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return MRN with the correct identifiers
+     */
+    @Transactional
+    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom) {
+        if (mrnExists(msg.getMrn())) {
+            throw new IllegalArgumentException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
+        }
+        Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+
+        mrn.setMrn(msg.getMrn());
+        if (msg.getNhsNumber() != null) {
+            mrn.setNhsNumber(msg.getNhsNumber());
+        }
+        return mrn;
+    }
+
+    /**
+     * @param mrn mrn string
+     * @return true if an MRN exists by the mrn string
+     */
+    private boolean mrnExists(String mrn) {
+        return mrnRepo.getAllByMrnEquals(mrn).isPresent();
     }
 }

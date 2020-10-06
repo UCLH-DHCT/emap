@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
@@ -95,9 +96,17 @@ public class AdtProcessor {
     public String moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws MessageIgnoredException {
         String returnCode = "OK";
         Instant messageDateTime = msg.getRecordedDateTime();
-        Mrn previousMrn = personController.getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+        Mrn previousMrn = personController.getOrCreateMrn(
+                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         Mrn currentMrn = processPersonLevel(msg, storedFrom, messageDateTime);
         HospitalVisit visit = visitController.moveVisitInformation(msg, storedFrom, previousMrn, currentMrn);
+        return returnCode;
+    }
+
+    public String changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
+        String returnCode = "OK";
+        Instant messageDateTime = msg.getRecordedDateTime();
+        Mrn previousMrn = personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
         return returnCode;
     }
 }

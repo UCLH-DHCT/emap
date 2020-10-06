@@ -103,13 +103,15 @@ public class VisitController {
     /**
      * Process information about hospital visits, saving any changes to the database.
      * @param msg        adt message
+     * @param encounter  encounter number
      * @param storedFrom time that emap-core started processing the message.
      * @param mrn        mrn
      * @return hospital visit
      * @throws NullPointerException if adt message has no visit number set
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, String encounter, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
+    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, String encounter,
+                                                     final Instant storedFrom, final Mrn mrn) throws NullPointerException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
@@ -282,7 +284,7 @@ public class VisitController {
      * @param storedFrom  time that emap-core started processing the message.
      * @param previousMrn previous MRN
      * @param currentMrn  new MRN that the encounter should be linked with
-     * @return
+     * @return hospital visit
      */
     @Transactional
     public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn) {
@@ -294,7 +296,8 @@ public class VisitController {
         }
 
         Instant validFrom = getValidFrom(msg);
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
+        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
+                msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (!messageShouldBeUpdated(validFrom, visitState)) {
             return visitState.getEntity();

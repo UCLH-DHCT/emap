@@ -108,6 +108,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         return adtProcessor.moveVisitInformation(msg, storedFrom);
     }
 
+    /**
+     * @param msg the ChangePatientIdentifiers message to process
+     * @return return code
+     */
+    @Override
+    public String processMessage(ChangePatientIdentifiers msg) {
+        Instant storedFrom = Instant.now();
+        return adtProcessor.changePatientIdentifiers(msg, storedFrom);
+    }
+
     @Override
     @Transactional
     public String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException {

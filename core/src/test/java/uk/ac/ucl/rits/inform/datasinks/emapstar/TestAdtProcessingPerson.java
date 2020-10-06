@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
@@ -29,6 +30,7 @@ import java.util.stream.StreamSupport;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 public class TestAdtProcessingPerson extends MessageProcessingBase {
@@ -84,9 +86,26 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * Mrn already exists
-     * no new Mrns should be created but demographics should be updated with known data from the message.
+     * no MRNs exist in database, so a new MRN should be created with the correct final MRN
+     * @throws EmapOperationMessageProcessingException shouldn't happen
      */
+    @Test
+    public void testChangePatientIdentifiersCreatesNewMrn() throws EmapOperationMessageProcessingException {
+        ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
+
+        //process message
+        dbOps.processMessage(msg);
+        List<Mrn> mrns = getAllMrns();
+        assertEquals(1, mrns.size());
+
+        assertEquals( "40800001", mrns.get(0).getMrn());
+    }
+
+
+        /**
+         * Mrn already exists
+         * no new Mrns should be created but demographics should be updated with known data from the message.
+         */
     @Test
     @Sql(value = "/populate_db.sql")
     public void testMrnExists() throws EmapOperationMessageProcessingException {
@@ -364,6 +383,46 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // no audit row
         List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
         assertEquals(0, audits.size());
+    }
+
+    /**
+     * Change patient identifiers, new identifier doesn't already exist so the mrn should be changed
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testChangePatientIdentifiers() throws EmapOperationMessageProcessingException {
+        ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
+
+        // save state before processing to be sure that it works
+        Optional<Object> previousMrnBeforeProcessing = mrnRepo.getAllByMrnEquals(defaultMrn);
+        Optional<Object> newMrnBeforeProcessing = mrnRepo.getAllByMrnEquals("40800001");
+
+        //process message
+        dbOps.processMessage(msg);
+
+        // previous Mrn should go from existing previously, to now not existing
+        Optional<Object> previousMrn = mrnRepo.getAllByMrnEquals(defaultMrn);
+        assertTrue(previousMrnBeforeProcessing.isPresent());
+        assertFalse(previousMrn.isPresent());
+
+        // new Mrn should go from not existing previously, to now existing
+        Optional<Object> newMrn = mrnRepo.getAllByMrnEquals("40800001");
+        assertFalse(newMrnBeforeProcessing.isPresent());
+        assertTrue(newMrn.isPresent());
+    }
+
+    /**
+     * Change patient identifiers, final MRN already exists, so should throw an exception
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testChangePatientIdentifiersWithExistingFinalMrn() throws EmapOperationMessageProcessingException {
+        ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
+        msg.setMrn(newMrnString);
+
+        assertThrows(IllegalArgumentException.class, () -> dbOps.processMessage(msg));
     }
 
 }
