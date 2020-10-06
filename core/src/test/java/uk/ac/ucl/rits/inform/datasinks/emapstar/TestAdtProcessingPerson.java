@@ -221,7 +221,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     public void testMergeByNhsNumber() throws EmapOperationMessageProcessingException {
         String survivingMrnString = "30700000";
         String retiringMrnString = "60600000";
-        String retiringNhsNumber = "1111111111";
+        String retiringNhsNumber = "222222222";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setPreviousMrn(retiringMrnString);
         msg.setPreviousNhsNumber(retiringNhsNumber);
