@@ -81,9 +81,6 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrn);
         assertEquals(1001L, mrnToLive.getLiveMrnId().getMrnId().longValue());
 
-        List<CoreDemographic> demographics = StreamSupport.stream(coreDemographicRepository.findAll().spliterator(), false)
-                .collect(Collectors.toList());
-
         // unknown demographics should not be set
         CoreDemographic demographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
         assertEquals("middle", demographic.getMiddlename()); // unknown value so shouldn't change
@@ -178,7 +175,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         String messageSurvivingMrn = "60600000";
         String retiringMrnString = "60600005";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
-        msg.setRetiredMrn(retiringMrnString);
+        msg.setPreviousMrn(retiringMrnString);
         msg.setMrn(messageSurvivingMrn);
 
         String liveMrnString = "30700000";
@@ -206,8 +203,8 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         String retiringMrnString = "60600000";
         String retiringNhsNumber = "1111111111";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
-        msg.setRetiredMrn(retiringMrnString);
-        msg.setRetiredNhsNumber(retiringNhsNumber);
+        msg.setPreviousMrn(retiringMrnString);
+        msg.setPreviousNhsNumber(retiringNhsNumber);
         msg.setMrn(survivingMrnString);
 
         // process message
@@ -292,7 +289,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         String retiringMrnString = "30700000";
         String messageSurvivingMrn = "44444444";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
-        msg.setRetiredMrn(retiringMrnString);
+        msg.setPreviousMrn(retiringMrnString);
         msg.setMrn(messageSurvivingMrn);
 
         // process message

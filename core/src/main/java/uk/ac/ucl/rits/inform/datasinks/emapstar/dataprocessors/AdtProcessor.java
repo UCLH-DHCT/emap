@@ -49,13 +49,9 @@ public class AdtProcessor {
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
 
-        if (!(msg instanceof DeletePersonInformation)) {
-            // Patient merges have no encounter information, so skip
-            if (!(msg instanceof MergePatient)) {
-                HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
-            }
-        } else {
-            visitController.deleteOlderVisits(mrn, (DeletePersonInformation) msg, messageDateTime);
+        // Patient merges have no encounter information, so skip
+        if (!(msg instanceof MergePatient)) {
+            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
         }
 
 
@@ -73,17 +69,23 @@ public class AdtProcessor {
     @Transactional
     public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws MessageIgnoredException {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
-        if (!(msg instanceof DeletePersonInformation)) {
-            personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
-        } else {
-            personController.deleteDemographic(mrn, messageDateTime, storedFrom);
-        }
+        personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
 
         if (msg instanceof MergePatient) {
             MergePatient mergePatient = (MergePatient) msg;
-            personController.mergeMrns(mergePatient.getRetiredMrn(), mergePatient.getRetiredNhsNumber(),
+            personController.mergeMrns(mergePatient.getPreviousMrn(), mergePatient.getPreviousNhsNumber(),
                     mrn, mergePatient.getRecordedDateTime(), storedFrom);
         }
         return mrn;
+    }
+
+    public String deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) {
+        String returnCode = "OK";
+        Instant messageDateTime = msg.getRecordedDateTime();
+        Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        personController.deleteDemographic(mrn, messageDateTime, storedFrom);
+        visitController.deleteOlderVisits(mrn, msg, messageDateTime);
+
+        return returnCode;
     }
 }
