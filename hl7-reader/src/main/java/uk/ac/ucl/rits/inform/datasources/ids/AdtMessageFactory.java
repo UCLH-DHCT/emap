@@ -4,7 +4,9 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.group.ADT_A39_PATIENT;
+import ca.uhn.hl7v2.model.v26.group.ADT_A45_MERGE_INFO;
 import ca.uhn.hl7v2.model.v26.message.ADT_A39;
+import ca.uhn.hl7v2.model.v26.message.ADT_A45;
 import ca.uhn.hl7v2.model.v26.segment.EVN;
 import ca.uhn.hl7v2.model.v26.segment.MRG;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -22,10 +24,13 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.PreviousIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
@@ -227,24 +232,35 @@ public class AdtMessageFactory {
                 break;
             case "A40":
                 MergePatient mergeMsg = new MergePatient();
-                MRG mrg = getMrg(hl7Msg);
-                if (mrg != null) {
-                    mergeMsg.setRetiredMrn(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
-                    mergeMsg.setRetiredNhsNumber(mrg.getMrg1_PriorPatientIdentifierList(1).getIDNumber().toString());
-                }
+                setPreviousIdentifiers(mergeMsg, hl7Msg);
                 msg = mergeMsg;
                 break;
             case "A45":
+                MoveVisitInformation moveVisitInformation = new MoveVisitInformation();
+                MRG mrg = setPreviousIdentifiers(moveVisitInformation, hl7Msg);
+                moveVisitInformation.setPreviousVisitNumber(mrg.getMrg5_PriorVisitNumber().getIDNumber().toString());
+                msg = moveVisitInformation;
+                break;
             case "A47":
-                // MoveVisitInformation
-                // swap or merge visit - stage 2
-                throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
+                ChangePatientIdentifiers changePatientIdentifiers = new ChangePatientIdentifiers();
+                setPreviousIdentifiers(changePatientIdentifiers, hl7Msg);
+                msg = changePatientIdentifiers;
+                break;
             default:
                 // to keep processes running even if it does not build a valid interchange message, delay exception
                 // and create default message type
                 throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
         }
         return msg;
+    }
+
+    private MRG setPreviousIdentifiers(PreviousIdentifiers msg, Message hl7Msg) throws HL7Exception {
+        MRG mrg = getMrg(hl7Msg);
+
+        assert (mrg != null);
+        msg.setPreviousMrn(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
+        msg.setPreviousNhsNumber(mrg.getMrg1_PriorPatientIdentifierList(1).getIDNumber().toString());
+        return mrg;
     }
 
     private SwapLocations buildSwapLocations(Message hl7Msg) throws HL7Exception {
@@ -272,10 +288,15 @@ public class AdtMessageFactory {
      * @throws HL7Exception if HAPI does
      */
     private MRG getMrg(Message hl7Msg) throws HL7Exception {
-        MRG mrg = null;
+        MRG mrg;
         if (hl7Msg instanceof ADT_A39) {
             ADT_A39_PATIENT a39Patient = (ADT_A39_PATIENT) hl7Msg.get("PATIENT");
             mrg = a39Patient.getMRG();
+        } else if (hl7Msg instanceof ADT_A45) {
+            ADT_A45_MERGE_INFO mergeInfo = (ADT_A45_MERGE_INFO) hl7Msg.get("MERGE_INFO");
+            mrg = mergeInfo.getMRG();
+        } else {
+            mrg = (MRG) hl7Msg.get("MRG");
         }
         return mrg;
     }
@@ -302,15 +323,21 @@ public class AdtMessageFactory {
      * @param secondSegment get the second segment
      * @return PV1
      */
-    private PV1 getPv1(Message hl7Msg, boolean secondSegment) {
+    private PV1 getPv1(Message hl7Msg, boolean secondSegment) throws HL7Exception {
         PV1 pv1 = null;
         String segmentName = secondSegment ? "PV12" : "PV1";
 
-        try {
-            pv1 = (PV1) hl7Msg.get(segmentName);
-        } catch (HL7Exception e) {
-            // some sections are allowed not to exist
+        if (!(hl7Msg instanceof ADT_A45)) {
+            try {
+                pv1 = (PV1) hl7Msg.get(segmentName);
+            } catch (HL7Exception e) {
+                // some sections are allowed not to exist
+            }
+        } else {
+            ADT_A45_MERGE_INFO mergeInfo = (ADT_A45_MERGE_INFO) hl7Msg.get("MERGE_INFO");
+            pv1 = mergeInfo.getPV1();
         }
+
         return pv1;
     }
 
