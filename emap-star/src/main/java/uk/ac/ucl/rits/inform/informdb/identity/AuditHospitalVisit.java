@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.identity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.AuditCore;
 
 import javax.persistence.Column;
@@ -9,16 +10,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import java.time.Instant;
 
 /**
  * Audit table of {@link HospitalVisit}.
  */
 @Entity
-@Table
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore<HospitalVisitParent> {
     private static final long serialVersionUID = -8516988957488992519L;
     @Id
@@ -30,6 +30,8 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
     private Instant validUntil;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
+    @Column(nullable = false)
+    private String encounter;
 
 
     /**
@@ -50,5 +52,6 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
         this.hospitalVisitId = originalEntity.getHospitalVisitId();
+        this.encounter = originalEntity.getEncounter();
     }
 }

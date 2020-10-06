@@ -1,5 +1,10 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,6 +18,9 @@ import javax.persistence.Table;
  * @author UCL RITS
  */
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Table(indexes = {@Index(name = "encounterIndex", columnList = "encounter", unique = false)})
 public class HospitalVisit extends HospitalVisitParent {
 
@@ -24,6 +32,13 @@ public class HospitalVisit extends HospitalVisitParent {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long hospitalVisitId;
+
+    /**
+     * The source system identifier of this hospital visit. In Epic this corresponds
+     * to the CSN.
+     */
+    @Column(nullable = false, unique = true)
+    private String encounter;
 
     /**
      * Default constructor.
@@ -38,6 +53,7 @@ public class HospitalVisit extends HospitalVisitParent {
     public HospitalVisit(HospitalVisit other) {
         super(other);
         hospitalVisitId = other.getHospitalVisitId();
+        encounter = other.getEncounter();
     }
 
     /**

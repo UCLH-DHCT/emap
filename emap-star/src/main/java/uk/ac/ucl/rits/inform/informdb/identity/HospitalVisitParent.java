@@ -28,13 +28,6 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
     private Mrn mrnId;
 
     /**
-     * The source system identifier of this hospital visit. In Epic this corresponds
-     * to the CSN.
-     */
-    @Column(nullable = false)
-    private String encounter;
-
-    /**
      * The source system from which we learnt about this hospital visit.
      */
     @Column(nullable = false)
@@ -96,26 +89,12 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
         this.dischargeDestination = other.dischargeDestination;
         this.dischargeDisposition = other.dischargeDisposition;
         this.dischargeTime = other.dischargeTime;
-        this.encounter = other.encounter;
         this.mrnId = other.mrnId;
         this.patientClass = other.patientClass;
         this.presentationTime = other.presentationTime;
         this.sourceSystem = other.sourceSystem;
     }
 
-    /**
-     * @return the encounter
-     */
-    public String getEncounter() {
-        return encounter;
-    }
-
-    /**
-     * @param encounter the encounter to set
-     */
-    public void setEncounter(String encounter) {
-        this.encounter = encounter;
-    }
 
     /**
      * @return the mrn
@@ -245,7 +224,7 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
 
     @Override
     public String toString() {
-        return String.format("HospitalVisit [encounter=%s, source_system=%s]", encounter, sourceSystem);
+        return String.format("HospitalVisitParent [source_system=%s]", sourceSystem);
     }
 
     @Override
@@ -262,8 +241,7 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
             return false;
         }
         HospitalVisitParent that = (HospitalVisitParent) o;
-        return Objects.equals(encounter, that.encounter)
-                && Objects.equals(mrnId, that.mrnId)
+        return Objects.equals(mrnId, that.mrnId)
                 && Objects.equals(sourceSystem, that.sourceSystem)
                 && Objects.equals(presentationTime, that.presentationTime)
                 && Objects.equals(admissionTime, that.admissionTime)
@@ -276,7 +254,7 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
 
     @Override
     public int hashCode() {
-        return Objects.hash(mrnId, encounter, sourceSystem, presentationTime, admissionTime, dischargeTime,
+        return Objects.hash(mrnId, sourceSystem, presentationTime, admissionTime, dischargeTime,
                 patientClass, arrivalMethod, dischargeDestination, dischargeDisposition);
     }
 }
