@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
 import java.time.Instant;
 
@@ -51,7 +52,7 @@ public class AdtProcessor {
 
         // Patient merges have no encounter information, so skip
         if (!(msg instanceof MergePatient)) {
-            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, msg.getVisitNumber(), storedFrom, mrn);
         }
 
 
@@ -79,13 +80,24 @@ public class AdtProcessor {
         return mrn;
     }
 
+    @Transactional
     public String deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) {
         String returnCode = "OK";
         Instant messageDateTime = msg.getRecordedDateTime();
-        Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         personController.deleteDemographic(mrn, messageDateTime, storedFrom);
         visitController.deleteOlderVisits(mrn, msg, messageDateTime);
 
+        return returnCode;
+    }
+
+    @Transactional
+    public String moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws MessageIgnoredException {
+        String returnCode = "OK";
+        Instant messageDateTime = msg.getRecordedDateTime();
+        Mrn previousMrn = personController.getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+        Mrn currentMrn = processPersonLevel(msg, storedFrom, messageDateTime);
+        HospitalVisit visit = visitController.moveVisitInformation(msg, storedFrom, previousMrn, currentMrn);
         return returnCode;
     }
 }

@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -44,6 +45,9 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         return StreamSupport.stream(auditCoreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
+    String newMrnString = "60600000";
+
+
     /**
      * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
      */
@@ -60,6 +64,23 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         assertEquals("ORANGE", demographic.get().getLastname());
         assertTrue(demographic.get().isAlive());
         assertNotNull(demographic.get().getDatetimeOfBirth());
+    }
+
+    /**
+     * move visit information when neither exists in the database.
+     * Should create previous and current MRN, and the core demographics for the current MRN.
+     */
+    @Test
+    public void testMoveVisitInformationCreatesMrnsIfTheyDontExist() throws EmapOperationMessageProcessingException {
+        MoveVisitInformation msg = messageFactory.getAdtMessage("generic/A45.yaml");
+        dbOps.processMessage(msg);
+        List<Mrn> mrns = getAllMrns();
+        assertEquals(2, mrns.size());
+
+        Mrn newMrn = mrnRepo.getByMrnEquals(newMrnString);
+
+        Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(newMrn);
+        assertTrue(demographic.isPresent());
     }
 
     /**
@@ -122,14 +143,13 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
-        String mrnString = "60600000";
-        msg.setMrn(mrnString);
+        msg.setMrn(newMrnString);
 
         int startingMrnCount = getAllMrns().size();
 
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEquals(mrnString);
+        Mrn mrn = mrnRepo.getByMrnEquals(newMrnString);
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
         assertEquals(1002L, mrn.getMrnId().longValue());

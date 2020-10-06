@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 import java.time.Instant;
@@ -108,12 +109,12 @@ public class VisitController {
      * @throws NullPointerException if adt message has no visit number set
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
+    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, String encounter, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
         Instant validFrom = getValidFrom(msg);
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
+        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(encounter, mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (!messageShouldBeUpdated(validFrom, visitState)) {
             return visitState.getEntity();
@@ -273,5 +274,28 @@ public class VisitController {
             auditHospitalVisitRepo.save(audit);
             hospitalVisitRepo.delete(visit);
         }
+    }
+
+    @Transactional
+    public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn) {
+        if (msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && previousMrn.equals(currentMrn)) {
+            throw new IllegalArgumentException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
+        }
+        Instant validFrom = getValidFrom(msg);
+        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
+
+        if (!messageShouldBeUpdated(validFrom, visitState)) {
+            return visitState.getEntity();
+        }
+
+        final HospitalVisit originalVisit = visitState.getEntity().copy();
+        updateGenericData(msg, visitState);
+        // move the encounter and MRN to the correct value
+        HospitalVisit visit = visitState.getEntity();
+        visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
+        visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
+
+        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        return  visit;
     }
 }

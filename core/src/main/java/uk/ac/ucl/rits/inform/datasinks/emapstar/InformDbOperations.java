@@ -16,8 +16,10 @@ import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
 import java.time.Instant;
 
@@ -93,6 +95,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public String processMessage(DeletePersonInformation msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         return adtProcessor.deletePersonInformation(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the MoveVisitInformation message to process
+     * @return return code
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public String processMessage(MoveVisitInformation msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        return adtProcessor.moveVisitInformation(msg, storedFrom);
     }
 
     @Override

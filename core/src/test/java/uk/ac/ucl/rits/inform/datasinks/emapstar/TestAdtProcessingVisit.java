@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
@@ -59,6 +60,23 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         HospitalVisit visit = visits.get(0);
         assertNotNull(visit.getAdmissionTime());
         assertNull(visit.getPresentationTime());
+        // no audit log should be added
+        assertTrue(getAllAuditHospitalVisits().isEmpty());
+    }
+
+    /**
+     * No existing hospital visits, so should make a new visit.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    public void testMoveVisitInformationCreatesVisitIfItDoesntExist() throws EmapOperationMessageProcessingException {
+        MoveVisitInformation msg = messageFactory.getAdtMessage("generic/A45.yaml");
+        dbOps.processMessage(msg);
+
+        List<HospitalVisit> visits = getAllHospitalVisits();
+        assertEquals(1, visits.size());
+
+        HospitalVisit visit = visits.get(0);
         // no audit log should be added
         assertTrue(getAllAuditHospitalVisits().isEmpty());
     }
