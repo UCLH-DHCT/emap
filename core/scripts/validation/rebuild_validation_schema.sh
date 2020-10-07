@@ -75,7 +75,7 @@ wait_for_queue_to_empty() {
         rabbitmq_container_id=$(bash emap-live.sh ps -q rabbitmq)
         # returns empty string if all queues we care about are at 0 messages
         non_empty_queues=$(docker exec $rabbitmq_container_id rabbitmqctl -q list_queues \
-            | awk -v RS='\r\n' 'BEGIN {OFS="\t"} {if (($1=="hl7Queue" || $1=="caboodleQueue") && $2!="0") {print $1 $2}  }' )
+            | awk -v RS='\r\n' 'BEGIN {OFS="\t"} {if (($1=="hl7Queue" || $1=="databaseExtracts") && $2!="0") {print $1 $2}  }' )
         if [ -z "$non_empty_queues" ]; then
             echo "Queues are empty, continuing"
             break
