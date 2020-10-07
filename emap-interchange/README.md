@@ -17,7 +17,7 @@ public class AppHl7 {
 ```
 
 Then it will find and use this config along with the Publisher. But you also need to supply a bean yourself that defines which queue you want to use.
-I've defined an enum (`EmapDataSource`) which lists all the queues. It currently only has the HL7 and Caboodle Vitalsigns queue in it. The bean should return
+I've defined an enum (`EmapDataSource`) which lists all the queues. It currently only has the HL7 and Database Extracts queues in it. The bean should return
 the enum value corresponding to the queue you want to use. Here is the version in the HL7 data source. The method name is not important.
 
 ```

@@ -14,8 +14,9 @@ import java.util.Objects;
  * by itself, it is owned by a message type (PathologyOrder).
  * @author Jeremy Stein
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PathologyResult implements Serializable {
+    private static final long serialVersionUID = 140970942335476554L;
     private String valueType = "";
 
     private String testItemLocalCode = "";

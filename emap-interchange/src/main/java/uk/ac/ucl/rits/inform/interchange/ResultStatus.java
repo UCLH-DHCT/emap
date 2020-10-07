@@ -1,15 +1,19 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 /**
- * Result status of a HL7 message defines the action to be taken upon receipt of the message.
+ * Result status of a HL7 message defines the action to be taken when parsing.
  */
 public enum ResultStatus {
     /**
-     * Add or update the record.
+     * Add or update the field.
      */
     SAVE,
     /**
-     * Delete the record.
+     * Delete the field.
      */
-    DELETE
+    DELETE,
+    /**
+     * Field has no data so should not be modified.
+     */
+    IGNORE
 }

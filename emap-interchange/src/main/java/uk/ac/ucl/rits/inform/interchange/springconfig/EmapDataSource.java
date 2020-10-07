@@ -11,15 +11,11 @@ public enum EmapDataSource {
      */
     HL7_QUEUE("hl7Queue"),
     /**
-     * The message queue from Caboodle data.
+     * The message queue for database extracts.
      */
-    CABOODLE("caboodleQueue"),
-    /**
-     * The message queue from Theme Hospital.
-     */
-    THEME_HOSPITAL_QUEUE("themeHospitalQueue");
+    DATABASE_EXTRACTS("databaseExtracts");
 
-    private String queueName;
+    private final String queueName;
 
     /**
      * @param queueName name of the AMQP queue for this data source
