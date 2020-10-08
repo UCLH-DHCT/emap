@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
@@ -12,7 +13,7 @@ import java.util.function.Consumer;
  * @param <T> HL7 field data type.
  */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class Hl7Value<T> implements Serializable {
     private static final long serialVersionUID = -8863675097743487929L;
     private T value;
@@ -93,6 +94,7 @@ public class Hl7Value<T> implements Serializable {
     /**
      * @return if the value is unknown.
      */
+    @JsonIgnore
     public boolean isUnknown() {
         return status.equals(ResultStatus.IGNORE);
     }
