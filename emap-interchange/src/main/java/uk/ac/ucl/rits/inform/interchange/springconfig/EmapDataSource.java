@@ -11,9 +11,9 @@ public enum EmapDataSource {
      */
     HL7_QUEUE("hl7Queue"),
     /**
-     * The message queue from Caboodle data.
+     * The message queue for database extracts.
      */
-    CABOODLE("caboodleQueue");
+    DATABASE_EXTRACTS("databaseExtracts");
 
     private final String queueName;
 
