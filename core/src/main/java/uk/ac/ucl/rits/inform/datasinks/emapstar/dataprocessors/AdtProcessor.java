@@ -42,12 +42,10 @@ public class AdtProcessor {
      * Default processing of an ADT message.
      * @param msg        ADT message
      * @param storedFrom time that emap-core started processing the message.
-     * @return return Code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public String processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        String returnCode = "OK";
+    public void processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
 
@@ -57,7 +55,6 @@ public class AdtProcessor {
         }
 
 
-        return returnCode;
     }
 
     /**
@@ -82,31 +79,24 @@ public class AdtProcessor {
     }
 
     @Transactional
-    public String deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) {
-        String returnCode = "OK";
+    public void deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) {
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         personController.deleteDemographic(mrn, messageDateTime, storedFrom);
         visitController.deleteOlderVisits(mrn, msg, messageDateTime);
-
-        return returnCode;
     }
 
     @Transactional
-    public String moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws MessageIgnoredException {
-        String returnCode = "OK";
+    public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws MessageIgnoredException {
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn previousMrn = personController.getOrCreateMrn(
                 msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         Mrn currentMrn = processPersonLevel(msg, storedFrom, messageDateTime);
         HospitalVisit visit = visitController.moveVisitInformation(msg, storedFrom, previousMrn, currentMrn);
-        return returnCode;
     }
 
-    public String changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
-        String returnCode = "OK";
+    public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
         Instant messageDateTime = msg.getRecordedDateTime();
         Mrn previousMrn = personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
-        return returnCode;
     }
 }

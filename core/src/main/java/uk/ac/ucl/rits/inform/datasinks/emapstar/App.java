@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.handler.annotation.Header;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -80,24 +81,25 @@ public class App {
 //        }
         idsEffectLogging.setSourceId(msg.getSourceMessageId());
         try {
-            String returnCode = msg.processMessage(dbOps);
+            msg.processMessage(dbOps);
             Instant doneProcessMessageTime = Instant.now();
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
             idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
-            idsEffectLogging.setReturnStatus(returnCode);
+            idsEffectLogging.setError(false);
             logger.info("Sending ACK for " + msg.getSourceMessageId());
             channel.basicAck(tag, false);
         } catch (EmapOperationMessageProcessingException e) {
             // All errors that allow the message to be skipped should be logged
             // using the return code from processMessage.
-            idsEffectLogging.setReturnStatus(e.getReturnCode());
+            // MessageIgnoredException is not an error, all others are
+            idsEffectLogging.setError(!(e instanceof MessageIgnoredException));
             idsEffectLogging.setMessage(e.getMessage());
             idsEffectLogging.setStackTrace(e);
             logger.info("Sending NACK no requeue then NOT throwing for " + msg.getSourceMessageId());
             channel.basicNack(tag, false, false);
         } catch (Throwable th) {
             // For anything else, at least log it before exiting.
-            idsEffectLogging.setReturnStatus("Unexpected exception: " + th.toString());
+            idsEffectLogging.setError(true);
             idsEffectLogging.setMessage(th.getMessage());
             idsEffectLogging.setStackTrace(th);
             logger.info("Sending NACK no requeue then throwing for " + msg.getSourceMessageId());
