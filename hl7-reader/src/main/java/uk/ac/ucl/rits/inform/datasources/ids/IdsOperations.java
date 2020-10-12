@@ -464,33 +464,36 @@ public class IdsOperations implements AutoCloseable {
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
         logger.info(String.format("%s^%s", messageType, triggerEvent));
         String sourceId = String.format("%010d", idsUnid);
-        // Parse vitalsigns
-        if (sendingFacility.equals("Vitals")) {
-            if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
-                VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
-                return vitalSignBuilder.getMessages();
-            }
+
+        switch (messageType) {
+            case "ADT":
+                List<AdtMessage> adtMsg = new ArrayList<>();
+                try {
+                    adtMsg.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
+                } catch (Hl7MessageNotImplementedException e) {
+                    logger.warn("Ignoring message: " + e.toString());
+                }
+                return adtMsg;
+            case "ORU":
+                if (sendingFacility.equals("Vitals") && triggerEvent.equals("R01")) {
+                    VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
+                    return vitalSignBuilder.getMessages();
+                }
+                if (triggerEvent.equals("R01")) {
+                    // get all result batteries in the message
+                    return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
+                }
+                break;
+            case "ORM":
+                if (triggerEvent.equals("O01")) {
+                    // get all orders in the message
+                    return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
+                }
+                break;
+            default:
+                logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
+
         }
-        if (messageType.equals("ADT")) {
-            List<AdtMessage> adtMsg = new ArrayList<>();
-            try {
-                adtMsg.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
-            } catch (Hl7MessageNotImplementedException e) {
-                logger.warn("Ignoring message: " + e.toString());
-            }
-            return adtMsg;
-        } else if (messageType.equals("ORU")) {
-            if (triggerEvent.equals("R01")) {
-                // get all result batteries in the message
-                return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
-            }
-        } else if (messageType.equals("ORM")) {
-            if (triggerEvent.equals("O01")) {
-                // get all orders in the message
-                return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
-            }
-        }
-        logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
         return new ArrayList<>();
     }
 }
