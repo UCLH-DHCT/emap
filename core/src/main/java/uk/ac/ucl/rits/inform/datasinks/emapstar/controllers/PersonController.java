@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
@@ -164,7 +165,7 @@ public class PersonController {
      */
     private CoreDemographic updateDemographicsIfNewer(final AdtMessage adtMessage, RowState<CoreDemographic> demoState) {
         CoreDemographic originalDemo = demoState.getEntity().copy();
-        if (messageIsNewer(adtMessage, originalDemo)) {
+        if (shouldUpdateMessage(adtMessage, originalDemo)) {
             updateCoreDemographicFields(adtMessage, demoState);
 
             if (demoState.isEntityUpdated()) {
@@ -177,13 +178,13 @@ public class PersonController {
     }
 
     /**
-     * ADT message has different values and is newer than the existing core demographics.
+     * ADT message is newer than database information, and the message source is trusted.
      * @param adtMessage          adt message
      * @param existingDemographic core demographics from the database
      * @return true if the demographics should be updated
      */
-    private boolean messageIsNewer(final AdtMessage adtMessage, final CoreDemographic existingDemographic) {
-        return existingDemographic.getValidFrom().isBefore(adtMessage.getRecordedDateTime());
+    private boolean shouldUpdateMessage(final AdtMessage adtMessage, final CoreDemographic existingDemographic) {
+        return existingDemographic.getValidFrom().isBefore(adtMessage.getRecordedDateTime()) && DataSources.isTrusted(adtMessage.getSourceSystem());
     }
 
     /**
