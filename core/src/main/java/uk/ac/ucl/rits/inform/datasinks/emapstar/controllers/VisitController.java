@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
 
@@ -103,20 +104,22 @@ public class VisitController {
     /**
      * Process information about hospital visits, saving any changes to the database.
      * @param msg        adt message
-     * @param encounter  encounter number
      * @param storedFrom time that emap-core started processing the message.
      * @param mrn        mrn
-     * @return hospital visit
+     * @return hospital visit, may be null if an UpdatePatientInfo message doesn't have any encounter information.
      * @throws NullPointerException if adt message has no visit number set
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, String encounter,
-                                                     final Instant storedFrom, final Mrn mrn) throws NullPointerException {
+    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
+            if (msg instanceof UpdatePatientInfo) {
+                logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
+                return null;
+            }
             throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
         Instant validFrom = getValidFrom(msg);
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(encounter, mrn, msg.getSourceSystem(), validFrom, storedFrom);
+        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (!messageShouldBeUpdated(validFrom, visitState)) {
             return visitState.getEntity();

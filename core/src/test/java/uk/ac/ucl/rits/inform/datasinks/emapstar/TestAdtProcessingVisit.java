@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
 import java.util.List;
@@ -303,6 +304,29 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         // Audit log should exist
         AuditHospitalVisit audit = auditHospitalVisitRepository.findByEncounter(defaultEncounter);
         assertEquals(defaultMrn, audit.getMrnId().getMrn());
+    }
+
+    /**
+     * UpdatePatientInfo that doesn't have a visit number should still be parsed, but no visit information should change.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testUpdatePatientInfoWithNoEncounterStillCompletesProcessing() throws EmapOperationMessageProcessingException {
+        UpdatePatientInfo msg = messageFactory.getAdtMessage("generic/A08_v1.yaml");
+        msg.setVisitNumber(null);
+
+        HospitalVisit preProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+
+        dbOps.processMessage(msg);
+
+        HospitalVisit postProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+
+        // visit should be unchanged
+        assertEquals(preProcessingVisit, postProcessingVisit);
+
+        // No audit log should exist
+        assertTrue(getAllAuditHospitalVisits().isEmpty());
     }
 
 

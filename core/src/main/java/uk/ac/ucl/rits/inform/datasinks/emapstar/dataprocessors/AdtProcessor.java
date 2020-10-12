@@ -51,9 +51,8 @@ public class AdtProcessor {
 
         // Patient merges have no encounter information, so skip
         if (!(msg instanceof MergePatient)) {
-            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, msg.getVisitNumber(), storedFrom, mrn);
+            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
         }
-
 
     }
 
