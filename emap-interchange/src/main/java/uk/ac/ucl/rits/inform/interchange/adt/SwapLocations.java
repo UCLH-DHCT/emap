@@ -27,7 +27,7 @@ public class SwapLocations extends AdtMessage {
     private Hl7Value<String> otherFullLocationString = Hl7Value.unknown();
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

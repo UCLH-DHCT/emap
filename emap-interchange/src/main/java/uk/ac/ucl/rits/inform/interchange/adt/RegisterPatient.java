@@ -21,7 +21,7 @@ public class RegisterPatient extends AdtMessage {
     private Hl7Value<Instant> presentationDateTime = Hl7Value.unknown();
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

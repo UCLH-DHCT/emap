@@ -23,7 +23,7 @@ public class MergePatient extends AdtMessage implements PreviousIdentifiers {
     private String previousNhsNumber;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

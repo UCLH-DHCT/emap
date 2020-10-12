@@ -370,9 +370,9 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
      *                                                 processed
      */
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor)
+    public void processMessage(EmapOperationMessageProcessor processor)
             throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+        processor.processMessage(this);
     }
 
     @Override

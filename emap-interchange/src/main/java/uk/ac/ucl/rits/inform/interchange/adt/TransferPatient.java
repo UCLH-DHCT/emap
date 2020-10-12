@@ -21,7 +21,7 @@ public class TransferPatient extends AdtMessage implements AdmissionDateTime {
     private Hl7Value<Instant> admissionDateTime;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

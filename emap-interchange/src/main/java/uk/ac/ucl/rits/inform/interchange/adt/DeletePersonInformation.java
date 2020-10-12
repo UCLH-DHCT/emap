@@ -17,7 +17,7 @@ public class DeletePersonInformation extends AdtMessage {
     private static final long serialVersionUID = 3337977661678135438L;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

@@ -17,7 +17,7 @@ public class UpdatePatientInfo extends AdtMessage {
     private static final long serialVersionUID = 6177251667805777164L;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

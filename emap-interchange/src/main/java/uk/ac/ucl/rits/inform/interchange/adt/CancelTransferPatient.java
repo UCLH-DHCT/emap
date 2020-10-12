@@ -20,7 +20,7 @@ public class CancelTransferPatient extends AdtMessage implements AdtCancellation
     private Instant cancelledDateTime;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }
