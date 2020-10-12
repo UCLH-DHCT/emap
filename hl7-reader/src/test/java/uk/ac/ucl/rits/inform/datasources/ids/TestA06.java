@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
@@ -33,7 +34,7 @@ public class TestA06 extends TestHl7MessageStream {
      */
     @Test
     public void testAdtChildClass() {
-        assertTrue(msg instanceof UpdatePatientInfo);
+        assertTrue(msg instanceof TransferPatient);
     }
 
     /**
