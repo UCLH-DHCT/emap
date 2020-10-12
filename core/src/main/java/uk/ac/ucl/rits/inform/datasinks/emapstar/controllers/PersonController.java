@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
 import java.util.List;
@@ -54,28 +55,26 @@ public class PersonController {
     }
 
     /**
-     * Merge at least two MRNs, setting the surviving mrn to be live.
-     * @param retiringMrn       MRN to retire and merge from
-     * @param retiringNhsNumber nhsNumber to retire and merge from
-     * @param survivingMrn      live MRN to merge into
-     * @param messageDateTime   date time of the message
-     * @param storedFrom        when the message has been read by emap core
+     * Merge MRN from the message's pervious MRN into the surviving MRN.
+     * @param msg          Merge message
+     * @param survivingMrn live MRN to merge into
+     * @param storedFrom   when the message has been read by emap core
      * @throws MessageIgnoredException if no retiring mrn information
      */
     @Transactional
-    public void mergeMrns(final String retiringMrn, final String retiringNhsNumber, final Mrn survivingMrn,
-                          final Instant messageDateTime, final Instant storedFrom) throws MessageIgnoredException {
-        if (retiringMrn == null && retiringNhsNumber == null) {
-            throw new MessageIgnoredException("Retiring MRN's Mrn string and NHS number were null");
+    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws MessageIgnoredException {
+        if (msg.getPreviousMrn() == null && msg.getPreviousNhsNumber() == null) {
+            throw new MessageIgnoredException(String.format("Retiring MRN's Mrn string and NHS number were null: %s", msg));
         }
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
-                .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(retiringMrn, retiringNhsNumber)
-                .orElseGet(() -> List.of(createNewLiveMrn(retiringMrn, retiringNhsNumber, "EPIC", messageDateTime, storedFrom)));
+                .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
+                .orElseGet(() -> List.of(createNewLiveMrn(
+                        msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom)));
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, messageDateTime, storedFrom, mrnToLive));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.getRecordedDateTime(), storedFrom, mrnToLive));
     }
 
     /**

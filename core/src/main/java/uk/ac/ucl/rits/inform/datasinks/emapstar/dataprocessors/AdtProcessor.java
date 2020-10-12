@@ -71,8 +71,7 @@ public class AdtProcessor {
 
         if (msg instanceof MergePatient) {
             MergePatient mergePatient = (MergePatient) msg;
-            personController.mergeMrns(mergePatient.getPreviousMrn(), mergePatient.getPreviousNhsNumber(),
-                    mrn, mergePatient.getRecordedDateTime(), storedFrom);
+            personController.mergeMrns(mergePatient, mrn, storedFrom);
         }
         return mrn;
     }
