@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
@@ -121,7 +122,7 @@ public class VisitController {
         Instant validFrom = getValidFrom(msg);
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
-        if (!messageShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
+        if (visitShouldNotBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             return visitState.getEntity();
         }
 
@@ -154,18 +155,20 @@ public class VisitController {
     }
 
     /**
-     * If message is from a trusted source update if newer or if database source isn't trusted. Otherwise only update if if is newly created.
+     * Update visit if message is from a trusted source update if newer or if database source isn't trusted.
+     * Otherwise only update if if is newly created.
      * @param messageDateTime date time of the message
      * @param messageSource   Source system from the message
      * @param visitState      visit wrapped in state class
-     * @return true if the message is newer or was created
+     * @return true if the visit should not be updated
      */
-    private boolean messageShouldBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
+    private boolean visitShouldNotBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
         if (visitState.isEntityCreated()) {
-            return true;
+            return false;
         }
         HospitalVisit visit = visitState.getEntity();
-        return messageSource.equals("EPIC") && (!visit.getSourceSystem().equals("EPIC") || visit.getValidFrom().isBefore(messageDateTime));
+        return !DataSources.isTrusted(messageSource)
+                || (DataSources.isTrusted(visit.getSourceSystem()) && !visit.getValidFrom().isBefore(messageDateTime));
     }
 
     /**
@@ -306,7 +309,7 @@ public class VisitController {
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
                 msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
-        if (!messageShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
+        if (visitShouldNotBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             return visitState.getEntity();
         }
 
