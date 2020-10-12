@@ -121,7 +121,7 @@ public class VisitController {
         Instant validFrom = getValidFrom(msg);
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
-        if (!messageShouldBeUpdated(validFrom, visitState)) {
+        if (!messageShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             return visitState.getEntity();
         }
 
@@ -154,14 +154,18 @@ public class VisitController {
     }
 
     /**
-     * If message is newer than the database, newly created or if the database has data from untrusted source.
+     * If message is from a trusted source update if newer or if database source isn't trusted. Otherwise only update if if is newly created.
      * @param messageDateTime date time of the message
+     * @param messageSource   Source system from the message
      * @param visitState      visit wrapped in state class
      * @return true if the message is newer or was created
      */
-    private boolean messageShouldBeUpdated(final Instant messageDateTime, RowState<HospitalVisit> visitState) {
+    private boolean messageShouldBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
+        if (visitState.isEntityCreated()) {
+            return true;
+        }
         HospitalVisit visit = visitState.getEntity();
-        return visit.getValidFrom().isBefore(messageDateTime) || visitState.isEntityCreated() || !visit.getSourceSystem().equals("EPIC");
+        return messageSource.equals("EPIC") && (!visit.getSourceSystem().equals("EPIC") || visit.getValidFrom().isBefore(messageDateTime));
     }
 
     /**
@@ -302,7 +306,7 @@ public class VisitController {
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
                 msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
-        if (!messageShouldBeUpdated(validFrom, visitState)) {
+        if (!messageShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             return visitState.getEntity();
         }
 
