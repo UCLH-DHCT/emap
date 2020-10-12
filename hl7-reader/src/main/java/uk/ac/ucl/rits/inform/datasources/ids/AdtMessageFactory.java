@@ -172,6 +172,8 @@ public class AdtMessageFactory {
                 msg = admitPatient;
                 break;
             case "A02":
+            case "A06":
+            case "A07":
                 // 3
                 TransferPatient transferPatient = new TransferPatient();
                 transferPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
@@ -197,12 +199,10 @@ public class AdtMessageFactory {
             case "A14":
             case "A38":
                 throw new Hl7MessageNotImplementedException(String.format("Scheduling ADT trigger event not implemented: %s", triggerEvent));
-            case "A06":
-            case "A07": // maybe merge with A02
             case "A08":
             case "A28":
             case "A31":
-                // 2 maybe stage 3. check which ones have location and move to Transfer Patient?
+                // 2 maybe stage 3
                 msg = new UpdatePatientInfo();
                 break;
             case "A11":
