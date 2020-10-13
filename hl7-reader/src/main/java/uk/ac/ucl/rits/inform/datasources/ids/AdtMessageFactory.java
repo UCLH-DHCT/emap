@@ -86,6 +86,8 @@ public class AdtMessageFactory {
                                             AdtMessage msg) throws HL7Exception {
         msg.setSourceMessageId(sourceId);
         msg.setSourceSystem(patientInfoHl7.getSendingApplication());
+        // will be replaced if there is an evn segment
+        msg.setRecordedDateTime(patientInfoHl7.getMessageTimestamp());
         if (patientInfoHl7.pv1SegmentExists()) {
             // will we want demographics to be included in pathology messages too?
             msg.setAdmitSource(Hl7Value.buildFromHl7(patientInfoHl7.getAdmitSource()));
