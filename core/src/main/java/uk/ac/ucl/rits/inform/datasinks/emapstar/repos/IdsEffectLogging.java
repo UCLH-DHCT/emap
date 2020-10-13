@@ -30,7 +30,6 @@ public class IdsEffectLogging {
     private Instant processingStartTime;
     private Instant processingEndTime;
     private double processMessageDurationSeconds;
-    @Column(columnDefinition = "text")
     private Boolean error;
     private String mrn;
     private String messageType;
