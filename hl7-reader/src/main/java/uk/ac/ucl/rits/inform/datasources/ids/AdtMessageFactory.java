@@ -7,6 +7,8 @@ import ca.uhn.hl7v2.model.v26.group.ADT_A39_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ADT_A45_MERGE_INFO;
 import ca.uhn.hl7v2.model.v26.message.ADT_A39;
 import ca.uhn.hl7v2.model.v26.message.ADT_A45;
+import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.segment.EVN;
 import ca.uhn.hl7v2.model.v26.segment.MRG;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -202,6 +204,8 @@ public class AdtMessageFactory {
             case "A08":
             case "A28":
             case "A31":
+            case "R01": // build update patient info from non-ADT HL7 messages
+            case "O01":
                 // 2 maybe stage 3
                 msg = new UpdatePatientInfo();
                 break;
@@ -319,6 +323,7 @@ public class AdtMessageFactory {
 
     /**
      * get PV1 segment if it exists.
+     * Parses from ADT sources, and non-ADT sources (e.g. Pathology)
      * @param hl7Msg        hl7 message
      * @param secondSegment get the second segment
      * @return PV1
@@ -337,6 +342,14 @@ public class AdtMessageFactory {
             ADT_A45_MERGE_INFO mergeInfo = (ADT_A45_MERGE_INFO) hl7Msg.get("MERGE_INFO");
             pv1 = mergeInfo.getPV1();
         }
+        // non ADT message processing
+        if (hl7Msg instanceof ORU_R01) {
+            ORU_R01 oruR01 = (ORU_R01) hl7Msg;
+            pv1 = oruR01.getPATIENT_RESULT().getPATIENT().getVISIT().getPV1();
+        } else if (hl7Msg instanceof ORM_O01) {
+            ORM_O01 ormO01 = (ORM_O01) hl7Msg;
+            pv1 = ormO01.getPATIENT().getPATIENT_VISIT().getPV1();
+        }
 
         return pv1;
     }
@@ -353,6 +366,7 @@ public class AdtMessageFactory {
 
     /**
      * Get PID if it exists.
+     * Parses from ADT sources, and non-ADT sources (e.g. Pathology)
      * @param hl7Msg        hl7 message
      * @param secondSegment Get the second segment
      * @return PID
@@ -374,6 +388,14 @@ public class AdtMessageFactory {
             } catch (HL7Exception e) {
                 // empty PID2 is allowed
             }
+        }
+        // processing of non ADT messages
+        if ((hl7Msg instanceof ORU_R01)) {
+            ORU_R01 msg = (ORU_R01) hl7Msg;
+            pid = msg.getPATIENT_RESULT().getPATIENT().getPID();
+        } else if (hl7Msg instanceof ORM_O01) {
+            ORM_O01 ormO01 = (ORM_O01) hl7Msg;
+            pid = ormO01.getPATIENT().getPID();
         }
         return pid;
     }
