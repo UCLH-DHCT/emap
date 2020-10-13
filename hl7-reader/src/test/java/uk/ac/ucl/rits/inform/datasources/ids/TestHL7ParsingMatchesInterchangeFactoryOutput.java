@@ -127,6 +127,13 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testPathologyOrderProducesAdtFirst() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PathologyOrder/ORU_R01.txt").get(0);
+        AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/pathology_oru_r01.yaml");
+        assertEquals(expectedAdt, messageFromHl7);
+    }
+
+    @Test
     public void testPathologySensitivity() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("PathologyOrder/Sensitivity.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("sensitivity.yaml", "0000000042");
