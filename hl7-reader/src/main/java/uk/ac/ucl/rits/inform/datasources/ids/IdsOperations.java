@@ -504,7 +504,8 @@ public class IdsOperations implements AutoCloseable {
      * @param messages      interchange messages build from the single HL7 message
      * @throws HL7Exception
      */
-    private void buildAndAddAdtMessage(final Message msgFromIds, final String sourceId, final boolean fromAdtStream, List<EmapOperationMessage> messages) throws HL7Exception {
+    private void buildAndAddAdtMessage(final Message msgFromIds, final String sourceId, final boolean fromAdtStream,
+                                       List<EmapOperationMessage> messages) throws HL7Exception {
         try {
             messages.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
         } catch (Hl7MessageNotImplementedException | HL7Exception e) {
