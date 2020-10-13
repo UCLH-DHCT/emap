@@ -146,4 +146,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         List<VitalSigns> expectedOrders = interchangeFactory.getVitalSigns("hl7.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
+
+    @Test
+    public void testVitalSignsProducesAdtFirst() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("VitalSigns/MixedHL7Message.txt").get(0);
+        AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/flowsheet_oru_r01.yaml");
+        assertEquals(expectedAdt, messageFromHl7);
+    }
 }
