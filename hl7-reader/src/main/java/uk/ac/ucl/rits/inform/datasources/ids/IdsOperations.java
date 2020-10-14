@@ -50,6 +50,7 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Operations that can be performed on the IDS.
+ * @author Jeremy Stein & Stef Piatek
  */
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")

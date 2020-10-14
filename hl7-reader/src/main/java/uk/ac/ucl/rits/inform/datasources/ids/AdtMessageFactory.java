@@ -40,7 +40,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 /**
  * Build an AdtMessage Emap interchange object from an HL7 message.
- * @author Jeremy Stein
+ * @author Jeremy Stein & Stef Piatek
  */
 @Component
 public class AdtMessageFactory {

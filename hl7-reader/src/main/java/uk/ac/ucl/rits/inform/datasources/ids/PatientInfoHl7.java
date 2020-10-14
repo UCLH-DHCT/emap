@@ -9,7 +9,7 @@ import ca.uhn.hl7v2.model.v26.segment.PV2;
  * Group together some common functionality that gets patient and visit info.
  * Each message type can have a different way of finding these segments,
  * hence why it's up to the caller to find them.
- * @author Jeremy Stein
+ * @author Jeremy Stein & Stef Piatek
  */
 public class PatientInfoHl7 implements PV1Wrap, PV2Wrap, PIDWrap, MSHWrap {
     private MSH msh;
