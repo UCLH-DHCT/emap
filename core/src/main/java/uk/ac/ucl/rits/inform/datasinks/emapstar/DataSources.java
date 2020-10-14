@@ -18,11 +18,6 @@ public final class DataSources {
      * @return true if the datasource is trusted.
      */
     public static boolean isTrusted(String dataSource) {
-        for (String trustedSource : TRUSTED_SOURCES) {
-            if (trustedSource.equals(dataSource)) {
-                return true;
-            }
-        }
-        return false;
+        return TRUSTED_SOURCES.contains(dataSource);
     }
 }
