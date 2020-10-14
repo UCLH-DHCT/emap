@@ -55,7 +55,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public void processMessage(PathologyOrder pathologyOrder) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         pathologyProcessor.processMessage(pathologyOrder, storedFrom);
-        // be more specific about the type of OK in future
     }
 
 

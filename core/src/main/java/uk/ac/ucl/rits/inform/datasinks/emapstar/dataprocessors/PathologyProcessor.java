@@ -36,18 +36,14 @@ public class PathologyProcessor {
      * Process Pathology message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public String processMessage(final PathologyOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        String returnCode = "OK";
-
+    public void processMessage(final PathologyOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
-        return returnCode;
     }
 }
