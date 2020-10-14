@@ -171,7 +171,7 @@ public class VisitController {
         // don't update if message source is not trusted
         return !DataSources.isTrusted(messageSource)
                 // don't update if existing entity source is trusted and existing entity is after the message.
-                // Otherwise update.
+                // Otherwise update (if message source is trusted and (message is newer or entity source system is untrusted))
                 || (DataSources.isTrusted(visit.getSourceSystem()) && visit.getValidFrom().isAfter(messageDateTime));
     }
 
