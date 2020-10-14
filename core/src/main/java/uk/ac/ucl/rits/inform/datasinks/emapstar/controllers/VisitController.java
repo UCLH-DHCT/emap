@@ -163,12 +163,16 @@ public class VisitController {
      * @return true if the visit should not be updated
      */
     private boolean visitShouldNotBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
+        // always update if a message is created
         if (visitState.isEntityCreated()) {
             return false;
         }
         HospitalVisit visit = visitState.getEntity();
+        // don't update if message source is not trusted
         return !DataSources.isTrusted(messageSource)
-                || (DataSources.isTrusted(visit.getSourceSystem()) && !visit.getValidFrom().isBefore(messageDateTime));
+                // don't update if existing entity source is trusted and existing entity is after the message.
+                // Otherwise update.
+                || (DataSources.isTrusted(visit.getSourceSystem()) && visit.getValidFrom().isAfter(messageDateTime));
     }
 
     /**

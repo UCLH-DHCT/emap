@@ -207,6 +207,47 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
+     * Current visit if from untrusted source and new message is from an untrusted source,
+     * visit should not be updated because we don't trust the update.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testUntrustedSourceMessageDoesNotUpdate() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        String untrustedEncounter = "0999999999";
+        msg.setVisitNumber(untrustedEncounter);
+        msg.setMrn("30700000");
+        msg.setSourceSystem("don't trust me");
+
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(untrustedEncounter).orElseThrow(NullPointerException::new);
+        // admission time should be updated
+        assertNull(visit.getAdmissionTime());
+    }
+
+    /**
+     * database visit is from untrusted source, a message with old visit information from a trusted source should update the visit.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    public void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        String untrustedEncounter = "0999999999";
+        msg.setVisitNumber(untrustedEncounter);
+        msg.setMrn("30700000");
+        msg.setNhsNumber(null);
+        msg.setRecordedDateTime(past);
+        msg.setEventOccurredDateTime(past);
+
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(untrustedEncounter).orElseThrow(NullPointerException::new);
+        // admission time should be updated
+        assertNotNull(visit.getAdmissionTime());
+    }
+
+    /**
      * Database has information that is not from a trusted source, older message should still be processed
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
