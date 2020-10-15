@@ -33,6 +33,13 @@ interface PIDWrap {
     PID getPID();
 
     /**
+     * @return true if the PID segment exists.
+     */
+    default boolean pidSegmentExists() {
+        return getPID() != null;
+    }
+
+    /**
      * @return PID-3.1[1] - in Carecast this is the MRN. Will Epic follow this convention?
      * @throws HL7Exception if HAPI does
      */

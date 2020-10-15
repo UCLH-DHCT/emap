@@ -30,7 +30,6 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplemented
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
 
@@ -51,6 +50,7 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Operations that can be performed on the IDS.
+ * @author Jeremy Stein & Stef Piatek
  */
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
@@ -464,33 +464,57 @@ public class IdsOperations implements AutoCloseable {
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
         logger.info(String.format("%s^%s", messageType, triggerEvent));
         String sourceId = String.format("%010d", idsUnid);
-        // Parse vitalsigns
-        if (sendingFacility.equals("Vitals")) {
-            if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
-                VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
-                return vitalSignBuilder.getMessages();
-            }
+
+        List<EmapOperationMessage> messages = new ArrayList<>();
+
+        switch (messageType) {
+            case "ADT":
+                buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
+            case "ORU":
+                if (triggerEvent.equals("R01")) {
+                    if (sendingFacility.equals("Vitals")) {
+                        buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                        VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
+                        messages.addAll(vitalSignBuilder.getMessages());
+                    } else {
+                        buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                        // get all result batteries in the message
+                        messages.addAll(PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
+                    }
+                }
+                break;
+            case "ORM":
+                if (triggerEvent.equals("O01")) {
+                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                    // get all orders in the message
+                    messages.addAll(PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds));
+                }
+                break;
+            default:
+                logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
+
         }
-        if (messageType.equals("ADT")) {
-            List<AdtMessage> adtMsg = new ArrayList<>();
-            try {
-                adtMsg.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
-            } catch (Hl7MessageNotImplementedException e) {
+        return messages;
+    }
+
+    /**
+     * Build an ADT interchange message from HL7 message, if successful, add this to the list of messages.
+     * @param msgFromIds    HL7 message
+     * @param sourceId      message source ID
+     * @param fromAdtStream if from ADT stream, will throw HL7 exception
+     * @param messages      interchange messages build from the single HL7 message
+     * @throws HL7Exception
+     */
+    private void buildAndAddAdtMessage(final Message msgFromIds, final String sourceId, final boolean fromAdtStream,
+                                       List<EmapOperationMessage> messages) throws HL7Exception {
+        try {
+            messages.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
+        } catch (Hl7MessageNotImplementedException | HL7Exception e) {
+            if (fromAdtStream && e instanceof HL7Exception) {
+                throw (HL7Exception) e;
+            } else {
                 logger.warn("Ignoring message: " + e.toString());
             }
-            return adtMsg;
-        } else if (messageType.equals("ORU")) {
-            if (triggerEvent.equals("R01")) {
-                // get all result batteries in the message
-                return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
-            }
-        } else if (messageType.equals("ORM")) {
-            if (triggerEvent.equals("O01")) {
-                // get all orders in the message
-                return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
-            }
         }
-        logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
-        return new ArrayList<>();
     }
 }

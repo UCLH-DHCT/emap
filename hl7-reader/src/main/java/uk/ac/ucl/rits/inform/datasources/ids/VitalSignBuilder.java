@@ -24,6 +24,7 @@ import java.util.List;
 
 /**
  * Build one or more vitalsigns from HL7 message.
+ * @author Stef Piatek
  */
 public class VitalSignBuilder {
     private static final Logger logger = LoggerFactory.getLogger(VitalSignBuilder.class);

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
 
 /**
@@ -201,10 +202,19 @@ public class TestAdtVarious extends TestHl7MessageStream {
      * PV1-44.1.
      */
     @Test
-    public void testGetAdmissionDateTime1() {
-        assertEquals(
-                Instant.parse("2012-09-21T17:40:00.00Z"),
-                msg.getAdmissionDateTime().get());
+    public void testGetAdmissionDateTime1OrRegisterPatient() {
+        if (msg instanceof AdmitPatient){
+            AdmitPatient admitPatient = (AdmitPatient) msg;
+            assertEquals(
+                    Instant.parse("2012-09-21T17:40:00.00Z"),
+                    admitPatient.getAdmissionDateTime().get());
+        }
+        if (msg instanceof RegisterPatient){
+            RegisterPatient registerPatient = (RegisterPatient) msg;
+            assertEquals(
+                    Instant.parse("2012-09-21T17:40:00.00Z"),
+                    registerPatient.getPresentationDateTime().get());
+        }
     }
 
 

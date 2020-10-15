@@ -65,8 +65,35 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testGenericAdtA11() throws Exception {
+        testAdtMessage("generic/A11");
+    }
+    @Test
+    public void testGenericAdtA13() throws Exception {
+        testAdtMessage("generic/A13");
+    }
+
+    @Test
+    public void testGenericAdtA17() throws Exception {
+        testAdtMessage("generic/A17");
+    }
+
+    @Test
+    public void testGenericAdtA29() throws Exception {
+        testAdtMessage("generic/A29");
+    }
+
+    @Test
     public void testGenericAdtA40() throws Exception {
         testAdtMessage("generic/A40");
+    }
+    @Test
+    public void testGenericAdtA45() throws Exception {
+        testAdtMessage("generic/A45");
+    }
+    @Test
+    public void testGenericAdtA47() throws Exception {
+        testAdtMessage("generic/A47");
     }
 
     @Test
@@ -80,37 +107,50 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     public void testPathologyIncrementalLoad() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/Incremental.txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processPathologyHl7AndFilterToPathologyOrders("PathologyOrder/Incremental.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testPathologyIncrementalDuplicateResultSegment() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processMultiplePathologyOrderMessages("PathologyOrder/PathologyDuplicateResultSegment.txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processPathologyHl7AndFilterToPathologyOrders("PathologyOrder/PathologyDuplicateResultSegment.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("incremental_duplicate_result_segment.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testPathologyOrder() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("PathologyOrder/ORU_R01.txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("PathologyOrder/ORU_R01.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("ORU_R01.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
+    public void testPathologyOrderProducesAdtFirst() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PathologyOrder/ORU_R01.txt").get(0);
+        AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/pathology_oru_r01.yaml");
+        assertEquals(expectedAdt, messageFromHl7);
+    }
+
+    @Test
     public void testPathologySensitivity() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("PathologyOrder/Sensitivity.txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("PathologyOrder/Sensitivity.txt");
         List<PathologyOrder> expectedOrders = interchangeFactory.getPathologyOrders("sensitivity.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
-
     @Test
     public void testVitalSigns() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("VitalSigns/MixedHL7Message.txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("VitalSigns/MixedHL7Message.txt");
         List<VitalSigns> expectedOrders = interchangeFactory.getVitalSigns("hl7.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
+    }
+
+    @Test
+    public void testVitalSignsProducesAdtFirst() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("VitalSigns/MixedHL7Message.txt").get(0);
+        AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/flowsheet_oru_r01.yaml");
+        assertEquals(expectedAdt, messageFromHl7);
     }
 }

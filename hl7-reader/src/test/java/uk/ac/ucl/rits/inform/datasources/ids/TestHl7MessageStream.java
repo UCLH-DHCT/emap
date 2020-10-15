@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Base class for writing tests which take HL7 message(s) as input, and check
@@ -28,9 +29,9 @@ public abstract class TestHl7MessageStream {
 
     /**
      * processSingleMessage is preferred.
-     * @param resourceFileName
-     * @return
-     * @throws Exception
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange message
+     * @throws Exception if message malformed
      */
     protected AdtMessage processSingleAdtMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
@@ -40,9 +41,9 @@ public abstract class TestHl7MessageStream {
 
     /**
      * processSingleMessage is preferred.
-     * @param resourceFileName
-     * @return
-     * @throws Exception
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange messages
+     * @throws Exception if message malformed
      */
     protected List<PathologyOrder> processSinglePathologyOrderMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
@@ -52,9 +53,9 @@ public abstract class TestHl7MessageStream {
 
     /**
      * Convert HL7 message to one or more Interchange messages, determining the correct type.
-     * @param resourceFileName
-     * @return
-     * @throws Exception
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange messages
+     * @throws Exception if message malformed
      */
     protected List<? extends EmapOperationMessage> processSingleMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
@@ -64,17 +65,37 @@ public abstract class TestHl7MessageStream {
     }
 
     /**
-     * Convert multiple HL7 messages into interchange format, determining the correct type
-     * @param resourceFileName
-     * @return
-     * @throws Exception
+     * Convert multiple HL7 pathology order messages and then filter out Adt messages.
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange messages
+     * @throws Exception if message malformed
      */
-    protected List<? extends EmapOperationMessage> processMultiplePathologyOrderMessages(String resourceFileName) throws Exception {
+    protected List<? extends EmapOperationMessage> processPathologyHl7AndFilterToPathologyOrders(String resourceFileName) throws Exception {
+        return processMultiplePathologyHl7Messages(resourceFileName).stream().filter(msg -> !(msg instanceof AdtMessage)).collect(Collectors.toList());
+    }
+
+    /**
+     * Process a single HL7 message into multiple interchange messages, and then filter out ADT messages.
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange messages
+     * @throws Exception if message malformed
+     */
+    protected List<? extends EmapOperationMessage> processSingleMessageAndRemoveAdt(String resourceFileName) throws Exception {
+        return processSingleMessage(resourceFileName).stream().filter(msg -> !(msg instanceof AdtMessage)).collect(Collectors.toList());
+    }
+
+    /**
+     * Process multiple pathology order HL7 messages within one text file
+     * @param resourceFileName filename containing the HL7 message
+     * @return interchange messages
+     * @throws Exception if message malformed
+     */
+    protected List<EmapOperationMessage> processMultiplePathologyHl7Messages(String resourceFileName) throws Exception {
         Hl7InputStreamMessageIterator hl7Iter = HL7Utils.hl7Iterator(new File(HL7Utils.getPathFromResource(resourceFileName)));
-        List<PathologyOrder> messagesFromHl7Message = new ArrayList<>();
+        List<EmapOperationMessage> messagesFromHl7Message = new ArrayList<>();
         while (hl7Iter.hasNext()) {
             Message hl7Msg = hl7Iter.next();
-            messagesFromHl7Message.addAll((List<PathologyOrder>) idsOperations.messageFromHl7Message(hl7Msg, 42));
+            messagesFromHl7Message.addAll(idsOperations.messageFromHl7Message(hl7Msg, 42));
         }
         return messagesFromHl7Message;
     }

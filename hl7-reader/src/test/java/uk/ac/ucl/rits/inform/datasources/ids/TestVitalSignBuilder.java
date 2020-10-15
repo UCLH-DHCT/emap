@@ -33,7 +33,7 @@ public class TestVitalSignBuilder {
     public void testMRN() {
         for (VitalSigns vitalSign : vitalSigns) {
             String result = vitalSign.getMrn();
-            assertEquals("21014099", result);
+            assertEquals("40800000", result);
         }
     }
 
@@ -41,7 +41,7 @@ public class TestVitalSignBuilder {
     public void testVisitNumber() {
         for (VitalSigns vitalSign : vitalSigns) {
             String result = vitalSign.getVisitNumber();
-            assertEquals("1002040107", result);
+            assertEquals("123412341234", result);
         }
     }
 
