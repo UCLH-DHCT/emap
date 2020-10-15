@@ -1,9 +1,15 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import java.time.Instant;
+import java.util.Calendar;
+import java.util.Date;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
 import ca.uhn.hl7v2.model.v26.segment.PID;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * Wrapper around the HAPI parser's PID segment object, to make it easier to use.
@@ -112,13 +118,14 @@ interface PIDWrap {
      */
 
     /**
-     * We could probably use the HAPI functions to obtain the different components of this result,
-     * e.g. for easier conversion to Postgres timestamp format.
+     * Birth date time is truncated to the day, don't carry out timezone correction.
      * @return PID-7.1 birthdatetime
-     * @throws HL7Exception if HAPI does
+     * @throws DataTypeException if HAPI does
      */
-    default Instant getPatientBirthDate() throws HL7Exception {
-        return HL7Utils.interpretLocalTime(getPID().getDateTimeOfBirth());
+    default Instant getPatientBirthDate() throws DataTypeException {
+        DTM dateTime = getPID().getDateTimeOfBirth();
+        dateTime.setOffset(0);
+        return dateTime.getValueAsDate().toInstant();
     }
 
 
