@@ -1,6 +1,6 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.MergePatient"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers"
 recordedDateTime: "2012-07-17T14:25:00Z"
-eventReasonCode: "EPT_MERGE"
+eventReasonCode: "PATIENT_CHANGE_ID"
 operatorId: "U444444"
 previousMrn: "40800000"
 sourceSystem: "UCLH4"

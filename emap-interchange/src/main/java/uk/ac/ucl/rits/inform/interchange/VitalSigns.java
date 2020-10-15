@@ -194,8 +194,8 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 
     @Override

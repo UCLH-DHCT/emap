@@ -5,10 +5,6 @@ operatorId: "IPUC"
 visitNumber: "123412341234"
 sourceSystem: "EPIC"
 mrn: "40800000"
-admissionDateTime:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "2014-02-11T10:00:52Z"
 admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"

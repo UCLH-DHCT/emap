@@ -62,4 +62,3 @@ patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "F"
-

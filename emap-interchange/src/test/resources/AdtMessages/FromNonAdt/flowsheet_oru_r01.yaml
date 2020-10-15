@@ -1,15 +1,13 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient"
-recordedDateTime: "2013-02-11T13:58:34Z"
-eventOccurredDateTime: "2013-02-11T13:45:00Z"
-operatorId: "U999999"
-visitNumber: "123412341234"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo"
+operatorId: "EDRN"
+recordedDateTime: "2020-01-22T14:06:15Z"
 sourceSystem: "EPIC"
 mrn: "40800000"
-cancelledDateTime: "2013-02-11T13:45:00Z"
+visitNumber: "123412341234"
 admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "19"
+  value: "Usual"
 currentBed:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -29,11 +27,11 @@ fullLocationString:
 hospitalService:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "35276"
+  value: "Anaes"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "1980-01-01T00:00:00Z"
+  value: "1989-09-08T23:00:00Z"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -45,28 +43,16 @@ patientIsAlive:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "AGBTESTD"
+  value: "ORANG"
 patientFullName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "MRS Satesta null AGBTESTD"
+  value: "null BLOD null ORANG"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "Satesta"
-patientReligion:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "2A"
+  value: "BLOD"
 patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "F"
-patientTitle:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "MRS"
-patientZipOrPostalCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T5 1TT"

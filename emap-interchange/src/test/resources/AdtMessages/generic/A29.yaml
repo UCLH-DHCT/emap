@@ -1,36 +1,41 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.MergePatient"
-recordedDateTime: "2012-07-17T14:25:00Z"
-eventReasonCode: "EPT_MERGE"
-operatorId: "U444444"
-previousMrn: "40800000"
-sourceSystem: "UCLH4"
-mrn: "40800001"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation"
+recordedDateTime: "2013-02-11T10:00:52Z"
+operatorId: "IPUC"
+eventOccurredDateTime: "2013-02-11T10:00:52Z"
+eventReasonCode: "REG_PAT_DELETE"
+sourceSystem: "EPIC"
+mrn: "40800000"
 nhsNumber: "9999999999"
+visitNumber: ""
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "1980-01-01T00:00:00Z"
   status: "SAVE"
-  value: "1999-09-08T23:00:00Z"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "NOT_APPLICABLE"
 patientIsAlive:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
   value: true
+  status: "SAVE"
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "ORANGE"
   status: "SAVE"
-  value: "TEST-CHU"
 patientFullName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "null BLOOD null ORANGE"
   status: "SAVE"
-  value: "MR Opcancel null TEST-CHU"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value:  "BLOOD"
   status: "SAVE"
-  value: "Opcancel"
 patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "F"
   status: "SAVE"
-  value: "M"
-patientTitle:
+fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "null^null^null"
   status: "SAVE"
-  value: "MR"

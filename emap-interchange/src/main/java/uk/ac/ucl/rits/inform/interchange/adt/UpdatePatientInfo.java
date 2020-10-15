@@ -7,8 +7,8 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 /**
- * Change patient demographics/other info.
- * HL7 messages: A08
+ * Change patient demographics, can contain visit information.
+ * HL7 messages: A08, A28, A31
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -17,7 +17,7 @@ public class UpdatePatientInfo extends AdtMessage {
     private static final long serialVersionUID = 6177251667805777164L;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

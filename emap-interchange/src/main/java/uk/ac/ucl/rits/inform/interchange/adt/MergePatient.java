@@ -13,17 +13,17 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class MergePatient extends AdtMessage {
+public class MergePatient extends AdtMessage implements PreviousIdentifiers {
     private static final long serialVersionUID = -2500473433999508161L;
 
     /**
      * MRN to be merged and retired.
      */
-    private String retiredMrn;
-    private String retiredNhsNumber;
+    private String previousMrn;
+    private String previousNhsNumber;
 
     @Override
-    public String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
-        return processor.processMessage(this);
+    public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
+        processor.processMessage(this);
     }
 }

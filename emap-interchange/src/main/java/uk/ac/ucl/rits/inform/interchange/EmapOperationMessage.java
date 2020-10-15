@@ -21,10 +21,9 @@ public abstract class EmapOperationMessage implements Serializable {
     /**
      * Messages must call back out to the processor (double dispatch).
      * @param processor the Emap processor
-     * @return the status code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    public abstract String processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException;
+    public abstract void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException;
 
     /**
      * @return a short string describing the message type for human reading purposes (eg. logging).

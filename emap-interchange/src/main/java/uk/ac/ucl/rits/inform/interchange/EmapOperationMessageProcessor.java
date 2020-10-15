@@ -1,8 +1,10 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
-import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
 /**
  * Define the message types that an Emap processor
@@ -12,43 +14,49 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 public interface EmapOperationMessageProcessor {
     /**
      * @param msg the pathology order message to process
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(PathologyOrder msg) throws EmapOperationMessageProcessingException;
+    void processMessage(PathologyOrder msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the ADT message to process
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException;
+    void processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the MergeById message to process
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(MergePatient msg) throws EmapOperationMessageProcessingException;
+    void processMessage(MergePatient msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the DischargePatient message to process
-     * @return return code
+     * @param msg the DeletePersonInformation message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(DischargePatient msg) throws EmapOperationMessageProcessingException;
+    void processMessage(DeletePersonInformation msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the MoveVisitInformation message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(MoveVisitInformation msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the ChangePatientIdentifiers message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the vital signs message to process
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException;
+    void processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the PatientInfection message to process
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    String processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
+    void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
 }
