@@ -116,9 +116,9 @@ public class AdtMessageFactory {
             // Despite what the HL7 spec hints at, this death information can occur
             // in any message, not just A03
             String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
-            if (hl7DeathIndicator.equals("Y")) {
+            if ("Y".equals(hl7DeathIndicator)) {
                 msg.setPatientIsAlive(new Hl7Value<>(false));
-            } else if (hl7DeathIndicator.equals("N") || hl7DeathIndicator.equals("")) {
+            } else if ("N".equals(hl7DeathIndicator)) {
                 msg.setPatientIsAlive(new Hl7Value<>(true));
             }
             // set the death time even if indicator says they're not dead (it happens...)
