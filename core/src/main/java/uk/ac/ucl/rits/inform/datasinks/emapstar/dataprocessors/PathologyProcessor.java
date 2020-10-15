@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
@@ -19,28 +21,29 @@ import java.time.Instant;
 public class PathologyProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
+    private final VisitController visitController;
 
     /**
-     * @param personController person data.
+     * @param personController person controller
+     * @param visitController  visit controller
      */
-    public PathologyProcessor(PersonController personController) {
+    public PathologyProcessor(PersonController personController, VisitController visitController) {
         this.personController = personController;
+        this.visitController = visitController;
     }
 
     /**
      * Process Pathology message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
-     * @return return code
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public String processMessage(final PathologyOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        String returnCode = "OK";
-
+    public void processMessage(final PathologyOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
-        return returnCode;
+        HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
+                msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
     }
 }

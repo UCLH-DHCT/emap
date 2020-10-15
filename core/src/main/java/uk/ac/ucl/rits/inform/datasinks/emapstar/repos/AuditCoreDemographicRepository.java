@@ -14,4 +14,11 @@ public interface AuditCoreDemographicRepository extends CrudRepository<AuditCore
      * @return List of audit entities
      */
     List<AuditCoreDemographic> getAllByCoreDemographicId(long coreDemographicId);
+
+    /**
+     * Get all audit core demographic rows by the mrn string, for testing.
+     * @param mrn MRN string
+     * @return all core demographic entities
+     */
+    List<AuditCoreDemographic> getAllByMrnIdMrn(String mrn);
 }

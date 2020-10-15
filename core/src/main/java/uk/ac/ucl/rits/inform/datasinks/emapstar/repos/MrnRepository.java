@@ -36,4 +36,10 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      * @return mrn
      */
     List<Mrn> getAllByNhsNumberEquals(String nhsNumber);
+
+    /**
+     * @param mrn MRN string
+     * @return MRN
+     */
+    Optional<Object> getAllByMrnEquals(String mrn);
 }

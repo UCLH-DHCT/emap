@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
@@ -16,10 +18,10 @@ import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -54,28 +56,26 @@ public class PersonController {
     }
 
     /**
-     * Merge at least two MRNs, setting the surviving mrn to be live.
-     * @param retiringMrn       MRN to retire and merge from
-     * @param retiringNhsNumber nhsNumber to retire and merge from
-     * @param survivingMrn      live MRN to merge into
-     * @param messageDateTime   date time of the message
-     * @param storedFrom        when the message has been read by emap core
+     * Merge MRN from the message's pervious MRN into the surviving MRN.
+     * @param msg          Merge message
+     * @param survivingMrn live MRN to merge into
+     * @param storedFrom   when the message has been read by emap core
      * @throws MessageIgnoredException if no retiring mrn information
      */
     @Transactional
-    public void mergeMrns(final String retiringMrn, final String retiringNhsNumber, final Mrn survivingMrn,
-                          final Instant messageDateTime, final Instant storedFrom) throws MessageIgnoredException {
-        if (retiringMrn == null && retiringNhsNumber == null) {
-            throw new MessageIgnoredException("Retiring MRN's Mrn string and NHS number were null");
+    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws MessageIgnoredException {
+        if (msg.getPreviousMrn() == null && msg.getPreviousNhsNumber() == null) {
+            throw new MessageIgnoredException(String.format("Retiring MRN's Mrn string and NHS number were null: %s", msg));
         }
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
-                .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(retiringMrn, retiringNhsNumber)
-                .orElseGet(() -> List.of(createNewLiveMrn(retiringMrn, retiringNhsNumber, "EPIC", messageDateTime, storedFrom)));
+                .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
+                .orElseGet(() -> List.of(createNewLiveMrn(
+                        msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom)));
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, messageDateTime, storedFrom, mrnToLive));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.getRecordedDateTime(), storedFrom, mrnToLive));
     }
 
     /**
@@ -138,86 +138,74 @@ public class PersonController {
                                           final Instant storedFrom) {
         coreDemographicRepo
                 .getByMrnIdEquals(originalMrn)
-                .map(existingDemographic -> updateDemographicsIfNewer(originalMrn, adtMessage, messageDateTime, storedFrom, existingDemographic))
-                .orElseGet(() -> {
-                    CoreDemographic messageDemographics = new CoreDemographic();
-                    updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, messageDemographics);
-                    return coreDemographicRepo.save(messageDemographics);
-                });
+                .map(demo -> new RowState<>(demo, messageDateTime, storedFrom, false))
+                .map(demoState -> updateDemographicsIfNewer(adtMessage, demoState))
+                .orElseGet(() -> createCoreDemographic(originalMrn, adtMessage, messageDateTime, storedFrom));
+    }
+
+    /**
+     * Create new core demographic and save it.
+     * @param originalMrn     Id of the mrn
+     * @param adtMessage      adt message
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return CoreDemographic from the message.
+     */
+    private CoreDemographic createCoreDemographic(Mrn originalMrn, AdtMessage adtMessage, Instant messageDateTime, Instant storedFrom) {
+        RowState<CoreDemographic> demoState = new RowState<>(new CoreDemographic(originalMrn), messageDateTime, storedFrom, true);
+        updateCoreDemographicFields(adtMessage, demoState);
+        return coreDemographicRepo.save(demoState.getEntity());
     }
 
     /**
      * Updates demographics if newer and different, logging original version in audit table.
-     * @param originalMrn         The MRN
-     * @param adtMessage          adt message
-     * @param messageDateTime     date time of the message
-     * @param storedFrom          when the message has been read by emap core
-     * @param existingDemographic core demographics from the database that may be updated
+     * @param adtMessage adt message
+     * @param demoState  core demographics from the database that may be updated
      * @return existing demographic, with fields updated if relevant
      */
-    private CoreDemographic updateDemographicsIfNewer(final Mrn originalMrn, final AdtMessage adtMessage, final Instant messageDateTime,
-                                                      final Instant storedFrom, CoreDemographic existingDemographic) {
-        if (messageIsDifferentAndIsNewer(originalMrn, adtMessage, storedFrom, existingDemographic)) {
-            // log current state to audit table and then update current row
-            AuditCoreDemographic auditCoreDemographic = new AuditCoreDemographic(existingDemographic, messageDateTime, storedFrom);
-            auditCoreDemographicRepo.save(auditCoreDemographic);
-            updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, existingDemographic);
+    private CoreDemographic updateDemographicsIfNewer(final AdtMessage adtMessage, RowState<CoreDemographic> demoState) {
+        CoreDemographic originalDemo = demoState.getEntity().copy();
+        if (shouldUpdateMessage(adtMessage, originalDemo)) {
+            updateCoreDemographicFields(adtMessage, demoState);
+
+            if (demoState.isEntityUpdated()) {
+                AuditCoreDemographic audit = new AuditCoreDemographic(originalDemo, demoState.getMessageDateTime(), demoState.getStoredFrom());
+                auditCoreDemographicRepo.save(audit);
+            }
+
         }
-        return existingDemographic;
+        return demoState.getEntity();
     }
 
     /**
-     * ADT message has different values and is newer than the existing core demographics.
-     * @param originalMrn         The Mrn
+     * ADT message is newer than database information, and the message source is trusted.
      * @param adtMessage          adt message
-     * @param storedFrom          when the message has been read by emap core
      * @param existingDemographic core demographics from the database
      * @return true if the demographics should be updated
      */
-    private boolean messageIsDifferentAndIsNewer(final Mrn originalMrn, final AdtMessage adtMessage,
-                                                 final Instant storedFrom, final CoreDemographic existingDemographic) {
-        if (adtMessage.getRecordedDateTime().isBefore(existingDemographic.getValidFrom())) {
-            return false;
-        }
-        CoreDemographic messageDemographics = existingDemographic.copy();
-        updateCoreDemographicFields(originalMrn, adtMessage, storedFrom, messageDemographics);
-        return !existingDemographic.equals(messageDemographics);
+    private boolean shouldUpdateMessage(final AdtMessage adtMessage, final CoreDemographic existingDemographic) {
+        return existingDemographic.getValidFrom().isBefore(adtMessage.getRecordedDateTime()) && DataSources.isTrusted(adtMessage.getSourceSystem());
     }
 
     /**
      * Update core demographics fields from known values of the adt message.
-     * @param mrnId           Id of the mrn
-     * @param adtMessage      adt message
-     * @param storedFrom      when the message has been read by emap core
-     * @param coreDemographic original core demographic object
+     * Tracks if the entity was updated from the known information.
+     * @param adtMessage       adt message
+     * @param demographicState state for the demographic entity
      */
-    private void updateCoreDemographicFields(final Mrn mrnId, final AdtMessage adtMessage, final Instant storedFrom,
-                                             CoreDemographic coreDemographic) {
-        coreDemographic.setMrnId(mrnId);
-        adtMessage.getPatientGivenName().assignTo(coreDemographic::setFirstname);
-        adtMessage.getPatientMiddleName().assignTo(coreDemographic::setMiddlename);
-        adtMessage.getPatientFamilyName().assignTo(coreDemographic::setLastname);
-        adtMessage.getPatientBirthDate().assignTo(instant -> coreDemographic.setDateOfBirth(convertToLocalDate(instant)));
-        adtMessage.getPatientBirthDate().assignTo(coreDemographic::setDatetimeOfBirth);
-        adtMessage.getPatientSex().assignTo(coreDemographic::setSex);
-        adtMessage.getPatientZipOrPostalCode().assignTo(coreDemographic::setHomePostcode);
+    private void updateCoreDemographicFields(final AdtMessage adtMessage, RowState<CoreDemographic> demographicState) {
+        CoreDemographic demo = demographicState.getEntity();
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientGivenName(), demo.getFirstname(), demo::setFirstname);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientMiddleName(), demo.getMiddlename(), demo::setMiddlename);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientFamilyName(), demo.getLastname(), demo::setLastname);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientBirthDate(), demo.getDateOfBirth(), demo::setDateOfBirth);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientBirthDate(), demo.getDatetimeOfBirth(), demo::setDatetimeOfBirth);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientSex(), demo.getSex(), demo::setSex);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientZipOrPostalCode(), demo.getHomePostcode(), demo::setHomePostcode);
         // death
-        adtMessage.getPatientIsAlive().assignTo(coreDemographic::setAlive);
-        adtMessage.getPatientDeathDateTime().assignTo(instant -> coreDemographic.setDateOfDeath(convertToLocalDate(instant)));
-        adtMessage.getPatientDeathDateTime().assignTo(coreDemographic::setDatetimeOfDeath);
-        adtMessage.getPatientMiddleName().assignTo(coreDemographic::setMiddlename);
-        // from dates
-        coreDemographic.setStoredFrom(storedFrom);
-        coreDemographic.setValidFrom(adtMessage.getRecordedDateTime());
-    }
-
-    /**
-     * Convert instant to local date, allowing for nulls.
-     * @param instant instant
-     * @return LocalDate
-     */
-    private LocalDate convertToLocalDate(Instant instant) {
-        return (instant == null) ? null : instant.atZone(ZoneId.systemDefault()).toLocalDate();
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientIsAlive(), demo.isAlive(), demo::setAlive);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientDeathDateTime(), demo.getDateOfDeath(), demo::setDateOfDeath);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientDeathDateTime(), demo.getDatetimeOfDeath(), demo::setDatetimeOfDeath);
     }
 
     /**
@@ -246,5 +234,64 @@ public class PersonController {
         mrnToLive.setValidFrom(messageDateTime);
         mrnToLiveRepo.save(mrnToLive);
         return mrn;
+    }
+
+    /**
+     * Deletes the core demographic if the message date time is newer than the database.
+     * @param mrn             MRN
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     */
+    public void deleteDemographic(final Mrn mrn, final Instant messageDateTime, final Instant storedFrom) {
+        coreDemographicRepo.getByMrnIdEquals(mrn).ifPresentOrElse(
+                demo -> deleteIfMessageIsNewer(demo, messageDateTime, storedFrom),
+                () -> logger.warn("No demographics to delete for for mrn: {} ", mrn)
+        );
+    }
+
+    /**
+     * Delete the core demographic if the message date time is newer than the database.
+     * @param demo            core demographics entity
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     */
+    private void deleteIfMessageIsNewer(CoreDemographic demo, Instant messageDateTime, Instant storedFrom) {
+        if (messageDateTime.isAfter(demo.getValidFrom())) {
+            AuditCoreDemographic audit = new AuditCoreDemographic(demo, messageDateTime, storedFrom);
+            auditCoreDemographicRepo.save(audit);
+            coreDemographicRepo.delete(demo);
+        }
+    }
+
+    /**
+     * Update the patient identifiers for an MRN. Because new MRN doesn't already exist, this is a modify instead of a merge.
+     * <p>
+     * It looks very rare that this is done, neonates and unusual cases where there are only a few ADT messages, no other result types
+     * found so it should be fine even if mid-stream.
+     * @param msg             ChangePatientIdentifiers
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return MRN with the correct identifiers
+     */
+    @Transactional
+    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom) {
+        if (mrnExists(msg.getMrn())) {
+            throw new IllegalArgumentException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
+        }
+        Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+
+        mrn.setMrn(msg.getMrn());
+        if (msg.getNhsNumber() != null) {
+            mrn.setNhsNumber(msg.getNhsNumber());
+        }
+        return mrn;
+    }
+
+    /**
+     * @param mrn mrn string
+     * @return true if an MRN exists by the mrn string
+     */
+    private boolean mrnExists(String mrn) {
+        return mrnRepo.getAllByMrnEquals(mrn).isPresent();
     }
 }
