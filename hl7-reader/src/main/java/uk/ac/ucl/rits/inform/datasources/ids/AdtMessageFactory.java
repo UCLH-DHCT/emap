@@ -133,7 +133,7 @@ public class AdtMessageFactory {
             msg.setPatientTitle(Hl7Value.buildFromHl7(patientInfoHl7.getPatientTitle()));
             msg.setPatientZipOrPostalCode(Hl7Value.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
         }
-        if (evn != null) {
+        if (null != evn) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
             msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
