@@ -9,7 +9,7 @@ nhsNumber: "9999999999"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "1999-09-08T23:00:00Z"
+  value: "1999-09-09T00:00:00Z"
 patientIsAlive:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
