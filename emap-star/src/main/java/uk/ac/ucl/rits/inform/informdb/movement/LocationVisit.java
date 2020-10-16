@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
@@ -40,7 +42,10 @@ public class LocationVisit extends TemporalCore<LocationVisit> implements Serial
     private Instant admissionTime;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant dischargeTime;
-    private String location;
+
+    @OneToOne
+    @JoinColumn(name = "locationId", nullable = false)
+    private Location locationId;
 
     public LocationVisit() {}
 
@@ -51,7 +56,7 @@ public class LocationVisit extends TemporalCore<LocationVisit> implements Serial
         this.parentBedVisitId = other.parentBedVisitId;
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
-        this.location = other.location;
+        this.locationId = other.locationId;
     }
 
     /**
@@ -125,17 +130,17 @@ public class LocationVisit extends TemporalCore<LocationVisit> implements Serial
     }
 
     /**
-     * @return the location
+     * @return the locationId
      */
-    public String getLocation() {
-        return location;
+    public Location getLocation() {
+        return locationId;
     }
 
     /**
-     * @param location the location to set
+     * @param locationId the location to set
      */
-    public void setLocation(String location) {
-        this.location = location;
+    public void setLocation(Location locationId) {
+        this.locationId = locationId;
     }
 
     @Override
