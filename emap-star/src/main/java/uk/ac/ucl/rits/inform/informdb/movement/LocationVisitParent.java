@@ -1,13 +1,14 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -21,8 +22,10 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     private static final long serialVersionUID = -8228844390430073225L;
 
     @Column(nullable = false)
-    private long parentHospitalVisitId;
-    private long parentBedVisitId;
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    private HospitalVisit hospitalVisitId;
+    private long parentLocationVisitId;
 
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
@@ -32,8 +35,8 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
 
     public LocationVisitParent(final LocationVisitParent other) {
         super(other);
-        this.parentHospitalVisitId = other.parentHospitalVisitId;
-        this.parentBedVisitId = other.parentBedVisitId;
+        this.hospitalVisitId = other.hospitalVisitId;
+        this.parentLocationVisitId = other.parentLocationVisitId;
         this.locationId = other.locationId;
     }
 
@@ -41,29 +44,29 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     /**
      * @return the parentHospitalVisitId
      */
-    public long getParentHospitalVisitId() {
-        return parentHospitalVisitId;
+    public HospitalVisit getHospitalVisitId() {
+        return hospitalVisitId;
     }
 
     /**
-     * @param parentHospitalVisitId the parentHospitalVisitId to set
+     * @param hospitalVisitId the parentHospitalVisitId to set
      */
-    public void setParentHospitalVisitId(long parentHospitalVisitId) {
-        this.parentHospitalVisitId = parentHospitalVisitId;
+    public void setHospitalVisitId(HospitalVisit hospitalVisitId) {
+        this.hospitalVisitId = hospitalVisitId;
     }
 
     /**
-     * @return the parentBedVisitId
+     * @return the parentLocationVisitId
      */
-    public long getParentBedVisitId() {
-        return parentBedVisitId;
+    public long getParentLocationVisitId() {
+        return parentLocationVisitId;
     }
 
     /**
-     * @param parentBedVisitId the parentBedVisitId to set
+     * @param parentLocationVisitId the parentLocationVisitId to set
      */
-    public void setParentBedVisitId(long parentBedVisitId) {
-        this.parentBedVisitId = parentBedVisitId;
+    public void setParentLocationVisitId(long parentLocationVisitId) {
+        this.parentLocationVisitId = parentLocationVisitId;
     }
 
     /**
@@ -94,13 +97,13 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
             return false;
         }
         LocationVisitParent that = (LocationVisitParent) o;
-        return parentHospitalVisitId == that.parentHospitalVisitId
-                && parentBedVisitId == that.parentBedVisitId
+        return hospitalVisitId == that.hospitalVisitId
+                && parentLocationVisitId == that.parentLocationVisitId
                 && Objects.equals(locationId, that.locationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parentHospitalVisitId, parentBedVisitId, locationId);
+        return Objects.hash(hospitalVisitId, parentLocationVisitId, locationId);
     }
 }
