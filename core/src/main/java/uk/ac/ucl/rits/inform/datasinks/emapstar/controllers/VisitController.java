@@ -305,7 +305,7 @@ public class VisitController {
         if (msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && previousMrn.equals(currentMrn)) {
             throw new IllegalArgumentException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
         }
-        if (visitNumberChangeAndFinalEncounterAlreadyExists(msg)) {
+        if (isVisitNumberChangesAndFinalEncounterAlreadyExists(msg)) {
             throw new IllegalStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
         }
 
@@ -332,7 +332,7 @@ public class VisitController {
      * @param msg MoveVisitInformation
      * @return true if the message visit number changes and the final encounter already exists
      */
-    private boolean visitNumberChangeAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
+    private boolean isVisitNumberChangesAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
         return !msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && hospitalVisitRepo.findByEncounter(msg.getVisitNumber()).isPresent();
     }
 }
