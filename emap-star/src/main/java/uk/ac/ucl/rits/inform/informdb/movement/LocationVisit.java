@@ -1,18 +1,13 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
-import java.time.Instant;
 
 /**
  * This represents a patient being in a location for an amount of time. Every
@@ -24,123 +19,18 @@ import java.time.Instant;
  * @author UCL RITS
  */
 @Entity
-@JsonIgnoreProperties({})
-@Table(indexes = {})
-public class LocationVisit extends TemporalCore<LocationVisit> implements Serializable {
-
-    private static final long serialVersionUID = -8228844390430073225L;
-
+@Table
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class LocationVisit extends LocationVisitParent {
+    private static final long serialVersionUID = 2671789121005769008L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long bedVisitId;
+    private long locationVisitId;
 
-    @Column(nullable = false)
-    private long parentHospitalVisitId;
-    private long parentBedVisitId;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant admissionTime;
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant dischargeTime;
-
-    @OneToOne
-    @JoinColumn(name = "locationId", nullable = false)
-    private Location locationId;
-
-    public LocationVisit() {}
-
-    public LocationVisit(final LocationVisit other) {
+    public LocationVisit(LocationVisit other) {
         super(other);
-        this.bedVisitId = other.bedVisitId;
-        this.parentHospitalVisitId = other.parentHospitalVisitId;
-        this.parentBedVisitId = other.parentBedVisitId;
-        this.admissionTime = other.admissionTime;
-        this.dischargeTime = other.dischargeTime;
-        this.locationId = other.locationId;
-    }
-
-    /**
-     * @return the bedVisitId
-     */
-    public long getBedVisitId() {
-        return bedVisitId;
-    }
-
-    /**
-     * @param bedVisitId the bedVisitId to set
-     */
-    public void setBedVisitId(long bedVisitId) {
-        this.bedVisitId = bedVisitId;
-    }
-
-    /**
-     * @return the parentHospitalVisitId
-     */
-    public long getParentHospitalVisitId() {
-        return parentHospitalVisitId;
-    }
-
-    /**
-     * @param parentHospitalVisitId the parentHospitalVisitId to set
-     */
-    public void setParentHospitalVisitId(long parentHospitalVisitId) {
-        this.parentHospitalVisitId = parentHospitalVisitId;
-    }
-
-    /**
-     * @return the parentBedVisitId
-     */
-    public long getParentBedVisitId() {
-        return parentBedVisitId;
-    }
-
-    /**
-     * @param parentBedVisitId the parentBedVisitId to set
-     */
-    public void setParentBedVisitId(long parentBedVisitId) {
-        this.parentBedVisitId = parentBedVisitId;
-    }
-
-    /**
-     * @return the admissionTime
-     */
-    public Instant getAdmissionTime() {
-        return admissionTime;
-    }
-
-    /**
-     * @param admissionTime the admissionTime to set
-     */
-    public void setAdmissionTime(Instant admissionTime) {
-        this.admissionTime = admissionTime;
-    }
-
-    /**
-     * @return the dischargeTime
-     */
-    public Instant getDischargeTime() {
-        return dischargeTime;
-    }
-
-    /**
-     * @param dischargeTime the dischargeTime to set
-     */
-    public void setDischargeTime(Instant dischargeTime) {
-        this.dischargeTime = dischargeTime;
-    }
-
-    /**
-     * @return the locationId
-     */
-    public Location getLocation() {
-        return locationId;
-    }
-
-    /**
-     * @param locationId the location to set
-     */
-    public void setLocation(Location locationId) {
-        this.locationId = locationId;
+        locationVisitId = other.locationVisitId;
     }
 
     @Override
