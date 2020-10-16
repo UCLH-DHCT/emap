@@ -24,11 +24,6 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     private long parentHospitalVisitId;
     private long parentBedVisitId;
 
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant admissionTime;
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant dischargeTime;
-
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location locationId;
@@ -39,8 +34,6 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
         super(other);
         this.parentHospitalVisitId = other.parentHospitalVisitId;
         this.parentBedVisitId = other.parentBedVisitId;
-        this.admissionTime = other.admissionTime;
-        this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
     }
 
@@ -74,34 +67,6 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     }
 
     /**
-     * @return the admissionTime
-     */
-    public Instant getAdmissionTime() {
-        return admissionTime;
-    }
-
-    /**
-     * @param admissionTime the admissionTime to set
-     */
-    public void setAdmissionTime(Instant admissionTime) {
-        this.admissionTime = admissionTime;
-    }
-
-    /**
-     * @return the dischargeTime
-     */
-    public Instant getDischargeTime() {
-        return dischargeTime;
-    }
-
-    /**
-     * @param dischargeTime the dischargeTime to set
-     */
-    public void setDischargeTime(Instant dischargeTime) {
-        this.dischargeTime = dischargeTime;
-    }
-
-    /**
      * @return the locationId
      */
     public Location getLocation() {
@@ -131,13 +96,11 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
         LocationVisitParent that = (LocationVisitParent) o;
         return parentHospitalVisitId == that.parentHospitalVisitId
                 && parentBedVisitId == that.parentBedVisitId
-                && Objects.equals(admissionTime, that.admissionTime)
-                && Objects.equals(dischargeTime, that.dischargeTime)
                 && Objects.equals(locationId, that.locationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parentHospitalVisitId, parentBedVisitId, admissionTime, dischargeTime, locationId);
+        return Objects.hash(parentHospitalVisitId, parentBedVisitId, locationId);
     }
 }
