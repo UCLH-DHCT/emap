@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
-import java.io.Serializable;
-import java.time.Instant;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,10 +9,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * This represents a patient being in a location for an amount of time. Every
@@ -21,9 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  * optionally have a parent location visit. This happens when the patient is
  * still considered to be at the parent location (e.g. going down to an MRI
  * scanner from a ward bed doesn't vacate the ward bed).
- *
  * @author UCL RITS
- *
  */
 @Entity
 @JsonIgnoreProperties({})
@@ -34,28 +30,25 @@ public class LocationVisit extends TemporalCore<LocationVisit> implements Serial
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long              bedVisitId;
-    @Column(nullable = false)
-    private long              bedVisitDurableIid;
+    private long bedVisitId;
 
     @Column(nullable = false)
-    private long              parentHospitalVisitDurableId;
-    private long              parentBedVisitDurableId;
+    private long parentHospitalVisitId;
+    private long parentBedVisitId;
 
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           admissionTime;
+    private Instant admissionTime;
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant           dischargeTime;
-    private String            location;
+    private Instant dischargeTime;
+    private String location;
 
     public LocationVisit() {}
 
-    public LocationVisit(LocationVisit other) {
+    public LocationVisit(final LocationVisit other) {
         super(other);
-
-        this.bedVisitDurableIid = other.bedVisitDurableIid;
-        this.parentHospitalVisitDurableId = other.parentHospitalVisitDurableId;
-        this.parentBedVisitDurableId = other.parentBedVisitDurableId;
+        this.bedVisitId = other.bedVisitId;
+        this.parentHospitalVisitId = other.parentHospitalVisitId;
+        this.parentBedVisitId = other.parentBedVisitId;
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
         this.location = other.location;
@@ -76,45 +69,31 @@ public class LocationVisit extends TemporalCore<LocationVisit> implements Serial
     }
 
     /**
-     * @return the bedVisitDurableIid
+     * @return the parentHospitalVisitId
      */
-    public long getBedVisitDurableIid() {
-        return bedVisitDurableIid;
+    public long getParentHospitalVisitId() {
+        return parentHospitalVisitId;
     }
 
     /**
-     * @param bedVisitDurableIid the bedVisitDurableIid to set
+     * @param parentHospitalVisitId the parentHospitalVisitId to set
      */
-    public void setBedVisitDurableIid(long bedVisitDurableIid) {
-        this.bedVisitDurableIid = bedVisitDurableIid;
+    public void setParentHospitalVisitId(long parentHospitalVisitId) {
+        this.parentHospitalVisitId = parentHospitalVisitId;
     }
 
     /**
-     * @return the parentHospitalVisitDurableId
+     * @return the parentBedVisitId
      */
-    public long getParentHospitalVisitDurableId() {
-        return parentHospitalVisitDurableId;
+    public long getParentBedVisitId() {
+        return parentBedVisitId;
     }
 
     /**
-     * @param parentHospitalVisitDurableId the parentHospitalVisitDurableId to set
+     * @param parentBedVisitId the parentBedVisitId to set
      */
-    public void setParentHospitalVisitDurableId(long parentHospitalVisitDurableId) {
-        this.parentHospitalVisitDurableId = parentHospitalVisitDurableId;
-    }
-
-    /**
-     * @return the parentBedVisitDurableId
-     */
-    public long getParentBedVisitDurableId() {
-        return parentBedVisitDurableId;
-    }
-
-    /**
-     * @param parentBedVisitDurableId the parentBedVisitDurableId to set
-     */
-    public void setParentBedVisitDurableId(long parentBedVisitDurableId) {
-        this.parentBedVisitDurableId = parentBedVisitDurableId;
+    public void setParentBedVisitId(long parentBedVisitId) {
+        this.parentBedVisitId = parentBedVisitId;
     }
 
     /**
