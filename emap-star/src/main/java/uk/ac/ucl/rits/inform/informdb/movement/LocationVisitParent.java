@@ -32,6 +32,12 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     @Column(columnDefinition = "timestamp with time zone")
     private Instant dischargeTime;
 
+    /**
+     * The source system from which we learnt about this hospital visit.
+     */
+    @Column(nullable = false)
+    private String sourceSystem;
+
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location locationId;
@@ -102,6 +108,20 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
      */
     public void setDischargeTime(Instant dischargeTime) {
         this.dischargeTime = dischargeTime;
+    }
+
+    /**
+     * @return source system.
+     */
+    public String getSourceSystem() {
+        return sourceSystem;
+    }
+
+    /**
+     * @param sourceSystem to set.
+     */
+    public void setSourceSystem(String sourceSystem) {
+        this.sourceSystem = sourceSystem;
     }
 
     /**
