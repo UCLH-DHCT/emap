@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditLocationVisitRepository;
@@ -19,6 +20,7 @@ import java.time.Instant;
  * Controls interaction with Locations.
  * @author Stef Piatek
  */
+@Component
 public class LocationController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -54,19 +56,18 @@ public class LocationController {
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
         RowState<LocationVisit> existingLocationState = getOrCreateVisitLocation(visit, locationEntity, msg, validFrom, storedFrom);
-        final LocationVisit originalLocation = existingLocationState.getEntity().copy();
+        final LocationVisit originalLocationVisit = existingLocationState.getEntity().copy();
 
         if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
-            AuditLocationVisit auditLocation = new AuditLocationVisit(originalLocation, validFrom, storedFrom);
-            if (messageDoesNotMoveLocation(msg)) {
+            if (messageOutcomeIsNotSimpleMove(msg)) {
                 // cancel messages etc.
                 updateLocation(msg, existingLocationState);
-            } else {
+            } else if (isNewLocationDifferent(locationEntity, originalLocationVisit)) {
+                // Only move locations if original and message locations are different
                 LocationVisit newLocationVisit = moveToNewLocation(msg, existingLocationState);
                 locationVisitRepo.save(newLocationVisit);
             }
-            existingLocationState.saveEntityOrAuditLogIfRequired(auditLocation, locationVisitRepo, auditLocationVisitRepo);
-
+            manuallySaveLocationOrAuditIfRequired(originalLocationVisit, existingLocationState, validFrom, storedFrom);
         }
     }
 
@@ -96,32 +97,35 @@ public class LocationController {
     }
 
 
-    private boolean messageDoesNotMoveLocation(AdtMessage msg) {
+    private boolean messageOutcomeIsNotSimpleMove(AdtMessage msg) {
         return false;
     }
 
 
     private LocationVisit moveToNewLocation(AdtMessage msg, RowState<LocationVisit> originalLocationState) {
-        // guard: new location and original location are different
         // discharge original location
         // create new location with current location and
         return new LocationVisit();
     }
 
+    /**
+     * Is the new location different from the original entity's location.
+     * @param newLocation           new location
+     * @param originalLocationVisit original visit location entity
+     * @return true if locations are different
+     */
+    private boolean isNewLocationDifferent(Location newLocation, LocationVisit originalLocationVisit) {
+        return !originalLocationVisit.getLocation().equals(newLocation);
+    }
 
     private void updateLocation(AdtMessage msg, RowState<LocationVisit> locationState) {
-        // if the message has a parent and the message moves back to parent location, then remove the child location
         // otherwise update the location fk to the new location fk
-        // on discharge, do we just delete the row?
-        // if using, update the admission and discharge datetime here too
+        // update the source, admission and discharge datetime here too
     }
 
     private void manuallySaveLocationOrAuditIfRequired(LocationVisit originalLocation, RowState<LocationVisit> locationState,
                                                        Instant validFrom, Instant storedFrom) {
-        // would be nice to create the audit entity within the generic function but I guess I'd need to make the AuditCore be an abstract class?
         AuditLocationVisit auditLocation = new AuditLocationVisit(originalLocation, validFrom, storedFrom);
         locationState.saveEntityOrAuditLogIfRequired(auditLocation, locationVisitRepo, auditLocationVisitRepo);
     }
-
-
 }

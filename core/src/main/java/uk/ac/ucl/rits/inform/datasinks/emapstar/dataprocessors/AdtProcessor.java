@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
@@ -27,14 +28,18 @@ public class AdtProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
     private final VisitController visitController;
+    private final LocationController locationController;
 
     /**
-     * @param personController person interactions.
-     * @param visitController  encounter interactions.
+     * Implicitly wired spring beans.
+     * @param personController   person interactions.
+     * @param visitController    encounter interactions.
+     * @param locationController location interactions.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController) {
+    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController) {
         this.personController = personController;
         this.visitController = visitController;
+        this.locationController = locationController;
     }
 
 
@@ -52,6 +57,7 @@ public class AdtProcessor {
         // Patient merges have no encounter information, so skip
         if (!(msg instanceof MergePatient)) {
             HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+            locationController.updateOrCreateVisitLocation(visit, msg, storedFrom);
         }
 
     }
@@ -82,6 +88,8 @@ public class AdtProcessor {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         personController.deleteDemographic(mrn, messageDateTime, storedFrom);
         visitController.deleteOlderVisits(mrn, msg, messageDateTime);
+        // TODO: delete visit locations - or set these to cascade?
+
     }
 
     @Transactional
