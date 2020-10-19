@@ -28,6 +28,9 @@ public class LocationVisit extends LocationVisitParent {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationVisitId;
 
+    public LocationVisit(){
+    }
+
     public LocationVisit(LocationVisit other) {
         super(other);
         locationVisitId = other.locationVisitId;

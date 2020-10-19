@@ -21,7 +21,6 @@ import java.util.Objects;
 public class LocationVisitParent extends TemporalCore<LocationVisitParent> implements Serializable {
     private static final long serialVersionUID = -8228844390430073225L;
 
-    @Column(nullable = false)
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
