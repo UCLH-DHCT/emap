@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
-import java.util.Optional;
 
 /**
  * Controls interaction with Locations.
@@ -51,24 +50,25 @@ public class LocationController {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
         }
-        String locationString = msg.getFullLocationString().get();
-        Optional<Location> potentialLocation = locationRepo.findByLocationStringEquals(locationString);
-        if (potentialLocation.isEmpty()) {
-            throw new IllegalArgumentException(
-                    String.format("Location string '%s' was not found in location table for message: %s", locationString, msg));
-        }
-
+        Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = getValidFrom(msg);
-        RowState<LocationVisit> locationState = getOrCreateParentLocationVisit(visit, potentialLocation.get(), msg, validFrom, storedFrom);
-        if (locationVisitHasParent(msg)) {
-            locationState = getOrCreateChildLocationVisit(locationState, potentialLocation.get(), msg, validFrom, storedFrom);
-        }
+        RowState<LocationVisit> locationState = getOrCreateVisitLocation(visit, locationEntity, msg, validFrom, storedFrom);
         final LocationVisit originalLocation = locationState.getEntity().copy();
 
         if (locationVisitShouldBeUpdated(locationState, msg)) {
             updateLocation(msg, locationState);
             manuallySaveLocationOrAuditIfRequired(originalLocation, locationState, validFrom, storedFrom);
         }
+    }
+
+    /**
+     * Gets location entity by string if it exists, otherwise creates it.
+     * @param locationString full location string.
+     * @return Location entity
+     */
+    private Location getOrCreateLocation(String locationString) {
+        return locationRepo.findByLocationStringEquals(locationString)
+                .orElseGet(() -> new Location(locationString));
     }
 
 
@@ -82,31 +82,16 @@ public class LocationController {
         return (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
     }
 
-    private RowState<LocationVisit> getOrCreateParentLocationVisit(HospitalVisit visit, Location location, AdtMessage msg,
-                                                                   Instant validFrom, Instant storedFrom) {
+    private RowState<LocationVisit> getOrCreateVisitLocation(HospitalVisit visit, Location location, AdtMessage msg,
+                                                             Instant validFrom, Instant storedFrom) {
         // get locations by the hospital visit with no parent visit_location
         // otherwise create visit_location
         LocationVisit locationVisit = new LocationVisit();
         return new RowState<>(locationVisit, Instant.now(), Instant.now(), true);
     }
 
-
-    private boolean locationVisitHasParent(AdtMessage msg) {
-        // message is for a transient visit, e.g. where a bed visit is not given up while they go to the MRI scanner.
-        return false;
-    }
-
-    private RowState<LocationVisit> getOrCreateChildLocationVisit(RowState<LocationVisit> parentLocationState, Location location, AdtMessage msg,
-                                                                  Instant validFrom, Instant storedFrom) {
-        // get location by parent location visit id
-        // otherwise create the child visit
-        // if created location_visit and it's meant to have a parent, throw an invalid state error because the parent doesn't exist
-        LocationVisit locationVisit = new LocationVisit();
-        return new RowState<>(locationVisit, Instant.now(), Instant.now(), true);
-    }
-
     private boolean locationVisitShouldBeUpdated(RowState<LocationVisit> locationState, AdtMessage msg) {
-        // message valid from is the same or newer than the current locationState
+        // message valid from is the same or newer than the current locationState or current entity is not from a trusted source
         return false;
     }
 
