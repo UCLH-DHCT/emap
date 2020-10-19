@@ -51,13 +51,21 @@ public class LocationController {
             return;
         }
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
-        Instant validFrom = getValidFrom(msg);
-        RowState<LocationVisit> locationState = getOrCreateVisitLocation(visit, locationEntity, msg, validFrom, storedFrom);
-        final LocationVisit originalLocation = locationState.getEntity().copy();
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        RowState<LocationVisit> existingLocationState = getOrCreateVisitLocation(visit, locationEntity, msg, validFrom, storedFrom);
+        final LocationVisit originalLocation = existingLocationState.getEntity().copy();
 
-        if (locationVisitShouldBeUpdated(locationState, msg)) {
-            updateLocation(msg, locationState);
-            manuallySaveLocationOrAuditIfRequired(originalLocation, locationState, validFrom, storedFrom);
+        if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
+            AuditLocationVisit auditLocation = new AuditLocationVisit(originalLocation, validFrom, storedFrom);
+            if (messageDoesNotMoveLocation(msg)) {
+                // cancel messages etc.
+                updateLocation(msg, existingLocationState);
+            } else {
+                LocationVisit newLocationVisit = moveToNewLocation(msg, existingLocationState);
+                locationVisitRepo.save(newLocationVisit);
+            }
+            existingLocationState.saveEntityOrAuditLogIfRequired(auditLocation, locationVisitRepo, auditLocationVisitRepo);
+
         }
     }
 
@@ -72,16 +80,6 @@ public class LocationController {
     }
 
 
-    /**
-     * If the event occurred exists, use it. Otherwise use the event recorded date time.
-     * @param msg Adt message
-     * @return the correct Instant for valid from.
-     */
-    private Instant getValidFrom(AdtMessage msg) {
-        // should this just be a method in AdtMessage and used for all valid from?
-        return (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
-    }
-
     private RowState<LocationVisit> getOrCreateVisitLocation(HospitalVisit visit, Location location, AdtMessage msg,
                                                              Instant validFrom, Instant storedFrom) {
         // get locations by the hospital visit with no parent visit_location
@@ -91,9 +89,24 @@ public class LocationController {
     }
 
     private boolean locationVisitShouldBeUpdated(RowState<LocationVisit> locationState, AdtMessage msg) {
+        // location visit is not created
         // message valid from is the same or newer than the current locationState or current entity is not from a trusted source
         return false;
     }
+
+
+    private boolean messageDoesNotMoveLocation(AdtMessage msg) {
+        return false;
+    }
+
+
+    private LocationVisit moveToNewLocation(AdtMessage msg, RowState<LocationVisit> originalLocationState) {
+        // guard: new location and original location are different
+        // discharge original location
+        // create new location with current location and
+        return new LocationVisit();
+    }
+
 
     private void updateLocation(AdtMessage msg, RowState<LocationVisit> locationState) {
         // if the message has a parent and the message moves back to parent location, then remove the child location
