@@ -1,6 +1,10 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.Nullable;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
@@ -18,6 +22,8 @@ import java.util.function.Consumer;
  * @param <T> Hibernate entity that has validFrom and storedFrom fields.
  */
 public class RowState<T extends TemporalCore<?>> {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private T entity;
     private final boolean entityCreated;
     private final Instant messageDateTime;
@@ -145,6 +151,24 @@ public class RowState<T extends TemporalCore<?>> {
         boolean removed = assignIfDifferent(null, currentValue, setter);
         if (removed && cancelledDateTime != null) {
             entity.setValidFrom(cancelledDateTime);
+        }
+    }
+
+    /**
+     * Save entity if it is created, or auditlog if the entity has been updated.
+     * @param auditEntity audit entity
+     * @param entityRepo  entity repository
+     * @param auditRepo   audit repository
+     * @param <A>         Audit entity class
+     */
+    public <A extends AuditCore<? extends TemporalCore<?>>> void saveEntityOrAuditLogIfRequired(
+            A auditEntity, CrudRepository<T, Integer> entityRepo, CrudRepository<A, Integer> auditRepo) {
+        if (entityCreated) {
+            entityRepo.save(entity);
+            logger.info("New {} being saved: {}", entity.getClass().getName(), entity);
+        } else if (entityUpdated) {
+            auditRepo.save(auditEntity);
+            logger.info("New {} being saved: {}", auditEntity.getClass().getName(), auditEntity);
         }
     }
 }

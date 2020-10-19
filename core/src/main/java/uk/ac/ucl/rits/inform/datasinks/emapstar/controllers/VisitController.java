@@ -146,7 +146,7 @@ public class VisitController {
     }
 
     /**
-     * If the event occured exists, use it. Otherwise use the event recorded date time.
+     * If the event occurred exists, use it. Otherwise use the event recorded date time.
      * @param msg Adt message
      * @return the correct Instant for valid from.
      */
