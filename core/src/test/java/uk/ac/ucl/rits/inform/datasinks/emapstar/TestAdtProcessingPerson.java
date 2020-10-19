@@ -134,7 +134,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testOldAdtMessage() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg.setRecordedDateTime(Instant.parse("2010-01-01T01:01:01Z"));
+        msg.setEventOccurredDateTime(Instant.parse("2010-01-01T01:01:01Z"));
 
         Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
         CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
@@ -270,7 +270,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // first message as MrnExists
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg2.setRecordedDateTime(Instant.parse("2020-10-01T00:00:00Z"));
+        msg2.setEventOccurredDateTime(Instant.parse("2020-10-01T00:00:00Z"));
         msg2.setPatientMiddleName(Hl7Value.buildFromHl7("lime"));
 
         // process messages

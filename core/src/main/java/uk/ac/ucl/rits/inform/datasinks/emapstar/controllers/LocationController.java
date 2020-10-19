@@ -17,6 +17,7 @@ import java.time.Instant;
 
 /**
  * Controls interaction with Locations.
+ * @author Stef Piatek
  */
 public class LocationController {
     private final Logger logger = LoggerFactory.getLogger(getClass());

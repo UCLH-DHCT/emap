@@ -71,11 +71,11 @@ public class PersonController {
         List<Mrn> originalMrns = mrnRepo
                 .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
                 .orElseGet(() -> List.of(createNewLiveMrn(
-                        msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom)));
+                        msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)));
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.getRecordedDateTime(), storedFrom, mrnToLive));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.bestGuessAtValidFrom(), storedFrom, mrnToLive));
     }
 
     /**
@@ -184,7 +184,7 @@ public class PersonController {
      * @return true if the demographics should be updated
      */
     private boolean shouldUpdateMessage(final AdtMessage adtMessage, final CoreDemographic existingDemographic) {
-        return existingDemographic.getValidFrom().isBefore(adtMessage.getRecordedDateTime()) && DataSources.isTrusted(adtMessage.getSourceSystem());
+        return existingDemographic.getValidFrom().isBefore(adtMessage.bestGuessAtValidFrom()) && DataSources.isTrusted(adtMessage.getSourceSystem());
     }
 
     /**

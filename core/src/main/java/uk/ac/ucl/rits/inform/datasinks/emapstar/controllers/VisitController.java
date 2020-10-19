@@ -26,6 +26,7 @@ import java.time.Instant;
 
 /**
  * Interactions with visits.
+ * @author Stef Piatek
  */
 @Component
 public class VisitController {
@@ -119,7 +120,7 @@ public class VisitController {
             }
             throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
-        Instant validFrom = getValidFrom(msg);
+        Instant validFrom = msg.bestGuessAtValidFrom();
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (visitShouldNotBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
@@ -144,15 +145,6 @@ public class VisitController {
         AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, validFrom, storedFrom);
         visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, auditHospitalVisitRepo);
         return visitState.getEntity();
-    }
-
-    /**
-     * If the event occurred exists, use it. Otherwise use the event recorded date time.
-     * @param msg Adt message
-     * @return the correct Instant for valid from.
-     */
-    private Instant getValidFrom(AdtMessage msg) {
-        return (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
     }
 
     /**
@@ -269,7 +261,7 @@ public class VisitController {
      * @param storedFrom time that emap-core started processing the message.
      */
     private void deleteVisitIfMessageIsNewer(final DeletePersonInformation msg, final Instant storedFrom, HospitalVisit visit) {
-        Instant validFrom = getValidFrom(msg);
+        Instant validFrom = msg.bestGuessAtValidFrom();
         if (validFrom.isAfter(visit.getValidFrom())) {
             AuditHospitalVisit audit = new AuditHospitalVisit(visit, validFrom, storedFrom);
             auditHospitalVisitRepo.save(audit);
@@ -294,7 +286,7 @@ public class VisitController {
             throw new IllegalStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
         }
 
-        Instant validFrom = getValidFrom(msg);
+        Instant validFrom = msg.bestGuessAtValidFrom();
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
                 msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
