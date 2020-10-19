@@ -18,6 +18,10 @@ public class Location {
     private long locationId;
     private String locationString;
 
+    public Location(String locationString) {
+        this.locationString = locationString;
+    }
+
     /**
      * @return location Id.
      */
