@@ -116,9 +116,9 @@ public class AdtMessageFactory {
             // Despite what the HL7 spec hints at, this death information can occur
             // in any message, not just A03
             String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
-            if (hl7DeathIndicator.equals("Y")) {
+            if ("Y".equals(hl7DeathIndicator)) {
                 msg.setPatientIsAlive(new Hl7Value<>(false));
-            } else if (hl7DeathIndicator.equals("N") || hl7DeathIndicator.equals("")) {
+            } else if ("N".equals(hl7DeathIndicator)) {
                 msg.setPatientIsAlive(new Hl7Value<>(true));
             }
             // set the death time even if indicator says they're not dead (it happens...)
@@ -133,7 +133,7 @@ public class AdtMessageFactory {
             msg.setPatientTitle(Hl7Value.buildFromHl7(patientInfoHl7.getPatientTitle()));
             msg.setPatientZipOrPostalCode(Hl7Value.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
         }
-        if (evn != null) {
+        if (null != evn) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
             msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
@@ -156,15 +156,15 @@ public class AdtMessageFactory {
 
     /**
      * Build correct AdtMessage subtype and add any specific data.
-     * @param patientInfoHl7 Patient HL7 info
-     * @param hl7Msg         HL7 message
-     * @param evn            EVN segment, required for any cancellation event
-     * @param triggerEvent   ADT message trigger event
+     * @param pv1Wrap      PV1 wrap for patient
+     * @param hl7Msg       HL7 message
+     * @param evn          EVN segment, required for any cancellation event
+     * @param triggerEvent ADT message trigger event
      * @return ADT Message build with specific subtype added
      * @throws HL7Exception                      if hl7 message can't be parsed
      * @throws Hl7MessageNotImplementedException if message hasn't been implemented yet
      */
-    private AdtMessage buildAdtMessageSubclass(final PatientInfoHl7 patientInfoHl7, final Message hl7Msg,
+    private AdtMessage buildAdtMessageSubclass(final PV1Wrap pv1Wrap, final Message hl7Msg,
                                                final EVN evn, final String triggerEvent) throws HL7Exception, Hl7MessageNotImplementedException {
 
         AdtMessage msg;
@@ -172,7 +172,7 @@ public class AdtMessageFactory {
             case "A01":
                 //3
                 AdmitPatient admitPatient = new AdmitPatient();
-                admitPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                admitPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = admitPatient;
                 break;
             case "A02":
@@ -180,22 +180,22 @@ public class AdtMessageFactory {
             case "A07":
                 // 3
                 TransferPatient transferPatient = new TransferPatient();
-                transferPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                transferPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = transferPatient;
                 break;
             case "A03":
                 //3
                 DischargePatient dischargeMsg = new DischargePatient();
-                dischargeMsg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
-                dischargeMsg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
-                dischargeMsg.setDischargeDisposition(patientInfoHl7.getDischargeDisposition());
-                dischargeMsg.setDischargeLocation(patientInfoHl7.getDischargeLocation());
+                dischargeMsg.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
+                dischargeMsg.setDischargeDateTime(pv1Wrap.getDischargeDateTime());
+                dischargeMsg.setDischargeDisposition(pv1Wrap.getDischargeDisposition());
+                dischargeMsg.setDischargeLocation(pv1Wrap.getDischargeLocation());
                 msg = dischargeMsg;
                 break;
             case "A04":
                 //3
                 RegisterPatient registerPatient = new RegisterPatient();
-                registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
+                registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = registerPatient;
                 break;
             // We are receiving A05 and A14, A38 messages but not doing any scheduling yet
@@ -263,7 +263,7 @@ public class AdtMessageFactory {
     private MRG setPreviousIdentifiers(PreviousIdentifiers msg, Message hl7Msg) throws HL7Exception {
         MRG mrg = getMrg(hl7Msg);
 
-        assert (mrg != null);
+        assert (null != mrg);
         msg.setPreviousMrn(mrg.getMrg1_PriorPatientIdentifierList(0).getIDNumber().toString());
         msg.setPreviousNhsNumber(mrg.getMrg1_PriorPatientIdentifierList(1).getIDNumber().toString());
         return mrg;
