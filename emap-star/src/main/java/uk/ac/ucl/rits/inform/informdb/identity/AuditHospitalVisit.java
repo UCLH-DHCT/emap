@@ -51,7 +51,10 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        this.hospitalVisitId = originalEntity.getHospitalVisitId();
+        if (originalEntity.getHospitalVisitId() != null) {
+            // Newly created visit won't have an ID, audit row should never be saved in that case - not setting it should be okay.
+            this.hospitalVisitId = originalEntity.getHospitalVisitId();
+        }
         this.encounter = originalEntity.getEncounter();
     }
 }
