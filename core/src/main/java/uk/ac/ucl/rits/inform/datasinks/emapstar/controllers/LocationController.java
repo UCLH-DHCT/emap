@@ -30,7 +30,8 @@ public class LocationController {
      * @param locationRepo           location repo
      * @param auditLocationVisitRepo audit location repo
      */
-    public LocationController(LocationVisitRepository locationVisitRepo, LocationRepository locationRepo, AuditLocationVisitRepository auditLocationVisitRepo) {
+    public LocationController(LocationVisitRepository locationVisitRepo, LocationRepository locationRepo,
+                              AuditLocationVisitRepository auditLocationVisitRepo) {
         this.locationVisitRepo = locationVisitRepo;
         this.locationRepo = locationRepo;
         this.auditLocationVisitRepo = auditLocationVisitRepo;
@@ -48,6 +49,12 @@ public class LocationController {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
         }
+        String locationString = msg.getFullLocationString().get();
+        if (locationRepo.findByLocationStringEquals(locationString).isPresent()) {
+            throw new IllegalArgumentException(
+                    String.format("Location string '%s' was not found in location table for message: %s", locationString, msg));
+        }
+
         Instant validFrom = getValidFrom(msg);
         RowState<LocationVisit> locationState = getOrCreateLocationVisit(visit, msg, validFrom, storedFrom);
         final LocationVisit originalLocation = locationState.getEntity().copy();
