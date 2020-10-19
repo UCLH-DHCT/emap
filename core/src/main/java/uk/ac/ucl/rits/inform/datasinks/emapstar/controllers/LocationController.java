@@ -65,6 +65,7 @@ public class LocationController {
      * @return the correct Instant for valid from.
      */
     private Instant getValidFrom(AdtMessage msg) {
+        // should this just be a method in AdtMessage and used for all valid from?
         return (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
     }
 
