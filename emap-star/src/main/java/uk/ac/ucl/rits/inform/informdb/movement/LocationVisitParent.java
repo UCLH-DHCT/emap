@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
-import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
