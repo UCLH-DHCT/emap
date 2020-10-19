@@ -3,11 +3,13 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
+import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -25,6 +27,11 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     private HospitalVisit hospitalVisitId;
     private long parentLocationVisitId;
 
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant admissionTime;
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant dischargeTime;
+
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location locationId;
@@ -35,6 +42,8 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
         super(other);
         this.hospitalVisitId = other.hospitalVisitId;
         this.parentLocationVisitId = other.parentLocationVisitId;
+        this.admissionTime = other.admissionTime;
+        this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
     }
 
@@ -68,6 +77,34 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     }
 
     /**
+     * @return the admissionTime
+     */
+    public Instant getAdmissionTime() {
+        return admissionTime;
+    }
+
+    /**
+     * @param admissionTime the admissionTime to set
+     */
+    public void setAdmissionTime(Instant admissionTime) {
+        this.admissionTime = admissionTime;
+    }
+
+    /**
+     * @return the dischargeTime
+     */
+    public Instant getDischargeTime() {
+        return dischargeTime;
+    }
+
+    /**
+     * @param dischargeTime the dischargeTime to set
+     */
+    public void setDischargeTime(Instant dischargeTime) {
+        this.dischargeTime = dischargeTime;
+    }
+
+    /**
      * @return the locationId
      */
     public Location getLocation() {
@@ -97,11 +134,13 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
         LocationVisitParent that = (LocationVisitParent) o;
         return hospitalVisitId == that.hospitalVisitId
                 && parentLocationVisitId == that.parentLocationVisitId
+                && Objects.equals(admissionTime, that.admissionTime)
+                && Objects.equals(dischargeTime, that.dischargeTime)
                 && Objects.equals(locationId, that.locationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(hospitalVisitId, parentLocationVisitId, locationId);
+        return Objects.hash(hospitalVisitId, parentLocationVisitId, admissionTime, dischargeTime, locationId);
     }
 }
