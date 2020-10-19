@@ -141,7 +141,8 @@ public class VisitController {
         } else if (msg instanceof CancelAdmitPatient) {
             removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
         }
-        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, validFrom, storedFrom);
+        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, auditHospitalVisitRepo);
         return visitState.getEntity();
     }
 
@@ -249,22 +250,6 @@ public class VisitController {
     }
 
     /**
-     * Save a newly created hospital visit, or the audit table for original visit if this has been updated.
-     * @param visitState    visit wrapped in state class
-     * @param originalVisit original visit
-     */
-    private void manuallySaveVisitOrAuditIfRequired(final RowState<HospitalVisit> visitState, final HospitalVisit originalVisit) {
-        if (visitState.isEntityCreated()) {
-            hospitalVisitRepo.save(visitState.getEntity());
-            logger.debug("New HospitalVisit being saved: {}", visitState.getEntity());
-        } else if (visitState.isEntityUpdated()) {
-            AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, visitState.getMessageDateTime(), visitState.getStoredFrom());
-            auditHospitalVisitRepo.save(audit);
-            logger.debug("New AuditHospitalVisit being saved: {}", audit);
-        }
-    }
-
-    /**
      * Delete all visits that are older than the current message.
      * @param mrn        MRN
      * @param msg        Delete person information message
@@ -324,7 +309,8 @@ public class VisitController {
         visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
         visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
 
-        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, validFrom, storedFrom);
+        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, auditHospitalVisitRepo);
         return visit;
     }
 
