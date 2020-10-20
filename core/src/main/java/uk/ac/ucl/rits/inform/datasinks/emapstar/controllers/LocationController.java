@@ -55,7 +55,7 @@ public class LocationController {
         }
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
-        RowState<LocationVisit> existingLocationState = getOrCreateVisitLocation(visit, locationEntity, msg, validFrom, storedFrom);
+        RowState<LocationVisit> existingLocationState = getOrCreateVisitLocation(visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
         final LocationVisit originalLocationVisit = existingLocationState.getEntity().copy();
 
         if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
@@ -63,9 +63,8 @@ public class LocationController {
                 // cancel messages etc.
                 updateLocation(msg, existingLocationState);
             } else if (isNewLocationDifferent(locationEntity, originalLocationVisit)) {
-                // Only move locations if original and message locations are different
-                LocationVisit newLocationVisit = moveToNewLocation(msg, existingLocationState);
-                locationVisitRepo.save(newLocationVisit);
+                LocationVisit newLocationVisit = moveToNewLocation(
+                        msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
             }
             manuallySaveLocationOrAuditIfRequired(originalLocationVisit, existingLocationState, validFrom, storedFrom);
         }
@@ -78,22 +77,36 @@ public class LocationController {
      */
     private Location getOrCreateLocation(String locationString) {
         return locationRepo.findByLocationStringEquals(locationString)
-                .orElseGet(() -> new Location(locationString));
+                .orElseGet(() -> {
+                    Location location = new Location(locationString);
+                    return locationRepo.save(location);
+                });
     }
 
 
-    private RowState<LocationVisit> getOrCreateVisitLocation(HospitalVisit visit, Location location, AdtMessage msg,
+    /**
+     * Get existing visit location or create a new one.
+     * @param visit        Hospital Visit
+     * @param location     Location
+     * @param sourceSystem source system
+     * @param validFrom    message event date time
+     * @param storedFrom   time that emap-core encountered the message
+     * @return LocationVisit wrapped in Row state
+     */
+    private RowState<LocationVisit> getOrCreateVisitLocation(HospitalVisit visit, Location location, String sourceSystem,
                                                              Instant validFrom, Instant storedFrom) {
-        // get locations by the hospital visit with no parent visit_location
-        // otherwise create visit_location
-        LocationVisit locationVisit = new LocationVisit();
-        return new RowState<>(locationVisit, Instant.now(), Instant.now(), true);
+        return locationVisitRepo.findByHospitalVisitIdAndLocationId(visit, location)
+                .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
+                    return new RowState<>(locationVisit, validFrom, storedFrom, true);
+                });
     }
 
     private boolean locationVisitShouldBeUpdated(RowState<LocationVisit> locationState, AdtMessage msg) {
         // location visit is not created
         // message valid from is the same or newer than the current locationState or current entity is not from a trusted source
-        return false;
+        return true;
     }
 
 
@@ -102,10 +115,23 @@ public class LocationController {
     }
 
 
-    private LocationVisit moveToNewLocation(AdtMessage msg, RowState<LocationVisit> originalLocationState) {
-        // discharge original location
-        // create new location with current location and
-        return new LocationVisit();
+    /**
+     * Discharge from old location, and admit to new location (saving the new entity).
+     * @param sourceSystem   Source system of the message
+     * @param locationEntity Location entity
+     * @param visit          Hospital visit entity
+     * @param validFrom      Time of the message event
+     * @param storedFrom     Time that emap-core encountered the message
+     * @param retiringState  RowState of the retiring location visit
+     * @return new location entity
+     */
+    private LocationVisit moveToNewLocation(String sourceSystem, Location locationEntity, HospitalVisit visit,
+                                            Instant validFrom, Instant storedFrom, RowState<LocationVisit> retiringState) {
+        LocationVisit retiring = retiringState.getEntity();
+        retiringState.assignIfDifferent(validFrom, retiring.getDischargeTime(), retiring::setDischargeTime);
+
+        LocationVisit newLocation = new LocationVisit(validFrom, storedFrom, locationEntity, visit, sourceSystem);
+        return locationVisitRepo.save(newLocation);
     }
 
     /**
@@ -115,7 +141,7 @@ public class LocationController {
      * @return true if locations are different
      */
     private boolean isNewLocationDifferent(Location newLocation, LocationVisit originalLocationVisit) {
-        return !originalLocationVisit.getLocation().equals(newLocation);
+        return !newLocation.equals(originalLocationVisit.getLocation());
     }
 
     private void updateLocation(AdtMessage msg, RowState<LocationVisit> locationState) {
