@@ -118,12 +118,15 @@ interface PIDWrap {
      */
     default Instant getPatientBirthDate() throws DataTypeException {
         DTM dateTime = getPID().getDateTimeOfBirth();
+        if (dateTime.getValue() == null) {
+            return null;
+        }
 
         if (isNotTruncatedToDay(dateTime)) {
             return HL7Utils.interpretLocalTime(dateTime);
         }
         dateTime.setOffset(0);
-        return dateTime.getValueAsDate() != null ? dateTime.getValueAsDate().toInstant() : null;
+        return dateTime.getValueAsDate().toInstant();
     }
 
     /**
@@ -132,7 +135,7 @@ interface PIDWrap {
      * @return true if there is only year, month and day given
      */
     private boolean isNotTruncatedToDay(DTM dateTime) {
-        return dateTime.getValue() != null && dateTime.getValue().length() != 8;
+        return dateTime.getValue().length() != 8;
     }
 
 
