@@ -256,11 +256,13 @@ public class VisitController {
     private void manuallySaveVisitOrAuditIfRequired(final RowState<HospitalVisit> visitState, final HospitalVisit originalVisit) {
         if (visitState.isEntityCreated()) {
             hospitalVisitRepo.save(visitState.getEntity());
-            logger.debug("New HospitalVisit being saved: {}", visitState.getEntity());
+            logger.info("New HospitalVisit being saved: {}", visitState.getEntity());
         } else if (visitState.isEntityUpdated()) {
+            logger.info("HospitalVisit was updated: {}", visitState.getEntity());
             AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, visitState.getMessageDateTime(), visitState.getStoredFrom());
             auditHospitalVisitRepo.save(audit);
-            logger.debug("New AuditHospitalVisit being saved: {}", audit);
+        } else {
+            logger.info("No change to visit {}", visitState.getEntity().getHospitalVisitId());
         }
     }
 
