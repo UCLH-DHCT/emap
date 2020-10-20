@@ -126,8 +126,13 @@ interface PIDWrap {
         return dateTime.getValueAsDate().toInstant();
     }
 
-    private boolean isNotTruncatedToDay(DTM dateTime) throws DataTypeException {
-        return 0.0 != dateTime.getHour() + dateTime.getMinute() + dateTime.getSecond() + dateTime.getFractSecond();
+    /**
+     * Is the date time truncated to the day.
+     * @param dateTime date time object
+     * @return true if there is only year, month and day given
+     */
+    private boolean isNotTruncatedToDay(DTM dateTime) {
+        return dateTime.toString().length() != 8;
     }
 
 
