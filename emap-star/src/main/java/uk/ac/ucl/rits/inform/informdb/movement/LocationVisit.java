@@ -2,12 +2,14 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.Instant;
 
 /**
  * This represents a patient being in a location for an amount of time. Every
@@ -28,7 +30,24 @@ public class LocationVisit extends LocationVisitParent {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationVisitId;
 
-    public LocationVisit(){
+    public LocationVisit() {
+    }
+
+    /**
+     * Create new location visit with all required information.
+     * @param validFrom    Time of the message event
+     * @param storedFrom   Time that emap-core encountered the message
+     * @param location     Location
+     * @param sourceSystem source system
+     */
+    public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit, String sourceSystem) {
+        super();
+        setAdmissionTime(validFrom);
+        setLocation(location);
+        setSourceSystem(sourceSystem);
+        setHospitalVisitId(hospitalVisit);
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     public LocationVisit(LocationVisit other) {

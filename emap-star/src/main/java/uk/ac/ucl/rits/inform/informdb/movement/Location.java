@@ -18,6 +18,9 @@ public class Location {
     private long locationId;
     private String locationString;
 
+    public Location() {
+    }
+
     public Location(String locationString) {
         this.locationString = locationString;
     }
