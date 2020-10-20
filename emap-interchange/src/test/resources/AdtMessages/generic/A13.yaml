@@ -32,8 +32,8 @@ hospitalService:
   value: "35276"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "1980-01-01T00:00:00Z"
+  status: "IGNORE"
+  value: null
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
