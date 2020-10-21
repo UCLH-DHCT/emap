@@ -81,12 +81,13 @@ public class App {
 //        }
         idsEffectLogging.setSourceId(msg.getSourceMessageId());
         try {
+            logger.info("Starting processing of interchange message {}", msg.getSourceMessageId());
             msg.processMessage(dbOps);
             Instant doneProcessMessageTime = Instant.now();
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
             idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
             idsEffectLogging.setError(false);
-            logger.info("Sending ACK for " + msg.getSourceMessageId());
+            logger.info("Sending ACK for {}", msg.getSourceMessageId());
             channel.basicAck(tag, false);
         } catch (EmapOperationMessageProcessingException e) {
             // All errors that allow the message to be skipped should be logged
@@ -95,14 +96,14 @@ public class App {
             idsEffectLogging.setError(!(e instanceof MessageIgnoredException));
             idsEffectLogging.setMessage(e.getMessage());
             idsEffectLogging.setStackTrace(e);
-            logger.info("Sending NACK no requeue then NOT throwing for " + msg.getSourceMessageId());
+            logger.info("Sending NACK no requeue then NOT throwing for {}", msg.getSourceMessageId());
             channel.basicNack(tag, false, false);
         } catch (Throwable th) {
             // For anything else, at least log it before exiting.
             idsEffectLogging.setError(true);
             idsEffectLogging.setMessage(th.getMessage());
             idsEffectLogging.setStackTrace(th);
-            logger.info("Sending NACK no requeue then throwing for " + msg.getSourceMessageId());
+            logger.info("Sending NACK no requeue then throwing for {}", msg.getSourceMessageId());
             channel.basicNack(tag, false, false);
             throw th;
         } finally {

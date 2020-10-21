@@ -89,6 +89,7 @@ public class PersonController {
     private void updateMrnToLiveIfMessageIsNotBefore(final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom,
                                                      MrnToLive mrnToLive) {
         if (liveMrnIdIsDifferentAndMessageIsNotBefore(survivingMrn, messageDateTime, mrnToLive)) {
+            logger.info("Merging previous MRN {} into surviving MRN {}", mrnToLive.getMrnId(), survivingMrn);
             // log current state to audit table and then update current row
             AuditMrnToLive audit = new AuditMrnToLive(mrnToLive, messageDateTime, storedFrom);
             auditMrnToLiveRepo.save(audit);
@@ -154,6 +155,7 @@ public class PersonController {
     private CoreDemographic createCoreDemographic(Mrn originalMrn, AdtMessage adtMessage, Instant messageDateTime, Instant storedFrom) {
         RowState<CoreDemographic> demoState = new RowState<>(new CoreDemographic(originalMrn), messageDateTime, storedFrom, true);
         updateCoreDemographicFields(adtMessage, demoState);
+        logger.info("Creating new core demographics {}", demoState.getEntity());
         return coreDemographicRepo.save(demoState.getEntity());
     }
 
@@ -169,6 +171,7 @@ public class PersonController {
             updateCoreDemographicFields(adtMessage, demoState);
 
             if (demoState.isEntityUpdated()) {
+                logger.debug("Updating core demographics {}", demoState.getEntity());
                 AuditCoreDemographic audit = new AuditCoreDemographic(originalDemo, demoState.getMessageDateTime(), demoState.getStoredFrom());
                 auditCoreDemographicRepo.save(audit);
             }
@@ -220,7 +223,7 @@ public class PersonController {
     private Mrn createNewLiveMrn(final String mrnString, final String nhsNumber, final String sourceSystem,
                                  final Instant messageDateTime,
                                  final Instant storedFrom) {
-        logger.debug(String.format("Creating new MRN (mrn=%s, nhsNumber=%s)", mrnString, nhsNumber));
+        logger.info(String.format("Creating new MRN (mrn=%s, nhsNumber=%s)", mrnString, nhsNumber));
         Mrn mrn = new Mrn();
         mrn.setMrn(mrnString);
         mrn.setNhsNumber(nhsNumber);
