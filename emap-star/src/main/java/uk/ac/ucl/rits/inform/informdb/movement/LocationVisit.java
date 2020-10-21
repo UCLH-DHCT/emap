@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.Entity;
@@ -24,6 +25,7 @@ import java.time.Instant;
 @Table
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class LocationVisit extends LocationVisitParent {
     private static final long serialVersionUID = 2671789121005769008L;
     @Id

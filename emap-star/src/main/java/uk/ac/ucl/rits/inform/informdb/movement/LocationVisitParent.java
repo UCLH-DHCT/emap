@@ -165,4 +165,23 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     public int hashCode() {
         return Objects.hash(hospitalVisitId, parentLocationVisitId, sourceSystem, admissionTime, dischargeTime, locationId);
     }
+
+    @Override
+    public String toString() {
+        return new StringBuilder()
+                .append("LocationVisitParent{")
+                .append("hospitalVisitId=")
+                .append(hospitalVisitId)
+                .append(", parentLocationVisitId=")
+                .append(parentLocationVisitId)
+                .append(", admissionTime=")
+                .append(admissionTime)
+                .append(", dischargeTime=")
+                .append(dischargeTime)
+                .append(", sourceSystem='")
+                .append(sourceSystem)
+                .append("', locationId=")
+                .append(locationId)
+                .append('}').toString();
+    }
 }
