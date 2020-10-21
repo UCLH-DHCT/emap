@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Handle processing of ADT messages.
@@ -51,7 +52,7 @@ public class AdtProcessor {
      */
     @Transactional
     public void processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        Instant messageDateTime = msg.getRecordedDateTime();
+        Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
 
         // Patient merges have no encounter information, so skip
@@ -84,17 +85,21 @@ public class AdtProcessor {
 
     @Transactional
     public void deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) {
-        Instant messageDateTime = msg.getRecordedDateTime();
+        Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         personController.deleteDemographic(mrn, messageDateTime, storedFrom);
-        visitController.deleteOlderVisits(mrn, msg, messageDateTime);
-        // TODO: delete visit locations - or set these to cascade?
-
+        List<HospitalVisit> olderVisits = visitController.getOlderVisits(mrn, messageDateTime);
+        if (olderVisits.isEmpty()) {
+            logger.warn("No existing visits for DeletePersonMessage message: {}", msg);
+            return;
+        }
+        locationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
+        visitController.deleteVisits(olderVisits, messageDateTime, storedFrom);
     }
 
     @Transactional
     public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws MessageIgnoredException {
-        Instant messageDateTime = msg.getRecordedDateTime();
+        Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn previousMrn = personController.getOrCreateMrn(
                 msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         Mrn currentMrn = processPersonLevel(msg, storedFrom, messageDateTime);
@@ -102,7 +107,7 @@ public class AdtProcessor {
     }
 
     public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
-        Instant messageDateTime = msg.getRecordedDateTime();
+        Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn previousMrn = personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
     }
 }

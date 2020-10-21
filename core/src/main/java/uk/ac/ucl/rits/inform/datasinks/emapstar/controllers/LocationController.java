@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
+import java.util.Collection;
 
 /**
  * Controls interaction with Locations.
@@ -155,5 +156,21 @@ public class LocationController {
                                                        Instant validFrom, Instant storedFrom) {
         AuditLocationVisit auditLocation = new AuditLocationVisit(originalLocation, validFrom, storedFrom);
         locationState.saveEntityOrAuditLogIfRequired(auditLocation, locationVisitRepo, auditLocationVisitRepo);
+    }
+
+    /**
+     * Delete all location visits for list of hospital visits.
+     * @param visits     Hospital visits
+     * @param validFrom  Time of the message event
+     * @param storedFrom Time that emap-core encountered the message
+     */
+    public void deleteLocationVisits(Collection<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
+        visits.stream()
+                .flatMap(visit -> locationVisitRepo.findAllByHospitalVisitId(visit).stream())
+                .forEach(locationVisit -> {
+                    auditLocationVisitRepo.save(new AuditLocationVisit(locationVisit, validFrom, storedFrom));
+                    logger.debug("Deleting LocationVisit: {}", locationVisit);
+                    locationVisitRepo.delete(locationVisit);
+                });
     }
 }

@@ -16,13 +16,13 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Interactions with visits.
@@ -241,33 +241,24 @@ public class VisitController {
 
     }
 
-    /**
-     * Delete all visits that are older than the current message.
-     * @param mrn        MRN
-     * @param msg        Delete person information message
-     * @param storedFrom time that emap-core started processing the message.
-     */
-    public void deleteOlderVisits(final Mrn mrn, final DeletePersonInformation msg, final Instant storedFrom) {
-        hospitalVisitRepo.findAllByMrnIdMrnId(mrn.getMrnId()).ifPresentOrElse(
-                visits -> visits.forEach(visit -> deleteVisitIfMessageIsNewer(msg, storedFrom, visit)),
-                () -> logger.warn("No visits to delete for for mrn: {} ", mrn)
-        );
+
+    public List<HospitalVisit> getOlderVisits(Mrn mrn, Instant messageDateTime) {
+        return hospitalVisitRepo.findAllByMrnIdAndValidFromIsLessThanEqual(mrn, messageDateTime);
     }
 
     /**
-     * Delete the visit if older than the current message.
-     * @param visit      Hospital visit
-     * @param msg        Delete person information message
+     * Delete all visits that are older than the current message.
+     * @param visits     List of hopsital visits
+     * @param validFrom  Time of the delete information message
      * @param storedFrom time that emap-core started processing the message.
      */
-    private void deleteVisitIfMessageIsNewer(final DeletePersonInformation msg, final Instant storedFrom, HospitalVisit visit) {
-        Instant validFrom = msg.bestGuessAtValidFrom();
-        if (validFrom.isAfter(visit.getValidFrom())) {
-            AuditHospitalVisit audit = new AuditHospitalVisit(visit, validFrom, storedFrom);
-            auditHospitalVisitRepo.save(audit);
+    public void deleteVisits(List<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
+        for (HospitalVisit visit : visits) {
+            auditHospitalVisitRepo.save(new AuditHospitalVisit(visit, validFrom, storedFrom));
             hospitalVisitRepo.delete(visit);
         }
     }
+
 
     /**
      * Move visit information from previous MRN to current MRN.
@@ -313,4 +304,5 @@ public class VisitController {
     private boolean isVisitNumberChangesAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
         return !msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && hospitalVisitRepo.findByEncounter(msg.getVisitNumber()).isPresent();
     }
+
 }

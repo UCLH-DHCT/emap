@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 
 class TestAdtProcessingLocation extends MessageProcessingBase {
@@ -69,4 +70,22 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNull(audit.getDischargeTime());
     }
 
+    /**
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql(value = "/populate_db.sql")
+    void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        // process message
+        dbOps.processMessage(msg);
+
+        // original location does not exist
+        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        Assertions.assertNull(locationVisit);
+
+        // audit row for the existing location
+        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        Assertions.assertNotNull(audit);
+    }
 }

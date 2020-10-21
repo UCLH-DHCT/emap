@@ -372,7 +372,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testOldDeleteMessageHasNoEffect() throws EmapOperationMessageProcessingException {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
-        msg.setRecordedDateTime(Instant.parse("2000-01-01T00:00:00Z"));
+        msg.setEventOccurredDateTime(Instant.parse("2000-01-01T00:00:00Z"));
         // process message
         dbOps.processMessage(msg);
 

@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +23,7 @@ public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, I
      * @param mrnId Get visits by Mrn
      * @return hospital visits
      */
-    Optional<List<HospitalVisit>> findAllByMrnId(Mrn mrnId);
+    List<HospitalVisit> findAllByMrnIdAndValidFromIsLessThanEqual(Mrn mrnId, Instant untilDate);
 
 
     /**
