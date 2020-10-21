@@ -26,8 +26,12 @@ services:
     image: cassandra
     restart: on-failure
   glowroot-central:
-    built:
+    build:
       context: ..
       dockerfile: Emap-Core/Dockerfile.glowroot-central
-      restart: on-failure
+    env_file:
+      - ../config/glowroot-config-envs
+    ports:
+      - "${GLOWROOT_PORT}:4000"
+    restart: on-failure
 
