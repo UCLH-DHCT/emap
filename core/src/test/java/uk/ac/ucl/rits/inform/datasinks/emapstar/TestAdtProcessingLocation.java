@@ -15,6 +15,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 
+import java.time.Instant;
+
 class TestAdtProcessingLocation extends MessageProcessingBase {
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
@@ -50,7 +52,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
+    @Sql("/populate_db.sql")
     void testMoveCurrentVisitLocation() throws EmapOperationMessageProcessingException {
         TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
         dbOps.processMessage(msg);
@@ -74,7 +76,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
+    @Sql("/populate_db.sql")
     void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         // process message
@@ -87,5 +89,25 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // audit row for the existing location
         AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
         Assertions.assertNotNull(audit);
+    }
+
+    /**
+     * Message is older than database, so no deletes should take place.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testOldDeleteMessageHasNoEffect() throws EmapOperationMessageProcessingException {
+        DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
+        msg.setEventOccurredDateTime(Instant.parse("2000-01-01T00:00:00Z"));
+        // process message
+        dbOps.processMessage(msg);
+
+        // original location does still exist
+        LocationVisit locationVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        Assertions.assertNotNull(locationVisit);
+
+        // No audit rows
+        Assertions.assertEquals(0L, getAllEntities(auditLocationVisitRepository).size());
     }
 }
