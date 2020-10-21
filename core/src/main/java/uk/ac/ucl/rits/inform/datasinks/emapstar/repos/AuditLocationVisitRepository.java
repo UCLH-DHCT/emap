@@ -1,11 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  * Audit hospital visit repository.
@@ -13,8 +11,9 @@ import java.util.List;
  */
 public interface AuditLocationVisitRepository extends CrudRepository<AuditLocationVisit, Integer> {
     /**
-     * @param visit Hospital Visit
-     * @return the AuditHospitalVisit
+     * For testing: find by location string.
+     * @param location full location string
+     * @return AuditLocationVisit wrapped in optional
      */
-    List<LocationVisit> findAllByHospitalVisitId(HospitalVisit visit);
+    Optional<AuditLocationVisit> findByLocationIdLocationString(String location);
 }

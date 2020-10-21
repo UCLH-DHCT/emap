@@ -95,10 +95,11 @@ public class LocationController {
      */
     private RowState<LocationVisit> getOrCreateVisitLocation(HospitalVisit visit, Location location, String sourceSystem,
                                                              Instant validFrom, Instant storedFrom) {
-        return locationVisitRepo.findByHospitalVisitIdAndLocationId(visit, location)
+        return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
+                    logger.debug("Created new LocationVisit: {}", locationVisit);
                     return new RowState<>(locationVisit, validFrom, storedFrom, true);
                 });
     }
@@ -128,6 +129,7 @@ public class LocationController {
     private LocationVisit moveToNewLocation(String sourceSystem, Location locationEntity, HospitalVisit visit,
                                             Instant validFrom, Instant storedFrom, RowState<LocationVisit> retiringState) {
         LocationVisit retiring = retiringState.getEntity();
+        logger.debug("Discharging visit: {}", retiring);
         retiringState.assignIfDifferent(validFrom, retiring.getDischargeTime(), retiring::setDischargeTime);
 
         LocationVisit newLocation = new LocationVisit(validFrom, storedFrom, locationEntity, visit, sourceSystem);
