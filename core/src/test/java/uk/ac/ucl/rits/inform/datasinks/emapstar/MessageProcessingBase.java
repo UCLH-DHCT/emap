@@ -7,11 +7,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PersonData;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -32,28 +30,20 @@ public abstract class MessageProcessingBase {
     @Autowired
     protected MrnToLiveRepository mrnToLiveRepo;
     @Autowired
-    protected CoreDemographicRepository coreDemographicRepository;
-    @Autowired
-    protected PersonData personData;
+    protected PersonController personController;
 
     @Autowired
     protected InformDbOperations dbOps;
 
     protected final String defaultMrn = "40800000";
-
+    protected final String defaultEncounter = "123412341234";
 
     protected final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
 
 
     @Transactional
     protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
-        try {
-            msg.processMessage(dbOps);
-        } catch (MessageIgnoredException e) {
-            if (!false) {
-                throw e;
-            }
-        }
+        msg.processMessage(dbOps);
     }
 
     protected List<Mrn> getAllMrns() {

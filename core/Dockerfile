@@ -23,7 +23,7 @@ RUN java -jar "glowroot/glowroot-central.jar" setup-admin-user "${GLOWROOT_USERN
 COPY Emap-Core/pom.xml /app/Emap-Core/
 RUN source /app/set_mvn_proxy.sh; mvn dependency:resolve -Pemapstar
 COPY Emap-Core/. /app/Emap-Core/
-#RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
+# RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
 # -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
 CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/EmapCore.jar"]
