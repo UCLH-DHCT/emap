@@ -25,7 +25,7 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
-    private long parentLocationVisitId;
+    private Long parentLocationVisitId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant admissionTime;
