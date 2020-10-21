@@ -48,6 +48,7 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
         super(other);
         this.hospitalVisitId = other.hospitalVisitId;
         this.parentLocationVisitId = other.parentLocationVisitId;
+        this.sourceSystem = other.sourceSystem;
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
@@ -154,6 +155,7 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
         LocationVisitParent that = (LocationVisitParent) o;
         return hospitalVisitId == that.hospitalVisitId
                 && parentLocationVisitId == that.parentLocationVisitId
+                && sourceSystem == that.sourceSystem
                 && Objects.equals(admissionTime, that.admissionTime)
                 && Objects.equals(dischargeTime, that.dischargeTime)
                 && Objects.equals(locationId, that.locationId);
@@ -161,6 +163,6 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
 
     @Override
     public int hashCode() {
-        return Objects.hash(hospitalVisitId, parentLocationVisitId, admissionTime, dischargeTime, locationId);
+        return Objects.hash(hospitalVisitId, parentLocationVisitId, sourceSystem, admissionTime, dischargeTime, locationId);
     }
 }
