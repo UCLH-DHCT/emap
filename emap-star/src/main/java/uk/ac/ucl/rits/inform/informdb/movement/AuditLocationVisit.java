@@ -30,6 +30,7 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
     private Instant validUntil;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
+    private long hospitalVisitId;
 
 
     /**
@@ -49,6 +50,10 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        this.locationVisitId = originalEntity.getLocationVisitId();
+        locationVisitId = originalEntity.getLocationVisitId();
+        if (originalEntity.getHospitalVisitId() != null) {
+            // If newly created, won't have a hospital visit Id yet - but also audit won't be saved so that's okay
+            hospitalVisitId = originalEntity.getHospitalVisitId().getHospitalVisitId();
+        }
     }
 }

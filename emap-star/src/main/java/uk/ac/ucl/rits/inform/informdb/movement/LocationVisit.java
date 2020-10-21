@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
 
@@ -31,6 +33,10 @@ public class LocationVisit extends LocationVisitParent {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationVisitId;
+
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    private HospitalVisit hospitalVisitId;
 
     public LocationVisit() {
     }

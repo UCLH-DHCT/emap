@@ -1,11 +1,9 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
 import java.io.Serializable;
@@ -22,9 +20,7 @@ import java.util.Objects;
 public class LocationVisitParent extends TemporalCore<LocationVisitParent> implements Serializable {
     private static final long serialVersionUID = -8228844390430073225L;
 
-    @ManyToOne
-    @JoinColumn(name = "hospitalVisitId", nullable = false)
-    private HospitalVisit hospitalVisitId;
+
     private Long parentLocationVisitId;
 
     @Column(columnDefinition = "timestamp with time zone")
@@ -46,27 +42,11 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
 
     public LocationVisitParent(final LocationVisitParent other) {
         super(other);
-        this.hospitalVisitId = other.hospitalVisitId;
         this.parentLocationVisitId = other.parentLocationVisitId;
         this.sourceSystem = other.sourceSystem;
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
-    }
-
-
-    /**
-     * @return the parentHospitalVisitId
-     */
-    public HospitalVisit getHospitalVisitId() {
-        return hospitalVisitId;
-    }
-
-    /**
-     * @param hospitalVisitId the parentHospitalVisitId to set
-     */
-    public void setHospitalVisitId(HospitalVisit hospitalVisitId) {
-        this.hospitalVisitId = hospitalVisitId;
     }
 
     /**
@@ -153,8 +133,7 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
             return false;
         }
         LocationVisitParent that = (LocationVisitParent) o;
-        return hospitalVisitId == that.hospitalVisitId
-                && parentLocationVisitId == that.parentLocationVisitId
+        return parentLocationVisitId == that.parentLocationVisitId
                 && sourceSystem == that.sourceSystem
                 && Objects.equals(admissionTime, that.admissionTime)
                 && Objects.equals(dischargeTime, that.dischargeTime)
@@ -163,16 +142,14 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
 
     @Override
     public int hashCode() {
-        return Objects.hash(hospitalVisitId, parentLocationVisitId, sourceSystem, admissionTime, dischargeTime, locationId);
+        return Objects.hash(parentLocationVisitId, sourceSystem, admissionTime, dischargeTime, locationId);
     }
 
     @Override
     public String toString() {
         return new StringBuilder()
                 .append("LocationVisitParent{")
-                .append("hospitalVisitId=")
-                .append(hospitalVisitId)
-                .append(", parentLocationVisitId=")
+                .append("parentLocationVisitId=")
                 .append(parentLocationVisitId)
                 .append(", admissionTime=")
                 .append(admissionTime)
