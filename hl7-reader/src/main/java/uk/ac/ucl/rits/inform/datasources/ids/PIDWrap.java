@@ -113,11 +113,14 @@ interface PIDWrap {
 
     /**
      * Carry out timezone correction if the datetime is not truncated to the day.
-     * @return PID-7.1 birthdatetime
+     * @return PID-7.1 birthdatetime, null if field is empty
      * @throws DataTypeException if HAPI does
      */
     default Instant getPatientBirthDate() throws DataTypeException {
         DTM dateTime = getPID().getDateTimeOfBirth();
+        if (dateTime.getValue() == null) {
+            return null;
+        }
 
         if (isNotTruncatedToDay(dateTime)) {
             return HL7Utils.interpretLocalTime(dateTime);
@@ -126,8 +129,13 @@ interface PIDWrap {
         return dateTime.getValueAsDate().toInstant();
     }
 
-    private boolean isNotTruncatedToDay(DTM dateTime) throws DataTypeException {
-        return 0.0 != dateTime.getHour() + dateTime.getMinute() + dateTime.getSecond() + dateTime.getFractSecond();
+    /**
+     * Is the date time truncated to the day.
+     * @param dateTime date time object
+     * @return true if there is only year, month and day given
+     */
+    private boolean isNotTruncatedToDay(DTM dateTime) {
+        return dateTime.getValue().length() != 8;
     }
 
 
