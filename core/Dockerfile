@@ -1,6 +1,8 @@
 FROM maven:3.6.3-jdk-11-slim
 # Run commands through bash so source is found
 SHELL ["/bin/bash", "-c"]
+# Install zip & unzip for glowroot
+RUN apt update; apt install -yy zip
 WORKDIR /app
 # Set up the Maven proxy settings
 COPY Emap-Core/set_mvn_proxy.sh /app/
