@@ -34,7 +34,8 @@ hospitalService:
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "1980-01-01T00:00:00Z"
+  # Explicitly set as midnight in BST so should go back an hour.
+  value: "2000-06-01T23:00:00Z"
   status: "SAVE"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
