@@ -19,13 +19,10 @@ WORKDIR /app/Emap-Core
 # Download and extract glowroot
 RUN curl -s https://api.github.com/repos/glowroot/glowroot/releases/latest | grep browser_download_url | grep "\.zip" | grep -v "central" | cut -d '"' -f 4 | xargs curl -L -o glowroot.zip; unzip glowroot.zip
 COPY Emap-Core/glowroot.properties glowroot/glowroot.properties
-ARG GLOWROOT_USERNAME
-ARG GLOWROOT_PASSWORD
-RUN java -jar "glowroot/glowroot-central.jar" setup-admin-user "${GLOWROOT_USERNAME}" "${GLOWROOT_PASSWORD}"
 COPY Emap-Core/pom.xml /app/Emap-Core/
 RUN source /app/set_mvn_proxy.sh; mvn dependency:resolve -Pemapstar
 COPY Emap-Core/. /app/Emap-Core/
 # RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
 # -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
-CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/EmapCore.jar"]
+CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/Emap-Core.jar"]
