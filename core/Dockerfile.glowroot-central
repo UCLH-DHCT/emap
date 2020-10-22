@@ -1,7 +1,23 @@
-FROM glowroot/glowroot-central
+FROM maven:3.6.3-jdk-11-slim
+
+RUN apt update; apt install -yy zip
+
+WORKDIR /app
+
+RUN curl -s https://api.github.com/repos/glowroot/glowroot/releases/latest | grep browser_download_url | grep "\.zip" | grep "central" | cut -d '"' -f 4 | xargs curl -L -o glowroot.zip
+
+RUN unzip glowroot.zip
+
+WORKDIR /app/glowroot-central
 
 ARG DOMAIN
 RUN openssl req -new -x509 -nodes -days 365 -out ui-cert.pem -keyout ui-key.pem -subj "/C=GB/ST=London/L=London/O=UCLH/OU=CRIU/CN=${DOMAIN}"
 
 RUN sed -i "s/^ui.https=.*$/ui.https=true/" glowroot-central.properties
+RUN sed -i "s/^cassandra.contactPoints=$/cassandra.contactPoints=cassandra/" glowroot-central.properties
 
+# ARG GLOWROOT_USERNAME
+# ARG GLOWROOT_PASSWORD
+# RUN java -jar "glowroot-central.jar" setup-admin-user "${GLOWROOT_USERNAME}" "${GLOWROOT_PASSWORD}"
+
+CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseContainerSupport", "-jar", "glowroot-central.jar"]
