@@ -32,6 +32,7 @@ services:
     env_file:
       - ../config/glowroot-config-envs
     ports:
-      - "${GLOWROOT_PORT}:4000"
+      - "${GLOWROOT_PORT}:8181"
+      - "${GLOWROOT_ADMIN_PORT}:4000"
     restart: on-failure
 
