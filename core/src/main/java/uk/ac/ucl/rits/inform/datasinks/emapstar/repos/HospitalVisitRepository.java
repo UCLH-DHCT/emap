@@ -21,6 +21,7 @@ public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, I
 
     /**
      * @param mrnId Get visits by Mrn
+     * @param untilDate up to and including this instant
      * @return hospital visits
      */
     List<HospitalVisit> findAllByMrnIdAndValidFromIsLessThanEqual(Mrn mrnId, Instant untilDate);
