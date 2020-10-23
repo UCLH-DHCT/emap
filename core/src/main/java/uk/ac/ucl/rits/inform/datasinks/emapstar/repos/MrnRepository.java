@@ -11,19 +11,74 @@ import java.util.Optional;
  */
 public interface MrnRepository extends CrudRepository<Mrn, Integer> {
     /**
+     * Helper method to find MRNs (by mrn string and nhs number depending on what exists).
      * @param mrn       MRN string
      * @param nhsNumber NHS number
      * @return optional MRN
      */
-    Optional<Mrn> getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(String mrn, String nhsNumber);
+    default Optional<Mrn> findByMrnOrNhsNumber(String mrn, String nhsNumber) {
+        if (nhsNumber == null) {
+            return findByMrnEquals(mrn);
+        }
+        if (mrn == null) {
+            return findByNhsNumberEquals(nhsNumber);
+        }
+        return findByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrn, nhsNumber);
+    }
+
+    /**
+     * @param mrn MRN string
+     * @return optional MRN
+     */
+    Optional<Mrn> findByMrnEquals(String mrn);
+
+    /**
+     * @param nhsNumber NHS number
+     * @return optional MRN
+     */
+    Optional<Mrn> findByNhsNumberEquals(String nhsNumber);
+
+    /**
+     * @param mrn       MRN string
+     * @param nhsNumber NHS number
+     * @return optional MRN
+     */
+    Optional<Mrn> findByMrnEqualsOrMrnIsNullAndNhsNumberEquals(String mrn, String nhsNumber);
 
     /**
      * Get all MRNs which match by a non null MRN or a non null Nhs Number.
      * @param mrn       MRN string
      * @param nhsNumber NHS number
+     * @return optional MRN
+     */
+    default Optional<List<Mrn>> findAllByMrnOrNhsNumber(String mrn, String nhsNumber) {
+        if (nhsNumber == null) {
+            return findAllByMrnEquals(mrn);
+        }
+        if (mrn == null) {
+            return findAllByNhsNumberEquals(nhsNumber);
+        }
+        return findAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(mrn, nhsNumber);
+    }
+
+    /**
+     * @param mrn MRN string
      * @return optional MRNs
      */
-    Optional<List<Mrn>> getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(String mrn, String nhsNumber);
+    Optional<List<Mrn>> findAllByMrnEquals(String mrn);
+
+    /**
+     * @param nhsNumber NHS number
+     * @return optional MRNs
+     */
+    Optional<List<Mrn>> findAllByNhsNumberEquals(String nhsNumber);
+
+    /**
+     * @param mrn       MRN string
+     * @param nhsNumber NHS number
+     * @return optional MRNs
+     */
+    Optional<List<Mrn>> findAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(String mrn, String nhsNumber);
 
     /**
      * @param mrn MRN string
