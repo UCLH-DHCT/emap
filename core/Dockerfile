@@ -19,6 +19,7 @@ WORKDIR /app/Emap-Core
 # Download and extract glowroot
 RUN curl -s https://api.github.com/repos/glowroot/glowroot/releases/latest | grep browser_download_url | grep "\.zip" | grep -v "central" | cut -d '"' -f 4 | xargs curl -L -o glowroot.zip; unzip glowroot.zip
 COPY Emap-Core/glowroot.properties glowroot/glowroot.properties
+COPY Emap-Core/config.json glowroot/config.json
 COPY Emap-Core/pom.xml /app/Emap-Core/
 RUN source /app/set_mvn_proxy.sh; mvn dependency:resolve -Pemapstar
 COPY Emap-Core/. /app/Emap-Core/
