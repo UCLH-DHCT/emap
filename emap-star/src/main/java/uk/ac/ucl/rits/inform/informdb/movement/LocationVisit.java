@@ -43,10 +43,11 @@ public class LocationVisit extends LocationVisitParent {
 
     /**
      * Create new location visit with all required information.
-     * @param validFrom    Time of the message event
-     * @param storedFrom   Time that emap-core encountered the message
-     * @param location     Location
-     * @param sourceSystem source system
+     * @param validFrom     Time of the message event
+     * @param storedFrom    Time that emap-core encountered the message
+     * @param location      Location
+     * @param hospitalVisit Hospital visit
+     * @param sourceSystem  source system
      */
     public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit, String sourceSystem) {
         super();
