@@ -1,16 +1,17 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
-import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.Objects;
+
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 /**
  * Parent class that is not created as an entity to avoid polymorphic queries based on the original and audit table.
@@ -40,7 +41,7 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
     @Column(columnDefinition = "timestamp with time zone")
     private Instant datetimeOfDeath;
 
-    private boolean alive;
+    private Boolean alive;
     private String homePostcode;
     private String sex;
 
@@ -179,14 +180,14 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
     /**
      * @return the alive
      */
-    public boolean isAlive() {
+    public Boolean isAlive() {
         return alive;
     }
 
     /**
      * @param alive the alive to set
      */
-    public void setAlive(boolean alive) {
+    public void setAlive(Boolean alive) {
         this.alive = alive;
     }
 
