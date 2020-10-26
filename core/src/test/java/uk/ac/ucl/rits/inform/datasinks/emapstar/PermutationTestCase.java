@@ -53,7 +53,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             this::queueAdmitClass,
             this::queueVital,
             this::queuePatUpdateClass,
-            this::queueTransfer, this::queueCancelTransfer, this::queueDischarge };
+            this::queueTransfer,
+            this::queueCancelTransfer,
+            this::queueDischarge };
     @SuppressWarnings("unchecked")
     private Hl7Value<PatientClass>[] patientClass = new Hl7Value[] {
             new Hl7Value<>(PatientClass.EMERGENCY),

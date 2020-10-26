@@ -357,6 +357,8 @@ public abstract class MessageStreamBaseCase {
         AdmitPatient admit = new AdmitPatient();
         admit.setAdmissionDateTime(this.admissionTime);
         admit.setEventOccurredDateTime(eventTime);
+        admit.setRecordedDateTime(eventTime);
+        admit.setSourceSystem("VERY EPIC");
         admit.setMrn(this.mrn);
         admit.setVisitNumber(this.csn);
         admit.setPatientClass(this.getPatientClass());
@@ -408,6 +410,8 @@ public abstract class MessageStreamBaseCase {
         TransferPatient transfer = new TransferPatient();
         transfer.setAdmissionDateTime(this.admissionTime);
         transfer.setEventOccurredDateTime(tTime);
+        transfer.setRecordedDateTime(tTime);
+        transfer.setSourceSystem("VERY EPIC");
         transfer.setMrn(this.mrn);
         transfer.setVisitNumber(this.csn);
         transfer.setPatientClass(this.getPatientClass());
@@ -432,6 +436,8 @@ public abstract class MessageStreamBaseCase {
         }
 
         cancelAdmit.setEventOccurredDateTime(expectedCancellationDateTime);
+        cancelAdmit.setRecordedDateTime(expectedCancellationDateTime);
+        cancelAdmit.setSourceSystem("VERY EPIC");
         cancelAdmit.setMrn(this.mrn);
         cancelAdmit.setVisitNumber(this.csn);
         cancelAdmit.setPatientClass(this.getPatientClass());
@@ -467,6 +473,7 @@ public abstract class MessageStreamBaseCase {
         cancelTransfer.setCancelledDateTime(eventTime);
         cancelTransfer.setEventOccurredDateTime(erroneousTransferDateTime);
         cancelTransfer.setRecordedDateTime(eventTime);
+        cancelTransfer.setSourceSystem("VERY EPIC");
         cancelTransfer.setMrn(this.mrn);
         cancelTransfer.setVisitNumber(this.csn);
         cancelTransfer.setPatientClass(this.getPatientClass());
@@ -489,6 +496,8 @@ public abstract class MessageStreamBaseCase {
 
         discharge.setAdmissionDateTime(this.admissionTime);
         discharge.setEventOccurredDateTime(this.dischargeTime);
+        discharge.setRecordedDateTime(this.dischargeTime);
+        discharge.setSourceSystem("VERY EPIC");
         discharge.setMrn(this.mrn);
         discharge.setFullLocationString(currentLocation());
         discharge.setVisitNumber(this.csn);
@@ -507,9 +516,12 @@ public abstract class MessageStreamBaseCase {
      * Queue a cancel discharge message.
      */
     public void queueCancelDischarge() {
+        Instant eventTime = this.nextTime();
         this.ensureAdmitted();
         CancelDischargePatient cancelDischarge = new CancelDischargePatient();
-        cancelDischarge.setRecordedDateTime(this.nextTime());
+        cancelDischarge.setEventOccurredDateTime(eventTime);
+        cancelDischarge.setRecordedDateTime(eventTime);
+        cancelDischarge.setSourceSystem("VERY EPIC");
         cancelDischarge.setMrn(this.mrn);
         cancelDischarge.setVisitNumber(this.csn);
         cancelDischarge.setPatientClass(this.getPatientClass());
@@ -529,9 +541,13 @@ public abstract class MessageStreamBaseCase {
      * @param survivingMrn The mrn that will be used going forwards
      */
     public void queueMerge(String mergedMrn, String survivingMrn) {
+        Instant eventTime = this.nextTime();
+
         MergePatient merge = new MergePatient();
 
-        merge.setRecordedDateTime(this.nextTime());
+        merge.setSourceSystem("VERY EPIC");
+        merge.setEventOccurredDateTime(eventTime);
+        merge.setRecordedDateTime(eventTime);
         merge.setMrn(survivingMrn);
         merge.setPreviousMrn(mergedMrn);
 
