@@ -194,6 +194,9 @@ public class AdtMessageFactory {
                 break;
             case "A04":
                 //3
+                if ("ENC_CREATE".equals(evn.getEvn4_EventReasonCode().getValueOrEmpty())) {
+                    throw new Hl7MessageNotImplementedException("ENC_CREATE not implemented");
+                }
                 RegisterPatient registerPatient = new RegisterPatient();
                 registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = registerPatient;
