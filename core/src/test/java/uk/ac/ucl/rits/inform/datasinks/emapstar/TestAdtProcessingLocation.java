@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 
 import java.time.Instant;
+import java.util.Optional;
 
 class TestAdtProcessingLocation extends MessageProcessingBase {
     @Autowired
@@ -69,6 +70,59 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // audit row for location when it had no discharge time
         AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNull(audit.getDischargeTime());
+    }
+
+    /**
+     * Visit and location visit already exist in the database, old message given.
+     * Should do nothing to location
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testOldMessageDoesNotMoveLocation() throws EmapOperationMessageProcessingException {
+        TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
+        msg.setEventOccurredDateTime(past);
+        dbOps.processMessage(msg);
+
+        // current db location visit has not been discharged
+        LocationVisit visit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNull(visit.getDischargeTime());
+
+        // audit row for location when it had no discharge time
+        Optional<AuditLocationVisit> audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation);
+        Assertions.assertTrue(audit.isEmpty());
+    }
+
+    /**
+     * Visit and location visit already exist in the database, old message given.
+     * Should do nothing to location
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testTrustedMessageUpdatedUntrustedLocation() throws EmapOperationMessageProcessingException {
+        TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
+        msg.setEventOccurredDateTime(past);
+        msg.setMrn("60600000");
+        msg.setNhsNumber("1111111111");
+        msg.setVisitNumber("1234567890");
+        String untrustedLocation = "T11E^T11E BY02^BY02-17";
+
+        dbOps.processMessage(msg);
+
+        // original location visit is discharged
+        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNotNull(dischargedVisit.getDischargeTime());
+
+        // current location visit is different
+        LocationVisit currentVisit = locationVisitRepository
+                .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
+                .orElseThrow(NullPointerException::new);
+        Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocation().getLocationString());
+
+        // audit row for location when it had no discharge time
+        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 

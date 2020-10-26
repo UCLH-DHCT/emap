@@ -38,8 +38,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
     AuditHospitalVisitRepository auditHospitalVisitRepository;
 
-    private Instant past = Instant.parse("2000-01-01T01:01:01Z");
-
     private List<HospitalVisit> getAllHospitalVisits() {
         return StreamSupport.stream(hospitalVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }

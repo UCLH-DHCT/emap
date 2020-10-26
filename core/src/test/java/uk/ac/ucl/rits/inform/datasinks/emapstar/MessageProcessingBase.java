@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -36,8 +37,10 @@ public abstract class MessageProcessingBase {
     @Autowired
     protected InformDbOperations dbOps;
 
-    protected final String defaultMrn = "40800000";
-    protected final String defaultEncounter = "123412341234";
+    final String defaultMrn = "40800000";
+    final String defaultEncounter = "123412341234";
+    final Instant past = Instant.parse("2000-01-01T01:01:01Z");
+
 
     protected final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
 

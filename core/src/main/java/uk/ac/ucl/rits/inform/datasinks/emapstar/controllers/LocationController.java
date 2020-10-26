@@ -105,10 +105,22 @@ public class LocationController {
                 });
     }
 
+    /**
+     * Update location visit if message is from a trusted source update if newer or if database source isn't trusted.
+     * Otherwise only update if if is newly created.
+     * @param locationState Location Visit wrapped in RowState
+     * @param msg           Adt Message
+     * @return true if the visit should be updated
+     */
     private boolean locationVisitShouldBeUpdated(RowState<LocationVisit> locationState, AdtMessage msg) {
-        // location visit is not created
-        // message valid from is the same or newer than the current locationState or current entity is not from a trusted source
-        return true;
+        // always update if a message is created
+        if (locationState.isEntityCreated()) {
+            return true;
+        }
+        LocationVisit visit = locationState.getEntity();
+        // if message source is trusted and (entity source system is untrusted or message is newer)
+        return DataSources.isTrusted(msg.getSourceSystem())
+                && (!DataSources.isTrusted(visit.getSourceSystem()) || !visit.getValidFrom().isAfter(msg.bestGuessAtValidFrom()));
     }
 
 
@@ -133,6 +145,7 @@ public class LocationController {
         retiringState.assignIfDifferent(validFrom, retiring.getDischargeTime(), retiring::setDischargeTime);
 
         LocationVisit newLocation = new LocationVisit(validFrom, storedFrom, locationEntity, visit, sourceSystem);
+        logger.debug("New visit: {}", newLocation);
         locationVisitRepo.save(newLocation);
     }
 
