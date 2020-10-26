@@ -133,11 +133,11 @@ public class VisitController {
             } else if (msg instanceof DischargePatient) {
                 addDischargeInformation((DischargePatient) msg, visitState);
             } else if (msg instanceof CancelDischargePatient) {
-                removeDischargeInformation((CancelDischargePatient) msg, visitState);
+                removeDischargeInformation((AdtCancellation) msg, visitState);
             } else if (msg instanceof AdmissionDateTime) {
                 addAdmissionDateTime((AdmissionDateTime) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
-                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
+                removeAdmissionInformation((AdtCancellation) msg, visitState);
             }
         }
         addPresentationOrAdmissionTimeIfMissing(msg, visitState);
@@ -170,7 +170,7 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param messageSource   Source system from the message
      * @param visitState      visit wrapped in state class
-     * @return true if the visit should not be updated
+     * @return true if the visit should be updated
      */
     private boolean visitShouldBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
         // always update if a message is created
@@ -188,7 +188,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    public void updateGenericData(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+    private void updateGenericData(final AdtMessage msg, RowState<HospitalVisit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
         visitState.assignHl7ValueIfDifferent(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
@@ -267,7 +267,7 @@ public class VisitController {
      * @param validFrom  Time of the delete information message
      * @param storedFrom time that emap-core started processing the message.
      */
-    public void deleteVisits(List<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
+    public void deleteVisits(Iterable<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
         for (HospitalVisit visit : visits) {
             auditHospitalVisitRepo.save(new AuditHospitalVisit(visit, validFrom, storedFrom));
             hospitalVisitRepo.delete(visit);

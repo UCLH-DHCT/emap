@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
@@ -60,10 +59,9 @@ public class PersonController {
      * @param msg          Merge message
      * @param survivingMrn live MRN to merge into
      * @param storedFrom   when the message has been read by emap core
-     * @throws MessageIgnoredException if no retiring mrn information
      */
     @Transactional
-    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws MessageIgnoredException {
+    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) {
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
                 .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber())

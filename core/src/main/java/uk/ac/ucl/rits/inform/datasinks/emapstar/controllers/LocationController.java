@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditLocationVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
@@ -49,7 +50,7 @@ public class LocationController {
      * @param storedFrom when the message has been read by emap core
      */
     @Transactional
-    public void updateOrCreateVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom) {
+    public void processVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom) {
         if (visit == null || msg.getFullLocationString().isUnknown()) {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
@@ -64,8 +65,7 @@ public class LocationController {
                 // cancel messages etc.
                 updateLocation(msg, existingLocationState);
             } else if (isNewLocationDifferent(locationEntity, originalLocationVisit)) {
-                LocationVisit newLocationVisit = moveToNewLocation(
-                        msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
+                moveToNewLocation(msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
             }
             manuallySaveLocationOrAuditIfRequired(originalLocationVisit, existingLocationState, validFrom, storedFrom);
         }
@@ -125,16 +125,15 @@ public class LocationController {
      * @param validFrom      Time of the message event
      * @param storedFrom     Time that emap-core encountered the message
      * @param retiringState  RowState of the retiring location visit
-     * @return new location entity
      */
-    private LocationVisit moveToNewLocation(String sourceSystem, Location locationEntity, HospitalVisit visit,
-                                            Instant validFrom, Instant storedFrom, RowState<LocationVisit> retiringState) {
+    private void moveToNewLocation(String sourceSystem, Location locationEntity, HospitalVisit visit,
+                                   Instant validFrom, Instant storedFrom, RowState<LocationVisit> retiringState) {
         LocationVisit retiring = retiringState.getEntity();
         logger.debug("Discharging visit: {}", retiring);
         retiringState.assignIfDifferent(validFrom, retiring.getDischargeTime(), retiring::setDischargeTime);
 
         LocationVisit newLocation = new LocationVisit(validFrom, storedFrom, locationEntity, visit, sourceSystem);
-        return locationVisitRepo.save(newLocation);
+        locationVisitRepo.save(newLocation);
     }
 
     /**
@@ -152,6 +151,13 @@ public class LocationController {
         // update the source, admission and discharge datetime here too
     }
 
+    /**
+     * Save location or audit of location.
+     * @param originalLocation original location entity
+     * @param locationState    Location Visit wrapped in RowState
+     * @param validFrom        Time of the message event
+     * @param storedFrom       Time that emap-core encountered the message
+     */
     private void manuallySaveLocationOrAuditIfRequired(LocationVisit originalLocation, RowState<LocationVisit> locationState,
                                                        Instant validFrom, Instant storedFrom) {
         AuditLocationVisit auditLocation = new AuditLocationVisit(originalLocation, validFrom, storedFrom);
