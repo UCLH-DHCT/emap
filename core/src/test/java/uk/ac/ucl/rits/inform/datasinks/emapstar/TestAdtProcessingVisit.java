@@ -231,13 +231,13 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
-    public void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws EmapOperationMessageProcessingException {
+    @Sql("/populate_db.sql")
+    void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String untrustedEncounter = "0999999999";
         msg.setVisitNumber(untrustedEncounter);
-        msg.setMrn("30700000");
-        msg.setNhsNumber(null);
+        msg.setMrn(null);
+        msg.setNhsNumber("222222222");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(past);
 
