@@ -121,28 +121,45 @@ public class VisitController {
         }
         Instant validFrom = getValidFrom(msg);
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
-
-        if (visitShouldNotBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
-            return visitState.getEntity();
-        }
-
         final HospitalVisit originalVisit = visitState.getEntity().copy();
-        updateGenericData(msg, visitState);
 
-        // process message based on the class type
-        if (msg instanceof RegisterPatient) {
-            addRegistrationInformation((RegisterPatient) msg, visitState);
-        } else if (msg instanceof DischargePatient) {
-            addDischargeInformation((DischargePatient) msg, visitState);
-        } else if (msg instanceof CancelDischargePatient) {
-            removeDischargeInformation((CancelDischargePatient) msg, visitState);
-        } else if (msg instanceof AdmissionDateTime) {
-            addAdmissionDateTime((AdmissionDateTime) msg, visitState);
-        } else if (msg instanceof CancelAdmitPatient) {
-            removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
+        if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
+            updateGenericData(msg, visitState);
+
+            // process message based on the class type
+            if (msg instanceof RegisterPatient) {
+                addRegistrationInformation((RegisterPatient) msg, visitState);
+            } else if (msg instanceof DischargePatient) {
+                addDischargeInformation((DischargePatient) msg, visitState);
+            } else if (msg instanceof CancelDischargePatient) {
+                removeDischargeInformation((CancelDischargePatient) msg, visitState);
+            } else if (msg instanceof AdmissionDateTime) {
+                addAdmissionDateTime((AdmissionDateTime) msg, visitState);
+            } else if (msg instanceof CancelAdmitPatient) {
+                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
+            }
         }
+        addPresentationOrAdmissionTimeIfMissing(msg, visitState);
         manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         return visitState.getEntity();
+    }
+
+    /**
+     * For mid-stream running, add in presentation and admission time if these have been missed, regardless of the valid from date.
+     * Common with A08 messages without an event occurred date time, this causes a later valid from date to be set and valid updates will be skipped.
+     * @param msg        adt message
+     * @param visitState visit wrapped in state class
+     */
+    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+        if (!DataSources.isTrusted(msg.getSourceSystem())) {
+            return;
+        }
+
+        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null) {
+            addAdmissionDateTime((AdmissionDateTime) msg, visitState);
+        } else if (msg instanceof RegisterPatient && visitState.getEntity().getPresentationTime() == null) {
+            addRegistrationInformation((RegisterPatient) msg, visitState);
+        }
     }
 
     /**
@@ -162,17 +179,15 @@ public class VisitController {
      * @param visitState      visit wrapped in state class
      * @return true if the visit should not be updated
      */
-    private boolean visitShouldNotBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
+    private boolean visitShouldBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
         // always update if a message is created
         if (visitState.isEntityCreated()) {
-            return false;
+            return true;
         }
         HospitalVisit visit = visitState.getEntity();
-        // don't update if message source is not trusted
-        return !DataSources.isTrusted(messageSource)
-                // don't update if existing entity source is trusted and existing entity is after the message.
-                // Otherwise update (if message source is trusted and (message is newer or entity source system is untrusted))
-                || (DataSources.isTrusted(visit.getSourceSystem()) && visit.getValidFrom().isAfter(messageDateTime));
+        // if message source is trusted and (entity source system is untrusted or message is newer)
+        return DataSources.isTrusted(messageSource)
+                && (!DataSources.isTrusted(visit.getSourceSystem()) || !visit.getValidFrom().isAfter(messageDateTime));
     }
 
     /**
@@ -315,19 +330,17 @@ public class VisitController {
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
                 msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
-        if (visitShouldNotBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
-            return visitState.getEntity();
+        if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
+            final HospitalVisit originalVisit = visitState.getEntity().copy();
+            updateGenericData(msg, visitState);
+            // move the encounter and MRN to the correct value
+            HospitalVisit visit = visitState.getEntity();
+            visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
+            visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
+
+            manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
-
-        final HospitalVisit originalVisit = visitState.getEntity().copy();
-        updateGenericData(msg, visitState);
-        // move the encounter and MRN to the correct value
-        HospitalVisit visit = visitState.getEntity();
-        visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
-        visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
-
-        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
-        return visit;
+        return visitState.getEntity();
     }
 
     /**

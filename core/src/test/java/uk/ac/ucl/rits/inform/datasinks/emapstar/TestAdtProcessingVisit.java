@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -190,20 +191,83 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
 
     /**
-     * Database has newer information than the message, and the message source is trusted
+     * Database has newer information than the message, but no admission time and the message source is trusted
+     * Admit message should only update the admission time.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
-    public void testOlderMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
+    @Sql("/populate_db.sql")
+    void testOlderAdmitMessageUpdatesAdmissionTimeOnly() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
 
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        // admission time should be updated because it is null
+        Assertions.assertNotNull(visit.getAdmissionTime());
+        // arrival method should not be updated from the message
+        Assertions.assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
+    }
+
+    /**
+     * Database has newer information than the message (including admission time) and the message source is trusted
+     * Admit message should not update the admission time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testOlderAdmitMessageDoesntUpdateExistingAdmissionTime() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+        msg.setRecordedDateTime(past);
+        msg.setEventOccurredDateTime(null);
+        msg.setVisitNumber("1234567890");
+        msg.setMrn("60600000");
+
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
-        assertNull(visit.getAdmissionTime());
+        Assertions.assertNotEquals(msg.getAdmissionDateTime(), visit.getAdmissionTime());
+    }
+
+    /**
+     * Database has newer information than the message, but no presentation time and the message source is trusted
+     * Register message should only update the presentation time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testOlderRegisterMessageUpdatesPresentationTimeOnly() throws EmapOperationMessageProcessingException {
+        RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
+        msg.setRecordedDateTime(past);
+        msg.setEventOccurredDateTime(null);
+
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        // admission time should be updated because it is null
+        Assertions.assertNotNull(visit.getPresentationTime());
+        // arrival method should not be updated from the message
+        Assertions.assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
+    }
+
+    /**
+     * Database has newer information than the message (including presentation time) and the message source is trusted
+     * Register message should not update the presentation time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testOlderRegisterMessageDoesntUpdateExistingPresentationTime() throws EmapOperationMessageProcessingException {
+        RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
+        msg.setRecordedDateTime(past);
+        msg.setEventOccurredDateTime(null);
+        msg.setVisitNumber("1234567890");
+        msg.setMrn("60600000");
+
+        dbOps.processMessage(msg);
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        // admission time should not be updated
+        Assertions.assertNotEquals(msg.getPresentationDateTime(), visit.getPresentationTime());
     }
 
     /**
@@ -231,13 +295,13 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
-    public void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws EmapOperationMessageProcessingException {
+    @Sql("/populate_db.sql")
+    void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String untrustedEncounter = "0999999999";
         msg.setVisitNumber(untrustedEncounter);
-        msg.setMrn("30700000");
-        msg.setNhsNumber(null);
+        msg.setMrn(null);
+        msg.setNhsNumber("222222222");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(past);
 
