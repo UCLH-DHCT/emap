@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.time.Instant;
 
 /**
@@ -18,6 +20,7 @@ import java.time.Instant;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class AuditMrnToLive extends MrnToLiveParent implements AuditCore<MrnToLiveParent> {
 
     private static final long serialVersionUID = 8891761742756656453L;

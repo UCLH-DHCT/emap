@@ -20,7 +20,6 @@ import java.time.Instant;
  * @author UCL RITS
  */
 @MappedSuperclass
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class TemporalCore<T extends TemporalCore<T>> {
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")

@@ -10,6 +10,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.time.Instant;
 
 /**
@@ -19,6 +21,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore<HospitalVisitParent> {
     private static final long serialVersionUID = -8516988957488992519L;
     @Id

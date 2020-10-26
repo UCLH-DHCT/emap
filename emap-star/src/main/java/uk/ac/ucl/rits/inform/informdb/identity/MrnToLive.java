@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
 /**
  * Over time MRNs are merged into others as more is found out about a patient.
@@ -17,6 +19,7 @@ import javax.persistence.Id;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class MrnToLive extends MrnToLiveParent {
 
     private static final long serialVersionUID = 8891761742756656453L;

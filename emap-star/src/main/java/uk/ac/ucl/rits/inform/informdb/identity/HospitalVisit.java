@@ -10,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 
 /**
@@ -22,6 +24,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Table(indexes = {@Index(name = "encounterIndex", columnList = "encounter", unique = false)})
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class HospitalVisit extends HospitalVisitParent {
 
     private static final long serialVersionUID = -6495238097074592105L;

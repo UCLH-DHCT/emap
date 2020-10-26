@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import java.time.Instant;
 
@@ -19,6 +21,7 @@ import java.time.Instant;
 @Table
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class AuditLocationVisit extends LocationVisitParent implements AuditCore<LocationVisitParent> {
     private static final long serialVersionUID = 5021782039578121716L;
     @Id

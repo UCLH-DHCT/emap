@@ -16,7 +16,6 @@ import java.io.Serializable;
  * @author UCL RITS
  */
 @MappedSuperclass
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
