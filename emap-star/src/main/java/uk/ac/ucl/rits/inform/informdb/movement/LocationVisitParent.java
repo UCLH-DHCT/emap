@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author UCL RITS
  */
 @MappedSuperclass
-public class LocationVisitParent extends TemporalCore<LocationVisitParent> implements Serializable {
+public abstract class LocationVisitParent extends TemporalCore<LocationVisitParent> implements Serializable {
     private static final long serialVersionUID = -8228844390430073225L;
 
 
@@ -117,11 +117,6 @@ public class LocationVisitParent extends TemporalCore<LocationVisitParent> imple
      */
     public void setLocation(Location locationId) {
         this.locationId = locationId;
-    }
-
-    @Override
-    public LocationVisitParent copy() {
-        return new LocationVisitParent(this);
     }
 
     @Override

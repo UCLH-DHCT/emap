@@ -53,10 +53,10 @@ public class HospitalVisit extends HospitalVisitParent {
      * Build a hospital visit from an existing object.
      * @param other hospital visit
      */
-    public HospitalVisit(HospitalVisit other) {
+    private HospitalVisit(HospitalVisit other) {
         super(other);
-        hospitalVisitId = other.getHospitalVisitId();
-        encounter = other.getEncounter();
+        hospitalVisitId = other.hospitalVisitId;
+        encounter = other.encounter;
     }
 
     /**

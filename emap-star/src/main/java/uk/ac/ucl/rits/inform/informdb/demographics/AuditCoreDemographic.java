@@ -41,6 +41,10 @@ public class AuditCoreDemographic extends CoreDemographicParent implements Audit
     public AuditCoreDemographic() {
     }
 
+    private AuditCoreDemographic(AuditCoreDemographic other) {
+        super(other);
+    }
+
     /**
      * Constructor from original entity and invalidation times.
      * @param originalEntity original entity to be audited.
@@ -53,5 +57,10 @@ public class AuditCoreDemographic extends CoreDemographicParent implements Audit
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
         this.coreDemographicId = originalEntity.getCoreDemographicId();
+    }
+
+    @Override
+    public AuditCoreDemographic copy() {
+        return new AuditCoreDemographic(this);
     }
 }

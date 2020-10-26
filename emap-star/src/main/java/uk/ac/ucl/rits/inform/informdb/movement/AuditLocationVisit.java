@@ -42,6 +42,10 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
     public AuditLocationVisit() {
     }
 
+    private AuditLocationVisit(AuditLocationVisit other) {
+        super(other);
+    }
+
     /**
      * Constructor from original entity and invalidation times.
      * @param originalEntity original entity to be audited.
@@ -58,5 +62,10 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
             // If newly created, won't have a hospital visit Id yet - but also audit won't be saved so that's okay
             hospitalVisitId = originalEntity.getHospitalVisitId().getHospitalVisitId();
         }
+    }
+
+    @Override
+    public AuditLocationVisit copy() {
+        return new AuditLocationVisit(this);
     }
 }

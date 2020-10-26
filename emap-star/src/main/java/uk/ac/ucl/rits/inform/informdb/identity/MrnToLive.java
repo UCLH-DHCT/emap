@@ -30,10 +30,10 @@ public class MrnToLive extends MrnToLiveParent {
 
     public MrnToLive() {}
 
-    public MrnToLive(MrnToLive other) {
+    private MrnToLive(MrnToLive other) {
         super(other);
-        this.setMrnId(other.getMrnId());
-        this.setLiveMrnId(other.getLiveMrnId());
+        setMrnId(other.getMrnId());
+        setLiveMrnId(other.getLiveMrnId());
     }
 
     @Override

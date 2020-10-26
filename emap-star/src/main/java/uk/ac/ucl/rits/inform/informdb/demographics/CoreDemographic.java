@@ -48,9 +48,9 @@ public class CoreDemographic extends CoreDemographicParent {
      * Copy constructor.
      * @param other other demographic.
      */
-    public CoreDemographic(CoreDemographic other) {
+    private CoreDemographic(CoreDemographic other) {
         super(other);
-        coreDemographicId = other.getCoreDemographicId();
+        coreDemographicId = other.coreDemographicId;
     }
 
     @Override

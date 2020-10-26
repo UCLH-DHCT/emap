@@ -43,6 +43,11 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
     public AuditHospitalVisit() {
     }
 
+    private AuditHospitalVisit(AuditHospitalVisit other) {
+        super(other);
+    }
+
+
     /**
      * Constructor from original entity and invalidation times.
      * @param originalEntity original entity to be audited.
@@ -59,5 +64,10 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
             this.hospitalVisitId = originalEntity.getHospitalVisitId();
         }
         this.encounter = originalEntity.getEncounter();
+    }
+
+    @Override
+    public AuditHospitalVisit copy() {
+        return new AuditHospitalVisit(this);
     }
 }

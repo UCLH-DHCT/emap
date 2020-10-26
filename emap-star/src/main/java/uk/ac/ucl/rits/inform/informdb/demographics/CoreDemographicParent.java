@@ -19,7 +19,7 @@ import java.util.Objects;
  * @author UCL RITS
  */
 @MappedSuperclass
-public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> implements Serializable {
+public abstract class CoreDemographicParent extends TemporalCore<CoreDemographicParent> implements Serializable {
 
     private static final long serialVersionUID = -8269778602198494673L;
 
@@ -216,11 +216,6 @@ public class CoreDemographicParent extends TemporalCore<CoreDemographicParent> i
      */
     public void setSex(String sex) {
         this.sex = sex;
-    }
-
-    @Override
-    public CoreDemographicParent copy() {
-        return new CoreDemographicParent(this);
     }
 
     @Override

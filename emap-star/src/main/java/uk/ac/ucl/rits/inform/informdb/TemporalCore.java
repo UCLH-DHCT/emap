@@ -1,8 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import javax.persistence.Column;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.MappedSuperclass;
 import java.time.Instant;
 

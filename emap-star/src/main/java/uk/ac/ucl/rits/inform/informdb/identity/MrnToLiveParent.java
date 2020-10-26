@@ -3,8 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.identity;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -16,7 +14,7 @@ import java.io.Serializable;
  * @author UCL RITS
  */
 @MappedSuperclass
-public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
+public abstract class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
 
@@ -30,7 +28,7 @@ public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Se
 
     public MrnToLiveParent() {}
 
-    public MrnToLiveParent(MrnToLiveParent other) {
+    private MrnToLiveParent(MrnToLiveParent other) {
         super(other);
         this.mrnId = other.mrnId;
         this.liveMrnId = other.liveMrnId;
@@ -68,10 +66,4 @@ public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Se
     public String toString() {
         return String.format("MrnToLive [mrn_id=%s, live_mrn_id=%s]", mrnId, liveMrnId);
     }
-
-    @Override
-    public MrnToLiveParent copy() {
-        return new MrnToLiveParent(this);
-    }
-
 }

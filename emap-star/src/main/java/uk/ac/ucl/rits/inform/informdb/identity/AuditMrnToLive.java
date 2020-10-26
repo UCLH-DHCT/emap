@@ -40,6 +40,15 @@ public class AuditMrnToLive extends MrnToLiveParent implements AuditCore<MrnToLi
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        this.mrnToLiveId = originalEntity.getMrnToLiveId();
+        mrnToLiveId = originalEntity.getMrnToLiveId();
+    }
+
+    private AuditMrnToLive(AuditMrnToLive other) {
+        super(other);
+    }
+
+    @Override
+    public AuditMrnToLive copy() {
+        return new AuditMrnToLive(this);
     }
 }
