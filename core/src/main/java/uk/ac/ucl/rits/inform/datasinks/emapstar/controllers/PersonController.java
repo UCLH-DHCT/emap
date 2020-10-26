@@ -64,12 +64,9 @@ public class PersonController {
      */
     @Transactional
     public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws MessageIgnoredException {
-        if (msg.getPreviousMrn() == null && msg.getPreviousNhsNumber() == null) {
-            throw new MessageIgnoredException(String.format("Retiring MRN's Mrn string and NHS number were null: %s", msg));
-        }
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
-                .getAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
+                .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
                 .orElseGet(() -> List.of(createNewLiveMrn(
                         msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)));
         // change all live mrns from original mrn to surviving mrn
@@ -120,7 +117,7 @@ public class PersonController {
     public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
                               final Instant storedFrom) {
         return mrnRepo
-                .getByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrnString, nhsNumber)
+                .findByMrnOrNhsNumber(mrnString, nhsNumber)
                 // mrn exists, get the live mrn
                 .map(mrn1 -> mrnToLiveRepo.getByMrnIdEquals(mrn1).getLiveMrnId())
                 // otherwise create new mrn and mrn_to_live row

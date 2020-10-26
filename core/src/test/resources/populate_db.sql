@@ -36,7 +36,7 @@ INSERT INTO public.hospital_visit (
         (4002, '2010-09-03 10:05:04.794000', '2010-09-03 11:04:04.794000', '2010-09-03 11:04:04.794000', 'Ambulance', null, null,
          null, '1234567890', 'EMERGENCY', '2012-09-17 13:15:00', 'EPIC', 1002),
         (4003, '2010-06-17 13:25:00.650000', '2010-02-16 10:00:52.000000', null, null, null, null,
-         null, '0999999999', null, null, 'WinPath', 1003);
+         null, '0999999999', null, null, 'WinPath', 1004);
 
 
 INSERT INTO public.location (location_id, location_string) VALUES
