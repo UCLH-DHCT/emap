@@ -121,9 +121,9 @@ public class VisitController {
         }
         Instant validFrom = getValidFrom(msg);
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
+        final HospitalVisit originalVisit = visitState.getEntity().copy();
 
         if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
-            final HospitalVisit originalVisit = visitState.getEntity().copy();
             updateGenericData(msg, visitState);
 
             // process message based on the class type
@@ -138,10 +138,28 @@ public class VisitController {
             } else if (msg instanceof CancelAdmitPatient) {
                 removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
             }
-            manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        }
+        addPresentationOrAdmissionTimeIfMissing(msg, visitState);
+        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        return visitState.getEntity();
+    }
+
+    /**
+     * For mid-stream running, add in presentation and admission time if these have been missed, regardless of the valid from date.
+     * Common with A08 messages without an event occurred date time, this causes a later valid from date to be set and valid updates will be skipped.
+     * @param msg        adt message
+     * @param visitState visit wrapped in state class
+     */
+    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+        if (!DataSources.isTrusted(msg.getSourceSystem())) {
+            return;
         }
 
-        return visitState.getEntity();
+        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null) {
+            addAdmissionDateTime((AdmissionDateTime) msg, visitState);
+        } else if (msg instanceof RegisterPatient && visitState.getEntity().getPresentationTime() == null) {
+            addRegistrationInformation((RegisterPatient) msg, visitState);
+        }
     }
 
     /**
