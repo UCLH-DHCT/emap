@@ -64,9 +64,6 @@ public class PersonController {
      */
     @Transactional
     public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws MessageIgnoredException {
-        if (msg.getPreviousMrn() == null && msg.getPreviousNhsNumber() == null) {
-            throw new MessageIgnoredException(String.format("Retiring MRN's Mrn string and NHS number were null: %s", msg));
-        }
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
                 .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber())

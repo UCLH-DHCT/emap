@@ -15,8 +15,12 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      * @param mrn       MRN string
      * @param nhsNumber NHS number
      * @return optional MRN
+     * @throws IllegalArgumentException if mrn and nhsNumber are both null
      */
-    default Optional<Mrn> findByMrnOrNhsNumber(String mrn, String nhsNumber) {
+    default Optional<Mrn> findByMrnOrNhsNumber(String mrn, String nhsNumber) throws IllegalArgumentException {
+        if (mrn == null && nhsNumber == null) {
+            throw new IllegalArgumentException("Both the Mrn and NHS number can't be null");
+        }
         if (nhsNumber == null) {
             return findByMrnEquals(mrn);
         }
@@ -50,8 +54,12 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      * @param mrn       MRN string
      * @param nhsNumber NHS number
      * @return optional MRN
+     * @throws IllegalArgumentException if mrn and nhsNumber are both null
      */
-    default Optional<List<Mrn>> findAllByMrnOrNhsNumber(String mrn, String nhsNumber) {
+    default Optional<List<Mrn>> findAllByMrnOrNhsNumber(String mrn, String nhsNumber) throws IllegalArgumentException {
+        if (mrn == null && nhsNumber == null) {
+            throw new IllegalArgumentException("Both the Mrn and NHS number can't be null");
+        }
         if (nhsNumber == null) {
             return findAllByMrnEquals(mrn);
         }
