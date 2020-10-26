@@ -28,7 +28,7 @@ public abstract class MrnToLiveParent extends TemporalCore<MrnToLiveParent> impl
 
     public MrnToLiveParent() {}
 
-    private MrnToLiveParent(MrnToLiveParent other) {
+    public MrnToLiveParent(MrnToLiveParent other) {
         super(other);
         this.mrnId = other.mrnId;
         this.liveMrnId = other.liveMrnId;
