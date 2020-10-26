@@ -14,6 +14,9 @@ services:
     logging:
       driver: "json-file"
     restart: on-failure
+    depends_on:
+        - glowroot-central
+        - rabbitmq
   rabbitmq:
     image: rabbitmq:management
     env_file:
@@ -22,3 +25,24 @@ services:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_ADMIN_PORT}:15672"
     restart: on-failure
+  cassandra:
+    image: cassandra
+    restart: on-failure
+  glowroot-central:
+    build:
+      context: ..
+      dockerfile: Emap-Core/Dockerfile.glowroot-central
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        http_proxy: ${http_proxy}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        https_proxy: ${https_proxy}
+    env_file:
+      - ../config/glowroot-config-envs
+    ports:
+      - "${GLOWROOT_PORT}:8181"
+      - "${GLOWROOT_ADMIN_PORT}:4000"
+    restart: on-failure
+    depends_on:
+       - cassandra
+

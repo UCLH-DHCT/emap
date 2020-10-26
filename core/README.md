@@ -62,6 +62,17 @@ This container is defined in a separate docker-compose file, so you need to spec
 
 `docker-compose -f docker-compose.yml -f docker-compose.fakeuds.yml -p emaplive up --build -d`
 
+## Password protecting Glowroot
+
+Glowroot central requires cassandra to be running in order to set up a password.
+It must also be done prior to the first run. Hence it cannot be done in the
+Dockerfile. Instead, prior to bringing up emap you should use the `emap.sh`
+script to intialise glowroot-central with the following:
+
+```
+Emap-Core/emap.sh run glowroot-central java -jar "glowroot-central.jar" setup-admin-user "${GLOWROOT_USERNAME}" "${GLOWROOT_PASSWORD}"
+```
+
 ## `emap.sh` script and Emap-in-a-box
 
 To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
