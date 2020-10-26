@@ -253,8 +253,6 @@ public class AdtMessageFactory {
                 msg = changePatientIdentifiers;
                 break;
             default:
-                // to keep processes running even if it does not build a valid interchange message, delay exception
-                // and create default message type
                 throw new Hl7MessageNotImplementedException(String.format("Unimplemented ADT trigger event %s", triggerEvent));
         }
         return msg;
