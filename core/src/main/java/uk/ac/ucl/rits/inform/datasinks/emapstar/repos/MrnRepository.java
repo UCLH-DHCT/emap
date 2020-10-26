@@ -66,7 +66,7 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
         if (mrn == null) {
             return findAllByNhsNumberEquals(nhsNumber);
         }
-        return findAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(mrn, nhsNumber);
+        return findAllByMrnEqualsOrNhsNumberEquals(mrn, nhsNumber);
     }
 
     /**
@@ -86,7 +86,7 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      * @param nhsNumber NHS number
      * @return optional MRNs
      */
-    Optional<List<Mrn>> findAllByMrnIsNotNullAndMrnEqualsOrNhsNumberIsNotNullAndNhsNumberEquals(String mrn, String nhsNumber);
+    Optional<List<Mrn>> findAllByMrnEqualsOrNhsNumberEquals(String mrn, String nhsNumber);
 
     /**
      * @param mrn MRN string
