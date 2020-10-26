@@ -1,8 +1,15 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -11,18 +18,12 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 public class TestPathologyProcessing extends MessageProcessingBase {
-    List<PathologyOrder> messages;
+    private List<PathologyOrder> messages;
     @Autowired
-    HospitalVisitRepository hospitalVisitRepository;
+    private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    AuditHospitalVisitRepository auditHospitalVisitRepository;
+    private AuditHospitalVisitRepository auditHospitalVisitRepository;
 
 
     @BeforeEach

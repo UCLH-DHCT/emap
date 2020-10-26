@@ -1,35 +1,76 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 /**
  * Create a stream of messages to simulate a chain of HL7 messages firing.
+ *
  * @author Jeremy Stein & Roma Klapaukh
  */
-public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
-    protected Instant currentTime = Instant.parse("2020-03-01T06:30:00.000Z");
-    protected final String[] allLocations = {"T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
-            "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN"};
-    protected int currentLocation = 0;
-    protected String mrn = "1234ABCD";
-    protected String csn = "1234567890";
-    private String patientClass = "E";
-    private Instant latestPatientClassChangeTime = null;
-    protected Instant admissionTime = null;
-    protected Instant dischargeTime = null;
-    protected String nhsNumber = "9999999999";
-    protected String name = "Fred Blogger";
-    protected final List<Instant> transferTime = new ArrayList<>();
+public abstract class MessageStreamBaseCase {
 
-    protected String dischargeDisposition = "Peachy";
-    protected String dischargeLocation = "Home";
-    protected boolean patientDied = false;
-    protected Instant deathTime = null;
+    @Autowired
+    protected InformDbOperations         dbOps;
 
-    protected double vitalReading = 92.;
-    protected List<Instant> vitalTime = new ArrayList<>();
+    @Autowired
+    protected MrnRepository              mrnRepository;
+
+    @Autowired
+    protected HospitalVisitRepository    hospitalVisitRepository;
+
+    @Autowired
+    protected CoreDemographicRepository  coreDemographicRepository;
+
+    protected List<EmapOperationMessage> messageStream                = new ArrayList<>();
+    /**
+     * How far though the message stream processing is.
+     */
+    protected int                        nextToProcess                = 0;
+
+    protected Instant                    currentTime                  = Instant.parse("2020-03-01T06:30:00.000Z");
+    protected final String[]             allLocations                 = { "T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
+            "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN" };
+    protected int                        currentLocation              = 0;
+    protected String                     mrn                          = "1234ABCD";
+    protected String                     csn                          = "1234567890";
+    private Hl7Value<PatientClass>       patientClass                 = new Hl7Value<>(PatientClass.EMERGENCY);
+    private Instant                      latestPatientClassChangeTime = null;
+    protected Hl7Value<Instant>          admissionTime                = Hl7Value.unknown();
+    protected Instant                    dischargeTime                = null;
+    protected String                     nhsNumber                    = "9999999999";
+    protected Hl7Value<String>           name                         = new Hl7Value<>("Fred Blogger");
+    protected final List<Instant>        transferTime                 = new ArrayList<>();
+
+    protected String                     dischargeDisposition         = "Peachy";
+    protected String                     dischargeLocation            = "Home";
+    protected Hl7Value<Boolean>          patientAlive                 = new Hl7Value<Boolean>(true);
+    protected Hl7Value<Instant>          deathTime                    = Hl7Value.unknown();
+
+    protected double                     vitalReading                 = 92.;
+    protected List<Instant>              vitalTime                    = new ArrayList<>();
 
     /**
      * Create a new MessageStreamBaseCase.
@@ -45,16 +86,77 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     protected void reinitialise() {
         messageStream.clear();
         nextToProcess = 0;
-        this.setPatientClass("E");
+        this.patientClass = new Hl7Value<>(PatientClass.EMERGENCY);
         latestPatientClassChangeTime = null;
         this.vitalTime.clear();
         this.transferTime.clear();
         this.admissionTime = null;
         this.dischargeTime = null;
-        this.patientDied = false;
-        this.deathTime = null;
+        this.patientAlive = new Hl7Value<>(true);
+        this.deathTime = Hl7Value.unknown();
         dischargeDisposition = "Peachy";
         dischargeLocation = "Home";
+    }
+
+    /**
+     * Add a message to the queue.
+     *
+     * @param msg The message to add.
+     */
+    public void queueMessage(EmapOperationMessage msg) {
+        this.messageStream.add(msg);
+    }
+
+    /**
+     * Process all remaining messages in queue.
+     *
+     * @throws EmapOperationMessageProcessingException
+     */
+    @Transactional
+    public void processRest() throws EmapOperationMessageProcessingException {
+        for (; nextToProcess < messageStream.size(); nextToProcess++) {
+            processSingleMessage(messageStream.get(nextToProcess));
+        }
+    }
+
+    /**
+     * Process the next n messages in the list.
+     *
+     * @param n Number of messages to process.
+     * @throws EmapOperationMessageProcessingException.
+     * @throws IndexOutOfBoundsException                If n is larger than the
+     *                                                  remaining number of
+     *                                                  messages.
+     */
+    @Transactional
+    public void processN(int n) throws EmapOperationMessageProcessingException {
+        int end = nextToProcess + n;
+        while (nextToProcess < end) {
+            processSingleMessage(messageStream.get(nextToProcess++));
+        }
+    }
+
+    /**
+     * Process a single message.
+     *
+     * @param msg The message to process.
+     * @throws EmapOperationMessageProcessingException
+     */
+    @Transactional
+    protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
+        processSingleMessage(false, msg);
+    }
+
+    @Transactional
+    protected void processSingleMessage(boolean allowMessageIgnored, EmapOperationMessage msg)
+            throws EmapOperationMessageProcessingException {
+        try {
+            msg.processMessage(dbOps);
+        } catch (MessageIgnoredException me) {
+            if (!allowMessageIgnored) {
+                throw me;
+            }
+        }
     }
 
     /**
@@ -67,6 +169,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Return a time and advance the clock.
+     *
      * @return A time later than all the previous ones.
      */
     protected Instant nextTime() {
@@ -76,10 +179,11 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Get the current location of the patient.
+     *
      * @return Current location.
      */
-    protected String currentLocation() {
-        return this.allLocations[this.currentLocation];
+    protected Hl7Value<String> currentLocation() {
+        return new Hl7Value<>(this.allLocations[this.currentLocation]);
     }
 
     /**
@@ -102,6 +206,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Get the current location and advance to the next one.
+     *
      * @return A location.
      */
     protected String nextLocation() {
@@ -110,7 +215,8 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     }
 
     /**
-     * See the next location without changing state. When the end of the array is reached, loop around.
+     * See the next location without changing state. When the end of the array is
+     * reached, loop around.
      */
     protected String peekNextLocation() {
         int loc = (this.currentLocation + 1) % this.allLocations.length;
@@ -119,15 +225,17 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Return to the previous location and return it.
+     *
      * @return A location.
      */
-    protected String previousLocation() {
+    protected Hl7Value<String> previousLocation() {
         this.backLocation();
-        return allLocations[currentLocation];
+        return new Hl7Value<>(allLocations[currentLocation]);
     }
 
     /**
      * Get the time of the last transfer
+     *
      * @return The time of the last transfer
      */
     protected Instant lastTransferTime() {
@@ -142,7 +250,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     protected void ensureAdmitted() {
         if (this.admissionTime == null) {
-            this.admissionTime = this.nextTime();
+            this.admissionTime = new Hl7Value<>(this.nextTime());
         }
     }
 
@@ -170,7 +278,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * Queue a patient update message.
      */
-    public void queueUpdatePatientDetails(String patientClass) {
+    public void queueUpdatePatientDetails(Hl7Value<PatientClass> patientClass) {
         boolean impliedTransfer = this.admissionTime == null;
 
         // clock must be changed before anything which might cause a change
@@ -183,18 +291,16 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         }
         setPatientClass(patientClass, this.currentTime);
 
-        OldAdtMessage update = new OldAdtMessage();
-        update.setOperationType(AdtOperationType.UPDATE_PATIENT_INFO);
-        update.setAdmissionDateTime(this.admissionTime);
-        update.setRecordedDateTime(this.admissionTime);
+        UpdatePatientInfo update = new UpdatePatientInfo();
+        update.setRecordedDateTime(this.currentTime);
         update.setEventOccurredDateTime(this.currentTime);
         update.setMrn(this.mrn);
         update.setNhsNumber(this.nhsNumber);
         update.setVisitNumber(this.csn);
         update.setPatientFullName(this.name);
-        update.setFullLocationString(allLocations[this.currentLocation]);
-        update.setPatientClass(this.getPatientClass());
-        update.setPatientDeathIndicator(this.patientDied);
+        update.setFullLocationString(new Hl7Value<>(allLocations[this.currentLocation]));
+        update.setPatientClass(this.patientClass);
+        update.setPatientIsAlive(this.patientAlive);
         update.setPatientDeathDateTime(this.deathTime);
         queueMessage(update);
     }
@@ -210,6 +316,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue an admit message that may or may not perform a transfer.
+     *
      * @param transfer If true will also advance the patient to the next location.
      */
     public void queueAdmit(boolean transfer) {
@@ -218,9 +325,12 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue an admit message that may or may not perform a transfer.
-     * @param transfer If true will also advance the patient to the next location.
+     *
+     * @param transfer     If true will also advance the patient to the next
+     *                     location.
+     * @param patientClass the patient class for this admit.
      */
-    public void queueAdmit(boolean transfer, String patientClass) {
+    public void queueAdmit(boolean transfer, Hl7Value<PatientClass> patientClass) {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
@@ -228,14 +338,13 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             this.transferTime.add(eventTime);
         }
         if (this.admissionTime == null) {
-            this.admissionTime = eventTime;
+            this.admissionTime = new Hl7Value<Instant>(eventTime);
         }
         if (transfer) {
             this.stepLocation();
         }
 
-        OldAdtMessage admit = new OldAdtMessage();
-        admit.setOperationType(AdtOperationType.ADMIT_PATIENT);
+        AdmitPatient admit = new AdmitPatient();
         admit.setAdmissionDateTime(this.admissionTime);
         admit.setEventOccurredDateTime(eventTime);
         admit.setMrn(this.mrn);
@@ -243,7 +352,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         admit.setPatientClass(this.getPatientClass());
         admit.setPatientFullName(this.name);
         admit.setFullLocationString(this.currentLocation());
-        admit.setPatientDeathIndicator(this.patientDied);
+        admit.setPatientIsAlive(this.patientAlive);
         admit.setPatientDeathDateTime(this.deathTime);
         this.queueMessage(admit);
     }
@@ -257,6 +366,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a transfer message.
+     *
      * @param updateLocation if false the patient location will not be advanced.
      */
     public void queueTransfer(boolean updateLocation) {
@@ -265,26 +375,27 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
 
     /**
      * Queue a transfer message.
+     *
      * @param updateLocation if false the patient location will not be advanced.
+     * @param patientClass   The patient class for the transfered patient
      */
-    public void queueTransfer(boolean updateLocation, String patientClass) {
+    public void queueTransfer(boolean updateLocation, Hl7Value<PatientClass> patientClass) {
         this.ensureAdmitted();
 
         // Handle non-moving update
-        String location;
+        Hl7Value<String> location;
 
         Instant tTime = this.nextTime();
         setPatientClass(patientClass, tTime);
 
         if (updateLocation) {
-            location = nextLocation();
+            location = new Hl7Value<>(nextLocation());
             this.transferTime.add(tTime);
         } else {
             location = currentLocation();
         }
 
-        OldAdtMessage transfer = new OldAdtMessage();
-        transfer.setOperationType(AdtOperationType.TRANSFER_PATIENT);
+        TransferPatient transfer = new TransferPatient();
         transfer.setAdmissionDateTime(this.admissionTime);
         transfer.setEventOccurredDateTime(tTime);
         transfer.setMrn(this.mrn);
@@ -292,7 +403,7 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         transfer.setPatientClass(this.getPatientClass());
         transfer.setPatientFullName(this.name);
         transfer.setFullLocationString(location);
-        transfer.setPatientDeathIndicator(this.patientDied);
+        transfer.setPatientIsAlive(this.patientAlive);
         transfer.setPatientDeathDateTime(deathTime);
         this.queueMessage(transfer);
 
@@ -303,18 +414,20 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     public void queueCancelAdmit() {
         this.ensureAdmitted();
-        OldAdtMessage cancelAdmit = new OldAdtMessage();
+        CancelAdmitPatient cancelAdmit = new CancelAdmitPatient();
         Instant expectedCancellationDateTime = this.nextTime();
 
-        cancelAdmit.setOperationType(AdtOperationType.CANCEL_ADMIT_PATIENT);
-        cancelAdmit.setAdmissionDateTime(this.admissionTime);
+        if (!this.transferTime.isEmpty()) {
+            this.transferTime.remove(this.transferTime.size() - 1);
+        }
+
         cancelAdmit.setEventOccurredDateTime(expectedCancellationDateTime);
         cancelAdmit.setMrn(this.mrn);
         cancelAdmit.setVisitNumber(this.csn);
         cancelAdmit.setPatientClass(this.getPatientClass());
         cancelAdmit.setPatientFullName(this.name);
         cancelAdmit.setFullLocationString(this.previousLocation());
-        cancelAdmit.setPatientDeathIndicator(this.patientDied);
+        cancelAdmit.setPatientIsAlive(this.patientAlive);
         cancelAdmit.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(cancelAdmit);
@@ -338,17 +451,18 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
             // This is really acting as a place holder for NULL
             this.transferTime.add(Instant.MIN);
         }
-        OldAdtMessage cancelTransfer = new OldAdtMessage();
-        cancelTransfer.setOperationType(AdtOperationType.CANCEL_TRANSFER_PATIENT);
-        cancelTransfer.setAdmissionDateTime(this.admissionTime);
+
+        Instant eventTime = this.nextTime();
+        CancelTransferPatient cancelTransfer = new CancelTransferPatient();
+        cancelTransfer.setCancelledDateTime(eventTime);
         cancelTransfer.setEventOccurredDateTime(erroneousTransferDateTime);
-        cancelTransfer.setRecordedDateTime(this.nextTime());
+        cancelTransfer.setRecordedDateTime(eventTime);
         cancelTransfer.setMrn(this.mrn);
         cancelTransfer.setVisitNumber(this.csn);
         cancelTransfer.setPatientClass(this.getPatientClass());
         cancelTransfer.setPatientFullName(this.name);
         cancelTransfer.setFullLocationString(this.previousLocation());
-        cancelTransfer.setPatientDeathIndicator(this.patientDied);
+        cancelTransfer.setPatientIsAlive(this.patientAlive);
         cancelTransfer.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(cancelTransfer);
@@ -361,20 +475,19 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
         this.ensureAdmitted();
         this.dischargeTime = this.nextTime();
 
-        OldAdtMessage discharge = new OldAdtMessage();
+        DischargePatient discharge = new DischargePatient();
 
-        discharge.setOperationType(AdtOperationType.DISCHARGE_PATIENT);
         discharge.setAdmissionDateTime(this.admissionTime);
         discharge.setEventOccurredDateTime(this.dischargeTime);
         discharge.setMrn(this.mrn);
-        discharge.setFullLocationString(this.allLocations[this.currentLocation]);
+        discharge.setFullLocationString(currentLocation());
         discharge.setVisitNumber(this.csn);
         discharge.setPatientClass(this.getPatientClass());
         discharge.setPatientFullName(this.name);
         discharge.setDischargeDisposition(this.dischargeDisposition);
         discharge.setDischargeLocation(this.dischargeLocation);
         discharge.setDischargeDateTime(this.dischargeTime);
-        discharge.setPatientDeathIndicator(this.patientDied);
+        discharge.setPatientIsAlive(this.patientAlive);
         discharge.setPatientDeathDateTime(deathTime);
 
         this.queueMessage(discharge);
@@ -385,32 +498,32 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
      */
     public void queueCancelDischarge() {
         this.ensureAdmitted();
-        OldAdtMessage cancelDischarge = new OldAdtMessage();
-        cancelDischarge.setOperationType(AdtOperationType.CANCEL_DISCHARGE_PATIENT);
-        cancelDischarge.setAdmissionDateTime(this.admissionTime);
+        CancelDischargePatient cancelDischarge = new CancelDischargePatient();
         cancelDischarge.setRecordedDateTime(this.nextTime());
         cancelDischarge.setMrn(this.mrn);
         cancelDischarge.setVisitNumber(this.csn);
         cancelDischarge.setPatientClass(this.getPatientClass());
         cancelDischarge.setPatientFullName(this.name);
-        cancelDischarge.setFullLocationString(this.allLocations[this.currentLocation]);
+        cancelDischarge.setFullLocationString(currentLocation());
+        cancelDischarge.setPatientIsAlive(this.patientAlive);
+        cancelDischarge.setPatientDeathDateTime(deathTime);
         // A13 messages do not carry the discharge time field
 
         this.queueMessage(cancelDischarge);
     }
 
     /**
-     * Queue a merge MRN message
+     * Queue a merge MRN message.
+     *
      * @param mergedMrn    The mrn that will stop being used
      * @param survivingMrn The mrn that will be used going forwards
      */
     public void queueMerge(String mergedMrn, String survivingMrn) {
-        OldAdtMessage merge = new OldAdtMessage();
+        MergePatient merge = new MergePatient();
 
-        merge.setOperationType(AdtOperationType.MERGE_BY_ID);
         merge.setRecordedDateTime(this.nextTime());
-        merge.setMrn(mergedMrn);
-        merge.setMergedPatientId(survivingMrn);
+        merge.setMrn(survivingMrn);
+        merge.setPreviousMrn(mergedMrn);
 
         this.queueMessage(merge);
     }
@@ -418,35 +531,28 @@ public abstract class MessageStreamBaseCase extends MessageProcessingBaseCase {
     /**
      * @return the patientClass
      */
-    public String getPatientClass() {
+    public Hl7Value<PatientClass> getPatientClass() {
         return patientClass;
     }
 
     /**
-     * Set just the patient class without checking for changes.
-     * Shouldn't be called from a test directly.
+     * Smarter setter that checks for changes and updates the change time. If you
+     * really want to call this from a test you have to know what time it changed.
+     *
      * @param patientClass the patientClass to set
+     * @param eventTime    the current event time
      */
-    private void setPatientClass(String patientClass) {
+    protected void setPatientClass(Hl7Value<PatientClass> patientClass, Instant eventTime) {
+        // Ignore not real changes.
+        if (patientClass.equals(this.patientClass)) {
+            return;
+        }
+        latestPatientClassChangeTime = eventTime;
         this.patientClass = patientClass;
     }
 
     /**
-     * Smarter setter that checks for changes and updates the change time.
-     * If you really want to call this from a test you have to know what time it changed.
-     * @param patientClass the patientClass to set
-     * @param eventTime    the current event time
-     */
-    protected void setPatientClass(String patientClass, Instant eventTime) {
-        // if it's an actual change, remember this time
-        if (!patientClass.equals(this.patientClass)) {
-            latestPatientClassChangeTime = eventTime;
-        }
-        setPatientClass(patientClass);
-    }
-
-    /**
-     * @return the latestPatientClassChangeTime
+     * @return the latestPatientClassChangeTimeSure
      */
     public Instant getLatestPatientClassChangeTime() {
         return latestPatientClassChangeTime;
