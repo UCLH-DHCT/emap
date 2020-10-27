@@ -170,7 +170,6 @@ public class AdtMessageFactory {
         AdtMessage msg;
         switch (triggerEvent) {
             case "A01":
-                //3
                 AdmitPatient admitPatient = new AdmitPatient();
                 admitPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 msg = admitPatient;
@@ -178,13 +177,11 @@ public class AdtMessageFactory {
             case "A02":
             case "A06":
             case "A07":
-                // 3
                 TransferPatient transferPatient = new TransferPatient();
                 transferPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 msg = transferPatient;
                 break;
             case "A03":
-                //3
                 DischargePatient dischargeMsg = new DischargePatient();
                 dischargeMsg.setAdmissionDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 dischargeMsg.setDischargeDateTime(patientInfoHl7.getDischargeDateTime());
@@ -193,7 +190,6 @@ public class AdtMessageFactory {
                 msg = dischargeMsg;
                 break;
             case "A04":
-                //3
                 RegisterPatient registerPatient = new RegisterPatient();
                 registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getAdmissionDateTime()));
                 msg = registerPatient;
@@ -208,25 +204,24 @@ public class AdtMessageFactory {
             case "A31":
             case "R01": // build update patient info from non-ADT HL7 messages
             case "O01":
-                // 2 maybe stage 3
                 msg = new UpdatePatientInfo();
                 break;
             case "A11":
-                //3
                 CancelAdmitPatient cancelAdmitPatient = new CancelAdmitPatient();
-                setCancellationTime(cancelAdmitPatient, evn);
+                setCancellationDate(evn, cancelAdmitPatient);
                 msg = cancelAdmitPatient;
                 break;
             case "A12":
                 //3
                 CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
-                setCancellationTime(cancelTransferPatient, evn);
+                setCancellationDate(evn, cancelTransferPatient);
+                cancelTransferPatient.setPreviousLocation(patientInfoHl7.getPreviousLocation());
                 msg = cancelTransferPatient;
                 break;
             case "A13":
                 //3
                 CancelDischargePatient cancelDischargePatient = new CancelDischargePatient();
-                setCancellationTime(cancelDischargePatient, evn);
+                setCancellationDate(evn, cancelDischargePatient);
                 msg = cancelDischargePatient;
                 break;
             case "A17":
@@ -412,11 +407,11 @@ public class AdtMessageFactory {
 
     /**
      * Set cancellation time from the evn segment.
-     * @param adtCancellation adt cancellation message
      * @param evn             EVN segment
+     * @param adtCancellation adt cancellation message
      * @throws DataTypeException if the datetime can't be interpreted as local time
      */
-    private void setCancellationTime(AdtCancellation adtCancellation, EVN evn) throws DataTypeException {
+    private void setCancellationDate(final EVN evn, AdtCancellation adtCancellation) throws DataTypeException {
         adtCancellation.setCancelledDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
     }
 }
