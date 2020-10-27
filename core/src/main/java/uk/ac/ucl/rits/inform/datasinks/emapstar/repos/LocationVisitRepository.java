@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,10 +20,11 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, I
     List<LocationVisit> findAllByHospitalVisitId(HospitalVisit visit);
 
     /**
-     * @param visit hospital visit
+     * @param visit         hospital visit
+     * @param dischargeTime nullable discharge time
      * @return the LocationVisit wrapped in optional
      */
-    Optional<LocationVisit> findByHospitalVisitIdAndDischargeTimeIsNull(HospitalVisit visit);
+    Optional<LocationVisit> findByHospitalVisitIdAndDischargeTimeEquals(HospitalVisit visit, Instant dischargeTime);
 
 
     /**

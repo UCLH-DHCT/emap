@@ -16,7 +16,9 @@ import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
@@ -65,7 +67,19 @@ public class LocationController {
         }
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
-        RowState<LocationVisit> existingLocationState = getOrCreateVisitLocation(visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
+        if (!(msg instanceof AdtCancellation)) {
+            if (!(msg instanceof SwapLocations)) {
+                processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
+            } else {
+                swapLocations(visit, msg, storedFrom, locationEntity, validFrom);
+            }
+        } else {
+            processCancellationMessage(visit, msg, storedFrom, locationEntity, validFrom);
+        }
+    }
+
+    private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
+        RowState<LocationVisit> existingLocationState = getOrCreateOpenLocation(visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
         final LocationVisit originalLocationVisit = existingLocationState.getEntity().copy();
 
         if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
@@ -75,20 +89,28 @@ public class LocationController {
                 } else if (!existingLocationState.isEntityCreated()) {
                     logger.debug("Move message doesn't change the location: {}", msg);
                 }
-            } else {
-                if (msg instanceof DischargePatient) {
-                    dischargeLocation(validFrom, existingLocationState);
-                } else if (msg instanceof CancelDischargePatient) {
-                    removeDischargeLocation(msg, validFrom, storedFrom, existingLocationState);
-                } else if (msg instanceof AdtCancellation) {
-                    removeLocation(msg, validFrom, storedFrom, existingLocationState);
-                } else if (msg instanceof SwapLocations) {
-                    swapLocations(msg, validFrom, storedFrom, existingLocationState);
-                }
-                // cancel messages etc.
-                updateLocation(msg, existingLocationState);
+            } else if (msg instanceof DischargePatient) {
+                dischargeLocation(validFrom, existingLocationState);
             }
             manuallySaveLocationOrAuditIfRequired(originalLocationVisit, existingLocationState, validFrom, storedFrom);
+        }
+    }
+
+    /**
+     * Update existing location visit or create it, from the Adt Message.
+     * @param visit          hospital visit
+     * @param msg            Adt Message
+     * @param storedFrom     when the message has been read by emap core
+     * @param locationEntity Location entity
+     * @param validFrom      message event date time
+     */
+    @Transactional
+    public void processCancellationMessage(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
+        if (msg instanceof CancelAdmitPatient || msg instanceof CancelTransferPatient) {
+            deleteOpenVisitLocation(visit, msg, locationEntity, validFrom, storedFrom);
+        }
+        if (msg instanceof CancelDischargePatient || msg instanceof CancelTransferPatient) {
+            removeDischargeLocation(visit, msg, locationEntity, validFrom, storedFrom);
         }
     }
 
@@ -105,6 +127,19 @@ public class LocationController {
                 });
     }
 
+    /**
+     * Get open visit location or create a new one.
+     * @param visit        Hospital Visit
+     * @param location     Location
+     * @param sourceSystem source system
+     * @param validFrom    message event date time
+     * @param storedFrom   time that emap-core encountered the message
+     * @return LocationVisit wrapped in Row state
+     */
+    private RowState<LocationVisit> getOrCreateOpenLocation(HospitalVisit visit, Location location, String sourceSystem,
+                                                            Instant validFrom, Instant storedFrom) {
+        return getOrCreateLocationVisit(visit, location, sourceSystem, null, validFrom, storedFrom);
+    }
 
     /**
      * Get existing visit location or create a new one.
@@ -115,9 +150,9 @@ public class LocationController {
      * @param storedFrom   time that emap-core encountered the message
      * @return LocationVisit wrapped in Row state
      */
-    private RowState<LocationVisit> getOrCreateVisitLocation(HospitalVisit visit, Location location, String sourceSystem,
+    private RowState<LocationVisit> getOrCreateLocationVisit(HospitalVisit visit, Location location, String sourceSystem, Instant dischargeTime,
                                                              Instant validFrom, Instant storedFrom) {
-        return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit)
+        return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeEquals(visit, dischargeTime)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
@@ -145,6 +180,11 @@ public class LocationController {
     }
 
 
+    /**
+     * Is message outcome a simple move?
+     * @param msg AdtMessage
+     * @return true if a message outcome is moving from one location to another.
+     */
     private boolean messageOutcomeIsSimpleMove(AdtMessage msg) {
         return msg instanceof TransferPatient || msg instanceof UpdatePatientInfo || msg instanceof AdmitPatient || msg instanceof RegisterPatient;
     }
@@ -189,18 +229,18 @@ public class LocationController {
         retiringState.assignIfDifferent(validFrom, location.getDischargeTime(), location::setDischargeTime);
     }
 
-    private void removeDischargeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
+    private void removeDischargeLocation(HospitalVisit visit, AdtMessage msg, Location locationEntity, Instant validFrom, Instant storedFrom) {
+        // TODO get most recent discharged location visit for this visit and location
+        RowState<LocationVisit> survivingLocationState = getOrCreateLocationVisit(
+                visit, locationEntity, msg.getSourceSystem(), null, validFrom, storedFrom);
+        if (locationVisitShouldBeUpdated(survivingLocationState, msg)) {
+            LocationVisit originalLocationVisit = survivingLocationState.getEntity().copy();
+            // TODO remove discharge location
+            manuallySaveLocationOrAuditIfRequired(originalLocationVisit, survivingLocationState, validFrom, storedFrom);
+        }
     }
 
-    private void removeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
-    }
-
-    private void swapLocations(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
-    }
-
-    private void updateLocation(AdtMessage msg, RowState<LocationVisit> locationState) {
-        // otherwise update the location fk to the new location fk
-        // update the source, admission and discharge datetime here too
+    private void swapLocations(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
     }
 
     /**
@@ -217,6 +257,34 @@ public class LocationController {
     }
 
     /**
+     * Log current state and delete location visit.
+     * @param validFrom     Time of the message event
+     * @param storedFrom    Time that emap-core encountered the message
+     * @param locationVisit Location visit to be deleted
+     */
+    private void deleteLocationVisit(Instant validFrom, Instant storedFrom, LocationVisit locationVisit) {
+        auditLocationVisitRepo.save(new AuditLocationVisit(locationVisit, validFrom, storedFrom));
+        logger.info("Deleting LocationVisit: {}", locationVisit);
+        locationVisitRepo.delete(locationVisit);
+    }
+
+    /**
+     * Delete the open visit location for the hospital visit.
+     * @param visit          Hospital visit entity
+     * @param msg            AdtMessage
+     * @param locationEntity Location entity
+     * @param validFrom      Time of the message event
+     * @param storedFrom     Time that emap-core encountered the message
+     */
+    private void deleteOpenVisitLocation(HospitalVisit visit, AdtMessage msg, Location locationEntity, Instant validFrom, Instant storedFrom) {
+        RowState<LocationVisit> retiring = getOrCreateOpenLocation(visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
+        if (locationVisitShouldBeUpdated(retiring, msg) && !retiring.isEntityCreated()) {
+            // if the location visit has just been created, we just don't save it. Otherwise delete it.
+            deleteLocationVisit(validFrom, storedFrom, retiring.getEntity());
+        }
+    }
+
+    /**
      * Delete all location visits for list of hospital visits.
      * @param visits     Hospital visits
      * @param validFrom  Time of the message event
@@ -225,10 +293,6 @@ public class LocationController {
     public void deleteLocationVisits(Collection<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
         visits.stream()
                 .flatMap(visit -> locationVisitRepo.findAllByHospitalVisitId(visit).stream())
-                .forEach(locationVisit -> {
-                    auditLocationVisitRepo.save(new AuditLocationVisit(locationVisit, validFrom, storedFrom));
-                    logger.debug("Deleting LocationVisit: {}", locationVisit);
-                    locationVisitRepo.delete(locationVisit);
-                });
+                .forEach(locationVisit -> deleteLocationVisit(validFrom, storedFrom, locationVisit));
     }
 }
