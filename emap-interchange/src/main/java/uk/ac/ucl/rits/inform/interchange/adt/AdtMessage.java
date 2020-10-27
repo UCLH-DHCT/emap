@@ -50,4 +50,14 @@ public abstract class AdtMessage extends EmapOperationMessage implements Seriali
     private Hl7Value<String> patientTitle = Hl7Value.unknown();
     private Hl7Value<String> patientType = Hl7Value.unknown();
     private Hl7Value<String> patientZipOrPostalCode = Hl7Value.unknown();
+
+
+    /**
+     * Ideally the time the event occurred, but uses the message date time as a backup.
+     * If no event occurred, the message date time can be days delayed, but this is the best we can do with limited information.
+     * @return valid from instant.
+     */
+    public Instant bestGuessAtValidFrom() {
+        return (eventOccurredDateTime == null) ? recordedDateTime : eventOccurredDateTime;
+    }
 }
