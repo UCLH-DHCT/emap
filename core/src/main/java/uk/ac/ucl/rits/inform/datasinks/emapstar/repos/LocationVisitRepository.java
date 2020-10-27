@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 
 import java.time.Instant;
@@ -20,11 +21,19 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, I
     List<LocationVisit> findAllByHospitalVisitId(HospitalVisit visit);
 
     /**
-     * @param visit         hospital visit
-     * @param dischargeTime nullable discharge time
+     * @param visit hospital visit
      * @return the LocationVisit wrapped in optional
      */
-    Optional<LocationVisit> findByHospitalVisitIdAndDischargeTimeEquals(HospitalVisit visit, Instant dischargeTime);
+    Optional<LocationVisit> findByHospitalVisitIdAndDischargeTimeIsNull(HospitalVisit visit);
+
+    /**
+     * @param visit         hospital visit
+     * @param locationId    Location entity
+     * @param dischargeTime discharge time
+     * @return the LocationVisit wrapped in optional
+     */
+    Optional<LocationVisit> findFirstByHospitalVisitIdAndLocationIdAndDischargeTimeLessThanEqualOrderByDischargeTimeDesc(
+            HospitalVisit visit, Location locationId, Instant dischargeTime);
 
 
     /**

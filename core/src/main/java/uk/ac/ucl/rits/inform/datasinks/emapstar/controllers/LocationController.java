@@ -67,30 +67,36 @@ public class LocationController {
         }
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
-        if (!(msg instanceof AdtCancellation)) {
-            if (!(msg instanceof SwapLocations)) {
-                processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
-            } else {
-                swapLocations(visit, msg, storedFrom, locationEntity, validFrom);
-            }
-        } else {
+        if (messageOutcomeIsSimpleMove(msg)) {
+            processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
+        } else if ((msg instanceof AdtCancellation)) {
             processCancellationMessage(visit, msg, storedFrom, locationEntity, validFrom);
+        } else if ((msg instanceof SwapLocations)) {
+            swapLocations(visit, msg, storedFrom, locationEntity, validFrom);
         }
     }
 
+
+    /**
+     * @param visit          hospital visit
+     * @param msg            Adt Message
+     * @param storedFrom     when the message has been read by emap core
+     * @param locationEntity Location entity
+     * @param validFrom      message event date time
+     */
     private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
         RowState<LocationVisit> existingLocationState = getOrCreateOpenLocation(visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
         final LocationVisit originalLocationVisit = existingLocationState.getEntity().copy();
 
         if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
-            if (messageOutcomeIsSimpleMove(msg)) {
+            if (msg instanceof DischargePatient) {
+                dischargeLocation(validFrom, existingLocationState);
+            } else {
                 if (isNewLocationDifferent(locationEntity, originalLocationVisit)) {
                     moveToNewLocation(msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
                 } else if (!existingLocationState.isEntityCreated()) {
                     logger.debug("Move message doesn't change the location: {}", msg);
                 }
-            } else if (msg instanceof DischargePatient) {
-                dischargeLocation(validFrom, existingLocationState);
             }
             manuallySaveLocationOrAuditIfRequired(originalLocationVisit, existingLocationState, validFrom, storedFrom);
         }
@@ -110,7 +116,7 @@ public class LocationController {
             deleteOpenVisitLocation(visit, msg, locationEntity, validFrom, storedFrom);
         }
         if (msg instanceof CancelDischargePatient || msg instanceof CancelTransferPatient) {
-            removeDischargeLocation(visit, msg, locationEntity, validFrom, storedFrom);
+            removeDischargeDateTime(visit, msg, locationEntity, validFrom, storedFrom);
         }
     }
 
@@ -138,25 +144,11 @@ public class LocationController {
      */
     private RowState<LocationVisit> getOrCreateOpenLocation(HospitalVisit visit, Location location, String sourceSystem,
                                                             Instant validFrom, Instant storedFrom) {
-        return getOrCreateLocationVisit(visit, location, sourceSystem, null, validFrom, storedFrom);
-    }
-
-    /**
-     * Get existing visit location or create a new one.
-     * @param visit        Hospital Visit
-     * @param location     Location
-     * @param sourceSystem source system
-     * @param validFrom    message event date time
-     * @param storedFrom   time that emap-core encountered the message
-     * @return LocationVisit wrapped in Row state
-     */
-    private RowState<LocationVisit> getOrCreateLocationVisit(HospitalVisit visit, Location location, String sourceSystem, Instant dischargeTime,
-                                                             Instant validFrom, Instant storedFrom) {
-        return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeEquals(visit, dischargeTime)
+        return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
-                    logger.debug("Created new LocationVisit: {}", locationVisit);
+                    logger.info("Created new LocationVisit: {}", locationVisit);
                     return new RowState<>(locationVisit, validFrom, storedFrom, true);
                 });
     }
@@ -229,15 +221,42 @@ public class LocationController {
         retiringState.assignIfDifferent(validFrom, location.getDischargeTime(), location::setDischargeTime);
     }
 
-    private void removeDischargeLocation(HospitalVisit visit, AdtMessage msg, Location locationEntity, Instant validFrom, Instant storedFrom) {
-        // TODO get most recent discharged location visit for this visit and location
-        RowState<LocationVisit> survivingLocationState = getOrCreateLocationVisit(
-                visit, locationEntity, msg.getSourceSystem(), null, validFrom, storedFrom);
-        if (locationVisitShouldBeUpdated(survivingLocationState, msg)) {
-            LocationVisit originalLocationVisit = survivingLocationState.getEntity().copy();
-            // TODO remove discharge location
-            manuallySaveLocationOrAuditIfRequired(originalLocationVisit, survivingLocationState, validFrom, storedFrom);
-        }
+    /**
+     * remove discharge date time from most location visit at the location.
+     * @param visit      Hospital Visit
+     * @param msg        Adt message
+     * @param location   Location entity
+     * @param validFrom  message event date time
+     * @param storedFrom time that emap-core encountered the message
+     */
+    private void removeDischargeDateTime(HospitalVisit visit, AdtMessage msg, Location location, Instant validFrom, Instant storedFrom) {
+        RowState<LocationVisit> visitState = getLatestDischargedOrCreateOpenLocationVisit(visit, location, msg, validFrom, storedFrom);
+        LocationVisit locationVisit = visitState.getEntity();
+        LocationVisit originalLocationVisit = locationVisit.copy();
+        visitState.removeIfExists(locationVisit.getDischargeTime(), locationVisit::setDischargeTime, validFrom);
+        manuallySaveLocationOrAuditIfRequired(originalLocationVisit, visitState, validFrom, storedFrom);
+    }
+
+    /**
+     * Get the most recent discharged location visit for the location, or create an open visit at this location.
+     * @param visit      Hospital Visit
+     * @param msg        Adt message
+     * @param location   Location entity
+     * @param validFrom  message event date time
+     * @param storedFrom time that emap-core encountered the message
+     * @return LocationVisit wrapped in Row state
+     */
+    private RowState<LocationVisit> getLatestDischargedOrCreateOpenLocationVisit(HospitalVisit visit, Location location, AdtMessage msg,
+                                                                                 Instant validFrom, Instant storedFrom) {
+        return locationVisitRepo.findFirstByHospitalVisitIdAndLocationIdAndDischargeTimeLessThanEqualOrderByDischargeTimeDesc(
+                visit, location, validFrom)
+                .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    // create non-discharged location
+                    LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, msg.getSourceSystem());
+                    logger.info("Created new LocationVisit instead of discharging an existing one: {}", locationVisit);
+                    return new RowState<>(locationVisit, validFrom, storedFrom, true);
+                });
     }
 
     private void swapLocations(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
