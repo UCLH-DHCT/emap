@@ -18,6 +18,7 @@ import java.time.Instant;
 public class CancelTransferPatient extends AdtMessage implements AdtCancellation {
     private static final long serialVersionUID = 2821790913106604487L;
     private Instant cancelledDateTime;
+    private String previousLocation;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
