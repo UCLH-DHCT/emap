@@ -13,7 +13,15 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
+import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -61,11 +69,24 @@ public class LocationController {
         final LocationVisit originalLocationVisit = existingLocationState.getEntity().copy();
 
         if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
-            if (messageOutcomeIsNotSimpleMove(msg)) {
+            if (messageOutcomeIsSimpleMove(msg)) {
+                if (isNewLocationDifferent(locationEntity, originalLocationVisit)) {
+                    moveToNewLocation(msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
+                } else if (!existingLocationState.isEntityCreated()) {
+                    logger.debug("Move message doesn't change the location: {}", msg);
+                }
+            } else {
+                if (msg instanceof DischargePatient) {
+                    dischargeLocation(msg, validFrom, storedFrom, existingLocationState);
+                } else if (msg instanceof CancelDischargePatient) {
+                    removeDischargeLocation(msg, validFrom, storedFrom, existingLocationState);
+                } else if (msg instanceof AdtCancellation) {
+                    removeLocation(msg, validFrom, storedFrom, existingLocationState);
+                } else if (msg instanceof SwapLocations) {
+                    swapLocations(msg, validFrom, storedFrom, existingLocationState);
+                }
                 // cancel messages etc.
                 updateLocation(msg, existingLocationState);
-            } else if (isNewLocationDifferent(locationEntity, originalLocationVisit)) {
-                moveToNewLocation(msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
             }
             manuallySaveLocationOrAuditIfRequired(originalLocationVisit, existingLocationState, validFrom, storedFrom);
         }
@@ -124,8 +145,8 @@ public class LocationController {
     }
 
 
-    private boolean messageOutcomeIsNotSimpleMove(AdtMessage msg) {
-        return false;
+    private boolean messageOutcomeIsSimpleMove(AdtMessage msg) {
+        return msg instanceof TransferPatient || msg instanceof UpdatePatientInfo || msg instanceof AdmitPatient || msg instanceof RegisterPatient;
     }
 
 
@@ -157,6 +178,18 @@ public class LocationController {
      */
     private boolean isNewLocationDifferent(Location newLocation, LocationVisit originalLocationVisit) {
         return !newLocation.equals(originalLocationVisit.getLocation());
+    }
+
+    private void dischargeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
+    }
+
+    private void removeDischargeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
+    }
+
+    private void removeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
+    }
+
+    private void swapLocations(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
     }
 
     private void updateLocation(AdtMessage msg, RowState<LocationVisit> locationState) {
