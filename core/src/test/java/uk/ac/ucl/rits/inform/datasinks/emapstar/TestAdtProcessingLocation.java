@@ -11,8 +11,10 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 
 import java.time.Instant;
@@ -67,6 +69,27 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
                 .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
                 .orElseThrow(NullPointerException::new);
         Assertions.assertNotEquals(originalLocation, currentVisit.getLocation().getLocationString());
+
+        // audit row for location when it had no discharge time
+        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNull(audit.getDischargeTime());
+    }
+
+    /**
+     * Visit and location visit already exist in the database.
+     * DischargePatient message: discharge the original location visit, audit log the original state.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testDischargeMessage() throws EmapOperationMessageProcessingException {
+        DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
+        msg.setFullLocationString(Hl7Value.buildFromHl7(originalLocation));
+        dbOps.processMessage(msg);
+
+        // original location visit is discharged
+        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNotNull(dischargedVisit.getDischargeTime());
 
         // audit row for location when it had no discharge time
         AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);

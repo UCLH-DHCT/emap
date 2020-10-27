@@ -77,7 +77,7 @@ public class LocationController {
                 }
             } else {
                 if (msg instanceof DischargePatient) {
-                    dischargeLocation(msg, validFrom, storedFrom, existingLocationState);
+                    dischargeLocation(validFrom, existingLocationState);
                 } else if (msg instanceof CancelDischargePatient) {
                     removeDischargeLocation(msg, validFrom, storedFrom, existingLocationState);
                 } else if (msg instanceof AdtCancellation) {
@@ -180,7 +180,13 @@ public class LocationController {
         return !newLocation.equals(originalLocationVisit.getLocation());
     }
 
-    private void dischargeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
+    /**
+     * @param validFrom     Time of the message event
+     * @param retiringState RowState of the retiring location visit
+     */
+    private void dischargeLocation(final Instant validFrom, RowState<LocationVisit> retiringState) {
+        LocationVisit location = retiringState.getEntity();
+        retiringState.assignIfDifferent(validFrom, location.getDischargeTime(), location::setDischargeTime);
     }
 
     private void removeDischargeLocation(AdtMessage msg, Instant validFrom, Instant storedFrom, RowState<LocationVisit> existingLocationState) {
