@@ -27,6 +27,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
@@ -69,9 +70,12 @@ public abstract class MessageStreamBaseCase {
     private Hl7Value<PatientClass>       patientClass                 = new Hl7Value<>(PatientClass.EMERGENCY);
     private Instant                      latestPatientClassChangeTime = null;
     protected Hl7Value<Instant>          admissionTime                = Hl7Value.unknown();
+    protected Hl7Value<Instant>          presentationTime             = Hl7Value.unknown();
     protected Instant                    dischargeTime                = null;
     protected String                     nhsNumber                    = "9999999999";
-    protected Hl7Value<String>           name                         = new Hl7Value<>("Fred Blogger");
+    protected Hl7Value<String>           fName                         = new Hl7Value<>("Fred");
+    protected Hl7Value<String>           mName                         = Hl7Value.unknown();
+    protected Hl7Value<String>           lName                         = new Hl7Value<>("Blogger");
     protected final List<Instant>        transferTime                 = new ArrayList<>();
 
     protected String                     dischargeDisposition         = "Peachy";
@@ -100,7 +104,8 @@ public abstract class MessageStreamBaseCase {
         latestPatientClassChangeTime = null;
         this.vitalTime.clear();
         this.transferTime.clear();
-        this.admissionTime = null;
+        this.admissionTime = Hl7Value.unknown();
+        this.presentationTime = Hl7Value.unknown();
         this.dischargeTime = null;
         this.patientAlive = new Hl7Value<>(true);
         this.deathTime = Hl7Value.unknown();
@@ -272,6 +277,7 @@ public abstract class MessageStreamBaseCase {
         this.vitalTime.add(vitalTime);
 
         VitalSigns vital = new VitalSigns();
+        vital.setSourceSystem("VERY EPIC");
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
         vital.setVitalSignIdentifier("HEART_RATE");
@@ -304,10 +310,13 @@ public abstract class MessageStreamBaseCase {
         UpdatePatientInfo update = new UpdatePatientInfo();
         update.setRecordedDateTime(this.currentTime);
         update.setEventOccurredDateTime(this.currentTime);
+        update.setSourceSystem("VERY EPIC");
         update.setMrn(this.mrn);
         update.setNhsNumber(this.nhsNumber);
         update.setVisitNumber(this.csn);
-        update.setPatientFullName(this.name);
+        update.setPatientGivenName(this.fName);
+        update.setPatientMiddleName(this.mName);
+        update.setPatientFamilyName(this.lName);
         update.setFullLocationString(new Hl7Value<>(allLocations[this.currentLocation]));
         update.setPatientClass(this.patientClass);
         update.setPatientIsAlive(this.patientAlive);
@@ -362,11 +371,47 @@ public abstract class MessageStreamBaseCase {
         admit.setMrn(this.mrn);
         admit.setVisitNumber(this.csn);
         admit.setPatientClass(this.getPatientClass());
-        admit.setPatientFullName(this.name);
+        admit.setPatientGivenName(this.fName);
+        admit.setPatientMiddleName(this.mName);
+        admit.setPatientFamilyName(this.lName);
         admit.setFullLocationString(this.currentLocation());
         admit.setPatientIsAlive(this.patientAlive);
         admit.setPatientDeathDateTime(this.deathTime);
         this.queueMessage(admit);
+    }
+
+    /**
+     * Queue a registration message that does not perform a transfer.
+     *
+     * @param patientClass the patient class for this registration.
+     */
+    public void queueRegister(Hl7Value<PatientClass> patientClass) {
+        Instant eventTime = this.nextTime();
+        setPatientClass(patientClass, eventTime);
+
+        if (this.admissionTime.isUnknown() || this.presentationTime.isUnknown()) {
+            this.transferTime.add(eventTime);
+        }
+        if (this.presentationTime.isUnknown()) {
+            this.presentationTime = new Hl7Value<Instant>(eventTime);
+        }
+
+        RegisterPatient register = new RegisterPatient();
+
+        register.setPresentationDateTime(this.presentationTime);
+        register.setEventOccurredDateTime(eventTime);
+        register.setRecordedDateTime(eventTime);
+        register.setSourceSystem("VERY EPIC");
+        register.setMrn(this.mrn);
+        register.setVisitNumber(this.csn);
+        register.setPatientClass(this.getPatientClass());
+        register.setPatientGivenName(this.fName);
+        register.setPatientMiddleName(this.mName);
+        register.setPatientFamilyName(this.lName);
+        register.setFullLocationString(this.currentLocation());
+        register.setPatientIsAlive(this.patientAlive);
+        register.setPatientDeathDateTime(this.deathTime);
+        this.queueMessage(register);
     }
 
     /**
@@ -415,7 +460,9 @@ public abstract class MessageStreamBaseCase {
         transfer.setMrn(this.mrn);
         transfer.setVisitNumber(this.csn);
         transfer.setPatientClass(this.getPatientClass());
-        transfer.setPatientFullName(this.name);
+        transfer.setPatientGivenName(this.fName);
+        transfer.setPatientMiddleName(this.mName);
+        transfer.setPatientFamilyName(this.lName);
         transfer.setFullLocationString(location);
         transfer.setPatientIsAlive(this.patientAlive);
         transfer.setPatientDeathDateTime(deathTime);
@@ -441,7 +488,9 @@ public abstract class MessageStreamBaseCase {
         cancelAdmit.setMrn(this.mrn);
         cancelAdmit.setVisitNumber(this.csn);
         cancelAdmit.setPatientClass(this.getPatientClass());
-        cancelAdmit.setPatientFullName(this.name);
+        cancelAdmit.setPatientGivenName(this.fName);
+        cancelAdmit.setPatientMiddleName(this.mName);
+        cancelAdmit.setPatientFamilyName(this.lName);
         cancelAdmit.setFullLocationString(this.previousLocation());
         cancelAdmit.setPatientIsAlive(this.patientAlive);
         cancelAdmit.setPatientDeathDateTime(deathTime);
@@ -477,7 +526,9 @@ public abstract class MessageStreamBaseCase {
         cancelTransfer.setMrn(this.mrn);
         cancelTransfer.setVisitNumber(this.csn);
         cancelTransfer.setPatientClass(this.getPatientClass());
-        cancelTransfer.setPatientFullName(this.name);
+        cancelTransfer.setPatientGivenName(this.fName);
+        cancelTransfer.setPatientMiddleName(this.mName);
+        cancelTransfer.setPatientFamilyName(this.lName);
         cancelTransfer.setFullLocationString(this.previousLocation());
         cancelTransfer.setPatientIsAlive(this.patientAlive);
         cancelTransfer.setPatientDeathDateTime(deathTime);
@@ -502,7 +553,9 @@ public abstract class MessageStreamBaseCase {
         discharge.setFullLocationString(currentLocation());
         discharge.setVisitNumber(this.csn);
         discharge.setPatientClass(this.getPatientClass());
-        discharge.setPatientFullName(this.name);
+        discharge.setPatientGivenName(this.fName);
+        discharge.setPatientMiddleName(this.mName);
+        discharge.setPatientFamilyName(this.lName);
         discharge.setDischargeDisposition(this.dischargeDisposition);
         discharge.setDischargeLocation(this.dischargeLocation);
         discharge.setDischargeDateTime(this.dischargeTime);
@@ -525,7 +578,9 @@ public abstract class MessageStreamBaseCase {
         cancelDischarge.setMrn(this.mrn);
         cancelDischarge.setVisitNumber(this.csn);
         cancelDischarge.setPatientClass(this.getPatientClass());
-        cancelDischarge.setPatientFullName(this.name);
+        cancelDischarge.setPatientGivenName(this.fName);
+        cancelDischarge.setPatientMiddleName(this.mName);
+        cancelDischarge.setPatientFamilyName(this.lName);
         cancelDischarge.setFullLocationString(currentLocation());
         cancelDischarge.setPatientIsAlive(this.patientAlive);
         cancelDischarge.setPatientDeathDateTime(deathTime);

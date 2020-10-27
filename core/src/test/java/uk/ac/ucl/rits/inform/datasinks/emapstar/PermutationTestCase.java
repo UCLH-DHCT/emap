@@ -2,13 +2,13 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.hibernate.cfg.NotYetImplementedException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,17 +45,22 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private int                      maxTestLength;
 
     /**
-     * List of all queueing operations being tested. Note that queueDischarge must
-     * be last.
+     * List of all queueing operations being tested.
+     * Operations that don't create demographics must be at the start, with index <= to the noDemoEndIndex
+     * Note that queueDischarge must be last.
      */
     private Runnable[]               operations   = {
+            this::queueVital,
+            this::queueRegister,
             this::queueAdmitTransfer,
             this::queueAdmitClass,
-            this::queueVital,
             this::queuePatUpdateClass,
             this::queueTransfer,
             this::queueCancelTransfer,
             this::queueDischarge };
+
+    private final int noDemoEndIndex = 0;
+
     @SuppressWarnings("unchecked")
     private Hl7Value<PatientClass>[] patientClass = new Hl7Value[] {
             new Hl7Value<>(PatientClass.EMERGENCY),
@@ -79,6 +84,13 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         super.reinitialise();
         currentClass = 0;
         setPatientClass(patientClass[currentClass], super.currentTime);
+    }
+
+    /**
+     * Queue a registration message
+     */
+    private void queueRegister() {
+        queueRegister(this.getPatientClass());
     }
 
     /**
@@ -188,19 +200,51 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         for (int i : seq) {
             operations[i].run();
             processN(1);
+            this.checkMrn();
             this.checkAdmission();
-            this.checkDeath();
+            if (i > this.noDemoEndIndex) {
+                this.checkDemographics();
+            }
             switch (i) {
             case 0:
-            case 4:
+                testVital();
+                break;
+            case 1:
+                testRegister();
+            case 5:
                 testLastBedVisit(transferTime.size(), currentLocation().get(), super.getPatientClass().get(),
                         lastTransferTime(), lastTransferTime());
                 break;
-            case 5:
+            case 6:
                 testCancelTransfer();
                 break;
             }
         }
+    }
+
+    /**
+     * Ensure that the MRN exists.
+     */
+    private void checkMrn() {
+        assertTrue(super.mrnRepository.getByMrnEquals(super.mrn).isPresent());
+    }
+
+    /**
+     * Ensure that the presentation time was set, and the visit exists.
+     */
+    private void testRegister() {
+        HospitalVisit visit = this.hospitalVisitRepository.findByEncounter(this.csn).get();
+
+        assertEquals(this.presentationTime.get(), visit.getPresentationTime());
+        assertEquals(super.getPatientClass().get().toString(), visit.getPatientClass());
+        assertEquals(this.dischargeTime, visit.getDischargeTime());
+    }
+
+    /**
+     * Test that a vital sign has been correctly added.
+     */
+    private void testVital() {
+        // Not yet implemented
     }
 
     /**
@@ -273,25 +317,44 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     }
 
     /**
-     * Check that the patients death status is correct.
+     * Check that the patients demographics are correct.
      */
-    private void checkDeath() {
+    private void checkDemographics() {
         Mrn mrn = super.mrnRepository.getByMrnEquals(this.mrn).get();
         CoreDemographic demo = super.coreDemographicRepository.getByMrnIdEquals(mrn).get();
 
-        if (demo.isAlive() != null) {
-            return;
-        }
-
-        // Ensure that the death status is correct
-        assertEquals(this.patientAlive.get(), demo.isAlive());
-
-        // Ensure death time is correct
-        if (!this.deathTime.isUnknown()) {
-            assertEquals(this.deathTime, demo.getDatetimeOfDeath());
+        // Check living
+        if (this.patientAlive.isUnknown()) {
+            assertNull(demo.isAlive());
         } else {
-            assertNull(demo.getDatetimeOfDeath(), "Non dead patient had death time");
+            // Ensure that the death status is correct
+            assertEquals(this.patientAlive.get(), demo.isAlive());
+
+            // Ensure death time is correct
+            if (this.deathTime.isUnknown()) {
+                assertNull(demo.getDatetimeOfDeath(), "Non dead patient had death time");
+            } else {
+                assertEquals(this.deathTime, demo.getDatetimeOfDeath());
+            }
         }
+
+        // Check Name parts
+        if (this.fName.isUnknown()) {
+            assertNull(demo.getFirstname());
+        } else {
+            assertEquals(demo.getFirstname(), this.fName.get());
+        }
+        if (this.mName.isUnknown()) {
+            assertNull(demo.getMiddlename());
+        } else {
+            assertEquals(demo.getMiddlename(), this.mName.get());
+        }
+        if (this.lName.isUnknown()) {
+            assertNull(demo.getLastname());
+        } else {
+            assertEquals(demo.getLastname(), this.lName.get());
+        }
+
 
     }
 
@@ -300,7 +363,6 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      */
     public void testCancelTransfer() {
 
-        throw new NotYetImplementedException();
 //
 //        Encounter enc = encounterRepo.findEncounterByEncounter(this.csn);
 //        Map<OldAttributeKeyMap, List<PatientFact>> factsGroupByType = enc.getFactsGroupByType();
