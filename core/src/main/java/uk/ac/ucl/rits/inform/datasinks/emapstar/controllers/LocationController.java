@@ -148,7 +148,7 @@ public class LocationController {
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
-                    logger.info("Created new LocationVisit: {}", locationVisit);
+                    logger.debug("Created new LocationVisit: {}", locationVisit);
                     return new RowState<>(locationVisit, validFrom, storedFrom, true);
                 });
     }
@@ -254,7 +254,7 @@ public class LocationController {
                 .orElseGet(() -> {
                     // create non-discharged location
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, msg.getSourceSystem());
-                    logger.info("Created new LocationVisit instead of discharging an existing one: {}", locationVisit);
+                    logger.debug("Created new LocationVisit instead of discharging an existing one: {}", locationVisit);
                     return new RowState<>(locationVisit, validFrom, storedFrom, true);
                 });
     }
