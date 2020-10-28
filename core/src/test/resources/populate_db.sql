@@ -40,11 +40,20 @@ INSERT INTO public.hospital_visit (
 
 
 INSERT INTO public.location (location_id, location_string) VALUES
-        (5001, 'T42E^T42E BY03^BY03-17'), (5002, 'T11E^T11E BY02^BY02-17'), (5003, 'T06C^T06C SR41^SR41-41');
+        (5001, 'T42E^T42E BY03^BY03-17'),
+        (5002, 'T11E^T11E BY02^BY02-17'),
+        (5003, 'T06C^T06C SR41^SR41-41'),
+        (5004, 'T11E^T11E BY02^BY02-25');
 
 
 INSERT INTO public.location_visit (
-    location_visit_id, stored_from, valid_from, admission_time, discharge_time, parent_location_visit_id,
-    source_system, hospital_visit_id, location_id) VALUES
-    (6001, '2012-09-17 13:25:00.650000', '2010-09-14 15:27:00.933000', '2010-09-14 15:27:00.933000', null, null, 'EPIC', 4001, 5001),
-    (6002, '2010-09-03 10:05:04.794000', '2010-09-03 11:04:04.794000', '2010-09-03 11:04:04.794000', null, null, 'caboodle', 4002, 5002);
+    location_visit_id, stored_from, valid_from, admission_time,
+    discharge_time, parent_location_visit_id, source_system, hospital_visit_id, location_id) VALUES
+    (6001, '2012-09-10 13:25:00.650000', '2010-09-14 15:27:00.933000', '2010-09-10 12:00:00.000000',
+     '2010-09-14 15:27:00.933000', null, 'EPIC', 4001, 5004),
+    (6002, '2012-09-17 13:27:00.650000', '2010-09-14 15:27:00.933000', '2010-09-14 15:27:00.933000',
+     null, null, 'EPIC', 4001, 5001),
+    (6003, '2012-09-17 13:28:00.650000', '2010-09-14 16:30:00.000000', '2010-09-16 01:00:00.000000',
+     '2010-09-16 10:00:00.000000', null, 'EPIC', 4002, 5003),
+    (6004, '2010-09-03 10:05:04.794000', '2010-09-03 11:04:04.794000', '2010-09-03 11:04:04.794000',
+     null, null, 'caboodle', 4003, 5002);

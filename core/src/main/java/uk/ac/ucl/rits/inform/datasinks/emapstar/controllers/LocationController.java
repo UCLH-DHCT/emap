@@ -67,7 +67,7 @@ public class LocationController {
         }
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
-        if (messageOutcomeIsSimpleMove(msg)) {
+        if (messageOutcomeIsSimpleMove(msg) || msg instanceof DischargePatient) {
             processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
         } else if ((msg instanceof AdtCancellation)) {
             processCancellationMessage(visit, msg, storedFrom, locationEntity, validFrom);
