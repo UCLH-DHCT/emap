@@ -16,7 +16,9 @@
 		<checkstyle.version>8.33</checkstyle.version>
 		<checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
 		<jackson.annotations.version>2.9.9</jackson.annotations.version>
-        <lombok.version>(1.18.11, 1.19)</lombok.version>
+		<lombok.version>(1.18.11, 1.19)</lombok.version>
+		<auto-service.version>1.0-rc2</auto-service.version>
+		<maven-compiler-plugin.version> 3.5.1</maven-compiler-plugin.version>
 	</properties>
 
 	<dependencies>
@@ -34,6 +36,12 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>${lombok.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.auto.service</groupId>
+			<artifactId>auto-service</artifactId>
+			<version>${auto-service.version}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
@@ -53,6 +61,16 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+			<!--  Needed for annotation processing -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
 			</plugin>
 			<plugin>
 				<!-- Checkstyle plugin -->
@@ -86,7 +104,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>

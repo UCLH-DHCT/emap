@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.io.Serializable;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Inheritance;
@@ -8,7 +8,9 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-import java.io.Serializable;
+
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 /**
  * Parent class that is not created as an entity to avoid polymorphic queries based on the original and audit table.
@@ -17,6 +19,7 @@ import java.io.Serializable;
  */
 @MappedSuperclass
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@AuditTable
 public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
