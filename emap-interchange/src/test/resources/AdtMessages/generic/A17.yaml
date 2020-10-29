@@ -30,18 +30,6 @@ fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "T11E^T11E BY02^BY02-17"
-otherCurrentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "BY05-33"
-otherCurrentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T12S BY05"
-otherCurrentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T12S"
 otherFullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
