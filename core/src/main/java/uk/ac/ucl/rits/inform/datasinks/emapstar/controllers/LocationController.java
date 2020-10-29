@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -76,11 +77,29 @@ public class LocationController {
 
     @Transactional
     public void swapLocations(HospitalVisit firstVisit, HospitalVisit secondVisit, SwapLocations msg, Instant storedFrom) {
-        if (msg.getFullLocationString().isUnknown() || msg.getOtherLocation().isUnknown()) {
-            logger.debug("One or both locations in a SwapLocations message does not exist: {}", msg);
+        if (msg.getFullLocationString().isUnknown() || msg.getOtherFullLocationString().isUnknown()) {
+            logger.debug("SwapLocations message is missing location: {}", msg);
             return;
         }
-
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        // get or create first visit location
+        Location firstLocation = getOrCreateLocation(msg.getFullLocationString().get());
+        RowState<LocationVisit> firstVisitState = getOrCreateOpenLocationByLocation(
+                firstVisit, firstLocation, msg.getSourceSystem(), validFrom, storedFrom);
+        final LocationVisit originalFirstVisit = firstVisitState.getEntity();
+        // get or create second visit location
+        Location secondLocation = getOrCreateLocation(msg.getOtherFullLocationString().get());
+        RowState<LocationVisit> secondVisitState = getOrCreateOpenLocationByLocation(
+                secondVisit, secondLocation, msg.getSourceSystem(), validFrom, storedFrom);
+        final LocationVisit originalSecondVisit = secondVisitState.getEntity();
+        // swap the locations
+        firstVisitState.assignHl7ValueIfDifferent(
+                Hl7Value.buildFromHl7(secondLocation), firstVisitState.getEntity().getLocation(), firstVisitState.getEntity()::setLocation);
+        secondVisitState.assignHl7ValueIfDifferent(
+                Hl7Value.buildFromHl7(firstLocation), secondVisitState.getEntity().getLocation(), secondVisitState.getEntity()::setLocation);
+        // save newly created or audit
+        manuallySaveLocationOrAuditIfRequired(originalFirstVisit, firstVisitState, validFrom, storedFrom);
+        manuallySaveLocationOrAuditIfRequired(originalSecondVisit, secondVisitState, validFrom, storedFrom);
     }
 
 
@@ -152,6 +171,16 @@ public class LocationController {
     private RowState<LocationVisit> getOrCreateOpenLocation(HospitalVisit visit, Location location, String sourceSystem,
                                                             Instant validFrom, Instant storedFrom) {
         return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit)
+                .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
+                .orElseGet(() -> {
+                    LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
+                    logger.debug("Created new LocationVisit: {}", locationVisit);
+                    return new RowState<>(locationVisit, validFrom, storedFrom, true);
+                });
+    }
+
+    private RowState<LocationVisit> getOrCreateOpenLocationByLocation(HospitalVisit visit, Location location, String sourceSystem, Instant validFrom, Instant storedFrom) {
+        return locationVisitRepo.findByHospitalVisitIdAndLocationIdAndDischargeTimeIsNull(visit, location)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
