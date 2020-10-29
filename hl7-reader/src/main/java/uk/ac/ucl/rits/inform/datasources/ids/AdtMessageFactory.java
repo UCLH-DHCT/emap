@@ -265,7 +265,6 @@ public class AdtMessageFactory {
 
         PatientInfoHl7 otherPatientInfo = new PatientInfoHl7(null, pid, pv1, null);
         SwapLocations msg = new SwapLocations();
-        msg.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
         msg.setOtherVisitNumber(otherPatientInfo.getVisitNumber());
         msg.setOtherFullLocationString(Hl7Value.buildFromHl7(otherPatientInfo.getFullLocationString()));
 
