@@ -18,15 +18,13 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class SwapLocations extends AdtMessage implements AdmissionDateTime {
+public class SwapLocations extends AdtMessage {
     private static final long serialVersionUID = 1811745798929900545L;
 
-    private Hl7Value<Instant> admissionDateTime;
     private String otherMrn;
     private String otherNhsNumber;
     private String otherVisitNumber;
     private Hl7Value<String> otherFullLocationString = Hl7Value.unknown();
-    private Hl7Value<Instant> otherAdmissionDateTime;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
