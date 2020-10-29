@@ -71,9 +71,16 @@ public class LocationController {
             processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
         } else if ((msg instanceof AdtCancellation)) {
             processCancellationMessage(visit, msg, storedFrom, locationEntity, validFrom);
-        } else if ((msg instanceof SwapLocations)) {
-            swapLocations(visit, msg, storedFrom, locationEntity, validFrom);
         }
+    }
+
+    @Transactional
+    public void swapLocations(HospitalVisit firstVisit, HospitalVisit secondVisit, SwapLocations msg, Instant storedFrom) {
+        if (msg.getFullLocationString().isUnknown() || msg.getOtherLocation().isUnknown()) {
+            logger.debug("One or both locations in a SwapLocations message does not exist: {}", msg);
+            return;
+        }
+
     }
 
 

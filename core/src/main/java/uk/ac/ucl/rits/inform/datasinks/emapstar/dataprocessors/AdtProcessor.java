@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 
 import java.time.Instant;
 import java.util.List;
@@ -109,5 +110,29 @@ public class AdtProcessor {
     public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn previousMrn = personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
+    }
+
+    /**
+     * Swap the locations of two patient's encounters.
+     * @param msg        swap locations
+     * @param storedFrom time that emap-core started processing the message.
+     */
+    @Transactional
+    public void swapLocations(SwapLocations msg, Instant storedFrom) {
+        Instant messageDateTime = msg.bestGuessAtValidFrom();
+
+        // process first visit
+        Mrn firstMrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        personController.updateOrCreateDemographic(firstMrn, msg, messageDateTime, storedFrom);
+        HospitalVisit firstVisit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, firstMrn);
+
+        // get the other visit
+        Mrn secondMrn = personController.getOrCreateMrn(
+                msg.getOtherMrn(), msg.getOtherNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        HospitalVisit secondVisit = visitController.getOrCreateMinimalHospitalVisit(
+                msg.getOtherVisitNumber(), secondMrn, msg.getSourceSystem(), messageDateTime, storedFrom);
+
+        // swap locations
+        locationController.swapLocations(firstVisit, secondVisit, msg, storedFrom);
     }
 }
