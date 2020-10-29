@@ -9,7 +9,7 @@ import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 
 /**
  * Swap two patients' locations.
- * Contains information about two patients locations, the other patient should already exist in the system.
+ * Contains information about two patients locations.
  * HL7 messages: A17
  */
 @Data
@@ -21,10 +21,7 @@ public class SwapLocations extends AdtMessage {
     private String otherMrn;
     private String otherNhsNumber;
     private String otherVisitNumber;
-    private Hl7Value<String> otherCurrentBed = Hl7Value.unknown();
-    private Hl7Value<String> otherCurrentRoomCode = Hl7Value.unknown();
-    private Hl7Value<String> otherCurrentWardCode = Hl7Value.unknown();
-    private Hl7Value<String> otherFullLocationString = Hl7Value.unknown();
+    private Hl7Value<String> otherLocation = Hl7Value.unknown();
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {

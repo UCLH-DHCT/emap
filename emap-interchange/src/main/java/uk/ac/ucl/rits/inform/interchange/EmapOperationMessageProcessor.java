@@ -5,6 +5,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 
 /**
  * Define the message types that an Emap processor
@@ -47,6 +48,12 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the SwapLocations to process
+     * @throws EmapOperationMessageProcessingException if the message cannot be processed
+     */
+    void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the vital signs message to process
