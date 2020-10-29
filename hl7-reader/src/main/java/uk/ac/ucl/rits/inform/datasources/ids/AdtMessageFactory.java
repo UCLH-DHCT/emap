@@ -212,21 +212,18 @@ public class AdtMessageFactory {
                 msg = cancelAdmitPatient;
                 break;
             case "A12":
-                //3
                 CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
                 setCancellationDate(evn, cancelTransferPatient);
                 cancelTransferPatient.setPreviousLocation(patientInfoHl7.getPreviousLocation());
                 msg = cancelTransferPatient;
                 break;
             case "A13":
-                //3
                 CancelDischargePatient cancelDischargePatient = new CancelDischargePatient();
                 setCancellationDate(evn, cancelDischargePatient);
                 msg = cancelDischargePatient;
                 break;
             case "A17":
-                // special swap locations part 3
-                msg = buildSwapLocations(hl7Msg);
+                msg = buildSwapLocations(hl7Msg, patientInfoHl7);
                 break;
             case "A29":
                 msg = new DeletePersonInformation();
@@ -262,16 +259,14 @@ public class AdtMessageFactory {
         return mrg;
     }
 
-    private SwapLocations buildSwapLocations(Message hl7Msg) throws HL7Exception {
+    private SwapLocations buildSwapLocations(Message hl7Msg, PV1Wrap pv1Wrap) throws HL7Exception {
         PID pid = getPid(hl7Msg, true);
         PV1 pv1 = getPv1(hl7Msg, true);
 
         PatientInfoHl7 otherPatientInfo = new PatientInfoHl7(null, pid, pv1, null);
         SwapLocations msg = new SwapLocations();
+        msg.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
         msg.setOtherVisitNumber(otherPatientInfo.getVisitNumber());
-        msg.setOtherCurrentBed(Hl7Value.buildFromHl7(otherPatientInfo.getCurrentBed()));
-        msg.setOtherCurrentRoomCode(Hl7Value.buildFromHl7(otherPatientInfo.getCurrentRoomCode()));
-        msg.setOtherCurrentWardCode(Hl7Value.buildFromHl7(otherPatientInfo.getCurrentWardCode()));
         msg.setOtherFullLocationString(Hl7Value.buildFromHl7(otherPatientInfo.getFullLocationString()));
 
         msg.setOtherMrn(otherPatientInfo.getMrn());
