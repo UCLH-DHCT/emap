@@ -7,8 +7,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 
-import java.time.Instant;
-
 /**
  * Swap two patients' locations.
  * Contains information about two patients locations that should be swapped.
