@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -70,10 +69,9 @@ public class AdtProcessor {
      * @param storedFrom      time that emap-core started processing the message.
      * @param messageDateTime date time of the message
      * @return MRN
-     * @throws MessageIgnoredException if message is not set up to be processed yet
      */
     @Transactional
-    public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws MessageIgnoredException {
+    public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
         personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
 
@@ -98,18 +96,29 @@ public class AdtProcessor {
         visitController.deleteVisits(olderVisits, messageDateTime, storedFrom);
     }
 
+    /**
+     * Move a visit from a previous MRN to the current MRN.
+     * @param msg        MoveVisitInformation
+     * @param storedFrom time that emap-core started processing the message.
+     */
     @Transactional
-    public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws MessageIgnoredException {
+    public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn previousMrn = personController.getOrCreateMrn(
                 msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         Mrn currentMrn = processPersonLevel(msg, storedFrom, messageDateTime);
-        HospitalVisit visit = visitController.moveVisitInformation(msg, storedFrom, previousMrn, currentMrn);
+        visitController.moveVisitInformation(msg, storedFrom, previousMrn, currentMrn);
     }
 
+    /**
+     * Change the MRN string and NHS number for a patient.
+     * @param msg        ChangePatientIdentifiers
+     * @param storedFrom time that emap-core started processing the message.
+     */
+    @Transactional
     public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
-        Mrn previousMrn = personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
+        personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
     }
 
     /**
