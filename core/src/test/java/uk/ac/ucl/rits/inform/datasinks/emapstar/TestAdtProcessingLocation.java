@@ -247,8 +247,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testCancelTransfer() throws EmapOperationMessageProcessingException {
         CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
-        // TODO: double check this is correct and rename the interchange field to be more clear
-        msg.setPreviousLocation(originalLocation);
+        msg.setCancelledLocation(originalLocation);
         String correctLocation = "T11E^T11E BY02^BY02-25";
 
         dbOps.processMessage(msg);

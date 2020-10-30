@@ -138,10 +138,14 @@ public class LocationController {
      */
     @Transactional
     public void processCancellationMessage(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
-        if (msg instanceof CancelAdmitPatient || msg instanceof CancelTransferPatient) {
+        if (msg instanceof CancelAdmitPatient) {
             deleteOpenVisitLocation(visit, msg, locationEntity, validFrom, storedFrom);
-        }
-        if (msg instanceof CancelDischargePatient || msg instanceof CancelTransferPatient) {
+        } else if (msg instanceof CancelDischargePatient) {
+            removeDischargeDateTime(visit, msg, locationEntity, validFrom, storedFrom);
+        } else if (msg instanceof CancelTransferPatient) {
+            CancelTransferPatient cancelTransferPatient = (CancelTransferPatient) msg;
+            Location cancelledLocation = getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
+            deleteOpenVisitLocation(visit, msg, cancelledLocation, validFrom, storedFrom);
             removeDischargeDateTime(visit, msg, locationEntity, validFrom, storedFrom);
         }
     }
