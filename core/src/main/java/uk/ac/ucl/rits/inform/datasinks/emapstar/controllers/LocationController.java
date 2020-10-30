@@ -260,6 +260,7 @@ public class LocationController {
     private void dischargeLocation(final Instant validFrom, RowState<LocationVisit> retiringState) {
         LocationVisit location = retiringState.getEntity();
         retiringState.assignIfDifferent(validFrom, location.getDischargeTime(), location::setDischargeTime);
+        logger.debug("Discharged location visit: {}", location);
     }
 
     /**
@@ -275,7 +276,9 @@ public class LocationController {
         LocationVisit locationVisit = visitState.getEntity();
         LocationVisit originalLocationVisit = locationVisit.copy();
         visitState.removeIfExists(locationVisit.getDischargeTime(), locationVisit::setDischargeTime, validFrom);
+        logger.debug("removed location visit: {}", locationVisit);
         manuallySaveLocationOrAuditIfRequired(originalLocationVisit, visitState, validFrom, storedFrom);
+
     }
 
     /**
