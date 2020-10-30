@@ -1,9 +1,13 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import java.time.Instant;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
@@ -20,9 +24,6 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
-
-import java.time.Instant;
-import java.util.List;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -292,6 +293,6 @@ public class PersonController {
      * @return true if an MRN exists by the mrn string
      */
     private boolean mrnExists(String mrn) {
-        return mrnRepo.getAllByMrnEquals(mrn).isPresent();
+        return mrnRepo.getByMrnEquals(mrn).isPresent();
     }
 }

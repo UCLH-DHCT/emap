@@ -1,8 +1,14 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -11,18 +17,13 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.VitalSigns;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 public class TestVitalSignProcessing extends MessageProcessingBase {
-    List<VitalSigns> messages;
-    String vitalsMrn = "21014099";
+    private List<VitalSigns> messages;
+    private String vitalsMrn = "21014099";
     @Autowired
-    HospitalVisitRepository hospitalVisitRepository;
+    private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    AuditHospitalVisitRepository auditHospitalVisitRepository;
+    private AuditHospitalVisitRepository auditHospitalVisitRepository;
 
 
     @BeforeEach
@@ -31,7 +32,7 @@ public class TestVitalSignProcessing extends MessageProcessingBase {
     }
 
     /**
-     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
+     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created.
      */
     @Test
     public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
