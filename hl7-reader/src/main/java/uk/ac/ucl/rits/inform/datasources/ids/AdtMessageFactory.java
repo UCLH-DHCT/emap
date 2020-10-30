@@ -217,7 +217,7 @@ public class AdtMessageFactory {
             case "A12":
                 CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
                 setCancellationDate(evn, cancelTransferPatient);
-                cancelTransferPatient.setCancelledLocation(patientInfoHl7.getPreviousLocation());
+                cancelTransferPatient.setCancelledLocation(pv1Wrap.getPreviousLocation());
                 msg = cancelTransferPatient;
                 break;
             case "A13":
@@ -226,7 +226,7 @@ public class AdtMessageFactory {
                 msg = cancelDischargePatient;
                 break;
             case "A17":
-                msg = buildSwapLocations(hl7Msg, patientInfoHl7);
+                msg = buildSwapLocations(hl7Msg, pv1Wrap);
                 break;
             case "A29":
                 msg = new DeletePersonInformation();
