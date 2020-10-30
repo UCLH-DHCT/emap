@@ -1,7 +1,6 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.MergePatient"
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
-operatorId: "U444444"
 previousMrn: "40800000"
 sourceSystem: "UCLH4"
 mrn: "40800001"
@@ -18,10 +17,6 @@ patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "TEST-CHU"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "MR Opcancel null TEST-CHU"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"

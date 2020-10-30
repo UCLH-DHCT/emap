@@ -2,41 +2,20 @@
 recordedDateTime: "2013-02-11T18:43:47Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T18:43:00Z"
-operatorId: "U999999"
 sourceSystem: "EPIC"
 mrn: "40800000"
 visitNumber: "123412341234"
 dischargeDateTime: "2013-02-11T18:43:00Z"
 dischargeDisposition: "19"
 dischargeLocation: "1"
-admitSource:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "19"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "2013-02-11T10:00:52Z"
-currentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "BY02-17"
-currentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T11E BY02"
-currentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T11E"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "T11E^T11E BY02^BY02-17"
-hospitalService:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "35276"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -53,10 +32,6 @@ patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "AGBTESTD"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "MRS Satesta null AGBTESTD"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
