@@ -47,7 +47,9 @@ run_pipeline() {
     bash emap-live.sh ps
     bash emap-live.sh down
     bash emap-live.sh ps
-    bash emap-live.sh up -d rabbitmq cassandra glowroot-central
+    bash emap-live.sh up -d cassandra glowroot-central
+    source ../config/glowroot-config-envs && ./emap-live.sh run glowroot-central java -jar "glowroot-central.jar" setup-admin-user "${GLOWROOT_USERNAME}" "${GLOWROOT_PASSWORD}"
+    bash emap-live.sh up -d rabbitmq
     bash emap-live.sh ps
     # If this is run after the data sources, it would deadlock if the hl7source generates
     # more messages than can fit in the queue, but currently emapstar doesn't like being started up
