@@ -90,18 +90,12 @@ public class AdtMessageFactory {
         msg.setRecordedDateTime(patientInfoHl7.getMessageTimestamp());
         if (patientInfoHl7.pv1SegmentExists()) {
             // will we want demographics to be included in pathology messages too?
-            msg.setAdmitSource(Hl7Value.buildFromHl7(patientInfoHl7.getAdmitSource()));
-            msg.setCurrentBed(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentBed()));
-            msg.setCurrentRoomCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentRoomCode()));
-            msg.setCurrentWardCode(Hl7Value.buildFromHl7(patientInfoHl7.getCurrentWardCode()));
             msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
-            msg.setHospitalService(Hl7Value.buildFromHl7(patientInfoHl7.getHospitalService()));
             try {
                 msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
             } catch (IllegalArgumentException e) {
                 throw new HL7Exception("Patient class was not recognised", e);
             }
-            msg.setPatientType(Hl7Value.buildFromHl7(patientInfoHl7.getPatientType()));
             msg.setVisitNumber(patientInfoHl7.getVisitNumber());
         }
         if (patientInfoHl7.pv2SegmentExists()) {
@@ -125,7 +119,6 @@ public class AdtMessageFactory {
             msg.setPatientDeathDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getPatientDeathDateTime()));
 
             msg.setPatientFamilyName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFamilyName()));
-            msg.setPatientFullName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFullName()));
             msg.setPatientGivenName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientGivenName()));
             msg.setPatientMiddleName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
             msg.setPatientReligion(Hl7Value.buildFromHl7(patientInfoHl7.getPatientReligion()));
@@ -136,7 +129,6 @@ public class AdtMessageFactory {
         if (null != evn) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
-            msg.setOperatorId(evn.getEvn5_OperatorID(0).getXcn1_IDNumber().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
         }
     }
