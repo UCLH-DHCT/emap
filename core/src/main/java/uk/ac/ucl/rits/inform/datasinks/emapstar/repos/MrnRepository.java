@@ -1,10 +1,11 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
-import org.springframework.data.repository.CrudRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.repository.CrudRepository;
+
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 /**
  * Repository for interaction with MRN table.
@@ -92,7 +93,7 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      * @param mrn MRN string
      * @return MRN
      */
-    Mrn getByMrnEquals(String mrn);
+    Optional<Mrn> getByMrnEquals(String mrn);
 
     /**
      * @param nhsNumber nhs number
@@ -100,9 +101,4 @@ public interface MrnRepository extends CrudRepository<Mrn, Integer> {
      */
     List<Mrn> getAllByNhsNumberEquals(String nhsNumber);
 
-    /**
-     * @param mrn MRN string
-     * @return MRN
-     */
-    Optional<Object> getAllByMrnEquals(String mrn);
 }
