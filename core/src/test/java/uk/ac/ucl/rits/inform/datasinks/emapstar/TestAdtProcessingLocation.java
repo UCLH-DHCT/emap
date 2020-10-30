@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditLocationVisitReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -18,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 
 import java.time.Instant;
@@ -242,6 +244,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
+    @Sql("/populate_db.sql")
     void testCancelTransfer() throws EmapOperationMessageProcessingException {
         CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
         // TODO: double check this is correct and rename the interchange field to be more clear
@@ -279,6 +282,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
+    @Sql("/populate_db.sql")
     void testCancelDischarge() throws EmapOperationMessageProcessingException {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         String correctLocation = "T06C^T06C SR41^SR41-41";
@@ -291,5 +295,41 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // correct location is reopened
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
         Assertions.assertNull(reopenedVisit.getDischargeTime());
+    }
+
+    /**
+     * Swap locations of two open locations.
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testSwapLocations() {
+        SwapLocations msg = messageFactory.getAdtMessage("generic/A17.yaml");
+        String locationA = "T42E^T42E BY03^BY03-17";
+        String visitNumberA = "123412341234";
+        msg.setFullLocationString(Hl7Value.buildFromHl7(locationA));
+        msg.setVisitNumber(visitNumberA);
+
+        String locationB = "T11E^T11E BY02^BY02-17";
+        String visitNumberB = "0999999999";
+        msg.setOtherVisitNumber(visitNumberB);
+        msg.setOtherMrn(null);
+        msg.setOtherNhsNumber("222222222");
+        msg.setOtherFullLocationString(Hl7Value.buildFromHl7(locationB));
+
+        HospitalVisit visitA = hospitalVisitRepository.findByEncounter(visitNumberA).orElseThrow();
+        HospitalVisit visitB = hospitalVisitRepository.findByEncounter(visitNumberB).orElseThrow();
+
+        LocationVisit originalLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
+        LocationVisit originalLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
+
+
+        dbOps.processMessage(msg);
+
+        LocationVisit swappedLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
+        LocationVisit swappedLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
+
+        Assertions.assertEquals(originalLocationVisitB.getLocation(), swappedLocationVisitA.getLocation());
+        Assertions.assertEquals(originalLocationVisitA.getLocation(), swappedLocationVisitB.getLocation());
+
     }
 }

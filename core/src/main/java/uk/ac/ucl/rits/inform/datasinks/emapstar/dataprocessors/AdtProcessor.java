@@ -131,7 +131,8 @@ public class AdtProcessor {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
 
         // process first visit
-        Mrn firstMrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        Mrn firstMrn = personController.getOrCreateMrn(
+                msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
         personController.updateOrCreateDemographic(firstMrn, msg, messageDateTime, storedFrom);
         HospitalVisit firstVisit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, firstMrn);
 

@@ -179,7 +179,8 @@ public class LocationController {
                 });
     }
 
-    private RowState<LocationVisit> getOrCreateOpenLocationByLocation(HospitalVisit visit, Location location, String sourceSystem, Instant validFrom, Instant storedFrom) {
+    private RowState<LocationVisit> getOrCreateOpenLocationByLocation(HospitalVisit visit, Location location, String sourceSystem,
+                                                                      Instant validFrom, Instant storedFrom) {
         return locationVisitRepo.findByHospitalVisitIdAndLocationIdAndDischargeTimeIsNull(visit, location)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
