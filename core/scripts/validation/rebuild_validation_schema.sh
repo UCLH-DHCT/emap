@@ -7,7 +7,7 @@ set -euo pipefail
 # - Truncate ops_validation tables, including progress but not the mapping tables
 # - Truncate hl7 and caboodle progress tables in caboodle_extract_validation schema
 
-date_suffix=$(date +%s)
+date_suffix=$(date +"%Y-%m-%d_%H-%M-%S")
 log_file_prefix=rebuild_log_${date_suffix}
 
 # edit hl7 (vitals+adt) config files in place, keeping a backup named by the timestamp
@@ -26,7 +26,7 @@ configure_time_window() {
         ' \
         ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
-        ../config/caboodle-envs
+
 }
 
 stop_it_and_tidy_up() {
