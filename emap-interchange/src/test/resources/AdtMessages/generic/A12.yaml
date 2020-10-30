@@ -8,7 +8,7 @@ mrn: "40800000"
 nhsNumber: "9999999999"
 visitNumber: "123412341234"
 cancelledDateTime: "2013-02-11T10:01:52Z"
-previousLocation: "THP3^UCHP03THR POOL01^THR"
+cancelledLocation: "THP3^UCHP03THR POOL01^THR"
 admitSource:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "Usual"
