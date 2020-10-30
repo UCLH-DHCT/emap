@@ -296,9 +296,6 @@ public class LocationController {
                 });
     }
 
-    private void swapLocations(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
-    }
-
     /**
      * Save location or audit of location.
      * @param originalLocation original location entity
