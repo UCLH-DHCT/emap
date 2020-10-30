@@ -1,30 +1,31 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.time.Instant;
-
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
 import ca.uhn.hl7v2.model.v26.segment.PID;
+
+import java.time.Instant;
 
 /**
  * Wrapper around the HAPI parser's PID segment object, to make it easier to use.
- *
+ * <p>
  * Reference: see https://hapifhir.github.io/hapi-hl7v2/v27/apidocs/ca/uhn/hl7v2/model/v27/segment/PID.html
- *
+ * <p>
  * Some functions have Epic and Carecast versions as they appear from the docs to return different information.
  * This needs to be verified with real data, which may remove the need for some of these different versions
  * - or, perhaps, add the need for more of them.
- *
+ * <p>
  * Example of *Carecast* PID segments:
- *
- *
- *
+ * <p>
+ * <p>
+ * <p>
  * Below are the encoding characters:
-    Field Separator (normally |)
-    Component Separator (normally ^)
-    Subcomponent Separator (normally &)
-    Field Repeat Separator (normally ~)
-    Escape Character (normally \)
-
+ * Field Separator (normally |)
+ * Component Separator (normally ^)
+ * Subcomponent Separator (normally &)
+ * Field Repeat Separator (normally ~)
+ * Escape Character (normally \)
  */
 interface PIDWrap {
     /**
@@ -60,9 +61,8 @@ interface PIDWrap {
      * If more are required then need to get use _pid.getPatientName(1)... etc
      * Certainly in Epic it appears that only one name data (XPN) object is stored.
      * XPN xpn = getPID().getPatientName(0); etc
-     *
+     * <p>
      * NB Epic also has Suffix, Prefix, Academic degree, Name Type
-     *
      * @return PID-5.1 family name
      * @throws HL7Exception if HAPI does
      */
@@ -100,7 +100,7 @@ interface PIDWrap {
      */
     default String getPatientFullName() throws HL7Exception {
         String result = this.getPatientTitle() + " " + this.getPatientGivenName() + " "
-            + this.getPatientMiddleName() + " " + this.getPatientFamilyName();
+                + this.getPatientMiddleName() + " " + this.getPatientFamilyName();
         return result;
     }
 
@@ -112,13 +112,30 @@ interface PIDWrap {
      */
 
     /**
-     * We could probably use the HAPI functions to obtain the different components of this result,
-     * e.g. for easier conversion to Postgres timestamp format.
-     * @return PID-7.1 birthdatetime
-     * @throws HL7Exception if HAPI does
+     * Carry out timezone correction if the datetime is not truncated to the day.
+     * @return PID-7.1 birthdatetime, null if field is empty
+     * @throws DataTypeException if HAPI does
      */
-    default Instant getPatientBirthDate() throws HL7Exception {
-        return HL7Utils.interpretLocalTime(getPID().getDateTimeOfBirth());
+    default Instant getPatientBirthDate() throws DataTypeException {
+        DTM dateTime = getPID().getDateTimeOfBirth();
+        if (dateTime.getValue() == null) {
+            return null;
+        }
+
+        if (isNotTruncatedToDay(dateTime)) {
+            return HL7Utils.interpretLocalTime(dateTime);
+        }
+        dateTime.setOffset(0);
+        return dateTime.getValueAsDate().toInstant();
+    }
+
+    /**
+     * Is the date time truncated to the day.
+     * @param dateTime date time object
+     * @return true if there is only year, month and day given
+     */
+    private boolean isNotTruncatedToDay(DTM dateTime) {
+        return dateTime.getValue().length() != 8;
     }
 
 
@@ -209,15 +226,14 @@ interface PIDWrap {
 
     /**
      * Epic has different possible formats, according to their doc:
-     *
+     * <p>
      * (nnn)nnn-nnnnx<extension>
      * or
      * ^^^^^<City/area code>^<Number>^<Extension>
      * or
      * #<text>
-     *
+     * <p>
      * I don't know how HAPI will deal with this. Need to see real messages.
-     *
      * @return the patient business phone number
      * @throws HL7Exception if HAPI does
      */
@@ -262,6 +278,7 @@ interface PIDWrap {
     // Epic: Patient ethnic group. Only the first component is used
     // CWE[] getPid22_EthnicGroup() Returns all repetitions of Ethnic Group (PID-22).
     // Epic: Patient ethnic group. Only the first component is used. Format: <ethnic group>^^^^^^^^~
+
     /**
      * Looks like Carecast and Epic may be the same (need to see real data to check).
      * @return the ethnic group

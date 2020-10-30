@@ -12,10 +12,10 @@ import ca.uhn.hl7v2.model.v26.segment.PV2;
  * @author Jeremy Stein & Stef Piatek
  */
 public class PatientInfoHl7 implements PV1Wrap, PV2Wrap, PIDWrap, MSHWrap {
-    private MSH msh;
-    private PV1 pv1;
-    private PV2 pv2;
-    private PID pid;
+    private final MSH msh;
+    private final PV1 pv1;
+    private final PV2 pv2;
+    private final PID pid;
 
     @Override
     public PV1 getPV1() {
@@ -47,6 +47,7 @@ public class PatientInfoHl7 implements PV1Wrap, PV2Wrap, PIDWrap, MSHWrap {
         this.msh = msh;
         this.pv1 = pv1;
         this.pid = pid;
+        pv2 = null;
     }
 
     /**
