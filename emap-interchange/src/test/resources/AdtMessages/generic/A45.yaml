@@ -1,36 +1,15 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation"
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
-operatorId: "U444444"
 previousMrn: "40800000"
 previousVisitNumber: "123412341234"
 sourceSystem: "EPIC"
 visitNumber: "123412341234"
 mrn: "60600000"
 nhsNumber: "1111111111"
-admitSource:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "Usual"
-  status: "SAVE"
-currentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "BY02-17"
-  status: "SAVE"
-currentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "T42E BY02"
-  status: "SAVE"
-currentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "T42E"
-  status: "SAVE"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "T42E^T42E BY02^BY02-17"
-  status: "SAVE"
-hospitalService:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value:  "Anaes"
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
@@ -48,10 +27,6 @@ patientIsAlive:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "ORANGE"
-  status: "SAVE"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "null BLOOD null ORANGE"
   status: "SAVE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"

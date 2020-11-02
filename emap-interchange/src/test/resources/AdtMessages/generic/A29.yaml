@@ -1,6 +1,5 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation"
 recordedDateTime: "2013-02-11T10:00:52Z"
-operatorId: "IPUC"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "REG_PAT_DELETE"
 sourceSystem: "EPIC"
@@ -22,10 +21,6 @@ patientIsAlive:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "ORANGE"
-  status: "SAVE"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "null BLOOD null ORANGE"
   status: "SAVE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
