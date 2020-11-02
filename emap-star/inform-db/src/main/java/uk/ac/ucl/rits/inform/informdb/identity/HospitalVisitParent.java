@@ -1,14 +1,16 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.Objects;
+
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 /**
  * Parent class that is not created as an entity to avoid polymorphic queries based on the original and audit table.
@@ -16,6 +18,7 @@ import java.util.Objects;
  * See {@link HospitalVisit} for more details
  * @author UCL RITS
  */
+@AuditTable
 @MappedSuperclass
 public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> implements Serializable {
 
@@ -73,6 +76,13 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
     private String dischargeDisposition;
 
     /**
+     * The source system identifier of this hospital visit. In Epic this corresponds
+     * to the CSN.
+     */
+    @Column(nullable = false, unique = true)
+    private String encounter;
+
+    /**
      * Default constructor.
      */
     public HospitalVisitParent() {
@@ -93,6 +103,7 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
         this.patientClass = other.patientClass;
         this.presentationTime = other.presentationTime;
         this.sourceSystem = other.sourceSystem;
+        this.setEncounter(other.getEncounter());
     }
 
 
@@ -222,6 +233,14 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
         this.dischargeDisposition = dischargeDisposition;
     }
 
+    public String getEncounter() {
+        return encounter;
+    }
+
+    public void setEncounter(String encounter) {
+        this.encounter = encounter;
+    }
+
     @Override
     public String toString() {
         return String.format("HospitalVisitParent [source_system=%s]", sourceSystem);
@@ -249,7 +268,8 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
                 && Objects.equals(patientClass, that.patientClass)
                 && Objects.equals(arrivalMethod, that.arrivalMethod)
                 && Objects.equals(dischargeDestination, that.dischargeDestination)
-                && Objects.equals(dischargeDisposition, that.dischargeDisposition);
+                && Objects.equals(dischargeDisposition, that.dischargeDisposition)
+                && Objects.equals(encounter, that.encounter);
     }
 
     @Override
@@ -257,4 +277,5 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
         return Objects.hash(mrnId, sourceSystem, presentationTime, admissionTime, dischargeTime,
                 patientClass, arrivalMethod, dischargeDestination, dischargeDisposition);
     }
+
 }

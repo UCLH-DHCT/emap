@@ -1,16 +1,18 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
+import java.time.Instant;
 
+import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.time.Instant;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 
 /**
  * Audit table of {@link HospitalVisit}.
@@ -19,6 +21,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@AttributeOverride(name = "encounter", column = @Column(unique = false) )
 public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore<HospitalVisitParent> {
     private static final long serialVersionUID = -8516988957488992519L;
     @Id
@@ -30,8 +33,6 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
     private Instant validUntil;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
-    @Column(nullable = false)
-    private String encounter;
 
 
     /**
@@ -52,6 +53,5 @@ public class AuditHospitalVisit extends HospitalVisitParent implements AuditCore
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
         this.hospitalVisitId = originalEntity.getHospitalVisitId();
-        this.encounter = originalEntity.getEncounter();
     }
 }

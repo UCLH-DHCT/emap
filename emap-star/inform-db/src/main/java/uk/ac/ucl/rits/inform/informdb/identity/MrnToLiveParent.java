@@ -20,7 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 @MappedSuperclass
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @AuditTable
-public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
+public abstract class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
 
@@ -71,11 +71,6 @@ public class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Se
     @Override
     public String toString() {
         return String.format("MrnToLive [mrn_id=%s, live_mrn_id=%s]", mrnId, liveMrnId);
-    }
-
-    @Override
-    public MrnToLiveParent copy() {
-        return new MrnToLiveParent(this);
     }
 
 }

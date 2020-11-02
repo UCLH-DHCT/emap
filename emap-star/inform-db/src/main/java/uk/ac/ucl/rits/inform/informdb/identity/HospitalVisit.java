@@ -1,16 +1,15 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * This a single visit to the hospital. This is not necessarily an inpatient
@@ -33,12 +32,7 @@ public class HospitalVisit extends HospitalVisitParent {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long hospitalVisitId;
 
-    /**
-     * The source system identifier of this hospital visit. In Epic this corresponds
-     * to the CSN.
-     */
-    @Column(nullable = false, unique = true)
-    private String encounter;
+
 
     /**
      * Default constructor.
@@ -53,7 +47,7 @@ public class HospitalVisit extends HospitalVisitParent {
     public HospitalVisit(HospitalVisit other) {
         super(other);
         hospitalVisitId = other.getHospitalVisitId();
-        encounter = other.getEncounter();
+        setEncounter(other.getEncounter());
     }
 
     /**
