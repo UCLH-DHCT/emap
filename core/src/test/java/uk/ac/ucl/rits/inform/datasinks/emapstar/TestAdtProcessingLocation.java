@@ -4,12 +4,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditLocationVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
@@ -35,7 +35,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Autowired
     private LocationVisitRepository locationVisitRepository;
     @Autowired
-    private AuditLocationVisitRepository auditLocationVisitRepository;
+    private LocationVisitAuditRepository locationVisitAuditRepository;
 
     private final String originalLocation = "T42E^T42E BY03^BY03-17";
     private final long defaultHospitalVisitId = 4001;
@@ -52,7 +52,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         Assertions.assertEquals(1L, getAllEntities(locationRepository).size());
         Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(auditLocationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
 
@@ -78,7 +78,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNotEquals(originalLocation, currentVisit.getLocation().getLocationString());
 
         // audit row for location when it had no discharge time
-        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 
@@ -99,7 +99,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNotNull(dischargedVisit.getDischargeTime());
 
         // audit row for location when it had no discharge time
-        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 
@@ -120,7 +120,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNull(visit.getDischargeTime());
 
         // audit row for location when it had no discharge time
-        Optional<AuditLocationVisit> audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation);
+        Optional<LocationVisitAudit> audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation);
         Assertions.assertTrue(audit.isEmpty());
     }
 
@@ -152,7 +152,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocation().getLocationString());
 
         // audit row for location when it had no discharge time
-        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 
@@ -171,7 +171,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNull(locationVisit);
 
         // audit row for the existing location
-        AuditLocationVisit audit = auditLocationVisitRepository.findByLocationIdLocationString(originalLocation).orElse(null);
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElse(null);
         Assertions.assertNotNull(audit);
     }
 
@@ -192,7 +192,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNotNull(locationVisit);
 
         // No audit rows
-        Assertions.assertEquals(0L, getAllEntities(auditLocationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -206,7 +206,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(auditLocationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -237,7 +237,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(auditLocationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -274,7 +274,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(auditLocationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -334,7 +334,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNull(reopenedVisit.getDischargeTime());
 
         // intermediate update patient information visit is deleted
-        Optional<AuditLocationVisit> deletedOpenVisit = auditLocationVisitRepository.findByLocationIdLocationStringAndValidFrom(correctLocation, messageDateTime);
+        Optional<LocationVisitAudit> deletedOpenVisit = locationVisitAuditRepository.findByLocationIdLocationStringAndValidFrom(correctLocation, messageDateTime);
         Assertions.assertTrue(deletedOpenVisit.isPresent());
 
         // processing a further message should not come into an error of more than one open location

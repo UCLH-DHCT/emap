@@ -6,11 +6,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditLocationVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
@@ -39,19 +39,19 @@ public class LocationController {
 
     private final LocationVisitRepository locationVisitRepo;
     private final LocationRepository locationRepo;
-    private final AuditLocationVisitRepository auditLocationVisitRepo;
+    private final LocationVisitAuditRepository locationVisitAuditRepo;
 
     /**
      * Constructor implicitly autowiring beans.
      * @param locationVisitRepo      location visit repo
      * @param locationRepo           location repo
-     * @param auditLocationVisitRepo audit location repo
+     * @param locationVisitAuditRepo audit location repo
      */
     public LocationController(LocationVisitRepository locationVisitRepo, LocationRepository locationRepo,
-                              AuditLocationVisitRepository auditLocationVisitRepo) {
+                              LocationVisitAuditRepository locationVisitAuditRepo) {
         this.locationVisitRepo = locationVisitRepo;
         this.locationRepo = locationRepo;
-        this.auditLocationVisitRepo = auditLocationVisitRepo;
+        this.locationVisitAuditRepo = locationVisitAuditRepo;
     }
 
     /**
@@ -314,8 +314,8 @@ public class LocationController {
      */
     private void manuallySaveLocationOrAuditIfRequired(LocationVisit originalLocation, RowState<LocationVisit> locationState,
                                                        Instant validFrom, Instant storedFrom) {
-        AuditLocationVisit auditLocation = new AuditLocationVisit(originalLocation, validFrom, storedFrom);
-        locationState.saveEntityOrAuditLogIfRequired(auditLocation, locationVisitRepo, auditLocationVisitRepo);
+        LocationVisitAudit auditLocation = new LocationVisitAudit(originalLocation, validFrom, storedFrom);
+        locationState.saveEntityOrAuditLogIfRequired(auditLocation, locationVisitRepo, locationVisitAuditRepo);
     }
 
     /**
@@ -325,7 +325,7 @@ public class LocationController {
      * @param locationVisit Location visit to be deleted
      */
     private void deleteLocationVisit(Instant validFrom, Instant storedFrom, LocationVisit locationVisit) {
-        auditLocationVisitRepo.save(new AuditLocationVisit(locationVisit, validFrom, storedFrom));
+        locationVisitAuditRepo.save(new LocationVisitAudit(locationVisit, validFrom, storedFrom));
         logger.info("Deleting LocationVisit: {}", locationVisit);
         locationVisitRepo.delete(locationVisit);
     }

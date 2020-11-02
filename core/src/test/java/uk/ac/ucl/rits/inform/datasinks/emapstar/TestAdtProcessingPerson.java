@@ -3,12 +3,12 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
-import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -38,13 +38,13 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     CoreDemographicRepository coreDemographicRepository;
 
     @Autowired
-    AuditCoreDemographicRepository auditCoreDemographicRepository;
+    CoreDemographicAuditRepository coreDemographicAuditRepository;
 
     @Autowired
-    AuditMrnToLiveRepository auditMrnToLiveRepository;
+    MrnToLiveAuditRepository mrnToLiveAuditRepository;
 
-    private List<AuditCoreDemographic> getAllAuditCoreDemographics() {
-        return StreamSupport.stream(auditCoreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
+    private List<CoreDemographicAudit> getAllAuditCoreDemographics() {
+        return StreamSupport.stream(coreDemographicAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
     String newMrnString = "60600000";
@@ -145,13 +145,13 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         CoreDemographic postDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
         assertEquals(preDemographic, postDemographic);
 
-        List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
+        List<CoreDemographicAudit> audit = getAllAuditCoreDemographics();
         assertTrue(audit.isEmpty());
 
         // audit mrn to live should not be added to
-        List<AuditMrnToLive> auditMrnToLive = StreamSupport.stream(auditMrnToLiveRepository.findAll().spliterator(), false)
+        List<MrnToLiveAudit> mrnToLiveAudit = StreamSupport.stream(mrnToLiveAuditRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        assertTrue(auditMrnToLive.isEmpty());
+        assertTrue(mrnToLiveAudit.isEmpty());
     }
 
     /**
@@ -280,19 +280,19 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         long coreDemographicId = 3002;
 
         // audit log for demographics should be populated
-        List<AuditCoreDemographic> audit = auditCoreDemographicRepository.getAllByCoreDemographicId(coreDemographicId);
+        List<CoreDemographicAudit> audit = coreDemographicAuditRepository.getAllByCoreDemographicId(coreDemographicId);
         assertEquals(2, audit.size());
 
 
         // original state of the demographics should be saved to audit
-        AuditCoreDemographic firstAudit = audit.stream()
-                .min(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
+        CoreDemographicAudit firstAudit = audit.stream()
+                .min(Comparator.comparing(CoreDemographicAudit::getStoredUntil))
                 .orElseThrow(NullPointerException::new);
         assertEquals("zest", firstAudit.getLastname());
 
         // second message should have the updates from the first message being saved in audit
-        AuditCoreDemographic secondAudit = audit.stream()
-                .max(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
+        CoreDemographicAudit secondAudit = audit.stream()
+                .max(Comparator.comparing(CoreDemographicAudit::getStoredUntil))
                 .orElseThrow(NullPointerException::new);
         assertEquals("ORANGE", secondAudit.getLastname());
     }
@@ -313,7 +313,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         long coreDemographicId = 3002;
 
         // audit log for demographics should be populated only by the first message
-        List<AuditCoreDemographic> audit = auditCoreDemographicRepository.getAllByCoreDemographicId(coreDemographicId);
+        List<CoreDemographicAudit> audit = coreDemographicAuditRepository.getAllByCoreDemographicId(coreDemographicId);
         assertEquals(1, audit.size());
     }
 
@@ -335,11 +335,11 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // audit log for demographics should be populated
-        List<AuditMrnToLive> audits = auditMrnToLiveRepository.getAllByLiveMrnIdMrn(retiringMrnString);
+        List<MrnToLiveAudit> audits = mrnToLiveAuditRepository.getAllByLiveMrnIdMrn(retiringMrnString);
         assertEquals(2, audits.size());
 
         // original live should be saved to audit
-        for (AuditMrnToLive audit : audits) {
+        for (MrnToLiveAudit audit : audits) {
             assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
         }
     }
@@ -360,7 +360,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
         assertFalse(demographic.isPresent());
         // audit should have one row for deleted demographics
-        List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
+        List<CoreDemographicAudit> audits = coreDemographicAuditRepository.getAllByMrnIdMrn(defaultMrn);
         assertEquals(1, audits.size());
     }
 
@@ -381,7 +381,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
         assertTrue(demographic.isPresent());
         // no audit row
-        List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
+        List<CoreDemographicAudit> audits = coreDemographicAuditRepository.getAllByMrnIdMrn(defaultMrn);
         assertEquals(0, audits.size());
     }
 

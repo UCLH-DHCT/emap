@@ -6,14 +6,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
-import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -33,25 +33,25 @@ public class PersonController {
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
-    private final AuditMrnToLiveRepository auditMrnToLiveRepo;
+    private final MrnToLiveAuditRepository mrnToLiveAuditRepo;
     private final CoreDemographicRepository coreDemographicRepo;
-    private final AuditCoreDemographicRepository auditCoreDemographicRepo;
+    private final CoreDemographicAuditRepository coreDemographicAuditRepo;
 
     /**
      * Constructor implicitly autowiring beans.
      * @param mrnRepo                  mrnRepo
      * @param mrnToLiveRepo            mrnToLiveRepo
-     * @param auditMrnToLiveRepo       auditMrnToLiveRepo
+     * @param mrnToLiveAuditRepo       auditMrnToLiveRepo
      * @param coreDemographicRepo      coreDemographicRepo
-     * @param auditCoreDemographicRepo auditCoreDemographicRepo
+     * @param coreDemographicAuditRepo auditCoreDemographicRepo
      */
-    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, AuditMrnToLiveRepository auditMrnToLiveRepo,
-                            CoreDemographicRepository coreDemographicRepo, AuditCoreDemographicRepository auditCoreDemographicRepo) {
+    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, MrnToLiveAuditRepository mrnToLiveAuditRepo,
+                            CoreDemographicRepository coreDemographicRepo, CoreDemographicAuditRepository coreDemographicAuditRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
-        this.auditMrnToLiveRepo = auditMrnToLiveRepo;
+        this.mrnToLiveAuditRepo = mrnToLiveAuditRepo;
         this.coreDemographicRepo = coreDemographicRepo;
-        this.auditCoreDemographicRepo = auditCoreDemographicRepo;
+        this.coreDemographicAuditRepo = coreDemographicAuditRepo;
     }
 
     /**
@@ -86,8 +86,8 @@ public class PersonController {
         if (liveMrnIdIsDifferentAndMessageIsNotBefore(survivingMrn, messageDateTime, mrnToLive)) {
             logger.info("Merging previous MRN {} into surviving MRN {}", mrnToLive.getMrnId(), survivingMrn);
             // log current state to audit table and then update current row
-            AuditMrnToLive audit = new AuditMrnToLive(mrnToLive, messageDateTime, storedFrom);
-            auditMrnToLiveRepo.save(audit);
+            MrnToLiveAudit audit = new MrnToLiveAudit(mrnToLive, messageDateTime, storedFrom);
+            mrnToLiveAuditRepo.save(audit);
             mrnToLive.setLiveMrnId(survivingMrn);
         }
     }
@@ -167,8 +167,8 @@ public class PersonController {
 
             if (demoState.isEntityUpdated()) {
                 logger.debug("Updating core demographics {}", demoState.getEntity());
-                AuditCoreDemographic audit = new AuditCoreDemographic(originalDemo, demoState.getMessageDateTime(), demoState.getStoredFrom());
-                auditCoreDemographicRepo.save(audit);
+                CoreDemographicAudit audit = new CoreDemographicAudit(originalDemo, demoState.getMessageDateTime(), demoState.getStoredFrom());
+                coreDemographicAuditRepo.save(audit);
             }
 
         }
@@ -255,8 +255,8 @@ public class PersonController {
      */
     private void deleteIfMessageIsNewer(CoreDemographic demo, Instant messageDateTime, Instant storedFrom) {
         if (messageDateTime.isAfter(demo.getValidFrom())) {
-            AuditCoreDemographic audit = new AuditCoreDemographic(demo, messageDateTime, storedFrom);
-            auditCoreDemographicRepo.save(audit);
+            CoreDemographicAudit audit = new CoreDemographicAudit(demo, messageDateTime, storedFrom);
+            coreDemographicAuditRepo.save(audit);
             coreDemographicRepo.delete(demo);
         }
     }

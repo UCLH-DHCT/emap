@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
-import uk.ac.ucl.rits.inform.informdb.movement.AuditLocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -10,13 +10,13 @@ import java.util.Optional;
  * Audit hospital visit repository.
  * @author Stef Piatek
  */
-public interface AuditLocationVisitRepository extends CrudRepository<AuditLocationVisit, Integer> {
+public interface LocationVisitAuditRepository extends CrudRepository<LocationVisitAudit, Integer> {
     /**
      * For testing: find by location string.
      * @param location full location string
      * @return AuditLocationVisit wrapped in optional
      */
-    Optional<AuditLocationVisit> findByLocationIdLocationString(String location);
+    Optional<LocationVisitAudit> findByLocationIdLocationString(String location);
 
     /**
      * For testing: find by location string.
@@ -24,6 +24,6 @@ public interface AuditLocationVisitRepository extends CrudRepository<AuditLocati
      * @param validFrom valid from Instant
      * @return AuditLocationVisit wrapped in optional
      */
-    Optional<AuditLocationVisit> findByLocationIdLocationStringAndValidFrom(String location, Instant validFrom);
+    Optional<LocationVisitAudit> findByLocationIdLocationStringAndValidFrom(String location, Instant validFrom);
 
 }

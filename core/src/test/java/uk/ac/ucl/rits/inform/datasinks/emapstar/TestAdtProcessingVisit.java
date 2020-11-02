@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
@@ -36,14 +36,14 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    AuditHospitalVisitRepository auditHospitalVisitRepository;
+    HospitalVisitAuditRepository hospitalVisitAuditRepository;
 
     private List<HospitalVisit> getAllHospitalVisits() {
         return StreamSupport.stream(hospitalVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
-    private List<AuditHospitalVisit> getAllAuditHospitalVisits() {
-        return StreamSupport.stream(auditHospitalVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
+    private List<HospitalVisitAudit> getAllAuditHospitalVisits() {
+        return StreamSupport.stream(hospitalVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
     /**
@@ -121,7 +121,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertTrue(visit.getValidFrom().isAfter(originalStoredFrom));
 
         // Auditlog should now have have one row
-        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        List<HospitalVisitAudit> audits = getAllAuditHospitalVisits();
         assertEquals(1, audits.size());
     }
 
@@ -346,7 +346,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         List<HospitalVisit> mrnVisits = hospitalVisitRepository.findAllByMrnIdMrnId(1001L).orElseThrow(NullPointerException::new);
         assertEquals(1, mrnVisits.size());
         // Auditlog should now have have one row
-        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        List<HospitalVisitAudit> audits = getAllAuditHospitalVisits();
         assertEquals(1, audits.size());
     }
 
@@ -365,7 +365,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertFalse(visit.isPresent());
 
         // Auditlog should now have have one row
-        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        List<HospitalVisitAudit> audits = getAllAuditHospitalVisits();
         assertEquals(1, audits.size());
     }
 
@@ -385,7 +385,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertTrue(visit.isPresent());
 
         // no audit rows
-        List<AuditHospitalVisit> audits = getAllAuditHospitalVisits();
+        List<HospitalVisitAudit> audits = getAllAuditHospitalVisits();
         assertEquals(0, audits.size());
     }
 
@@ -405,7 +405,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertNotEquals(defaultMrn, visit.getMrnId().getMrn());
 
         // Audit log should exist
-        AuditHospitalVisit audit = auditHospitalVisitRepository.findByEncounter(defaultEncounter);
+        HospitalVisitAudit audit = hospitalVisitAuditRepository.findByEncounter(defaultEncounter);
         assertEquals(defaultMrn, audit.getMrnId().getMrn());
     }
 

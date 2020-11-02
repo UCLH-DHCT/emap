@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmissionDateTime;
@@ -32,11 +32,11 @@ import java.util.List;
 public class VisitController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final HospitalVisitRepository hospitalVisitRepo;
-    private final AuditHospitalVisitRepository auditHospitalVisitRepo;
+    private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
 
-    public VisitController(HospitalVisitRepository hospitalVisitRepo, AuditHospitalVisitRepository auditHospitalVisitRepo) {
+    public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo) {
         this.hospitalVisitRepo = hospitalVisitRepo;
-        this.auditHospitalVisitRepo = auditHospitalVisitRepo;
+        this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
     }
 
     /**
@@ -141,8 +141,8 @@ public class VisitController {
             }
         }
         addPresentationOrAdmissionTimeIfMissing(msg, visitState);
-        AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, validFrom, storedFrom);
-        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, auditHospitalVisitRepo);
+        HospitalVisitAudit audit = new HospitalVisitAudit(originalVisit, validFrom, storedFrom);
+        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
 
@@ -269,7 +269,7 @@ public class VisitController {
      */
     public void deleteVisits(Iterable<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
         for (HospitalVisit visit : visits) {
-            auditHospitalVisitRepo.save(new AuditHospitalVisit(visit, validFrom, storedFrom));
+            hospitalVisitAuditRepo.save(new HospitalVisitAudit(visit, validFrom, storedFrom));
             hospitalVisitRepo.delete(visit);
         }
     }
@@ -303,8 +303,8 @@ public class VisitController {
             visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
             visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
         }
-        AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, validFrom, storedFrom);
-        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, auditHospitalVisitRepo);
+        HospitalVisitAudit audit = new HospitalVisitAudit(originalVisit, validFrom, storedFrom);
+        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
 
