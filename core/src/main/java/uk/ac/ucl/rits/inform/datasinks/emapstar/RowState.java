@@ -165,10 +165,10 @@ public class RowState<T extends TemporalCore<?>> {
             A auditEntity, CrudRepository<T, Integer> entityRepo, CrudRepository<A, Integer> auditRepo) {
         if (entityCreated) {
             entityRepo.save(entity);
-            logger.info("New {} being saved: {}", entity.getClass().getName(), entity);
+            logger.info("New Entity saved: {}", entity);
         } else if (entityUpdated) {
             auditRepo.save(auditEntity);
-            logger.info("New {} being saved: {}", auditEntity.getClass().getName(), auditEntity);
+            logger.info("New AuditEntity being saved: {}", auditEntity);
         }
     }
 }
