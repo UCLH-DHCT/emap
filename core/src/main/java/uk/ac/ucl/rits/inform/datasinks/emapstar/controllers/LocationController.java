@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
@@ -75,8 +76,17 @@ public class LocationController {
         }
     }
 
+    /**
+     * SwapLocations for two visits based on the SwapLocations message information.
+     * @param visitA     first of two visits to be swapped
+     * @param visitB     second visit to be swapped
+     * @param msg        SwapLocations message
+     * @param storedFrom when the message has been read by emap core
+     * @throws IncompatibleDatabaseStateException if the location visit was created and another open visit location already exists
+     */
     @Transactional
-    public void swapLocations(HospitalVisit visitA, HospitalVisit visitB, SwapLocations msg, Instant storedFrom) {
+    public void swapLocations(HospitalVisit visitA, HospitalVisit visitB, SwapLocations msg, Instant storedFrom)
+            throws IncompatibleDatabaseStateException {
         if (msg.getFullLocationString().isUnknown() || msg.getOtherFullLocationString().isUnknown()) {
             logger.debug("SwapLocations message is missing location: {}", msg);
             return;
@@ -107,12 +117,12 @@ public class LocationController {
      * @param visit              HospitalVisit
      * @param locationVisitState RowState of the Location Visit
      * @return the LocationVisit entity
-     * @throws IllegalStateException if the location visit was created and another open visit location already exists
+     * @throws IncompatibleDatabaseStateException if the location visit was created and another open visit location already exists
      */
     private LocationVisit validateLocationStateAndGetEntity(HospitalVisit visit, RowState<LocationVisit> locationVisitState)
-            throws IllegalStateException {
+            throws IncompatibleDatabaseStateException {
         if (locationVisitState.isEntityCreated() && locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit).isPresent()) {
-            throw new IllegalStateException("Open Location to be swapped was not found, but another open location already exists");
+            throw new IncompatibleDatabaseStateException("Open Location to be swapped was not found, but another open location already exists");
         }
         return locationVisitState.getEntity();
     }

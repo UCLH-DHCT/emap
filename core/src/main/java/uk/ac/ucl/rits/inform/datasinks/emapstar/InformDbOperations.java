@@ -106,7 +106,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param msg the ChangePatientIdentifiers message to process
      */
     @Override
-    public void processMessage(ChangePatientIdentifiers msg) {
+    public void processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.changePatientIdentifiers(msg, storedFrom);
     }
@@ -115,7 +115,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param msg the SwapLocations message to process
      */
     @Override
-    public void processMessage(SwapLocations msg) {
+    public void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.swapLocations(msg, storedFrom);
     }

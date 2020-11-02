@@ -6,10 +6,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmissionDateTime;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
@@ -50,8 +52,9 @@ public class VisitController {
      * @return Hospital visit from database or minimal hospital visit
      * @throws NullPointerException if no encounter
      */
-    public HospitalVisit getOrCreateMinimalHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
-                                                         final Instant messageDateTime, final Instant storedFrom) throws NullPointerException {
+    public HospitalVisit getOrCreateMinimalHospitalVisit(
+            final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom
+    ) throws RequiredDataMissingException {
         RowState<HospitalVisit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
         if (visit.isEntityCreated()) {
             logger.debug("Minimal encounter created. encounter: {}, mrn: {}", encounter, mrn);
@@ -72,9 +75,9 @@ public class VisitController {
      */
     private RowState<HospitalVisit> getOrCreateHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-            final Instant storedFrom) throws NullPointerException {
+            final Instant storedFrom) throws RequiredDataMissingException {
         if (encounter == null || encounter.isEmpty()) {
-            throw new NullPointerException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
+            throw new RequiredDataMissingException(String.format("No encounter in message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
                     mrn, sourceSystem, messageDateTime));
         }
         logger.debug("Getting or create Hospital Visit: mrn {}, encounter {}", mrn, encounter);
@@ -110,16 +113,17 @@ public class VisitController {
      * @param storedFrom time that emap-core started processing the message.
      * @param mrn        mrn
      * @return hospital visit, may be null if an UpdatePatientInfo message doesn't have any encounter information.
-     * @throws NullPointerException if adt message has no visit number set
+     * @throws RequiredDataMissingException if an adt message has no visit number set and is not an UpdatePatientInfo message
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
+    public HospitalVisit updateOrCreateHospitalVisit(
+            final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws RequiredDataMissingException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             if (msg instanceof UpdatePatientInfo) {
                 logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
                 return null;
             }
-            throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
+            throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
         Instant validFrom = msg.bestGuessAtValidFrom();
         RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
@@ -282,14 +286,17 @@ public class VisitController {
      * @param previousMrn previous MRN
      * @param currentMrn  new MRN that the encounter should be linked with
      * @return hospital visit
+     * @throws RequiredDataMissingException       if message is missing required data
+     * @throws IncompatibleDatabaseStateException If the message will not have an effect or the new encounter already exists
      */
     @Transactional
-    public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn) {
+    public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn)
+            throws RequiredDataMissingException, IncompatibleDatabaseStateException {
         if (msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && previousMrn.equals(currentMrn)) {
-            throw new IllegalArgumentException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
+            throw new IncompatibleDatabaseStateException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
         }
         if (isVisitNumberChangesAndFinalEncounterAlreadyExists(msg)) {
-            throw new IllegalStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
+            throw new IncompatibleDatabaseStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
         }
 
         Instant validFrom = msg.bestGuessAtValidFrom();

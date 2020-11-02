@@ -17,6 +17,7 @@ import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
@@ -422,7 +423,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
         msg.setMrn(newMrnString);
 
-        assertThrows(IllegalArgumentException.class, () -> dbOps.processMessage(msg));
+        assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
     }
 
 }

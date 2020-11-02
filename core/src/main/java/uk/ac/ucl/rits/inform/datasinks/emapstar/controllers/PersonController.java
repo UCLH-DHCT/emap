@@ -1,28 +1,29 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
-import java.time.Instant;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
-import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
-import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -60,9 +61,10 @@ public class PersonController {
      * @param msg          Merge message
      * @param survivingMrn live MRN to merge into
      * @param storedFrom   when the message has been read by emap core
+     * @throws RequiredDataMissingException if mrn and nhsNumber are both null
      */
     @Transactional
-    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) {
+    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws RequiredDataMissingException {
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
                 .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
@@ -111,10 +113,11 @@ public class PersonController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return The live MRN for the patient.
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     @Transactional
     public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
-                              final Instant storedFrom) {
+                              final Instant storedFrom) throws RequiredDataMissingException {
         logger.debug("Getting or creating MRN: mrn {}, nhsNumber {}", mrnString, nhsNumber);
         return mrnRepo
                 .findByMrnOrNhsNumber(mrnString, nhsNumber)
@@ -272,11 +275,14 @@ public class PersonController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return MRN with the correct identifiers
+     * @throws IncompatibleDatabaseStateException if an MRN already exists
+     * @throws RequiredDataMissingException       If MRN and NHS number are both null
      */
     @Transactional
-    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom) {
+    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
+            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
         if (mrnExists(msg.getMrn())) {
-            throw new IllegalArgumentException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
+            throw new IncompatibleDatabaseStateException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
         }
         Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
 

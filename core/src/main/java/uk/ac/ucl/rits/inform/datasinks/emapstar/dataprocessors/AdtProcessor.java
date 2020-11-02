@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -69,9 +70,10 @@ public class AdtProcessor {
      * @param storedFrom      time that emap-core started processing the message.
      * @param messageDateTime date time of the message
      * @return MRN
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     @Transactional
-    public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) {
+    public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws RequiredDataMissingException {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
         personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
 
@@ -82,8 +84,14 @@ public class AdtProcessor {
         return mrn;
     }
 
+    /**
+     * Delete all information for a person that is older than the message.
+     * @param msg        DeletePersonInformation
+     * @param storedFrom time that emap-core started processing the message.
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
+     */
     @Transactional
-    public void deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) {
+    public void deletePersonInformation(DeletePersonInformation msg, Instant storedFrom) throws RequiredDataMissingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         personController.deleteDemographic(mrn, messageDateTime, storedFrom);
@@ -102,7 +110,7 @@ public class AdtProcessor {
      * @param storedFrom time that emap-core started processing the message.
      */
     @Transactional
-    public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) {
+    public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn previousMrn = personController.getOrCreateMrn(
                 msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
@@ -116,7 +124,7 @@ public class AdtProcessor {
      * @param storedFrom time that emap-core started processing the message.
      */
     @Transactional
-    public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) {
+    public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
     }
@@ -127,7 +135,7 @@ public class AdtProcessor {
      * @param storedFrom time that emap-core started processing the message.
      */
     @Transactional
-    public void swapLocations(SwapLocations msg, Instant storedFrom) {
+    public void swapLocations(SwapLocations msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
 
         // process first visit

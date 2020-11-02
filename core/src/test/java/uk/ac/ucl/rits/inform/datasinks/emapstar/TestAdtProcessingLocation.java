@@ -346,7 +346,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testSwapLocations() {
+    void testSwapLocations() throws EmapOperationMessageProcessingException {
         SwapLocations msg = messageFactory.getAdtMessage("generic/A17.yaml");
         String locationA = "T11E^T11E BY02^BY02-17";
         String visitNumberA = "123412341234";
