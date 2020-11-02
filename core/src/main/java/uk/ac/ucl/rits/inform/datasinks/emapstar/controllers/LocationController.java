@@ -6,13 +6,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
@@ -84,22 +84,37 @@ public class LocationController {
         Instant validFrom = msg.bestGuessAtValidFrom();
         // get or create first visit location before the swap
         Location locationB = getOrCreateLocation(msg.getOtherFullLocationString().get());
-        RowState<LocationVisit> visitAState = getOrCreateOpenLocationByLocation(
+        RowState<LocationVisit> visitStateA = getOrCreateOpenLocationByLocation(
                 visitA, locationB, msg.getSourceSystem(), validFrom, storedFrom);
-        final LocationVisit originalVisitA = visitAState.getEntity();
+        final LocationVisit originalVisitA = validateLocationStateAndGetEntity(visitA, visitStateA);
         // get or create second visit location before the swap
         Location locationA = getOrCreateLocation(msg.getFullLocationString().get());
-        RowState<LocationVisit> visitBState = getOrCreateOpenLocationByLocation(
+        RowState<LocationVisit> visitStateB = getOrCreateOpenLocationByLocation(
                 visitB, locationA, msg.getSourceSystem(), validFrom, storedFrom);
-        final LocationVisit originalVisitB = visitBState.getEntity();
+        final LocationVisit originalVisitB = validateLocationStateAndGetEntity(visitB, visitStateB);
         // swap to the correct locations
-        visitAState.assignHl7ValueIfDifferent(
-                Hl7Value.buildFromHl7(locationA), visitAState.getEntity().getLocation(), visitAState.getEntity()::setLocation);
-        visitBState.assignHl7ValueIfDifferent(
-                Hl7Value.buildFromHl7(locationB), visitBState.getEntity().getLocation(), visitBState.getEntity()::setLocation);
+        visitStateA.assignHl7ValueIfDifferent(
+                Hl7Value.buildFromHl7(locationA), visitStateA.getEntity().getLocation(), visitStateA.getEntity()::setLocation);
+        visitStateB.assignHl7ValueIfDifferent(
+                Hl7Value.buildFromHl7(locationB), visitStateB.getEntity().getLocation(), visitStateB.getEntity()::setLocation);
         // save newly created or audit
-        manuallySaveLocationOrAuditIfRequired(originalVisitA, visitAState, validFrom, storedFrom);
-        manuallySaveLocationOrAuditIfRequired(originalVisitB, visitBState, validFrom, storedFrom);
+        manuallySaveLocationOrAuditIfRequired(originalVisitA, visitStateA, validFrom, storedFrom);
+        manuallySaveLocationOrAuditIfRequired(originalVisitB, visitStateB, validFrom, storedFrom);
+    }
+
+    /**
+     * Ensures that the swap location won't create two open location visits for a hospital visit.
+     * @param visit              HospitalVisit
+     * @param locationVisitState RowState of the Location Visit
+     * @return the LocationVisit entity
+     * @throws IllegalStateException if the location visit was created and another open visit location already exists
+     */
+    private LocationVisit validateLocationStateAndGetEntity(HospitalVisit visit, RowState<LocationVisit> locationVisitState)
+            throws IllegalStateException {
+        if (locationVisitState.isEntityCreated() && locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit).isPresent()) {
+            throw new IllegalStateException("Open Location to be swapped was not found, but another open location already exists");
+        }
+        return locationVisitState.getEntity();
     }
 
 
