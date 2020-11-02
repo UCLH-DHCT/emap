@@ -17,16 +17,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-public class TestPathologyProcessing extends MessageProcessingBase {
-    List<PathologyOrder> messages;
+class TestPathologyProcessing extends MessageProcessingBase {
+    private List<PathologyOrder> messages;
     @Autowired
-    HospitalVisitRepository hospitalVisitRepository;
+    private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    HospitalVisitAuditRepository hospitalVisitAuditRepository;
+    private HospitalVisitAuditRepository hospitalVisitAuditRepository;
 
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         messages = messageFactory.getPathologyOrders("ORU_R01.yaml", "0000040");
     }
 
@@ -34,7 +34,7 @@ public class TestPathologyProcessing extends MessageProcessingBase {
      * no existing data. rows should be created for: mrns, so new mrn, mrn_to_live, core_demographics, hospital visit
      */
     @Test
-    public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
+    void testCreateNewPatient() throws EmapOperationMessageProcessingException {
         for (PathologyOrder msg : messages) {
             processSingleMessage(msg);
         }

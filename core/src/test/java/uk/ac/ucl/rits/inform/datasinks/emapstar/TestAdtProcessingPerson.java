@@ -1,11 +1,25 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
@@ -19,39 +33,25 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-
 public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Autowired
-    CoreDemographicRepository coreDemographicRepository;
+    private CoreDemographicRepository coreDemographicRepository;
 
     @Autowired
-    CoreDemographicAuditRepository coreDemographicAuditRepository;
+    private CoreDemographicAuditRepository coreDemographicAuditRepository;
 
     @Autowired
-    MrnToLiveAuditRepository mrnToLiveAuditRepository;
+    private MrnToLiveAuditRepository mrnToLiveAuditRepository;
 
     private List<CoreDemographicAudit> getAllAuditCoreDemographics() {
         return StreamSupport.stream(coreDemographicAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
-    String newMrnString = "60600000";
+    private String newMrnString = "60600000";
 
 
     /**
-     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created
+     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created.
      */
     @Test
     public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
@@ -79,14 +79,14 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         List<Mrn> mrns = getAllMrns();
         assertEquals(2, mrns.size());
 
-        Mrn newMrn = mrnRepo.getByMrnEquals(newMrnString);
+        Mrn newMrn = mrnRepo.getByMrnEquals(newMrnString).orElseThrow();
 
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(newMrn);
         assertTrue(demographic.isPresent());
     }
 
     /**
-     * no MRNs exist in database, so a new MRN should be created with the correct final MRN
+     * no MRNs exist in database, so a new MRN should be created with the correct final MRN.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -98,7 +98,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
 
-        assertEquals( "40800001", mrns.get(0).getMrn());
+        assertEquals("40800001", mrns.get(0).getMrn());
     }
 
 
@@ -113,7 +113,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         int startingMrnCount = getAllMrns().size();
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
         assertEquals(1001L, mrn.getMrnId().longValue());
@@ -128,7 +128,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * Message is older than current information, so demographics should stay the same and no audit log rows should be added
+     * Message is older than current information, so demographics should stay the same and no audit log rows should be added.
      */
     @Test
     @Sql(value = "/populate_db.sql")
@@ -136,7 +136,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setEventOccurredDateTime(Instant.parse("2010-01-01T01:01:01Z"));
 
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
 
         // process message
@@ -155,7 +155,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * Mrn (id=2) already exists and has been merged (live id=3)
+     * Mrn (id=2) already exists and has been merged (live id=3).
      * No new mrns should be created, processing should be done on the live id only and demographics should be updated
      */
     @Test
@@ -168,7 +168,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
 
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEquals(newMrnString);
+        Mrn mrn = mrnRepo.getByMrnEquals(newMrnString).orElseThrow();
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
         assertEquals(1002L, mrn.getMrnId().longValue());
@@ -185,7 +185,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * retire existing mrn, merge into new mrn
+     * retire existing mrn, merge into new mrn.
      * should change the mrnToLive for retired MRN to surviving Mrn and create a new
      */
     @Test
@@ -196,8 +196,8 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
 
         // process message
         dbOps.processMessage(msg);
-        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrnRepo.getByMrnEquals(defaultMrn));
-        Mrn newMrn = mrnRepo.getByMrnEquals("40800001");
+        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrnRepo.getByMrnEquals(defaultMrn).orElseThrow());
+        Mrn newMrn = mrnRepo.getByMrnEquals("40800001").orElseThrow();
         assertEquals(newMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(newMrn);
@@ -205,7 +205,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * retire mrn that hasn't been seen before, merging into MRN which has already been merged
+     * retire mrn that hasn't been seen before, merging into MRN which has already been merged.
      * should create a new mrn for the unseen mrn, then merge it directly to the final live mrn
      */
     @Test
@@ -222,10 +222,10 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // process message
         dbOps.processMessage(msg);
         // retiring mrn created and linked to surviving mrn
-        Mrn retiringMrn = mrnRepo.getByMrnEquals(retiringMrnString);
+        Mrn retiringMrn = mrnRepo.getByMrnEquals(retiringMrnString).orElseThrow();
         assertNotNull(retiringMrn);
         MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
-        Mrn survivingMrn = mrnRepo.getByMrnEquals(liveMrnString);
+        Mrn survivingMrn = mrnRepo.getByMrnEquals(liveMrnString).orElseThrow();
         assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
@@ -233,7 +233,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * Merging patient that is known by Mrn and Nhs number
+     * Merging patient that is known by Mrn and Nhs number.
      */
     @Test
     @Sql(value = "/populate_db.sql")
@@ -253,7 +253,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
                 .filter(mrn -> mrn.getMrn() == null)
                 .findFirst().orElseThrow(NullPointerException::new);
         MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
-        Mrn survivingMrn = mrnRepo.getByMrnEquals(survivingMrnString);
+        Mrn survivingMrn = mrnRepo.getByMrnEquals(survivingMrnString).orElseThrow();
         assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
@@ -355,7 +355,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // process message
         dbOps.processMessage(msg);
 
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         // no demographics should exist
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
         assertFalse(demographic.isPresent());
@@ -376,7 +376,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // process message
         dbOps.processMessage(msg);
 
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn);
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         // should still exist
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
         assertTrue(demographic.isPresent());
@@ -386,7 +386,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * Change patient identifiers, new identifier doesn't already exist so the mrn should be changed
+     * Change patient identifiers, new identifier doesn't already exist so the mrn should be changed.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -395,25 +395,25 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
 
         // save state before processing to be sure that it works
-        Optional<Object> previousMrnBeforeProcessing = mrnRepo.getAllByMrnEquals(defaultMrn);
-        Optional<Object> newMrnBeforeProcessing = mrnRepo.getAllByMrnEquals("40800001");
+        Optional<Mrn> previousMrnBeforeProcessing = mrnRepo.findByMrnEquals(defaultMrn);
+        Optional<Mrn> newMrnBeforeProcessing = mrnRepo.findByMrnEquals("40800001");
 
         //process message
         dbOps.processMessage(msg);
 
         // previous Mrn should go from existing previously, to now not existing
-        Optional<Object> previousMrn = mrnRepo.getAllByMrnEquals(defaultMrn);
+        Optional<Mrn> previousMrn = mrnRepo.findByMrnEquals(defaultMrn);
         assertTrue(previousMrnBeforeProcessing.isPresent());
         assertFalse(previousMrn.isPresent());
 
         // new Mrn should go from not existing previously, to now existing
-        Optional<Object> newMrn = mrnRepo.getAllByMrnEquals("40800001");
+        Optional<Mrn> newMrn = mrnRepo.findByMrnEquals("40800001");
         assertFalse(newMrnBeforeProcessing.isPresent());
         assertTrue(newMrn.isPresent());
     }
 
     /**
-     * Change patient identifiers, final MRN already exists, so should throw an exception
+     * Change patient identifiers, final MRN already exists, so should throw an exception.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
