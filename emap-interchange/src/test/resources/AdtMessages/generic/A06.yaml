@@ -2,7 +2,6 @@
 recordedDateTime: "2020-04-01T21:22:22Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2020-04-01T21:22:21Z"
-operatorId: "10000000"
 visitNumber: "1234567890"
 sourceSystem: "EPIC"
 mrn: "A/AA1111"
@@ -15,26 +14,10 @@ modeOfArrival:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "Public Trans"
-currentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "SR41-41"
-currentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T06C SR41"
-currentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T06C"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "T06C^T06C SR41^SR41-41"
-hospitalService:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "ENT Ears"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -51,10 +34,6 @@ patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "AAA"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "MR. BBB C AAA"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"

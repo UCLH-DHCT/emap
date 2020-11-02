@@ -2,39 +2,18 @@
 recordedDateTime: "2013-03-12T11:44:20Z"
 eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-03-12T11:44:19Z"
-operatorId: "IPRN"
 visitNumber: "123412341234"
 nhsNumber: "9999999999"
 sourceSystem: "EPIC"
 mrn: "40800000"
-admitSource:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "Usual"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "2012-10-17T11:24:53Z"
-currentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "BY05-33"
-currentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T12S BY05"
-currentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T12S"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "T12S^T12S BY05^BY05-33"
-hospitalService:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "Acute Med"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -51,10 +30,6 @@ patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "YYTMRTTEST"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "null ZEROONE null YYTMRTTEST"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"

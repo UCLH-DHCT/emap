@@ -1,6 +1,5 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient"
 recordedDateTime: "2013-02-11T10:00:52Z"
-operatorId: "IPUC"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
 sourceSystem: "EPIC"
@@ -11,33 +10,13 @@ admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "2013-02-11T10:00:52Z"
-admitSource:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "Usual"
-  status: "SAVE"
 modeOfArrival:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "Ambulance"
-currentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "BY02-17"
-  status: "SAVE"
-currentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "T42E BY02"
-  status: "SAVE"
-currentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "T42E"
-  status: "SAVE"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "T42E^T42E BY02^BY02-17"
-  status: "SAVE"
-hospitalService:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value:  "Anaes"
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
@@ -54,10 +33,6 @@ patientIsAlive:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "ORANGE"
-  status: "SAVE"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "null BLOOD null ORANGE"
   status: "SAVE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
