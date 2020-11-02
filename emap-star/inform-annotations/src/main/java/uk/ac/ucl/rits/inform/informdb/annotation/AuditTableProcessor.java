@@ -2,8 +2,8 @@ package uk.ac.ucl.rits.inform.informdb.annotation;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,7 +14,12 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
@@ -32,23 +37,21 @@ public class AuditTableProcessor extends AbstractProcessor {
 
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
 
-            Map<Boolean, List<TypeElement>> annotatedClasses = annotatedElements.stream()
-                    .map(element -> (TypeElement) element)
-                    .collect(Collectors.partitioningBy(
-                            element -> element.getSimpleName().toString().endsWith("Parent")));
+            // It can be anything. But must be an Entity or table. But it could it be
+            // something else?
+            // TODO check it's an actual @Entity
+//            Map<Boolean, List<TypeElement>> annotatedClasses =
+            List<TypeElement> parents =
+                    annotatedElements.stream().map(element -> (TypeElement) element).collect(Collectors.toList());
+//                            Collectors.partitioningBy(element -> element.getAnnotation(javax.persistence.Entity.class).isEmpty()));
 
-            List<TypeElement> parents = annotatedClasses.get(true);
-            List<TypeElement> otherClasses = annotatedClasses.get(false);
+//            List<TypeElement> parents = annotatedClasses.get(true);
+//            List<TypeElement> otherClasses = annotatedClasses.get(false);
 
-            otherClasses.forEach(element -> processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    "@AuditType must be applied to a class ending in Parent", element));
+//            otherClasses.forEach(element -> processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+//                    "@AuditType must be applied to a class ending in Parent", element));
 
-            if (parents.isEmpty()) {
-                continue;
-            }
-
-
-            for(TypeElement parent: parents) {
+            for (TypeElement parent : parents) {
                 // Create audit and main
                 String packageName = null;
                 String className = parent.getQualifiedName().toString();
@@ -58,7 +61,7 @@ public class AuditTableProcessor extends AbstractProcessor {
                     packageName = className.substring(0, lastDot);
                 }
 
-                String baseClassName = className.substring(lastDot + 1, className.length() - "Parent".length());
+                String baseClassName = className.substring(lastDot + 1);
 
                 try {
                     createAudit(parent, packageName, baseClassName);
@@ -66,7 +69,6 @@ public class AuditTableProcessor extends AbstractProcessor {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                createMain(parent, packageName, baseClassName);
             }
         }
 
@@ -76,8 +78,9 @@ public class AuditTableProcessor extends AbstractProcessor {
     private void createAudit(TypeElement parent, String packageName, String baseClassName) throws IOException {
 
         String auditClassName = baseClassName + "Audit";
-        String idColumnName = baseClassName+ "AuditId";
+        String idColumnName = baseClassName + "AuditId";
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(auditClassName);
+
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
 
             // Put it in a package if necessary
@@ -88,61 +91,19 @@ public class AuditTableProcessor extends AbstractProcessor {
                 out.println();
             }
 
-            // Add in imports
-            out.println("import lombok.Data;");
-            out.println("import lombok.EqualsAndHashCode;");
-            out.println("import lombok.ToString;");
-            out.println("import uk.ac.ucl.rits.inform.informdb.AuditCore;");
-            out.println("import javax.persistence.Column;");
-            out.println("import javax.persistence.Entity;");
-            out.println("import javax.persistence.GeneratedValue;");
-            out.println("import javax.persistence.GenerationType;");
-            out.println("import javax.persistence.Id;");
-            out.println("import java.time.Instant;");
-            out.println();
+            this.generateImports(out);
 
-            // Headings / Annotations of the class
-            out.println("/**");
-            out.print(" * Audit table of {@link ");
-            out.print(baseClassName);
-            out.println("}.");
-            out.println(" */");
-            out.println("@Entity");
-            out.println("@Data");
-            out.println("@EqualsAndHashCode(callSuper = true)");
-            out.println("@ToString(callSuper = true)");
-            out.print("public class ");
-            out.print(auditClassName);
-            out.print("extends ");
-            out.print(baseClassName);
-            out.print("Parent implements AuditCore<");
-            out.print(baseClassName);
-            out.println("Parent> {");
+            this.generateClassDeclaration(out, baseClassName, auditClassName);
 
-            // Class fields
+            List<VariableElement> fields =
+                    parent.getEnclosedElements().stream().filter(element -> element instanceof VariableElement)
+                            .map(element -> (VariableElement) element).collect(Collectors.toList());
 
-            // Skip serialVersionUID - Different versions probably shouldn't be able to talk to each other.
-            out.println("    @Column(columnDefinition = \"timestamp with time zone\")");
-            out.println("    private Instant validUntil;");
-            out.println("    @Column(columnDefinition = \"timestamp with time zone\")");
-            out.println("    private Instant storedUntil;");
+            List<FieldStore> shortFields = this.generateFields(out, idColumnName, fields);
 
-            // Main Id
-            out.println("    @Column(nullable = false)");
-            out.print("    private long ");
-            out.print(baseClassName);
-            out.println("Id;");
-            out.println("    @Id");
-            out.println("    @GeneratedValue(strategy = GenerationType.AUTO)");
-            out.print("    private long ");
-            out.print(idColumnName);
-            out.println(";");
+            this.generateCopyConstructor(out, auditClassName, idColumnName, shortFields);
 
-            // Extra fields that mismatch in the main / audit tables.
-            // TODO FIX ME
-            out.println("    @Column(nullable = false)");
-            out.println("    private String encounter;");
-            out.println("");
+            this.generateFromMainConstructor(out, baseClassName, auditClassName, shortFields);
 
             // Default constructor must exist
             out.println("");
@@ -154,61 +115,6 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("() {}");
             out.println("");
 
-            // Make from main constructor
-            out.println("    /**");
-            out.println("     * Constructor from original entity and invalidation times.");
-            out.println("     * @param originalEntity original entity to be audited.");
-            out.println("     * @param storedUntil    the time that this change is being made in the DB");
-            out.println("     * @param validUntil     the time at which this fact stopped being true,");
-            out.println("     *                       can be any amount of time in the past");
-            out.println("     */");
-            out.print("    public ");
-            out.print(auditClassName);
-            out.print("(final ");
-            out.print(baseClassName);
-            out.println(" originalEntity, final Instant validUntil, final Instant storedUntil) {");
-            out.println("        super(originalEntity);");
-            out.println("        this.validUntil = validUntil;");
-            out.println("        this.storedUntil = storedUntil;");
-            // Main id
-            out.print("        this.");
-            out.print(baseClassName);
-            out.print("Id = originalEntity.get");
-            out.print(baseClassName);
-            out.println("Id();");
-            // All other variables that are new
-            // TODO fix me
-            out.println("    }");
-
-            // Make copy constructor
-            out.println("    /**");
-            out.println("     * Copy constuctor.");
-            out.println("     * @param other original entity to be copied.");
-            out.println("     */");
-            out.print("    public ");
-            out.print(auditClassName);
-            out.print("(final ");
-            out.print(auditClassName);
-            out.println(" other) {");
-            out.println("        super(other);");
-            out.println("        this.validUntil = other.validUntil;");
-            out.println("        this.storedUntil = other.storedUntil;");
-            // Main id
-            out.print("        this.");
-            out.print(baseClassName);
-            out.print("Id = other.get");
-            out.print(baseClassName);
-            out.println("Id();");
-            // primary key
-            out.print("        this.");
-            out.print(idColumnName);
-            out.print(" = other.get");
-            out.print(idColumnName);
-            out.println("();");
-            // All other variables that are new
-            // TODO fix me
-            out.println("    }");
-
             // Make copy method (use the copy constructor)
             out.print("    public ");
             out.print(auditClassName);
@@ -218,14 +124,299 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("(this);");
             out.println("    }");
 
-
             out.println("}");
             out.println("");
-
-
 
         }
     }
 
-    private void createMain(TypeElement parent, String packageName, String baseClassName) {}
+    /**
+     * Generate the imports.
+     *
+     * @param out The printWriter to write to.
+     */
+    private void generateImports(PrintWriter out) {
+        out.println("import javax.persistence.Column;");
+        out.println("import javax.persistence.Entity;");
+        out.println("import javax.persistence.GeneratedValue;");
+        out.println("import javax.persistence.GenerationType;");
+        out.println("import javax.persistence.Id;");
+        out.println("import java.time.Instant;");
+        out.println("import lombok.Data;");
+        out.println("import lombok.EqualsAndHashCode;");
+        out.println("import lombok.ToString;");
+        out.println("import uk.ac.ucl.rits.inform.informdb.AuditCore;");
+    }
+
+    /**
+     * Generate annotations and the class declaration for the audit class
+     *
+     * @param out            File to write to
+     * @param baseClassName  Name of the data class
+     * @param auditClassName Name of the audit class
+     */
+    private void generateClassDeclaration(PrintWriter out, String baseClassName, String auditClassName) {
+        out.println("/**");
+        out.print(" * Audit table of {@link ");
+        out.print(baseClassName);
+        out.println("}.");
+        out.println(" */");
+        out.println("@Entity");
+        out.println("@Data");
+        out.println("@EqualsAndHashCode(callSuper = true)");
+        out.println("@ToString(callSuper = true)");
+        out.print("public class ");
+        out.print(auditClassName);
+        out.print(" implements AuditCore<");
+        out.print(baseClassName);
+        out.println("> {");
+    }
+
+    /**
+     * Generate all the fields, their getters, and setters.
+     *
+     * @param out        The stream to write to
+     * @param primaryKey Name of the primary key for this table
+     * @param fields     The fields in the object being copied.
+     * @return List of fields in the original object, with the Foreign key status
+     */
+    private List<FieldStore> generateFields(PrintWriter out, String primaryKey, List<VariableElement> fields) {
+        // Skip serialVersionUID - Different versions probably shouldn't be able to talk
+        // to each other.
+
+        List<FieldStore> fieldShorts = new ArrayList<>();
+
+        // Audit table temporal fields
+        this.generateSingleField(out, "@Column(columnDefinition = \"timestamp with time zone\")", "Instant",
+                "validUntil");
+        this.generateSingleField(out, "@Column(columnDefinition = \"timestamp with time zone\")", "Instant",
+                "storedUntil");
+
+        // Primary key
+        this.generateSingleField(out, "@Id\n@GeneratedValue(strategy = GenerationType.AUTO)", "long", primaryKey);
+
+        // All other fields
+        for (VariableElement field : fields) {
+            Set<Modifier> mods = field.getModifiers();
+            if (mods.contains(Modifier.STATIC)) {
+                // static fields are not related to the database
+                continue;
+            }
+            // TODO skip @Transient
+
+            // Need check to the type. If it's a primitive / Instant / String, that is fine.
+            // Else it's a FK
+
+            String typeName;
+            String annotation = null;
+            TypeMirror type = field.asType();
+            TypeKind kind = type.getKind();
+            boolean isForeignKey = false;
+            switch (kind) {
+            case LONG:
+                typeName = "long";
+                break;
+            case SHORT:
+                typeName = "short";
+                break;
+            case INT:
+                typeName = "int";
+                break;
+            case FLOAT:
+                typeName = "float";
+                break;
+            case DOUBLE:
+                typeName = "double";
+                break;
+            case BYTE:
+                typeName = "byte";
+                break;
+            case CHAR:
+                typeName = "char";
+                break;
+            case DECLARED:
+                DeclaredType a = (DeclaredType) type;
+                TypeElement elem = (TypeElement) a.asElement();
+                System.out.println(elem.getQualifiedName().toString());
+                switch (elem.getQualifiedName().toString()) {
+                case "java.lang.String":
+                    typeName = "String";
+                    break;
+                case "java.time.Instant":
+                    typeName = "Instant";
+                    annotation = "@Column(columnDefinition = \"timestamp with time zone\")";
+                    break;
+                default:
+                    typeName = "long";
+                    isForeignKey = true;
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+                            "Found field of type " + type + " converting to long");
+                    continue;
+                }
+                break;
+            default:
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                        "Found field of unhandleable type " + type);
+                continue;
+
+            }
+            String fieldName = field.getSimpleName().toString();
+            fieldShorts.add(new FieldStore(isForeignKey, fieldName));
+            this.generateSingleField(out, annotation, typeName, fieldName);
+        }
+
+        return fieldShorts;
+    }
+
+    /**
+     * Generate the code for a single field declaration, its getter, and its setter.
+     *
+     * @param out         Stream to write to.
+     * @param annotations Annotations for the field declaration.
+     * @param typeName    The type of the field.
+     * @param fieldName   The name of the field.
+     */
+    private void generateSingleField(PrintWriter out, String annotations, String typeName, String fieldName) {
+        // Field declaration
+        if (annotations != null) {
+            out.println(annotations);
+        }
+        out.print("private ");
+        out.print(typeName);
+        out.print(' ');
+        out.print(fieldName);
+        out.println(';');
+        out.println();
+
+        // Getter
+        String nameCap = this.capitalizeInitial(fieldName);
+        out.print("   public ");
+        out.print(typeName);
+        out.print(" get");
+        out.print(nameCap);
+        out.println("() {");
+        out.print("return this.");
+        out.print(nameCap);
+        out.println(";");
+        out.println("}");
+        out.println();
+
+        // Setter
+        out.print("   public void set");
+        out.print(nameCap);
+        out.print("(");
+        out.print(typeName);
+        out.print(' ');
+        out.print(fieldName);
+        out.println(") {");
+        out.print("this.");
+        out.print(fieldName);
+        out.print(" = ");
+        out.print(fieldName);
+        out.println(";");
+        out.println("}");
+        out.println();
+    }
+
+    /**
+     * Generate a copy constructor;
+     *
+     * @param out      File to write to
+     * @param typeName The name of the class
+     * @param fields   The fields that need assigning
+     */
+    private void generateCopyConstructor(PrintWriter out, String typeName, String primaryKey, List<FieldStore> fields) {
+        out.println("    /**");
+        out.println("     * Copy constuctor.");
+        out.println("     * @param other original entity to be copied.");
+        out.println("     */");
+        out.print("    public ");
+        out.print(typeName);
+        out.print("(final ");
+        out.print(typeName);
+        out.println(" other) {");
+
+        for (FieldStore f : fields) {
+            out.print("        this.");
+            out.print(f.fieldName);
+            out.print(" = other.");
+            out.print(f.fieldName);
+            out.print("();");
+        }
+        out.println("\tthis.validUntil = other.validUntil;");
+        out.println("\tthis.storedUntil = other.storedUntil;");
+        out.print("        this.");
+        out.print(primaryKey);
+        out.print(" = other.");
+        out.print(primaryKey);
+        out.print("();");
+
+        out.println("    }");
+    }
+
+    /**
+     * Generate a constructor to create an audit instance from a normal instance.
+     * @param out The stream to write to.
+     * @param otherClassName The name of the real instance class.
+     * @param auditClassName The name of the audit instance class.
+     * @param fields The list of fields in the real instance.
+     */
+    private void generateFromMainConstructor(PrintWriter out, String otherClassName, String auditClassName, List<FieldStore> fields) {
+
+        out.println("    /**");
+        out.println("     * Constuctor from valid instance.");
+        out.println("     * @param other original entity to be constructred from.");
+        out.println("     * @param validUntil original entity to be constructred from.");
+        out.println("     * @param storedUntil original entity to be constructred from.");
+        out.println("     */");
+        out.print("    public ");
+        out.print(auditClassName);
+        out.print("(final ");
+        out.print(otherClassName);
+        out.println(" other, Instant validUntil, Instant storedUntil) {");
+
+        // Special handling of stored/valid until.
+        out.println("\tthis.validUntil = other.validUntil;");
+        out.println("\tthis.storedUntil = other.storedUntil;");
+
+        // Ignore the primary key
+
+        // Pull across fields from main class
+        for (FieldStore f : fields) {
+            out.print("        this.");
+            out.print(f.fieldName);
+            // Ti's private to use the getter
+            out.print(" = other.get");
+            out.print(capitalizeInitial(f.fieldName));
+            if (f.isForeignKey) {
+                // Get the Id of foreignKeys
+                Somehow get the primary key
+            }
+            out.print("();");
+        }
+
+        out.println("    }");
+    }
+
+    /**
+     * Capitalise the first letter in a String for camelCase naming
+     *
+     * @param s
+     * @return
+     */
+    private String capitalizeInitial(String s) {
+        String lead = s.substring(0, 1).toUpperCase();
+        String tail = s.substring(1);
+        return lead + tail;
+    }
+
+    private class FieldStore {
+        public final boolean isForeignKey;
+        public final String  fieldName;
+
+        public FieldStore(boolean isForeignKey, String fieldName) {
+            this.isForeignKey = isForeignKey;
+            this.fieldName = fieldName;
+        }
+    }
 }
