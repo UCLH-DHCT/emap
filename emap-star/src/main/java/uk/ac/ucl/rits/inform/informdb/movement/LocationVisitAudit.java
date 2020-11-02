@@ -22,7 +22,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class AuditLocationVisit extends LocationVisitParent implements AuditCore<LocationVisitParent> {
+public class LocationVisitAudit extends LocationVisitParent implements AuditCore<LocationVisitParent> {
     private static final long serialVersionUID = 5021782039578121716L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,10 +39,10 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
     /**
      * Default constructor.
      */
-    public AuditLocationVisit() {
+    public LocationVisitAudit() {
     }
 
-    private AuditLocationVisit(AuditLocationVisit other) {
+    private LocationVisitAudit(LocationVisitAudit other) {
         super(other);
     }
 
@@ -53,7 +53,7 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
      * @param validUntil     the time at which this fact stopped being true,
      *                       can be any amount of time in the past
      */
-    public AuditLocationVisit(final LocationVisit originalEntity, final Instant validUntil, final Instant storedUntil) {
+    public LocationVisitAudit(final LocationVisit originalEntity, final Instant validUntil, final Instant storedUntil) {
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
@@ -65,7 +65,7 @@ public class AuditLocationVisit extends LocationVisitParent implements AuditCore
     }
 
     @Override
-    public AuditLocationVisit copy() {
-        return new AuditLocationVisit(this);
+    public LocationVisitAudit copy() {
+        return new LocationVisitAudit(this);
     }
 }

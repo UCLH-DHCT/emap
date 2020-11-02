@@ -21,7 +21,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class AuditMrnToLive extends MrnToLiveParent implements AuditCore<MrnToLiveParent> {
+public class MrnToLiveAudit extends MrnToLiveParent implements AuditCore<MrnToLiveParent> {
 
     private static final long serialVersionUID = 8891761742756656453L;
     @Id
@@ -34,21 +34,21 @@ public class AuditMrnToLive extends MrnToLiveParent implements AuditCore<MrnToLi
     private Instant storedUntil;
 
 
-    public AuditMrnToLive() {}
+    public MrnToLiveAudit() {}
 
-    public AuditMrnToLive(MrnToLive originalEntity, Instant validUntil, Instant storedUntil) {
+    public MrnToLiveAudit(MrnToLive originalEntity, Instant validUntil, Instant storedUntil) {
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
         mrnToLiveId = originalEntity.getMrnToLiveId();
     }
 
-    private AuditMrnToLive(AuditMrnToLive other) {
+    private MrnToLiveAudit(MrnToLiveAudit other) {
         super(other);
     }
 
     @Override
-    public AuditMrnToLive copy() {
-        return new AuditMrnToLive(this);
+    public MrnToLiveAudit copy() {
+        return new MrnToLiveAudit(this);
     }
 }
