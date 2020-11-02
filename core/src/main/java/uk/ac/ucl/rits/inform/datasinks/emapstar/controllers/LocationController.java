@@ -76,30 +76,30 @@ public class LocationController {
     }
 
     @Transactional
-    public void swapLocations(HospitalVisit firstVisit, HospitalVisit secondVisit, SwapLocations msg, Instant storedFrom) {
+    public void swapLocations(HospitalVisit visitA, HospitalVisit visitB, SwapLocations msg, Instant storedFrom) {
         if (msg.getFullLocationString().isUnknown() || msg.getOtherFullLocationString().isUnknown()) {
             logger.debug("SwapLocations message is missing location: {}", msg);
             return;
         }
         Instant validFrom = msg.bestGuessAtValidFrom();
-        // get or create first visit location
-        Location firstLocation = getOrCreateLocation(msg.getFullLocationString().get());
-        RowState<LocationVisit> firstVisitState = getOrCreateOpenLocationByLocation(
-                firstVisit, firstLocation, msg.getSourceSystem(), validFrom, storedFrom);
-        final LocationVisit originalFirstVisit = firstVisitState.getEntity();
-        // get or create second visit location
-        Location secondLocation = getOrCreateLocation(msg.getOtherFullLocationString().get());
-        RowState<LocationVisit> secondVisitState = getOrCreateOpenLocationByLocation(
-                secondVisit, secondLocation, msg.getSourceSystem(), validFrom, storedFrom);
-        final LocationVisit originalSecondVisit = secondVisitState.getEntity();
-        // swap the locations
-        firstVisitState.assignHl7ValueIfDifferent(
-                Hl7Value.buildFromHl7(secondLocation), firstVisitState.getEntity().getLocation(), firstVisitState.getEntity()::setLocation);
-        secondVisitState.assignHl7ValueIfDifferent(
-                Hl7Value.buildFromHl7(firstLocation), secondVisitState.getEntity().getLocation(), secondVisitState.getEntity()::setLocation);
+        // get or create first visit location before the swap
+        Location locationB = getOrCreateLocation(msg.getOtherFullLocationString().get());
+        RowState<LocationVisit> visitAState = getOrCreateOpenLocationByLocation(
+                visitA, locationB, msg.getSourceSystem(), validFrom, storedFrom);
+        final LocationVisit originalVisitA = visitAState.getEntity();
+        // get or create second visit location before the swap
+        Location locationA = getOrCreateLocation(msg.getFullLocationString().get());
+        RowState<LocationVisit> visitBState = getOrCreateOpenLocationByLocation(
+                visitB, locationA, msg.getSourceSystem(), validFrom, storedFrom);
+        final LocationVisit originalVisitB = visitBState.getEntity();
+        // swap to the correct locations
+        visitAState.assignHl7ValueIfDifferent(
+                Hl7Value.buildFromHl7(locationA), visitAState.getEntity().getLocation(), visitAState.getEntity()::setLocation);
+        visitBState.assignHl7ValueIfDifferent(
+                Hl7Value.buildFromHl7(locationB), visitBState.getEntity().getLocation(), visitBState.getEntity()::setLocation);
         // save newly created or audit
-        manuallySaveLocationOrAuditIfRequired(originalFirstVisit, firstVisitState, validFrom, storedFrom);
-        manuallySaveLocationOrAuditIfRequired(originalSecondVisit, secondVisitState, validFrom, storedFrom);
+        manuallySaveLocationOrAuditIfRequired(originalVisitA, visitAState, validFrom, storedFrom);
+        manuallySaveLocationOrAuditIfRequired(originalVisitB, visitBState, validFrom, storedFrom);
     }
 
 

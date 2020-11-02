@@ -131,18 +131,18 @@ public class AdtProcessor {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
 
         // process first visit
-        Mrn firstMrn = personController.getOrCreateMrn(
+        Mrn mrnA = personController.getOrCreateMrn(
                 msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
-        personController.updateOrCreateDemographic(firstMrn, msg, messageDateTime, storedFrom);
-        HospitalVisit firstVisit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, firstMrn);
+        personController.updateOrCreateDemographic(mrnA, msg, messageDateTime, storedFrom);
+        HospitalVisit visitA = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrnA);
 
         // get the other visit
-        Mrn secondMrn = personController.getOrCreateMrn(
+        Mrn mrnB = personController.getOrCreateMrn(
                 msg.getOtherMrn(), msg.getOtherNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
-        HospitalVisit secondVisit = visitController.getOrCreateMinimalHospitalVisit(
-                msg.getOtherVisitNumber(), secondMrn, msg.getSourceSystem(), messageDateTime, storedFrom);
+        HospitalVisit visitB = visitController.getOrCreateMinimalHospitalVisit(
+                msg.getOtherVisitNumber(), mrnB, msg.getSourceSystem(), messageDateTime, storedFrom);
 
         // swap locations
-        locationController.swapLocations(firstVisit, secondVisit, msg, storedFrom);
+        locationController.swapLocations(visitA, visitB, msg, storedFrom);
     }
 }

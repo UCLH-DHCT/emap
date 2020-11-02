@@ -348,12 +348,12 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testSwapLocations() {
         SwapLocations msg = messageFactory.getAdtMessage("generic/A17.yaml");
-        String locationA = "T42E^T42E BY03^BY03-17";
+        String locationA = "T11E^T11E BY02^BY02-17";
         String visitNumberA = "123412341234";
         msg.setFullLocationString(Hl7Value.buildFromHl7(locationA));
         msg.setVisitNumber(visitNumberA);
 
-        String locationB = "T11E^T11E BY02^BY02-17";
+        String locationB = "T42E^T42E BY03^BY03-17";
         String visitNumberB = "0999999999";
         msg.setOtherVisitNumber(visitNumberB);
         msg.setOtherMrn(null);
