@@ -44,11 +44,6 @@ public class LocationVisit extends LocationVisitParent {
     public LocationVisit() {
     }
 
-    private LocationVisit(AuditLocationVisit other) {
-        super(other);
-    }
-
-
     /**
      * Create new location visit with all required information.
      * @param validFrom     Time of the message event
@@ -70,6 +65,7 @@ public class LocationVisit extends LocationVisitParent {
     private LocationVisit(LocationVisit other) {
         super(other);
         locationVisitId = other.locationVisitId;
+        hospitalVisitId = other.hospitalVisitId;
     }
 
     @Override
