@@ -1,6 +1,5 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient"
 recordedDateTime: "2013-02-11T10:02:52Z"
-operatorId: "IPUC"
 eventOccurredDateTime: "2013-02-11T10:01:52Z"
 eventReasonCode: "ADT_EVENT"
 sourceSystem: "EPIC"
@@ -9,29 +8,9 @@ nhsNumber: "9999999999"
 visitNumber: "123412341234"
 cancelledDateTime: "2013-02-11T10:01:52Z"
 cancelledLocation: "THP3^UCHP03THR POOL01^THR"
-admitSource:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "Usual"
-  status: "SAVE"
-currentWardCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "T11E"
-  status: "SAVE"
-currentRoomCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T11E BY02"
-currentBed:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "BY02-25"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "T11E^T11E BY02^BY02-25"
-  status: "SAVE"
-hospitalService:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value:  "Anaes"
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
@@ -48,10 +27,6 @@ patientIsAlive:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "ORANGE"
-  status: "SAVE"
-patientFullName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "null BLOOD null ORANGE"
   status: "SAVE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
