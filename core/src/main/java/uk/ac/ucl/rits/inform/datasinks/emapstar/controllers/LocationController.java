@@ -141,6 +141,8 @@ public class LocationController {
         if (msg instanceof CancelAdmitPatient) {
             deleteOpenVisitLocation(visit, msg, locationEntity, validFrom, storedFrom);
         } else if (msg instanceof CancelDischargePatient) {
+            // Can have an update between a discharge and a cancel discharge, which would create a new open visit, so remove this if this has happened
+            deleteOpenVisitLocation(visit, msg, locationEntity, validFrom, storedFrom);
             removeDischargeDateTime(visit, msg, locationEntity, validFrom, storedFrom);
         } else if (msg instanceof CancelTransferPatient) {
             CancelTransferPatient cancelTransferPatient = (CancelTransferPatient) msg;
@@ -338,7 +340,7 @@ public class LocationController {
      */
     private void deleteOpenVisitLocation(HospitalVisit visit, AdtMessage msg, Location locationEntity, Instant validFrom, Instant storedFrom) {
         RowState<LocationVisit> retiring = getOrCreateOpenLocation(visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
-        if (locationVisitShouldBeUpdated(retiring, msg) && !retiring.isEntityCreated()) {
+        if (!retiring.isEntityCreated()) {
             // if the location visit has just been created, we just don't save it. Otherwise delete it.
             deleteLocationVisit(validFrom, storedFrom, retiring.getEntity());
         }

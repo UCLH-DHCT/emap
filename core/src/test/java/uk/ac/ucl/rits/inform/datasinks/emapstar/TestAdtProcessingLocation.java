@@ -21,8 +21,10 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 class TestAdtProcessingLocation extends MessageProcessingBase {
@@ -294,6 +296,49 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // correct location is reopened
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
         Assertions.assertNull(reopenedVisit.getDischargeTime());
+    }
+
+    /**
+     * Can get an A08 before and after a cancel discharge.
+     * The newly opened visit from the A08 should be removed, and the discharged visit should be reopened instead
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testUpdateInfoBeforeAndAfterCancelDischarge() throws EmapOperationMessageProcessingException {
+        String correctLocation = "T06C^T06C SR41^SR41-41";
+        Instant messageDateTime = Instant.parse("2020-01-01T05:00:00Z");
+
+        // update patient info for discharged location
+        UpdatePatientInfo updatePatientInfo = messageFactory.getAdtMessage("generic/A08_v1.yaml");
+        updatePatientInfo.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
+        updatePatientInfo.setVisitNumber("1234567890");
+        updatePatientInfo.setMrn("60600000");
+        updatePatientInfo.setNhsNumber("1111111111");
+        updatePatientInfo.setRecordedDateTime(messageDateTime);
+        // cancel discharge
+        CancelDischargePatient cancelDischarge = messageFactory.getAdtMessage("generic/A13.yaml");
+        cancelDischarge.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
+        cancelDischarge.setVisitNumber("1234567890");
+        cancelDischarge.setMrn("60600000");
+        cancelDischarge.setNhsNumber("1111111111");
+        cancelDischarge.setRecordedDateTime(messageDateTime);
+        // A08s will have a later message date time than the cancellation event occurred time
+        cancelDischarge.setEventOccurredDateTime(messageDateTime.minus(1, ChronoUnit.HOURS));
+
+        dbOps.processMessage(updatePatientInfo);
+        dbOps.processMessage(cancelDischarge);
+
+        // correct location is reopened and there are no duplicate results
+        LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
+        Assertions.assertNull(reopenedVisit.getDischargeTime());
+
+        // intermediate update patient information visit is deleted
+        Optional<AuditLocationVisit> deletedOpenVisit = auditLocationVisitRepository.findByLocationIdLocationStringAndValidFrom(correctLocation, messageDateTime);
+        Assertions.assertTrue(deletedOpenVisit.isPresent());
+
+        // processing a further message should not come into an error of more than one open location
+        dbOps.processMessage(updatePatientInfo);
     }
 
     /**
