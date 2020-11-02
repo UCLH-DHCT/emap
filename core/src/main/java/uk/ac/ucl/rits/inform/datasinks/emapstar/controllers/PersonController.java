@@ -114,6 +114,7 @@ public class PersonController {
     @Transactional
     public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
                               final Instant storedFrom) {
+        logger.debug("Getting or creating MRN: mrn {}, nhsNumber {}", mrnString, nhsNumber);
         return mrnRepo
                 .findByMrnOrNhsNumber(mrnString, nhsNumber)
                 // mrn exists, get the live mrn

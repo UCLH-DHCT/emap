@@ -77,6 +77,7 @@ public class VisitController {
             throw new NullPointerException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
                     mrn, sourceSystem, messageDateTime));
         }
+        logger.debug("Getting or create Hospital Visit: mrn {}, encounter {}", mrn, encounter);
         return hospitalVisitRepo.findByEncounter(encounter)
                 .map(visit -> new RowState<>(visit, messageDateTime, storedFrom, false))
                 .orElseGet(() -> createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom));

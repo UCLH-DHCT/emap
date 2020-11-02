@@ -82,6 +82,7 @@ public class App {
         idsEffectLogging.setSourceId(msg.getSourceMessageId());
         try {
             logger.info("Starting processing of interchange message {}", msg.getSourceMessageId());
+            logger.trace("{}", msg);
             msg.processMessage(dbOps);
             Instant doneProcessMessageTime = Instant.now();
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
