@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,10 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
@@ -37,19 +42,18 @@ public class AuditTableProcessor extends AbstractProcessor {
 
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
 
-            // It can be anything. But must be an Entity or table. But it could it be
-            // something else?
-            // TODO check it's an actual @Entity
-//            Map<Boolean, List<TypeElement>> annotatedClasses =
-            List<TypeElement> parents =
-                    annotatedElements.stream().map(element -> (TypeElement) element).collect(Collectors.toList());
-//                            Collectors.partitioningBy(element -> element.getAnnotation(javax.persistence.Entity.class).isEmpty()));
+            // Must be an Entity or table. But could it be something else?
 
-//            List<TypeElement> parents = annotatedClasses.get(true);
-//            List<TypeElement> otherClasses = annotatedClasses.get(false);
+            Map<Boolean, List<TypeElement>> annotatedClasses =
+                    annotatedElements.stream().map(element -> (TypeElement) element)
+                            .collect(Collectors.partitioningBy(element -> element.getAnnotation(Entity.class) == null
+                                    || element.getAnnotation(Table.class) == null));
 
-//            otherClasses.forEach(element -> processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-//                    "@AuditType must be applied to a class ending in Parent", element));
+            List<TypeElement> parents = annotatedClasses.get(true);
+            List<TypeElement> otherClasses = annotatedClasses.get(false);
+
+            otherClasses.forEach(element -> processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    "@AuditType must be applied to an @Entity or @Table class", element));
 
             for (TypeElement parent : parents) {
                 // Create audit and main
@@ -66,8 +70,9 @@ public class AuditTableProcessor extends AbstractProcessor {
                 try {
                     createAudit(parent, packageName, baseClassName);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                            "@AuditType failed to be applied to " + className, parent);
                 }
             }
         }
@@ -198,17 +203,15 @@ public class AuditTableProcessor extends AbstractProcessor {
         // All other fields
         for (VariableElement field : fields) {
             Set<Modifier> mods = field.getModifiers();
-            if (mods.contains(Modifier.STATIC)) {
-                // static fields are not related to the database
+            if (mods.contains(Modifier.STATIC) || field.getAnnotation(Transient.class) != null) {
+                // static & transient fields are not related to the database
                 continue;
             }
-            // TODO skip @Transient
 
             // Need check to the type. If it's a primitive / Instant / String, that is fine.
-            // Else it's a FK
+            // Else it's a FK, and we need to get it's primary key to figure out the linking.
 
             String typeName;
-            String annotation = null;
             TypeMirror type = field.asType();
             TypeKind kind = type.getKind();
             boolean isForeignKey = false;
@@ -244,7 +247,6 @@ public class AuditTableProcessor extends AbstractProcessor {
                     break;
                 case "java.time.Instant":
                     typeName = "Instant";
-                    annotation = "@Column(columnDefinition = \"timestamp with time zone\")";
                     break;
                 default:
                     typeName = "long";
@@ -260,6 +262,19 @@ public class AuditTableProcessor extends AbstractProcessor {
                 continue;
 
             }
+
+            String annotation = null;
+
+            {
+                Column col = field.getAnnotation(Column.class);
+                if (col != null) {
+                    boolean unique = col.unique();
+                    String columnDefinition = col.columnDefinition();
+                    annotation = String.format("@Column(columnDefinition = \"%s\", unique=%s)", columnDefinition,
+                            unique ? "true" : "false");
+                }
+            }
+
             String fieldName = field.getSimpleName().toString();
             fieldShorts.add(new FieldStore(isForeignKey, fieldName));
             this.generateSingleField(out, annotation, typeName, fieldName);
@@ -412,6 +427,7 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     private class FieldStore {
         public final boolean isForeignKey;
+        public final String  primaryKeyName;
         public final String  fieldName;
 
         public FieldStore(boolean isForeignKey, String fieldName) {
