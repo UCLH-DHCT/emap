@@ -1,10 +1,11 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v26.datatype.PL;
+import ca.uhn.hl7v2.model.v26.segment.PV1;
+
 import java.time.Instant;
 import java.util.Vector;
-
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v26.segment.PV1;
 
 /**
  * Wrapper around the HAPI parser's PV1 segment object, to make it easier to use.
@@ -36,39 +37,44 @@ interface PV1Wrap {
 
     /**
      * @return PV1-3.1 Current Ward Code e.g. T06
-     * @throws HL7Exception if HAPI does
      */
-    default String getCurrentWardCode() throws HL7Exception {
+    default String getCurrentWardCode() {
         return getPV1().getAssignedPatientLocation().getPl1_PointOfCare().getValue();
     }
 
     /**
      * @return PV1-3.2 Current Room Code e.g. T06A
-     * @throws HL7Exception if HAPI does
      */
-    default String getCurrentRoomCode() throws HL7Exception {
+    default String getCurrentRoomCode() {
         return getPV1().getAssignedPatientLocation().getPl2_Room().getValue();
     }
 
     /**
      * @return PV1-3.3 Current Bed e.g. T06-32
-     * @throws HL7Exception if HAPI does
      */
-    default String getCurrentBed() throws HL7Exception {
+    default String getCurrentBed() {
         return getPV1().getAssignedPatientLocation().getPl3_Bed().getValue();
     }
 
     /**
-     * Get all the location components concatenated together.
+     * PV1-3: Get all the location components concatenated together.
      * We may need to canonicalise these to remove duplicate info.
      * @return the location string
-     * @throws HL7Exception if HAPI does
      */
-    default String getFullLocationString() throws HL7Exception {
+    default String getFullLocationString() {
         if (!pv1SegmentExists()) {
             return null;
         }
         return String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
+    }
+
+    /**
+     * PV1-6: Previous patient location concatenated together.
+     * @return the previous location string
+     */
+    default String getPreviousLocation() {
+        PL location = getPV1().getPriorPatientLocation();
+        return String.join("^", location.getPl1_PointOfCare().getValue(), location.getPl2_Room().getValue(), location.getPl3_Bed().getValue());
     }
 
     /**
@@ -88,9 +94,8 @@ interface PV1Wrap {
 
     /**
      * Get Referring Doctor(s) PV1-8.1 to PV1-8.6
-     *
+     * <p>
      * I am not sure if Carecast uses PV1-8.7.
-     *
      * @return Vector of Doctor objects
      * @throws HL7Exception if HAPI does
      */
@@ -153,7 +158,6 @@ interface PV1Wrap {
     /**
      * We could probably use the HAPI functions to obtain the different components of this result,
      * e.g. for easier conversion to Postgres timestamp format.
-     *
      * @return PV1-44.1 admission datetime
      * @throws HL7Exception if HAPI does
      */

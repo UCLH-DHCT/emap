@@ -68,6 +68,12 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testGenericAdtA11() throws Exception {
         testAdtMessage("generic/A11");
     }
+
+    @Test
+    public void testGenericAdtA12() throws Exception {
+        testAdtMessage("generic/A12");
+    }
+
     @Test
     public void testGenericAdtA13() throws Exception {
         testAdtMessage("generic/A13");
