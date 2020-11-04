@@ -45,6 +45,7 @@ import com.google.auto.service.AutoService;
  * <li> @JoinColumn & @Column cannot be used on the same field
  * <li> Primary keys must be marked with @Id
  * <li> Array types are not supported
+ * <li> Nullability, name, & column definition from @JoinColumn & @Column are preserved. Nothing else (eg uniqueness) is.
  *  </ul>
  *
  * @author Roma Klapaukh
@@ -296,8 +297,9 @@ public class AuditTableProcessor extends AbstractProcessor {
                 if (col != null) {
                     boolean nullable = col.nullable();
                     String columnDefinition = col.columnDefinition();
-                    annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s)", columnDefinition,
-                            nullable ? "true" : "false");
+                    String name = col.name();
+                    annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")", columnDefinition,
+                            nullable ? "true" : "false", name);
                 }
             }
 
@@ -327,13 +329,14 @@ public class AuditTableProcessor extends AbstractProcessor {
                     }
                     String colDef = joinColumn.columnDefinition();
                     boolean nullable = joinColumn.nullable();
+                    String name = joinColumn.name();
                     if (annotation != null) {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                 "Found field has both @Column and @JoinColumn", field);
                         continue;
                     } else {
-                        annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s)", colDef,
-                                nullable ? "true" : "false");
+                        annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")", colDef,
+                                nullable ? "true" : "false", name);
                     }
                 }
             }
