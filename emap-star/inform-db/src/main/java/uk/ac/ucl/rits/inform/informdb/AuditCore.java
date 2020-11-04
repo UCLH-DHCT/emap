@@ -2,6 +2,9 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import java.time.Instant;
 
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+
 /**
  * This models the core temporal until values for an audit table.
  * <p>
@@ -11,47 +14,83 @@ import java.time.Instant;
  * later date may be considered true from when the original event happened), and
  * from when it was available in the database (so a repeat export of data won't
  * be contaminated by new data in reproducibility studies).
+ *
  * @author UCL RITS
  */
-public interface AuditCore {
+@MappedSuperclass
+public abstract class AuditCore<A extends AuditCore<A>> extends TemporalCore<A, A> {
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant validUntil;
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant storedUntil;
 
     /**
-     * Get the time from when this bit of data was considered true or extant.
-     * Historically loaded data is back dated to its original occurrence time.
-     * @return the validFrom time and date.
+     * Default constructor.
      */
-    Instant getValidFrom();
+    public AuditCore() {}
+
+    /**
+     * Copy Constructor.
+     * @param other Other object to copy fields from.
+     */
+    public AuditCore(AuditCore<A> other) {
+        super(other);
+        this.validUntil = other.validUntil;
+        this.storedUntil = other.storedUntil;
+    }
+
+    /**
+     * Construct with args
+     * @param validUntil validUntil to set
+     * @param storedUntil storedUntil to set
+     */
+    public AuditCore(Instant validUntil, Instant storedUntil) {
+        this.validUntil = validUntil;
+        this.storedUntil = storedUntil;
+    }
+
 
     /**
      * Get the time when this fact stopped being true within the hospital system.
      * This would occur if a correction was made, and the old value was now invalid.
+     *
      * @return the validUntil
      */
-    Instant getValidUntil();
+    public Instant getValidUntil() {
+        return this.validUntil;
+    }
 
     /**
      * @param validUntil the validUntil to set
      */
-    void setValidUntil(Instant validUntil);
+    public void setValidUntil(Instant validUntil) {
+        this.validUntil = validUntil;
+    }
 
     /**
      * @return the storedUntil
      */
-    Instant getStoredUntil();
+    public Instant getStoredUntil() {
+        return this.storedUntil;
+    }
 
     /**
      * @param storedUntil the storedUntil to set
      */
-    void setStoredUntil(Instant storedUntil);
+    public void setStoredUntil(Instant storedUntil) {
+        this.storedUntil = storedUntil;
+    }
 
     /**
-     * Time-travel validity.
-     * Note that this assumes the current state of the database is correct.
-     * @param asOfTime The time to test validity at,
-     *                 ie. the simulated "now" point. Cannot be null.
+     * Time-travel validity. Note that this assumes the current state of the
+     * database is correct.
+     *
+     * @param asOfTime The time to test validity at, ie. the simulated "now" point.
+     *                 Cannot be null.
      * @return whether this row was valid as of the given time
      */
-    default boolean isValidAsOf(Instant asOfTime) {
+    public boolean isValidAsOf(Instant asOfTime) {
         return getStoredUntil() == null && asOfTime.compareTo(getValidFrom()) >= 0
                 && (getValidUntil() == null || asOfTime.compareTo(getValidUntil()) < 0);
     }

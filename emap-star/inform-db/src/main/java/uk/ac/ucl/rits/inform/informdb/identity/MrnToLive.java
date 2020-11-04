@@ -1,15 +1,21 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.time.Instant;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import java.time.Instant;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 /**
  * Over time MRNs are merged into others as more is found out about a patient.
@@ -21,13 +27,20 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class MrnToLive extends MrnToLiveParent {
+@AuditTable
+public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
     private static final long serialVersionUID = 8891761742756656453L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnToLiveId;
+    @ManyToOne
+    @JoinColumn(name = "mrnId", nullable = false)
+    private Mrn mrnId;
 
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "liveMrnId", nullable = false)
+    private Mrn liveMrnId;
 
     public MrnToLive() {}
 
@@ -35,6 +48,8 @@ public class MrnToLive extends MrnToLiveParent {
         super(other);
         setMrnId(other.getMrnId());
         setLiveMrnId(other.getLiveMrnId());
+        this.mrnId = other.mrnId;
+        this.liveMrnId = other.liveMrnId;
     }
 
     @Override

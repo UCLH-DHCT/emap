@@ -1,42 +1,74 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
-import lombok.Data;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import java.time.Instant;
+import java.time.LocalDate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.time.Instant;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 /**
  * A core demographic represents the main demographics stored around patients.
  * These are attached to an MRN and describe patient level, rather than visit
  * level, data.
+ *
  * @author UCL RITS
  */
 @Entity
 @Table
-@Data
+@Data()
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class CoreDemographic extends CoreDemographicParent {
-    private static final long serialVersionUID = -5997494172438793019L;
+@AuditTable
+public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemographicAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long coreDemographicId;
+    private long      coreDemographicId;
+
+    @OneToOne
+    @JoinColumn(name = "mrnId", nullable = false)
+    private Mrn       mrnId;
+
+    private String    firstname;
+    private String    middlename;
+    private String    lastname;
+
+    private LocalDate dateOfBirth;
+    private LocalDate dateOfDeath;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant   datetimeOfBirth;
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant   datetimeOfDeath;
+
+    private Boolean   alive;
+    private String    homePostcode;
+    private String    sex;
 
     /**
      * Default constructor.
      */
-    public CoreDemographic() {
-    }
+    public CoreDemographic() {}
 
     /**
      * Construct with the Mrn.
+     *
      * @param mrnId MRN object.
      */
     public CoreDemographic(Mrn mrnId) {
@@ -44,14 +76,28 @@ public class CoreDemographic extends CoreDemographicParent {
         setMrnId(mrnId);
     }
 
-
     /**
      * Copy constructor.
+     *
      * @param other other demographic.
      */
     private CoreDemographic(CoreDemographic other) {
         super(other);
-        coreDemographicId = other.coreDemographicId;
+        this.coreDemographicId = other.coreDemographicId;
+        this.mrnId = other.mrnId;
+        this.firstname = other.firstname;
+        this.middlename = other.middlename;
+        this.lastname = other.lastname;
+
+        this.dateOfBirth = other.dateOfBirth;
+        this.dateOfDeath = other.dateOfDeath;
+
+        this.datetimeOfBirth = other.datetimeOfBirth;
+        this.datetimeOfDeath = other.datetimeOfDeath;
+
+        this.alive = other.alive;
+        this.homePostcode = other.homePostcode;
+        this.sex = other.sex;
     }
 
     @Override
@@ -64,23 +110,4 @@ public class CoreDemographic extends CoreDemographicParent {
         return new CoreDemographicAudit(this, validUntil, storedFrom);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-        CoreDemographic that = (CoreDemographic) o;
-        return super.equals(that);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
 }

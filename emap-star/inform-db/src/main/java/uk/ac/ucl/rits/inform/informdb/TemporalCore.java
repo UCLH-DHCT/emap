@@ -1,8 +1,10 @@
 package uk.ac.ucl.rits.inform.informdb;
 
+import java.io.Serializable;
+import java.time.Instant;
+
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-import java.time.Instant;
 
 /**
  * This models the common core of the temporal variables stored in almost all
@@ -19,7 +21,7 @@ import java.time.Instant;
  * @author UCL RITS
  */
 @MappedSuperclass
-public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends AuditCore> {
+public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends AuditCore> implements Serializable {
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant validFrom;
