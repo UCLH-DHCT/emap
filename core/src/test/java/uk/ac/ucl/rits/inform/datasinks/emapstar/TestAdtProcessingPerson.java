@@ -17,13 +17,13 @@ import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
-import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -39,13 +39,13 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     private CoreDemographicRepository coreDemographicRepository;
 
     @Autowired
-    private AuditCoreDemographicRepository auditCoreDemographicRepository;
+    private CoreDemographicAuditRepository coreDemographicAuditRepository;
 
     @Autowired
-    private AuditMrnToLiveRepository auditMrnToLiveRepository;
+    private MrnToLiveAuditRepository mrnToLiveAuditRepository;
 
-    private List<AuditCoreDemographic> getAllAuditCoreDemographics() {
-        return StreamSupport.stream(auditCoreDemographicRepository.findAll().spliterator(), false).collect(Collectors.toList());
+    private List<CoreDemographicAudit> getAllAuditCoreDemographics() {
+        return StreamSupport.stream(coreDemographicAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
     private String newMrnString = "60600000";
@@ -80,7 +80,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         List<Mrn> mrns = getAllMrns();
         assertEquals(2, mrns.size());
 
-        Mrn newMrn = mrnRepo.getByMrnEquals(newMrnString).get();
+        Mrn newMrn = mrnRepo.getByMrnEquals(newMrnString).orElseThrow();
 
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(newMrn);
         assertTrue(demographic.isPresent());
@@ -114,7 +114,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         int startingMrnCount = getAllMrns().size();
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
         assertEquals(1001L, mrn.getMrnId().longValue());
@@ -135,9 +135,9 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testOldAdtMessage() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg.setRecordedDateTime(Instant.parse("2010-01-01T01:01:01Z"));
+        msg.setEventOccurredDateTime(Instant.parse("2010-01-01T01:01:01Z"));
 
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         CoreDemographic preDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
 
         // process message
@@ -146,13 +146,13 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         CoreDemographic postDemographic = coreDemographicRepository.getByMrnIdEquals(mrn).orElseThrow(NullPointerException::new);
         assertEquals(preDemographic, postDemographic);
 
-        List<AuditCoreDemographic> audit = getAllAuditCoreDemographics();
+        List<CoreDemographicAudit> audit = getAllAuditCoreDemographics();
         assertTrue(audit.isEmpty());
 
         // audit mrn to live should not be added to
-        List<AuditMrnToLive> auditMrnToLive = StreamSupport.stream(auditMrnToLiveRepository.findAll().spliterator(), false)
+        List<MrnToLiveAudit> mrnToLiveAudit = StreamSupport.stream(mrnToLiveAuditRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        assertTrue(auditMrnToLive.isEmpty());
+        assertTrue(mrnToLiveAudit.isEmpty());
     }
 
     /**
@@ -169,7 +169,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
 
         // process message
         dbOps.processMessage(msg);
-        Mrn mrn = mrnRepo.getByMrnEquals(newMrnString).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(newMrnString).orElseThrow();
         // no new mrns added, existing id is kept
         assertEquals(startingMrnCount, getAllMrns().size());
         assertEquals(1002L, mrn.getMrnId().longValue());
@@ -197,8 +197,8 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
 
         // process message
         dbOps.processMessage(msg);
-        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrnRepo.getByMrnEquals(defaultMrn).get());
-        Mrn newMrn = mrnRepo.getByMrnEquals("40800001").get();
+        MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrnRepo.getByMrnEquals(defaultMrn).orElseThrow());
+        Mrn newMrn = mrnRepo.getByMrnEquals("40800001").orElseThrow();
         assertEquals(newMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(newMrn);
@@ -223,10 +223,10 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // process message
         dbOps.processMessage(msg);
         // retiring mrn created and linked to surviving mrn
-        Mrn retiringMrn = mrnRepo.getByMrnEquals(retiringMrnString).get();
+        Mrn retiringMrn = mrnRepo.getByMrnEquals(retiringMrnString).orElseThrow();
         assertNotNull(retiringMrn);
         MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
-        Mrn survivingMrn = mrnRepo.getByMrnEquals(liveMrnString).get();
+        Mrn survivingMrn = mrnRepo.getByMrnEquals(liveMrnString).orElseThrow();
         assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
@@ -254,7 +254,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
                 .filter(mrn -> mrn.getMrn() == null)
                 .findFirst().orElseThrow(NullPointerException::new);
         MrnToLive retiredMrnToLive = mrnToLiveRepo.getByMrnIdEquals(retiringMrn);
-        Mrn survivingMrn = mrnRepo.getByMrnEquals(survivingMrnString).get();
+        Mrn survivingMrn = mrnRepo.getByMrnEquals(survivingMrnString).orElseThrow();
         assertEquals(survivingMrn, retiredMrnToLive.getLiveMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
@@ -271,7 +271,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // first message as MrnExists
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg2.setRecordedDateTime(Instant.parse("2020-10-01T00:00:00Z"));
+        msg2.setEventOccurredDateTime(Instant.parse("2020-10-01T00:00:00Z"));
         msg2.setPatientMiddleName(Hl7Value.buildFromHl7("lime"));
 
         // process messages
@@ -281,19 +281,19 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         long coreDemographicId = 3002;
 
         // audit log for demographics should be populated
-        List<AuditCoreDemographic> audit = auditCoreDemographicRepository.getAllByCoreDemographicId(coreDemographicId);
+        List<CoreDemographicAudit> audit = coreDemographicAuditRepository.getAllByCoreDemographicId(coreDemographicId);
         assertEquals(2, audit.size());
 
 
         // original state of the demographics should be saved to audit
-        AuditCoreDemographic firstAudit = audit.stream()
-                .min(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
+        CoreDemographicAudit firstAudit = audit.stream()
+                .min(Comparator.comparing(CoreDemographicAudit::getStoredUntil))
                 .orElseThrow(NullPointerException::new);
         assertEquals("zest", firstAudit.getLastname());
 
         // second message should have the updates from the first message being saved in audit
-        AuditCoreDemographic secondAudit = audit.stream()
-                .max(Comparator.comparing(AuditCoreDemographic::getStoredUntil))
+        CoreDemographicAudit secondAudit = audit.stream()
+                .max(Comparator.comparing(CoreDemographicAudit::getStoredUntil))
                 .orElseThrow(NullPointerException::new);
         assertEquals("ORANGE", secondAudit.getLastname());
     }
@@ -314,7 +314,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         long coreDemographicId = 3002;
 
         // audit log for demographics should be populated only by the first message
-        List<AuditCoreDemographic> audit = auditCoreDemographicRepository.getAllByCoreDemographicId(coreDemographicId);
+        List<CoreDemographicAudit> audit = coreDemographicAuditRepository.getAllByCoreDemographicId(coreDemographicId);
         assertEquals(1, audit.size());
     }
 
@@ -336,11 +336,11 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // audit log for demographics should be populated
-        List<AuditMrnToLive> audits = auditMrnToLiveRepository.getAllByLiveMrnIdMrn(retiringMrnString);
+        List<MrnToLiveAudit> audits = mrnToLiveAuditRepository.getAllByLiveMrnIdMrn(retiringMrnString);
         assertEquals(2, audits.size());
 
         // original live should be saved to audit
-        for (AuditMrnToLive audit : audits) {
+        for (MrnToLiveAudit audit : audits) {
             assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
         }
     }
@@ -356,12 +356,12 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         // process message
         dbOps.processMessage(msg);
 
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         // no demographics should exist
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
         assertFalse(demographic.isPresent());
         // audit should have one row for deleted demographics
-        List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
+        List<CoreDemographicAudit> audits = coreDemographicAuditRepository.getAllByMrnIdMrn(defaultMrn);
         assertEquals(1, audits.size());
     }
 
@@ -373,16 +373,16 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testOldDeleteMessageHasNoEffect() throws EmapOperationMessageProcessingException {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
-        msg.setRecordedDateTime(Instant.parse("2000-01-01T00:00:00Z"));
+        msg.setEventOccurredDateTime(Instant.parse("2000-01-01T00:00:00Z"));
         // process message
         dbOps.processMessage(msg);
 
-        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).get();
+        Mrn mrn = mrnRepo.getByMrnEquals(defaultMrn).orElseThrow();
         // should still exist
         Optional<CoreDemographic> demographic = coreDemographicRepository.getByMrnIdEquals(mrn);
         assertTrue(demographic.isPresent());
         // no audit row
-        List<AuditCoreDemographic> audits = auditCoreDemographicRepository.getAllByMrnIdMrn(defaultMrn);
+        List<CoreDemographicAudit> audits = coreDemographicAuditRepository.getAllByMrnIdMrn(defaultMrn);
         assertEquals(0, audits.size());
     }
 
@@ -396,19 +396,19 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
 
         // save state before processing to be sure that it works
-        Optional<Mrn> previousMrnBeforeProcessing = mrnRepo.getByMrnEquals(defaultMrn);
-        Optional<Mrn> newMrnBeforeProcessing = mrnRepo.getByMrnEquals("40800001");
+        Optional<Mrn> previousMrnBeforeProcessing = mrnRepo.findByMrnEquals(defaultMrn);
+        Optional<Mrn> newMrnBeforeProcessing = mrnRepo.findByMrnEquals("40800001");
 
         //process message
         dbOps.processMessage(msg);
 
         // previous Mrn should go from existing previously, to now not existing
-        Optional<Mrn> previousMrn = mrnRepo.getByMrnEquals(defaultMrn);
+        Optional<Mrn> previousMrn = mrnRepo.findByMrnEquals(defaultMrn);
         assertTrue(previousMrnBeforeProcessing.isPresent());
         assertFalse(previousMrn.isPresent());
 
         // new Mrn should go from not existing previously, to now existing
-        Optional<Mrn> newMrn = mrnRepo.getByMrnEquals("40800001");
+        Optional<Mrn> newMrn = mrnRepo.findByMrnEquals("40800001");
         assertFalse(newMrnBeforeProcessing.isPresent());
         assertTrue(newMrn.isPresent());
     }
@@ -423,7 +423,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
         msg.setMrn(newMrnString);
 
-        assertThrows(IllegalArgumentException.class, () -> dbOps.processMessage(msg));
+        assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
     }
 
 }

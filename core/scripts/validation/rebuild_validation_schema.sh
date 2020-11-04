@@ -7,7 +7,7 @@ set -euo pipefail
 # - Truncate ops_validation tables, including progress but not the mapping tables
 # - Truncate hl7 and caboodle progress tables in caboodle_extract_validation schema
 
-date_suffix=$(date +%s)
+date_suffix=$(date +"%Y-%m-%d_%H-%M-%S")
 log_file_prefix=rebuild_log_${date_suffix}
 
 # edit hl7 (vitals+adt) config files in place, keeping a backup named by the timestamp
@@ -26,7 +26,7 @@ configure_time_window() {
         ' \
         ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
-        ../config/caboodle-envs
+
 }
 
 stop_it_and_tidy_up() {
@@ -47,9 +47,9 @@ run_pipeline() {
     bash emap-live.sh ps
     bash emap-live.sh down
     bash emap-live.sh ps
-    bash emap-live.sh up -d cassandra glowroot-central
+    bash emap-live.sh up -d cassandra rabbitmq
     source ../config/glowroot-config-envs && ./emap-live.sh run glowroot-central java -jar "glowroot-central.jar" setup-admin-user "${GLOWROOT_USERNAME}" "${GLOWROOT_PASSWORD}"
-    bash emap-live.sh up -d rabbitmq
+    bash emap-live.sh up -d glowroot-central
     bash emap-live.sh ps
     # If this is run after the data sources, it would deadlock if the hl7source generates
     # more messages than can fit in the queue, but currently emapstar doesn't like being started up

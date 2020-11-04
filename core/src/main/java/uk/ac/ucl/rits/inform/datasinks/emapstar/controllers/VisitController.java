@@ -6,36 +6,39 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmissionDateTime;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Interactions with visits.
+ * @author Stef Piatek
  */
 @Component
 public class VisitController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final HospitalVisitRepository hospitalVisitRepo;
-    private final AuditHospitalVisitRepository auditHospitalVisitRepo;
+    private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
 
-    public VisitController(HospitalVisitRepository hospitalVisitRepo, AuditHospitalVisitRepository auditHospitalVisitRepo) {
+    public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo) {
         this.hospitalVisitRepo = hospitalVisitRepo;
-        this.auditHospitalVisitRepo = auditHospitalVisitRepo;
+        this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
     }
 
     /**
@@ -49,9 +52,10 @@ public class VisitController {
      * @return Hospital visit from database or minimal hospital visit
      * @throws NullPointerException if no encounter
      */
-    public HospitalVisit getOrCreateMinimalHospitalVisit(final String encounter, final Mrn mrn, final String sourceSystem,
-                                                         final Instant messageDateTime, final Instant storedFrom) throws NullPointerException {
-        RowState<HospitalVisit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
+    public HospitalVisit getOrCreateMinimalHospitalVisit(
+            final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom
+    ) throws RequiredDataMissingException {
+        RowState<HospitalVisit, HospitalVisitAudit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
         if (visit.isEntityCreated()) {
             logger.debug("Minimal encounter created. encounter: {}, mrn: {}", encounter, mrn);
             hospitalVisitRepo.save(visit.getEntity());
@@ -69,13 +73,14 @@ public class VisitController {
      * @return existing visit or created minimal visit
      * @throws NullPointerException if no encounter
      */
-    private RowState<HospitalVisit> getOrCreateHospitalVisit(
+    private RowState<HospitalVisit, HospitalVisitAudit> getOrCreateHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-            final Instant storedFrom) throws NullPointerException {
+            final Instant storedFrom) throws RequiredDataMissingException {
         if (encounter == null || encounter.isEmpty()) {
-            throw new NullPointerException(String.format("No encounter for message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
+            throw new RequiredDataMissingException(String.format("No encounter in message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
                     mrn, sourceSystem, messageDateTime));
         }
+        logger.debug("Getting or create Hospital Visit: mrn {}, encounter {}", mrn, encounter);
         return hospitalVisitRepo.findByEncounter(encounter)
                 .map(visit -> new RowState<>(visit, messageDateTime, storedFrom, false))
                 .orElseGet(() -> createHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom));
@@ -91,8 +96,8 @@ public class VisitController {
      * @param storedFrom      when the message has been read by emap core
      * @return new hospital visit
      */
-    private RowState<HospitalVisit> createHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                                        final Instant storedFrom) {
+    private RowState<HospitalVisit, HospitalVisitAudit> createHospitalVisit(
+            final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom) {
         HospitalVisit visit = new HospitalVisit();
         visit.setMrnId(mrn);
         visit.setEncounter(encounter);
@@ -108,20 +113,21 @@ public class VisitController {
      * @param storedFrom time that emap-core started processing the message.
      * @param mrn        mrn
      * @return hospital visit, may be null if an UpdatePatientInfo message doesn't have any encounter information.
-     * @throws NullPointerException if adt message has no visit number set
+     * @throws RequiredDataMissingException if an adt message has no visit number set and is not an UpdatePatientInfo message
      */
     @Transactional
-    public HospitalVisit updateOrCreateHospitalVisit(final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws NullPointerException {
+    public HospitalVisit updateOrCreateHospitalVisit(
+            final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws RequiredDataMissingException {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             if (msg instanceof UpdatePatientInfo) {
                 logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
                 return null;
             }
-            throw new NullPointerException(String.format("ADT message doesn't have a visit number: %s", msg));
+            throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
-        Instant validFrom = getValidFrom(msg);
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
-        final HospitalVisit originalVisit = visitState.getEntity().copy();
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        RowState<HospitalVisit, HospitalVisitAudit> visitState = getOrCreateHospitalVisit(
+                msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             updateGenericData(msg, visitState);
@@ -132,15 +138,15 @@ public class VisitController {
             } else if (msg instanceof DischargePatient) {
                 addDischargeInformation((DischargePatient) msg, visitState);
             } else if (msg instanceof CancelDischargePatient) {
-                removeDischargeInformation((CancelDischargePatient) msg, visitState);
+                removeDischargeInformation((AdtCancellation) msg, visitState);
             } else if (msg instanceof AdmissionDateTime) {
                 addAdmissionDateTime((AdmissionDateTime) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
-                removeAdmissionInformation((CancelAdmitPatient) msg, visitState);
+                removeAdmissionInformation((AdtCancellation) msg, visitState);
             }
         }
         addPresentationOrAdmissionTimeIfMissing(msg, visitState);
-        manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
+        visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
 
@@ -150,7 +156,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         if (!DataSources.isTrusted(msg.getSourceSystem())) {
             return;
         }
@@ -163,23 +169,15 @@ public class VisitController {
     }
 
     /**
-     * If the event occured exists, use it. Otherwise use the event recorded date time.
-     * @param msg Adt message
-     * @return the correct Instant for valid from.
-     */
-    private Instant getValidFrom(AdtMessage msg) {
-        return (msg.getEventOccurredDateTime() == null) ? msg.getRecordedDateTime() : msg.getEventOccurredDateTime();
-    }
-
-    /**
      * Update visit if message is from a trusted source update if newer or if database source isn't trusted.
      * Otherwise only update if if is newly created.
      * @param messageDateTime date time of the message
      * @param messageSource   Source system from the message
      * @param visitState      visit wrapped in state class
-     * @return true if the visit should not be updated
+     * @return true if the visit should be updated
      */
-    private boolean visitShouldBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
+    private boolean visitShouldBeUpdated(
+            final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         // always update if a message is created
         if (visitState.isEntityCreated()) {
             return true;
@@ -195,7 +193,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    public void updateGenericData(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+    private void updateGenericData(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
         visitState.assignHl7ValueIfDifferent(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
@@ -207,7 +205,7 @@ public class VisitController {
      * @param msg        AdmissionDateTime
      * @param visitState visit wrapped in state class
      */
-    private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit> visitState) {
+    private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
     }
@@ -217,7 +215,7 @@ public class VisitController {
      * @param msg        cancellation message
      * @param visitState visit wrapped in state class
      */
-    private void removeAdmissionInformation(final AdtCancellation msg, RowState<HospitalVisit> visitState) {
+    private void removeAdmissionInformation(final AdtCancellation msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.removeIfExists(visit.getAdmissionTime(), visit::setAdmissionTime, msg.getCancelledDateTime());
     }
@@ -227,7 +225,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit> visitState) {
+    private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
     }
@@ -238,7 +236,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addDischargeInformation(final DischargePatient msg, RowState<HospitalVisit> visitState) {
+    private void addDischargeInformation(final DischargePatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignIfDifferent(msg.getDischargeDateTime(), visit.getDischargeTime(), visit::setDischargeTime);
         visitState.assignIfDifferent(msg.getDischargeDisposition(), visit.getDischargeDisposition(), visit::setDischargeDisposition);
@@ -255,7 +253,7 @@ public class VisitController {
      * @param msg        cancellation message
      * @param visitState visit wrapped in state class
      */
-    private void removeDischargeInformation(final AdtCancellation msg, RowState<HospitalVisit> visitState) {
+    private void removeDischargeInformation(final AdtCancellation msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.removeIfExists(visit.getDischargeTime(), visit::setDischargeTime, msg.getCancelledDateTime());
         visitState.removeIfExists(visit.getDischargeDisposition(), visit::setDischargeDisposition, msg.getCancelledDateTime());
@@ -263,48 +261,20 @@ public class VisitController {
 
     }
 
-    /**
-     * Save a newly created hospital visit, or the audit table for original visit if this has been updated.
-     * @param visitState    visit wrapped in state class
-     * @param originalVisit original visit
-     */
-    private void manuallySaveVisitOrAuditIfRequired(final RowState<HospitalVisit> visitState, final HospitalVisit originalVisit) {
-        if (visitState.isEntityCreated()) {
-            hospitalVisitRepo.save(visitState.getEntity());
-            logger.info("New HospitalVisit being saved: {}", visitState.getEntity());
-        } else if (visitState.isEntityUpdated()) {
-            logger.info("HospitalVisit was updated: {}", visitState.getEntity());
-            AuditHospitalVisit audit = new AuditHospitalVisit(originalVisit, visitState.getMessageDateTime(), visitState.getStoredFrom());
-            auditHospitalVisitRepo.save(audit);
-        } else {
-            logger.info("No change to visit {}", visitState.getEntity().getHospitalVisitId());
-        }
+
+    public List<HospitalVisit> getOlderVisits(Mrn mrn, Instant messageDateTime) {
+        return hospitalVisitRepo.findAllByMrnIdAndValidFromIsLessThanEqual(mrn, messageDateTime);
     }
 
     /**
      * Delete all visits that are older than the current message.
-     * @param mrn        MRN
-     * @param msg        Delete person information message
+     * @param visits     List of hopsital visits
+     * @param validFrom  Time of the delete information message
      * @param storedFrom time that emap-core started processing the message.
      */
-    public void deleteOlderVisits(final Mrn mrn, final DeletePersonInformation msg, final Instant storedFrom) {
-        hospitalVisitRepo.findAllByMrnIdMrnId(mrn.getMrnId()).ifPresentOrElse(
-                visits -> visits.forEach(visit -> deleteVisitIfMessageIsNewer(msg, storedFrom, visit)),
-                () -> logger.warn("No visits to delete for for mrn: {} ", mrn)
-        );
-    }
-
-    /**
-     * Delete the visit if older than the current message.
-     * @param visit      Hospital visit
-     * @param msg        Delete person information message
-     * @param storedFrom time that emap-core started processing the message.
-     */
-    private void deleteVisitIfMessageIsNewer(final DeletePersonInformation msg, final Instant storedFrom, HospitalVisit visit) {
-        Instant validFrom = getValidFrom(msg);
-        if (validFrom.isAfter(visit.getValidFrom())) {
-            AuditHospitalVisit audit = new AuditHospitalVisit(visit, validFrom, storedFrom);
-            auditHospitalVisitRepo.save(audit);
+    public void deleteVisits(Iterable<HospitalVisit> visits, Instant validFrom, Instant storedFrom) {
+        for (HospitalVisit visit : visits) {
+            hospitalVisitAuditRepo.save(new HospitalVisitAudit(visit, validFrom, storedFrom));
             hospitalVisitRepo.delete(visit);
         }
     }
@@ -316,30 +286,31 @@ public class VisitController {
      * @param previousMrn previous MRN
      * @param currentMrn  new MRN that the encounter should be linked with
      * @return hospital visit
+     * @throws RequiredDataMissingException       if message is missing required data
+     * @throws IncompatibleDatabaseStateException If the message will not have an effect or the new encounter already exists
      */
     @Transactional
-    public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn) {
+    public HospitalVisit moveVisitInformation(MoveVisitInformation msg, Instant storedFrom, Mrn previousMrn, Mrn currentMrn)
+            throws RequiredDataMissingException, IncompatibleDatabaseStateException {
         if (msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && previousMrn.equals(currentMrn)) {
-            throw new IllegalArgumentException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
+            throw new IncompatibleDatabaseStateException(String.format("MoveVisitInformation will not change the MRN or the visit number: %s", msg));
         }
-        if (visitNumberChangeAndFinalEncounterAlreadyExists(msg)) {
-            throw new IllegalStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
+        if (isVisitNumberChangesAndFinalEncounterAlreadyExists(msg)) {
+            throw new IncompatibleDatabaseStateException(String.format("MoveVisitInformation where new encounter already exists : %s", msg));
         }
 
-        Instant validFrom = getValidFrom(msg);
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        RowState<HospitalVisit, HospitalVisitAudit> visitState = getOrCreateHospitalVisit(
                 msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
-            final HospitalVisit originalVisit = visitState.getEntity().copy();
             updateGenericData(msg, visitState);
             // move the encounter and MRN to the correct value
             HospitalVisit visit = visitState.getEntity();
             visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
             visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
-
-            manuallySaveVisitOrAuditIfRequired(visitState, originalVisit);
         }
+        visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
 
@@ -347,7 +318,7 @@ public class VisitController {
      * @param msg MoveVisitInformation
      * @return true if the message visit number changes and the final encounter already exists
      */
-    private boolean visitNumberChangeAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
+    private boolean isVisitNumberChangesAndFinalEncounterAlreadyExists(MoveVisitInformation msg) {
         return !msg.getPreviousVisitNumber().equals(msg.getVisitNumber()) && hospitalVisitRepo.findByEncounter(msg.getVisitNumber()).isPresent();
     }
 }

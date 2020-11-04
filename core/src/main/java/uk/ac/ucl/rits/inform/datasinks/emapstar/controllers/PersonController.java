@@ -1,29 +1,29 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
-import java.time.Instant;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditCoreDemographicRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditMrnToLiveRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveRepository;
-import uk.ac.ucl.rits.inform.informdb.demographics.AuditCoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
-import uk.ac.ucl.rits.inform.informdb.identity.AuditMrnToLive;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -35,25 +35,25 @@ public class PersonController {
 
     private final MrnRepository mrnRepo;
     private final MrnToLiveRepository mrnToLiveRepo;
-    private final AuditMrnToLiveRepository auditMrnToLiveRepo;
+    private final MrnToLiveAuditRepository mrnToLiveAuditRepo;
     private final CoreDemographicRepository coreDemographicRepo;
-    private final AuditCoreDemographicRepository auditCoreDemographicRepo;
+    private final CoreDemographicAuditRepository coreDemographicAuditRepo;
 
     /**
      * Constructor implicitly autowiring beans.
      * @param mrnRepo                  mrnRepo
      * @param mrnToLiveRepo            mrnToLiveRepo
-     * @param auditMrnToLiveRepo       auditMrnToLiveRepo
+     * @param mrnToLiveAuditRepo       auditMrnToLiveRepo
      * @param coreDemographicRepo      coreDemographicRepo
-     * @param auditCoreDemographicRepo auditCoreDemographicRepo
+     * @param coreDemographicAuditRepo auditCoreDemographicRepo
      */
-    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, AuditMrnToLiveRepository auditMrnToLiveRepo,
-                            CoreDemographicRepository coreDemographicRepo, AuditCoreDemographicRepository auditCoreDemographicRepo) {
+    public PersonController(MrnRepository mrnRepo, MrnToLiveRepository mrnToLiveRepo, MrnToLiveAuditRepository mrnToLiveAuditRepo,
+                            CoreDemographicRepository coreDemographicRepo, CoreDemographicAuditRepository coreDemographicAuditRepo) {
         this.mrnRepo = mrnRepo;
         this.mrnToLiveRepo = mrnToLiveRepo;
-        this.auditMrnToLiveRepo = auditMrnToLiveRepo;
+        this.mrnToLiveAuditRepo = mrnToLiveAuditRepo;
         this.coreDemographicRepo = coreDemographicRepo;
-        this.auditCoreDemographicRepo = auditCoreDemographicRepo;
+        this.coreDemographicAuditRepo = coreDemographicAuditRepo;
     }
 
     /**
@@ -61,19 +61,19 @@ public class PersonController {
      * @param msg          Merge message
      * @param survivingMrn live MRN to merge into
      * @param storedFrom   when the message has been read by emap core
-     * @throws MessageIgnoredException if no retiring mrn information
+     * @throws RequiredDataMissingException if mrn and nhsNumber are both null
      */
     @Transactional
-    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws MessageIgnoredException {
+    public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws RequiredDataMissingException {
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
                 .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber())
                 .orElseGet(() -> List.of(createNewLiveMrn(
-                        msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom)));
+                        msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)));
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.getRecordedDateTime(), storedFrom, mrnToLive));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.bestGuessAtValidFrom(), storedFrom, mrnToLive));
     }
 
     /**
@@ -89,8 +89,8 @@ public class PersonController {
         if (liveMrnIdIsDifferentAndMessageIsNotBefore(survivingMrn, messageDateTime, mrnToLive)) {
             logger.info("Merging previous MRN {} into surviving MRN {}", mrnToLive.getMrnId(), survivingMrn);
             // log current state to audit table and then update current row
-            AuditMrnToLive audit = new AuditMrnToLive(mrnToLive, messageDateTime, storedFrom);
-            auditMrnToLiveRepo.save(audit);
+            MrnToLiveAudit audit = new MrnToLiveAudit(mrnToLive, messageDateTime, storedFrom);
+            mrnToLiveAuditRepo.save(audit);
             mrnToLive.setLiveMrnId(survivingMrn);
         }
     }
@@ -113,10 +113,12 @@ public class PersonController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return The live MRN for the patient.
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     @Transactional
     public Mrn getOrCreateMrn(final String mrnString, final String nhsNumber, final String sourceSystem, final Instant messageDateTime,
-                              final Instant storedFrom) {
+                              final Instant storedFrom) throws RequiredDataMissingException {
+        logger.debug("Getting or creating MRN: mrn {}, nhsNumber {}", mrnString, nhsNumber);
         return mrnRepo
                 .findByMrnOrNhsNumber(mrnString, nhsNumber)
                 // mrn exists, get the live mrn
@@ -151,10 +153,11 @@ public class PersonController {
      * @return CoreDemographic from the message.
      */
     private CoreDemographic createCoreDemographic(Mrn originalMrn, AdtMessage adtMessage, Instant messageDateTime, Instant storedFrom) {
-        RowState<CoreDemographic> demoState = new RowState<>(new CoreDemographic(originalMrn), messageDateTime, storedFrom, true);
+        RowState<CoreDemographic, CoreDemographicAudit> demoState = new RowState<>(
+                new CoreDemographic(originalMrn), messageDateTime, storedFrom, true);
         updateCoreDemographicFields(adtMessage, demoState);
-        logger.info("Creating new core demographics {}", demoState.getEntity());
-        return coreDemographicRepo.save(demoState.getEntity());
+        demoState.saveEntityOrAuditLogIfRequired(coreDemographicRepo, coreDemographicAuditRepo);
+        return demoState.getEntity();
     }
 
     /**
@@ -163,17 +166,10 @@ public class PersonController {
      * @param demoState  core demographics from the database that may be updated
      * @return existing demographic, with fields updated if relevant
      */
-    private CoreDemographic updateDemographicsIfNewer(final AdtMessage adtMessage, RowState<CoreDemographic> demoState) {
-        CoreDemographic originalDemo = demoState.getEntity().copy();
-        if (shouldUpdateMessage(adtMessage, originalDemo)) {
+    private CoreDemographic updateDemographicsIfNewer(final AdtMessage adtMessage, RowState<CoreDemographic, CoreDemographicAudit> demoState) {
+        if (shouldUpdateMessage(adtMessage, demoState.getEntity())) {
             updateCoreDemographicFields(adtMessage, demoState);
-
-            if (demoState.isEntityUpdated()) {
-                logger.debug("Updating core demographics {}", demoState.getEntity());
-                AuditCoreDemographic audit = new AuditCoreDemographic(originalDemo, demoState.getMessageDateTime(), demoState.getStoredFrom());
-                auditCoreDemographicRepo.save(audit);
-            }
-
+            demoState.saveEntityOrAuditLogIfRequired(coreDemographicRepo, coreDemographicAuditRepo);
         }
         return demoState.getEntity();
     }
@@ -185,7 +181,7 @@ public class PersonController {
      * @return true if the demographics should be updated
      */
     private boolean shouldUpdateMessage(final AdtMessage adtMessage, final CoreDemographic existingDemographic) {
-        return existingDemographic.getValidFrom().isBefore(adtMessage.getRecordedDateTime()) && DataSources.isTrusted(adtMessage.getSourceSystem());
+        return existingDemographic.getValidFrom().isBefore(adtMessage.bestGuessAtValidFrom()) && DataSources.isTrusted(adtMessage.getSourceSystem());
     }
 
     /**
@@ -194,7 +190,7 @@ public class PersonController {
      * @param adtMessage       adt message
      * @param demographicState state for the demographic entity
      */
-    private void updateCoreDemographicFields(final AdtMessage adtMessage, RowState<CoreDemographic> demographicState) {
+    private void updateCoreDemographicFields(final AdtMessage adtMessage, RowState<CoreDemographic, CoreDemographicAudit> demographicState) {
         CoreDemographic demo = demographicState.getEntity();
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientGivenName(), demo.getFirstname(), demo::setFirstname);
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientMiddleName(), demo.getMiddlename(), demo::setMiddlename);
@@ -258,8 +254,8 @@ public class PersonController {
      */
     private void deleteIfMessageIsNewer(CoreDemographic demo, Instant messageDateTime, Instant storedFrom) {
         if (messageDateTime.isAfter(demo.getValidFrom())) {
-            AuditCoreDemographic audit = new AuditCoreDemographic(demo, messageDateTime, storedFrom);
-            auditCoreDemographicRepo.save(audit);
+            CoreDemographicAudit audit = new CoreDemographicAudit(demo, messageDateTime, storedFrom);
+            coreDemographicAuditRepo.save(audit);
             coreDemographicRepo.delete(demo);
         }
     }
@@ -273,11 +269,14 @@ public class PersonController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return MRN with the correct identifiers
+     * @throws IncompatibleDatabaseStateException if an MRN already exists
+     * @throws RequiredDataMissingException       If MRN and NHS number are both null
      */
     @Transactional
-    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom) {
+    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
+            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
         if (mrnExists(msg.getMrn())) {
-            throw new IllegalArgumentException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
+            throw new IncompatibleDatabaseStateException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
         }
         Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
 
