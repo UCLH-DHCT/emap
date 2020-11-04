@@ -55,7 +55,7 @@ public class VisitController {
     public HospitalVisit getOrCreateMinimalHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom
     ) throws RequiredDataMissingException {
-        RowState<HospitalVisit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
+        RowState<HospitalVisit, HospitalVisitAudit> visit = getOrCreateHospitalVisit(encounter, mrn, sourceSystem, messageDateTime, storedFrom);
         if (visit.isEntityCreated()) {
             logger.debug("Minimal encounter created. encounter: {}, mrn: {}", encounter, mrn);
             hospitalVisitRepo.save(visit.getEntity());
@@ -73,7 +73,7 @@ public class VisitController {
      * @return existing visit or created minimal visit
      * @throws NullPointerException if no encounter
      */
-    private RowState<HospitalVisit> getOrCreateHospitalVisit(
+    private RowState<HospitalVisit, HospitalVisitAudit> getOrCreateHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
             final Instant storedFrom) throws RequiredDataMissingException {
         if (encounter == null || encounter.isEmpty()) {
@@ -96,8 +96,8 @@ public class VisitController {
      * @param storedFrom      when the message has been read by emap core
      * @return new hospital visit
      */
-    private RowState<HospitalVisit> createHospitalVisit(final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime,
-                                                        final Instant storedFrom) {
+    private RowState<HospitalVisit, HospitalVisitAudit> createHospitalVisit(
+            final String encounter, Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom) {
         HospitalVisit visit = new HospitalVisit();
         visit.setMrnId(mrn);
         visit.setEncounter(encounter);
@@ -126,8 +126,8 @@ public class VisitController {
             throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));
         }
         Instant validFrom = msg.bestGuessAtValidFrom();
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
-        final HospitalVisit originalVisit = visitState.getEntity().copy();
+        RowState<HospitalVisit, HospitalVisitAudit> visitState = getOrCreateHospitalVisit(
+                msg.getVisitNumber(), mrn, msg.getSourceSystem(), validFrom, storedFrom);
 
         if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             updateGenericData(msg, visitState);
@@ -146,8 +146,7 @@ public class VisitController {
             }
         }
         addPresentationOrAdmissionTimeIfMissing(msg, visitState);
-        HospitalVisitAudit audit = new HospitalVisitAudit(originalVisit, validFrom, storedFrom);
-        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, hospitalVisitAuditRepo);
+        visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
 
@@ -157,7 +156,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         if (!DataSources.isTrusted(msg.getSourceSystem())) {
             return;
         }
@@ -177,7 +176,8 @@ public class VisitController {
      * @param visitState      visit wrapped in state class
      * @return true if the visit should be updated
      */
-    private boolean visitShouldBeUpdated(final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit> visitState) {
+    private boolean visitShouldBeUpdated(
+            final Instant messageDateTime, final String messageSource, final RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         // always update if a message is created
         if (visitState.isEntityCreated()) {
             return true;
@@ -193,7 +193,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void updateGenericData(final AdtMessage msg, RowState<HospitalVisit> visitState) {
+    private void updateGenericData(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
         visitState.assignHl7ValueIfDifferent(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
@@ -205,7 +205,7 @@ public class VisitController {
      * @param msg        AdmissionDateTime
      * @param visitState visit wrapped in state class
      */
-    private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit> visitState) {
+    private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
     }
@@ -215,7 +215,7 @@ public class VisitController {
      * @param msg        cancellation message
      * @param visitState visit wrapped in state class
      */
-    private void removeAdmissionInformation(final AdtCancellation msg, RowState<HospitalVisit> visitState) {
+    private void removeAdmissionInformation(final AdtCancellation msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.removeIfExists(visit.getAdmissionTime(), visit::setAdmissionTime, msg.getCancelledDateTime());
     }
@@ -225,7 +225,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit> visitState) {
+    private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignHl7ValueIfDifferent(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
     }
@@ -236,7 +236,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addDischargeInformation(final DischargePatient msg, RowState<HospitalVisit> visitState) {
+    private void addDischargeInformation(final DischargePatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.assignIfDifferent(msg.getDischargeDateTime(), visit.getDischargeTime(), visit::setDischargeTime);
         visitState.assignIfDifferent(msg.getDischargeDisposition(), visit.getDischargeDisposition(), visit::setDischargeDisposition);
@@ -253,7 +253,7 @@ public class VisitController {
      * @param msg        cancellation message
      * @param visitState visit wrapped in state class
      */
-    private void removeDischargeInformation(final AdtCancellation msg, RowState<HospitalVisit> visitState) {
+    private void removeDischargeInformation(final AdtCancellation msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
         visitState.removeIfExists(visit.getDischargeTime(), visit::setDischargeTime, msg.getCancelledDateTime());
         visitState.removeIfExists(visit.getDischargeDisposition(), visit::setDischargeDisposition, msg.getCancelledDateTime());
@@ -300,9 +300,8 @@ public class VisitController {
         }
 
         Instant validFrom = msg.bestGuessAtValidFrom();
-        RowState<HospitalVisit> visitState = getOrCreateHospitalVisit(
+        RowState<HospitalVisit, HospitalVisitAudit> visitState = getOrCreateHospitalVisit(
                 msg.getPreviousVisitNumber(), previousMrn, msg.getSourceSystem(), validFrom, storedFrom);
-        final HospitalVisit originalVisit = visitState.getEntity().copy();
 
         if (visitShouldBeUpdated(validFrom, msg.getSourceSystem(), visitState)) {
             updateGenericData(msg, visitState);
@@ -311,8 +310,7 @@ public class VisitController {
             visitState.assignIfDifferent(msg.getPreviousVisitNumber(), visit.getEncounter(), visit::setEncounter);
             visitState.assignIfDifferent(currentMrn, visit.getMrnId(), visit::setMrnId);
         }
-        HospitalVisitAudit audit = new HospitalVisitAudit(originalVisit, validFrom, storedFrom);
-        visitState.saveEntityOrAuditLogIfRequired(audit, hospitalVisitRepo, hospitalVisitAuditRepo);
+        visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
 

@@ -153,10 +153,11 @@ public class PersonController {
      * @return CoreDemographic from the message.
      */
     private CoreDemographic createCoreDemographic(Mrn originalMrn, AdtMessage adtMessage, Instant messageDateTime, Instant storedFrom) {
-        RowState<CoreDemographic> demoState = new RowState<>(new CoreDemographic(originalMrn), messageDateTime, storedFrom, true);
+        RowState<CoreDemographic, CoreDemographicAudit> demoState = new RowState<>(
+                new CoreDemographic(originalMrn), messageDateTime, storedFrom, true);
         updateCoreDemographicFields(adtMessage, demoState);
-        logger.info("Creating new core demographics {}", demoState.getEntity());
-        return coreDemographicRepo.save(demoState.getEntity());
+        demoState.saveEntityOrAuditLogIfRequired(coreDemographicRepo, coreDemographicAuditRepo);
+        return demoState.getEntity();
     }
 
     /**
@@ -165,17 +166,10 @@ public class PersonController {
      * @param demoState  core demographics from the database that may be updated
      * @return existing demographic, with fields updated if relevant
      */
-    private CoreDemographic updateDemographicsIfNewer(final AdtMessage adtMessage, RowState<CoreDemographic> demoState) {
-        CoreDemographic originalDemo = demoState.getEntity().copy();
-        if (shouldUpdateMessage(adtMessage, originalDemo)) {
+    private CoreDemographic updateDemographicsIfNewer(final AdtMessage adtMessage, RowState<CoreDemographic, CoreDemographicAudit> demoState) {
+        if (shouldUpdateMessage(adtMessage, demoState.getEntity())) {
             updateCoreDemographicFields(adtMessage, demoState);
-
-            if (demoState.isEntityUpdated()) {
-                logger.debug("Updating core demographics {}", demoState.getEntity());
-                CoreDemographicAudit audit = new CoreDemographicAudit(originalDemo, demoState.getMessageDateTime(), demoState.getStoredFrom());
-                coreDemographicAuditRepo.save(audit);
-            }
-
+            demoState.saveEntityOrAuditLogIfRequired(coreDemographicRepo, coreDemographicAuditRepo);
         }
         return demoState.getEntity();
     }
@@ -196,7 +190,7 @@ public class PersonController {
      * @param adtMessage       adt message
      * @param demographicState state for the demographic entity
      */
-    private void updateCoreDemographicFields(final AdtMessage adtMessage, RowState<CoreDemographic> demographicState) {
+    private void updateCoreDemographicFields(final AdtMessage adtMessage, RowState<CoreDemographic, CoreDemographicAudit> demographicState) {
         CoreDemographic demo = demographicState.getEntity();
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientGivenName(), demo.getFirstname(), demo::setFirstname);
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientMiddleName(), demo.getMiddlename(), demo::setMiddlename);
