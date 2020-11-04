@@ -38,15 +38,16 @@ import com.google.auto.service.AutoService;
  * Annotation to create an audit version of a table.
  *
  * Limitations / constraints:
- *  <ul>
- * <li> Static and @Transient fields are ignored
- * <li> Annotations must be on fields NOT methods
- * <li> Composite keys are not supported
- * <li> @JoinColumn & @Column cannot be used on the same field
- * <li> Primary keys must be marked with @Id
- * <li> Array types are not supported
- * <li> Nullability, name, & column definition from @JoinColumn & @Column are preserved. Nothing else (eg uniqueness) is.
- *  </ul>
+ * <ul>
+ * <li>Static and @Transient fields are ignored
+ * <li>Annotations must be on fields NOT methods
+ * <li>Composite keys are not supported
+ * <li>@JoinColumn & @Column cannot be used on the same field
+ * <li>Primary keys must be marked with @Id
+ * <li>Array types are not supported
+ * <li>Nullability, name, & column definition from @JoinColumn & @Column are
+ * preserved. Nothing else (eg uniqueness) is.
+ * </ul>
  *
  * @author Roma Klapaukh
  *
@@ -68,10 +69,10 @@ public class AuditTableProcessor extends AbstractProcessor {
             Map<Boolean, List<TypeElement>> annotatedClasses =
                     annotatedElements.stream().map(element -> (TypeElement) element)
                             .collect(Collectors.partitioningBy(element -> element.getAnnotation(Entity.class) == null
-                                    || element.getAnnotation(Table.class) == null));
+                                    && element.getAnnotation(Table.class) == null));
 
-            List<TypeElement> parents = annotatedClasses.get(true);
-            List<TypeElement> otherClasses = annotatedClasses.get(false);
+            List<TypeElement> parents = annotatedClasses.get(false);
+            List<TypeElement> otherClasses = annotatedClasses.get(true);
 
             otherClasses.forEach(element -> processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                     "@AuditType must be applied to an @Entity or @Table class", element));
@@ -89,7 +90,7 @@ public class AuditTableProcessor extends AbstractProcessor {
                 String baseClassName = className.substring(lastDot + 1);
 
                 try {
-                    createAudit(parent, packageName, baseClassName);
+                    createAudit(parent, packageName, baseClassName, className);
                 } catch (IOException e) {
                     e.printStackTrace();
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
@@ -101,7 +102,8 @@ public class AuditTableProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void createAudit(TypeElement parent, String packageName, String baseClassName) throws IOException {
+    private void createAudit(TypeElement parent, String packageName, String baseClassName, String baseImport)
+            throws IOException {
 
         String auditClassName = baseClassName + "Audit";
         String idColumnName = baseClassName + "AuditId";
@@ -117,7 +119,7 @@ public class AuditTableProcessor extends AbstractProcessor {
                 out.println();
             }
 
-            this.generateImports(out);
+            this.generateImports(out, baseImport);
 
             this.generateClassDeclaration(out, baseClassName, auditClassName);
 
@@ -142,6 +144,7 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("");
 
             // Make copy method (use the copy constructor)
+            out.println("    @Override ");
             out.print("    public ");
             out.print(auditClassName);
             out.println(" copy() {");
@@ -150,7 +153,20 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("(this);");
             out.println("    }");
 
-            out.println("}");
+            // Make the createAuditEntity Method (copy constructor)
+            out.println("\t@Override");
+            out.print("\tpublic ");
+            out.print(auditClassName);
+            out.println(" createAuditEntity(Instant validUntil, Instant storedFrom) {");
+            out.print("\t\t");
+            out.print(auditClassName);
+            out.println(" i = this.copy();");
+            out.println("\t\ti.setValidUntil(validUntil);");
+            out.println("\t\ti.setStoredFrom(storedFrom);");
+            out.println("\t\treturn i;");
+            out.println("\t}");
+
+            out.println('}');
             out.println("");
 
         }
@@ -161,17 +177,23 @@ public class AuditTableProcessor extends AbstractProcessor {
      *
      * @param out The printWriter to write to.
      */
-    private void generateImports(PrintWriter out) {
+    private void generateImports(PrintWriter out, String baseImport) {
         out.println("import javax.persistence.Column;");
         out.println("import javax.persistence.Entity;");
         out.println("import javax.persistence.GeneratedValue;");
         out.println("import javax.persistence.GenerationType;");
         out.println("import javax.persistence.Id;");
+        out.println("import javax.persistence.Inheritance;");
+        out.println("import javax.persistence.InheritanceType;");
         out.println("import java.time.Instant;");
+        out.println("import java.time.LocalDate;");
         out.println("import lombok.Data;");
         out.println("import lombok.EqualsAndHashCode;");
         out.println("import lombok.ToString;");
         out.println("import uk.ac.ucl.rits.inform.informdb.AuditCore;");
+        out.print("import ");
+        out.print(baseImport);
+        out.println(';');
     }
 
     /**
@@ -191,10 +213,11 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println("@Data");
         out.println("@EqualsAndHashCode(callSuper = true)");
         out.println("@ToString(callSuper = true)");
+        out.println("@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)");
         out.print("public class ");
         out.print(auditClassName);
-        out.print(" implements AuditCore<");
-        out.print(baseClassName);
+        out.print(" extends AuditCore<");
+        out.print(auditClassName);
         out.println("> {");
     }
 
@@ -212,14 +235,8 @@ public class AuditTableProcessor extends AbstractProcessor {
 
         List<FieldStore> fieldShorts = new ArrayList<>();
 
-        // Audit table temporal fields
-        this.generateSingleField(out, "@Column(columnDefinition = \"timestamp with time zone\")", "Instant",
-                "validUntil");
-        this.generateSingleField(out, "@Column(columnDefinition = \"timestamp with time zone\")", "Instant",
-                "storedUntil");
-
         // Primary key
-        this.generateSingleField(out, "@Id\n@GeneratedValue(strategy = GenerationType.AUTO)", "long", primaryKey);
+        this.generateSingleField(out, "@Id\n\t@GeneratedValue(strategy = GenerationType.AUTO)", "long", primaryKey);
 
         // All other fields
         for (VariableElement field : fields) {
@@ -266,10 +283,36 @@ public class AuditTableProcessor extends AbstractProcessor {
             case DECLARED:
                 DeclaredType a = (DeclaredType) type;
                 TypeElement elem = (TypeElement) a.asElement();
-                System.out.println(elem.getQualifiedName().toString());
                 switch (elem.getQualifiedName().toString()) {
                 case "java.lang.String":
                     typeName = "String";
+                    break;
+                case "java.lang.Boolean":
+                    typeName = "Boolean";
+                    break;
+                case "java.lang.Long":
+                    typeName = "Long";
+                    break;
+                case "java.lang.Short":
+                    typeName = "Short";
+                    break;
+                case "java.lang.Integer":
+                    typeName = "Integer";
+                    break;
+                case "java.lang.Float":
+                    typeName = "Float";
+                    break;
+                case "java.lang.Double":
+                    typeName = "Double";
+                    break;
+                case "java.lang.Byte":
+                    typeName = "Byte";
+                    break;
+                case "java.lang.Char":
+                    typeName = "Char";
+                    break;
+                case "java.time.LocalDate":
+                    typeName = "LocalDate";
                     break;
                 case "java.time.Instant":
                     typeName = "Instant";
@@ -298,8 +341,8 @@ public class AuditTableProcessor extends AbstractProcessor {
                     boolean nullable = col.nullable();
                     String columnDefinition = col.columnDefinition();
                     String name = col.name();
-                    annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")", columnDefinition,
-                            nullable ? "true" : "false", name);
+                    annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")",
+                            columnDefinition, nullable ? "true" : "false", name);
                 }
             }
 
@@ -335,8 +378,8 @@ public class AuditTableProcessor extends AbstractProcessor {
                                 "Found field has both @Column and @JoinColumn", field);
                         continue;
                     } else {
-                        annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")", colDef,
-                                nullable ? "true" : "false", name);
+                        annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")",
+                                colDef, nullable ? "true" : "false", name);
                     }
                 }
             }
@@ -360,9 +403,10 @@ public class AuditTableProcessor extends AbstractProcessor {
     private void generateSingleField(PrintWriter out, String annotations, String typeName, String fieldName) {
         // Field declaration
         if (annotations != null) {
+            out.print('\t');
             out.println(annotations);
         }
-        out.print("private ");
+        out.print("\tprivate ");
         out.print(typeName);
         out.print(' ');
         out.print(fieldName);
@@ -371,31 +415,31 @@ public class AuditTableProcessor extends AbstractProcessor {
 
         // Getter
         String nameCap = this.capitalizeInitial(fieldName);
-        out.print("   public ");
+        out.print("\tpublic ");
         out.print(typeName);
         out.print(" get");
         out.print(nameCap);
         out.println("() {");
-        out.print("return this.");
-        out.print(nameCap);
+        out.print("\t\treturn this.");
+        out.print(fieldName);
         out.println(";");
-        out.println("}");
+        out.println("\t}");
         out.println();
 
         // Setter
-        out.print("   public void set");
+        out.print("\tpublic void set");
         out.print(nameCap);
         out.print("(");
         out.print(typeName);
         out.print(' ');
         out.print(fieldName);
         out.println(") {");
-        out.print("this.");
+        out.print("\t\tthis.");
         out.print(fieldName);
         out.print(" = ");
         out.print(fieldName);
         out.println(";");
-        out.println("}");
+        out.println("\t}");
         out.println();
     }
 
@@ -407,32 +451,31 @@ public class AuditTableProcessor extends AbstractProcessor {
      * @param fields   The fields that need assigning
      */
     private void generateCopyConstructor(PrintWriter out, String typeName, String primaryKey, List<FieldStore> fields) {
-        out.println("    /**");
-        out.println("     * Copy constuctor.");
-        out.println("     * @param other original entity to be copied.");
-        out.println("     */");
-        out.print("    public ");
+        out.println("\t/**");
+        out.println("\t* Copy constuctor.");
+        out.println("\t* @param other original entity to be copied.");
+        out.println("\t*/");
+        out.print("\tpublic ");
         out.print(typeName);
         out.print("(final ");
         out.print(typeName);
         out.println(" other) {");
+        out.println(" super(other);");
 
         for (FieldStore f : fields) {
-            out.print("        this.");
+            out.print("\t\tthis.");
             out.print(f.fieldName);
             out.print(" = other.");
             out.print(f.fieldName);
-            out.print("();");
+            out.println(";");
         }
-        out.println("\tthis.validUntil = other.validUntil;");
-        out.println("\tthis.storedUntil = other.storedUntil;");
-        out.print("        this.");
+        out.print("\t\tthis.");
         out.print(primaryKey);
         out.print(" = other.");
         out.print(primaryKey);
-        out.print("();");
+        out.print(";");
 
-        out.println("    }");
+        out.println("\t}");
     }
 
     /**
@@ -446,27 +489,25 @@ public class AuditTableProcessor extends AbstractProcessor {
     private void generateFromMainConstructor(PrintWriter out, String otherClassName, String auditClassName,
             List<FieldStore> fields) {
 
-        out.println("    /**");
-        out.println("     * Constuctor from valid instance.");
-        out.println("     * @param other original entity to be constructred from.");
-        out.println("     * @param validUntil original entity to be constructred from.");
-        out.println("     * @param storedUntil original entity to be constructred from.");
-        out.println("     */");
-        out.print("    public ");
+        out.println("\t/**");
+        out.println("\t* Constuctor from valid instance.");
+        out.println("\t* @param other original entity to be constructred from.");
+        out.println("\t* @param validUntil original entity to be constructred from.");
+        out.println("\t* @param storedUntil original entity to be constructred from.");
+        out.println("\t*/");
+        out.print("\tpublic ");
         out.print(auditClassName);
         out.print("(final ");
         out.print(otherClassName);
         out.println(" other, Instant validUntil, Instant storedUntil) {");
 
         // Special handling of stored/valid until.
-        out.println("\tthis.validUntil = other.validUntil;");
-        out.println("\tthis.storedUntil = other.storedUntil;");
-
+        out.println("\t\tsuper(validUntil, storedUntil);");
         // Ignore the primary key
 
         // Pull across fields from main class
         for (FieldStore f : fields) {
-            out.print("        this.");
+            out.print("\t\tthis.");
             out.print(f.fieldName);
             out.print(" = other.get");
             if (f.isForeignKey) {
@@ -476,10 +517,10 @@ public class AuditTableProcessor extends AbstractProcessor {
                 // Ti's private to use the getter
                 out.print(capitalizeInitial(f.fieldName));
             }
-            out.print("();");
+            out.println("();");
         }
 
-        out.println("    }");
+        out.println("\t}");
     }
 
     /**
