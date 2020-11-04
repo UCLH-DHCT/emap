@@ -1,10 +1,14 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
+import java.time.Instant;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -14,13 +18,15 @@ import lombok.ToString;
 /**
  * This a single visit to the hospital. This is not necessarily an inpatient
  * visit, but includes outpatients, imaging, etc.
+ *
  * @author UCL RITS
  */
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@Table(indexes = {@Index(name = "encounterIndex", columnList = "encounter", unique = false)})
+@Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class HospitalVisit extends HospitalVisitParent {
 
     private static final long serialVersionUID = -6495238097074592105L;
@@ -30,24 +36,22 @@ public class HospitalVisit extends HospitalVisitParent {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long hospitalVisitId;
-
-
+    private Long              hospitalVisitId;
 
     /**
      * Default constructor.
      */
-    public HospitalVisit() {
-    }
+    public HospitalVisit() {}
 
     /**
      * Build a hospital visit from an existing object.
+     *
      * @param other hospital visit
      */
-    public HospitalVisit(HospitalVisit other) {
+    private HospitalVisit(HospitalVisit other) {
         super(other);
-        hospitalVisitId = other.getHospitalVisitId();
-        setEncounter(other.getEncounter());
+        hospitalVisitId = other.hospitalVisitId;
+        this.encounter = other.encounter;
     }
 
     /**
@@ -67,5 +71,10 @@ public class HospitalVisit extends HospitalVisitParent {
     @Override
     public HospitalVisit copy() {
         return new HospitalVisit(this);
+    }
+
+    @Override
+    public HospitalVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new HospitalVisitAudit(this, validUntil, storedFrom);
     }
 }

@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.time.Instant;
 
 /**
@@ -18,7 +20,8 @@ import java.time.Instant;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AuditMrnToLive extends MrnToLiveParent implements AuditCore<MrnToLiveParent> {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public class MrnToLiveAudit extends MrnToLiveParent implements AuditCore {
 
     private static final long serialVersionUID = 8891761742756656453L;
     @Id
@@ -31,12 +34,22 @@ public class AuditMrnToLive extends MrnToLiveParent implements AuditCore<MrnToLi
     private Instant storedUntil;
 
 
-    public AuditMrnToLive() {}
+    public MrnToLiveAudit() {}
 
-    public AuditMrnToLive(MrnToLive originalEntity, Instant validUntil, Instant storedUntil) {
+    public MrnToLiveAudit(MrnToLive originalEntity, Instant validUntil, Instant storedUntil) {
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        this.mrnToLiveId = originalEntity.getMrnToLiveId();
+        mrnToLiveId = originalEntity.getMrnToLiveId();
+    }
+
+    @Override
+    public MrnToLive copy() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public MrnToLiveAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        throw new UnsupportedOperationException();
     }
 }

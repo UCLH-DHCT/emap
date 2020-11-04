@@ -4,7 +4,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+
+import java.time.Instant;
 
 /**
  * This represents all the different batteries of test that can be ordered, and
@@ -13,7 +16,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  * @author Roma Klapaukh
  *
  */
-public class LabBatteryElement extends TemporalCore<LabBatteryElement> {
+public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -93,6 +96,11 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement> {
     @Override
     public LabBatteryElement copy() {
         return new LabBatteryElement(this);
+    }
+
+    @Override
+    public AuditCore createAuditEntity(Instant validUntil, Instant storedFrom) {
+        throw new UnsupportedOperationException();
     }
 
 }

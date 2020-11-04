@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.demographics;
+package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,33 +9,37 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * Audit table of {@link CoreDemographic}.
+ * Audit table of {@link LocationVisit}.
  */
 @Entity
 @Table
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AuditCoreDemographic extends CoreDemographicParent implements AuditCore<CoreDemographicParent> {
-    private static final long serialVersionUID = -8516988957488992519L;
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public class LocationVisitAudit extends LocationVisitParent implements AuditCore {
+    private static final long serialVersionUID = 5021782039578121716L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long auditCoreDemographicId;
+    private long auditLocationVisitId;
     @Column(nullable = false)
-    private long coreDemographicId;
+    private long locationVisitId;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant validUntil;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
+    private long hospitalVisitId;
 
 
     /**
      * Default constructor.
      */
-    public AuditCoreDemographic() {
+    public LocationVisitAudit() {
     }
 
     /**
@@ -45,10 +49,21 @@ public class AuditCoreDemographic extends CoreDemographicParent implements Audit
      * @param validUntil     the time at which this fact stopped being true,
      *                       can be any amount of time in the past
      */
-    public AuditCoreDemographic(final CoreDemographic originalEntity, final Instant validUntil, final Instant storedUntil) {
+    public LocationVisitAudit(final LocationVisit originalEntity, final Instant validUntil, final Instant storedUntil) {
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        this.coreDemographicId = originalEntity.getCoreDemographicId();
+        locationVisitId = originalEntity.getLocationVisitId();
+        hospitalVisitId = originalEntity.getHospitalVisitId().getHospitalVisitId();
+    }
+
+    @Override
+    public LocationVisit copy() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        throw new UnsupportedOperationException();
     }
 }

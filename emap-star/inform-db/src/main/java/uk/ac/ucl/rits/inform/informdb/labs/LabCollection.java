@@ -1,32 +1,30 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
-import java.time.Instant;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.time.Instant;
 
 /**
  * A LabCollection details the collection of the sample being analysed and its
  * receipt by the lab system. There may be more than one collection per
  * LabNumber.
- *
  * @author Roma Klapaukh
- *
  */
 @Entity
-public class LabCollection extends TemporalCore<LabCollection> {
+public class LabCollection extends TemporalCore<LabCollection, AuditCore> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long    labCollectionId;
+    private long labCollectionId;
 
-    private long    labCollectionDurableId;
-    private long    labNumberId;
+    private long labCollectionDurableId;
+    private long labNumberId;
 
     /**
      * The time the sample arrived at the lab where there test was being performed.
@@ -40,7 +38,7 @@ public class LabCollection extends TemporalCore<LabCollection> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant sampleCollectionTime;
 
-    private String  sampleType;
+    private String sampleType;
 
     public LabCollection() {}
 
@@ -143,5 +141,15 @@ public class LabCollection extends TemporalCore<LabCollection> {
     @Override
     public LabCollection copy() {
         return new LabCollection(this);
+    }
+
+    /**
+     * @param validUntil the event time that invalidated the current state
+     * @param storedFrom the time that star started processing the message that invalidated the current state
+     * @return A new audit entity with the current state of the object.
+     */
+    @Override
+    public AuditCore createAuditEntity(Instant validUntil, Instant storedFrom) {
+        throw new UnsupportedOperationException();
     }
 }

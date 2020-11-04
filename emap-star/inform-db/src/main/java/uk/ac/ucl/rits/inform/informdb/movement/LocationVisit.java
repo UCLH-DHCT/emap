@@ -1,18 +1,20 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
-import java.io.Serializable;
-import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.time.Instant;
 
 /**
  * This represents a patient being in a location for an amount of time. Every
@@ -21,147 +23,59 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  * optionally have a parent location visit. This happens when the patient is
  * still considered to be at the parent location (e.g. going down to an MRI
  * scanner from a ward bed doesn't vacate the ward bed).
- *
  * @author UCL RITS
- *
  */
 @Entity
-@JsonIgnoreProperties({})
-@Table(indexes = {})
-public class LocationVisit extends TemporalCore<LocationVisit> implements Serializable {
-
-    private static final long serialVersionUID = -8228844390430073225L;
-
+@Table
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public class LocationVisit extends LocationVisitParent {
+    private static final long serialVersionUID = 2671789121005769008L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long              bedVisitId;
-    @Column(nullable = false)
-    private long              bedVisitDurableIid;
+    private long locationVisitId;
 
-    @Column(nullable = false)
-    private long              parentHospitalVisitDurableId;
-    private long              parentBedVisitDurableId;
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    private HospitalVisit hospitalVisitId;
 
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant           admissionTime;
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant           dischargeTime;
-    private String            location;
+    public LocationVisit() {
+    }
 
-    public LocationVisit() {}
+    /**
+     * Create new location visit with all required information.
+     * @param validFrom     Time of the message event
+     * @param storedFrom    Time that emap-core encountered the message
+     * @param location      Location
+     * @param hospitalVisit Hospital visit
+     * @param sourceSystem  source system
+     */
+    public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit, String sourceSystem) {
+        super();
+        setAdmissionTime(validFrom);
+        setLocation(location);
+        setSourceSystem(sourceSystem);
+        setHospitalVisitId(hospitalVisit);
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
+    }
 
-    public LocationVisit(LocationVisit other) {
+    private LocationVisit(LocationVisit other) {
         super(other);
-
-        this.bedVisitDurableIid = other.bedVisitDurableIid;
-        this.parentHospitalVisitDurableId = other.parentHospitalVisitDurableId;
-        this.parentBedVisitDurableId = other.parentBedVisitDurableId;
-        this.admissionTime = other.admissionTime;
-        this.dischargeTime = other.dischargeTime;
-        this.location = other.location;
-    }
-
-    /**
-     * @return the bedVisitId
-     */
-    public long getBedVisitId() {
-        return bedVisitId;
-    }
-
-    /**
-     * @param bedVisitId the bedVisitId to set
-     */
-    public void setBedVisitId(long bedVisitId) {
-        this.bedVisitId = bedVisitId;
-    }
-
-    /**
-     * @return the bedVisitDurableIid
-     */
-    public long getBedVisitDurableIid() {
-        return bedVisitDurableIid;
-    }
-
-    /**
-     * @param bedVisitDurableIid the bedVisitDurableIid to set
-     */
-    public void setBedVisitDurableIid(long bedVisitDurableIid) {
-        this.bedVisitDurableIid = bedVisitDurableIid;
-    }
-
-    /**
-     * @return the parentHospitalVisitDurableId
-     */
-    public long getParentHospitalVisitDurableId() {
-        return parentHospitalVisitDurableId;
-    }
-
-    /**
-     * @param parentHospitalVisitDurableId the parentHospitalVisitDurableId to set
-     */
-    public void setParentHospitalVisitDurableId(long parentHospitalVisitDurableId) {
-        this.parentHospitalVisitDurableId = parentHospitalVisitDurableId;
-    }
-
-    /**
-     * @return the parentBedVisitDurableId
-     */
-    public long getParentBedVisitDurableId() {
-        return parentBedVisitDurableId;
-    }
-
-    /**
-     * @param parentBedVisitDurableId the parentBedVisitDurableId to set
-     */
-    public void setParentBedVisitDurableId(long parentBedVisitDurableId) {
-        this.parentBedVisitDurableId = parentBedVisitDurableId;
-    }
-
-    /**
-     * @return the admissionTime
-     */
-    public Instant getAdmissionTime() {
-        return admissionTime;
-    }
-
-    /**
-     * @param admissionTime the admissionTime to set
-     */
-    public void setAdmissionTime(Instant admissionTime) {
-        this.admissionTime = admissionTime;
-    }
-
-    /**
-     * @return the dischargeTime
-     */
-    public Instant getDischargeTime() {
-        return dischargeTime;
-    }
-
-    /**
-     * @param dischargeTime the dischargeTime to set
-     */
-    public void setDischargeTime(Instant dischargeTime) {
-        this.dischargeTime = dischargeTime;
-    }
-
-    /**
-     * @return the location
-     */
-    public String getLocation() {
-        return location;
-    }
-
-    /**
-     * @param location the location to set
-     */
-    public void setLocation(String location) {
-        this.location = location;
+        locationVisitId = other.locationVisitId;
+        hospitalVisitId = other.hospitalVisitId;
     }
 
     @Override
     public LocationVisit copy() {
         return new LocationVisit(this);
+    }
+
+    @Override
+    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new LocationVisitAudit(this, validUntil, storedFrom);
     }
 
 }

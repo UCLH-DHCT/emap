@@ -1,36 +1,34 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
-import java.time.Instant;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.time.Instant;
 
 /**
  * Sensitivites show the affect of specific agents on isolates from cultures.
- *
  * @author Roma Klapaukh
- *
  */
 @Entity
-public class LabResultSensitivity extends TemporalCore<LabResultSensitivity> {
+public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, AuditCore> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long    labResultSensitivityId;
-    private long    labResultSensitivityDurableId;
+    private long labResultSensitivityId;
+    private long labResultSensitivityDurableId;
 
-    private long    labResultDurableId;
+    private long labResultDurableId;
 
     /**
      * The chemical (often antibiotic) this applies too.
      */
-    private String  agent;
-    private String  sensitivity;
+    private String agent;
+    private String sensitivity;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant reportingDatetime;
@@ -137,4 +135,8 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity> {
         return new LabResultSensitivity(this);
     }
 
+    @Override
+    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
+        throw new UnsupportedOperationException();
+    }
 }

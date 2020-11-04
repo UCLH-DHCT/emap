@@ -11,6 +11,7 @@ import javax.persistence.MappedSuperclass;
 
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.AuditHospitalVisit.HospitalVisitAudit;
 
 /**
  * Parent class that is not created as an entity to avoid polymorphic queries based on the original and audit table.
@@ -20,7 +21,7 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
  */
 @AuditTable
 @MappedSuperclass
-public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> implements Serializable {
+public abstract class HospitalVisitParent extends TemporalCore<HospitalVisit, HospitalVisitAudit> implements Serializable {
 
     private static final long serialVersionUID = -8922743168233635681L;
     /**
@@ -80,7 +81,7 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
      * to the CSN.
      */
     @Column(nullable = false, unique = true)
-    private String encounter;
+    protected String encounter;
 
     /**
      * Default constructor.
@@ -244,11 +245,6 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
     @Override
     public String toString() {
         return String.format("HospitalVisitParent [source_system=%s]", sourceSystem);
-    }
-
-    @Override
-    public HospitalVisitParent copy() {
-        return new HospitalVisitParent(this);
     }
 
     @Override
