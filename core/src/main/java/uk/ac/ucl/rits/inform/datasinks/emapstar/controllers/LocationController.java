@@ -229,7 +229,7 @@ public class LocationController {
      * @return true if the visit should be updated
      */
     private boolean locationVisitShouldBeUpdated(RowState<LocationVisit, LocationVisitAudit> locationState, AdtMessage msg) {
-        // always update if a message is created
+        // If a message has just been created, then we should always update the rest of the fields
         if (locationState.isEntityCreated()) {
             return true;
         }
