@@ -23,6 +23,10 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.MapsId;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.tools.Diagnostic;
@@ -30,6 +34,22 @@ import javax.tools.JavaFileObject;
 
 import com.google.auto.service.AutoService;
 
+/**
+ * Annotation to create an audit version of a table.
+ *
+ * Limitations / constraints:
+ *  <ul>
+ * <li> Static and @Transient fields are ignored
+ * <li> Annotations must be on fields NOT methods
+ * <li> Composite keys are not supported
+ * <li> @JoinColumn & @Column cannot be used on the same field
+ * <li> Primary keys must be marked with @Id
+ * <li> Array types are not supported
+ *  </ul>
+ *
+ * @author Roma Klapaukh
+ *
+ */
 @SupportedAnnotationTypes("uk.ac.ucl.rits.inform.informdb.annotation.AuditTable")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -203,18 +223,23 @@ public class AuditTableProcessor extends AbstractProcessor {
         // All other fields
         for (VariableElement field : fields) {
             Set<Modifier> mods = field.getModifiers();
-            if (mods.contains(Modifier.STATIC) || field.getAnnotation(Transient.class) != null) {
+            if (mods.contains(Modifier.STATIC) // Static field
+                    || field.getAnnotation(Transient.class) != null // Transient
+                    || field.getAnnotation(OneToMany.class) != null // Wrong side of a join
+            ) {
                 // static & transient fields are not related to the database
                 continue;
             }
 
             // Need check to the type. If it's a primitive / Instant / String, that is fine.
-            // Else it's a FK, and we need to get it's primary key to figure out the linking.
+            // Else it's a FK, and we need to get it's primary key to figure out the
+            // linking.
 
             String typeName;
             TypeMirror type = field.asType();
             TypeKind kind = type.getKind();
-            boolean isForeignKey = false;
+            boolean isForeignKey =
+                    field.getAnnotation(MapsId.class) != null || field.getAnnotation(JoinColumn.class) != null;
             switch (kind) {
             case LONG:
                 typeName = "long";
@@ -250,9 +275,10 @@ public class AuditTableProcessor extends AbstractProcessor {
                     break;
                 default:
                     typeName = "long";
-                    isForeignKey = true;
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
-                            "Found field of type " + type + " converting to long");
+                    if (!isForeignKey) {
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                "Found field of type " + type + " but not detected as a foreign key");
+                    }
                     continue;
                 }
                 break;
@@ -268,15 +294,52 @@ public class AuditTableProcessor extends AbstractProcessor {
             {
                 Column col = field.getAnnotation(Column.class);
                 if (col != null) {
-                    boolean unique = col.unique();
+                    boolean nullable = col.nullable();
                     String columnDefinition = col.columnDefinition();
-                    annotation = String.format("@Column(columnDefinition = \"%s\", unique=%s)", columnDefinition,
-                            unique ? "true" : "false");
+                    annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s)", columnDefinition,
+                            nullable ? "true" : "false");
+                }
+            }
+
+            String foriegnKeyName = null;
+
+            if (isForeignKey) {
+                MapsId mapsId = field.getAnnotation(MapsId.class);
+                JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
+
+                if (mapsId != null && joinColumn != null) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                            "Found field with @MapsId and @JoinColumn. Cannot proceed.", field);
+                    continue;
+                } else if (mapsId != null) {
+                    foriegnKeyName = mapsId.value();
+                    if (foriegnKeyName.isBlank()) {
+                        // Goes to the primary key of the type
+                        // Foreign key must be a declared type - because you can't link to a primitive
+                        foriegnKeyName = this.getPrimaryKeyName((DeclaredType) type);
+                    }
+                } else {
+                    foriegnKeyName = joinColumn.referencedColumnName();
+                    if (foriegnKeyName.isBlank()) {
+                        // Goes to the primary key of the type
+                        // Foreign key must be a declared type - because you can't link to a primitive
+                        foriegnKeyName = this.getPrimaryKeyName((DeclaredType) type);
+                    }
+                    String colDef = joinColumn.columnDefinition();
+                    boolean nullable = joinColumn.nullable();
+                    if (annotation != null) {
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                "Found field has both @Column and @JoinColumn", field);
+                        continue;
+                    } else {
+                        annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s)", colDef,
+                                nullable ? "true" : "false");
+                    }
                 }
             }
 
             String fieldName = field.getSimpleName().toString();
-            fieldShorts.add(new FieldStore(isForeignKey, fieldName));
+            fieldShorts.add(new FieldStore(fieldName, isForeignKey, foriegnKeyName));
             this.generateSingleField(out, annotation, typeName, fieldName);
         }
 
@@ -371,12 +434,14 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate a constructor to create an audit instance from a normal instance.
-     * @param out The stream to write to.
+     *
+     * @param out            The stream to write to.
      * @param otherClassName The name of the real instance class.
      * @param auditClassName The name of the audit instance class.
-     * @param fields The list of fields in the real instance.
+     * @param fields         The list of fields in the real instance.
      */
-    private void generateFromMainConstructor(PrintWriter out, String otherClassName, String auditClassName, List<FieldStore> fields) {
+    private void generateFromMainConstructor(PrintWriter out, String otherClassName, String auditClassName,
+            List<FieldStore> fields) {
 
         out.println("    /**");
         out.println("     * Constuctor from valid instance.");
@@ -400,12 +465,13 @@ public class AuditTableProcessor extends AbstractProcessor {
         for (FieldStore f : fields) {
             out.print("        this.");
             out.print(f.fieldName);
-            // Ti's private to use the getter
             out.print(" = other.get");
-            out.print(capitalizeInitial(f.fieldName));
             if (f.isForeignKey) {
                 // Get the Id of foreignKeys
-                Somehow get the primary key
+                out.print(capitalizeInitial(f.primaryKeyName));
+            } else {
+                // Ti's private to use the getter
+                out.print(capitalizeInitial(f.fieldName));
             }
             out.print("();");
         }
@@ -425,14 +491,30 @@ public class AuditTableProcessor extends AbstractProcessor {
         return lead + tail;
     }
 
+    /**
+     * Get the name of the primary key field of a class.
+     *
+     * @param type The class to find the primary key for
+     * @return The name of the primary key field
+     */
+    private String getPrimaryKeyName(DeclaredType type) {
+        // Find the primary Key
+        return type.asElement() // Get the class
+                .getEnclosedElements() // Get all the fields and stuff
+                .stream().filter(e -> e.getAnnotation(Id.class) != null).map(e -> (VariableElement) e)
+                // Should only be one element, a unique default id
+                .findFirst().map(e -> e.getSimpleName().toString()).get();
+    }
+
     private class FieldStore {
         public final boolean isForeignKey;
         public final String  primaryKeyName;
         public final String  fieldName;
 
-        public FieldStore(boolean isForeignKey, String fieldName) {
+        public FieldStore(String fieldName, boolean isForeignKey, String primaryKeyName) {
             this.isForeignKey = isForeignKey;
             this.fieldName = fieldName;
+            this.primaryKeyName = primaryKeyName;
         }
     }
 }
