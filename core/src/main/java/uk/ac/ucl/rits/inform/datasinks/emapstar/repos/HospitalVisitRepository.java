@@ -12,7 +12,7 @@ import java.util.Optional;
  * Hospital visit repository.
  * @author Stef Piatek
  */
-public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, Integer> {
+public interface HospitalVisitRepository extends CrudRepository<HospitalVisit, Long> {
     /**
      * @param encounter the encounter string
      * @return the HospitalVisit

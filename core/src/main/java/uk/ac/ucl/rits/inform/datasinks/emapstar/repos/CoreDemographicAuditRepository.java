@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Repository for interaction with the AuditCoreDemographic table.
  */
-public interface CoreDemographicAuditRepository extends CrudRepository<CoreDemographicAudit, Integer> {
+public interface CoreDemographicAuditRepository extends CrudRepository<CoreDemographicAudit, Long> {
     /**
      * @param coreDemographicId id from original table.
      * @return List of audit entities

@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * Repository for interaction with MRN table.
  */
-public interface MrnRepository extends CrudRepository<Mrn, Integer> {
+public interface MrnRepository extends CrudRepository<Mrn, Long> {
     /**
      * Helper method to find MRNs (by mrn string and nhs number depending on what exists).
      * @param mrn       MRN string

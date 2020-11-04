@@ -9,7 +9,7 @@ import java.util.Optional;
  * Location repository.
  * @author Stef Piatek
  */
-public interface LocationRepository extends CrudRepository<Location, Integer> {
+public interface LocationRepository extends CrudRepository<Location, Long> {
     /**
      * @param locationString Location string
      * @return the Location wrapped in optional

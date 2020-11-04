@@ -10,7 +10,7 @@ import java.util.Optional;
  * Audit hospital visit repository.
  * @author Stef Piatek
  */
-public interface LocationVisitAuditRepository extends CrudRepository<LocationVisitAudit, Integer> {
+public interface LocationVisitAuditRepository extends CrudRepository<LocationVisitAudit, Long> {
     /**
      * For testing: find by location string.
      * @param location full location string

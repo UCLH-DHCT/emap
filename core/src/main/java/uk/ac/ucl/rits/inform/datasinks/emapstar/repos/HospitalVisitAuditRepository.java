@@ -7,7 +7,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
  * Audit hospital visit repository.
  * @author Stef Piatek
  */
-public interface HospitalVisitAuditRepository extends CrudRepository<HospitalVisitAudit, Integer> {
+public interface HospitalVisitAuditRepository extends CrudRepository<HospitalVisitAudit, Long> {
     /**
      * @param encounter the encounter string
      * @return the AuditHospitalVisit

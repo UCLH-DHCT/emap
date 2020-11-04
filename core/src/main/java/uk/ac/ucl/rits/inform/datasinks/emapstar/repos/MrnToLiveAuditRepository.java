@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Repository for interaction with the AuditMrnToLive table.
  */
-public interface MrnToLiveAuditRepository extends CrudRepository<MrnToLiveAudit, Integer> {
+public interface MrnToLiveAuditRepository extends CrudRepository<MrnToLiveAudit, Long> {
     /**
      * Get all by the liveMrnId's MRN string.
      * @param liveMrnString id from original table.

@@ -162,7 +162,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * @param entityRepo  entity repository
      * @param auditRepo   audit repository
      */
-    public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Integer> entityRepo, CrudRepository<A, Integer> auditRepo) {
+    public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Long> entityRepo, CrudRepository<A, Long> auditRepo) {
         if (entityCreated) {
             entityRepo.save(entity);
             logger.info("New Entity saved: {}", entity);

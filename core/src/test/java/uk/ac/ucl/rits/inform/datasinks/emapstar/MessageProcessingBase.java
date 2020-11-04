@@ -54,7 +54,7 @@ public abstract class MessageProcessingBase {
         return StreamSupport.stream(mrnRepo.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
-    protected <T extends Object> List<T> getAllEntities(CrudRepository<T, Integer> repo) {
+    protected <T extends Object> List<T> getAllEntities(CrudRepository<T, Long> repo) {
         return StreamSupport.stream(repo.findAll().spliterator(), false).collect(Collectors.toList());
     }
 }

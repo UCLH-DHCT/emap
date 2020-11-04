@@ -13,7 +13,7 @@ import java.util.Optional;
  * Visit Location repository.
  * @author Stef Piatek
  */
-public interface LocationVisitRepository extends CrudRepository<LocationVisit, Integer> {
+public interface LocationVisitRepository extends CrudRepository<LocationVisit, Long> {
     /**
      * @param visit hospital visit
      * @return the LocationVisits

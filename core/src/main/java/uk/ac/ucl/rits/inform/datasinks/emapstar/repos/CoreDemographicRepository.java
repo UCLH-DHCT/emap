@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * Repository for interaction with the CoreDemographic table.
  */
-public interface CoreDemographicRepository extends CrudRepository<CoreDemographic, Integer> {
+public interface CoreDemographicRepository extends CrudRepository<CoreDemographic, Long> {
     /**
      * Get by Mrn object.
      * @param mrn mrn
