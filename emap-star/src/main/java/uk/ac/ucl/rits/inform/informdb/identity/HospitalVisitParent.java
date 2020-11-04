@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author UCL RITS
  */
 @MappedSuperclass
-public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> implements Serializable {
+public abstract class HospitalVisitParent extends TemporalCore<HospitalVisit, HospitalVisitAudit> implements Serializable {
 
     private static final long serialVersionUID = -8922743168233635681L;
     /**
@@ -225,11 +225,6 @@ public class HospitalVisitParent extends TemporalCore<HospitalVisitParent> imple
     @Override
     public String toString() {
         return String.format("HospitalVisitParent [source_system=%s]", sourceSystem);
-    }
-
-    @Override
-    public HospitalVisitParent copy() {
-        return new HospitalVisitParent(this);
     }
 
     @Override

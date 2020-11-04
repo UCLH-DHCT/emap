@@ -7,7 +7,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
+import java.time.Instant;
 
 /**
  * A core demographic represents the main demographics stored around patients.
@@ -18,6 +21,7 @@ import javax.persistence.Table;
 @Entity
 @Table
 @Data
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class CoreDemographic extends CoreDemographicParent {
     private static final long serialVersionUID = -5997494172438793019L;
 
@@ -45,14 +49,19 @@ public class CoreDemographic extends CoreDemographicParent {
      * Copy constructor.
      * @param other other demographic.
      */
-    public CoreDemographic(CoreDemographic other) {
+    private CoreDemographic(CoreDemographic other) {
         super(other);
-        coreDemographicId = other.getCoreDemographicId();
+        coreDemographicId = other.coreDemographicId;
     }
 
     @Override
     public CoreDemographic copy() {
         return new CoreDemographic(this);
+    }
+
+    @Override
+    public CoreDemographicAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new CoreDemographicAudit(this, validUntil, storedFrom);
     }
 
     @Override

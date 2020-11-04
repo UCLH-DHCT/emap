@@ -1,29 +1,29 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.time.Instant;
 
 /**
  * This represents the definition of a single lab test by a single provider. An
  * individual test may feature more than once in this table, where there is more
  * than one lab provider that supplies it.
- *
  * @author Roma Klapaukh
- *
  */
 @Entity
-public class LabTestDefinition extends TemporalCore<LabTestDefinition> {
+public class LabTestDefinition extends TemporalCore<LabTestDefinition, AuditCore> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long   labTestDefinitionId;
+    private long labTestDefinitionId;
 
-    private long   labTestDefinitionDurableId;
+    private long labTestDefinitionDurableId;
 
     /**
      * What system this code belongs to. Examples could be WinPath, or Epic.
@@ -167,4 +167,8 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition> {
         return new LabTestDefinition(this);
     }
 
+    @Override
+    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
+        throw new UnsupportedOperationException();
+    }
 }

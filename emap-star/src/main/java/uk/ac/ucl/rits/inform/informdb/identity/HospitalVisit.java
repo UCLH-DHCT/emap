@@ -10,7 +10,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
+import java.time.Instant;
 
 /**
  * This a single visit to the hospital. This is not necessarily an inpatient
@@ -22,6 +25,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Table(indexes = {@Index(name = "encounterIndex", columnList = "encounter", unique = false)})
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class HospitalVisit extends HospitalVisitParent {
 
     private static final long serialVersionUID = -6495238097074592105L;
@@ -50,10 +54,10 @@ public class HospitalVisit extends HospitalVisitParent {
      * Build a hospital visit from an existing object.
      * @param other hospital visit
      */
-    public HospitalVisit(HospitalVisit other) {
+    private HospitalVisit(HospitalVisit other) {
         super(other);
-        hospitalVisitId = other.getHospitalVisitId();
-        encounter = other.getEncounter();
+        hospitalVisitId = other.hospitalVisitId;
+        encounter = other.encounter;
     }
 
     /**
@@ -73,5 +77,10 @@ public class HospitalVisit extends HospitalVisitParent {
     @Override
     public HospitalVisit copy() {
         return new HospitalVisit(this);
+    }
+
+    @Override
+    public HospitalVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new HospitalVisitAudit(this, validUntil, storedFrom);
     }
 }

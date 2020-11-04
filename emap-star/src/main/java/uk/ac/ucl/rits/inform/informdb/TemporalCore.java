@@ -1,8 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb;
 
 import javax.persistence.Column;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.MappedSuperclass;
 import java.time.Instant;
 
@@ -16,12 +14,12 @@ import java.time.Instant;
  * later date may be considered true from when the original event happened), and
  * from when it was available in the database (so a repeat export of data won't
  * be contaminated by new data in reproducibility studies).
- * @param <T> The Class type returned by the invalidation method.
+ * @param <T> The Entity Class type returned by the copy method.
+ * @param <A> The Audit Entity Class type returned by the getAuditEntity method.
  * @author UCL RITS
  */
 @MappedSuperclass
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class TemporalCore<T extends TemporalCore<T>> {
+public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends AuditCore> {
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant validFrom;
@@ -31,14 +29,14 @@ public abstract class TemporalCore<T extends TemporalCore<T>> {
     /**
      * Default constructor.
      */
-    public TemporalCore() {
+    protected TemporalCore() {
     }
 
     /**
      * Copy constructor.
      * @param other object to copy from
      */
-    public TemporalCore(TemporalCore<T> other) {
+    protected TemporalCore(TemporalCore<T, A> other) {
         validFrom = other.validFrom;
         storedFrom = other.storedFrom;
     }
@@ -78,4 +76,10 @@ public abstract class TemporalCore<T extends TemporalCore<T>> {
 
     public abstract T copy();
 
+    /**
+     * @param validUntil the event time that invalidated the current state
+     * @param storedFrom the time that star started processing the message that invalidated the current state
+     * @return A new audit entity with the current state of the object.
+     */
+    public abstract A createAuditEntity(Instant validUntil, Instant storedFrom);
 }
