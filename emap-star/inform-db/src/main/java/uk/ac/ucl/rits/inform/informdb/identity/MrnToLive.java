@@ -23,6 +23,7 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
  * currently live (in use) MRN.
  * @author UCL RITS
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -30,7 +31,6 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 @AuditTable
 public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
-    private static final long serialVersionUID = 8891761742756656453L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnToLiveId;

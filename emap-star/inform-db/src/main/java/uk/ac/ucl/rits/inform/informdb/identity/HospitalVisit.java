@@ -26,6 +26,7 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
  *
  * @author UCL RITS
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)

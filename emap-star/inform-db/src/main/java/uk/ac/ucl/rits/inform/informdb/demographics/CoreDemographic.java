@@ -28,6 +28,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
  *
  * @author UCL RITS
  */
+@SuppressWarnings("serial")
 @Entity
 @Table
 @Data()
