@@ -22,7 +22,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class CoreDemographicAudit extends CoreDemographicParent implements AuditCore<CoreDemographicParent> {
+public class CoreDemographicAudit extends CoreDemographicParent implements AuditCore {
     private static final long serialVersionUID = -8516988957488992519L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -41,10 +41,6 @@ public class CoreDemographicAudit extends CoreDemographicParent implements Audit
     public CoreDemographicAudit() {
     }
 
-    private CoreDemographicAudit(CoreDemographicAudit other) {
-        super(other);
-    }
-
     /**
      * Constructor from original entity and invalidation times.
      * @param originalEntity original entity to be audited.
@@ -60,7 +56,12 @@ public class CoreDemographicAudit extends CoreDemographicParent implements Audit
     }
 
     @Override
-    public CoreDemographicAudit copy() {
-        return new CoreDemographicAudit(this);
+    public CoreDemographic copy() {
+        return null;
+    }
+
+    @Override
+    public CoreDemographicAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return null;
     }
 }

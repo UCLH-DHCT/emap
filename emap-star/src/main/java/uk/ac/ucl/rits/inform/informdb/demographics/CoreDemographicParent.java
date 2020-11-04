@@ -19,7 +19,7 @@ import java.util.Objects;
  * @author UCL RITS
  */
 @MappedSuperclass
-public abstract class CoreDemographicParent extends TemporalCore<CoreDemographicParent> implements Serializable {
+public abstract class CoreDemographicParent extends TemporalCore<CoreDemographic, CoreDemographicAudit> implements Serializable {
 
     private static final long serialVersionUID = -8269778602198494673L;
 

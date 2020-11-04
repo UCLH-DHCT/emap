@@ -11,10 +11,9 @@ import java.time.Instant;
  * later date may be considered true from when the original event happened), and
  * from when it was available in the database (so a repeat export of data won't
  * be contaminated by new data in reproducibility studies).
- * @param <T> Original persistence class.
  * @author UCL RITS
  */
-public interface AuditCore<T extends TemporalCore<T>> {
+public interface AuditCore {
 
     /**
      * Get the time from when this bit of data was considered true or extant.

@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author UCL RITS
  */
 @MappedSuperclass
-public abstract class LocationVisitParent extends TemporalCore<LocationVisitParent> implements Serializable {
+public abstract class LocationVisitParent extends TemporalCore<LocationVisit, LocationVisitAudit> implements Serializable {
     private static final long serialVersionUID = -8228844390430073225L;
 
 

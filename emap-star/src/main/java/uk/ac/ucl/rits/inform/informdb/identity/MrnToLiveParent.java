@@ -14,7 +14,7 @@ import java.io.Serializable;
  * @author UCL RITS
  */
 @MappedSuperclass
-public abstract class MrnToLiveParent extends TemporalCore<MrnToLiveParent> implements Serializable {
+public abstract class MrnToLiveParent extends TemporalCore<MrnToLive, MrnToLiveAudit> implements Serializable {
 
     private static final long serialVersionUID = 7019692664925413320L;
 

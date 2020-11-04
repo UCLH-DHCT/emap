@@ -22,7 +22,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class HospitalVisitAudit extends HospitalVisitParent implements AuditCore<HospitalVisitParent> {
+public class HospitalVisitAudit extends HospitalVisitParent implements AuditCore {
     private static final long serialVersionUID = -8516988957488992519L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -59,15 +59,17 @@ public class HospitalVisitAudit extends HospitalVisitParent implements AuditCore
         super(originalEntity);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
-        if (originalEntity.getHospitalVisitId() != null) {
-            // Newly created visit won't have an ID, audit row should never be saved in that case - not setting it should be okay.
-            this.hospitalVisitId = originalEntity.getHospitalVisitId();
-        }
-        this.encounter = originalEntity.getEncounter();
+        hospitalVisitId = originalEntity.getHospitalVisitId();
+        encounter = originalEntity.getEncounter();
     }
 
     @Override
-    public HospitalVisitAudit copy() {
-        return new HospitalVisitAudit(this);
+    public HospitalVisit copy() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public HospitalVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        throw new UnsupportedOperationException();
     }
 }

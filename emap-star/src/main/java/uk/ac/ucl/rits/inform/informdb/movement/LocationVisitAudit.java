@@ -22,7 +22,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class LocationVisitAudit extends LocationVisitParent implements AuditCore<LocationVisitParent> {
+public class LocationVisitAudit extends LocationVisitParent implements AuditCore {
     private static final long serialVersionUID = 5021782039578121716L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,10 +42,6 @@ public class LocationVisitAudit extends LocationVisitParent implements AuditCore
     public LocationVisitAudit() {
     }
 
-    private LocationVisitAudit(LocationVisitAudit other) {
-        super(other);
-    }
-
     /**
      * Constructor from original entity and invalidation times.
      * @param originalEntity original entity to be audited.
@@ -58,14 +54,16 @@ public class LocationVisitAudit extends LocationVisitParent implements AuditCore
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
         locationVisitId = originalEntity.getLocationVisitId();
-        if (originalEntity.getHospitalVisitId() != null) {
-            // If newly created, won't have a hospital visit Id yet - but also audit won't be saved so that's okay
-            hospitalVisitId = originalEntity.getHospitalVisitId().getHospitalVisitId();
-        }
+        hospitalVisitId = originalEntity.getHospitalVisitId().getHospitalVisitId();
     }
 
     @Override
-    public LocationVisitAudit copy() {
-        return new LocationVisitAudit(this);
+    public LocationVisit copy() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        throw new UnsupportedOperationException();
     }
 }

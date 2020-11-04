@@ -1,35 +1,33 @@
 package uk.ac.ucl.rits.inform.informdb.visit_recordings;
 
-import java.time.Instant;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import java.time.Instant;
 
 /**
  * VisitObservations represent discrete nurse (or machine) recoded observations
  * about patients at specific time points.
- *
  * @author Roma Klapaukh
- *
  */
 @Entity
-public class VisitObservation extends TemporalCore<VisitObservation> {
+public class VisitObservation extends TemporalCore<VisitObservation, AuditCore> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long    visitObservationId;
-    private long    visitObservationDurableId;
+    private long visitObservationId;
+    private long visitObservationDurableId;
 
-    private long    visitObservationTypeId;
+    private long visitObservationTypeId;
 
-    private String  valueAsText;
-    private double  valueAsReal;
-    private String  unit;
+    private String valueAsText;
+    private double valueAsReal;
+    private String unit;
 
     /**
      * The time this indvidiual observation was made.
@@ -179,4 +177,8 @@ public class VisitObservation extends TemporalCore<VisitObservation> {
         return new VisitObservation(this);
     }
 
+    @Override
+    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
+        throw new UnsupportedOperationException();
+    }
 }

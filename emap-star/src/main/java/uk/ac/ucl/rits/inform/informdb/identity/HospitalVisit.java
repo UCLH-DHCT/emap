@@ -13,6 +13,7 @@ import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Table;
+import java.time.Instant;
 
 /**
  * This a single visit to the hospital. This is not necessarily an inpatient
@@ -76,5 +77,10 @@ public class HospitalVisit extends HospitalVisitParent {
     @Override
     public HospitalVisit copy() {
         return new HospitalVisit(this);
+    }
+
+    @Override
+    public HospitalVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new HospitalVisitAudit(this, validUntil, storedFrom);
     }
 }

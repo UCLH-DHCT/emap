@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Table;
+import java.time.Instant;
 
 /**
  * A core demographic represents the main demographics stored around patients.
@@ -56,6 +57,11 @@ public class CoreDemographic extends CoreDemographicParent {
     @Override
     public CoreDemographic copy() {
         return new CoreDemographic(this);
+    }
+
+    @Override
+    public CoreDemographicAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new CoreDemographicAudit(this, validUntil, storedFrom);
     }
 
     @Override

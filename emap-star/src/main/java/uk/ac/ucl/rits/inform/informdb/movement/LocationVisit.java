@@ -73,4 +73,9 @@ public class LocationVisit extends LocationVisitParent {
         return new LocationVisit(this);
     }
 
+    @Override
+    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new LocationVisitAudit(this, validUntil, storedFrom);
+    }
+
 }

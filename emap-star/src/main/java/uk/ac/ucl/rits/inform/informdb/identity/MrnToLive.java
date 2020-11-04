@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import java.time.Instant;
 
 /**
  * Over time MRNs are merged into others as more is found out about a patient.
@@ -39,6 +40,11 @@ public class MrnToLive extends MrnToLiveParent {
     @Override
     public MrnToLive copy() {
         return new MrnToLive(this);
+    }
+
+    @Override
+    public MrnToLiveAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new MrnToLiveAudit(this, validUntil, storedFrom);
     }
 
 }

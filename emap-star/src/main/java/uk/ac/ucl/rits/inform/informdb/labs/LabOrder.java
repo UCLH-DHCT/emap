@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 
 /**
@@ -18,7 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  *
  */
 @Entity
-public class LabOrder extends TemporalCore<LabOrder> {
+public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -119,4 +120,8 @@ public class LabOrder extends TemporalCore<LabOrder> {
         return new LabOrder(this);
     }
 
+    @Override
+    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
+        throw new UnsupportedOperationException();
+    }
 }
