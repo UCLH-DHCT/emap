@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 
 import java.time.Instant;
 
@@ -66,7 +67,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public void processMessage(AdtMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-         adtProcessor.processMessage(msg, storedFrom);
+        adtProcessor.processMessage(msg, storedFrom);
     }
 
     /**
@@ -98,16 +99,25 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     public void processMessage(MoveVisitInformation msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-         adtProcessor.moveVisitInformation(msg, storedFrom);
+        adtProcessor.moveVisitInformation(msg, storedFrom);
     }
 
     /**
      * @param msg the ChangePatientIdentifiers message to process
      */
     @Override
-    public void processMessage(ChangePatientIdentifiers msg) {
+    public void processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-         adtProcessor.changePatientIdentifiers(msg, storedFrom);
+        adtProcessor.changePatientIdentifiers(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the SwapLocations message to process
+     */
+    @Override
+    public void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        adtProcessor.swapLocations(msg, storedFrom);
     }
 
     @Override

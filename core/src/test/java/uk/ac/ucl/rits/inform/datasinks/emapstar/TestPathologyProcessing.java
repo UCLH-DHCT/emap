@@ -1,16 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.AuditHospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -18,16 +11,22 @@ import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 
-public class TestPathologyProcessing extends MessageProcessingBase {
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+class TestPathologyProcessing extends MessageProcessingBase {
     private List<PathologyOrder> messages;
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    private AuditHospitalVisitRepository auditHospitalVisitRepository;
+    private HospitalVisitAuditRepository hospitalVisitAuditRepository;
 
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         messages = messageFactory.getPathologyOrders("ORU_R01.yaml", "0000040");
     }
 
@@ -35,7 +34,7 @@ public class TestPathologyProcessing extends MessageProcessingBase {
      * no existing data. rows should be created for: mrns, so new mrn, mrn_to_live, core_demographics, hospital visit
      */
     @Test
-    public void testCreateNewPatient() throws EmapOperationMessageProcessingException {
+    void testCreateNewPatient() throws EmapOperationMessageProcessingException {
         for (PathologyOrder msg : messages) {
             processSingleMessage(msg);
         }

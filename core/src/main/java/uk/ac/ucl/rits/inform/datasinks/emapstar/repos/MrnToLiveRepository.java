@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Repository for MrnToLive table.
  */
-public interface MrnToLiveRepository extends CrudRepository<MrnToLive, Integer> {
+public interface MrnToLiveRepository extends CrudRepository<MrnToLive, Long> {
     /**
      * @param mrn Mrn object to find
      * @return MrnToLive object

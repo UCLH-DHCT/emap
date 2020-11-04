@@ -1,6 +1,10 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.Nullable;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
@@ -15,10 +19,14 @@ import java.util.function.Consumer;
  * Track the state of a hibernate entity.
  * All values for the entity should be updated from the assign*IfDifferent method of this class to track the state and
  * automatically update the validFrom and storedFrom fields.
- * @param <T> Hibernate entity that has validFrom and storedFrom fields.
+ * @param <T> Hibernate Entity type that has validFrom and storedFrom fields.
+ * @param <A> The AuditEntity Type
  */
-public class RowState<T extends TemporalCore<?>> {
+public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private T entity;
+    private final T originalEntity;
     private final boolean entityCreated;
     private final Instant messageDateTime;
     private final Instant storedFrom;
@@ -35,6 +43,7 @@ public class RowState<T extends TemporalCore<?>> {
         this.messageDateTime = messageDateTime;
         this.storedFrom = storedFrom;
         this.entityCreated = entityCreated;
+        originalEntity = entity.copy();
     }
 
     /**
@@ -145,6 +154,22 @@ public class RowState<T extends TemporalCore<?>> {
         boolean removed = assignIfDifferent(null, currentValue, setter);
         if (removed && cancelledDateTime != null) {
             entity.setValidFrom(cancelledDateTime);
+        }
+    }
+
+    /**
+     * Save entity if it is created, or auditlog if the entity has been updated.
+     * @param entityRepo  entity repository
+     * @param auditRepo   audit repository
+     */
+    public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Long> entityRepo, CrudRepository<A, Long> auditRepo) {
+        if (entityCreated) {
+            entityRepo.save(entity);
+            logger.info("New Entity saved: {}", entity);
+        } else if (entityUpdated) {
+            A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
+            auditRepo.save(auditEntity);
+            logger.info("New AuditEntity being saved: {}", auditEntity);
         }
     }
 }
