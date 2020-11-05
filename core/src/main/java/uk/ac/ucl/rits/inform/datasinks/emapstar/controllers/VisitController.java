@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmissionDateTime;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
@@ -139,7 +140,7 @@ public class VisitController {
                 addDischargeInformation((DischargePatient) msg, visitState);
             } else if (msg instanceof CancelDischargePatient) {
                 removeDischargeInformation((AdtCancellation) msg, visitState);
-            } else if (msg instanceof AdmissionDateTime) {
+            } else if (msg instanceof AdmitPatient) {
                 addAdmissionDateTime((AdmissionDateTime) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
                 removeAdmissionInformation((AdtCancellation) msg, visitState);
