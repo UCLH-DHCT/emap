@@ -106,7 +106,7 @@ public class AuditTableProcessor extends AbstractProcessor {
             throws IOException {
 
         String auditClassName = baseClassName + "Audit";
-        String idColumnName = baseClassName + "AuditId";
+        String idColumnName = lowercaseInitial(baseClassName) + "AuditId";
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(auditClassName);
 
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
@@ -152,6 +152,7 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.print(auditClassName);
             out.println("(this);");
             out.println("    }");
+            out.println();
 
             // Make the createAuditEntity Method (copy constructor)
             out.println("\t@Override");
@@ -167,7 +168,7 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("\t}");
 
             out.println('}');
-            out.println("");
+            out.println();
 
         }
     }
@@ -194,6 +195,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.print("import ");
         out.print(baseImport);
         out.println(';');
+        out.println();
     }
 
     /**
@@ -219,6 +221,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.print(" extends AuditCore<");
         out.print(auditClassName);
         out.println("> {");
+        out.println();
     }
 
     /**
@@ -318,12 +321,12 @@ public class AuditTableProcessor extends AbstractProcessor {
                     typeName = "Instant";
                     break;
                 default:
-                    typeName = "long";
+                    typeName = "Long";
                     if (!isForeignKey) {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                 "Found field of type " + type + " but not detected as a foreign key");
+                        continue;
                     }
-                    continue;
                 }
                 break;
             default:
@@ -461,7 +464,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.print("(final ");
         out.print(typeName);
         out.println(" other) {");
-        out.println(" super(other);");
+        out.println("\t\tsuper(other);");
 
         for (FieldStore f : fields) {
             out.print("\t\tthis.");
@@ -474,9 +477,10 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.print(primaryKey);
         out.print(" = other.");
         out.print(primaryKey);
-        out.print(";");
+        out.println(";");
 
         out.println("\t}");
+        out.println("");
     }
 
     /**
@@ -491,10 +495,10 @@ public class AuditTableProcessor extends AbstractProcessor {
             List<FieldStore> fields) {
 
         out.println("\t/**");
-        out.println("\t* Constuctor from valid instance.");
-        out.println("\t* @param other original entity to be constructred from.");
-        out.println("\t* @param validUntil original entity to be constructred from.");
-        out.println("\t* @param storedUntil original entity to be constructred from.");
+        out.println("\t* Constructor from valid instance.");
+        out.println("\t* @param other original entity to be constructed from.");
+        out.println("\t* @param validUntil original entity to be constructed from.");
+        out.println("\t* @param storedUntil original entity to be constructed from.");
         out.println("\t*/");
         out.print("\tpublic ");
         out.print(auditClassName);
@@ -511,14 +515,15 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.print("\t\tthis.");
             out.print(f.fieldName);
             out.print(" = other.get");
+            out.print(capitalizeInitial(f.fieldName));
+            out.print("()");
             if (f.isForeignKey) {
-                // Get the Id of foreignKeys
+                // Get the Id of foreignKey, rather than just the object itself
+                out.print(".get");
                 out.print(capitalizeInitial(f.primaryKeyName));
-            } else {
-                // Ti's private to use the getter
-                out.print(capitalizeInitial(f.fieldName));
+                out.print("()");
             }
-            out.println("();");
+            out.println(";");
         }
 
         out.println("\t}");
@@ -527,11 +532,23 @@ public class AuditTableProcessor extends AbstractProcessor {
     /**
      * Capitalise the first letter in a String for camelCase naming
      *
-     * @param s
-     * @return
+     * @param s The text
+     * @return the text with a captial first letter
      */
     private String capitalizeInitial(String s) {
         String lead = s.substring(0, 1).toUpperCase();
+        String tail = s.substring(1);
+        return lead + tail;
+    }
+
+    /**
+     * Lowercase the first letter in a String for camelCase naming
+     *
+     * @param s the text
+     * @return the text with the first letter lowercase
+     */
+    private String lowercaseInitial(String s) {
+        String lead = s.substring(0, 1).toLowerCase();
         String tail = s.substring(1);
         return lead + tail;
     }
