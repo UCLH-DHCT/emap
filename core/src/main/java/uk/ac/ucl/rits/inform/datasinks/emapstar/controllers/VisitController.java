@@ -134,15 +134,13 @@ public class VisitController {
             updateGenericData(msg, visitState);
 
             // process message based on the class type
-            if (msg instanceof DischargePatient) {
-                addDischargeInformation((DischargePatient) msg, visitState);
-            } else if (msg instanceof CancelDischargePatient) {
+            if (msg instanceof CancelDischargePatient) {
                 removeDischargeInformation((AdtCancellation) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
                 removeAdmissionInformation((AdtCancellation) msg, visitState);
             }
         }
-        addPresentationOrAdmissionTime(msg, visitState);
+        addPresentationAdmissionOrDischargeTime(msg, visitState);
         visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
@@ -153,7 +151,7 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addPresentationOrAdmissionTime(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
+    private void addPresentationAdmissionOrDischargeTime(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         if (!DataSources.isTrusted(msg.getSourceSystem())) {
             return;
         }
@@ -162,6 +160,8 @@ public class VisitController {
             addAdmissionDateTime((AdmissionDateTime) msg, visitState);
         } else if (msg instanceof RegisterPatient) {
             addRegistrationInformation((RegisterPatient) msg, visitState);
+        } else if (msg instanceof DischargePatient) {
+            addDischargeInformation((DischargePatient) msg, visitState);
         }
     }
 
