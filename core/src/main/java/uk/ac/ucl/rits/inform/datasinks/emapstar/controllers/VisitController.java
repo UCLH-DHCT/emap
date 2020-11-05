@@ -134,19 +134,15 @@ public class VisitController {
             updateGenericData(msg, visitState);
 
             // process message based on the class type
-            if (msg instanceof RegisterPatient) {
-                addRegistrationInformation((RegisterPatient) msg, visitState);
-            } else if (msg instanceof DischargePatient) {
+            if (msg instanceof DischargePatient) {
                 addDischargeInformation((DischargePatient) msg, visitState);
             } else if (msg instanceof CancelDischargePatient) {
                 removeDischargeInformation((AdtCancellation) msg, visitState);
-            } else if (msg instanceof AdmitPatient) {
-                addAdmissionDateTime((AdmissionDateTime) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
                 removeAdmissionInformation((AdtCancellation) msg, visitState);
             }
         }
-        addPresentationOrAdmissionTimeIfMissing(msg, visitState);
+        addPresentationOrAdmissionTime(msg, visitState);
         visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
@@ -157,14 +153,14 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
+    private void addPresentationOrAdmissionTime(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         if (!DataSources.isTrusted(msg.getSourceSystem())) {
             return;
         }
-
-        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null) {
+        // Add admission date time from any message that has it if it doesn't exist already, always update from an AdmitPatient message
+        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null || msg instanceof AdmitPatient) {
             addAdmissionDateTime((AdmissionDateTime) msg, visitState);
-        } else if (msg instanceof RegisterPatient && visitState.getEntity().getPresentationTime() == null) {
+        } else if (msg instanceof RegisterPatient) {
             addRegistrationInformation((RegisterPatient) msg, visitState);
         }
     }
