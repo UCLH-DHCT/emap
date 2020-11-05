@@ -413,34 +413,35 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println(';');
         out.println();
 
-        // Getter
-        String nameCap = this.capitalizeInitial(fieldName);
-        out.print("\tpublic ");
-        out.print(typeName);
-        out.print(" get");
-        out.print(nameCap);
-        out.println("() {");
-        out.print("\t\treturn this.");
-        out.print(fieldName);
-        out.println(";");
-        out.println("\t}");
-        out.println();
-
-        // Setter
-        out.print("\tpublic void set");
-        out.print(nameCap);
-        out.print("(");
-        out.print(typeName);
-        out.print(' ');
-        out.print(fieldName);
-        out.println(") {");
-        out.print("\t\tthis.");
-        out.print(fieldName);
-        out.print(" = ");
-        out.print(fieldName);
-        out.println(";");
-        out.println("\t}");
-        out.println();
+        // Lombok will generate the getters / setters
+//        // Getter
+//        String nameCap = this.capitalizeInitial(fieldName);
+//        out.print("\tpublic ");
+//        out.print(typeName);
+//        out.print(" get");
+//        out.print(nameCap);
+//        out.println("() {");
+//        out.print("\t\treturn this.");
+//        out.print(fieldName);
+//        out.println(";");
+//        out.println("\t}");
+//        out.println();
+//
+//        // Setter
+//        out.print("\tpublic void set");
+//        out.print(nameCap);
+//        out.print("(");
+//        out.print(typeName);
+//        out.print(' ');
+//        out.print(fieldName);
+//        out.println(") {");
+//        out.print("\t\tthis.");
+//        out.print(fieldName);
+//        out.print(" = ");
+//        out.print(fieldName);
+//        out.println(";");
+//        out.println("\t}");
+//        out.println();
     }
 
     /**

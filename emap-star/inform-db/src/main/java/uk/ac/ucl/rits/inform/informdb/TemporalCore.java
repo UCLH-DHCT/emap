@@ -6,6 +6,8 @@ import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
+import lombok.Data;
+
 /**
  * This models the common core of the temporal variables stored in almost all
  * Inform-DB tables.
@@ -20,6 +22,8 @@ import javax.persistence.MappedSuperclass;
  * @param <A> The Audit Entity Class type returned by the getAuditEntity method.
  * @author UCL RITS
  */
+@SuppressWarnings("serial")
+@Data
 @MappedSuperclass
 public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends AuditCore> implements Serializable {
 
@@ -60,21 +64,6 @@ public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends Audit
     public void setValidFrom(Instant validFrom) {
         this.validFrom = validFrom;
     }
-
-    /**
-     * @return the storedFrom
-     */
-    public Instant getStoredFrom() {
-        return storedFrom;
-    }
-
-    /**
-     * @param storedFrom the storedFrom to set
-     */
-    public void setStoredFrom(Instant storedFrom) {
-        this.storedFrom = storedFrom;
-    }
-
 
     public abstract T copy();
 

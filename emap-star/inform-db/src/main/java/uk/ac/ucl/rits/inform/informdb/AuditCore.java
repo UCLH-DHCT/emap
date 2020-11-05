@@ -5,6 +5,10 @@ import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 /**
  * This models the core temporal until values for an audit table.
  * <p>
@@ -17,6 +21,10 @@ import javax.persistence.MappedSuperclass;
  *
  * @author UCL RITS
  */
+@SuppressWarnings("serial")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @MappedSuperclass
 public abstract class AuditCore<A extends AuditCore<A>> extends TemporalCore<A, A> {
 
@@ -59,27 +67,6 @@ public abstract class AuditCore<A extends AuditCore<A>> extends TemporalCore<A, 
      */
     public Instant getValidUntil() {
         return this.validUntil;
-    }
-
-    /**
-     * @param validUntil the validUntil to set
-     */
-    public void setValidUntil(Instant validUntil) {
-        this.validUntil = validUntil;
-    }
-
-    /**
-     * @return the storedUntil
-     */
-    public Instant getStoredUntil() {
-        return this.storedUntil;
-    }
-
-    /**
-     * @param storedUntil the storedUntil to set
-     */
-    public void setStoredUntil(Instant storedUntil) {
-        this.storedUntil = storedUntil;
     }
 
     /**
