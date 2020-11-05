@@ -42,7 +42,7 @@ public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends Audit
      * Copy constructor.
      * @param other object to copy from
      */
-    protected TemporalCore(TemporalCore<T, A> other) {
+    protected TemporalCore(TemporalCore<?, ?> other) {
         validFrom = other.validFrom;
         storedFrom = other.storedFrom;
     }

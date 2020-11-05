@@ -382,7 +382,7 @@ public class AuditTableProcessor extends AbstractProcessor {
                     boolean nullable = col.nullable();
                     String columnDefinition = col.columnDefinition();
                     String name = col.name();
-                    annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")",
+                    annotation = String.format("\t@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")",
                             columnDefinition, nullable ? "true" : "false", name);
                 }
             } else if (!isTemporal) {
@@ -569,7 +569,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println(" other, Instant validUntil, Instant storedUntil) {");
 
         // Special handling of stored/valid until.
-        out.println("\t\tsuper(validUntil, storedUntil);");
+        out.println("\t\tsuper(other, validUntil, storedUntil);");
         // Ignore the primary key
 
         // Pull across fields from main class

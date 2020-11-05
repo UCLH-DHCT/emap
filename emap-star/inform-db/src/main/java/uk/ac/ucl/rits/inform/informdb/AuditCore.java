@@ -49,11 +49,13 @@ public abstract class AuditCore<A extends AuditCore<A>> extends TemporalCore<A, 
     }
 
     /**
-     * Construct with args
+     * Construct from a main instance
+     * @param other TemporalCore to set start times from
      * @param validUntil validUntil to set
      * @param storedUntil storedUntil to set
      */
-    public AuditCore(Instant validUntil, Instant storedUntil) {
+    public AuditCore(TemporalCore<?, A> other, Instant validUntil, Instant storedUntil) {
+        super(other);
         this.validUntil = validUntil;
         this.storedUntil = storedUntil;
     }
