@@ -25,8 +25,10 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.tools.Diagnostic;
@@ -36,10 +38,10 @@ import com.google.auto.service.AutoService;
 
 /**
  * Annotation to create an audit version of a table.
- *
+ * <p>
  * Limitations / constraints:
  * <ul>
- * <li>Static and @Transient fields are ignored
+ * <li>Static, @Transient, & @OneToMany fields are ignored
  * <li>Annotations must be on fields NOT methods
  * <li>Composite keys are not supported
  * <li>@JoinColumn & @Column cannot be used on the same field
@@ -47,6 +49,10 @@ import com.google.auto.service.AutoService;
  * <li>Array types are not supported
  * <li>Nullability, name, & column definition from @JoinColumn & @Column are
  * preserved. Nothing else (eg uniqueness) is.
+ * <li>Foreign keys to TemporalCore types are turned into their primary keys.
+ * All others are preserved as is.
+ * <li>All hibernate annotations must come from the <tt>javax.persistence</tt>
+ * package.
  * </ul>
  *
  * @author Roma Klapaukh
@@ -186,12 +192,17 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println("import javax.persistence.Id;");
         out.println("import javax.persistence.Inheritance;");
         out.println("import javax.persistence.InheritanceType;");
+        out.println("import javax.persistence.ManyToOne;");
+        out.println("import javax.persistence.OneToOne;");
         out.println("import java.time.Instant;");
         out.println("import java.time.LocalDate;");
         out.println("import lombok.Data;");
         out.println("import lombok.EqualsAndHashCode;");
         out.println("import lombok.ToString;");
         out.println("import uk.ac.ucl.rits.inform.informdb.AuditCore;");
+        out.println("import static javax.persistence.FetchType.*;");
+        out.println("import static javax.persistence.ConstraintMode.*;");
+        out.println("import static javax.persistence.CascadeType.*;");
         out.print("import ");
         out.print(baseImport);
         out.println(';');
@@ -239,7 +250,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         List<FieldStore> fieldShorts = new ArrayList<>();
 
         // Primary key
-        this.generateSingleField(out, "@Id\n\t@GeneratedValue(strategy = GenerationType.AUTO)", "long", primaryKey);
+        this.generateSingleField(out, "\t@Id\n\t@GeneratedValue(strategy = GenerationType.AUTO)", "long", primaryKey);
 
         // All other fields
         for (VariableElement field : fields) {
@@ -261,6 +272,7 @@ public class AuditTableProcessor extends AbstractProcessor {
             TypeKind kind = type.getKind();
             boolean isForeignKey =
                     field.getAnnotation(MapsId.class) != null || field.getAnnotation(JoinColumn.class) != null;
+            boolean isTemporal = false; // Default position, check when you know
             switch (kind) {
             case LONG:
                 typeName = "long";
@@ -321,7 +333,31 @@ public class AuditTableProcessor extends AbstractProcessor {
                     typeName = "Instant";
                     break;
                 default:
-                    typeName = "Long";
+                    // Need to check if it's a temporal Type. Otherwise the FK is preserved
+                    TypeElement parent = elem;
+
+                    while (true) {
+                        TypeMirror sup = parent.getSuperclass();
+                        if (sup.getKind().equals(TypeKind.NONE)) {
+                            break;
+                        }
+                        DeclaredType parentType = (DeclaredType) sup;
+                        parent = (TypeElement) parentType.asElement();
+                        if (parent.getQualifiedName().toString()
+                                .equals("uk.ac.ucl.rits.inform.informdb.TemporalCore")) {
+                            isTemporal = true;
+                            break;
+                        }
+
+                    }
+                    if (isTemporal) {
+                        // If it's temporal you need to get the primary key, because the
+                        // foreign key relationship will be dissolved.
+                        typeName = "Long";
+                    } else {
+                        // If it's non temporal the foreign key relationship is preserved.
+                        typeName = elem.getQualifiedName().toString();
+                    }
                     if (!isForeignKey) {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                 "Found field of type " + type + " but not detected as a foreign key");
@@ -337,8 +373,10 @@ public class AuditTableProcessor extends AbstractProcessor {
             }
 
             String annotation = null;
+            String foriegnKeyName = null;
 
-            {
+            if (!isForeignKey) {
+                // If it's a normal column, then get the @Column properties
                 Column col = field.getAnnotation(Column.class);
                 if (col != null) {
                     boolean nullable = col.nullable();
@@ -347,11 +385,41 @@ public class AuditTableProcessor extends AbstractProcessor {
                     annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")",
                             columnDefinition, nullable ? "true" : "false", name);
                 }
-            }
+            } else if (!isTemporal) {
+                // If it's a non-temporal FK then preserve the foreign key
+                MapsId mapsId = field.getAnnotation(MapsId.class);
+                JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
+                ManyToOne many = field.getAnnotation(ManyToOne.class);
+                OneToOne one = field.getAnnotation(OneToOne.class);
 
-            String foriegnKeyName = null;
+                // You have to have an annotation to define the relationships.
+                // We need to copy the relevant bits.
+                StringBuilder annot = new StringBuilder();
+                if (one != null) {
+                    annot.append('\t');
+                    annot.append(one.toString());
+                    annot.append('\n');
+                } else if (many != null) {
+                    annot.append('\t');
+                    annot.append(many.toString());
+                    annot.append('\n');
+                }
 
-            if (isForeignKey) {
+                if(mapsId != null) {
+                    annot.append('\t');
+                    annot.append(mapsId.toString());
+                    annot.append('\n');
+                }
+                if(joinColumn != null) {
+                    annot.append('\t');
+                    annot.append(joinColumn.toString());
+                    annot.append('\n');
+                }
+                annotation = annot.toString().stripTrailing();
+
+            } else {
+                // If it's a foreign key that gets turned in to a long because
+                // the constraints no longer apply, but nullability etc should be preserved
                 MapsId mapsId = field.getAnnotation(MapsId.class);
                 JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
 
@@ -376,19 +444,14 @@ public class AuditTableProcessor extends AbstractProcessor {
                     String colDef = joinColumn.columnDefinition();
                     boolean nullable = joinColumn.nullable();
                     String name = joinColumn.name();
-                    if (annotation != null) {
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                "Found field has both @Column and @JoinColumn", field);
-                        continue;
-                    } else {
-                        annotation = String.format("@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")",
-                                colDef, nullable ? "true" : "false", name);
-                    }
+                    annotation = String.format("\t@Column(columnDefinition = \"%s\", nullable=%s, name=\"%s\")", colDef,
+                            nullable ? "true" : "false", name);
                 }
             }
 
             String fieldName = field.getSimpleName().toString();
-            fieldShorts.add(new FieldStore(fieldName, isForeignKey, foriegnKeyName));
+            // Foreign keys are only treated specially if they are temporal!
+            fieldShorts.add(new FieldStore(fieldName, isTemporal && isForeignKey, foriegnKeyName));
             this.generateSingleField(out, annotation, typeName, fieldName);
         }
 
@@ -406,7 +469,6 @@ public class AuditTableProcessor extends AbstractProcessor {
     private void generateSingleField(PrintWriter out, String annotations, String typeName, String fieldName) {
         // Field declaration
         if (annotations != null) {
-            out.print('\t');
             out.println(annotations);
         }
         out.print("\tprivate ");
