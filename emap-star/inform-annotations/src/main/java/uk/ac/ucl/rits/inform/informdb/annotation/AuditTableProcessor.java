@@ -397,11 +397,18 @@ public class AuditTableProcessor extends AbstractProcessor {
                 StringBuilder annot = new StringBuilder();
                 if (one != null) {
                     annot.append('\t');
-                    annot.append(one.toString());
-                    annot.append('\n');
+                    String line = one.toString();
+                    // Remove nasty void class, gollum, gollum
+                    line = line.replace(", targetEntity=void.class", "");
+                    annot.append(line);
+
+                    annot.append("\n");
                 } else if (many != null) {
                     annot.append('\t');
-                    annot.append(many.toString());
+                    String line = many.toString();
+                    // Remove nasty void class, gollum, gollum
+                    line = line.replace(", targetEntity=void.class", "");
+                    annot.append(line);
                     annot.append('\n');
                 }
 
