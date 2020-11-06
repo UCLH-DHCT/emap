@@ -155,12 +155,15 @@ public class VisitController {
         if (!DataSources.isTrusted(msg.getSourceSystem())) {
             return;
         }
+
         // Add admission date time from any message that has it if it doesn't exist already, always update from an AdmitPatient message
         if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null || msg instanceof AdmitPatient) {
             addAdmissionDateTime((AdmissionDateTime) msg, visitState);
         } else if (msg instanceof RegisterPatient) {
             addRegistrationInformation((RegisterPatient) msg, visitState);
-        } else if (msg instanceof DischargePatient) {
+        }
+        // Process discharge separately because it can add an AdmissionDateTime if it doesn't already exist
+        if (msg instanceof DischargePatient) {
             addDischargeInformation((DischargePatient) msg, visitState);
         }
     }
