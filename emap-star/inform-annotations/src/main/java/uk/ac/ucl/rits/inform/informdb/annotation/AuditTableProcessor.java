@@ -113,7 +113,7 @@ public class AuditTableProcessor extends AbstractProcessor {
 
         String auditClassName = baseClassName + "Audit";
         String idColumnName = lowercaseInitial(baseClassName) + "AuditId";
-        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(auditClassName);
+        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(packageName + "." + auditClassName);
 
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
 
@@ -250,7 +250,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         List<FieldStore> fieldShorts = new ArrayList<>();
 
         // Primary key
-        this.generateSingleField(out, "\t@Id\n\t@GeneratedValue(strategy = GenerationType.AUTO)", "long", primaryKey);
+        this.generateSingleField(out, "\t@Id\n\t@GeneratedValue(strategy = GenerationType.AUTO)", "Long", primaryKey);
 
         // All other fields
         for (VariableElement field : fields) {
