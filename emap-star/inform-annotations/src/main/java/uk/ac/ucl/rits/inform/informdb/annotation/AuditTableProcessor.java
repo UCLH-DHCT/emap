@@ -14,6 +14,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -25,10 +26,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.tools.Diagnostic;
@@ -387,40 +386,18 @@ public class AuditTableProcessor extends AbstractProcessor {
                 }
             } else if (!isTemporal) {
                 // If it's a non-temporal FK then preserve the foreign key
-                MapsId mapsId = field.getAnnotation(MapsId.class);
-                JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
-                ManyToOne many = field.getAnnotation(ManyToOne.class);
-                OneToOne one = field.getAnnotation(OneToOne.class);
+
+                List<? extends AnnotationMirror> annotationMirrors = field.getAnnotationMirrors();
 
                 // You have to have an annotation to define the relationships.
                 // We need to copy the relevant bits.
                 StringBuilder annot = new StringBuilder();
-                if (one != null) {
+                for (AnnotationMirror mirror: annotationMirrors) {
                     annot.append('\t');
-                    String line = one.toString();
-                    // Remove nasty void class, gollum, gollum
-                    line = line.replace(", targetEntity=void.class", "");
-                    annot.append(line);
-
+                    // Get what was written in the annotation
+                    // This may require some extra imports
+                    annot.append(mirror.toString());
                     annot.append("\n");
-                } else if (many != null) {
-                    annot.append('\t');
-                    String line = many.toString();
-                    // Remove nasty void class, gollum, gollum
-                    line = line.replace(", targetEntity=void.class", "");
-                    annot.append(line);
-                    annot.append('\n');
-                }
-
-                if(mapsId != null) {
-                    annot.append('\t');
-                    annot.append(mapsId.toString());
-                    annot.append('\n');
-                }
-                if(joinColumn != null) {
-                    annot.append('\t');
-                    annot.append(joinColumn.toString());
-                    annot.append('\n');
                 }
                 annotation = annot.toString().stripTrailing();
 
