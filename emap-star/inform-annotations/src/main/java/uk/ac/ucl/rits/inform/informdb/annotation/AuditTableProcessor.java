@@ -502,7 +502,7 @@ public class AuditTableProcessor extends AbstractProcessor {
      */
     private void generateCopyConstructor(PrintWriter out, String typeName, String primaryKey, List<FieldStore> fields) {
         out.println("\t/**");
-        out.println("\t* Copy constuctor.");
+        out.println("\t* Copy constructor.");
         out.println("\t* @param other original entity to be copied.");
         out.println("\t*/");
         out.print("\tpublic ");
