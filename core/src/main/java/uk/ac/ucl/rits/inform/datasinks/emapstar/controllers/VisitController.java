@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmissionDateTime;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
@@ -133,19 +134,13 @@ public class VisitController {
             updateGenericData(msg, visitState);
 
             // process message based on the class type
-            if (msg instanceof RegisterPatient) {
-                addRegistrationInformation((RegisterPatient) msg, visitState);
-            } else if (msg instanceof DischargePatient) {
-                addDischargeInformation((DischargePatient) msg, visitState);
-            } else if (msg instanceof CancelDischargePatient) {
+            if (msg instanceof CancelDischargePatient) {
                 removeDischargeInformation((AdtCancellation) msg, visitState);
-            } else if (msg instanceof AdmissionDateTime) {
-                addAdmissionDateTime((AdmissionDateTime) msg, visitState);
             } else if (msg instanceof CancelAdmitPatient) {
                 removeAdmissionInformation((AdtCancellation) msg, visitState);
             }
         }
-        addPresentationOrAdmissionTimeIfMissing(msg, visitState);
+        addPresentationAdmissionOrDischargeTime(msg, visitState);
         visitState.saveEntityOrAuditLogIfRequired(hospitalVisitRepo, hospitalVisitAuditRepo);
         return visitState.getEntity();
     }
@@ -156,15 +151,20 @@ public class VisitController {
      * @param msg        adt message
      * @param visitState visit wrapped in state class
      */
-    private void addPresentationOrAdmissionTimeIfMissing(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
+    private void addPresentationAdmissionOrDischargeTime(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         if (!DataSources.isTrusted(msg.getSourceSystem())) {
             return;
         }
 
-        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null) {
+        // Add admission date time from any message that has it if it doesn't exist already, always update from an AdmitPatient message
+        if (msg instanceof AdmissionDateTime && visitState.getEntity().getAdmissionTime() == null || msg instanceof AdmitPatient) {
             addAdmissionDateTime((AdmissionDateTime) msg, visitState);
-        } else if (msg instanceof RegisterPatient && visitState.getEntity().getPresentationTime() == null) {
+        } else if (msg instanceof RegisterPatient) {
             addRegistrationInformation((RegisterPatient) msg, visitState);
+        }
+        // Process discharge separately because it can add an AdmissionDateTime if it doesn't already exist
+        if (msg instanceof DischargePatient) {
+            addDischargeInformation((DischargePatient) msg, visitState);
         }
     }
 
