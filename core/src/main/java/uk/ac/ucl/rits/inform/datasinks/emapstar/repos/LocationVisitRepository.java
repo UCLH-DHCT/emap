@@ -43,6 +43,11 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
     Optional<LocationVisit> findFirstByHospitalVisitIdAndLocationIdAndDischargeTimeLessThanEqualOrderByDischargeTimeDesc(
             HospitalVisit visit, Location locationId, Instant dischargeTime);
 
+    /**
+     * @param visit hospital visit
+     * @return true a location visit by hospital visit id
+     */
+    boolean existsByHospitalVisitId(HospitalVisit visit);
 
     /**
      * For testing: find by location string.

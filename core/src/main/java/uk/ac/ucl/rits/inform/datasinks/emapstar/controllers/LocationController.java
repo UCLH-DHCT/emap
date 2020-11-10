@@ -134,6 +134,11 @@ public class LocationController {
      * @param validFrom      message event date time
      */
     private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
+        if (msg instanceof UpdatePatientInfo && locationVisitRepo.existsByHospitalVisitId(visit)) {
+            logger.debug("UpdatePatientInfo message ignored because a previous visit location for this encounter already exists");
+            return;
+        }
+
         RowState<LocationVisit, LocationVisitAudit> existingLocationState = getOrCreateOpenLocation(
                 visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
 
