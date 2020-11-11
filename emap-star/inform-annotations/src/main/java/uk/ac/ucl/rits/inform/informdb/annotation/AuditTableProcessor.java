@@ -58,7 +58,7 @@ import com.google.auto.service.AutoService;
  *
  */
 @SupportedAnnotationTypes("uk.ac.ucl.rits.inform.informdb.annotation.AuditTable")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_11)
 @AutoService(Processor.class)
 public class AuditTableProcessor extends AbstractProcessor {
 
