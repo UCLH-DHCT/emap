@@ -181,7 +181,8 @@ public class AuditTableProcessor extends AbstractProcessor {
     /**
      * Generate the imports.
      *
-     * @param out The printWriter to write to.
+     * @param out        The printWriter to write to.
+     * @param baseImport The name of the package this class should be in.
      */
     private void generateImports(PrintWriter out, String baseImport) {
         out.println("import javax.persistence.Column;");
@@ -209,7 +210,7 @@ public class AuditTableProcessor extends AbstractProcessor {
     }
 
     /**
-     * Generate annotations and the class declaration for the audit class
+     * Generate annotations and the class declaration for the audit class.
      *
      * @param out            File to write to
      * @param baseClassName  Name of the data class
@@ -242,6 +243,7 @@ public class AuditTableProcessor extends AbstractProcessor {
      * @param fields     The fields in the object being copied.
      * @return List of fields in the original object, with the Foreign key status
      */
+    @SuppressWarnings("checkstyle:MethodLength")
     private List<FieldStore> generateFields(PrintWriter out, String primaryKey, List<VariableElement> fields) {
         // Skip serialVersionUID - Different versions probably shouldn't be able to talk
         // to each other.
@@ -372,7 +374,7 @@ public class AuditTableProcessor extends AbstractProcessor {
             }
 
             String annotation = null;
-            String foriegnKeyName = null;
+            String foreignKeyName = null;
 
             if (!isForeignKey) {
                 // If it's a normal column, then get the @Column properties
@@ -392,7 +394,7 @@ public class AuditTableProcessor extends AbstractProcessor {
                 // You have to have an annotation to define the relationships.
                 // We need to copy the relevant bits.
                 StringBuilder annot = new StringBuilder();
-                for (AnnotationMirror mirror: annotationMirrors) {
+                for (AnnotationMirror mirror : annotationMirrors) {
                     annot.append('\t');
                     // Get what was written in the annotation
                     // This may require some extra imports
@@ -412,18 +414,18 @@ public class AuditTableProcessor extends AbstractProcessor {
                             "Found field with @MapsId and @JoinColumn. Cannot proceed.", field);
                     continue;
                 } else if (mapsId != null) {
-                    foriegnKeyName = mapsId.value();
-                    if (foriegnKeyName.isBlank()) {
+                    foreignKeyName = mapsId.value();
+                    if (foreignKeyName.isBlank()) {
                         // Goes to the primary key of the type
                         // Foreign key must be a declared type - because you can't link to a primitive
-                        foriegnKeyName = this.getPrimaryKeyName((DeclaredType) type);
+                        foreignKeyName = this.getPrimaryKeyName((DeclaredType) type);
                     }
                 } else {
-                    foriegnKeyName = joinColumn.referencedColumnName();
-                    if (foriegnKeyName.isBlank()) {
+                    foreignKeyName = joinColumn.referencedColumnName();
+                    if (foreignKeyName.isBlank()) {
                         // Goes to the primary key of the type
                         // Foreign key must be a declared type - because you can't link to a primitive
-                        foriegnKeyName = this.getPrimaryKeyName((DeclaredType) type);
+                        foreignKeyName = this.getPrimaryKeyName((DeclaredType) type);
                     }
                     String colDef = joinColumn.columnDefinition();
                     boolean nullable = joinColumn.nullable();
@@ -435,7 +437,7 @@ public class AuditTableProcessor extends AbstractProcessor {
 
             String fieldName = field.getSimpleName().toString();
             // Foreign keys are only treated specially if they are temporal!
-            fieldShorts.add(new FieldStore(fieldName, isTemporal && isForeignKey, foriegnKeyName));
+            fieldShorts.add(new FieldStore(fieldName, isTemporal && isForeignKey, foreignKeyName));
             this.generateSingleField(out, annotation, typeName, fieldName);
         }
 
@@ -463,42 +465,15 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println();
 
         // Lombok will generate the getters / setters
-//        // Getter
-//        String nameCap = this.capitalizeInitial(fieldName);
-//        out.print("\tpublic ");
-//        out.print(typeName);
-//        out.print(" get");
-//        out.print(nameCap);
-//        out.println("() {");
-//        out.print("\t\treturn this.");
-//        out.print(fieldName);
-//        out.println(";");
-//        out.println("\t}");
-//        out.println();
-//
-//        // Setter
-//        out.print("\tpublic void set");
-//        out.print(nameCap);
-//        out.print("(");
-//        out.print(typeName);
-//        out.print(' ');
-//        out.print(fieldName);
-//        out.println(") {");
-//        out.print("\t\tthis.");
-//        out.print(fieldName);
-//        out.print(" = ");
-//        out.print(fieldName);
-//        out.println(";");
-//        out.println("\t}");
-//        out.println();
     }
 
     /**
-     * Generate a copy constructor;
+     * Generate a copy constructor.
      *
-     * @param out      File to write to
-     * @param typeName The name of the class
-     * @param fields   The fields that need assigning
+     * @param out        File to write to
+     * @param typeName   The name of the class
+     * @param primaryKey The name of the primary key for the audit class
+     * @param fields     The fields that need assigning
      */
     private void generateCopyConstructor(PrintWriter out, String typeName, String primaryKey, List<FieldStore> fields) {
         out.println("\t/**");
@@ -576,7 +551,7 @@ public class AuditTableProcessor extends AbstractProcessor {
     }
 
     /**
-     * Capitalise the first letter in a String for camelCase naming
+     * Capitalise the first letter in a String for camelCase naming.
      *
      * @param s The text
      * @return the text with a captial first letter
@@ -588,7 +563,7 @@ public class AuditTableProcessor extends AbstractProcessor {
     }
 
     /**
-     * Lowercase the first letter in a String for camelCase naming
+     * Lowercase the first letter in a String for camelCase naming.
      *
      * @param s the text
      * @return the text with the first letter lowercase
@@ -619,7 +594,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         public final String  primaryKeyName;
         public final String  fieldName;
 
-        public FieldStore(String fieldName, boolean isForeignKey, String primaryKeyName) {
+        FieldStore(String fieldName, boolean isForeignKey, String primaryKeyName) {
             this.isForeignKey = isForeignKey;
             this.fieldName = fieldName;
             this.primaryKeyName = primaryKeyName;

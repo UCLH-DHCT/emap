@@ -16,11 +16,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.target>11</maven.compiler.target>
-		<maven.compiler.source>11</maven.compiler.source>
 		<hibernate.core.version>5.4.21.Final</hibernate.core.version>
-		<checkstyle.version>8.33</checkstyle.version>
-		<checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
 		<jackson.annotations.version>2.9.9</jackson.annotations.version>
 		<lombok.version>(1.18.11, 1.19)</lombok.version>
 		<!-- automatically run annotation processors within the incremental compilation -->
@@ -72,11 +68,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
-				</configuration>
 			</plugin>
 
 		</plugins>
