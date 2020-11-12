@@ -1,9 +1,23 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -18,19 +32,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
@@ -126,7 +127,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Admit a patient and then cancel the admit
+     * Admit a patient and then cancel the admit.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -308,7 +309,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Database has information that is not from a trusted source, older message should still be processed
+     * Database has information that is not from a trusted source, older message should still be processed.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -330,7 +331,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
 
     /**
-     * Duplicate admit message should not create another audit table row
+     * Duplicate admit message should not create another audit table row.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -368,7 +369,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Older message should to nothing
+     * Older message should to nothing.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -388,7 +389,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * MoveVisitInformation for existing MRNs and visits
+     * MoveVisitInformation for existing MRNs and visits.
      * Should change the MRN and encounter string,
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */

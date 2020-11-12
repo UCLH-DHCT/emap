@@ -62,7 +62,7 @@ public abstract class MessageStreamBaseCase {
     protected int                        nextToProcess                = 0;
 
     protected Instant                    currentTime                  = Instant.parse("2020-03-01T06:30:00.000Z");
-    protected final String[]             allLocations                 = { "T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
+    protected final String[]             allLocations                 = {"T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
             "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN" };
     protected int                        currentLocation              = 0;
     protected String                     mrn                          = "1234ABCD";
@@ -232,6 +232,8 @@ public abstract class MessageStreamBaseCase {
     /**
      * See the next location without changing state. When the end of the array is
      * reached, loop around.
+     *
+     * @return The next location coming up in the list
      */
     protected String peekNextLocation() {
         int loc = (this.currentLocation + 1) % this.allLocations.length;
@@ -249,7 +251,7 @@ public abstract class MessageStreamBaseCase {
     }
 
     /**
-     * Get the time of the last transfer
+     * Get the time of the last transfer.
      *
      * @return The time of the last transfer
      */
@@ -294,6 +296,8 @@ public abstract class MessageStreamBaseCase {
 
     /**
      * Queue a patient update message.
+     *
+     * @param patientClass the patient class to set
      */
     public void queueUpdatePatientDetails(Hl7Value<PatientClass> patientClass) {
         boolean impliedTransfer = this.admissionTime == null;

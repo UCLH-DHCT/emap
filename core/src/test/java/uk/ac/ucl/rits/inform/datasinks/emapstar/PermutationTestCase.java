@@ -87,7 +87,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     }
 
     /**
-     * Queue a registration message
+     * Queue a registration message.
      */
     private void queueRegister() {
         queueRegister(this.getPatientClass());

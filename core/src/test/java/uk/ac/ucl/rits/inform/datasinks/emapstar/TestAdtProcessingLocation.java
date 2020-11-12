@@ -1,16 +1,21 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
+
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
@@ -22,10 +27,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
 class TestAdtProcessingLocation extends MessageProcessingBase {
     @Autowired
@@ -68,7 +69,9 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisit dischargedVisit = locationVisitRepository
+                .findByLocationIdLocationString(originalLocation)
+                .orElseThrow(NullPointerException::new);
         Assertions.assertNotNull(dischargedVisit.getDischargeTime());
 
         // current location visit is different
@@ -78,7 +81,9 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNotEquals(originalLocation, currentVisit.getLocationId().getLocationString());
 
         // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository
+                .findByLocationIdLocationString(originalLocation)
+                .orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 
@@ -95,11 +100,15 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisit dischargedVisit = locationVisitRepository
+                .findByLocationIdLocationString(originalLocation)
+                .orElseThrow(NullPointerException::new);
         Assertions.assertNotNull(dischargedVisit.getDischargeTime());
 
         // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository
+                .findByLocationIdLocationString(originalLocation)
+                .orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 
@@ -142,7 +151,9 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
+        LocationVisit dischargedVisit = locationVisitRepository
+                .findByLocationIdLocationString(untrustedLocation)
+                .orElseThrow(NullPointerException::new);
         Assertions.assertNotNull(dischargedVisit.getDischargeTime());
 
         // current location visit is different
@@ -152,7 +163,9 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocationId().getLocationString());
 
         // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
+        LocationVisitAudit audit = locationVisitAuditRepository
+                .findByLocationIdLocationString(untrustedLocation)
+                .orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
 
@@ -210,7 +223,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     }
 
     /**
-     * Location visit exists in the database
+     * Location visit exists in the database.
      * Cancel admit should remove the existing location visit
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
@@ -278,7 +291,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     }
 
     /**
-     * Encounter has discharged location visit
+     * Encounter has discharged location visit.
      * Cancel discharge message should remove the discharged date time from the original visit
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
