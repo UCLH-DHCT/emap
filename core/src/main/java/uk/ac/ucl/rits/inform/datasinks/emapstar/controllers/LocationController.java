@@ -102,9 +102,9 @@ public class LocationController {
                 visitB, locationA, msg.getSourceSystem(), validFrom, storedFrom);
         // swap to the correct locations
         visitStateA.assignHl7ValueIfDifferent(
-                Hl7Value.buildFromHl7(locationA), visitStateA.getEntity().getLocation(), visitStateA.getEntity()::setLocation);
+                Hl7Value.buildFromHl7(locationA), visitStateA.getEntity().getLocationId(), visitStateA.getEntity()::setLocationId);
         visitStateB.assignHl7ValueIfDifferent(
-                Hl7Value.buildFromHl7(locationB), visitStateB.getEntity().getLocation(), visitStateB.getEntity()::setLocation);
+                Hl7Value.buildFromHl7(locationB), visitStateB.getEntity().getLocationId(), visitStateB.getEntity()::setLocationId);
         // save newly created or audit
         visitStateA.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
         visitStateB.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
@@ -277,7 +277,7 @@ public class LocationController {
      * @return true if locations are different
      */
     private boolean isNewLocationDifferent(Location newLocation, LocationVisit originalLocationVisit) {
-        return !newLocation.equals(originalLocationVisit.getLocation());
+        return !newLocation.equals(originalLocationVisit.getLocationId());
     }
 
     /**

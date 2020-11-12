@@ -325,10 +325,10 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         // Check living
         if (this.patientAlive.isUnknown()) {
-            assertNull(demo.isAlive());
+            assertNull(demo.getAlive());
         } else {
             // Ensure that the death status is correct
-            assertEquals(this.patientAlive.get(), demo.isAlive());
+            assertEquals(this.patientAlive.get(), demo.getAlive());
 
             // Ensure death time is correct
             if (this.deathTime.isUnknown()) {
