@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
@@ -30,7 +31,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table
+@Table(indexes = {@Index(name = "cd_mrn_id", columnList = "mrnId")})
 @Data()
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
