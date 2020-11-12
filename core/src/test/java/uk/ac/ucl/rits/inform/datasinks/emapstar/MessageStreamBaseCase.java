@@ -138,7 +138,7 @@ public abstract class MessageStreamBaseCase {
      * Process the next n messages in the list.
      *
      * @param n Number of messages to process.
-     * @throws EmapOperationMessageProcessingException.
+     * @throws EmapOperationMessageProcessingException  If message can't be processed
      * @throws IndexOutOfBoundsException                If n is larger than the
      *                                                  remaining number of
      *                                                  messages.
@@ -277,7 +277,7 @@ public abstract class MessageStreamBaseCase {
         this.vitalTime.add(vitalTime);
 
         VitalSigns vital = new VitalSigns();
-        vital.setSourceSystem("VERY EPIC");
+        vital.setSourceSystem("EPIC");
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
         vital.setVitalSignIdentifier("HEART_RATE");
@@ -310,7 +310,7 @@ public abstract class MessageStreamBaseCase {
         UpdatePatientInfo update = new UpdatePatientInfo();
         update.setRecordedDateTime(this.currentTime);
         update.setEventOccurredDateTime(this.currentTime);
-        update.setSourceSystem("VERY EPIC");
+        update.setSourceSystem("EPIC");
         update.setMrn(this.mrn);
         update.setNhsNumber(this.nhsNumber);
         update.setVisitNumber(this.csn);
@@ -367,7 +367,7 @@ public abstract class MessageStreamBaseCase {
         admit.setAdmissionDateTime(this.admissionTime);
         admit.setEventOccurredDateTime(eventTime);
         admit.setRecordedDateTime(eventTime);
-        admit.setSourceSystem("VERY EPIC");
+        admit.setSourceSystem("EPIC");
         admit.setMrn(this.mrn);
         admit.setVisitNumber(this.csn);
         admit.setPatientClass(this.getPatientClass());
@@ -401,7 +401,7 @@ public abstract class MessageStreamBaseCase {
         register.setPresentationDateTime(this.presentationTime);
         register.setEventOccurredDateTime(eventTime);
         register.setRecordedDateTime(eventTime);
-        register.setSourceSystem("VERY EPIC");
+        register.setSourceSystem("EPIC");
         register.setMrn(this.mrn);
         register.setVisitNumber(this.csn);
         register.setPatientClass(this.getPatientClass());
@@ -456,7 +456,7 @@ public abstract class MessageStreamBaseCase {
         transfer.setAdmissionDateTime(this.admissionTime);
         transfer.setEventOccurredDateTime(tTime);
         transfer.setRecordedDateTime(tTime);
-        transfer.setSourceSystem("VERY EPIC");
+        transfer.setSourceSystem("EPIC");
         transfer.setMrn(this.mrn);
         transfer.setVisitNumber(this.csn);
         transfer.setPatientClass(this.getPatientClass());
@@ -484,7 +484,7 @@ public abstract class MessageStreamBaseCase {
 
         cancelAdmit.setEventOccurredDateTime(expectedCancellationDateTime);
         cancelAdmit.setRecordedDateTime(expectedCancellationDateTime);
-        cancelAdmit.setSourceSystem("VERY EPIC");
+        cancelAdmit.setSourceSystem("EPIC");
         cancelAdmit.setMrn(this.mrn);
         cancelAdmit.setVisitNumber(this.csn);
         cancelAdmit.setPatientClass(this.getPatientClass());
@@ -522,7 +522,7 @@ public abstract class MessageStreamBaseCase {
         cancelTransfer.setCancelledDateTime(eventTime);
         cancelTransfer.setEventOccurredDateTime(erroneousTransferDateTime);
         cancelTransfer.setRecordedDateTime(eventTime);
-        cancelTransfer.setSourceSystem("VERY EPIC");
+        cancelTransfer.setSourceSystem("EPIC");
         cancelTransfer.setMrn(this.mrn);
         cancelTransfer.setVisitNumber(this.csn);
         cancelTransfer.setPatientClass(this.getPatientClass());
@@ -548,7 +548,7 @@ public abstract class MessageStreamBaseCase {
         discharge.setAdmissionDateTime(this.admissionTime);
         discharge.setEventOccurredDateTime(this.dischargeTime);
         discharge.setRecordedDateTime(this.dischargeTime);
-        discharge.setSourceSystem("VERY EPIC");
+        discharge.setSourceSystem("EPIC");
         discharge.setMrn(this.mrn);
         discharge.setFullLocationString(currentLocation());
         discharge.setVisitNumber(this.csn);
@@ -574,7 +574,7 @@ public abstract class MessageStreamBaseCase {
         CancelDischargePatient cancelDischarge = new CancelDischargePatient();
         cancelDischarge.setEventOccurredDateTime(eventTime);
         cancelDischarge.setRecordedDateTime(eventTime);
-        cancelDischarge.setSourceSystem("VERY EPIC");
+        cancelDischarge.setSourceSystem("EPIC");
         cancelDischarge.setMrn(this.mrn);
         cancelDischarge.setVisitNumber(this.csn);
         cancelDischarge.setPatientClass(this.getPatientClass());
@@ -600,7 +600,7 @@ public abstract class MessageStreamBaseCase {
 
         MergePatient merge = new MergePatient();
 
-        merge.setSourceSystem("VERY EPIC");
+        merge.setSourceSystem("EPIC");
         merge.setEventOccurredDateTime(eventTime);
         merge.setRecordedDateTime(eventTime);
         merge.setMrn(survivingMrn);
