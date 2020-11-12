@@ -1,10 +1,25 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
+import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
+import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -14,25 +29,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
-import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographicAudit;
-import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
-import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
-import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
-import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
-import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
-import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
-import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Autowired
@@ -103,10 +104,10 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
 
-        /**
-         * Mrn already exists
-         * no new Mrns should be created but demographics should be updated with known data from the message.
-         */
+    /**
+     * Mrn already exists
+     * no new Mrns should be created but demographics should be updated with known data from the message.
+     */
     @Test
     @Sql(value = "/populate_db.sql")
     public void testMrnExists() throws EmapOperationMessageProcessingException {
@@ -424,6 +425,48 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         msg.setMrn(newMrnString);
 
         assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
+    }
+
+    /**
+     * Test that combinations of identifiers for the same patient are processed without error.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testIdenfiercombinations() throws EmapOperationMessageProcessingException {
+        AdmitPatient noNHSNumber = messageFactory.getAdtMessage("generic/A01.yaml");
+        noNHSNumber.setNhsNumber(null);
+        noNHSNumber.setMrn("mrn");
+        noNHSNumber.setVisitNumber("1");
+        noNHSNumber.setEventOccurredDateTime(past);
+
+        AdmitPatient noMRN = messageFactory.getAdtMessage("generic/A01.yaml");
+        noMRN.setNhsNumber("nhs");
+        noMRN.setMrn(null);
+        noMRN.setVisitNumber("2");
+        noNHSNumber.setEventOccurredDateTime(past.plus(1, ChronoUnit.MINUTES));
+
+        AdmitPatient mrnAndNhsNumber = messageFactory.getAdtMessage("generic/A01.yaml");
+        mrnAndNhsNumber.setNhsNumber("nhs");
+        mrnAndNhsNumber.setMrn("mrn");
+        noNHSNumber.setEventOccurredDateTime(past.plus(2, ChronoUnit.MINUTES));
+
+        AdmitPatient newMrnSameNhs = messageFactory.getAdtMessage("generic/A01.yaml");
+        newMrnSameNhs.setNhsNumber("nhs");
+        newMrnSameNhs.setMrn("mrn2");
+        newMrnSameNhs.setEventOccurredDateTime(past.plus(3, ChronoUnit.MINUTES));
+
+        dbOps.processMessage(noNHSNumber);
+        dbOps.processMessage(noMRN);
+        dbOps.processMessage(mrnAndNhsNumber);
+        dbOps.processMessage(newMrnSameNhs);
+
+        // first MRN should only exist once in the database and have NHS number added to it
+        Mrn firstMrn = mrnRepo.findByMrnEquals("mrn").orElseThrow();
+        Assertions.assertNotNull(firstMrn.getNhsNumber());
+
+        // should have 3 MRNS as nhs number is added to MRN that originally didn't have one
+        List<Mrn> mrns = getAllMrns();
+        Assertions.assertEquals(3, mrns.size());
     }
 
 }
