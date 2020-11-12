@@ -53,7 +53,7 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
 
     private Long              parentLocationVisitId;
 
-    @Column(columnDefinition = "timestamp with time zone")
+    @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant           admissionTime;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant           dischargeTime;
