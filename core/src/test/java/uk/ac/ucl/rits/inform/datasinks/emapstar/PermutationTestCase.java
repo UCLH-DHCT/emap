@@ -45,9 +45,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private int                      maxTestLength;
 
     /**
-     * List of all queueing operations being tested.
-     * Operations that don't create demographics must be at the start, with index <= to the noDemoEndIndex
-     * Note that queueDischarge must be last.
+     * List of all queueing operations being tested. Operations that don't create
+     * demographics must be at the start, with index <= to the noDemoEndIndex Note
+     * that queueDischarge must be last.
      */
     private Runnable[]               operations   = {
             this::queueFlowsheet,
@@ -62,7 +62,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private final int noDemoEndIndex = 0;
 
     @SuppressWarnings("unchecked")
-    private Hl7Value<PatientClass>[] patientClass = new Hl7Value[] {
+    private Hl7Value<PatientClass>[] patientClass   = new Hl7Value[] {
             new Hl7Value<>(PatientClass.EMERGENCY),
             new Hl7Value<>(PatientClass.OUTPATIENT), new Hl7Value<>(PatientClass.INPATIENT),
             new Hl7Value<>(PatientClass.DAY_CASE), new Hl7Value<>(PatientClass.SURGICAL_ADMISSION) };
@@ -201,7 +201,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             operations[i].run();
             processN(1);
             this.checkMrn();
-            this.checkAdmission();
+            this.checkEncounter();
             if (i > this.noDemoEndIndex) {
                 this.checkDemographics();
             }
@@ -302,16 +302,20 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     }
 
     /**
-     * Check that the admission is correct.
+     * Check that the encounter information is correct.
      */
-    private void checkAdmission() {
-        if (this.admissionTime.isUnknown()) {
+    private void checkEncounter() {
+        if (this.admissionTime.isUnknown() && this.presentationTime.isUnknown()) {
             return;
         }
-
         HospitalVisit visit = this.hospitalVisitRepository.findByEncounter(this.csn).get();
 
-        assertEquals(this.admissionTime.get(), visit.getAdmissionTime());
+        if (!this.presentationTime.isUnknown()) {
+            assertEquals(this.presentationTime.get(), visit.getPresentationTime());
+        }
+        if (!this.admissionTime.isUnknown()) {
+            assertEquals(this.admissionTime.get(), visit.getAdmissionTime());
+        }
         assertEquals(super.getPatientClass().get().toString(), visit.getPatientClass());
         assertEquals(this.dischargeTime, visit.getDischargeTime());
     }
@@ -355,11 +359,11 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             assertEquals(demo.getLastname(), this.lName.get());
         }
 
-
     }
 
     /**
-     * Test that the invalid and unstored orders are present after a cancel transfer.
+     * Test that the invalid and unstored orders are present after a cancel
+     * transfer.
      */
     public void testCancelTransfer() {
 
