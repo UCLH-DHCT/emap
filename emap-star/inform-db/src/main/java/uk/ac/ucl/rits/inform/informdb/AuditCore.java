@@ -20,6 +20,7 @@ import lombok.ToString;
  * be contaminated by new data in reproducibility studies).
  *
  * @author UCL RITS
+ * @param <A> Audit table class
  */
 @SuppressWarnings("serial")
 @Data
@@ -49,7 +50,7 @@ public abstract class AuditCore<A extends AuditCore<A>> extends TemporalCore<A, 
     }
 
     /**
-     * Construct from a main instance
+     * Construct from a main instance.
      * @param other TemporalCore to set start times from
      * @param validUntil validUntil to set
      * @param storedUntil storedUntil to set
