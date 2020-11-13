@@ -101,7 +101,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
      * to the CSN.
      */
     @Column(nullable = false, unique = true)
-    protected String encounter;
+    private String encounter;
 
     /**
      * Default constructor.
