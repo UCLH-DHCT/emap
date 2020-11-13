@@ -20,10 +20,12 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Entry point class for the HL7 pipeline.
@@ -34,6 +36,7 @@ import java.time.Instant;
         "uk.ac.ucl.rits.inform.informdb"})
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
+    private static final double NANOSECONDS_IN_SECONDS = TimeUnit.SECONDS.toNanos(1);
 
     @Autowired
     private InformDbOperations dbOps;
@@ -76,9 +79,9 @@ public class App {
         Instant startTime = Instant.now();
         idsEffectLogging.setProcessingStartTime(startTime);
         idsEffectLogging.setMessageType(msg.getMessageType());
-//        if (msg instanceof OldAdtMessage) {
-//            idsEffectLogging.setEventReasonCode(((OldAdtMessage) msg).getEventReasonCode());
-//        }
+        if (msg instanceof AdtMessage) {
+            idsEffectLogging.setMessageDatetime(((AdtMessage) msg).getRecordedDateTime());
+        }
         idsEffectLogging.setSourceId(msg.getSourceMessageId());
         try {
             logger.info("Starting processing of interchange message {}", msg.getSourceMessageId());
@@ -86,7 +89,7 @@ public class App {
             msg.processMessage(dbOps);
             Instant doneProcessMessageTime = Instant.now();
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
-            idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
+            idsEffectLogging.setProcessMessageDuration(processMessageDuration.toNanos() / App.NANOSECONDS_IN_SECONDS);
             idsEffectLogging.setError(false);
             logger.info("Sending ACK for {}", msg.getSourceMessageId());
             channel.basicAck(tag, false);
