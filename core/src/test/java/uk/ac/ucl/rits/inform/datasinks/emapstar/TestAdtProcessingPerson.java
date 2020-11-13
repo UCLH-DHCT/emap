@@ -164,7 +164,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Sql(value = "/populate_db.sql")
     public void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
-        msg.setMrn(newMrnString);
+        msg = setDataForHospitalVisitId4002(msg);
 
         int startingMrnCount = getAllMrns().size();
 
@@ -213,11 +213,10 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
     @Test
     @Sql(value = "/populate_db.sql")
     public void testMergeNewRetiringAlreadyMergedSurviving() throws EmapOperationMessageProcessingException {
-        String messageSurvivingMrn = "60600000";
         String retiringMrnString = "60600005";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setPreviousMrn(retiringMrnString);
-        msg.setMrn(messageSurvivingMrn);
+        msg = setDataForHospitalVisitId4002(msg);
 
         String liveMrnString = "30700000";
 

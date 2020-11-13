@@ -219,8 +219,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
-        msg.setVisitNumber("1234567890");
-        msg.setMrn("60600000");
+        msg = setDataForHospitalVisitId4002(msg);
 
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
@@ -259,8 +258,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
-        msg.setVisitNumber("1234567890");
-        msg.setMrn("60600000");
+        msg = setDataForHospitalVisitId4002(msg);
 
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
