@@ -426,46 +426,43 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
     }
 
+    private void createAndProcess(String nhsNumber, String Mrn, Integer minuteAdded) throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+
+        msg.setNhsNumber(nhsNumber);
+        msg.setMrn(Mrn);
+        msg.setVisitNumber(minuteAdded.toString());
+        msg.setEventOccurredDateTime(past.plus(minuteAdded, ChronoUnit.MINUTES));
+        dbOps.processMessage(msg);
+    }
+
     /**
      * Test that combinations of identifiers for the same patient are processed without error.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testIdenfiercombinations() throws EmapOperationMessageProcessingException {
-        AdmitPatient noNHSNumber = messageFactory.getAdtMessage("generic/A01.yaml");
-        noNHSNumber.setNhsNumber(null);
-        noNHSNumber.setMrn("mrn");
-        noNHSNumber.setVisitNumber("1");
-        noNHSNumber.setEventOccurredDateTime(past);
+    void testNhsNumberUpdates() throws EmapOperationMessageProcessingException {
+        // first mrn
+        createAndProcess(null, "mrn", 0);
+        createAndProcess("nhs", "mrn", 2);
 
-        AdmitPatient noMRN = messageFactory.getAdtMessage("generic/A01.yaml");
-        noMRN.setNhsNumber("nhs");
-        noMRN.setMrn(null);
-        noMRN.setVisitNumber("2");
-        noNHSNumber.setEventOccurredDateTime(past.plus(1, ChronoUnit.MINUTES));
+        // second mrn
+        createAndProcess("nhs2", null, 1);
+        createAndProcess("nhs2", "mrn2", 3);
+        createAndProcess("nhs3", "mrn2", 4);
 
-        AdmitPatient mrnAndNhsNumber = messageFactory.getAdtMessage("generic/A01.yaml");
-        mrnAndNhsNumber.setNhsNumber("nhs");
-        mrnAndNhsNumber.setMrn("mrn");
-        noNHSNumber.setEventOccurredDateTime(past.plus(2, ChronoUnit.MINUTES));
-
-        AdmitPatient newMrnSameNhs = messageFactory.getAdtMessage("generic/A01.yaml");
-        newMrnSameNhs.setNhsNumber("nhs");
-        newMrnSameNhs.setMrn("mrn2");
-        newMrnSameNhs.setEventOccurredDateTime(past.plus(3, ChronoUnit.MINUTES));
-
-        dbOps.processMessage(noNHSNumber);
-        dbOps.processMessage(noMRN);
-        dbOps.processMessage(mrnAndNhsNumber);
-        dbOps.processMessage(newMrnSameNhs);
 
         // first MRN should only exist once in the database and have NHS number added to it
         Mrn firstMrn = mrnRepo.findByMrnEquals("mrn").orElseThrow();
         Assertions.assertNotNull(firstMrn.getNhsNumber());
 
-        // should have 3 MRNS as nhs number is added to MRN that originally didn't have one
+        // second MRN should now be updated with the new NHS number
+        Mrn secondMrn = mrnRepo.findByMrnEquals("mrn2").orElseThrow();
+        Assertions.assertEquals("nhs3", secondMrn.getNhsNumber());
+
+        // should have 2 MRNs
         List<Mrn> mrns = getAllMrns();
-        Assertions.assertEquals(3, mrns.size());
+        Assertions.assertEquals(2, mrns.size());
     }
 
 }

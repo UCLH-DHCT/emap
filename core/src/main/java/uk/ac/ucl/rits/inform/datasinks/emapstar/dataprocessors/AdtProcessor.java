@@ -55,13 +55,8 @@ public class AdtProcessor {
     public void processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
-
-        // Patient merges have no encounter information, so skip
-        if (!(msg instanceof MergePatient)) {
-            HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
-            locationController.processVisitLocation(visit, msg, storedFrom);
-        }
-
+        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+        locationController.processVisitLocation(visit, msg, storedFrom);
     }
 
     /**
@@ -76,12 +71,22 @@ public class AdtProcessor {
     public Mrn processPersonLevel(AdtMessage msg, Instant storedFrom, Instant messageDateTime) throws RequiredDataMissingException {
         Mrn mrn = personController.getOrCreateMrn(msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
         personController.updateOrCreateDemographic(mrn, msg, messageDateTime, storedFrom);
-
-        if (msg instanceof MergePatient) {
-            MergePatient mergePatient = (MergePatient) msg;
-            personController.mergeMrns(mergePatient, mrn, storedFrom);
-        }
         return mrn;
+    }
+
+    /**
+     * Process MergePatient message, saving changed to the database.
+     * @param msg        adt message
+     * @param storedFrom time that emap-core started processing the message.
+     * @throws RequiredDataMissingException if the suriving MRN is null or the previous MRN's mrn and nhs number are both null.
+     */
+    @Transactional
+    public void processMergePatient(MergePatient msg, Instant storedFrom) throws RequiredDataMissingException {
+        Mrn survivingMrn = personController.getOrCreateOnMrnOnly(
+                msg.getMrn(), msg.getNhsNumber(), msg.getSourceSystem(), msg.getRecordedDateTime(), storedFrom);
+        personController.updateOrCreateDemographic(survivingMrn, msg, msg.bestGuessAtValidFrom(), storedFrom);
+        personController.mergeMrns(msg, survivingMrn, storedFrom);
+
     }
 
     /**

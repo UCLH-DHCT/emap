@@ -27,12 +27,9 @@ public interface MrnRepository extends CrudRepository<Mrn, Long> {
             return findFirstByNhsNumberEquals(nhsNumber);
         }
         Optional<Mrn> mrnResult = findByMrnEquals(mrn);
-        // Add NHS number if it doesn't already exist
-        if (mrnResult.isPresent()) {
-            Mrn mrnEntity = mrnResult.get();
-            if (mrnEntity.getNhsNumber() == null) {
-                mrnEntity.setNhsNumber(nhsNumber);
-            }
+        if (mrnResult.isEmpty() && nhsNumber != null) {
+            // final attempt, try and find a row with an nhs number, but no MRN
+            mrnResult = findByNhsNumberEqualsAndMrnIsNull(nhsNumber);
         }
         return mrnResult;
     }

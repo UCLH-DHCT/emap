@@ -121,8 +121,55 @@ public class PersonController {
         logger.debug("Getting or creating MRN: mrn {}, nhsNumber {}", mrnString, nhsNumber);
         return mrnRepo
                 .findByMrnOrNhsNumber(mrnString, nhsNumber)
-                // mrn exists, get the live mrn
-                .map(mrn1 -> mrnToLiveRepo.getByMrnIdEquals(mrn1).getLiveMrnId())
+                .map(mrn -> updateIdentfiersAndGetLiveMrn(sourceSystem, mrnString, nhsNumber, mrn))
+                // otherwise create new mrn and mrn_to_live row
+                .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
+    }
+
+    /**
+     * Update identifiers (nhs number if different, MRN if missing), then return current live MRN.
+     * @param sourceSystem source system
+     * @param mrnString    MRN string
+     * @param nhsNumber    NHS number
+     * @param mrn          MRN entity
+     * @return the live MRN entity
+     */
+    private Mrn updateIdentfiersAndGetLiveMrn(final String sourceSystem, final String mrnString, final String nhsNumber, Mrn mrn) {
+        if (DataSources.isTrusted(sourceSystem)) {
+            if (nhsNumber != null && !nhsNumber.equals(mrn.getNhsNumber())) {
+                mrn.setNhsNumber(nhsNumber);
+            }
+            // Only update the MRN if we have an orphan NHS number with no MRN
+            if (mrnString != null && mrn.getMrn() == null && mrn.getNhsNumber() != null) {
+                mrn.setMrn(mrnString);
+            }
+        }
+
+        return mrnToLiveRepo.getByMrnIdEquals(mrn).getLiveMrnId();
+    }
+
+
+    /**
+     * Get or create MRN using only the MRN string for the get.
+     * @param mrnString       MRN
+     * @param nhsNumber       NHS number
+     * @param sourceSystem    source system
+     * @param messageDateTime date time of the message
+     * @param storedFrom      when the message has been read by emap core
+     * @return The live MRN for the patient.
+     * @throws RequiredDataMissingException If MRN is null
+     */
+    @Transactional
+    public Mrn getOrCreateOnMrnOnly(String mrnString, String nhsNumber, String sourceSystem, Instant messageDateTime, Instant storedFrom)
+            throws RequiredDataMissingException {
+        if (mrnString == null) {
+            throw new RequiredDataMissingException("No MRN found");
+        }
+        logger.debug("Getting or creating MRN: mrn {} only", mrnString);
+        return mrnRepo
+                .findByMrnEquals(mrnString)
+                // mrn exists, update NHS number if message source is trusted, then get the live mrn
+                .map(mrn -> updateIdentfiersAndGetLiveMrn(sourceSystem, mrnString, nhsNumber, mrn))
                 // otherwise create new mrn and mrn_to_live row
                 .orElseGet(() -> createNewLiveMrn(mrnString, nhsNumber, sourceSystem, messageDateTime, storedFrom));
     }
