@@ -333,10 +333,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
         Assertions.assertNull(reopenedVisit.getDischargeTime());
 
-        // intermediate update patient information visit is deleted
-        Optional<LocationVisitAudit> deletedOpenVisit = locationVisitAuditRepository.findByLocationIdLocationStringAndValidFrom(correctLocation, messageDateTime);
-        Assertions.assertTrue(deletedOpenVisit.isPresent());
-
         // processing a further message should not come into an error of more than one open location
         dbOps.processMessage(updatePatientInfo);
     }
