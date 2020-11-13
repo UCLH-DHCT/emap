@@ -137,10 +137,12 @@ public class PersonController {
     private Mrn updateIdentfiersAndGetLiveMrn(final String sourceSystem, final String mrnString, final String nhsNumber, Mrn mrn) {
         if (DataSources.isTrusted(sourceSystem)) {
             if (nhsNumber != null && !nhsNumber.equals(mrn.getNhsNumber())) {
+                logger.debug("Updating NHS number to {} for MRN {}", nhsNumber, mrn);
                 mrn.setNhsNumber(nhsNumber);
             }
             // Only update the MRN if we have an orphan NHS number with no MRN
             if (mrnString != null && mrn.getMrn() == null && mrn.getNhsNumber() != null) {
+                logger.debug("Updating mrn to {} for MRN {}", mrnString, mrn);
                 mrn.setMrn(mrnString);
             }
         }
