@@ -406,7 +406,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
         // Audit log should exist
         HospitalVisitAudit audit = hospitalVisitAuditRepository.findByEncounter(defaultEncounter);
-//        assertEquals(defaultMrn, audit.getMrnId().getMrn());
+        assertEquals(defaultMrn, audit.getMrnId().getMrn());
     }
 
     /**
