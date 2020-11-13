@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
@@ -422,8 +422,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         HospitalVisit preProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
 
         dbOps.processMessage(msg);
-
-        HospitalVisit postProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);;
 
         // No audit log should exist because visit was not updated
         assertTrue(getAllAuditHospitalVisits().isEmpty());
