@@ -34,8 +34,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(indexes = {@Index(name = "visit_discharge_time", columnList = "hospitalVisitId, dischargeTime DESC", unique = true),
-        @Index(name = "location_visit_discharge_time", columnList = "locationId, hospitalVisitId, dischargeTime DESC", unique = true)})
+@Table(indexes = {@Index(name = "visit_discharge_time", columnList = "hospitalVisitId, dischargeTime DESC"),
+        @Index(name = "location_visit_discharge_time", columnList = "locationId, hospitalVisitId, dischargeTime DESC")})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
