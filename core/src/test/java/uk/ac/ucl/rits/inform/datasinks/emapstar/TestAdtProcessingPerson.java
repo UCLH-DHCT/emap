@@ -341,9 +341,9 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         assertEquals(2, audits.size());
 
         // original live should be saved to audit
-//        for (MrnToLiveAudit audit : audits) {
-//            assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
-//        }
+        for (MrnToLiveAudit audit : audits) {
+            assertEquals(retiringMrnString, audit.getLiveMrnId().getMrn());
+        }
     }
 
     /**
