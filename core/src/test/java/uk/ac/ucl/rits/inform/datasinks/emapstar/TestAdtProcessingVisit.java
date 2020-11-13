@@ -423,12 +423,9 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
         dbOps.processMessage(msg);
 
-        HospitalVisit postProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        HospitalVisit postProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);;
 
-        // visit should be unchanged
-        assertEquals(preProcessingVisit, postProcessingVisit);
-
-        // No audit log should exist
+        // No audit log should exist because visit was not updated
         assertTrue(getAllAuditHospitalVisits().isEmpty());
     }
 

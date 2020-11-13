@@ -75,7 +75,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         LocationVisit currentVisit = locationVisitRepository
                 .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
                 .orElseThrow(NullPointerException::new);
-        Assertions.assertNotEquals(originalLocation, currentVisit.getLocation().getLocationString());
+        Assertions.assertNotEquals(originalLocation, currentVisit.getLocationId().getLocationString());
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
@@ -149,7 +149,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         LocationVisit currentVisit = locationVisitRepository
                 .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
                 .orElseThrow(NullPointerException::new);
-        Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocation().getLocationString());
+        Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocationId().getLocationString());
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
@@ -372,8 +372,8 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         LocationVisit swappedLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
         LocationVisit swappedLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
 
-        Assertions.assertEquals(originalLocationVisitB.getLocation(), swappedLocationVisitA.getLocation());
-        Assertions.assertEquals(originalLocationVisitA.getLocation(), swappedLocationVisitB.getLocation());
+        Assertions.assertEquals(originalLocationVisitB.getLocationId(), swappedLocationVisitA.getLocationId());
+        Assertions.assertEquals(originalLocationVisitA.getLocationId(), swappedLocationVisitB.getLocationId());
 
     }
 }

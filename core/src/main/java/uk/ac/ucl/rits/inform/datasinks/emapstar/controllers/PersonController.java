@@ -200,7 +200,7 @@ public class PersonController {
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientSex(), demo.getSex(), demo::setSex);
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientZipOrPostalCode(), demo.getHomePostcode(), demo::setHomePostcode);
         // death
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientIsAlive(), demo.isAlive(), demo::setAlive);
+        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientIsAlive(), demo.getAlive(), demo::setAlive);
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientDeathDateTime(), demo.getDateOfDeath(), demo::setDateOfDeath);
         demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientDeathDateTime(), demo.getDatetimeOfDeath(), demo::setDatetimeOfDeath);
     }
