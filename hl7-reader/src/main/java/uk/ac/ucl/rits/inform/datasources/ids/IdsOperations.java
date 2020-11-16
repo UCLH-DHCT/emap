@@ -474,8 +474,8 @@ public class IdsOperations implements AutoCloseable {
                 if (triggerEvent.equals("R01")) {
                     if (sendingFacility.equals("Vitals")) {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                        VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
-                        messages.addAll(vitalSignBuilder.getMessages());
+                        FlowsheetBuilder flowsheetBuilder = new FlowsheetBuilder(sourceId, (ORU_R01) msgFromIds);
+                        messages.addAll(flowsheetBuilder.getMessages());
                     } else {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         // get all result batteries in the message

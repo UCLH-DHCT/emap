@@ -17,33 +17,33 @@ import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.interchange.ResultStatus;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Build one or more vitalsigns from HL7 message.
+ * Build one or more flowsheets from HL7 message.
  * @author Stef Piatek
  */
-public class VitalSignBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(VitalSignBuilder.class);
-    private List<VitalSigns> vitalSigns = new ArrayList<>();
+public class FlowsheetBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(FlowsheetBuilder.class);
+    private List<Flowsheet> flowsheets = new ArrayList<>();
 
     /**
      * @return VitalSign messages populated from contstuctor.
      */
-    public List<VitalSigns> getMessages() {
-        return vitalSigns;
+    public List<Flowsheet> getMessages() {
+        return flowsheets;
     }
 
     /**
-     * Populates VitalSign messages from a ORU R01 HL7message.
+     * Populates Flowsheet messages from a ORU R01 HL7message.
      * Allows multiple: OBR segments, OBX segments, NTE segments, OBX lines and NTE lines
      * @param idsUnid Unique id from UDS
      * @param oruR01  ORU R01 HL7 VitalSign message from EPIC
      */
-    public VitalSignBuilder(String idsUnid, ORU_R01 oruR01) {
+    public FlowsheetBuilder(String idsUnid, ORU_R01 oruR01) {
         // define Id here so can use it for logging if MSH or order obs throws HL7 Exception
         String subMessageSourceId = idsUnid;
 
@@ -63,8 +63,8 @@ public class VitalSignBuilder {
                     msgSuffix++;
                     subMessageSourceId = String.format("%s$%02d", idsUnid, msgSuffix);
                     try {
-                        VitalSigns vitalSign = createVitalSign(subMessageSourceId, observation, msh, pid, pv1);
-                        vitalSigns.add(vitalSign);
+                        Flowsheet flowsheet = createFlowsheet(subMessageSourceId, observation, msh, pid, pv1);
+                        flowsheets.add(flowsheet);
                     } catch (IllegalArgumentException e) {
                         logger.error(String.format("Vitalsign could not be parsed for msg %s", subMessageSourceId), e);
                     }
@@ -85,8 +85,8 @@ public class VitalSignBuilder {
      * @return Vitalsign
      * @throws HL7Exception if HL7 message cannot be parsed
      */
-    private VitalSigns createVitalSign(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
-        VitalSigns vitalSign = new VitalSigns();
+    private Flowsheet createFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
+        Flowsheet vitalSign = new Flowsheet();
 
         OBX obx = observation.getOBX();
         List<NTE> notes = observation.getNTEAll();
@@ -100,7 +100,7 @@ public class VitalSignBuilder {
 
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
-        vitalSign.setVitalSignIdentifier(String.format("%s$%s", "EPIC", observationId));
+        vitalSign.setFlowsheetId(String.format("%s$%s", "EPIC", observationId));
 
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
         if (resultStatus.equals("D")) {

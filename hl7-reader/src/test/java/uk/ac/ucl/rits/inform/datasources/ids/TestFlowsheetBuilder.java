@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.ResultStatus;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -17,21 +17,21 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @ActiveProfiles("test")
-public class TestVitalSignBuilder {
-    private List<VitalSigns> vitalSigns;
-    private VitalSigns firstVitalSign;
+public class TestFlowsheetBuilder {
+    private List<Flowsheet> vitalSigns;
+    private Flowsheet firstVitalSign;
 
     @BeforeEach
     public void setUp() throws IOException, HL7Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MixedHL7Message.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
+        vitalSigns = new FlowsheetBuilder("42", (ORU_R01) hl7Msg).getMessages();
         firstVitalSign = vitalSigns.get(0);
     }
 
     @Test
     public void testMRN() {
-        for (VitalSigns vitalSign : vitalSigns) {
+        for (Flowsheet vitalSign : vitalSigns) {
             String result = vitalSign.getMrn();
             assertEquals("40800000", result);
         }
@@ -39,7 +39,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testVisitNumber() {
-        for (VitalSigns vitalSign : vitalSigns) {
+        for (Flowsheet vitalSign : vitalSigns) {
             String result = vitalSign.getVisitNumber();
             assertEquals("123412341234", result);
         }
@@ -47,7 +47,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testVitalSignIdentifier() {
-        String result = firstVitalSign.getVitalSignIdentifier();
+        String result = firstVitalSign.getFlowsheetId();
         assertEquals("EPIC$5", result);
     }
 
@@ -142,7 +142,7 @@ public class TestVitalSignBuilder {
     public void testMultipleOBRs() throws IOException, HL7Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MultiOBR.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
+        vitalSigns = new FlowsheetBuilder("42", (ORU_R01) hl7Msg).getMessages();
         assertEquals(4, vitalSigns.size());
     }
 
