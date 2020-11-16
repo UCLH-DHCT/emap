@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit;
         "uk.ac.ucl.rits.inform.informdb"})
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
-    private static final double NANOSECONDS_IN_SECONDS = TimeUnit.SECONDS.toNanos(1);
 
     @Autowired
     private InformDbOperations dbOps;
@@ -89,7 +88,7 @@ public class App {
             msg.processMessage(dbOps);
             Instant doneProcessMessageTime = Instant.now();
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
-            idsEffectLogging.setProcessMessageDuration(processMessageDuration.toNanos() / App.NANOSECONDS_IN_SECONDS);
+            idsEffectLogging.setProcessMessageDuration(processMessageDuration.toNanos());
             idsEffectLogging.setError(false);
             logger.info("Sending ACK for {}", msg.getSourceMessageId());
             channel.basicAck(tag, false);

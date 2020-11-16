@@ -29,7 +29,10 @@ public class IdsEffectLogging {
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
-    private double processMessageDurationSeconds;
+    /**
+     * Time is takes to process the interchange message in nanoseconds.
+     */
+    private Long processMessageDuration;
     private Boolean error;
     private String messageType;
     @Column(columnDefinition = "text")
@@ -90,8 +93,8 @@ public class IdsEffectLogging {
     /**
      * @param processMessageDurationSeconds how long it took to process the message
      */
-    public void setProcessMessageDuration(double processMessageDurationSeconds) {
-        this.processMessageDurationSeconds = processMessageDurationSeconds;
+    public void setProcessMessageDuration(Long processMessageDurationSeconds) {
+        this.processMessageDuration = processMessageDurationSeconds;
     }
 
     /**
