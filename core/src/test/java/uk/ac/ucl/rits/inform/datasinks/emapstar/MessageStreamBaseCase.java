@@ -19,7 +19,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -276,14 +276,14 @@ public abstract class MessageStreamBaseCase {
         Instant vitalTime = this.nextTime();
         this.vitalTime.add(vitalTime);
 
-        VitalSigns vital = new VitalSigns();
+        Flowsheet vital = new Flowsheet();
         vital.setSourceSystem("EPIC");
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
-        vital.setVitalSignIdentifier("HEART_RATE");
-        vital.setNumericValue(vitalReading);
-        vital.setUnit("/min");
-        vital.setObservationTimeTaken(vitalTime);
+        vital.setFlowsheetId("HEART_RATE");
+        vital.setNumericValue(Hl7Value.buildFromHl7(vitalReading));
+        vital.setUnit(Hl7Value.buildFromHl7("/min"));
+        vital.setObservationTime(vitalTime);
         queueMessage(vital);
     }
 

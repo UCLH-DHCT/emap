@@ -14,7 +14,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -122,7 +122,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     @Override
     @Transactional
-    public void processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException {
+    public void processMessage(Flowsheet msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         flowsheetProcessor.processMessage(msg, storedFrom);
     }

@@ -10,13 +10,12 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 
 import java.util.List;
 
 class TestVitalSignProcessing extends MessageProcessingBase {
-    private List<VitalSigns> messages;
-    private String vitalsMrn = "21014099";
+    private List<Flowsheet> messages;
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
@@ -25,7 +24,7 @@ class TestVitalSignProcessing extends MessageProcessingBase {
 
     @BeforeEach
     void setup() {
-        messages = messageFactory.getVitalSigns("hl7.yaml", "0000040");
+        messages = messageFactory.getFlowsheets("hl7.yaml", "0000040");
     }
 
     /**
@@ -33,7 +32,7 @@ class TestVitalSignProcessing extends MessageProcessingBase {
      */
     @Test
     void testCreateNewPatient() throws EmapOperationMessageProcessingException {
-        for (VitalSigns msg : messages) {
+        for (Flowsheet msg : messages) {
             msg.setVisitNumber(defaultEncounter);
             processSingleMessage(msg);
         }

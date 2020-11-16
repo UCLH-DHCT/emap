@@ -9,7 +9,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 
 import java.time.Instant;
 
@@ -39,9 +39,9 @@ public class FlowsheetProcessor {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final VitalSigns msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
+    public void processMessage(final Flowsheet msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
-        Instant observationTime = msg.getObservationTimeTaken();
+        Instant observationTime = msg.getObservationTime();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
