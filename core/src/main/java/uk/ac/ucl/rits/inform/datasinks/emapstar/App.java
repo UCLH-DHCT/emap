@@ -25,7 +25,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Entry point class for the HL7 pipeline.
