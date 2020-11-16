@@ -288,9 +288,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         String correctLocation = "T06C^T06C SR41^SR41-41";
         msg.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
-        msg.setVisitNumber("1234567890");
-        msg.setMrn("60600000");
-        msg.setNhsNumber("1111111111");
+        msg = setDataForHospitalVisitId4002(msg);
         dbOps.processMessage(msg);
 
         // correct location is reopened
@@ -332,10 +330,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // correct location is reopened and there are no duplicate results
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
         Assertions.assertNull(reopenedVisit.getDischargeTime());
-
-        // intermediate update patient information visit is deleted
-        Optional<LocationVisitAudit> deletedOpenVisit = locationVisitAuditRepository.findByLocationIdLocationStringAndValidFrom(correctLocation, messageDateTime);
-        Assertions.assertTrue(deletedOpenVisit.isPresent());
 
         // processing a further message should not come into an error of more than one open location
         dbOps.processMessage(updatePatientInfo);

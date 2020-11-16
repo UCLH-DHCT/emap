@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
 import java.util.List;
@@ -56,5 +57,19 @@ public abstract class MessageProcessingBase {
 
     protected <T extends Object> List<T> getAllEntities(CrudRepository<T, Long> repo) {
         return StreamSupport.stream(repo.findAll().spliterator(), false).collect(Collectors.toList());
+    }
+
+
+    /**
+     * Set person and encounter information to match hospital visit 4002
+     * @param msg
+     * @param <T>
+     * @return
+     */
+    <T extends AdtMessage> T setDataForHospitalVisitId4002(T msg) {
+        msg.setVisitNumber("1234567890");
+        msg.setMrn("60600000");
+        msg.setNhsNumber("1111111111");
+        return msg;
     }
 }

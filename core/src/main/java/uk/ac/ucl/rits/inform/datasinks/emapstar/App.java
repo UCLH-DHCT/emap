@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLogging;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.IdsEffectLoggingRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -76,9 +77,9 @@ public class App {
         Instant startTime = Instant.now();
         idsEffectLogging.setProcessingStartTime(startTime);
         idsEffectLogging.setMessageType(msg.getMessageType());
-//        if (msg instanceof OldAdtMessage) {
-//            idsEffectLogging.setEventReasonCode(((OldAdtMessage) msg).getEventReasonCode());
-//        }
+        if (msg instanceof AdtMessage) {
+            idsEffectLogging.setMessageDatetime(((AdtMessage) msg).getRecordedDateTime());
+        }
         idsEffectLogging.setSourceId(msg.getSourceMessageId());
         try {
             logger.info("Starting processing of interchange message {}", msg.getSourceMessageId());
@@ -86,7 +87,7 @@ public class App {
             msg.processMessage(dbOps);
             Instant doneProcessMessageTime = Instant.now();
             Duration processMessageDuration = Duration.between(startTime, doneProcessMessageTime);
-            idsEffectLogging.setProcessMessageDuration(processMessageDuration.toMillis() / 1000.0);
+            idsEffectLogging.setProcessMessageDuration(processMessageDuration.toNanos());
             idsEffectLogging.setError(false);
             logger.info("Sending ACK for {}", msg.getSourceMessageId());
             channel.basicAck(tag, false);

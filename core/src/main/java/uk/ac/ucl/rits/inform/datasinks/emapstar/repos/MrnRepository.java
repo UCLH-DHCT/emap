@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface MrnRepository extends CrudRepository<Mrn, Long> {
     /**
      * Helper method to find MRNs (by mrn string and nhs number depending on what exists).
+     * If both MRN and NHS number are given, get by MRN and then add in NHS number if it doesn't exist.
      * @param mrn       MRN string
      * @param nhsNumber NHS number
      * @return optional MRN
@@ -22,13 +23,15 @@ public interface MrnRepository extends CrudRepository<Mrn, Long> {
         if (mrn == null && nhsNumber == null) {
             throw new RequiredDataMissingException("Both the Mrn and NHS number can't be null");
         }
-        if (nhsNumber == null) {
-            return findByMrnEquals(mrn);
-        }
         if (mrn == null) {
-            return findByNhsNumberEquals(nhsNumber);
+            return findFirstByNhsNumberEquals(nhsNumber);
         }
-        return findByMrnEqualsOrMrnIsNullAndNhsNumberEquals(mrn, nhsNumber);
+        Optional<Mrn> mrnResult = findByMrnEquals(mrn);
+        if (mrnResult.isEmpty() && nhsNumber != null) {
+            // final attempt, try and find a row with an nhs number, but no MRN
+            mrnResult = findByNhsNumberEqualsAndMrnIsNull(nhsNumber);
+        }
+        return mrnResult;
     }
 
     /**
@@ -38,17 +41,18 @@ public interface MrnRepository extends CrudRepository<Mrn, Long> {
     Optional<Mrn> findByMrnEquals(String mrn);
 
     /**
+     * Allow for multiple MRNs per NHS number.
      * @param nhsNumber NHS number
      * @return optional MRN
      */
-    Optional<Mrn> findByNhsNumberEquals(String nhsNumber);
+    Optional<Mrn> findFirstByNhsNumberEquals(String nhsNumber);
 
     /**
-     * @param mrn       MRN string
+     * Already know that no MRN matches current.
      * @param nhsNumber NHS number
      * @return optional MRN
      */
-    Optional<Mrn> findByMrnEqualsOrMrnIsNullAndNhsNumberEquals(String mrn, String nhsNumber);
+    Optional<Mrn> findByNhsNumberEqualsAndMrnIsNull(String nhsNumber);
 
     /**
      * Get all MRNs which match by a non null MRN or a non null Nhs Number.

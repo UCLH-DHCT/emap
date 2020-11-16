@@ -67,8 +67,14 @@ public class LocationController {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
         }
+        if (untrustedSourceOrUpdateInfoWithPreviousLocations(visit, msg)) {
+            logger.debug("Message source is untrusted or UpdatePatientInfo where previous visit location for this encounter already exists");
+            return;
+        }
+
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
+
         if (messageOutcomeIsSimpleMove(msg) || msg instanceof DischargePatient) {
             processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
         } else if ((msg instanceof AdtCancellation)) {
@@ -134,6 +140,11 @@ public class LocationController {
      * @param validFrom      message event date time
      */
     private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
+        if (msg instanceof UpdatePatientInfo && locationVisitRepo.existsByHospitalVisitId(visit)) {
+            logger.debug("UpdatePatientInfo message ignored because a previous visit location for this encounter already exists");
+            return;
+        }
+
         RowState<LocationVisit, LocationVisitAudit> existingLocationState = getOrCreateOpenLocation(
                 visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
 
@@ -149,6 +160,16 @@ public class LocationController {
             }
             existingLocationState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
         }
+    }
+
+    /**
+     * @param visit hospital visit
+     * @param msg   Adt Message
+     * @return true if message should not be processed.
+     */
+    private boolean untrustedSourceOrUpdateInfoWithPreviousLocations(HospitalVisit visit, AdtMessage msg) {
+        return !DataSources.isTrusted(msg.getSourceSystem())
+                || (msg instanceof UpdatePatientInfo && locationVisitRepo.existsByHospitalVisitId(visit));
     }
 
     /**

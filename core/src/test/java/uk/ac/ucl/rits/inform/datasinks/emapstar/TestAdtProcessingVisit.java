@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
@@ -219,8 +219,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
-        msg.setVisitNumber("1234567890");
-        msg.setMrn("60600000");
+        msg = setDataForHospitalVisitId4002(msg);
 
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
@@ -259,8 +258,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
-        msg.setVisitNumber("1234567890");
-        msg.setMrn("60600000");
+        msg = setDataForHospitalVisitId4002(msg);
 
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
@@ -422,8 +420,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         HospitalVisit preProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
 
         dbOps.processMessage(msg);
-
-        HospitalVisit postProcessingVisit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);;
 
         // No audit log should exist because visit was not updated
         assertTrue(getAllAuditHospitalVisits().isEmpty());

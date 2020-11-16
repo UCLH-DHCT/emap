@@ -24,16 +24,17 @@ import java.time.Instant;
 public class IdsEffectLogging {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Long id;
     private String sourceId;
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
-    private double processMessageDurationSeconds;
+    /**
+     * Time is takes to process the interchange message in nanoseconds.
+     */
+    private Long processMessageDuration;
     private Boolean error;
-    private String mrn;
     private String messageType;
-    private String eventReasonCode;
     @Column(columnDefinition = "text")
     private String message;
     @Column(columnDefinition = "text")
@@ -58,13 +59,6 @@ public class IdsEffectLogging {
      */
     public void setProcessingEndTime(Instant processingEndTime) {
         this.processingEndTime = processingEndTime;
-    }
-
-    /**
-     * @param mrn the MRN as stated in the IDS
-     */
-    public void setMrn(String mrn) {
-        this.mrn = mrn;
     }
 
     /**
@@ -99,8 +93,8 @@ public class IdsEffectLogging {
     /**
      * @param processMessageDurationSeconds how long it took to process the message
      */
-    public void setProcessMessageDuration(double processMessageDurationSeconds) {
-        this.processMessageDurationSeconds = processMessageDurationSeconds;
+    public void setProcessMessageDuration(Long processMessageDurationSeconds) {
+        this.processMessageDuration = processMessageDurationSeconds;
     }
 
     /**
@@ -118,13 +112,5 @@ public class IdsEffectLogging {
         StringWriter st = new StringWriter();
         th.printStackTrace(new PrintWriter(st));
         setStackTrace(st.toString());
-    }
-
-    /**
-     * Unclear what we'll use this field for so log it somewhere convenient for now.
-     * @param eventReasonCode the hl7 event reason code
-     */
-    public void setEventReasonCode(String eventReasonCode) {
-        this.eventReasonCode = eventReasonCode;
     }
 }
