@@ -2,23 +2,22 @@ package uk.ac.ucl.rits.inform.interchange;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Represent a vital signs message.
- * @author Sarah Keating
+ * Represent a flowsheet message.
+ * @author Sarah Keating & Stef Piatek
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-public class VitalSigns extends EmapOperationMessage implements Serializable {
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
+public class Flowsheet extends EmapOperationMessage {
     private static final long serialVersionUID = -6678756549815762054L;
 
     private String mrn = "";
 
     private String visitNumber = "";
 
-    private String vitalSignIdentifier = "";
+    private String flowsheetId = "";
 
     /**
      * Numeric value, null if not set.
@@ -42,6 +41,9 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     private String unit = "";
 
+    /**
+     * Time of the observation.
+     */
     private Instant observationTimeTaken;
 
     /**
@@ -61,16 +63,16 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     }
 
     /**
-     * Returns vital sign Identifier e.g. Caboodle$1234.
-     * @return String vital sign identifier
+     * Returns flowsheet Identifier e.g. Caboodle$1234.
+     * @return String flowsheet identifier
      */
-    public String getVitalSignIdentifier() {
-        return vitalSignIdentifier;
+    public String getFlowsheetId() {
+        return flowsheetId;
     }
 
     /**
      * Returns recorded numeric value.
-     * @return {@link VitalSigns#numericValue}
+     * @return {@link Flowsheet#numericValue}
      */
     public Double getNumericValue() {
         return numericValue;
@@ -78,7 +80,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Returns recorded string value.
-     * @return {@link VitalSigns#stringValue}
+     * @return {@link Flowsheet#stringValue}
      */
     public String getStringValue() {
         return stringValue;
@@ -86,7 +88,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Returns recorded comment.
-     * @return {@link VitalSigns#comment}
+     * @return {@link Flowsheet#comment}
      */
     public String getComment() {
         return comment;
@@ -94,7 +96,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Gets the result status.
-     * @return {@link VitalSigns#resultStatus}
+     * @return {@link Flowsheet#resultStatus}
      */
     public ResultStatus getResultStatus() {
         return resultStatus;
@@ -133,16 +135,16 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
     }
 
     /**
-     * Sets the vital sign Identifier.
-     * @param vitalSignIdentifier String value of vital sign identifier
+     * Sets the flowsheet Identifier.
+     * @param flowsheetId String value of flowsheet identifier
      */
-    public void setVitalSignIdentifier(String vitalSignIdentifier) {
-        this.vitalSignIdentifier = vitalSignIdentifier;
+    public void setFlowsheetId(String flowsheetId) {
+        this.flowsheetId = flowsheetId;
     }
 
     /**
      * Sets the value as a number.
-     * @param value {@link VitalSigns#numericValue}
+     * @param value {@link Flowsheet#numericValue}
      */
     public void setNumericValue(Double value) {
         this.numericValue = value;
@@ -150,7 +152,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the value as a string.
-     * @param value {@link VitalSigns#stringValue}
+     * @param value {@link Flowsheet#stringValue}
      */
     public void setStringValue(String value) {
         this.stringValue = value;
@@ -158,14 +160,14 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the comment.
-     * @param comment {@link VitalSigns#comment}
+     * @param comment {@link Flowsheet#comment}
      */
     public void setComment(String comment) {
         this.comment = comment;
     }
 
     /**
-     * Sets the result status {@link VitalSigns#resultStatus}.
+     * Sets the result status {@link Flowsheet#resultStatus}.
      * @param resultStatus action to be taken when the interchange message is parsed.
      */
     public void setResultStatus(ResultStatus resultStatus) {
@@ -174,7 +176,7 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     /**
      * Sets the unit.
-     * @param unit String unit of vital sign numeric value
+     * @param unit String unit for a flowsheet numeric value
      */
     public void setUnit(String unit) {
         this.unit = unit;
@@ -206,9 +208,9 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        VitalSigns that = (VitalSigns) o;
+        Flowsheet that = (Flowsheet) o;
         return Objects.equals(mrn, that.mrn)
-                && Objects.equals(vitalSignIdentifier, that.vitalSignIdentifier)
+                && Objects.equals(flowsheetId, that.flowsheetId)
                 && Objects.equals(visitNumber, that.visitNumber)
                 && Objects.equals(numericValue, that.numericValue)
                 && Objects.equals(stringValue, that.stringValue)
@@ -220,6 +222,6 @@ public class VitalSigns extends EmapOperationMessage implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(mrn, visitNumber, vitalSignIdentifier, numericValue, stringValue, comment, unit, observationTimeTaken, getSourceSystem());
+        return Objects.hash(mrn, visitNumber, flowsheetId, numericValue, stringValue, comment, unit, observationTimeTaken, getSourceSystem());
     }
 }
