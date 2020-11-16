@@ -1,17 +1,17 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$5"
+  flowsheetId: "5"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "SAVE"
     value: "140/90"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$6"
+  flowsheetId: "6"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "SAVE"
     value: 102.2
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$8"
+  flowsheetId: "8"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "SAVE"
@@ -21,7 +21,7 @@
     status: "SAVE"
     value: "patient was running really fast (on a hamster wheel)"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$10"
+  flowsheetId: "10"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "SAVE"
@@ -35,19 +35,21 @@
     status: "SAVE"
     value: "%"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$6466"
+  flowsheetId: "6466"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "SAVE"
     value: "A"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$28315"
+  flowsheetId: "28315"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "DELETE"
-    value: '""'
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "DELETE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
-  flowsheetId: "EPIC$3040109304"
+  flowsheetId: "3040109304"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
     status: "SAVE"

@@ -53,14 +53,14 @@ public class Flowsheet extends EmapOperationMessage {
     private Hl7Value<String> unit = Hl7Value.unknown();
 
     /**
-     * Time of the observation (can be the creation or update time).
+     * Time of the observation.
      */
     private Instant observationTime;
 
     /**
-     * Time that the panel of observations were created.
+     * Time that the panel of observations was updated.
      */
-    private Instant panelTime;
+    private Instant updatedTime;
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
