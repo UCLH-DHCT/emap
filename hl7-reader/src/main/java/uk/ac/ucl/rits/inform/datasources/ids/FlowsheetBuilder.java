@@ -145,7 +145,7 @@ public class FlowsheetBuilder {
         }
 
         vitalSign.setUnit(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
-        vitalSign.setObservationTimeTaken(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
+        vitalSign.setObservationTime(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
         return vitalSign;
     }
 

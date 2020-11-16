@@ -117,7 +117,7 @@ public class TestFlowsheetBuilder {
 
     @Test
     public void testObservationTimeTaken() {
-        Instant result = firstVitalSign.getObservationTimeTaken();
+        Instant result = firstVitalSign.getObservationTime();
         assertEquals(Instant.parse("2020-01-22T14:03:00.00Z"), result);
     }
 
