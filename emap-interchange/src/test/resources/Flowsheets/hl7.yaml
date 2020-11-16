@@ -1,25 +1,54 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$5"
-  stringValue: "140/90"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "140/90"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$6"
-  numericValue: 102.2
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: 102.2
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$8"
-  numericValue: 90.0
-  comment: "patient was running really fast (on a hamster wheel)"
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: 90.0
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "patient was running really fast (on a hamster wheel)"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$10"
-  numericValue: 95.0
-  comment: "comment 1a\ncomment 1b\ncomment 2"
-  unit: "%"
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: 95.0
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "comment 1a\ncomment 1b\ncomment 2"
+  unit:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "%"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$6466"
-  stringValue: "A"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "A"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$28315"
-  stringValue: '""'
-  resultStatus: "DELETE"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "DELETE"
+    value: '""'
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "EPIC$3040109304"
-  stringValue: "Supplemental Oxygen\nextra line"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "Supplemental Oxygen\nextra line"

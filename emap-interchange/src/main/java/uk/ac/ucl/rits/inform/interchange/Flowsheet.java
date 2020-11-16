@@ -17,34 +17,45 @@ public class Flowsheet extends EmapOperationMessage {
 
     private String visitNumber = "";
 
+    /**
+     * Application that the message is sent from (e.g. caboodle or EPIC)
+     */
+    private String sourceApplication = "";
+
+    /**
+     * Identifier used by caboodle/EPIC for the flowsheet.
+     */
     private String flowsheetId = "";
 
     /**
-     * Numeric value, null if not set.
+     * Numeric value.
      */
-    private Double numericValue;
+    private Hl7Value<Double> numericValue = Hl7Value.unknown();
 
     /**
-     * String value, null if not set.
+     * String value.
      */
-    private String stringValue;
+    private Hl7Value<String> stringValue = Hl7Value.unknown();
 
     /**
-     * Comment, null if not set.
+     * Comment.
      */
-    private String comment;
+    private Hl7Value<String> comment = Hl7Value.unknown();
 
     /**
-     * Result status has default value of {@link ResultStatus#SAVE}.
+     * Unit of numeric value.
      */
-    private ResultStatus resultStatus = ResultStatus.SAVE;
-
-    private String unit = "";
+    private Hl7Value<String> unit = Hl7Value.unknown();
 
     /**
-     * Time of the observation.
+     * Time of the observation (can be the creation or update time).
      */
-    private Instant observationTimeTaken;
+    private Instant observationTime;
+
+    /**
+     * Time that the panel of observations were created.
+     */
+    private Instant panelTime;
 
     /**
      * Returns MRN .
@@ -74,7 +85,7 @@ public class Flowsheet extends EmapOperationMessage {
      * Returns recorded numeric value.
      * @return {@link Flowsheet#numericValue}
      */
-    public Double getNumericValue() {
+    public Hl7Value<Double> getNumericValue() {
         return numericValue;
     }
 
@@ -82,7 +93,7 @@ public class Flowsheet extends EmapOperationMessage {
      * Returns recorded string value.
      * @return {@link Flowsheet#stringValue}
      */
-    public String getStringValue() {
+    public Hl7Value<String> getStringValue() {
         return stringValue;
     }
 
@@ -90,32 +101,36 @@ public class Flowsheet extends EmapOperationMessage {
      * Returns recorded comment.
      * @return {@link Flowsheet#comment}
      */
-    public String getComment() {
+    public Hl7Value<String> getComment() {
         return comment;
     }
 
     /**
-     * Gets the result status.
-     * @return {@link Flowsheet#resultStatus}
+     * @return {@link Flowsheet#unit}
      */
-    public ResultStatus getResultStatus() {
-        return resultStatus;
-    }
-
-    /**
-     * Returns unit of the observation value.
-     * @return String unit
-     */
-    public String getUnit() {
+    public Hl7Value<String> getUnit() {
         return unit;
     }
 
     /**
-     * Returns time observation was taken.
-     * @return Instant time taken
+     * @return {@link Flowsheet#observationTime}
      */
-    public Instant getObservationTimeTaken() {
-        return observationTimeTaken;
+    public Instant getObservationTime() {
+        return observationTime;
+    }
+
+    /**
+     * @return {@link Flowsheet#panelTime}
+     */
+    public Instant getPanelTime() {
+        return panelTime;
+    }
+
+    /**
+     * @return {@link Flowsheet#sourceApplication}
+     */
+    public String getSourceApplication() {
+        return sourceApplication;
     }
 
     /**
@@ -135,59 +150,59 @@ public class Flowsheet extends EmapOperationMessage {
     }
 
     /**
-     * Sets the flowsheet Identifier.
-     * @param flowsheetId String value of flowsheet identifier
+     * @param flowsheetId {@link Flowsheet#flowsheetId}
      */
     public void setFlowsheetId(String flowsheetId) {
         this.flowsheetId = flowsheetId;
     }
 
     /**
-     * Sets the value as a number.
      * @param value {@link Flowsheet#numericValue}
      */
-    public void setNumericValue(Double value) {
+    public void setNumericValue(Hl7Value<Double> value) {
         this.numericValue = value;
     }
 
     /**
-     * Sets the value as a string.
      * @param value {@link Flowsheet#stringValue}
      */
-    public void setStringValue(String value) {
+    public void setStringValue(Hl7Value<String> value) {
         this.stringValue = value;
     }
 
     /**
-     * Sets the comment.
      * @param comment {@link Flowsheet#comment}
      */
-    public void setComment(String comment) {
+    public void setComment(Hl7Value<String> comment) {
         this.comment = comment;
     }
 
     /**
-     * Sets the result status {@link Flowsheet#resultStatus}.
-     * @param resultStatus action to be taken when the interchange message is parsed.
+     * @param unit {@link Flowsheet#unit}
      */
-    public void setResultStatus(ResultStatus resultStatus) {
-        this.resultStatus = resultStatus;
-    }
-
-    /**
-     * Sets the unit.
-     * @param unit String unit for a flowsheet numeric value
-     */
-    public void setUnit(String unit) {
+    public void setUnit(Hl7Value<String> unit) {
         this.unit = unit;
     }
 
     /**
-     * Sets the time observation was taken.
-     * @param taken Instant time taken
+     * @param panelTime {@link Flowsheet#panelTime}
      */
-    public void setObservationTimeTaken(Instant taken) {
-        this.observationTimeTaken = taken;
+    public void setPanelTime(Instant panelTime) {
+        this.panelTime = panelTime;
+    }
+
+    /**
+     * @param observationTime {@link Flowsheet#observationTime}
+     */
+    public void setObservationTime(Instant observationTime) {
+        this.observationTime = observationTime;
+    }
+
+    /**
+     * @param sourceApplication {@link Flowsheet#sourceApplication}
+     */
+    public void setSourceApplication(String sourceApplication) {
+        this.sourceApplication = sourceApplication;
     }
 
     /**
@@ -216,12 +231,14 @@ public class Flowsheet extends EmapOperationMessage {
                 && Objects.equals(stringValue, that.stringValue)
                 && Objects.equals(comment, that.comment)
                 && Objects.equals(unit, that.unit)
-                && Objects.equals(observationTimeTaken, that.observationTimeTaken)
+                && Objects.equals(observationTime, that.observationTime)
                 && Objects.equals(getSourceSystem(), that.getSourceSystem());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mrn, visitNumber, flowsheetId, numericValue, stringValue, comment, unit, observationTimeTaken, getSourceSystem());
+        return Objects.hash(mrn, visitNumber, flowsheetId, numericValue, stringValue, comment, unit, observationTime, getSourceSystem());
     }
+
+
 }

@@ -1,4 +1,6 @@
 mrn: "40800000"
 visitNumber: "123412341234"
-observationTimeTaken: "2020-01-22T14:03:00Z"
+observationTime: "2020-01-22T14:03:00Z"
+panelTime: "2020-01-22T14:03:00Z"
 sourceSystem: "EPIC"
+sourceApplication: "EPIC"
