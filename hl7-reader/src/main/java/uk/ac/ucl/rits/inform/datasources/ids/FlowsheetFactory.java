@@ -66,11 +66,12 @@ public class FlowsheetFactory {
      * @param pv1              PIV segment
      * @param recordedDateTime Event datetime of the message
      * @param orderObs         ORU R01 order observations from the HL7 message
-     * @return
+     * @return Flowsheet entities built from ORU R01 order observations
      * @throws HL7Exception
      */
-    private List<Flowsheet> buildAllFlowsheets(final String idsUnid, final PID pid, final MSH msh, final PV1 pv1,
-                                               final Instant recordedDateTime, final Iterable<ORU_R01_ORDER_OBSERVATION> orderObs) throws HL7Exception {
+    private List<Flowsheet> buildAllFlowsheets(
+            final String idsUnid, final PID pid, final MSH msh, final PV1 pv1,
+            final Instant recordedDateTime, final Iterable<ORU_R01_ORDER_OBSERVATION> orderObs) throws HL7Exception {
         List<Flowsheet> flowsheets = new ArrayList<>();
         for (ORU_R01_ORDER_OBSERVATION orderObr : orderObs) {
             List<ORU_R01_OBSERVATION> observations = orderObr.getOBSERVATIONAll();

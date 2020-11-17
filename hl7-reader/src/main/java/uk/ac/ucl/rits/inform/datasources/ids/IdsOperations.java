@@ -478,7 +478,6 @@ public class IdsOperations implements AutoCloseable {
                 if (triggerEvent.equals("R01")) {
                     if (sendingFacility.equals("Vitals")) {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                        ;
                         messages.addAll(flowsheetFactory.getMessages(sourceId, msgFromIds));
                     } else {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
