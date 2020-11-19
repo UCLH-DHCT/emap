@@ -29,6 +29,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private VisitObservationAuditRepository visitObservationAuditRepository;
 
     private String updateId = "8";
+    private String newComment = "patient was running really fast (on a hamster wheel)";
     private String deleteId = "28315";
 
 
@@ -82,6 +83,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, updateId)
                 .orElseThrow();
         Assertions.assertNotEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
+        // comment is updated
+        Assertions.assertEquals(newComment, updatedObservation.getComment());
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
