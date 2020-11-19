@@ -27,8 +27,9 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private VisitObservationRepository visitObservationRepository;
     @Autowired
     private VisitObservationAuditRepository visitObservationAuditRepository;
-    
+
     private String updateId = "8";
+    private String deleteId = "28315";
 
 
     @BeforeEach
@@ -92,7 +93,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
     @Test
     @Sql("/populate_db.sql")
-    void testOldMessagesHaveNoEffect() throws EmapOperationMessageProcessingException {
+    void testOldUpdateDoesNothing() throws EmapOperationMessageProcessingException {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         VisitObservation preUpdateObservation = visitObservationRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, updateId)
@@ -108,5 +109,55 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
                 .orElseThrow();
 
         Assertions.assertEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
+    }
+
+    /**
+     * Row already exists before message is encountered, numeric value is different in message, and message is updated more recently
+     * Row should have updated value
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testRowDeletes() throws EmapOperationMessageProcessingException {
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        VisitObservation preDeleteObservation = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, deleteId)
+                .orElseThrow();
+
+        for (Flowsheet msg : messages) {
+            processSingleMessage(msg);
+        }
+
+        // visit observation now does not exist
+        Optional<VisitObservation> deletedObservation = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, deleteId);
+        Assertions.assertTrue(deletedObservation.isEmpty());
+
+        // audit log for the old value
+        VisitObservationAudit audit = visitObservationAuditRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), deleteId)
+                .orElseThrow();
+        Assertions.assertEquals(preDeleteObservation.getValueAsText(), audit.getValueAsText());
+    }
+
+
+    @Test
+    @Sql("/populate_db.sql")
+    void testOldDeleteDoesNothing() throws EmapOperationMessageProcessingException {
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        VisitObservation preDeleteObservation = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, deleteId)
+                .orElseThrow();
+
+        for (Flowsheet msg : messages) {
+            msg.setUpdatedTime(past);
+            processSingleMessage(msg);
+        }
+
+        VisitObservation notDeletedObservation = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, deleteId)
+                .orElseThrow();
+
+        Assertions.assertEquals(preDeleteObservation.getValueAsReal(), notDeletedObservation.getValueAsReal());
     }
 }
