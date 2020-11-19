@@ -130,7 +130,7 @@ public class FlowsheetFactory {
             flowsheet.setComment(Hl7Value.buildFromHl7(comment));
         }
         if (flowsheet.getComment().isUnknown() && flowsheet.getStringValue().isUnknown() && flowsheet.getNumericValue().isUnknown()) {
-            throw new IllegalArgumentException(String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
+            throw new Hl7InconsistencyException(String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
         }
 
         flowsheet.setUnit(Hl7Value.buildFromHl7(getUnits(obx)));
