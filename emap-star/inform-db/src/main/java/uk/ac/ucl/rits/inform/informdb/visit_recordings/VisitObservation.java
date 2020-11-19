@@ -48,17 +48,10 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     private String comment;
 
     /**
-     * The time this individual observation was made.
+     * The time this individual observation was first made.
      */
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant recordingDatetime;
-
-    /**
-     * The time the set of observations (observations are often taken in groups) is
-     * associated with.
-     */
-    @Column(columnDefinition = "timestamp with time zone", nullable = false)
-    private Instant panelDatetime;
 
     /**
      * Default constructor.
@@ -77,7 +70,6 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
         this.unit = other.unit;
         this.comment = other.comment;
         this.recordingDatetime = other.recordingDatetime;
-        this.panelDatetime = other.panelDatetime;
     }
 
     @Override
