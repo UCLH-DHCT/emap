@@ -60,6 +60,14 @@ public class VisitObservationType {
     /**
      * Data type expected to be returned.
      */
-    private String primaryDataType = "";
+    private String primaryDataType;
 
+    /**
+     * Minimal information constructor.
+     * @param idInApplication   Id from the application
+     * @param sourceSystem      source system
+     * @param sourceApplication source application
+     */
+    public VisitObservationType(String idInApplication, String sourceSystem, String sourceApplication) {
+    }
 }

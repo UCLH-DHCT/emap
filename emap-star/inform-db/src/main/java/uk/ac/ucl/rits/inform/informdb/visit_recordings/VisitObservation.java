@@ -64,6 +64,16 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     public VisitObservation() {}
 
     /**
+     * Minimal information constructor
+     * @param hospitalVisitId        hospital visit
+     * @param visitObservationTypeId observation type
+     */
+    public VisitObservation(HospitalVisit hospitalVisitId, VisitObservationType visitObservationTypeId) {
+        this.visitObservationTypeId = visitObservationTypeId;
+        this.hospitalVisitId = hospitalVisitId;
+    }
+
+    /**
      * Build a new Visit observation from an existing one.
      * @param other existing visit observation
      */
