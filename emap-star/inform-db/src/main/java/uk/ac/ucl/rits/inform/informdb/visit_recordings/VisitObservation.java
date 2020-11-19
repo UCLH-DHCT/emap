@@ -7,6 +7,7 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

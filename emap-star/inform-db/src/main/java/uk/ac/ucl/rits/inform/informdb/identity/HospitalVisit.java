@@ -1,7 +1,13 @@
 package uk.ac.ucl.rits.inform.informdb.identity;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,18 +18,15 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This a single visit to the hospital. This is not necessarily an inpatient
  * visit, but includes outpatients, imaging, etc.
- *
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
@@ -31,7 +34,7 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@Table(indexes = { @Index(name = "encounterIndex", columnList = "encounter", unique = false) })
+@Table(indexes = {@Index(name = "encounterIndex", columnList = "encounter", unique = false)})
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @AuditTable
 public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudit> {
@@ -42,7 +45,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long              hospitalVisitId;
+    private Long hospitalVisitId;
 
     /**
      * The MRN this hospital visit happened under.
@@ -104,13 +107,19 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
     private String encounter;
 
     /**
+     * Visit observations should be deleted if an encounter is deleted.
+     */
+    @ToString.Exclude
+    @OneToMany(targetEntity = VisitObservation.class, mappedBy = "hospitalVisitId", orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<VisitObservation> visitObservations = new ArrayList<>();
+
+    /**
      * Default constructor.
      */
     public HospitalVisit() {}
 
     /**
      * Build a hospital visit from an existing object.
-     *
      * @param other hospital visit
      */
     private HospitalVisit(HospitalVisit other) {
