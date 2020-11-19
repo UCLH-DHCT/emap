@@ -31,4 +31,11 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
      */
     List<VisitObservation> findAllByHospitalVisitId(HospitalVisit visit);
 
+    /**
+     * For testing.
+     * @param visit           hospital visit
+     * @param idInApplication Id in application for the visit observation type
+     * @return optional visit observation
+     */
+    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(HospitalVisit visit, String idInApplication);
 }
