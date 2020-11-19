@@ -64,7 +64,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     public VisitObservation() {}
 
     /**
-     * Minimal information constructor
+     * Minimal information constructor.
      * @param hospitalVisitId        hospital visit
      * @param visitObservationTypeId visit observation type
      * @param observationDatetime    observation datetime
