@@ -50,7 +50,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
      * The time this individual observation was first made.
      */
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
-    private Instant recordingDatetime;
+    private Instant observationDatetime;
 
     private String valueAsText;
     private Double valueAsReal;
@@ -66,11 +66,18 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     /**
      * Minimal information constructor
      * @param hospitalVisitId        hospital visit
-     * @param visitObservationTypeId observation type
+     * @param visitObservationTypeId visit observation type
+     * @param observationDatetime    observation datetime
+     * @param validFrom              Time of the message event
+     * @param storedFrom             Time that emap-core encountered the message
      */
-    public VisitObservation(HospitalVisit hospitalVisitId, VisitObservationType visitObservationTypeId) {
+    public VisitObservation(HospitalVisit hospitalVisitId, VisitObservationType visitObservationTypeId,
+                            Instant observationDatetime, Instant validFrom, Instant storedFrom) {
         this.visitObservationTypeId = visitObservationTypeId;
         this.hospitalVisitId = hospitalVisitId;
+        this.observationDatetime = observationDatetime;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     /**
@@ -85,7 +92,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
         this.valueAsReal = other.valueAsReal;
         this.unit = other.unit;
         this.comment = other.comment;
-        this.recordingDatetime = other.recordingDatetime;
+        this.observationDatetime = other.observationDatetime;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.visit_recordings;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +19,7 @@ import javax.persistence.Id;
 @Data
 @SuppressWarnings("serial")
 @Entity
+@NoArgsConstructor
 public class VisitObservationType {
 
     @Id
@@ -69,5 +71,8 @@ public class VisitObservationType {
      * @param sourceApplication source application
      */
     public VisitObservationType(String idInApplication, String sourceSystem, String sourceApplication) {
+        this.idInApplication = idInApplication;
+        this.sourceSystem = sourceSystem;
+        this.sourceApplication = sourceApplication;
     }
 }
