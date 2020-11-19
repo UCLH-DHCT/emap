@@ -96,7 +96,16 @@ public class Hl7Value<T> implements Serializable {
      */
     @JsonIgnore
     public boolean isUnknown() {
-        return status.equals(ResultStatus.IGNORE);
+        return ResultStatus.IGNORE == status;
+    }
+
+
+    /**
+     * @return if the value should be deleted.
+     */
+    @JsonIgnore
+    public boolean isDelete() {
+        return ResultStatus.DELETE == status;
     }
 
     /**
