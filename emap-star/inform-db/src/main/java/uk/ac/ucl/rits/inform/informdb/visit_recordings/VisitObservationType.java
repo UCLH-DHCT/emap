@@ -40,13 +40,26 @@ public class VisitObservationType {
      * The code used by the hospital application to identify the observation type.
      */
     @Column(nullable = false)
-    private String sourceApplicationCode;
+    private String idInApplication;
+
     /**
      * Readable name for the hospital application observation type.
      */
-    private String sourceApplicationName;
+    private String nameInApplication;
+
+    /**
+     * Mapping code for the observation from the standardised vocabulary system.
+     */
     private String standardisedCode;
+
+    /**
+     * Nomenclature or classification system used.
+     */
     private String standardisedVocabulary;
-    private String primaryDataType;
+
+    /**
+     * Data type expected to be returned.
+     */
+    private String primaryDataType = "";
 
 }
