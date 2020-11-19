@@ -21,8 +21,6 @@ configure_time_window() {
     perl -pi.$(date --iso-8601=seconds) \
         -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/;
             s/^(IDS_CFG_END_DATETIME)=.*$/$1=$ENV{"window_end"}/;
-            s/^(CABOODLE_DATE_FROM)=.*$/$1=$ENV{"window_start"}/;
-            s/^(CABOODLE_DATE_UNTIL)=.*$/$1=$ENV{"window_end"}/;
         ' \
         ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
@@ -59,8 +57,6 @@ run_pipeline() {
 
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source > ${log_file_prefix}_hl7source.txt
-    bash emap-live.sh ps
-    bash emap-live.sh up --exit-code-from caboodle caboodle > ${log_file_prefix}_caboodle.txt
     bash emap-live.sh ps
 }
 
