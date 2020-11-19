@@ -83,6 +83,13 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
 
 
     /**
+     * @param entityUpdated is entity updated
+     */
+    public void setEntityUpdated(boolean entityUpdated) {
+        this.entityUpdated = entityUpdated;
+    }
+
+    /**
      * If new value is different assign from HL7Value of PatientClass to a setter taking a string.
      * @param newValue        new value
      * @param currentValue    current value
@@ -159,8 +166,8 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
 
     /**
      * Save entity if it is created, or auditlog if the entity has been updated.
-     * @param entityRepo  entity repository
-     * @param auditRepo   audit repository
+     * @param entityRepo entity repository
+     * @param auditRepo  audit repository
      */
     public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Long> entityRepo, CrudRepository<A, Long> auditRepo) {
         if (entityCreated) {

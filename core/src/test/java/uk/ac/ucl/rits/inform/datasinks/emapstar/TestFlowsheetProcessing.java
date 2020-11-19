@@ -4,22 +4,23 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 
 import java.util.List;
 
-class TestVitalSignProcessing extends MessageProcessingBase {
+class TestFlowsheetProcessing extends MessageProcessingBase {
     private List<Flowsheet> messages;
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    private HospitalVisitAuditRepository hospitalVisitAuditRepository;
+    private VisitObservationRepository visitObservationRepository;
 
 
     @BeforeEach
@@ -28,7 +29,7 @@ class TestVitalSignProcessing extends MessageProcessingBase {
     }
 
     /**
-     * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created.
+     * no existing mrns, so new mrn, mrn_to_live core_demographics, hospital visit and visit observation should be created.
      */
     @Test
     void testCreateNewPatient() throws EmapOperationMessageProcessingException {
@@ -45,9 +46,8 @@ class TestVitalSignProcessing extends MessageProcessingBase {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
 
-        // then new results
-
+        // 7 flowsheets in input file, but one is a delete so only 6 should be created
+        List<VisitObservation>  observations = visitObservationRepository.findAllByHospitalVisitId(visit);
+        Assertions.assertEquals(6, observations.size());
     }
-
-
 }
