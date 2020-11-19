@@ -91,6 +91,10 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
     }
 
+    /**
+     * Message updated time is before the validFrom, so no update should happen
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     @Sql("/populate_db.sql")
     void testOldUpdateDoesNothing() throws EmapOperationMessageProcessingException {
@@ -113,7 +117,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
     /**
      * Row already exists before message is encountered, numeric value is different in message, and message is updated more recently
-     * Row should have updated value
+     * Row should be deleted
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -141,6 +145,10 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     }
 
 
+    /**
+     * Message updated time is before the validFrom, so no delete should happen
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     @Sql("/populate_db.sql")
     void testOldDeleteDoesNothing() throws EmapOperationMessageProcessingException {
