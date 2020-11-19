@@ -272,7 +272,7 @@ public abstract class MessageStreamBaseCase {
     /**
      * Queue a vital signs message.
      */
-    public void queueVital() {
+    public void queueFlowsheet() {
         Instant vitalTime = this.nextTime();
         this.vitalTime.add(vitalTime);
 
@@ -284,6 +284,7 @@ public abstract class MessageStreamBaseCase {
         vital.setNumericValue(Hl7Value.buildFromHl7(vitalReading));
         vital.setUnit(Hl7Value.buildFromHl7("/min"));
         vital.setObservationTime(vitalTime);
+        vital.setUpdatedTime(vitalTime);
         queueMessage(vital);
     }
 

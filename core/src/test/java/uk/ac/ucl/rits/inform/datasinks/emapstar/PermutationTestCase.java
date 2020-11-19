@@ -50,7 +50,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      * Note that queueDischarge must be last.
      */
     private Runnable[]               operations   = {
-            this::queueVital,
+            this::queueFlowsheet,
             this::queueRegister,
             this::queueAdmitTransfer,
             this::queueAdmitClass,
