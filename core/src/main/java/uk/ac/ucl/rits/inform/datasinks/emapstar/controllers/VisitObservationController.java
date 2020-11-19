@@ -32,7 +32,9 @@ public class VisitObservationController {
      * @param visitObservationAuditRepo autowired VisitObservationAuditRepository
      * @param visitObservationTypeRepo  autowired VisitObservationTypeRepository
      */
-    public VisitObservationController(VisitObservationRepository visitObservationRepo, VisitObservationAuditRepository visitObservationAuditRepo, VisitObservationTypeRepository visitObservationTypeRepo) {
+    public VisitObservationController(
+            VisitObservationRepository visitObservationRepo, VisitObservationAuditRepository visitObservationAuditRepo,
+            VisitObservationTypeRepository visitObservationTypeRepo) {
         this.visitObservationRepo = visitObservationRepo;
         this.visitObservationAuditRepo = visitObservationAuditRepo;
         this.visitObservationTypeRepo = visitObservationTypeRepo;
@@ -101,7 +103,7 @@ public class VisitObservationController {
     }
 
     /**
-     * Create minimal visit observation wrapped in RowState
+     * Create minimal visit observation wrapped in RowState.
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -125,12 +127,12 @@ public class VisitObservationController {
     }
 
     /**
-     * Delete flowsheet row if
+     * Delete flowsheet row if required.
      * @param msg              flowsheet
      * @param observationState observation entity wrapped in RowState
-     * @return
+     * @return true row was deleted
      */
-    private boolean deleteVisitObservationIfRequired(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState){
+    private boolean deleteVisitObservationIfRequired(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
         if (msg.getNumericValue().isDelete() || msg.getStringValue().isDelete()) {
             logger.debug(String.format("Deleting %s", observationState.getEntity()));
             visitObservationRepo.delete(observationState.getEntity());

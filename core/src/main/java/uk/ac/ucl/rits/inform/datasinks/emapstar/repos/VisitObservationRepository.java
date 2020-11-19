@@ -25,7 +25,7 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
             HospitalVisit visit, VisitObservationType type, Instant observationTime);
 
     /**
-     * For testing
+     * For testing.
      * @param visit hospital visit
      * @return list of visit observations
      */

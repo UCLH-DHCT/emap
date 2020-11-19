@@ -30,7 +30,8 @@ public class FlowsheetProcessor {
      * @param visitController            visit controller
      * @param visitObservationController visit observation controller
      */
-    public FlowsheetProcessor(PersonController personController, VisitController visitController, VisitObservationController visitObservationController) {
+    public FlowsheetProcessor(
+            PersonController personController, VisitController visitController, VisitObservationController visitObservationController) {
         this.personController = personController;
         this.visitController = visitController;
         this.visitObservationController = visitObservationController;

@@ -12,10 +12,11 @@ import java.util.Optional;
 public interface VisitObservationTypeRepository extends CrudRepository<VisitObservationType, Long> {
 
     /**
-     * @param Id                Id within the source application
+     * Query visit observation type by required fields.
+     * @param id                Id within the source application
      * @param sourceSystem      source system
      * @param sourceApplication source application
-     * @return
+     * @return optional visit observation type
      */
-    Optional<VisitObservationType> findByIdInApplicationAndSourceSystemAndSourceApplication(String Id, String sourceSystem, String sourceApplication);
+    Optional<VisitObservationType> findByIdInApplicationAndSourceSystemAndSourceApplication(String id, String sourceSystem, String sourceApplication);
 }
