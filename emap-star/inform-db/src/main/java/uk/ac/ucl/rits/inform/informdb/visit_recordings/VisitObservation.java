@@ -44,6 +44,8 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     private String valueAsText;
     private Double valueAsReal;
     private String unit;
+    @Column(columnDefinition = "text")
+    private String comment;
 
     /**
      * The time this individual observation was made.
@@ -73,6 +75,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
         this.valueAsText = other.valueAsText;
         this.valueAsReal = other.valueAsReal;
         this.unit = other.unit;
+        this.comment = other.comment;
         this.recordingDatetime = other.recordingDatetime;
         this.panelDatetime = other.panelDatetime;
     }
