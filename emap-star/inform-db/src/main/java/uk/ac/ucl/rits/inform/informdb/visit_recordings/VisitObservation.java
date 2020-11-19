@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -41,17 +42,21 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     @JoinColumn(name = "visitObservationTypeId", nullable = false)
     private VisitObservationType visitObservationTypeId;
 
-    private String valueAsText;
-    private Double valueAsReal;
-    private String unit;
-    @Column(columnDefinition = "text")
-    private String comment;
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    private HospitalVisit hospitalVisitId;
 
     /**
      * The time this individual observation was first made.
      */
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant recordingDatetime;
+
+    private String valueAsText;
+    private Double valueAsReal;
+    private String unit;
+    @Column(columnDefinition = "text")
+    private String comment;
 
     /**
      * Default constructor.
@@ -65,6 +70,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     public VisitObservation(VisitObservation other) {
         super(other);
         this.visitObservationTypeId = other.visitObservationTypeId;
+        this.hospitalVisitId = other.hospitalVisitId;
         this.valueAsText = other.valueAsText;
         this.valueAsReal = other.valueAsReal;
         this.unit = other.unit;
