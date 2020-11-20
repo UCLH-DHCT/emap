@@ -34,8 +34,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(indexes = {@Index(name = "visit_discharge_time", columnList = "hospitalVisitId, dischargeTime DESC"),
-        @Index(name = "location_visit_discharge_time", columnList = "locationId, hospitalVisitId, dischargeTime DESC")})
+@Table(indexes = {@Index(name = "lv_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "lv_location_id", columnList = "locationId")})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -53,7 +53,7 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
 
     private Long              parentLocationVisitId;
 
-    @Column(columnDefinition = "timestamp with time zone", nullable = false)
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant           admissionTime;
     @Column(columnDefinition = "timestamp with time zone")
     private Instant           dischargeTime;
