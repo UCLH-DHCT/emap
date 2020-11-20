@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
@@ -26,7 +27,9 @@ import java.time.Instant;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table
+@Table(indexes = {@Index(name = "vo_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "vo_visit_observation_type", columnList = "visitObservationTypeId"),
+        @Index(name = "vo_observation_datetime", columnList = "observationDatetime")})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
