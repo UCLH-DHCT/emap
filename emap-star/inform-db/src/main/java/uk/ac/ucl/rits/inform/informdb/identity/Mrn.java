@@ -32,7 +32,8 @@ import lombok.Data;
 @Data
 @SuppressWarnings("serial")
 @Entity
-@Table(indexes = {@Index(name = "mrnIndex", columnList = "mrn", unique = true)})
+@Table(indexes = {@Index(name = "mrn_index", columnList = "mrn"),
+        @Index(name = "nhs_number", columnList = "nhsNumber")})
 @Check(constraints = "(mrn is not null) or (nhs_number is not null)")
 public class Mrn implements Serializable {
 

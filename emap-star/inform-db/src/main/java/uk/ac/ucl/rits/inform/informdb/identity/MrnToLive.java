@@ -7,10 +7,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,6 +27,8 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
  */
 @SuppressWarnings("serial")
 @Entity
+@Table(indexes = {@Index(name = "mtl_mrn_id", columnList = "mrnId"),
+        @Index(name = "live_mrn_id", columnList = "liveMrnId")})
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
