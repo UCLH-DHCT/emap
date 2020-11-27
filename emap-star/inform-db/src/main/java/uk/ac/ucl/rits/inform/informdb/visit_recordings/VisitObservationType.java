@@ -27,13 +27,13 @@ public class VisitObservationType {
     private long visitObservationType;
 
     /**
-     * The hospital system that the data has been loaded from.
+     * The hospital system that emap received the data from.
      */
     @Column(nullable = false)
     private String sourceSystem;
 
     /**
-     * The hospital application that the data has been loaded from.
+     * The application that generated the data, this can be the same as the source system.
      */
     @Column(nullable = false)
     private String sourceApplication;
