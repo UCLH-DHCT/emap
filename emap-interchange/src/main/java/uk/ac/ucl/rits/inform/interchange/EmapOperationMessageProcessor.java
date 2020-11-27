@@ -56,10 +56,10 @@ public interface EmapOperationMessageProcessor {
     void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the vital signs message to process
+     * @param msg the flowsheet message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(VitalSigns msg) throws EmapOperationMessageProcessingException;
+    void processMessage(Flowsheet msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the PatientInfection message to process

@@ -1,0 +1,56 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "5"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "140/90"
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "6"
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: 102.2
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "8"
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: 90.0
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "patient was running really fast (on a hamster wheel)"
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "10"
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: 95.0
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "comment 1a\ncomment 1b\ncomment 2"
+  unit:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "%"
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "6466"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "A"
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "28315"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "DELETE"
+  numericValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "DELETE"
+- "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
+  flowsheetId: "3040109304"
+  stringValue:
+    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    status: "SAVE"
+    value: "Supplemental Oxygen\nextra line"

@@ -70,25 +70,25 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Builds Vitalsigns from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
-     * @param fileName            yaml filename in test resouces/VitalSigns, default values from '{file_stem}_defaults.yaml'
+     * Builds Flowsheets from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
+     * @param fileName            yaml filename in test resources/Flowsheets, default values from '{file_stem}_defaults.yaml'
      * @param sourceMessagePrefix message prefix
-     * @return List of vitalsigns
+     * @return List of Flowsheets
      */
-    public List<VitalSigns> getVitalSigns(final String fileName, final String sourceMessagePrefix) {
-        List<VitalSigns> vitalSigns = new ArrayList<>();
+    public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) {
+        List<Flowsheet> flowsheets = new ArrayList<>();
 
-        String resourcePath = "/VitalSigns/" + fileName;
+        String resourcePath = "/Flowsheets/" + fileName;
         try {
             InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            vitalSigns = mapper.readValue(inputStream, new TypeReference<List<VitalSigns>>() {});
+            flowsheets = mapper.readValue(inputStream, new TypeReference<List<Flowsheet>>() {});
             int count = 1;
-            for (VitalSigns vitalsign : vitalSigns) {
+            for (Flowsheet flowsheet : flowsheets) {
                 String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
-                vitalsign.setSourceMessageId(sourceMessageId);
+                flowsheet.setSourceMessageId(sourceMessageId);
 
                 // update order with yaml data
-                ObjectReader orderReader = mapper.readerForUpdating(vitalsign);
+                ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
                 String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
                 orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
@@ -97,7 +97,7 @@ public class InterchangeMessageFactory {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return vitalSigns;
+        return flowsheets;
     }
 
     /**
