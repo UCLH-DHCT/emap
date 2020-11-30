@@ -89,8 +89,8 @@ public class AdtMessageFactory {
         // will be replaced if there is an evn segment
         msg.setRecordedDateTime(patientInfoHl7.getMessageTimestamp());
         if (patientInfoHl7.pv1SegmentExists()) {
-            // will we want demographics to be included in pathology messages too?
             msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
+            msg.setPreviousLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getPreviousLocation()));
             try {
                 msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
             } catch (IllegalArgumentException e) {
