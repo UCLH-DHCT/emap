@@ -57,3 +57,23 @@ INSERT INTO public.location_visit (
      '2010-09-16 10:00:00.000000', null, 'EPIC', 4002, 5003),
     (6004, '2010-09-03 10:05:04.794000', '2010-09-03 11:04:04.794000', '2010-09-03 11:04:04.794000',
      null, null, 'caboodle', 4003, 5002);
+
+INSERT INTO public.visit_observation_type (
+    visit_observation_type, primary_data_type, source_application, id_in_application, name_in_application,
+    source_system)
+    VALUES (7001, null, 'EPIC', '5', 'blood pressure', 'EPIC'),
+           (7002, null, 'caboodle', '5', 'blood pressure', 'caboodle'),
+           (7003, null, 'EPIC', '8', null, 'EPIC'),
+           (7004, null, 'EPIC', '10', null, 'EPIC'),
+           (7005, null, 'EPIC', '6466', null, 'EPIC'),
+           (7006, null, 'EPIC', '28315', null, 'EPIC');
+
+INSERT INTO public.visit_observation (
+    visit_observation_id, hospital_visit_id, stored_from, valid_from, comment, observation_datetime,
+    unit, value_as_real, value_as_text, visit_observation_type_id)
+    VALUES (8001, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
+            null, null, '140/90', 7001),
+           (8002, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
+            null, 50.0, null, 7003),
+           (8003, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
+            null, null, 'you should delete me', 7006);
