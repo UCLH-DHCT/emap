@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb.visit_recordings;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,125 +14,65 @@ import javax.persistence.Id;
  * EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
  * into standardised vocabularies to make their meanings clear.
- *
- * @author Roma Klapaukh
- *
+ * @author Roma Klapaukh & Stef Piatek
  */
+@Data
+@SuppressWarnings("serial")
 @Entity
+@NoArgsConstructor
 public class VisitObservationType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long   visitObservationType;
+    private long visitObservationType;
 
+    /**
+     * The hospital system that emap received the data from.
+     */
     @Column(nullable = false)
     private String sourceSystem;
 
+    /**
+     * The application that generated the data, this can be the same as the source system.
+     */
     @Column(nullable = false)
-    private String sourceSystemCode;
-    private String sourceSystemName;
+    private String sourceApplication;
+
+    /**
+     * The code used by the hospital application to identify the observation type.
+     */
+    @Column(nullable = false)
+    private String idInApplication;
+
+    /**
+     * Readable name for the hospital application observation type.
+     */
+    private String nameInApplication;
+
+    /**
+     * Mapping code for the observation from the standardised vocabulary system.
+     */
     private String standardisedCode;
+
+    /**
+     * Nomenclature or classification system used.
+     */
     private String standardisedVocabulary;
+
+    /**
+     * Data type expected to be returned.
+     */
     private String primaryDataType;
 
-    public VisitObservationType() {}
-
     /**
-     * @return the visitObservationType
+     * Minimal information constructor.
+     * @param idInApplication   Id from the application
+     * @param sourceSystem      source system
+     * @param sourceApplication source application
      */
-    public long getVisitObservationType() {
-        return visitObservationType;
-    }
-
-    /**
-     * @param visitObservationType the visitObservationType to set
-     */
-    public void setVisitObservationType(long visitObservationType) {
-        this.visitObservationType = visitObservationType;
-    }
-
-    /**
-     * @return the sourceSystem
-     */
-    public String getSourceSystem() {
-        return sourceSystem;
-    }
-
-    /**
-     * @param sourceSystem the sourceSystem to set
-     */
-    public void setSourceSystem(String sourceSystem) {
+    public VisitObservationType(String idInApplication, String sourceSystem, String sourceApplication) {
+        this.idInApplication = idInApplication;
         this.sourceSystem = sourceSystem;
+        this.sourceApplication = sourceApplication;
     }
-
-    /**
-     * @return the sourceSystemCode
-     */
-    public String getSourceSystemCode() {
-        return sourceSystemCode;
-    }
-
-    /**
-     * @param sourceSystemCode the sourceSystemCode to set
-     */
-    public void setSourceSystemCode(String sourceSystemCode) {
-        this.sourceSystemCode = sourceSystemCode;
-    }
-
-    /**
-     * @return the standardisedCode
-     */
-    public String getStandardisedCode() {
-        return standardisedCode;
-    }
-
-    /**
-     * @param standardisedCode the standardisedCode to set
-     */
-    public void setStandardisedCode(String standardisedCode) {
-        this.standardisedCode = standardisedCode;
-    }
-
-    /**
-     * @return the standardisedVocabulary
-     */
-    public String getStandardisedVocabulary() {
-        return standardisedVocabulary;
-    }
-
-    /**
-     * @param standardisedVocabulary the standardisedVocabulary to set
-     */
-    public void setStandardisedVocabulary(String standardisedVocabulary) {
-        this.standardisedVocabulary = standardisedVocabulary;
-    }
-
-    /**
-     * @return the sourceSystemName
-     */
-    public String getSourceSystemName() {
-        return sourceSystemName;
-    }
-
-    /**
-     * @param sourceSystemName the sourceSystemName to set
-     */
-    public void setSourceSystemName(String sourceSystemName) {
-        this.sourceSystemName = sourceSystemName;
-    }
-
-    /**
-     * @return the primaryDataType
-     */
-    public String getPrimaryDataType() {
-        return primaryDataType;
-    }
-
-    /**
-     * @param primaryDataType the primaryDataType to set
-     */
-    public void setPrimaryDataType(String primaryDataType) {
-        this.primaryDataType = primaryDataType;
-    }
-
 }
