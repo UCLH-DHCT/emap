@@ -2,36 +2,40 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.interchange.ResultStatus;
-import uk.ac.ucl.rits.inform.interchange.VitalSigns;
+import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNull;
 
 @ActiveProfiles("test")
-public class TestVitalSignBuilder {
-    private List<VitalSigns> vitalSigns;
-    private VitalSigns firstVitalSign;
+@SpringBootTest
+public class TestFlowsheetFactory {
+    @Autowired
+    private FlowsheetFactory flowsheetFactory;
+    private List<Flowsheet> flowsheets;
+    private Flowsheet firstFlowsheet;
 
     @BeforeEach
     public void setUp() throws IOException, HL7Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MixedHL7Message.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
-        firstVitalSign = vitalSigns.get(0);
+        flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
+        firstFlowsheet = flowsheets.get(0);
     }
 
     @Test
     public void testMRN() {
-        for (VitalSigns vitalSign : vitalSigns) {
+        for (Flowsheet vitalSign : flowsheets) {
             String result = vitalSign.getMrn();
             assertEquals("40800000", result);
         }
@@ -39,7 +43,7 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testVisitNumber() {
-        for (VitalSigns vitalSign : vitalSigns) {
+        for (Flowsheet vitalSign : flowsheets) {
             String result = vitalSign.getVisitNumber();
             assertEquals("123412341234", result);
         }
@@ -47,94 +51,84 @@ public class TestVitalSignBuilder {
 
     @Test
     public void testVitalSignIdentifier() {
-        String result = firstVitalSign.getVitalSignIdentifier();
-        assertEquals("EPIC$5", result);
+        String result = firstFlowsheet.getFlowsheetId();
+        assertEquals("5", result);
     }
 
     @Test
     public void testNumericValue() {
-        Double result = vitalSigns.get(1).getNumericValue();
+        Double result = flowsheets.get(1).getNumericValue().get();
         assertEquals(102.2, result);
     }
 
     @Test
     public void testStringValue() {
-        String result = firstVitalSign.getStringValue();
+        String result = firstFlowsheet.getStringValue().get();
         assertEquals("140/90", result);
     }
 
     @Test
     public void testComment() {
-        String result = vitalSigns.get(2).getComment();
+        String result = flowsheets.get(2).getComment().get();
         assertEquals("patient was running really fast (on a hamster wheel)", result);
     }
 
     @Test
     public void testMultipleComments() {
-        String result = vitalSigns.get(3).getComment();
+        String result = flowsheets.get(3).getComment().get();
         assertEquals("comment 1a\ncomment 1b\ncomment 2", result);
     }
 
     @Test
-    public void testResultStatusFtoSave() {
-        // result status is 'F' so should be converted to SAVE
-        ResultStatus result = firstVitalSign.getResultStatus();
-        assertEquals(ResultStatus.SAVE, result);
+    public void testResultStatusFtoValue() {
+        // result status is 'F' so value should be saved
+        String result = firstFlowsheet.getStringValue().get();
+        Assertions.assertNotNull(result);
     }
 
     @Test
-    public void testResultStatusCtoSave() {
-        // result status is 'C' so should be converted to SAVE
-        ResultStatus result = vitalSigns.get(4).getResultStatus();
-        assertEquals(ResultStatus.SAVE, result);
+    public void testResultStatusCtoValue() {
+        // result status is 'C' so should be saved
+        String result = flowsheets.get(4).getStringValue().get();
+        Assertions.assertNotNull(result);
     }
 
     @Test
     public void testResultStatusDtoDelete() {
         // result status is 'D' so should be converted to DELETE
-        ResultStatus result = vitalSigns.get(5).getResultStatus();
-        Double numericValue = vitalSigns.get(5).getNumericValue();
-        String stringValue = vitalSigns.get(5).getStringValue();
+        Hl7Value<Double> numericValue = flowsheets.get(5).getNumericValue();
+        Hl7Value<String> stringValue = flowsheets.get(5).getStringValue();
 
-        assertEquals(ResultStatus.DELETE, result);
-        assertNull(numericValue);
-        assertEquals("\"\"", stringValue);
-
-    }
-
-    @Test
-    public void testResultStatusUnrecognisedSave() {
-        // result status is 'NOT_EXPECTED' so should be converted to SAVE
-        ResultStatus result = vitalSigns.get(2).getResultStatus();
-        assertEquals(ResultStatus.SAVE, result);
+        Assertions.assertEquals(Hl7Value.delete(), numericValue);
+        Assertions.assertEquals(Hl7Value.delete(), stringValue);
     }
 
     @Test
     public void testUnit() {
-        String result = vitalSigns.get(3).getUnit();
+        String result = flowsheets.get(3).getUnit().get();
         assertEquals("%", result);
     }
 
     @Test
     public void testObservationTimeTaken() {
-        Instant result = firstVitalSign.getObservationTimeTaken();
+        Instant result = firstFlowsheet.getObservationTime();
         assertEquals(Instant.parse("2020-01-22T14:03:00.00Z"), result);
     }
 
     @Test
     public void testSourceMessageId() {
-        String result = firstVitalSign.getSourceMessageId();
+        String result = firstFlowsheet.getSourceMessageId();
         assertEquals("42$01", result);
     }
 
     @Test
     public void testMissingValue() {
-        assertEquals(7, vitalSigns.size());
+        assertEquals(7, flowsheets.size());
     }
 
     @Test
     public void testMultiLineStringValue() {
-        String result = vitalSigns.get(6).getStringValue();
+        String result = flowsheets.get(6).getStringValue().get();
         assertEquals("Supplemental Oxygen\nextra line", result);
     }
 
@@ -142,8 +136,7 @@ public class TestVitalSignBuilder {
     public void testMultipleOBRs() throws IOException, HL7Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MultiOBR.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        vitalSigns = new VitalSignBuilder("42", (ORU_R01) hl7Msg).getMessages();
-        assertEquals(4, vitalSigns.size());
+        flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
+        assertEquals(4, flowsheets.size());
     }
-
 }

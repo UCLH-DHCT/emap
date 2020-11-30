@@ -59,6 +59,7 @@ public class IdsOperations implements AutoCloseable {
 
     private SessionFactory idsFactory;
     private AdtMessageFactory adtMessageFactory;
+    private FlowsheetFactory flowsheetFactory;
     private IdsProgressRepository idsProgressRepository;
     private boolean idsEmptyOnInit;
     private Integer defaultStartUnid;
@@ -70,6 +71,7 @@ public class IdsOperations implements AutoCloseable {
      * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
      * @param environment           injected param
      * @param adtMessageFactory     injected AdtMessageFactory
+     * @param flowsheetFactory      injected FlowsheetFactory
      * @param idsProgressRepository injected IdsProgressRepository
      */
     public IdsOperations(
@@ -78,12 +80,14 @@ public class IdsOperations implements AutoCloseable {
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
             @Autowired Environment environment,
             @Autowired AdtMessageFactory adtMessageFactory,
+            @Autowired FlowsheetFactory flowsheetFactory,
             @Autowired IdsProgressRepository idsProgressRepository) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
         }
         this.adtMessageFactory = adtMessageFactory;
+        this.flowsheetFactory = flowsheetFactory;
         this.idsProgressRepository = idsProgressRepository;
         logger.info("IdsOperations() opening config file " + idsCfgXml);
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
@@ -474,8 +478,7 @@ public class IdsOperations implements AutoCloseable {
                 if (triggerEvent.equals("R01")) {
                     if (sendingFacility.equals("Vitals")) {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                        VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
-                        messages.addAll(vitalSignBuilder.getMessages());
+                        messages.addAll(flowsheetFactory.getMessages(sourceId, msgFromIds));
                     } else {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         // get all result batteries in the message
