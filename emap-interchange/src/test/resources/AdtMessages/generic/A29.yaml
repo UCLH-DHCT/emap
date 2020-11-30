@@ -32,5 +32,5 @@ patientSex:
   status: "SAVE"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "null^null^null"
-  status: "SAVE"
+  value: null
+  status: "IGNORE"

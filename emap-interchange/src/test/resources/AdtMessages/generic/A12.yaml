@@ -12,6 +12,10 @@ fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "T11E^T11E BY02^BY02-25"
   status: "SAVE"
+previousLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "THP3^UCHP03THR POOL01^THR"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "1980-01-01T00:00:00Z"
