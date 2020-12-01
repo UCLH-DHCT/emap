@@ -29,8 +29,10 @@ import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,8 +81,12 @@ public class LocationController {
         Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
 
-        if (messageOutcomeIsSimpleMove(msg) || msg instanceof DischargePatient) {
-            processMoveOrDischarge(visit, msg, storedFrom, locationEntity, validFrom);
+
+        if (messageOutcomeIsSimpleMove(msg)) {
+            processMove(visit, msg, storedFrom, locationEntity, validFrom);
+        } else if (msg instanceof DischargePatient) {
+            // discharge message handles previous message and current message differently
+            // (previous message should match current location, infer admission if create)
         } else if ((msg instanceof AdtCancellation)) {
             processCancellationMessage(visit, msg, storedFrom, locationEntity, validFrom);
         }
@@ -143,26 +149,71 @@ public class LocationController {
      * @param currentLocationEntity Location entity
      * @param validFrom             message event date time
      */
-    private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationEntity, Instant validFrom) {
+    private void processMove(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationEntity, Instant validFrom) {
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTime(visit);
         if ((msg instanceof UpdatePatientInfo && !visitLocations.isEmpty())) {
             logger.debug("UpdatePatientInfo where previous visit location for this encounter already exists");
             return;
         }
         List<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
-        // discharge message handles previous message and current message differently
-        // (previous message should match current location, infer admission if create)
+        // Previous location may not exist (ADT^A01 presentation message)
+        Optional<Location> previousLocationId = getPreviousLocation(msg);
+        if (previousLocationId.isPresent()) {
+            List<RowState<LocationVisit, LocationVisitAudit>> previousMessages = updateOrCreatePreviousVisitsFromMove(
+                    visit, msg.getSourceSystem(), previousLocationId.get(), visitLocations, validFrom, storedFrom);
+            savingVisits.addAll(previousMessages);
+        }
 
-        // previous message or previous message adjacent
-
-
-
-        // current message
+        // current location
         RowState<LocationVisit, LocationVisitAudit> currentLocationState = updateOrCreateCurrentLocationFromMove(
-                visit, msg.getSourceSystem(), currentLocationEntity, visitLocations, storedFrom, validFrom);
+                visit, msg.getSourceSystem(), currentLocationEntity, visitLocations, validFrom, storedFrom);
+        if (msg instanceof UpdatePatientInfo) {
+            LocationVisit currentLocation = currentLocationState.getEntity();
+            currentLocationState.assignIfDifferent(true, currentLocation.getInferredAdmission(), currentLocation::setInferredAdmission);
+        }
         savingVisits.add(currentLocationState);
 
         savingVisits.forEach(rowState -> rowState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo));
+    }
+
+    /**
+     * Create or update previous location from message.
+     * If message's previous location visit was created and a location existed before that, infer the discharge date for that location.
+     * @param visit        hospital visit
+     * @param sourceSystem source system
+     * @param location     previous location from message
+     * @param allLocations all locations for this visit, sorted by admission time
+     * @param messageTime  time of the message
+     * @param storedFrom   when the message has been read by emap core
+     * @return updated/created message previous messages
+     */
+    private List<RowState<LocationVisit, LocationVisitAudit>> updateOrCreatePreviousVisitsFromMove(
+            HospitalVisit visit, String sourceSystem, Location location, List<LocationVisit> allLocations, Instant messageTime, Instant storedFrom) {
+        List<RowState<LocationVisit, LocationVisitAudit>> previousVisits = new ArrayList<>();
+
+        Optional<LocationVisit> optionalPreviousLocation = getPreviousLocationVisit(allLocations, messageTime);
+        RowState<LocationVisit, LocationVisitAudit> messagePreviousLocation = inferLocation(visit, location, sourceSystem, messageTime, storedFrom);
+        if (optionalPreviousLocation.isEmpty()) {
+            previousVisits.add(messagePreviousLocation);
+            return previousVisits;
+        }
+
+        LocationVisit previousLocation = optionalPreviousLocation.get();
+        RowState<LocationVisit, LocationVisitAudit> previousLocState = new RowState<>(previousLocation, messageTime, storedFrom, false);
+        if (previousLocation.getLocationId().equals(location)) {
+            // previous location matches message - set the known discharge time
+            previousLocState.assignIfDifferent(messageTime, previousLocation.getDischargeTime(), previousLocation::setDischargeTime);
+            previousLocState.assignIfDifferent(false, previousLocation.getInferredDischarge(), previousLocation::setInferredDischarge);
+        } else {
+            // infer location from message location
+            previousVisits.add(messagePreviousLocation);
+            // then infer discharge time of existing location
+            Instant inferredDischargeTime = messageTime.minus(1, ChronoUnit.SECONDS);
+            previousLocState.assignIfDifferent(inferredDischargeTime, previousLocation.getDischargeTime(), previousLocation::setDischargeTime);
+            previousLocState.assignIfDifferent(true, previousLocation.getInferredDischarge(), previousLocation::setInferredDischarge);
+        }
+        previousVisits.add(previousLocState);
+        return previousVisits;
     }
 
     /**
@@ -214,20 +265,27 @@ public class LocationController {
     }
 
 
-    private RowState<LocationVisit, LocationVisitAudit> getPreviousLocationVisit(HospitalVisit visit, Instant admissionTime, Instant storedFrom) {
-        //TODO
-        return null;
+    /**
+     * Get most recent message before the current message time.
+     * @param visitLocations all location visits for the hospital visit
+     * @param messageTime    to filter until
+     * @return
+     */
+    private Optional<LocationVisit> getPreviousLocationVisit(Collection<LocationVisit> visitLocations, Instant messageTime) {
+        return visitLocations.stream()
+                .filter(loc -> !loc.getAdmissionTime().isAfter(messageTime))
+                .max(Comparator.comparing(LocationVisit::getAdmissionTime));
     }
 
     /**
      * Find the next location after the admission time.
      * @param visitLocations locations ordered by admission time
-     * @param admissionTime  locations must be after this time
+     * @param messageTime    to filter after
      * @return Optional location visit
      */
-    private Optional<LocationVisit> getNextLocationVisit(Collection<LocationVisit> visitLocations, Instant admissionTime) {
+    private Optional<LocationVisit> getNextLocationVisit(Collection<LocationVisit> visitLocations, Instant messageTime) {
         return visitLocations.stream()
-                .filter(loc -> loc.getAdmissionTime().isAfter(admissionTime))
+                .filter(loc -> loc.getAdmissionTime().isAfter(messageTime))
                 .findFirst();
     }
 
@@ -300,6 +358,25 @@ public class LocationController {
         return new RowState<>(locationVisit, validFrom, storedFrom, true);
     }
 
+    /**
+     * Create an inferred, discharged location visit.
+     * @param visit        Hospital Visit
+     * @param location     Location
+     * @param sourceSystem source system
+     * @param messageTime  message event date time
+     * @param storedFrom   time that emap-core encountered the message
+     * @return LocationVisit wrapped in Row state
+     */
+    private RowState<LocationVisit, LocationVisitAudit> inferLocation(
+            HospitalVisit visit, Location location, String sourceSystem, Instant messageTime, Instant storedFrom) {
+        Instant inferredAdmitTime = messageTime.minus(1, ChronoUnit.SECONDS);
+        LocationVisit inferredLocation = new LocationVisit(inferredAdmitTime, storedFrom, location, visit, sourceSystem);
+        inferredLocation.setInferredAdmission(true);
+        inferredLocation.setDischargeTime(messageTime);
+        logger.debug("Inferred previous LocationVisit: {}", inferredLocation);
+        return new RowState<>(inferredLocation, messageTime, storedFrom, true);
+    }
+
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateOpenLocationByLocation(
             HospitalVisit visit, Location location, String sourceSystem, Instant validFrom, Instant storedFrom) {
         logger.debug("Ger or create open location ({}) for visit {}", location, visit);
@@ -338,37 +415,6 @@ public class LocationController {
      */
     private boolean messageOutcomeIsSimpleMove(AdtMessage msg) {
         return msg instanceof TransferPatient || msg instanceof UpdatePatientInfo || msg instanceof AdmitPatient || msg instanceof RegisterPatient;
-    }
-
-
-    /**
-     * Discharge from old location, and admit to new location (saving the new entity).
-     * @param sourceSystem   Source system of the message
-     * @param locationEntity Location entity
-     * @param visit          Hospital visit entity
-     * @param validFrom      Time of the message event
-     * @param storedFrom     Time that emap-core encountered the message
-     * @param retiringState  RowState of the retiring location visit
-     */
-    private void moveToNewLocation(String sourceSystem, Location locationEntity, HospitalVisit visit,
-                                   Instant validFrom, Instant storedFrom, RowState<LocationVisit, LocationVisitAudit> retiringState) {
-        LocationVisit retiring = retiringState.getEntity();
-        logger.debug("Discharging visit: {}", retiring);
-        retiringState.assignIfDifferent(validFrom, retiring.getDischargeTime(), retiring::setDischargeTime);
-
-        LocationVisit newLocation = new LocationVisit(validFrom, storedFrom, locationEntity, visit, sourceSystem);
-        logger.debug("New visit: {}", newLocation);
-        locationVisitRepo.save(newLocation);
-    }
-
-    /**
-     * Is the new location different from the original entity's location.
-     * @param newLocation           new location
-     * @param originalLocationVisit original visit location entity
-     * @return true if locations are different
-     */
-    private boolean isNewLocationDifferent(Location newLocation, LocationVisit originalLocationVisit) {
-        return !newLocation.equals(originalLocationVisit.getLocationId());
     }
 
     /**
