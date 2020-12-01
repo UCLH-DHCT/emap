@@ -390,21 +390,13 @@ public class LocationController {
     }
 
     /**
-     * Update location visit if message is from a trusted source update if newer or if database source isn't trusted.
-     * Otherwise only update if if is newly created.
+     * Update location visit if newly created or if newer.
      * @param locationState Location Visit wrapped in RowState
      * @param msg           Adt Message
      * @return true if the visit should be updated
      */
     private boolean locationVisitShouldBeUpdated(RowState<LocationVisit, LocationVisitAudit> locationState, AdtMessage msg) {
-        // If a message has just been created, then we should always update the rest of the fields
-        if (locationState.isEntityCreated()) {
-            return true;
-        }
-        LocationVisit visit = locationState.getEntity();
-        // if message source is trusted and (entity source system is untrusted or message is newer)
-        return DataSources.isTrusted(msg.getSourceSystem())
-                && (!DataSources.isTrusted(visit.getSourceSystem()) || !visit.getValidFrom().isAfter(msg.bestGuessAtValidFrom()));
+        return locationState.isEntityCreated() || !locationState.getEntity().getValidFrom().isAfter(msg.bestGuessAtValidFrom());
     }
 
 

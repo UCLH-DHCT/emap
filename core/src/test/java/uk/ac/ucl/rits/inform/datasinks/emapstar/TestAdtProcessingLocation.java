@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
@@ -122,38 +122,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // audit row for location when it had no discharge time
         Optional<LocationVisitAudit> audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation);
         Assertions.assertTrue(audit.isEmpty());
-    }
-
-    /**
-     * Visit and location visit already exist in the database, old message given.
-     * Should do nothing to location
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    @Sql("/populate_db.sql")
-    void testTrustedMessageUpdatedUntrustedLocation() throws EmapOperationMessageProcessingException {
-        TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
-        msg.setEventOccurredDateTime(past);
-        msg.setMrn(null);
-        msg.setNhsNumber("222222222");
-        msg.setVisitNumber("0999999999");
-        String untrustedLocation = "T11E^T11E BY02^BY02-17";
-
-        dbOps.processMessage(msg);
-
-        // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
-        Assertions.assertNotNull(dischargedVisit.getDischargeTime());
-
-        // current location visit is different
-        LocationVisit currentVisit = locationVisitRepository
-                .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
-                .orElseThrow(NullPointerException::new);
-        Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocationId().getLocationString());
-
-        // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
-        Assertions.assertNull(audit.getDischargeTime());
     }
 
     /**
