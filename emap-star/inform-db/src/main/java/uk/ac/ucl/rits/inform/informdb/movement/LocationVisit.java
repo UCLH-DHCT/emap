@@ -70,11 +70,13 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     /**
      * Admission time has been inferred (not set from an A01, A02 or A03).
      */
-    private boolean           inferredAdmission;
+    @Column(nullable = false)
+    private Boolean           inferredAdmission = false;
     /**
      * Discharge time has been inferred (not set from an A01, A02 or A03).
      */
-    private boolean           inferredDischarge;
+    @Column(nullable = false)
+    private Boolean           inferredDischarge = false;
 
     public LocationVisit() {}
 
@@ -107,6 +109,8 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
+        this.inferredAdmission = other.inferredAdmission;
+        this.inferredDischarge = other.inferredDischarge;
     }
 
     @Override
