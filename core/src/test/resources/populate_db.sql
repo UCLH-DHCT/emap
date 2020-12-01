@@ -47,15 +47,15 @@ INSERT INTO public.location (location_id, location_string) VALUES
 
 
 INSERT INTO public.location_visit (
-    location_visit_id, stored_from, valid_from, admission_time,
+    location_visit_id, stored_from, valid_from, admission_time, inferred_admission, inferred_discharge,
     discharge_time, parent_location_visit_id, source_system, hospital_visit_id, location_id) VALUES
-    (6001, '2012-09-10 13:25:00.650000', '2010-09-14 15:27:00.933000', '2010-09-10 12:00:00.000000',
+    (6001, '2012-09-10 13:25:00.650000', '2010-09-14 15:27:00.933000', '2010-09-10 12:00:00.000000', false, false,
      '2010-09-14 15:27:00.933000', null, 'EPIC', 4001, 5004),
-    (6002, '2012-09-17 13:27:00.650000', '2010-09-14 15:27:00.933000', '2010-09-14 15:27:00.933000',
+    (6002, '2012-09-17 13:27:00.650000', '2010-09-14 15:27:00.933000', '2010-09-14 15:27:00.933000', false, false,
      null, null, 'EPIC', 4001, 5001),
-    (6003, '2012-09-17 13:28:00.650000', '2010-09-14 16:30:00.000000', '2010-09-16 01:00:00.000000',
+    (6003, '2012-09-17 13:28:00.650000', '2010-09-14 16:30:00.000000', '2010-09-16 01:00:00.000000', false, false,
      '2010-09-16 10:00:00.000000', null, 'EPIC', 4002, 5003),
-    (6004, '2010-09-03 10:05:04.794000', '2010-09-03 11:04:04.794000', '2010-09-03 11:04:04.794000',
+    (6004, '2010-09-03 10:05:04.794000', '2010-09-03 11:04:04.794000', '2010-09-03 11:04:04.794000', false, false,
      null, null, 'caboodle', 4003, 5002);
 
 INSERT INTO public.visit_observation_type (

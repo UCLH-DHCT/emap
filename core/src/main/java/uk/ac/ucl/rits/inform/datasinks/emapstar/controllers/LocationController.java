@@ -137,38 +137,102 @@ public class LocationController {
 
 
     /**
-     * @param visit          hospital visit
-     * @param msg            Adt Message
-     * @param storedFrom     when the message has been read by emap core
-     * @param locationEntity Location entity
-     * @param validFrom      message event date time
+     * @param visit                 hospital visit
+     * @param msg                   Adt Message
+     * @param storedFrom            when the message has been read by emap core
+     * @param currentLocationEntity Location entity
+     * @param validFrom             message event date time
      */
-    private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationEntity, Instant validFrom) {
-        if (msg instanceof UpdatePatientInfo && locationVisitRepo.existsByHospitalVisitId(visit)) {
-            logger.debug("UpdatePatientInfo message ignored because a previous visit location for this encounter already exists");
+    private void processMoveOrDischarge(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationEntity, Instant validFrom) {
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTime(visit);
+        if ((msg instanceof UpdatePatientInfo && !visitLocations.isEmpty())) {
+            logger.debug("UpdatePatientInfo where previous visit location for this encounter already exists");
             return;
         }
+        List<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
+        // discharge message handles previous message and current message differently
+        // (previous message should match current location, infer admission if create)
 
-        RowState<LocationVisit, LocationVisitAudit> existingLocationState = getOrCreateOpenLocation(
-                visit, locationEntity, msg.getSourceSystem(), validFrom, storedFrom);
+        // previous message or previous message adjacent
 
-        if (locationVisitShouldBeUpdated(existingLocationState, msg)) {
-            if (msg instanceof DischargePatient) {
-                dischargeLocation(validFrom, existingLocationState);
-            } else {
-                if (isNewLocationDifferent(locationEntity, existingLocationState.getEntity())) {
-                    moveToNewLocation(msg.getSourceSystem(), locationEntity, visit, validFrom, storedFrom, existingLocationState);
-                } else if (!existingLocationState.isEntityCreated()) {
-                    logger.debug("Move message doesn't change the location: {}", msg);
-                }
-            }
-            existingLocationState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
-        }
+
+
+        // current message
+        RowState<LocationVisit, LocationVisitAudit> currentLocationState = updateOrCreateCurrentLocationFromMove(
+                visit, msg.getSourceSystem(), currentLocationEntity, visitLocations, storedFrom, validFrom);
+        savingVisits.add(currentLocationState);
+
+        savingVisits.forEach(rowState -> rowState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo));
     }
 
     /**
-     * @param visit hospital visit
-     * @param msg   Adt Message
+     * Update existing current location from inferred location in database, or create a new current location.
+     * @param visit        hospital visit
+     * @param sourceSystem source system
+     * @param locationId   current location
+     * @param allLocations all locations for this visit, sorted by admission time
+     * @param validFrom    event datetime of the message
+     * @param storedFrom   when the message has been read by emap core
+     * @return RowState of the location visit
+     */
+    private RowState<LocationVisit, LocationVisitAudit> updateOrCreateCurrentLocationFromMove(
+            HospitalVisit visit, String sourceSystem, Location locationId, Collection<LocationVisit> allLocations,
+            Instant validFrom, Instant storedFrom) {
+        // by default, create a new, open location visit
+        RowState<LocationVisit, LocationVisitAudit> currentLocationState = createOpenLocation(visit, locationId, sourceSystem, validFrom, storedFrom);
+
+        Optional<LocationVisit> optionalNextLocation = getNextLocationVisit(allLocations, validFrom);
+        if (optionalNextLocation.isPresent()) {
+            if (optionalNextLocation.get().getInferredAdmission() && optionalNextLocation.get().getLocationId().equals(locationId)) {
+                // current location was inferred - update the inferred admission
+                LocationVisit currentLocation = optionalNextLocation.get();
+                currentLocationState = new RowState<>(currentLocation, validFrom, storedFrom, false);
+                currentLocationState.assignIfDifferent(validFrom, currentLocation.getAdmissionTime(), currentLocation::setAdmissionTime);
+                currentLocationState.assignIfDifferent(false, currentLocation.getInferredAdmission(), currentLocation::setInferredAdmission);
+            } else {
+                // next location is real - create new current location with inferred discharge time
+                LocationVisit currentLocation = currentLocationState.getEntity();
+                Instant dischargeTime = optionalNextLocation.get().getAdmissionTime();
+                currentLocationState.assignIfDifferent(dischargeTime, currentLocation.getDischargeTime(), currentLocation::setDischargeTime);
+                currentLocationState.assignIfDifferent(true, currentLocation.getInferredDischarge(), currentLocation::setInferredDischarge);
+            }
+        }
+        return currentLocationState;
+    }
+
+    /**
+     * Get previous location.
+     * @param msg Adt message
+     * @return optional Location
+     */
+    private Optional<Location> getPreviousLocation(AdtMessage msg) {
+        Location previousLocation = null;
+        if (msg.getPreviousLocationString().isSave()) {
+            previousLocation = getOrCreateLocation(msg.getPreviousLocationString().get());
+        }
+        return Optional.ofNullable(previousLocation);
+    }
+
+
+    private RowState<LocationVisit, LocationVisitAudit> getPreviousLocationVisit(HospitalVisit visit, Instant admissionTime, Instant storedFrom) {
+        //TODO
+        return null;
+    }
+
+    /**
+     * Find the next location after the admission time.
+     * @param visitLocations locations ordered by admission time
+     * @param admissionTime  locations must be after this time
+     * @return Optional location visit
+     */
+    private Optional<LocationVisit> getNextLocationVisit(Collection<LocationVisit> visitLocations, Instant admissionTime) {
+        return visitLocations.stream()
+                .filter(loc -> loc.getAdmissionTime().isAfter(admissionTime))
+                .findFirst();
+    }
+
+    /**
+     * @param msg Adt Message
      * @return true if message should not be processed.
      */
     private boolean untrustedSourceOrMessageType(AdtMessage msg) {
@@ -226,11 +290,14 @@ public class LocationController {
         logger.debug("Get or create open location for visit {}", visit);
         return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                    LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
-                    logger.debug("Created new LocationVisit: {}", locationVisit);
-                    return new RowState<>(locationVisit, validFrom, storedFrom, true);
-                });
+                .orElseGet(() -> createOpenLocation(visit, location, sourceSystem, validFrom, storedFrom));
+    }
+
+    private RowState<LocationVisit, LocationVisitAudit> createOpenLocation(
+            HospitalVisit visit, Location location, String sourceSystem, Instant validFrom, Instant storedFrom) {
+        LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit, sourceSystem);
+        logger.debug("Created new LocationVisit: {}", locationVisit);
+        return new RowState<>(locationVisit, validFrom, storedFrom, true);
     }
 
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateOpenLocationByLocation(
