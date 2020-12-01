@@ -22,13 +22,17 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Controls interaction with Locations.
@@ -67,8 +71,8 @@ public class LocationController {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
         }
-        if (untrustedSourceOrUpdateInfoWithPreviousLocations(visit, msg)) {
-            logger.debug("Message source is untrusted or UpdatePatientInfo where previous visit location for this encounter already exists");
+        if (untrustedSourceOrMessageType(msg)) {
+            logger.debug("Message source or message type is untrusted");
             return;
         }
 
@@ -167,9 +171,8 @@ public class LocationController {
      * @param msg   Adt Message
      * @return true if message should not be processed.
      */
-    private boolean untrustedSourceOrUpdateInfoWithPreviousLocations(HospitalVisit visit, AdtMessage msg) {
-        return !DataSources.isTrusted(msg.getSourceSystem())
-                || (msg instanceof UpdatePatientInfo && locationVisitRepo.existsByHospitalVisitId(visit));
+    private boolean untrustedSourceOrMessageType(AdtMessage msg) {
+        return !DataSources.isTrusted(msg.getSourceSystem()) || (msg instanceof ImpliedAdtMessage);
     }
 
     /**
