@@ -58,12 +58,6 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     @Column(columnDefinition = "timestamp with time zone")
     private Instant           dischargeTime;
 
-    /**
-     * The source system from which we learnt about this hospital visit.
-     */
-    @Column(nullable = false)
-    private String            sourceSystem;
-
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location          locationId;
@@ -94,7 +88,6 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
         super();
         setAdmissionTime(validFrom);
         setLocationId(location);
-        setSourceSystem(sourceSystem);
         setHospitalVisitId(hospitalVisit);
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
@@ -105,7 +98,6 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
         this.locationVisitId = other.locationVisitId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.parentLocationVisitId = other.parentLocationVisitId;
-        this.sourceSystem = other.sourceSystem;
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
