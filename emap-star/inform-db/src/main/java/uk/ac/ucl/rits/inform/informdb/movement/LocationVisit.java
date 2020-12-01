@@ -83,8 +83,7 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
      * @param hospitalVisit Hospital visit
      * @param sourceSystem  source system
      */
-    public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit,
-            String sourceSystem) {
+    public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
         super();
         setAdmissionTime(validFrom);
         setLocationId(location);
