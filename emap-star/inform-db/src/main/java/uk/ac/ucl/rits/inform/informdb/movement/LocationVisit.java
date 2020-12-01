@@ -67,6 +67,14 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location          locationId;
+    /**
+     * Admission time has been inferred (not set from an A01, A02 or A03).
+     */
+    private boolean           inferredAdmission;
+    /**
+     * Discharge time has been inferred (not set from an A01, A02 or A03).
+     */
+    private boolean           inferredDischarge;
 
     public LocationVisit() {}
 
