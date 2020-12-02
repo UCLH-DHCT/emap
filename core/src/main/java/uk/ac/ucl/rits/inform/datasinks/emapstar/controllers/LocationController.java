@@ -152,6 +152,11 @@ public class LocationController {
             logger.debug("UpdatePatientInfo where previous visit location for this encounter already exists");
             return;
         }
+        if (msg.getFullLocationString().equals(msg.getPreviousLocationString())) {
+            logger.debug("Ignoring MoveMessage where the previous and current location strings are the same");
+            return;
+        }
+
         List<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
         // Previous location may not exist (ADT^A01 presentation message)
         Optional<Location> previousLocationId = getPreviousLocation(msg);
