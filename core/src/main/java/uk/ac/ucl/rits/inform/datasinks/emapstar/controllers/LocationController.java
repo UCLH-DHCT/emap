@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
@@ -68,7 +67,7 @@ public class LocationController {
      * @param storedFrom when the message has been read by emap core
      */
     @Transactional
-    public void processVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom) throws RequiredDataMissingException {
+    public void processVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom) {
         if (visit == null || msg.getFullLocationString().isUnknown()) {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
@@ -182,13 +181,10 @@ public class LocationController {
      * @param msg        DischargePatient Message
      * @param storedFrom when the message has been read by emap core
      * @param location   Location entity
-     * @throws RequiredDataMissingException if previous location not in DischargePatient Message
      */
     private void processDischargeMessage(
-            HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location location) throws RequiredDataMissingException {
+            HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location location) {
 
-        Location previousLocationId = getPreviousLocation(msg)
-                .orElseThrow(() -> new RequiredDataMissingException("Discharge message was missing previous location"));
 
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitId(visit);
         List<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
@@ -203,7 +199,7 @@ public class LocationController {
             LocationVisit mostRecentLocation = mostRecentOptional.get();
             RowState<LocationVisit, LocationVisitAudit> mostRecentExistingState = new RowState<>(
                     mostRecentLocation, dischargeTime, storedFrom, false);
-            if (mostRecentLocation.getLocationId().equals(previousLocationId)) {
+            if (mostRecentLocation.getLocationId().equals(location)) {
                 // most recent matches the current location - set this to be the current and discharge
                 currentVisit = mostRecentExistingState;
                 dischargeLocation(dischargeTime, currentVisit);
@@ -213,10 +209,13 @@ public class LocationController {
                 savingVisits.add(mostRecentExistingState);
             }
             // no previous location so infer previous location and don't override inferred current visit
-            RowState<LocationVisit, LocationVisitAudit> previousState = inferLocation(
-                    visit, location, inferredDischargeTime, dischargeTime, storedFrom);
-            setInferredDischargeAndTime(true, inferredDischargeTime, previousState);
-            savingVisits.add(previousState);
+            Optional<Location> previousLocation = getPreviousLocation(msg);
+            if (previousLocation.isPresent()) {
+                RowState<LocationVisit, LocationVisitAudit> previousState = inferLocation(
+                        visit, previousLocation.get(), inferredDischargeTime, dischargeTime, storedFrom);
+                setInferredDischargeAndTime(true, inferredDischargeTime, previousState);
+                savingVisits.add(previousState);
+            }
         }
 
         savingVisits.add(currentVisit);
