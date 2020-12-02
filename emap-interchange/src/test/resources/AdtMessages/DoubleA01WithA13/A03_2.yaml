@@ -16,10 +16,6 @@ fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "T11E^T11E BY02^BY02-17"
-previousLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T12S^T12S BY05^BY05-31"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
