@@ -81,11 +81,19 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
      * @param storedFrom    Time that emap-core encountered the message
      * @param location      Location
      * @param hospitalVisit Hospital visit
-     * @param sourceSystem  source system
      */
     public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
         super();
         setAdmissionTime(validFrom);
+        setLocationId(location);
+        setHospitalVisitId(hospitalVisit);
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
+    }
+
+    public LocationVisit(Instant admissionTime, Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
+        super();
+        setAdmissionTime(admissionTime);
         setLocationId(location);
         setHospitalVisitId(hospitalVisit);
         setValidFrom(validFrom);
