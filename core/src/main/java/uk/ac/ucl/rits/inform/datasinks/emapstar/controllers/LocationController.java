@@ -201,7 +201,8 @@ public class LocationController {
         Optional<LocationVisit> mostRecentOptional = getPreviousLocationVisit(visitLocations, dischargeTime);
         if (mostRecentOptional.isPresent()) {
             LocationVisit mostRecentLocation = mostRecentOptional.get();
-            RowState<LocationVisit, LocationVisitAudit> mostRecentExistingState = new RowState<>(mostRecentLocation, dischargeTime, storedFrom, false);
+            RowState<LocationVisit, LocationVisitAudit> mostRecentExistingState = new RowState<>(
+                    mostRecentLocation, dischargeTime, storedFrom, false);
             if (mostRecentLocation.getLocationId().equals(previousLocationId)) {
                 // most recent matches the current location - set this to be the current and discharge
                 currentVisit = mostRecentExistingState;
@@ -212,7 +213,8 @@ public class LocationController {
                 savingVisits.add(mostRecentExistingState);
             }
             // no previous location so infer previous location and don't override inferred current visit
-            RowState<LocationVisit, LocationVisitAudit> previousState = inferLocation(visit, location, inferredDischargeTime, dischargeTime, storedFrom);
+            RowState<LocationVisit, LocationVisitAudit> previousState = inferLocation(
+                    visit, location, inferredDischargeTime, dischargeTime, storedFrom);
             setInferredDischargeAndTime(true, inferredDischargeTime, previousState);
             savingVisits.add(previousState);
         }
@@ -309,7 +311,7 @@ public class LocationController {
      * Get most recent message before the current message time.
      * @param visitLocations all location visits for the hospital visit
      * @param messageTime    to filter until
-     * @return
+     * @return optional location visit
      */
     private Optional<LocationVisit> getPreviousLocationVisit(Collection<LocationVisit> visitLocations, Instant messageTime) {
         return visitLocations.stream()
