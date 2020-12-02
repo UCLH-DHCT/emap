@@ -44,12 +44,6 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
             HospitalVisit visit, Location locationId, Instant dischargeTime);
 
     /**
-     * @param visit hospital visit
-     * @return all visits ordered by admission time
-     */
-    List<LocationVisit> findAllByHospitalVisitIdOrderByAdmissionTime(HospitalVisit visit);
-
-    /**
      * For testing: find by location string.
      * @param location full location string
      * @return LocationVisit wrapped in optional

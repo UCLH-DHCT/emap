@@ -148,7 +148,7 @@ public class LocationController {
      * @param validFrom             message event date time
      */
     private void processMoveMessage(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationEntity, Instant validFrom) {
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTime(visit);
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitId(visit);
         if ((msg instanceof UpdatePatientInfo && !visitLocations.isEmpty())) {
             logger.debug("UpdatePatientInfo where previous visit location for this encounter already exists");
             return;
@@ -190,7 +190,7 @@ public class LocationController {
         Location previousLocationId = getPreviousLocation(msg)
                 .orElseThrow(() -> new RequiredDataMissingException("Discharge message was missing previous location"));
 
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTime(visit);
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitId(visit);
         List<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
 
         Instant dischargeTime = msg.getDischargeDateTime();
@@ -321,14 +321,14 @@ public class LocationController {
 
     /**
      * Find the next location after the admission time.
-     * @param visitLocations locations ordered by admission time
+     * @param visitLocations all locations for the visit
      * @param messageTime    to filter after
      * @return Optional location visit
      */
     private Optional<LocationVisit> getNextLocationVisit(Collection<LocationVisit> visitLocations, Instant messageTime) {
         return visitLocations.stream()
                 .filter(loc -> loc.getAdmissionTime().isAfter(messageTime))
-                .findFirst();
+                .min(Comparator.comparing(LocationVisit::getAdmissionTime));
     }
 
     /**
