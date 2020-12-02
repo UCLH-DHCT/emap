@@ -202,17 +202,17 @@ public class LocationController {
             RowState<LocationVisit, LocationVisitAudit> mostRecentExistingState = new RowState<>(
                     mostRecentLocation, dischargeTime, storedFrom, false);
             if (mostRecentLocation.getLocationId().equals(location)) {
-                // most recent matches the current location - set this to be the current and discharge
+                logger.debug("Previous location matches current hl7 location: using as current and discharging");
                 currentVisit = mostRecentExistingState;
                 dischargeLocation(dischargeTime, currentVisit);
             } else {
-                // most recent doesn't match current - infer discharge time for most recent and don't override inferred current visit
+                logger.debug("Previous location doesn't match current hl7 location: inferring discharge and inferring hl7 message admit time");
                 setInferredDischargeAndTime(true, inferredDischargeTime, mostRecentExistingState);
                 savingVisits.add(mostRecentExistingState);
             }
-            // no previous location so infer previous location and don't override inferred current visit
             Optional<Location> previousLocation = getPreviousLocationId(msg);
             if (previousLocation.isPresent()) {
+                logger.debug("No previous location found: inferring discharge message admit time");
                 RowState<LocationVisit, LocationVisitAudit> previousState = inferLocation(
                         visit, previousLocation.get(), inferredDischargeTime, dischargeTime, storedFrom);
                 setInferredDischargeAndTime(true, inferredDischargeTime, previousState);
@@ -241,7 +241,10 @@ public class LocationController {
 
         Optional<LocationVisit> optionalPreviousLocation = getPreviousLocationVisit(allLocations, messageTime);
         if (optionalPreviousLocation.isEmpty()) {
-            previousLocationId.ifPresent(loc -> previousVisits.add(inferLocation(visit, loc, messageTime, messageTime, storedFrom)));
+            if (previousLocationId.isPresent()) {
+                logger.debug("No locations for visit, inferring admission time for previous location");
+                previousVisits.add(inferLocation(visit, previousLocationId.get(), messageTime, messageTime, storedFrom));
+            }
             return previousVisits;
         }
 
@@ -249,17 +252,16 @@ public class LocationController {
         RowState<LocationVisit, LocationVisitAudit> previousLocState = new RowState<>(previousLocation, messageTime, storedFrom, false);
         if (previousLocationId.isPresent()) {
             if (previousLocation.getLocationId().equals(previousLocationId.get())) {
-                // previous location matches message - set the known discharge time
+                logger.debug("Previous location matches hl7 value: setting known discharge time");
                 setInferredDischargeAndTime(false, messageTime, previousLocState);
             } else {
-                // infer location from message location
+                logger.debug("Previous location doesn't match hl7: inferring hl7 previous location and discharge time of existing previous location");
                 previousVisits.add(inferLocation(visit, previousLocationId.get(), messageTime, messageTime, storedFrom));
-                // then infer discharge time of existing location
                 Instant inferredDischargeTime = messageTime.minus(1, ChronoUnit.SECONDS);
                 setInferredDischargeAndTime(true, inferredDischargeTime, previousLocState);
             }
         } else {
-            // no previous visit in message, infer discharge for previous message (because we don't know explicitly that it is the previous location)
+            logger.debug("No hl7 previous location: inferring admission time for previous location");
             setInferredDischargeAndTime(true, messageTime, previousLocState);
         }
         previousVisits.add(previousLocState);
