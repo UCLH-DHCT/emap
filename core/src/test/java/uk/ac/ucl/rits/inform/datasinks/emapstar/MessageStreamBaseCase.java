@@ -552,6 +552,7 @@ public abstract class MessageStreamBaseCase {
         discharge.setSourceSystem("EPIC");
         discharge.setMrn(this.mrn);
         discharge.setFullLocationString(currentLocation());
+        discharge.setPreviousLocationString(previousLocation());
         discharge.setVisitNumber(this.csn);
         discharge.setPatientClass(this.getPatientClass());
         discharge.setPatientGivenName(this.fName);

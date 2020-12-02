@@ -25,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 class TestAdtProcessingLocation extends MessageProcessingBase {
@@ -95,8 +96,9 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        Assertions.assertNotNull(dischargedVisit.getDischargeTime());
+        List<LocationVisit> dischargedVisits = locationVisitRepository
+                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+        dischargedVisits.forEach(visit -> Assertions.assertNotNull(visit.getDischargeTime()));
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);

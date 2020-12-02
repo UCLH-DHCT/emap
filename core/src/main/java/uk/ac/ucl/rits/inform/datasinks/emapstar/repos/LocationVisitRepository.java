@@ -50,17 +50,20 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
     List<LocationVisit> findAllByHospitalVisitIdOrderByAdmissionTime(HospitalVisit visit);
 
     /**
-     * @param visit hospital visit
-     * @return true a location visit by hospital visit id
-     */
-    boolean existsByHospitalVisitId(HospitalVisit visit);
-
-    /**
      * For testing: find by location string.
      * @param location full location string
      * @return LocationVisit wrapped in optional
      */
     Optional<LocationVisit> findByLocationIdLocationString(String location);
+
+
+    /**
+     * For testing.
+     * @param location  location string
+     * @param encounter encounter string
+     * @return list of all location visits
+     */
+    List<LocationVisit> findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(String location, String encounter);
 
     /**
      * For testing: find location visit by the hospitalVisitId.
