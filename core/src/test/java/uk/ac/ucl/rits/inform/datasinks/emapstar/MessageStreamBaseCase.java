@@ -266,7 +266,7 @@ public abstract class MessageStreamBaseCase {
      * Make sure that the patient has an admission time.
      */
     protected void ensureAdmitted() {
-        if (this.admissionTime == null) {
+        if (this.admissionTime.isUnknown()) {
             this.admissionTime = new Hl7Value<>(this.nextTime());
         }
     }
@@ -515,11 +515,6 @@ public abstract class MessageStreamBaseCase {
             erroneousTransferDateTime = this.nextTime();
         } else {
             erroneousTransferDateTime = this.transferTime.remove(this.transferTime.size() - 1);
-        }
-
-        if (this.transferTime.isEmpty()) {
-            // This is really acting as a place holder for NULL
-            this.transferTime.add(Instant.MIN);
         }
 
         Instant eventTime = this.nextTime();
