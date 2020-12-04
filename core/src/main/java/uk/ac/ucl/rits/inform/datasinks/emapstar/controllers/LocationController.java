@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -157,18 +159,11 @@ public class LocationController {
             logger.debug("Ignoring MoveMessage where the previous and current location strings are the same");
             return;
         }
-        RowState<LocationVisit, LocationVisitAudit> nextLocation = null;
-        Long indexCurrentOrPrevious = null;
-        for (LocationVisit location : visitLocations) {
-            if (validFrom.isBefore(location.getAdmissionTime())) {
-                nextLocation = new RowState<>(location, validFrom, storedFrom, false);
-                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-            } else {
-                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-                // exit early because we now know the index before the next location
-                break;
-            }
-        }
+
+        Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
+                visitLocations, validFrom, storedFrom);
+        Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
+        RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
 
         RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocation(
                 visit, storedFrom, currentLocationId, validFrom, visitLocations, indexCurrentOrPrevious);
@@ -182,6 +177,31 @@ public class LocationController {
 
         saveAllLocationVisitsIfRequired(currentLocation, previousVisits);
 
+    }
+
+    /**
+     * Get the index of the current or previous location (if exists) and the next location (if exists).
+     * @param visitLocations visit locations in descending order of admission time
+     * @param validFrom      message event date time
+     * @param storedFrom     when the message has been read by emap core
+     * @return Pair of nullable values: <index of the current or previous visit, next location visit>
+     */
+    private Pair<Long, RowState<LocationVisit, LocationVisitAudit>> getIndexOfCurrentAndNextLocationVisit(
+            List<LocationVisit> visitLocations, Instant validFrom, Instant storedFrom) {
+
+        RowState<LocationVisit, LocationVisitAudit> nextLocation = null;
+        Long indexCurrentOrPrevious = null;
+        for (LocationVisit location : visitLocations) {
+            if (validFrom.isBefore(location.getAdmissionTime())) {
+                nextLocation = new RowState<>(location, validFrom, storedFrom, false);
+                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
+            } else {
+                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
+                // exit early because we now know the index before the next location
+                break;
+            }
+        }
+        return new ImmutablePair<>(indexCurrentOrPrevious, nextLocation);
     }
 
     /**
