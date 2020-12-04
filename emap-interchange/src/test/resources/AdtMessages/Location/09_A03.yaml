@@ -1,0 +1,23 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.DischargePatient"
+recordedDateTime: "2013-02-10T10:00:52Z"
+eventOccurredDateTime: "2013-02-10T18:00:52Z"
+eventReasonCode: "ADT_EVENT"
+visitNumber: "123412341234"
+nhsNumber: "9999999999"
+sourceSystem: "EPIC"
+mrn: "40800000"
+dischargeDateTime: "2013-02-10T18:00:52Z"
+dischargeDisposition: "19"
+dischargeLocation: "1"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "EAU^UCH T00 EAU BY02^BY02-08"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
