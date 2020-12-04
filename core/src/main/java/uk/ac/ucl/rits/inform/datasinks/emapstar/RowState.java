@@ -96,6 +96,9 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * @param setPatientClass setter lambda
      */
     public void assignHl7ValueIfDifferent(Hl7Value<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
+        if (newValue.isUnknown()) {
+            return;
+        }
         assignIfDifferent(newValue.get().toString(), currentValue, setPatientClass);
     }
 

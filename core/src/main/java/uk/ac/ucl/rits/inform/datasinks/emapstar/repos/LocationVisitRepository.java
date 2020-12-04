@@ -71,4 +71,12 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
      * @return LocationVisit wrapped in optional
      */
     Optional<LocationVisit> findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(Long hospitalVisitId);
+
+    /**
+     * For testing: find location visit by the hospitalVisitId's encounter and admission time.
+     * @param encounter       encounter
+     * @param admissionTime   admissionTime
+     * @return LocationVisit wrapped in optional
+     */
+    Optional<LocationVisit> findByHospitalVisitIdEncounterAndAdmissionTime(String encounter, Instant admissionTime);
 }
