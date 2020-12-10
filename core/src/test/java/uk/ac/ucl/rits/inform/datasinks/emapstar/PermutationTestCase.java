@@ -268,7 +268,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(this.csn).get();
         List<LocationVisit> locationVisits = super.locationVisitRepository.findAllByHospitalVisitId(visit);
         // Do we have the expected number of Location Visits
-        assertEquals(locationVisits.size(), expectedVisits);
+        assertEquals(expectedVisits, locationVisits.size());
 
         // If there aren't any to check stop
         if (expectedVisits == 0) {
@@ -358,7 +358,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(this.csn).get();
         List<LocationVisit> locationVisits = super.locationVisitRepository.findAllByHospitalVisitId(visit);
         // Do we have the expected number of Location Visits
-        assertEquals(locationVisits.size(), super.transferTime.size());
+        assertEquals(super.transferTime.size(), locationVisits.size());
 
         // If there aren't any to check being open
         if (super.transferTime.size() == 0) {
