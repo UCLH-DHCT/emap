@@ -131,7 +131,6 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
     public void testAdmitThenCancelAdmit() throws EmapOperationMessageProcessingException {
         AdmitPatient addMsg = messageFactory.getAdtMessage("generic/A01.yaml");
         CancelAdmitPatient removeMsg = messageFactory.getAdtMessage("generic/A11.yaml");
