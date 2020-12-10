@@ -15,11 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -54,6 +55,9 @@ public abstract class MessageStreamBaseCase {
 
     @Autowired
     protected CoreDemographicRepository  coreDemographicRepository;
+
+    @Autowired
+    protected LocationVisitRepository    locationVisitRepository;
 
     protected List<EmapOperationMessage> messageStream                = new ArrayList<>();
     /**
@@ -300,12 +304,10 @@ public abstract class MessageStreamBaseCase {
      * @param patientClass the patient class to set
      */
     public void queueUpdatePatientDetails(Hl7Value<PatientClass> patientClass) {
-        boolean impliedTransfer = this.admissionTime == null;
+        boolean impliedTransfer = this.admissionTime.isUnknown();
 
         // clock must be changed before anything which might cause a change
         this.stepClock();
-
-        this.ensureAdmitted();
 
         if (impliedTransfer) {
             this.transferTime.add(this.currentTime);
@@ -358,10 +360,10 @@ public abstract class MessageStreamBaseCase {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
-        if (this.admissionTime == null || transfer) {
+        if (this.admissionTime.isUnknown() || transfer) {
             this.transferTime.add(eventTime);
         }
-        if (this.admissionTime == null) {
+        if (this.admissionTime.isUnknown()) {
             this.admissionTime = new Hl7Value<Instant>(eventTime);
         }
         if (transfer) {
@@ -394,7 +396,7 @@ public abstract class MessageStreamBaseCase {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
-        if (this.admissionTime.isUnknown() || this.presentationTime.isUnknown()) {
+        if (this.transferTime.isEmpty()) {
             this.transferTime.add(eventTime);
         }
         if (this.presentationTime.isUnknown()) {
@@ -509,7 +511,6 @@ public abstract class MessageStreamBaseCase {
      * Queue a cancel transfer message.
      */
     public void queueCancelTransfer() {
-        this.ensureAdmitted();
         Instant erroneousTransferDateTime;
         if (this.transferTime.isEmpty()) {
             erroneousTransferDateTime = this.nextTime();
