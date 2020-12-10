@@ -9,12 +9,16 @@ mrn: "40800000"
 admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "2012-10-17T11:24:53Z"
+  value: "2020-04-01T18:30:00Z"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "ED^UCHED OTF POOL^OTF"
+  value: "EAU^UCH T00 EAU BY02^BY02-08"
 previousLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
