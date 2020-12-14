@@ -281,21 +281,24 @@ public class LocationController {
                     previousHl7Location = new RowState<>(existingLocation, validFrom, storedFrom, false);
                     setInferredDischargeAndTime(false, validFrom, previousHl7Location);
                 } else {
-                    logger.debug(
-                            "Previous location doesn't match hl7: inferring hl7 previous location and discharge time of existing previous location"
-                    );
+                    logger.debug("Previous location doesn't match hl7: inferring hl7 previous location");
                     previousHl7Location = createLocationWithInferredAdmit(visit, previousLocationId.get(), validFrom, validFrom, storedFrom);
 
-                    RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
-                    Instant inferredDischargeTime = validFrom.minus(1, ChronoUnit.SECONDS);
-                    setInferredDischargeAndTime(true, inferredDischargeTime, existingPrevious);
-                    previousLocations.add(existingPrevious);
+                    if (openLocationOrInferredDischarge(existingLocation)) {
+                        logger.debug("Inferring discharge of previous location");
+                        RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
+                        Instant inferredDischargeTime = validFrom.minus(1, ChronoUnit.SECONDS);
+                        setInferredDischargeAndTime(true, inferredDischargeTime, existingPrevious);
+                        previousLocations.add(existingPrevious);
+                    }
                 }
             } else {
-                logger.debug("No previous hl7 location, but found existing previous location. Inferring existing location discharge.");
-                RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
-                setInferredDischargeAndTime(true, validFrom, existingPrevious);
-                previousLocations.add(existingPrevious);
+                if (openLocationOrInferredDischarge(existingLocation)) {
+                    logger.debug("No previous hl7 location, but found existing previous location. Inferring existing location discharge.");
+                    RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
+                    setInferredDischargeAndTime(true, validFrom, existingPrevious);
+                    previousLocations.add(existingPrevious);
+                }
             }
         } else if (previousLocationId.isPresent()) {
             logger.debug("No existing locations for visit, inferring admission time for hl7 message previous location");
@@ -310,6 +313,10 @@ public class LocationController {
             previousLocations.add(previousHl7Location);
         }
         return previousLocations;
+    }
+
+    private boolean openLocationOrInferredDischarge(LocationVisit existingLocation) {
+        return existingLocation.getDischargeTime() == null || existingLocation.getInferredDischarge();
     }
 
     /**
