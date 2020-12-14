@@ -161,7 +161,7 @@ public class LocationController {
         }
 
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
-                visitLocations, validFrom, storedFrom);
+                visitLocations, currentLocationId, validFrom, storedFrom);
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
         RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
 
@@ -187,7 +187,7 @@ public class LocationController {
      * @return Pair of nullable values: <index of the current or previous visit, next location visit>
      */
     private Pair<Long, RowState<LocationVisit, LocationVisitAudit>> getIndexOfCurrentAndNextLocationVisit(
-            List<LocationVisit> visitLocations, Instant validFrom, Instant storedFrom) {
+            List<LocationVisit> visitLocations, Location currentLocation, Instant validFrom, Instant storedFrom) {
 
         RowState<LocationVisit, LocationVisitAudit> nextLocation = null;
         Long indexCurrentOrPrevious = null;
@@ -201,6 +201,14 @@ public class LocationController {
                 break;
             }
         }
+        if (nextLocation != null && nextLocation.getEntity().getLocationId().equals(currentLocation)
+                && nextLocation.getEntity().getInferredAdmission() && !nextLocation.getEntity().getInferredDischarge()
+                && nextLocation.getEntity().getDischargeTime() != null) {
+            logger.debug("Next location is inferred discharge for the same location, resetting it to be the current visit");
+            nextLocation = null;
+            indexCurrentOrPrevious -= 1;
+        }
+
         return new ImmutablePair<>(indexCurrentOrPrevious, nextLocation);
     }
 
@@ -373,7 +381,7 @@ public class LocationController {
         Instant dischargeTime = msg.getDischargeDateTime();
 
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
-                visitLocations, dischargeTime, storedFrom);
+                visitLocations, currentLocationId, dischargeTime, storedFrom);
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
 
         RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocation(

@@ -37,7 +37,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     }
 
     // refactoring missing "01_A04", then see if adding it in adds any extra fails
-    private String[] adtFilenames = {"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A03"};
+    private String[] adtFilenames = {"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
     private String[] locations = {
             //"ED^null^null",
             "ED^UCHED RAT CHAIR^RAT-CHAIR",
@@ -45,6 +45,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
             "ED^NON COVID MAJORS 04^04-NON COVID MAJORS",
             "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
             "ED^NON COVID MAJORS 04^04-NON COVID MAJORS",
+            "EAU^UCH T00 EAU BY02^BY02-08",
     };
 
     private <T extends AdtMessage> T getLocationAdtMessage(String filename) {
