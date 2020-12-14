@@ -512,10 +512,13 @@ public abstract class MessageStreamBaseCase {
      */
     public void queueCancelTransfer() {
         Instant erroneousTransferDateTime;
-        if (this.transferTime.isEmpty()) {
-            erroneousTransferDateTime = this.nextTime();
-        } else {
+        if (!this.transferTime.isEmpty()){
             erroneousTransferDateTime = this.transferTime.remove(this.transferTime.size() - 1);
+        } else {
+            erroneousTransferDateTime = this.nextTime();
+        }
+        if (this.transferTime.isEmpty()) {
+            this.transferTime.add(erroneousTransferDateTime);
         }
 
         Instant eventTime = this.nextTime();
@@ -530,6 +533,7 @@ public abstract class MessageStreamBaseCase {
         cancelTransfer.setPatientGivenName(this.fName);
         cancelTransfer.setPatientMiddleName(this.mName);
         cancelTransfer.setPatientFamilyName(this.lName);
+        cancelTransfer.setPreviousLocationString(this.currentLocation());
         cancelTransfer.setFullLocationString(this.previousLocation());
         cancelTransfer.setPatientIsAlive(this.patientAlive);
         cancelTransfer.setPatientDeathDateTime(deathTime);
