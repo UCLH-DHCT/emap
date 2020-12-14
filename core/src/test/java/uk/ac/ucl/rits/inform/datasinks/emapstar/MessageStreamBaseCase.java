@@ -304,7 +304,7 @@ public abstract class MessageStreamBaseCase {
      * @param patientClass the patient class to set
      */
     public void queueUpdatePatientDetails(Hl7Value<PatientClass> patientClass) {
-        boolean impliedTransfer = this.admissionTime.isUnknown();
+        boolean impliedTransfer = this.transferTime.isEmpty();
 
         // clock must be changed before anything which might cause a change
         this.stepClock();
@@ -360,7 +360,7 @@ public abstract class MessageStreamBaseCase {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
-        if (this.admissionTime.isUnknown() || transfer) {
+        if (this.transferTime.isEmpty() || transfer) {
             this.transferTime.add(eventTime);
         }
         if (this.admissionTime.isUnknown()) {
