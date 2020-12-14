@@ -192,21 +192,50 @@ public class LocationController {
         RowState<LocationVisit, LocationVisitAudit> nextLocation = null;
         Long indexCurrentOrPrevious = null;
         for (LocationVisit location : visitLocations) {
-            if (validFrom.isBefore(location.getAdmissionTime())) {
-                if (location.getLocationId().equals(currentLocation) && location.getInferredAdmission() && location.getDischargeTime() != null) {
-                    logger.debug("Next visit matches location and looks like current visit, not setting to be the current visit");
-                    continue;
-                }
-                nextLocation = new RowState<>(location, validFrom, storedFrom, false);
-                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-            } else {
-                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-                // exit early because we now know the index before the next location
+            indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
+            if (!validFrom.isBefore(location.getAdmissionTime())) {
+                // exit early because we now know the index of current or next visit
                 break;
             }
+            if (isCurrentVisit(location, currentLocation, indexCurrentOrPrevious, visitLocations, validFrom)) {
+                logger.debug("Next visit matches location and looks like current visit, skipping");
+                // exit early because we are on the current visit
+                break;
+            }
+            nextLocation = new RowState<>(location, validFrom, storedFrom, false);
         }
+        logger.trace("Next location: {}", nextLocation);
 
         return new ImmutablePair<>(indexCurrentOrPrevious, nextLocation);
+    }
+
+    /**
+     * Is the "next visit" likely to be the current visit.
+     * @param location          potential current location visit
+     * @param currentLocationId location Id from hl7 message
+     * @param currentIndex      index of potential current location visit
+     * @param visitLocations    list of all location visits, in descending order of admission time
+     * @param validFrom         event time of the message
+     * @return true if the message appears to be current.
+     */
+    private boolean isCurrentVisit(
+            LocationVisit location, Location currentLocationId, Long currentIndex, List<LocationVisit> visitLocations, Instant validFrom) {
+        boolean isCurrentVisit = false;
+        // same location, inferred admission and discharge time set
+        if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission() && location.getDischargeTime() != null) {
+            Long precedingLocationIndex = currentIndex + 1;
+            if (indexInRange(visitLocations, precedingLocationIndex)) {
+                Instant precedingVisitAdmission = visitLocations.get(precedingLocationIndex.intValue()).getAdmissionTime();
+                // current message is after the preceding location's admission time - seems like it's the current visit
+                if (validFrom.isAfter(precedingVisitAdmission)) {
+                    isCurrentVisit = true;
+                }
+            } else {
+                // no visits before this seems like it's the current visit
+                isCurrentVisit = true;
+            }
+        }
+        return isCurrentVisit;
     }
 
     /**
@@ -516,7 +545,8 @@ public class LocationController {
      * @param dischargeTime time to set the discharge
      * @param locationState to update
      */
-    private void setInferredDischargeAndTime(Boolean isInferred, Instant dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
+    private void setInferredDischargeAndTime(Boolean isInferred, Instant
+            dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
         LocationVisit existingLocation = locationState.getEntity();
         locationState.assignIfDifferent(dischargeTime, existingLocation.getDischargeTime(), existingLocation::setDischargeTime);
         locationState.assignIfDifferent(isInferred, existingLocation.getInferredDischarge(), existingLocation::setInferredDischarge);
@@ -527,7 +557,8 @@ public class LocationController {
      * @param dischargeTime
      * @param locationState
      */
-    private void setInferredAdmissionAndTime(Boolean isInferred, Instant dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
+    private void setInferredAdmissionAndTime(Boolean isInferred, Instant
+            dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
         LocationVisit existingLocation = locationState.getEntity();
         locationState.assignIfDifferent(dischargeTime, existingLocation.getAdmissionTime(), existingLocation::setAdmissionTime);
         locationState.assignIfDifferent(isInferred, existingLocation.getInferredAdmission(), existingLocation::setInferredAdmission);
