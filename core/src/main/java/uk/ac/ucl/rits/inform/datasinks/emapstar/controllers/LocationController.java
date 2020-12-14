@@ -165,7 +165,7 @@ public class LocationController {
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
         RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
 
-        RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocation(
+        RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocationForMove(
                 visit, storedFrom, currentLocationId, validFrom, visitLocations, indexCurrentOrPrevious);
         updateCurrentVisitIfRequired(nextLocation, validFrom, currentLocation);
         // If the current location is not created, then it was found - so increment counter for previous location
@@ -222,6 +222,26 @@ public class LocationController {
      * @param indexOfCurrent    index of potential current location
      * @return current location visit
      */
+    private RowState<LocationVisit, LocationVisitAudit> getOrCreateCurrentLocationForMove(
+            HospitalVisit visit, Instant storedFrom, Location currentLocationId, Instant validFrom,
+            List<LocationVisit> visitLocations, Long indexOfCurrent) {
+
+        RowState<LocationVisit, LocationVisitAudit> currentLocation;
+        if (indexInRange(visitLocations, indexOfCurrent)) {
+            LocationVisit location = visitLocations.get(indexOfCurrent.intValue());
+            if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission()) {
+                logger.debug("Current location found");
+                currentLocation = new RowState<>(location, validFrom, storedFrom, false);
+            } else {
+                currentLocation = createOpenLocation(visit, currentLocationId, validFrom, storedFrom);
+            }
+        } else {
+            currentLocation = createOpenLocation(visit, currentLocationId, validFrom, storedFrom);
+        }
+        return currentLocation;
+    }
+
+    // TODO: boolean for method
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateCurrentLocation(
             HospitalVisit visit, Instant storedFrom, Location currentLocationId, Instant validFrom,
             List<LocationVisit> visitLocations, Long indexOfCurrent) {
