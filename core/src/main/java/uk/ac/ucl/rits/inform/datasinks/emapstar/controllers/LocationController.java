@@ -193,6 +193,10 @@ public class LocationController {
         Long indexCurrentOrPrevious = null;
         for (LocationVisit location : visitLocations) {
             if (validFrom.isBefore(location.getAdmissionTime())) {
+                if (location.getLocationId().equals(currentLocation) && location.getInferredAdmission() && location.getDischargeTime() != null) {
+                    logger.debug("Next visit matches location and looks like current visit, not setting to be the current visit");
+                    continue;
+                }
                 nextLocation = new RowState<>(location, validFrom, storedFrom, false);
                 indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
             } else {
@@ -200,13 +204,6 @@ public class LocationController {
                 // exit early because we now know the index before the next location
                 break;
             }
-        }
-        if (nextLocation != null && nextLocation.getEntity().getLocationId().equals(currentLocation)
-                && nextLocation.getEntity().getInferredAdmission() && !nextLocation.getEntity().getInferredDischarge()
-                && nextLocation.getEntity().getDischargeTime() != null) {
-            logger.debug("Next location is inferred discharge for the same location, resetting it to be the current visit");
-            nextLocation = null;
-            indexCurrentOrPrevious -= 1;
         }
 
         return new ImmutablePair<>(indexCurrentOrPrevious, nextLocation);
