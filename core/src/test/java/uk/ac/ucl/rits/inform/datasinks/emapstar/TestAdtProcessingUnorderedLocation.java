@@ -39,10 +39,8 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
-    // refactoring missing "01_A04", then see if adding it in adds any extra fails
-    private String[] adtFilenames = {"01_A04", "02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
+    private String[] adtFilenames = {"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
     private String[] locations = {
-            "ED^null^null",
             "ED^UCHED RAT CHAIR^RAT-CHAIR",
             "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
             "ED^NON COVID MAJORS 04^04-NON COVID MAJORS",
@@ -64,7 +62,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
 
     private void checkAllVisits() {
         // From A02
-        Instant admissionInstant = Instant.parse("2013-02-11T10:00:52Z");
+        Instant admissionInstant = Instant.parse("2013-02-11T11:00:52Z");
 
         int adtCheckCount = 0;
         for (String location : locations) {
