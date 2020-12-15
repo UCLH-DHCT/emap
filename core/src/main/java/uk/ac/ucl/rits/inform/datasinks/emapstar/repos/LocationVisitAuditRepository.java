@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,5 +26,12 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
      * @return AuditLocationVisit wrapped in optional
      */
     Optional<LocationVisitAudit> findByLocationIdLocationStringAndValidFrom(String location, Instant validFrom);
+
+    /**
+     * For testing.
+     * @param locationVisitId id for the location visit
+     * @return
+     */
+    List<LocationVisitAudit> findAllByLocationVisitId(Long locationVisitId);
 
 }

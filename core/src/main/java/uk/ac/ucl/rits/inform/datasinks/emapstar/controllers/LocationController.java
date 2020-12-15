@@ -193,7 +193,7 @@ public class LocationController {
         Long indexCurrentOrPrevious = null;
         for (LocationVisit location : visitLocations) {
             indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-            if (!validFrom.isBefore(location.getAdmissionTime())) {
+            if (validFrom.isAfter(location.getAdmissionTime())) {
                 // exit early because we now know the index of current or next visit
                 break;
             }
@@ -329,9 +329,13 @@ public class LocationController {
         List<RowState<LocationVisit, LocationVisitAudit>> previousLocations = new ArrayList<>();
         if (indexInRange(visitLocations, indexOfPreviousMessage)) {
             LocationVisit existingLocation = visitLocations.get(indexOfPreviousMessage.intValue());
+            if (dischargeWouldBeBeforeAdmission(validFrom, existingLocation)) {
+                logger.debug("Discharge would be before the admission time, doing nothing to previous message");
+                return previousLocations;
+            }
             if (previousLocationId.isPresent()) {
                 if (previousLocationId.get().equals(existingLocation.getLocationId())) {
-                    logger.debug("Previous location matches hl7 value: setting known discharge time");
+                    logger.debug("Previous location matches hl7 value: inferring discharge time");
                     previousHl7Location = new RowState<>(existingLocation, validFrom, storedFrom, false);
                     setInferredDischargeAndTime(false, validFrom, previousHl7Location);
                 } else {
@@ -367,6 +371,10 @@ public class LocationController {
             previousLocations.add(previousHl7Location);
         }
         return previousLocations;
+    }
+
+    private boolean dischargeWouldBeBeforeAdmission(Instant validFrom, LocationVisit existingLocation) {
+        return existingLocation.getAdmissionTime() != null && validFrom.isBefore(existingLocation.getAdmissionTime());
     }
 
     private boolean openLocationOrInferredDischarge(LocationVisit existingLocation) {

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -27,6 +28,8 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
 
     @Autowired
     private LocationVisitRepository locationVisitRepository;
+    @Autowired
+    private LocationVisitAuditRepository locationVisitAuditRepository;
     private TransactionTemplate transactionTemplate;
 
     /***
