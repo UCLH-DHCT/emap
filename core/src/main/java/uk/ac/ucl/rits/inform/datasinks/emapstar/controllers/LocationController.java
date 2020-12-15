@@ -194,15 +194,18 @@ public class LocationController {
         for (LocationVisit location : visitLocations) {
             indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
             if (validFrom.isAfter(location.getAdmissionTime())) {
-                // exit early because we now know the index of current or next visit
+                logger.debug("Reached a visit which is before the current admission time");
                 break;
             }
             if (isCurrentVisit(location, currentLocation, indexCurrentOrPrevious, visitLocations, validFrom)) {
-                logger.debug("Next visit matches location and looks like current visit, skipping");
-                // exit early because we are on the current visit
+                // Early exit because we think we are on the current visit
                 break;
             }
             nextLocation = new RowState<>(location, validFrom, storedFrom, false);
+            // if we get to the end and we haven't skipped over the current, increment it again because there is no current or past visit
+            if (indexCurrentOrPrevious == visitLocations.size() - 1) {
+                indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
+            }
         }
         logger.trace("Next location: {}", nextLocation);
 
@@ -226,12 +229,12 @@ public class LocationController {
             Long precedingLocationIndex = currentIndex + 1;
             if (indexInRange(visitLocations, precedingLocationIndex)) {
                 Instant precedingVisitAdmission = visitLocations.get(precedingLocationIndex.intValue()).getAdmissionTime();
-                // current message is after the preceding location's admission time - seems like it's the current visit
+                logger.debug("Current message is after the preceding location's admission time, will use it as the current visit");
                 if (validFrom.isAfter(precedingVisitAdmission)) {
                     isCurrentVisit = true;
                 }
             } else {
-                // no visits before this seems like it's the current visit
+                logger.debug("No visits before this and it seems like it's the current visit");
                 isCurrentVisit = true;
             }
         }
@@ -329,10 +332,6 @@ public class LocationController {
         List<RowState<LocationVisit, LocationVisitAudit>> previousLocations = new ArrayList<>();
         if (indexInRange(visitLocations, indexOfPreviousMessage)) {
             LocationVisit existingLocation = visitLocations.get(indexOfPreviousMessage.intValue());
-            if (dischargeWouldBeBeforeAdmission(validFrom, existingLocation)) {
-                logger.debug("Discharge would be before the admission time, doing nothing to previous message");
-                return previousLocations;
-            }
             if (previousLocationId.isPresent()) {
                 if (previousLocationId.get().equals(existingLocation.getLocationId())) {
                     logger.debug("Previous location matches hl7 value: inferring discharge time");
@@ -371,10 +370,6 @@ public class LocationController {
             previousLocations.add(previousHl7Location);
         }
         return previousLocations;
-    }
-
-    private boolean dischargeWouldBeBeforeAdmission(Instant validFrom, LocationVisit existingLocation) {
-        return existingLocation.getAdmissionTime() != null && validFrom.isBefore(existingLocation.getAdmissionTime());
     }
 
     private boolean openLocationOrInferredDischarge(LocationVisit existingLocation) {
