@@ -13,7 +13,7 @@ presentationDateTime:
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
+  value: "ED^null^null"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
