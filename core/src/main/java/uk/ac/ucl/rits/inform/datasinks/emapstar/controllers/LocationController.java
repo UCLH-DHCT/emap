@@ -165,8 +165,8 @@ public class LocationController {
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
         RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
 
-        RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocationForMove(
-                visit, storedFrom, currentLocationId, validFrom, visitLocations, indexCurrentOrPrevious);
+        RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocation(
+                visit, storedFrom, currentLocationId, validFrom, visitLocations, indexCurrentOrPrevious, false);
         updateCurrentVisitIfRequired(nextLocation, validFrom, currentLocation);
         // If the current location is not created, then it was found - so increment counter for previous location
         if (!currentLocation.isEntityCreated()) {
@@ -243,42 +243,23 @@ public class LocationController {
 
     /**
      * Get or create current location.
-     * @param visit             hospital visit
-     * @param storedFrom        time that emap star encountered the message
-     * @param currentLocationId current location
-     * @param validFrom         event time of the message
-     * @param visitLocations    visit locations in descending order of admission time
-     * @param indexOfCurrent    index of potential current location
+     * @param visit               hospital visit
+     * @param storedFrom          time that emap star encountered the message
+     * @param currentLocationId   current location
+     * @param validFrom           event time of the message
+     * @param visitLocations      visit locations in descending order of admission time
+     * @param indexOfCurrent      index of potential current location
+     * @param forDischargeMessage if true, skips check on inferred admission
      * @return current location visit
      */
-    private RowState<LocationVisit, LocationVisitAudit> getOrCreateCurrentLocationForMove(
-            HospitalVisit visit, Instant storedFrom, Location currentLocationId, Instant validFrom,
-            List<LocationVisit> visitLocations, Long indexOfCurrent) {
-
-        RowState<LocationVisit, LocationVisitAudit> currentLocation;
-        if (indexInRange(visitLocations, indexOfCurrent)) {
-            LocationVisit location = visitLocations.get(indexOfCurrent.intValue());
-            if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission()) {
-                logger.debug("Current location found");
-                currentLocation = new RowState<>(location, validFrom, storedFrom, false);
-            } else {
-                currentLocation = createOpenLocation(visit, currentLocationId, validFrom, storedFrom);
-            }
-        } else {
-            currentLocation = createOpenLocation(visit, currentLocationId, validFrom, storedFrom);
-        }
-        return currentLocation;
-    }
-
-    // TODO: boolean for method
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateCurrentLocation(
             HospitalVisit visit, Instant storedFrom, Location currentLocationId, Instant validFrom,
-            List<LocationVisit> visitLocations, Long indexOfCurrent) {
+            List<LocationVisit> visitLocations, Long indexOfCurrent, boolean forDischargeMessage) {
 
         RowState<LocationVisit, LocationVisitAudit> currentLocation;
         if (indexInRange(visitLocations, indexOfCurrent)) {
             LocationVisit location = visitLocations.get(indexOfCurrent.intValue());
-            if (location.getLocationId().equals(currentLocationId)) {
+            if (location.getLocationId().equals(currentLocationId) && (location.getInferredAdmission() || forDischargeMessage)) {
                 logger.debug("Current location found");
                 currentLocation = new RowState<>(location, validFrom, storedFrom, false);
             } else {
@@ -434,7 +415,7 @@ public class LocationController {
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
 
         RowState<LocationVisit, LocationVisitAudit> currentLocation = getOrCreateCurrentLocation(
-                visit, storedFrom, currentLocationId, dischargeTime, visitLocations, indexCurrentOrPrevious);
+                visit, storedFrom, currentLocationId, dischargeTime, visitLocations, indexCurrentOrPrevious, true);
         setInferredDischargeAndTime(false, dischargeTime, currentLocation);
 
         List<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
