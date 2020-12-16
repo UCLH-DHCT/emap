@@ -97,6 +97,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
      */
     @TestFactory
     public Stream<DynamicTest> testUnorderedMessages() {
+        // TODO: replace with in place iterator
         Collection<List<String>> fullMessages = Collections2.orderedPermutations(List.of(adtFilenames));
 
         return fullMessages.stream().map(l -> DynamicTest.dynamicTest("Test " + l.toString(), () -> {
