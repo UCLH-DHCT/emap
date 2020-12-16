@@ -5,10 +5,11 @@ visitNumber: "123412341234"
 nhsNumber: "9999999999"
 sourceSystem: "EPIC"
 mrn: "40800000"
+cancelledDateTime: "2010-09-16T10:00:00Z"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T11E^T11E BY02^BY02-17"
+  value: "T06C^T06C SR41^SR41-41"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "IGNORE"
