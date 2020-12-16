@@ -235,7 +235,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
     /**
      * No locations or location-visit in database.
-     * Cancel transfer patient should create new location
+     * Cancel discharge should do nothing
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -243,7 +243,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         dbOps.processMessage(msg);
 
-        Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
         Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 

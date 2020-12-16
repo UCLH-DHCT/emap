@@ -49,6 +49,23 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
      */
     List<LocationVisit> findAllByHospitalVisitIdOrderByAdmissionTimeDesc(HospitalVisit visit);
 
+
+    /**
+     * @param visit         hospital visit
+     * @param locationId    location Id
+     * @param admissionTime admissionTime
+     * @return LocationVisit wrapped in optional
+     */
+    Optional<LocationVisit> findByHospitalVisitIdAndLocationIdAndAdmissionTime(HospitalVisit visit, Location locationId, Instant admissionTime);
+
+    /**
+     * @param visit         hospital visit
+     * @param locationId    location Id
+     * @param dischargeTime admissionTime
+     * @return LocationVisit wrapped in optional
+     */
+    Optional<LocationVisit> findByHospitalVisitIdAndLocationIdAndDischargeTime(HospitalVisit visit, Location locationId, Instant dischargeTime);
+
     /**
      * For testing: find by location string.
      * @param location full location string
@@ -74,8 +91,8 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
 
     /**
      * For testing: find location visit by the hospitalVisitId's encounter and admission time.
-     * @param encounter       encounter
-     * @param admissionTime   admissionTime
+     * @param encounter     encounter
+     * @param admissionTime admissionTime
      * @return LocationVisit wrapped in optional
      */
     Optional<LocationVisit> findByHospitalVisitIdEncounterAndAdmissionTime(String encounter, Instant admissionTime);

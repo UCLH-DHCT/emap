@@ -30,7 +30,7 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
     /**
      * For testing.
      * @param locationVisitId id for the location visit
-     * @return
+     * @return all location visit audit entities
      */
     List<LocationVisitAudit> findAllByLocationVisitId(Long locationVisitId);
 

@@ -182,8 +182,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertNull(visit.getDischargeDestination());
         assertNull(visit.getDischargeDisposition());
         assertNull(visit.getDischargeTime());
-        // cancelled date time is missing from message, so should use recordedDateTime
-        assertEquals(removeMsg.getRecordedDateTime(), visit.getValidFrom());
+        assertEquals(removeMsg.getCancelledDateTime(), visit.getValidFrom());
     }
 
 
