@@ -584,9 +584,41 @@ public class LocationController {
                             locationVisit -> removeDischargeIfNoVisitsAfter(visit, storedFrom, locationId, validFrom, cancellationTime, locationVisit));
         } else if (msg instanceof CancelTransferPatient) {
             CancelTransferPatient cancelTransferPatient = (CancelTransferPatient) msg;
-//            Location cancelledLocation = getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
-//            deleteOpenVisitLocation(visit, cancelledLocation, validFrom, storedFrom);
-//            removeDischargeDateTime(visit, msg, locationId, validFrom, storedFrom);
+            if (cancelTransferPatient.getCancelledLocation() == null) {
+                throw new RequiredDataMissingException("CancelTransfer message: doesn't have location to cancel");
+            }
+            Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
+            Location incorrectLocationId = getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
+
+            List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
+            Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
+                    visitLocations, incorrectLocationId, cancellationTime, storedFrom);
+            Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
+
+            if (!indexInRange(visitLocations, indexCurrentOrPrevious)) {
+                logger.debug("CancelTransfer message: visit to cancel was not found");
+                return;
+            }
+            LocationVisit retiringLocation = visitLocations.get(indexCurrentOrPrevious.intValue());
+            if (retiringLocation.getLocationId() != incorrectLocationId) {
+                logger.debug("CancelTransfer message: visit to cancel was not found");
+                return;
+            }
+
+            // retiring location found, so will need to adjust the discharge date of the previous location
+            int previousIndex = indexCurrentOrPrevious.intValue() + 1;
+            RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
+            if (indexInRange(visitLocations, indexCurrentOrPrevious)) {
+                RowState<LocationVisit, LocationVisitAudit> previousLocationState = new RowState<>(
+                        visitLocations.get(previousIndex), cancellationTime, storedFrom, false);
+                Instant previousDischarge = null;
+                if (nextLocation != null) {
+                    previousDischarge = nextLocation.getEntity().getAdmissionTime();
+                }
+                setInferredDischargeAndTime(true, previousDischarge, previousLocationState);
+            }
+
+            deleteLocationVisit(cancellationTime, storedFrom, retiringLocation);
         }
     }
 
