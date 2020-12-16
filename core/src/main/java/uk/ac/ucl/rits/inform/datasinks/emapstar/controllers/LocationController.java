@@ -580,49 +580,57 @@ public class LocationController {
             Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
             locationVisitRepo
                     .findByHospitalVisitIdAndLocationIdAndDischargeTime(visit, locationId, cancellationTime)
-                    .ifPresent(
-                            locationVisit -> removeDischargeIfNoVisitsAfter(visit, storedFrom, locationId, validFrom, cancellationTime, locationVisit));
+                    .ifPresent(locationVisit ->
+                            removeDischargeIfNoVisitsAfter(visit, storedFrom, locationId, validFrom, cancellationTime, locationVisit));
         } else if (msg instanceof CancelTransferPatient) {
             CancelTransferPatient cancelTransferPatient = (CancelTransferPatient) msg;
             if (cancelTransferPatient.getCancelledLocation() == null) {
                 throw new RequiredDataMissingException("CancelTransfer message: doesn't have location to cancel");
             }
-            Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
-            Location incorrectLocationId = getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
-
-            List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
-            Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
-                    visitLocations, incorrectLocationId, cancellationTime, storedFrom);
-            Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
-
-            if (!indexInRange(visitLocations, indexCurrentOrPrevious)) {
-                logger.debug("CancelTransfer message: visit to cancel was not found");
-                return;
-            }
-            LocationVisit retiringLocation = visitLocations.get(indexCurrentOrPrevious.intValue());
-            if (retiringLocation.getLocationId() != incorrectLocationId) {
-                logger.debug("CancelTransfer message: visit to cancel was not found");
-                return;
-            }
-
-            // retiring location found, so will need to adjust the discharge date of the previous location
-            int previousIndex = indexCurrentOrPrevious.intValue() + 1;
-            RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
-            if (indexInRange(visitLocations, indexCurrentOrPrevious)) {
-                RowState<LocationVisit, LocationVisitAudit> previousLocationState = new RowState<>(
-                        visitLocations.get(previousIndex), cancellationTime, storedFrom, false);
-                Instant previousDischarge = null;
-                if (nextLocation != null) {
-                    previousDischarge = nextLocation.getEntity().getAdmissionTime();
-                }
-                setInferredDischargeAndTime(true, previousDischarge, previousLocationState);
-            }
-
-            deleteLocationVisit(cancellationTime, storedFrom, retiringLocation);
+            processCancelTransfer(visit, storedFrom, cancelTransferPatient);
         }
     }
 
-    private void removeDischargeIfNoVisitsAfter(HospitalVisit visit, Instant storedFrom, Location locationId, Instant validFrom, Instant cancellationTime, LocationVisit incorrectVisit) {
+    private void processCancelTransfer(
+            HospitalVisit visit, Instant storedFrom, CancelTransferPatient cancelTransferPatient) throws RequiredDataMissingException {
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
+        Instant cancellationTime = getCancellationTime(cancelTransferPatient);
+        Location cancelledLocationId = getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
+
+        Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
+                visitLocations, cancelledLocationId, cancellationTime, storedFrom);
+        Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
+
+        if (!indexInRange(visitLocations, indexCurrentOrPrevious)) {
+            logger.debug("CancelTransfer message: visit to cancel was not found");
+            return;
+        }
+        LocationVisit retiringLocation = visitLocations.get(indexCurrentOrPrevious.intValue());
+        if (retiringLocation.getLocationId() != cancelledLocationId) {
+            logger.debug("CancelTransfer message: visit to cancel was not found");
+            return;
+        }
+        deleteLocationVisit(cancellationTime, storedFrom, retiringLocation);
+        updatePreviousVisitDischargeTime(
+                visitLocations, indexCurrentOrPrevious + 1, indexAndNextLocation.getRight(), cancellationTime, storedFrom);
+    }
+
+    private void updatePreviousVisitDischargeTime(
+            List<LocationVisit> visitLocations, Long previousIndex, RowState<LocationVisit, LocationVisitAudit> nextLocation,
+            Instant cancellationTime, Instant storedFrom) {
+        if (indexInRange(visitLocations, previousIndex)) {
+            RowState<LocationVisit, LocationVisitAudit> previousLocationState = new RowState<>(
+                    visitLocations.get(previousIndex.intValue()), cancellationTime, storedFrom, false);
+            Instant previousDischarge = null;
+            if (nextLocation != null) {
+                previousDischarge = nextLocation.getEntity().getAdmissionTime();
+            }
+            setInferredDischargeAndTime(true, previousDischarge, previousLocationState);
+        }
+    }
+
+    private void removeDischargeIfNoVisitsAfter(
+            HospitalVisit visit, Instant storedFrom, Location locationId, Instant validFrom, Instant cancellationTime, LocationVisit incorrectVisit) {
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, locationId, validFrom, storedFrom);
