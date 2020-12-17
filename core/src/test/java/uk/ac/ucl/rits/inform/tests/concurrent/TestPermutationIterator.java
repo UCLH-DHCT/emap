@@ -31,4 +31,19 @@ public class TestPermutationIterator {
         assertEquals(expectedSize, sets.stream().distinct().count(), "Some permutations were repeated");
 
     }
+
+    @Test
+    public void testEmptyList() {
+        List<Integer> items = List.of();
+
+        int size = 0;
+        for (List<Integer> set : new ShuffleIterator<>(items)) {
+            assertEquals(0, set.size());
+            size++;
+        }
+        int expectedSize = 1;
+        assertEquals(expectedSize, size, "Wrong number of permutations generated");
+
+    }
+
 }

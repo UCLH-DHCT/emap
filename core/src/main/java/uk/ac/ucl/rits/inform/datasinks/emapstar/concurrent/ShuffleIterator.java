@@ -30,11 +30,11 @@ public class ShuffleIterator<T> implements Iterator<List<T>>, Iterable<List<T>> 
      */
     public ShuffleIterator(List<T> data) {
         this.stack = new Stack<>();
+        stack.push(new ShuffleStackFrame(new ArrayList<>(data), new ArrayList<>()));
         // Nothing to do if there isn't anything to shuffle
         if (data.isEmpty()) {
             return;
         }
-        stack.push(new ShuffleStackFrame(new ArrayList<>(data), new ArrayList<>()));
         this.process();
     }
 
