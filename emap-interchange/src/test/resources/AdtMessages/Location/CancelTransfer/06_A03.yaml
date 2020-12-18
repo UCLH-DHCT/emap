@@ -1,0 +1,39 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.DischargePatient"
+recordedDateTime: "2013-02-11T17:00:52Z"
+eventOccurredDateTime: "2013-02-11T16:00:52Z"
+eventReasonCode: "ADT_EVENT"
+visitNumber: "123412341234"
+nhsNumber: "9999999999"
+sourceSystem: "EPIC"
+mrn: "40800000"
+dischargeDateTime: "2013-02-11T16:00:52Z"
+dischargeDisposition: "Feeling great"
+dischargeLocation: "Home"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T11:00:52Z"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ORANGE"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BLOOD"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "F"
