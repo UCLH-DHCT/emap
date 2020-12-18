@@ -54,4 +54,20 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
     Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
             Long hospitalVisitId, Location location, Instant admissionTime, Instant dischargeTime);
 
+    default Optional<LocationVisitAudit> findPreviousLocationVisitAuditForDischarge(Long locationVisitId) {
+        List<LocationVisitAudit> audits = findAllByLocationVisitIdOrderByStoredUntilDesc(locationVisitId);
+        LocationVisitAudit previousDischarge = null;
+        for (LocationVisitAudit audit: audits) {
+            if (audit.getAdmissionTime().equals(audit.getDischargeTime()) || audit.getInferredDischarge()) {
+                // skip cancelled messages and ones with inferred discharge
+                continue;
+            }
+            previousDischarge = audit;
+            break;
+        }
+       return Optional.ofNullable(previousDischarge);
+    }
+
+    List<LocationVisitAudit> findAllByLocationVisitIdOrderByStoredUntilDesc(Long locationVisitId);
+
 }

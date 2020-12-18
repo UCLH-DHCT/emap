@@ -599,7 +599,7 @@ public class LocationController {
             Optional<LocationVisit> retiringVisit = locationVisitRepo
                     .findByHospitalVisitIdAndLocationIdAndDischargeTime(visit, locationId, cancellationTime);
             if (retiringVisit.isPresent()) {
-                removeDischargeIfNoVisitsAfter(visit, storedFrom, locationId, validFrom, cancellationTime, retiringVisit.get());
+                rollbackDischargeToPreviousValue(visit, storedFrom, locationId, validFrom, cancellationTime, retiringVisit.get());
             } else {
                 recordLocationAsDeleted(visit, locationId, true, false, cancellationTime, storedFrom);
             }
@@ -682,7 +682,7 @@ public class LocationController {
         }
     }
 
-    private void removeDischargeIfNoVisitsAfter(
+    private void rollbackDischargeToPreviousValue(
             HospitalVisit visit, Instant storedFrom, Location locationId, Instant validFrom, Instant cancellationTime, LocationVisit incorrectVisit) {
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
@@ -692,10 +692,17 @@ public class LocationController {
             logger.debug("CancelDischarge, but locations after discharge for visit - not doing anything");
             return;
         }
-        logger.debug("CancelDischarge, no locations after discharge for visit so removing discharge time");
-        RowState<LocationVisit, LocationVisitAudit> removeDischarge = new RowState<>(
+        RowState<LocationVisit, LocationVisitAudit> rollbackDischarge = new RowState<>(
                 incorrectVisit, cancellationTime, storedFrom, false);
-        setInferredDischargeAndTime(false, null, removeDischarge);
+
+        Instant previousDischargeTime = locationVisitAuditRepo
+                .findPreviousLocationVisitAuditForDischarge(incorrectVisit.getLocationVisitId())
+                .map(LocationVisitAudit::getDischargeTime)
+                .orElse(null);
+        // find previous state of the location visit discharge
+        logger.debug("CancelDischarge, no locations after discharge for visit so rolling back discharge time to {}", previousDischargeTime);
+
+        setInferredDischargeAndTime(false, previousDischargeTime, rollbackDischarge);
     }
 
     /**

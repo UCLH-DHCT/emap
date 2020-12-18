@@ -67,6 +67,4 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         });
         return orderPermutationTestProducer.testUnorderedMessages();
     }
-
-
 }
