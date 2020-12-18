@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.tests.concurrent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,26 @@ public class TestPermutationIterator {
         }
         int expectedSize = 1;
         assertEquals(expectedSize, size, "Wrong number of permutations generated");
+
+    }
+
+    @Test
+    public void testFunctor() {
+        List<Integer> items = List.of(1, 2, 3);
+        List<Integer> targets = List.of(2, 4, 6);
+
+        int expectedSize = 1;
+        for (int i = 2; i <= items.size(); i++) {
+            expectedSize *= i;
+        }
+
+        for (List<Integer> set : new ShuffleIterator<>(items).map(v -> v * 2)) {
+            assertEquals(items.size(), set.size());
+            assertTrue(set.containsAll(targets));
+            expectedSize--;
+        }
+
+        assertEquals(0, expectedSize, "Wrong number of permutations were generated");
 
     }
 

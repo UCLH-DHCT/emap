@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.concurrent;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Stack;
@@ -13,7 +12,7 @@ import java.util.Stack;
  *
  * @param <T> Type of the items to shuffle
  */
-public class ShuffleIterator<T> implements Iterator<List<T>>, Iterable<List<T>> {
+public class ShuffleIterator<T> implements Functorator<T> {
 
     /**
      * Processing stack.
@@ -36,11 +35,6 @@ public class ShuffleIterator<T> implements Iterator<List<T>>, Iterable<List<T>> 
             return;
         }
         this.process();
-    }
-
-    @Override
-    public Iterator<List<T>> iterator() {
-        return this;
     }
 
     @Override
