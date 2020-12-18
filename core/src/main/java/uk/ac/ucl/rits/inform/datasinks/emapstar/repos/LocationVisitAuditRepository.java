@@ -6,8 +6,10 @@ import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Audit hospital visit repository.
@@ -54,18 +56,30 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
     Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
             Long hospitalVisitId, Location location, Instant admissionTime, Instant dischargeTime);
 
-    default Optional<LocationVisitAudit> findPreviousLocationVisitAuditForDischarge(Long locationVisitId) {
+    default Optional<LocationVisitAudit> findPreviousLocationVisitAuditForDischarge(Long locationVisitId, Instant cancellationTime) {
         List<LocationVisitAudit> audits = findAllByLocationVisitIdOrderByStoredUntilDesc(locationVisitId);
+
+        Set<Instant> cancelledDischarges = new HashSet<>();
+        cancelledDischarges.add(cancellationTime);
+        for (LocationVisitAudit audit : audits) {
+            if (audit.getDischargeTime() == null || audit.getAdmissionTime() == null) {
+                continue;
+            }
+            if (audit.getDischargeTime().equals(audit.getAdmissionTime()) && !audit.getInferredAdmission()) {
+                cancelledDischarges.add(audit.getDischargeTime());
+            }
+        }
+
         LocationVisitAudit previousDischarge = null;
-        for (LocationVisitAudit audit: audits) {
-            if (audit.getAdmissionTime().equals(audit.getDischargeTime()) || audit.getInferredDischarge()) {
-                // skip cancelled messages and ones with inferred discharge
+        for (LocationVisitAudit audit : audits) {
+            if (cancelledDischarges.contains(audit.getDischargeTime())) {
+                // skip cancelled discharges
                 continue;
             }
             previousDischarge = audit;
             break;
         }
-       return Optional.ofNullable(previousDischarge);
+        return Optional.ofNullable(previousDischarge);
     }
 
     List<LocationVisitAudit> findAllByLocationVisitIdOrderByStoredUntilDesc(Long locationVisitId);

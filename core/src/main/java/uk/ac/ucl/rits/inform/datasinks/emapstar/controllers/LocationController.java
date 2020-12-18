@@ -206,7 +206,7 @@ public class LocationController {
         for (LocationVisit location : visitLocations) {
             indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
             if (validFrom.isAfter(location.getAdmissionTime())) {
-                logger.debug("Reached a visit which is before the current admission time");
+                logger.trace("Reached a visit which is before the current admission time");
                 break;
             }
             if (isCurrentVisit(location, currentLocation, indexCurrentOrPrevious, visitLocations, validFrom)) {
@@ -696,7 +696,7 @@ public class LocationController {
                 incorrectVisit, cancellationTime, storedFrom, false);
 
         Instant previousDischargeTime = locationVisitAuditRepo
-                .findPreviousLocationVisitAuditForDischarge(incorrectVisit.getLocationVisitId())
+                .findPreviousLocationVisitAuditForDischarge(incorrectVisit.getLocationVisitId(), cancellationTime)
                 .map(LocationVisitAudit::getDischargeTime)
                 .orElse(null);
         // find previous state of the location visit discharge
