@@ -1,6 +1,8 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 
 import java.time.Instant;
@@ -33,5 +35,23 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
      * @return all location visit audit entities
      */
     List<LocationVisitAudit> findAllByLocationVisitId(Long locationVisitId);
+
+    default Boolean messageLocationIsCancelled(HospitalVisit hospitalVisit, Location location, Instant messageTime, boolean dischargeCancelled) {
+        if (dischargeCancelled) {
+            return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
+                    hospitalVisit.getHospitalVisitId(), location, messageTime, messageTime);
+        }
+        return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredAdmissionIsFalse(
+                hospitalVisit.getHospitalVisitId(), location, messageTime, messageTime);
+    }
+
+    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredAdmissionIsFalse(
+            Long hospitalVisit, Location location, Instant admission, Instant discharge);
+
+    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
+            Long hospitalVisit, Location location, Instant admission, Instant discharge);
+
+    Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
+            Long hospitalVisitId, Location location, Instant admissionTime, Instant dischargeTime);
 
 }

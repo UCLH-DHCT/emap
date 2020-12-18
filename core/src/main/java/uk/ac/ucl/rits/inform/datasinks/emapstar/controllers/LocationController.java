@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
@@ -69,10 +70,12 @@ public class LocationController {
      * @param visit      hospital visit
      * @param msg        Adt Message
      * @param storedFrom when the message has been read by emap core
-     * @throws RequiredDataMissingException If cancellation information is missing
+     * @throws RequiredDataMissingException      If cancellation information is missing
+     * @throws MessageLocationCancelledException If the message location has been cancelled
      */
     @Transactional
-    public void processVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom) throws RequiredDataMissingException {
+    public void processVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom)
+            throws RequiredDataMissingException, MessageLocationCancelledException {
         if (visit == null || msg.getFullLocationString().isUnknown()) {
             logger.debug("No visit or unknown location for AdtMessage: {}", msg);
             return;
@@ -150,8 +153,14 @@ public class LocationController {
      * @param storedFrom        when the message has been read by emap core
      * @param currentLocationId Location entity
      * @param validFrom         message event date time
+     * @throws MessageLocationCancelledException if the message location has already been cancelled for the time
      */
-    private void processMoveMessage(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationId, Instant validFrom) {
+    private void processMoveMessage(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationId, Instant validFrom)
+            throws MessageLocationCancelledException {
+        if (!(msg instanceof UpdatePatientInfo) && locationVisitAuditRepo.messageLocationIsCancelled(visit, currentLocationId, validFrom, false)) {
+            throw new MessageLocationCancelledException("Admission or Transfer was cancelled");
+        }
+
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
         if ((msg instanceof UpdatePatientInfo && !visitLocations.isEmpty())) {
             logger.debug("UpdatePatientInfo where previous visit location for this encounter already exists");
@@ -407,9 +416,14 @@ public class LocationController {
      * @param msg               DischargePatient Message
      * @param storedFrom        when the message has been read by emap core
      * @param currentLocationId Location entity
+     * @throws MessageLocationCancelledException if discharge message was cancelled
      */
     private void processDischargeMessage(
-            HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location currentLocationId) {
+            HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location currentLocationId) throws MessageLocationCancelledException {
+        if (locationVisitAuditRepo.messageLocationIsCancelled(visit, currentLocationId, msg.getDischargeDateTime(), true)) {
+            throw new MessageLocationCancelledException("Discharge has previously been cancelled");
+        }
+
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
         Instant dischargeTime = msg.getDischargeDateTime();
 
@@ -573,15 +587,22 @@ public class LocationController {
             HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationId, Instant validFrom) throws RequiredDataMissingException {
         if (msg instanceof CancelAdmitPatient) {
             Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
-            locationVisitRepo
-                    .findByHospitalVisitIdAndLocationIdAndAdmissionTime(visit, locationId, cancellationTime)
-                    .ifPresent(locationVisit -> deleteLocationVisit(cancellationTime, storedFrom, locationVisit));
+            Optional<LocationVisit> retiringVisit = locationVisitRepo
+                    .findByHospitalVisitIdAndLocationIdAndAdmissionTime(visit, locationId, cancellationTime);
+            if (retiringVisit.isPresent()) {
+                deleteLocationVisit(cancellationTime, storedFrom, retiringVisit.get());
+            } else {
+                recordLocationAsDeleted(visit, locationId, false, true, cancellationTime, storedFrom);
+            }
         } else if (msg instanceof CancelDischargePatient) {
             Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
-            locationVisitRepo
-                    .findByHospitalVisitIdAndLocationIdAndDischargeTime(visit, locationId, cancellationTime)
-                    .ifPresent(locationVisit ->
-                            removeDischargeIfNoVisitsAfter(visit, storedFrom, locationId, validFrom, cancellationTime, locationVisit));
+            Optional<LocationVisit> retiringVisit = locationVisitRepo
+                    .findByHospitalVisitIdAndLocationIdAndDischargeTime(visit, locationId, cancellationTime);
+            if (retiringVisit.isPresent()) {
+                removeDischargeIfNoVisitsAfter(visit, storedFrom, locationId, validFrom, cancellationTime, retiringVisit.get());
+            } else {
+                recordLocationAsDeleted(visit, locationId, true, false, cancellationTime, storedFrom);
+            }
         } else if (msg instanceof CancelTransferPatient) {
             CancelTransferPatient cancelTransferPatient = (CancelTransferPatient) msg;
             if (cancelTransferPatient.getCancelledLocation() == null) {
@@ -589,6 +610,36 @@ public class LocationController {
             }
             processCancelTransfer(visit, storedFrom, cancelTransferPatient);
         }
+    }
+
+    private void recordLocationAsDeleted(
+            HospitalVisit visit, Location locationId,
+            boolean inferredAdmit, boolean inferredDischarge, Instant cancellationTime, Instant storedFrom) {
+        LocationVisitAudit cancelled = locationVisitAuditRepo
+                .findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
+                        visit.getHospitalVisitId(), locationId, cancellationTime, cancellationTime)
+                .orElseGet(() -> buildCancelledAudit(visit, locationId, cancellationTime, storedFrom));
+        cancelled.setStoredUntil(storedFrom);
+        cancelled.setInferredAdmission(inferredAdmit || cancelled.getInferredAdmission());
+        cancelled.setInferredDischarge(inferredDischarge || cancelled.getInferredDischarge());
+        logger.info("Cancelling location {} at {} for later admission ({}) or discharge ({})",
+                locationId.getLocationString(), cancellationTime, !cancelled.getInferredAdmission(), !cancelled.getInferredDischarge());
+        locationVisitAuditRepo.save(cancelled);
+        logger.debug("LocationVisitAudit saved: {}", cancelled);
+    }
+
+    private LocationVisitAudit buildCancelledAudit(HospitalVisit visit, Location locationId, Instant cancellationTime, Instant storedFrom) {
+        LocationVisitAudit cancelled = new LocationVisitAudit();
+        cancelled.setAdmissionTime(cancellationTime);
+        cancelled.setDischargeTime(cancellationTime);
+        cancelled.setValidFrom(cancellationTime);
+        cancelled.setValidUntil(cancellationTime);
+        cancelled.setStoredFrom(storedFrom);
+        cancelled.setLocationId(locationId);
+        cancelled.setHospitalVisitId(visit.getHospitalVisitId());
+        cancelled.setInferredDischarge(false);
+        cancelled.setInferredAdmission(false);
+        return cancelled;
     }
 
     private void processCancelTransfer(
@@ -602,11 +653,13 @@ public class LocationController {
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
 
         if (!indexInRange(visitLocations, indexCurrentOrPrevious)) {
+            recordLocationAsDeleted(visit, cancelledLocationId, false, true, cancellationTime, storedFrom);
             logger.debug("CancelTransfer message: visit to cancel was not found");
             return;
         }
         LocationVisit retiringLocation = visitLocations.get(indexCurrentOrPrevious.intValue());
         if (retiringLocation.getLocationId() != cancelledLocationId) {
+            recordLocationAsDeleted(visit, cancelledLocationId, false, true, cancellationTime, storedFrom);
             logger.debug("CancelTransfer message: visit to cancel was not found");
             return;
         }

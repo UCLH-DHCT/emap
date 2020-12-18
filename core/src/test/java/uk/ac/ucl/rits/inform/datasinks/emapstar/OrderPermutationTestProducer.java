@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -95,7 +96,7 @@ class OrderPermutationTestProducer {
         List<LocationVisit> allVisits = StreamSupport
                 .stream(locationVisitRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        Assertions.assertEquals(locations.length, allVisits.size());
+        Assertions.assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
     }
 
     private void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException {
@@ -119,6 +120,8 @@ class OrderPermutationTestProducer {
                 status.setRollbackOnly();
                 try {
                     runTest(l);
+                } catch (MessageLocationCancelledException allowed) {
+                    return null;
                 } catch (EmapOperationMessageProcessingException a) {
                     return a;
                 }
