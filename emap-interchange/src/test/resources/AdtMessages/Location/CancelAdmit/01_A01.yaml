@@ -16,7 +16,7 @@ modeOfArrival:
   value: "Ambulance"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "ED^UCHED RAT CHAIR^RAT-CHAIR"
+  value: "ED^SHOULD DELETE^DELETE"
   status: "SAVE"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
