@@ -21,7 +21,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -73,6 +75,10 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
                     adtFilenames[adtCheckCount]);
             adtCheckCount += 1;
         }
+        List<LocationVisit> allVisits = StreamSupport
+                .stream(locationVisitRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
+        Assertions.assertEquals(locations.length, allVisits.size());
     }
 
     /**
