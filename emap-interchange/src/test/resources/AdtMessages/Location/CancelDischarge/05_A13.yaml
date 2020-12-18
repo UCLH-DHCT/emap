@@ -1,0 +1,49 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient"
+recordedDateTime: "2013-02-11T14:35:52Z"
+eventOccurredDateTime: "2013-02-11T13:30:52Z"
+eventReasonCode: "ADT_EVENT"
+visitNumber: "123412341234"
+nhsNumber: "9999999999"
+sourceSystem: "EPIC"
+mrn: "40800000"
+cancelledDateTime: "2013-02-11T13:30:52Z"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "IGNORE"
+  value: null
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "AGBTESTD"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Satesta"
+patientReligion:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2A"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "F"
+patientTitle:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "MRS"
+patientZipOrPostalCode:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "T5 1TT"
