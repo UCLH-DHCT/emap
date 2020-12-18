@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
@@ -32,7 +34,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
                 "ED^NON COVID MAJORS 04^04-NON COVID MAJORS",
                 "EAU^UCH T00 EAU BY02^BY02-08",
         });
-        return orderPermutationTestProducer.testUnorderedMessages();
+        Collection<List<String>> permutations = orderPermutationTestProducer.getAllMessagePermutations();
+        return permutations.stream()
+                .map(l -> DynamicTest.dynamicTest("Test " + l.toString(), () -> orderPermutationTestProducer.buildTestFromPermutation(l)));
     }
 
     /**
@@ -48,7 +52,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
         });
-        return orderPermutationTestProducer.testUnorderedMessages();
+        Collection<List<String>> permutations = orderPermutationTestProducer.getAllMessagePermutations();
+        return permutations.stream()
+                .map(l -> DynamicTest.dynamicTest("Test " + l.toString(), () -> orderPermutationTestProducer.buildTestFromPermutation(l)));
     }
 
     /**
@@ -64,6 +70,8 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
         });
-        return orderPermutationTestProducer.testUnorderedMessages();
+        Collection<List<String>> permutations = orderPermutationTestProducer.getAllMessagePermutations();
+        return permutations.stream()
+                .map(l -> DynamicTest.dynamicTest("Test " + l.toString(), () -> orderPermutationTestProducer.buildTestFromPermutation(l)));
     }
 }

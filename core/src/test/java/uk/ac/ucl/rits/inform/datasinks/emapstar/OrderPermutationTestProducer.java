@@ -107,31 +107,25 @@ class OrderPermutationTestProducer {
         checkAllVisits();
     }
 
-    /**
-     * Create all the tests.
-     * @return A stream of all the possible valid orderings.
-     */
-    public Stream<DynamicTest> testUnorderedMessages() {
-        // TODO: replace with in place iterator
-        Collection<List<String>> fullMessages = Collections2.orderedPermutations(List.of(adtFilenames));
-
-        return fullMessages.stream().map(l -> DynamicTest.dynamicTest("Test " + l.toString(), () -> {
-            Exception e = transactionTemplate.execute(status -> {
-                status.setRollbackOnly();
-                try {
-                    runTest(l);
-                } catch (MessageLocationCancelledException allowed) {
-                    return null;
-                } catch (EmapOperationMessageProcessingException a) {
-                    return a;
-                }
-                return null;
-            });
-            if (e != null) {
-                throw e;
-            }
-        }));
+    public Collection<List<String>> getAllMessagePermutations() {
+        return Collections2.orderedPermutations(List.of(adtFilenames));
     }
 
+    public void buildTestFromPermutation(List<String> messages) throws Exception {
+        Exception e = transactionTemplate.execute(status -> {
+            status.setRollbackOnly();
+            try {
+                runTest(messages);
+            } catch (MessageLocationCancelledException allowed) {
+                return null;
+            } catch (EmapOperationMessageProcessingException a) {
+                return a;
+            }
+            return null;
+        });
+        if (e != null) {
+            throw e;
+        }
+    }
 
 }
