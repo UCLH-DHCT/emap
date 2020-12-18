@@ -16,12 +16,12 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     OrderPermutationTestProducer orderPermutationTestProducer;
 
     /**
-     * Create all the tests.
+     * Presentation, admit, move A- B -A -B, discharge
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
     public Stream<DynamicTest> testUnorderedMoves() {
-        orderPermutationTestProducer.setMessagePath("location");
+        orderPermutationTestProducer.setMessagePath("location/Moves");
         orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
         orderPermutationTestProducer.setAdtFilenames(new String[]{"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"});
         orderPermutationTestProducer.setLocations(new String[]{
@@ -36,17 +36,34 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     }
 
     /**
-     * Create all the tests.
+     * Admit, cancel admit, admit, transfer, discharge
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
-    public Stream<DynamicTest> testUnorderedCancelDischarge() {
+    public Stream<DynamicTest> testUnorderedCancelAdmit() {
         orderPermutationTestProducer.setMessagePath("location/CancelAdmit");
         orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T13:00:52Z"));
         orderPermutationTestProducer.setAdtFilenames(new String[]{"01_A01", "02_A11", "03_A01", "04_A02", "05_A03"});
         orderPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
+        });
+        return orderPermutationTestProducer.testUnorderedMessages();
+    }
+
+    /**
+     * admit, transfer, transfer, discharge, cancel discharge, discharge
+     * @return A stream of all the possible valid orderings.
+     */
+    @TestFactory
+    public Stream<DynamicTest> testUnorderedCancelDischarge() {
+        orderPermutationTestProducer.setMessagePath("location/CancelDischarge");
+        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
+        orderPermutationTestProducer.setAdtFilenames(new String[]{"01_A01", "02_A02", "03_A02", "04_A03", "05_A13", "06_A03"});
+        orderPermutationTestProducer.setLocations(new String[]{
+                "ED^UCHED RAT CHAIR^RAT-CHAIR",
+                "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
+                "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
         });
         return orderPermutationTestProducer.testUnorderedMessages();
     }
