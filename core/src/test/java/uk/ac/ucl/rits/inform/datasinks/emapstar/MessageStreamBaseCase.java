@@ -533,7 +533,7 @@ public abstract class MessageStreamBaseCase {
         cancelTransfer.setPatientGivenName(this.fName);
         cancelTransfer.setPatientMiddleName(this.mName);
         cancelTransfer.setPatientFamilyName(this.lName);
-        cancelTransfer.setPreviousLocationString(this.currentLocation());
+        cancelTransfer.setCancelledLocation(this.currentLocation().get());
         cancelTransfer.setFullLocationString(this.previousLocation());
         cancelTransfer.setPatientIsAlive(this.patientAlive);
         cancelTransfer.setPatientDeathDateTime(deathTime);
