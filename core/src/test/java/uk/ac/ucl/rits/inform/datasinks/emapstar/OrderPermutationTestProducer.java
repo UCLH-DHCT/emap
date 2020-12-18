@@ -75,11 +75,11 @@ class OrderPermutationTestProducer {
         return messageFactory.getAdtMessage(String.format("%s/%s.yaml", messagePath, filename));
     }
 
-    private void checkVisit(Instant admissionTime, Instant dischargeTime, String locationString, String adtMessage) {
+    private void checkVisit(Instant admissionTime, Instant dischargeTime, String locationString, String messageInformation) {
         LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
-                .orElseThrow(() -> new NoSuchElementException(adtMessage));
-        Assertions.assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", adtMessage));
-        Assertions.assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", adtMessage));
+                .orElseThrow(() -> new NoSuchElementException(messageInformation));
+        Assertions.assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));
+        Assertions.assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
     }
 
     private void checkAllVisits() {
@@ -89,7 +89,7 @@ class OrderPermutationTestProducer {
                     initialAdmissionTime.plus(adtCheckCount, ChronoUnit.HOURS),
                     initialAdmissionTime.plus(adtCheckCount + 1, ChronoUnit.HOURS),
                     location,
-                    adtFilenames[adtCheckCount]);
+                    String.format("Location %d (%s)", adtCheckCount, location));
             adtCheckCount += 1;
         }
         List<LocationVisit> allVisits = StreamSupport

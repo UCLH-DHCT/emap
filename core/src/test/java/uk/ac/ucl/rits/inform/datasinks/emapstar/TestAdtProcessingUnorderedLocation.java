@@ -35,5 +35,21 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         return orderPermutationTestProducer.testUnorderedMessages();
     }
 
+    /**
+     * Create all the tests.
+     * @return A stream of all the possible valid orderings.
+     */
+    @TestFactory
+    public Stream<DynamicTest> testUnorderedCancelDischarge() {
+        orderPermutationTestProducer.setMessagePath("location/CancelAdmit");
+        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T13:00:52Z"));
+        orderPermutationTestProducer.setAdtFilenames(new String[]{"01_A01", "02_A11", "03_A01", "04_A02", "05_A03"});
+        orderPermutationTestProducer.setLocations(new String[]{
+                "ED^UCHED RAT CHAIR^RAT-CHAIR",
+                "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
+        });
+        return orderPermutationTestProducer.testUnorderedMessages();
+    }
+
 
 }
