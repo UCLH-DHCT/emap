@@ -1,0 +1,44 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.TransferPatient"
+recordedDateTime: "2013-02-11T17:00:52Z"
+eventOccurredDateTime: "2013-02-11T16:00:52Z"
+eventReasonCode: "ADT_EVENT"
+visitNumber: "123412341234"
+nhsNumber: "9999999999"
+sourceSystem: "EPIC"
+mrn: "40800000"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2020-04-01T18:30:00Z"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "EAU^UCH T00 EAU BY02^BY02-08"
+previousLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "INPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ORANGE"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BLOOD"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "F"
