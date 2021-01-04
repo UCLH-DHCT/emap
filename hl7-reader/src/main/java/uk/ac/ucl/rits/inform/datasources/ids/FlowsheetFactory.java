@@ -123,7 +123,7 @@ public class FlowsheetFactory {
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
         flowsheet.setFlowsheetId(observationId);
 
-        setFlowsheetValue(subMessageSourceId, flowsheet, obx);
+        setFlowsheetValueAndIsNumericType(subMessageSourceId, flowsheet, obx);
 
         if (!notes.isEmpty()) {
             String comment = getComments(notes);
@@ -149,19 +149,17 @@ public class FlowsheetFactory {
 
     /**
      * Sets the string value or numeric value as appropriate, setting to delete if required.
+     * <p>
+     * Also sets the isNumericType.
      * @param subMessageSourceId Message ID along with the sub message Id
      * @param flowsheet          flowsheet to add the values to
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
      */
-    private void setFlowsheetValue(String subMessageSourceId, Flowsheet flowsheet, OBX obx) throws Hl7InconsistencyException {
+    private void setFlowsheetValueAndIsNumericType(String subMessageSourceId, Flowsheet flowsheet, OBX obx) throws Hl7InconsistencyException {
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
-        if ("D".equals(resultStatus)) {
-            flowsheet.setStringValue(Hl7Value.delete());
-            flowsheet.setNumericValue(Hl7Value.delete());
-            return;
-        }
-        if (!("F".equals(resultStatus) || "C".equals(resultStatus))) {
+
+        if (!("F".equals(resultStatus) || "C".equals(resultStatus) || "D".equals(resultStatus))) {
             throw new Hl7InconsistencyException(String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 
@@ -172,18 +170,26 @@ public class FlowsheetFactory {
         value = value == null ? "" : value;
 
         if (singularData instanceof NM) {
-            try {
-                flowsheet.setNumericValue(Hl7Value.buildFromHl7(Double.parseDouble(value)));
-            } catch (NumberFormatException e) {
-                throw new Hl7InconsistencyException(
-                        String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
+            flowsheet.setIsNumericType(true);
+            if ("D".equals(resultStatus)) {
+                flowsheet.setNumericValue(Hl7Value.delete());
+            } else {
+                try {
+                    flowsheet.setNumericValue(Hl7Value.buildFromHl7(Double.parseDouble(value)));
+                } catch (NumberFormatException e) {
+                    throw new Hl7InconsistencyException(
+                            String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
+                }
             }
-        } else {
-            // Skip empty string values
-            if (!value.isEmpty()) {
-                String stringValue = getStringValue(obx);
-                flowsheet.setStringValue(Hl7Value.buildFromHl7(stringValue.trim()));
-            }
+            return;
+        }
+
+        flowsheet.setIsNumericType(false);
+        if ("D".equals(resultStatus)) {
+            flowsheet.setStringValue(Hl7Value.delete());
+        } else if (!value.isEmpty()) {
+            String stringValue = getStringValue(obx);
+            flowsheet.setStringValue(Hl7Value.buildFromHl7(stringValue.trim()));
         }
     }
 
