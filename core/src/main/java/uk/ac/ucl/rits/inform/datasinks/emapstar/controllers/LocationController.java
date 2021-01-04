@@ -586,7 +586,19 @@ public class LocationController {
     public void processCancellationMessage(
             HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location locationId, Instant validFrom) throws RequiredDataMissingException {
         if (msg instanceof CancelAdmitPatient) {
-            Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
+            Instant cancellationTime;
+            try {
+                cancellationTime = getCancellationTime((AdtCancellation) msg);
+            } catch (RequiredDataMissingException e) {
+                List<LocationVisit> existingLocations = locationVisitRepo.findAllByHospitalVisitId(visit);
+                if (existingLocations.size() == 1 && locationId.equals(existingLocations.get(0).getLocationId())) {
+                    logger.info("Cancellation time missing from message, but only one matching location for cancellation so cancelling that");
+                    cancellationTime = existingLocations.get(0).getAdmissionTime();
+                } else {
+                    throw e;
+                }
+            }
+
             Optional<LocationVisit> retiringVisit = locationVisitRepo
                     .findByHospitalVisitIdAndLocationIdAndAdmissionTime(visit, locationId, cancellationTime);
             if (retiringVisit.isPresent()) {

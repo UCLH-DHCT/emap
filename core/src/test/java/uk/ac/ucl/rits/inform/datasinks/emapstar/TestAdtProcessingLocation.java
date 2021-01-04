@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
@@ -221,6 +222,51 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertTrue(deletedVisit.isEmpty());
     }
 
+    /**
+     * In validation, a lot of single admissions that are then cancelled but with no cancellation times in message
+     * If only one location exists for a visit, and we don't have a cancellation time, cancel the the single location
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testMalformedCancelAdmitWithSingleLocation() throws EmapOperationMessageProcessingException {
+        CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
+        msg.setCancelledDateTime(null);
+        setDataForHospitalVisitId4002(msg);
+        String location = "T06C^T06C SR41^SR41-41";
+        msg.setFullLocationString(Hl7Value.buildFromHl7(location));
+
+        dbOps.processMessage(msg);
+        // original location visit is deleted
+        Optional<LocationVisit> deletedVisit = locationVisitRepository.findByLocationIdLocationString(location);
+        Assertions.assertTrue(deletedVisit.isEmpty());
+    }
+
+    /**
+     * If there's a cancellation message with no cancellation time and there's multiple locations, shouldn't delete the message.
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testCancelAdmitMalformedWithMultipleLocations() {
+        CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
+        msg.setCancelledDateTime(null);
+        setDataForHospitalVisitId4002(msg);
+        Assertions.assertThrows(RequiredDataMissingException.class, () -> dbOps.processMessage(msg));
+    }
+
+    /**
+     * If there's a cancellation message with no cancellation time a single location but it doesn't match the cancel message.
+     * shouldn't delete the message
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testCancelAdmitMalformedWithSingleMismatchedLocation() {
+        CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
+        msg.setCancelledDateTime(null);
+        msg.setFullLocationString(Hl7Value.buildFromHl7("I^don't^exist"));
+        Assertions.assertThrows(RequiredDataMissingException.class, () -> dbOps.processMessage(msg));
+    }
+
 
     /**
      * No locations or location-visit in database.
@@ -304,16 +350,12 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // update patient info for discharged location
         UpdatePatientInfo updatePatientInfo = messageFactory.getAdtMessage("generic/A08_v1.yaml");
         updatePatientInfo.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
-        updatePatientInfo.setVisitNumber("1234567890");
-        updatePatientInfo.setMrn("60600000");
-        updatePatientInfo.setNhsNumber("1111111111");
+        setDataForHospitalVisitId4002(updatePatientInfo);
         updatePatientInfo.setRecordedDateTime(messageDateTime);
         // cancel discharge
         CancelDischargePatient cancelDischarge = messageFactory.getAdtMessage("generic/A13.yaml");
         cancelDischarge.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
-        cancelDischarge.setVisitNumber("1234567890");
-        cancelDischarge.setMrn("60600000");
-        cancelDischarge.setNhsNumber("1111111111");
+        setDataForHospitalVisitId4002(cancelDischarge);
         cancelDischarge.setRecordedDateTime(messageDateTime);
         // A08s will have a later message date time than the cancellation event occurred time
         cancelDischarge.setEventOccurredDateTime(messageDateTime.minus(1, ChronoUnit.HOURS));
