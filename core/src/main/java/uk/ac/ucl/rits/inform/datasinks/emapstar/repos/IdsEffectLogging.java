@@ -91,10 +91,10 @@ public class IdsEffectLogging {
     }
 
     /**
-     * @param processMessageDurationSeconds how long it took to process the message
+     * @param processDurationNanoSeconds how long it took to process the message
      */
-    public void setProcessMessageDuration(Long processMessageDurationSeconds) {
-        this.processMessageDuration = processMessageDurationSeconds;
+    public void setProcessMessageDuration(Long processDurationNanoSeconds) {
+        this.processMessageDuration = processDurationNanoSeconds;
     }
 
     /**
