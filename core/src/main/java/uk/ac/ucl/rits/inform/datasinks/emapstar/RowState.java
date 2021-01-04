@@ -54,33 +54,11 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     }
 
     /**
-     * @return was the entity updated by this message.
-     */
-    public boolean isEntityUpdated() {
-        return entityUpdated;
-    }
-
-    /**
      * @return the hibernate entity.
      */
     public T getEntity() {
         return entity;
     }
-
-    /**
-     * @return message date time
-     */
-    public Instant getMessageDateTime() {
-        return messageDateTime;
-    }
-
-    /**
-     * @return stored from
-     */
-    public Instant getStoredFrom() {
-        return storedFrom;
-    }
-
 
     /**
      * @param entityUpdated is entity updated
