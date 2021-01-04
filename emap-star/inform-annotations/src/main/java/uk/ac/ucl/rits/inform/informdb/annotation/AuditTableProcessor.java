@@ -194,6 +194,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println("import javax.persistence.Id;");
         out.println("import javax.persistence.Inheritance;");
         out.println("import javax.persistence.InheritanceType;");
+        out.println("import javax.persistence.Index;");
         out.println("import javax.persistence.ManyToOne;");
         out.println("import javax.persistence.OneToOne;");
         out.println("import java.time.Instant;");
