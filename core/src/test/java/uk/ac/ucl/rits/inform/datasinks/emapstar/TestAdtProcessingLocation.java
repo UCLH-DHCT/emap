@@ -98,9 +98,36 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // original location visit is discharged
         List<LocationVisit> dischargedVisits = locationVisitRepository
                 .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+        Assertions.assertEquals(1, dischargedVisits.size());
         dischargedVisits.forEach(visit -> Assertions.assertNotNull(visit.getDischargeTime()));
 
         // audit row for location when it had no discharge time
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNull(audit.getDischargeTime());
+    }
+
+    /**
+     * Visit and location visit already exist in the database.
+     * Duplicate discharge should have no effect
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testDuplicateDischargeMessage() throws EmapOperationMessageProcessingException {
+        DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
+        msg.setFullLocationString(Hl7Value.buildFromHl7(originalLocation));
+        // first discharge
+        dbOps.processMessage(msg);
+        // duplicate discharge message
+        dbOps.processMessage(msg);
+
+        // original location visit is discharged
+        List<LocationVisit> dischargedVisits = locationVisitRepository
+                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+        Assertions.assertEquals(1, dischargedVisits.size());
+        dischargedVisits.forEach(visit -> Assertions.assertNotNull(visit.getDischargeTime()));
+
+        // single audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
