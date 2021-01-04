@@ -33,6 +33,11 @@ public class Flowsheet extends EmapOperationMessage {
     private String flowsheetId = "";
 
     /**
+     * Is the data type numeric, if false then data type is String.
+     */
+    private Boolean isNumericType;
+
+    /**
      * Numeric value.
      */
     private Hl7Value<Double> numericValue = Hl7Value.unknown();
