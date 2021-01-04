@@ -86,7 +86,8 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         orderPermutationTestProducer.setAdtFilenames(new String[]{"01_A01", "02_A02", "03_A02", "04_A12", "05_A02", "06_A03"});
         orderPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
-                "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
+                "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
+                "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
         });
         Collection<List<String>> permutations = orderPermutationTestProducer.getAllMessagePermutations();
         return permutations.stream()

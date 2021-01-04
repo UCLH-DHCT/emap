@@ -660,26 +660,37 @@ public class LocationController {
         LocationVisit retiringLocation = visitLocations.get(indexCurrentOrPrevious.intValue());
         if (retiringLocation.getLocationId() != cancelledLocationId) {
             recordLocationAsDeleted(visit, cancelledLocationId, false, true, cancellationTime, storedFrom);
-            logger.debug("CancelTransfer message: visit to cancel was not found");
+            logger.debug("CancelTransfer message: visit to cancel was not found, marking as cancelled in audit log");
             return;
         }
+        updatePreviousAndMergeWithNextVisitIfRequired(visitLocations, indexAndNextLocation, cancellationTime, retiringLocation, storedFrom);
         deleteLocationVisit(cancellationTime, storedFrom, retiringLocation);
-        updatePreviousVisitDischargeTime(
-                visitLocations, indexCurrentOrPrevious + 1, indexAndNextLocation.getRight(), cancellationTime, storedFrom);
     }
 
-    private void updatePreviousVisitDischargeTime(
-            List<LocationVisit> visitLocations, Long previousIndex, RowState<LocationVisit, LocationVisitAudit> nextLocation,
-            Instant cancellationTime, Instant storedFrom) {
-        if (indexInRange(visitLocations, previousIndex)) {
-            RowState<LocationVisit, LocationVisitAudit> previousLocationState = new RowState<>(
-                    visitLocations.get(previousIndex.intValue()), cancellationTime, storedFrom, false);
-            Instant previousDischarge = null;
-            if (nextLocation != null) {
-                previousDischarge = nextLocation.getEntity().getAdmissionTime();
-            }
-            setInferredDischargeAndTime(true, previousDischarge, previousLocationState);
+    private void updatePreviousAndMergeWithNextVisitIfRequired(
+            List<LocationVisit> visitLocations, Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation,
+            Instant cancellationTime, LocationVisit retiringLocation, Instant storedFrom) {
+        Long previousIndex = indexAndNextLocation.getLeft() + 1;
+
+        if (!indexInRange(visitLocations, previousIndex)) {
+            return;
         }
+        Instant previousDischargeTime = retiringLocation.getDischargeTime();
+        LocationVisit previousLocation = visitLocations.get(previousIndex.intValue());
+        RowState<LocationVisit, LocationVisitAudit> nextLocationState = indexAndNextLocation.getRight();
+        if (nextLocationState != null) {
+            LocationVisit nextLocation = nextLocationState.getEntity();
+            if (nextLocation.getLocationId().equals(previousLocation.getLocationId())) {
+                logger.debug("Previous location and next location match - deleting next location and updating discharge of previous");
+                previousDischargeTime = nextLocation.getDischargeTime();
+                deleteLocationVisit(cancellationTime, storedFrom, nextLocation);
+            }
+        }
+        RowState<LocationVisit, LocationVisitAudit> previousLocationState = new RowState<>(
+                visitLocations.get(previousIndex.intValue()), cancellationTime, storedFrom, false);
+        setInferredDischargeAndTime(true, previousDischargeTime, previousLocationState);
+        previousLocationState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
+
     }
 
     private void rollbackDischargeToPreviousValue(
@@ -794,44 +805,6 @@ public class LocationController {
      */
     private boolean messageOutcomeIsSimpleMove(AdtMessage msg) {
         return msg instanceof TransferPatient || msg instanceof UpdatePatientInfo || msg instanceof AdmitPatient || msg instanceof RegisterPatient;
-    }
-
-    /**
-     * remove discharge date time from most location visit at the location.
-     * @param visit      Hospital Visit
-     * @param msg        Adt message
-     * @param location   Location entity
-     * @param validFrom  message event date time
-     * @param storedFrom time that emap-core encountered the message
-     */
-    private void removeDischargeDateTime(HospitalVisit visit, AdtMessage msg, Location location, Instant validFrom, Instant storedFrom) {
-        RowState<LocationVisit, LocationVisitAudit> visitState = getLatestDischargedOrCreateOpenLocationVisit(
-                visit, location, validFrom, storedFrom);
-        LocationVisit locationVisit = visitState.getEntity();
-        visitState.removeIfExists(locationVisit.getDischargeTime(), locationVisit::setDischargeTime, validFrom);
-        logger.debug("removed location visit: {}", locationVisit);
-        visitState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
-    }
-
-    /**
-     * Get the most recent discharged location visit for the location, or create an open visit at this location.
-     * @param visit      Hospital Visit
-     * @param location   Location entity
-     * @param validFrom  message event date time
-     * @param storedFrom time that emap-core encountered the message
-     * @return LocationVisit wrapped in Row state
-     */
-    private RowState<LocationVisit, LocationVisitAudit> getLatestDischargedOrCreateOpenLocationVisit(
-            HospitalVisit visit, Location location, Instant validFrom, Instant storedFrom) {
-        return locationVisitRepo.findFirstByHospitalVisitIdAndLocationIdAndDischargeTimeLessThanEqualOrderByDischargeTimeDesc(
-                visit, location, validFrom)
-                .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                    // create non-discharged location
-                    LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit);
-                    logger.debug("Created new LocationVisit instead of discharging an existing one: {}", locationVisit);
-                    return new RowState<>(locationVisit, validFrom, storedFrom, true);
-                });
     }
 
     /**

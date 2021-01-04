@@ -176,7 +176,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -203,11 +202,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      */
     @Test
     void testCancelTransferDoesntExist() throws EmapOperationMessageProcessingException {
-        CancelTransferPatient msg = messageFactory.getAdtMessage("generic/04_A12.yaml");
+        CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -218,7 +216,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testCancelTransfer() throws EmapOperationMessageProcessingException {
-        CancelTransferPatient msg = messageFactory.getAdtMessage("generic/04_A12.yaml");
+        CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
         msg.setCancelledLocation(originalLocation);
         String correctLocation = "T11E^T11E BY02^BY02-25";
 
@@ -244,7 +242,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
