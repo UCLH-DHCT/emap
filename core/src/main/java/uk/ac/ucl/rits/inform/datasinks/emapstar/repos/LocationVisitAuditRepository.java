@@ -24,20 +24,13 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
     Optional<LocationVisitAudit> findByLocationIdLocationString(String location);
 
     /**
-     * For testing: find by location string.
-     * @param location  full location string
-     * @param validFrom valid from Instant
-     * @return AuditLocationVisit wrapped in optional
+     * Is a message location cancelled.
+     * @param hospitalVisit hospital visit
+     * @param location location
+     * @param messageTime time of message
+     * @param dischargeCancelled true if message is a discharge message
+     * @return true if message has been cancelled.
      */
-    Optional<LocationVisitAudit> findByLocationIdLocationStringAndValidFrom(String location, Instant validFrom);
-
-    /**
-     * For testing.
-     * @param locationVisitId id for the location visit
-     * @return all location visit audit entities
-     */
-    List<LocationVisitAudit> findAllByLocationVisitId(Long locationVisitId);
-
     default Boolean messageLocationIsCancelled(HospitalVisit hospitalVisit, Location location, Instant messageTime, boolean dischargeCancelled) {
         if (dischargeCancelled) {
             return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
