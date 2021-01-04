@@ -25,6 +25,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
@@ -126,7 +127,8 @@ public class AuditTableProcessor extends AbstractProcessor {
 
             this.generateImports(out, baseImport);
 
-            this.generateClassDeclaration(out, baseClassName, auditClassName);
+            // The getAnnotation cannot return null because the annotation must be there for processin to happen
+            this.generateClassDeclaration(out, baseClassName, auditClassName, parent.getAnnotation(AuditTable.class).indexes());
 
             List<VariableElement> fields =
                     parent.getEnclosedElements().stream().filter(element -> element instanceof VariableElement)
@@ -215,14 +217,34 @@ public class AuditTableProcessor extends AbstractProcessor {
      * @param out            File to write to
      * @param baseClassName  Name of the data class
      * @param auditClassName Name of the audit class
+     * @param indicies       Array of indexes to create on the audit table
      */
-    private void generateClassDeclaration(PrintWriter out, String baseClassName, String auditClassName) {
+    private void generateClassDeclaration(PrintWriter out, String baseClassName, String auditClassName,
+            Index[] indicies) {
         out.println("/**");
         out.print(" * Audit table of {@link ");
         out.print(baseClassName);
         out.println("}.");
         out.println(" */");
         out.println("@Entity");
+
+        if (indicies != null && indicies.length > 0) {
+            out.println("@Table(indexes={");
+            for (int i = 0; i < indicies.length; i++) {
+                out.print("@Index(");
+                out.print("name=");
+                out.print(indicies[i].name());
+                out.print(",columnList=");
+                out.print(indicies[i].columnList());
+                out.print(",unique=");
+                out.print(indicies[i].unique());
+                out.print(")");
+                out.println(i == indicies.length - 1 ? "," : "");
+            }
+            out.println("})");
+
+        }
+
         out.println("@Data");
         out.println("@EqualsAndHashCode(callSuper = true)");
         out.println("@ToString(callSuper = true)");
