@@ -32,7 +32,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private String updateId = "8";
     private String newComment = "patient was running really fast (on a hamster wheel)";
     private String stringDeleteId = "28315";
-    private String numericDeleteId = "6";
+    private String numericDeleteId = "8";
 
 
     @BeforeEach
@@ -159,11 +159,11 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     void testNumericDeletes() throws EmapOperationMessageProcessingException {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         VisitObservation preDeleteObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, stringDeleteId)
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, numericDeleteId)
                 .orElseThrow();
 
         // process flowsheet with delete numeric value
-        Flowsheet msg = messages.get(1);
+        Flowsheet msg = messages.get(2);
         msg.setNumericValue(Hl7Value.delete());
         processSingleMessage(msg);
 
@@ -176,7 +176,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         VisitObservationAudit audit = visitObservationAuditRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), numericDeleteId)
                 .orElseThrow();
-        Assertions.assertEquals(preDeleteObservation.getValueAsText(), audit.getValueAsText());
+        Assertions.assertEquals(preDeleteObservation.getValueAsReal(), audit.getValueAsReal());
     }
 
 
