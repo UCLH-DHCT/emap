@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationTypeRepository;
@@ -46,9 +47,14 @@ public class VisitObservationController {
      * @param msg        flowsheet
      * @param visit      hospital visit
      * @param storedFrom time that emap-core started processing the message
+     * @throws RequiredDataMissingException if isNumericType is not set
      */
     @Transactional
-    public void processFlowsheet(Flowsheet msg, HospitalVisit visit, Instant storedFrom) {
+    public void processFlowsheet(Flowsheet msg, HospitalVisit visit, Instant storedFrom) throws RequiredDataMissingException {
+        if (msg.getIsNumericType() == null) {
+            throw new RequiredDataMissingException("Flowsheet isNumericType not set");
+        }
+
         VisitObservationType observationType = getOrCreateObservationType(msg);
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
         if (messageShouldBeUpdated(msg, flowsheetState)) {
@@ -133,7 +139,13 @@ public class VisitObservationController {
      * @return true row was deleted
      */
     private boolean deleteVisitObservationIfRequired(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
-        if (msg.getNumericValue().isDelete() || msg.getStringValue().isDelete()) {
+        boolean delete;
+        if (msg.getIsNumericType()) {
+            delete = msg.getNumericValue().isDelete();
+        } else {
+            delete = msg.getStringValue().isDelete();
+        }
+        if (delete) {
             logger.debug(String.format("Deleting %s", observationState.getEntity()));
             visitObservationRepo.delete(observationState.getEntity());
             observationState.setEntityUpdated(true);
@@ -149,9 +161,11 @@ public class VisitObservationController {
      */
     private void updateVisitObservation(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
         VisitObservation observation = observationState.getEntity();
-
-        observationState.assignHl7ValueIfDifferent(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
-        observationState.assignHl7ValueIfDifferent(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
+        if (msg.getIsNumericType()) {
+            observationState.assignHl7ValueIfDifferent(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
+        } else {
+            observationState.assignHl7ValueIfDifferent(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
+        }
         observationState.assignHl7ValueIfDifferent(msg.getUnit(), observation.getUnit(), observation::setUnit);
         observationState.assignHl7ValueIfDifferent(msg.getComment(), observation.getComment(), observation::setComment);
     }

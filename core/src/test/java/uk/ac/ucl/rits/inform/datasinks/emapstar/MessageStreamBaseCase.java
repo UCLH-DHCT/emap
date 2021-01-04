@@ -285,6 +285,7 @@ public abstract class MessageStreamBaseCase {
         vital.setUnit(Hl7Value.buildFromHl7("/min"));
         vital.setObservationTime(vitalTime);
         vital.setUpdatedTime(vitalTime);
+        vital.setIsNumericType(true);
         queueMessage(vital);
     }
 
