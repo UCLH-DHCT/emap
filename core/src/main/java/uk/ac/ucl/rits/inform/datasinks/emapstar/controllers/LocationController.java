@@ -205,7 +205,7 @@ public class LocationController {
         Long indexCurrentOrPrevious = null;
         for (LocationVisit location : visitLocations) {
             indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-            if (validFrom.isAfter(location.getAdmissionTime())) {
+            if (!validFrom.isBefore(location.getAdmissionTime())) {
                 logger.trace("Reached a visit which is before the current admission time");
                 break;
             }
@@ -236,8 +236,8 @@ public class LocationController {
     private boolean isCurrentVisit(
             LocationVisit location, Location currentLocationId, Long currentIndex, List<LocationVisit> visitLocations, Instant validFrom) {
         boolean isCurrentVisit = false;
-        // same location, inferred admission and discharge time set
-        if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission() && location.getDischargeTime() != null) {
+        // same location, inferred admission
+        if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission()) {
             Long precedingLocationIndex = currentIndex + 1;
             if (indexInRange(visitLocations, precedingLocationIndex)) {
                 Instant precedingVisitAdmission = visitLocations.get(precedingLocationIndex.intValue()).getAdmissionTime();
