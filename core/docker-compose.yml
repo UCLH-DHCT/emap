@@ -28,6 +28,8 @@ services:
   cassandra:
     image: cassandra
     restart: on-failure
+    environment:
+      - MAX_HEAP_SIZE="4G"
   glowroot-central:
     build:
       context: ..
