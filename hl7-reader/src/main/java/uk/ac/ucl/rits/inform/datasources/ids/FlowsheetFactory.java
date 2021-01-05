@@ -6,6 +6,7 @@ import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
+import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
@@ -181,15 +182,16 @@ public class FlowsheetFactory {
                             String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
                 }
             }
-            return;
-        }
-
-        flowsheet.setIsNumericType(false);
-        if ("D".equals(resultStatus)) {
-            flowsheet.setStringValue(Hl7Value.delete());
-        } else if (!value.isEmpty()) {
-            String stringValue = getStringValue(obx);
-            flowsheet.setStringValue(Hl7Value.buildFromHl7(stringValue.trim()));
+        } else if (singularData instanceof ST) {
+            flowsheet.setIsNumericType(false);
+            if ("D".equals(resultStatus)) {
+                flowsheet.setStringValue(Hl7Value.delete());
+            } else if (!value.isEmpty()) {
+                String stringValue = getStringValue(obx);
+                flowsheet.setStringValue(Hl7Value.buildFromHl7(stringValue.trim()));
+            }
+        } else {
+            throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM or ST)");
         }
     }
 
