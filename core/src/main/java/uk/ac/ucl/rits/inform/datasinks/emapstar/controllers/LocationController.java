@@ -297,17 +297,18 @@ public class LocationController {
      * @return
      */
     private boolean locationLooksLikeCurrentLocation(
-            LocationVisit currentOrPrevious, Location currentLocationId, List<LocationVisit> visitLocations, boolean forDischargeMessage) {
+            LocationVisit currentOrPrevious, Location currentLocationId, Collection<LocationVisit> visitLocations, boolean forDischargeMessage) {
         return currentOrPrevious.getLocationId().equals(currentLocationId)
-                && (forDischargeMessage || currentOrPrevious.getInferredAdmission() || isSingleAdmit(visitLocations));
+                && (forDischargeMessage || currentOrPrevious.getInferredAdmission() || isDuplicateAdmit(visitLocations, currentOrPrevious));
     }
 
     /**
-     * @param visitLocations all visit locations
+     * @param visitLocations    all visit locations
+     * @param currentOrPrevious existing location
      * @return true if only one visit exists and it hasn't been discharged
      */
-    private boolean isSingleAdmit(List<LocationVisit> visitLocations) {
-        return visitLocations.size() == 1 && visitLocations.get(0).getDischargeTime() == null;
+    private boolean isDuplicateAdmit(Collection<LocationVisit> visitLocations, LocationVisit currentOrPrevious) {
+        return visitLocations.size() == 1 && currentOrPrevious.getDischargeTime() == null;
     }
 
     /**
