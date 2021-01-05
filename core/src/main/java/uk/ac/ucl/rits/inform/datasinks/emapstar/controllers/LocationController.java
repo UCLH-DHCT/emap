@@ -194,26 +194,26 @@ public class LocationController {
      * Get the index of the current or previous location (if exists) and the next location (if exists).
      * @param visitLocations  visit locations in descending order of admission time
      * @param currentLocation current location
-     * @param validFrom       message event date time
+     * @param admissionTime   admission time for the current location
      * @param storedFrom      when the message has been read by emap core
      * @return Pair of nullable values: <index of the current or previous visit, next location visit>
      */
     private Pair<Long, RowState<LocationVisit, LocationVisitAudit>> getIndexOfCurrentAndNextLocationVisit(
-            List<LocationVisit> visitLocations, Location currentLocation, Instant validFrom, Instant storedFrom) {
+            List<LocationVisit> visitLocations, Location currentLocation, Instant admissionTime, Instant storedFrom) {
 
         RowState<LocationVisit, LocationVisitAudit> nextLocation = null;
         Long indexCurrentOrPrevious = null;
         for (LocationVisit location : visitLocations) {
             indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-            if (!validFrom.isBefore(location.getAdmissionTime())) {
+            if (!admissionTime.isBefore(location.getAdmissionTime())) {
                 logger.trace("Reached a visit which is before the current admission time");
                 break;
             }
-            if (isCurrentVisit(location, currentLocation, indexCurrentOrPrevious, visitLocations, validFrom)) {
+            if (isCurrentVisit(location, currentLocation, indexCurrentOrPrevious, visitLocations, admissionTime)) {
                 // Early exit because we think we are on the current visit
                 break;
             }
-            nextLocation = new RowState<>(location, validFrom, storedFrom, false);
+            nextLocation = new RowState<>(location, admissionTime, storedFrom, false);
             // if we get to the end and we haven't skipped over the current, increment it again because there is no current or past visit
             if (indexCurrentOrPrevious == visitLocations.size() - 1) {
                 indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
@@ -230,11 +230,11 @@ public class LocationController {
      * @param currentLocationId location Id from hl7 message
      * @param currentIndex      index of potential current location visit
      * @param visitLocations    list of all location visits, in descending order of admission time
-     * @param validFrom         event time of the message
+     * @param admissionTime     admission time for the current location
      * @return true if the message appears to be current.
      */
     private boolean isCurrentVisit(
-            LocationVisit location, Location currentLocationId, Long currentIndex, List<LocationVisit> visitLocations, Instant validFrom) {
+            LocationVisit location, Location currentLocationId, Long currentIndex, List<LocationVisit> visitLocations, Instant admissionTime) {
         boolean isCurrentVisit = false;
         // same location, inferred admission
         if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission()) {
@@ -242,7 +242,7 @@ public class LocationController {
             if (indexInRange(visitLocations, precedingLocationIndex)) {
                 Instant precedingVisitAdmission = visitLocations.get(precedingLocationIndex.intValue()).getAdmissionTime();
                 logger.debug("Current message is after the preceding location's admission time, will use it as the current visit");
-                if (validFrom.isAfter(precedingVisitAdmission)) {
+                if (admissionTime.isAfter(precedingVisitAdmission)) {
                     isCurrentVisit = true;
                 }
             } else {
@@ -261,7 +261,7 @@ public class LocationController {
      * @param validFrom           event time of the message
      * @param visitLocations      visit locations in descending order of admission time
      * @param indexOfCurrent      index of potential current location
-     * @param forDischargeMessage if true, skips check on inferred admission
+     * @param forDischargeMessage if true, only matches on location
      * @return current location visit
      */
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateCurrentLocation(
@@ -271,7 +271,7 @@ public class LocationController {
         RowState<LocationVisit, LocationVisitAudit> currentLocation;
         if (indexInRange(visitLocations, indexOfCurrent)) {
             LocationVisit location = visitLocations.get(indexOfCurrent.intValue());
-            if (location.getLocationId().equals(currentLocationId) && (location.getInferredAdmission() || forDischargeMessage)) {
+            if (locationLooksLikeCurrentLocation(location, currentLocationId, visitLocations, forDischargeMessage)) {
                 logger.debug("Current location found");
                 currentLocation = new RowState<>(location, validFrom, storedFrom, false);
             } else {
@@ -281,6 +281,33 @@ public class LocationController {
             currentLocation = createOpenLocation(visit, currentLocationId, validFrom, storedFrom);
         }
         return currentLocation;
+    }
+
+    /**
+     * If existing location is current if the location matches plus another condition.
+     * <ul>
+     *     <li> is from a discharge message </li>
+     *     <li> existing location has inferred admission </li>
+     *     <li> only one open location exists (happens when there is a duplicate admit message) </li>
+     * </ul>
+     * @param currentOrPrevious   existing location
+     * @param currentLocationId   location Id from hl7 message
+     * @param visitLocations      all visit locations
+     * @param forDischargeMessage if true, only needs to match on location
+     * @return
+     */
+    private boolean locationLooksLikeCurrentLocation(
+            LocationVisit currentOrPrevious, Location currentLocationId, List<LocationVisit> visitLocations, boolean forDischargeMessage) {
+        return currentOrPrevious.getLocationId().equals(currentLocationId)
+                && (forDischargeMessage || currentOrPrevious.getInferredAdmission() || isSingleAdmit(visitLocations));
+    }
+
+    /**
+     * @param visitLocations all visit locations
+     * @return true if only one visit exists and it hasn't been discharged
+     */
+    private boolean isSingleAdmit(List<LocationVisit> visitLocations) {
+        return visitLocations.size() == 1 && visitLocations.get(0).getDischargeTime() == null;
     }
 
     /**

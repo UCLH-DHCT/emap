@@ -57,6 +57,24 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
+    /**
+     * No locations or location-visit in database.
+     * Two admits for the same time and location should only create a single entry
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testDuplicateAdmit() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+
+        dbOps.processMessage(msg);
+        msg.setEventOccurredDateTime(Instant.now());
+        dbOps.processMessage(msg);
+
+        Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
+    }
+
+
 
     /**
      * Visit and location visit already exist in the database, new location given.
