@@ -1,8 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import com.google.common.collect.Collections2;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DynamicTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Component
@@ -105,10 +102,6 @@ class OrderPermutationTestProducer {
             processSingleMessage(getLocationAdtMessage(filename));
         }
         checkAllVisits();
-    }
-
-    public Collection<List<String>> getAllMessagePermutations() {
-        return Collections2.orderedPermutations(List.of(adtFilenames));
     }
 
     public void buildTestFromPermutation(List<String> messages) throws Exception {
