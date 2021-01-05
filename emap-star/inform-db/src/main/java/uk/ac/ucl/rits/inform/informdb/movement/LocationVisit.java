@@ -40,7 +40,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@AuditTable
+@AuditTable(indexes = {@Index(name = "lva_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "lva_location_id", columnList = "locationId")})
 public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudit> {
 
     @Id
