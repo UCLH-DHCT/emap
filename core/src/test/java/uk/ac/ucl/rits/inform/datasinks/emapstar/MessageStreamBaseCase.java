@@ -517,9 +517,6 @@ public abstract class MessageStreamBaseCase {
         } else {
             erroneousTransferDateTime = this.nextTime();
         }
-        if (this.transferTime.isEmpty()) {
-            this.transferTime.add(erroneousTransferDateTime);
-        }
 
         Instant eventTime = this.nextTime();
         CancelTransferPatient cancelTransfer = new CancelTransferPatient();
