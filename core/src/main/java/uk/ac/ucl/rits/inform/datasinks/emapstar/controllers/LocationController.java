@@ -294,7 +294,7 @@ public class LocationController {
      * @param currentLocationId   location Id from hl7 message
      * @param visitLocations      all visit locations
      * @param forDischargeMessage if true, only needs to match on location
-     * @return
+     * @return true if the location is current
      */
     private boolean locationLooksLikeCurrentLocation(
             LocationVisit currentOrPrevious, Location currentLocationId, Collection<LocationVisit> visitLocations, boolean forDischargeMessage) {
