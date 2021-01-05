@@ -197,6 +197,7 @@ public class AuditTableProcessor extends AbstractProcessor {
         out.println("import javax.persistence.Index;");
         out.println("import javax.persistence.ManyToOne;");
         out.println("import javax.persistence.OneToOne;");
+        out.println("import javax.persistence.Table;");
         out.println("import java.time.Instant;");
         out.println("import java.time.LocalDate;");
         out.println("import lombok.Data;");
@@ -233,14 +234,14 @@ public class AuditTableProcessor extends AbstractProcessor {
             out.println("@Table(indexes={");
             for (int i = 0; i < indicies.length; i++) {
                 out.print("@Index(");
-                out.print("name=");
+                out.print("name=\"");
                 out.print(indicies[i].name());
-                out.print(",columnList=");
+                out.print("\",columnList=\"");
                 out.print(indicies[i].columnList());
-                out.print(",unique=");
+                out.print("\",unique=");
                 out.print(indicies[i].unique());
                 out.print(")");
-                out.println(i == indicies.length - 1 ? "," : "");
+                out.println(i == indicies.length - 1 ? "" : ",");
             }
             out.println("})");
 
