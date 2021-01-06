@@ -9,8 +9,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
@@ -33,6 +35,8 @@ class OrderPermutationTestProducer {
     private final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
     @Autowired
     private LocationVisitRepository locationVisitRepository;
+    @Autowired
+    private LocationVisitAuditRepository locationVisitAuditRepository;
     @Autowired
     protected InformDbOperations dbOps;
     private String[] adtFilenames;
@@ -74,6 +78,10 @@ class OrderPermutationTestProducer {
     }
 
     private void checkVisit(Instant admissionTime, Instant dischargeTime, String locationString, String messageInformation) {
+        // visits and audits for debugging, keeping in because they seem useful
+//        List<LocationVisit> visits = StreamSupport.stream(locationVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
+//        List<LocationVisitAudit> audits =  StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
+        logger.info("Checking visit {}", messageInformation);
         LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
                 .orElseThrow(() -> new NoSuchElementException(messageInformation));
         Assertions.assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));

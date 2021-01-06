@@ -116,4 +116,28 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     }
 
 
+    /**
+     * update patient info (infer admission possible), register x 2, admit, discharge
+     * @return A stream of all the possible valid orderings.
+     */
+    @TestFactory
+    public Stream<DynamicTest> testDuplicateRegister() {
+        adtFilenames = new String[] {"01_A08", "02_A04", "02_A04", "03_A01", "04_A03"};
+        orderPermutationTestProducer.setMessagePath("Location/DuplicateRegister");
+        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
+        orderPermutationTestProducer.setLocations(new String[]{
+                "ED^UCHED RAT CHAIR^RAT-CHAIR",
+                "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
+        });
+
+        orderPermutationTestProducer.setAdtFilenames(adtFilenames);
+        ShuffleIterator<String> permutationIterator = new ShuffleIterator<>(List.of(adtFilenames));
+
+        return StreamSupport.stream(permutationIterator.spliterator(), false)
+                .map(messageOrdering -> DynamicTest.dynamicTest(
+                        String.format("Test %s", messageOrdering),
+                        () -> orderPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+    }
+
+
 }

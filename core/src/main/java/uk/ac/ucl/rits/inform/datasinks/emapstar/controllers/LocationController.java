@@ -167,7 +167,11 @@ public class LocationController {
         // If the current location is not created, then it was found - so increment counter for previous location
         if (!currentLocation.isEntityCreated()) {
             indexCurrentOrPrevious += 1;
+        } else if (msg instanceof UpdatePatientInfo) {
+            // UpdatePatientInfo message processing should always be inferred
+            currentLocation.getEntity().setInferredAdmission(true);
         }
+
         List<RowState<LocationVisit, LocationVisitAudit>> previousVisits = updateOrCreatePreviousMoveLocations(
                 visit, msg, storedFrom, validFrom, visitLocations, indexCurrentOrPrevious);
 
@@ -356,7 +360,10 @@ public class LocationController {
                     }
                 }
             } else {
-                if (openLocationOrInferredDischarge(existingLocation)) {
+                if (zeroLengthVisitWouldBeCreated(msg, existingLocation, validFrom)) {
+                    logger.debug("Removing previous location because it would create a zero-length current location");
+                    deleteLocationVisit(validFrom, storedFrom, existingLocation);
+                } else if (openLocationOrInferredDischarge(existingLocation)) {
                     logger.debug("No previous hl7 location, but found existing previous location. Inferring existing location discharge.");
                     RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
                     setInferredDischargeAndTime(true, validFrom, existingPrevious);
@@ -376,6 +383,11 @@ public class LocationController {
             previousLocations.add(previousHl7Location);
         }
         return previousLocations;
+    }
+
+    private boolean zeroLengthVisitWouldBeCreated(AdtMessage msg, LocationVisit existingLocation, Instant validFrom) {
+        return validFrom.equals(existingLocation.getAdmissionTime())
+                && existingLocation.getLocationId().getLocationString().equals(msg.getFullLocationString().get());
     }
 
     private boolean openLocationOrInferredDischarge(LocationVisit existingLocation) {
