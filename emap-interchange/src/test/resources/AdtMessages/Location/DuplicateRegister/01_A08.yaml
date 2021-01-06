@@ -1,0 +1,36 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo"
+recordedDateTime: "2013-02-11T11:00:52Z"
+eventOccurredDateTime: "2013-02-11T10:30:52Z"
+eventReasonCode: "ADT_EVENT"
+sourceSystem: "EPIC"
+mrn: "40800000"
+nhsNumber: "9999999999"
+visitNumber: "123412341234"
+modeOfArrival:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Ambulance"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "ED^UCHED RAT CHAIR^RAT-CHAIR"
+  status: "SAVE"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "EMERGENCY"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "ORANGE"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "BLOOD"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "F"
