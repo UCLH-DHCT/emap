@@ -133,21 +133,6 @@ public class LocationController {
     }
 
     /**
-     * Ensures that the swap location won't create two open location visits for a hospital visit.
-     * @param visit              HospitalVisit
-     * @param locationVisitState RowState of the Location Visit
-     * @return the LocationVisit entity
-     * @throws IncompatibleDatabaseStateException if the location visit was created and another open visit location already exists
-     */
-    private LocationVisit validateLocationStateAndGetEntity(HospitalVisit visit, RowState<LocationVisit, LocationVisitAudit> locationVisitState)
-            throws IncompatibleDatabaseStateException {
-        if (locationVisitState.isEntityCreated() && locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit).isPresent()) {
-            throw new IncompatibleDatabaseStateException("Open Location to be swapped was not found, but another open location already exists");
-        }
-        return locationVisitState.getEntity();
-    }
-
-    /**
      * @param visit             hospital visit
      * @param msg               Adt Message
      * @param storedFrom        when the message has been read by emap core
