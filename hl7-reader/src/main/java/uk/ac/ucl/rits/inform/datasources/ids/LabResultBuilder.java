@@ -185,16 +185,16 @@ public class LabResultBuilder {
     /**
      * Merge another lab result into this one.
      * Eg. an adjacent OBX segment that is linked by a sub ID.
-     * @param LabResult the other lab result to merge in
+     * @param labResult the other lab result to merge in
      */
-    public void mergeResult(LabResult LabResult) {
+    public void mergeResult(LabResult labResult) {
         // Will need to identify HOW to merge results.
         // Eg. identify that LabResult contains an isolate,
         // so only copy the isolate fields from it.
-        if (!LabResult.getIsolateLocalCode().isEmpty()) {
-            msg.setIsolateLocalCode(LabResult.getIsolateLocalCode());
-            msg.setIsolateLocalDescription(LabResult.getIsolateLocalDescription());
-            msg.setIsolateCodingSystem(LabResult.getIsolateCodingSystem());
+        if (!labResult.getIsolateLocalCode().isEmpty()) {
+            msg.setIsolateLocalCode(labResult.getIsolateLocalCode());
+            msg.setIsolateLocalDescription(labResult.getIsolateLocalDescription());
+            msg.setIsolateCodingSystem(labResult.getIsolateCodingSystem());
         }
     }
 }

@@ -75,13 +75,13 @@ public class LabOrderBuilder {
         for (ORM_O01_ORDER order : orderAll) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrder LabOrder;
+            LabOrder labOrder;
             try {
-                LabOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
-                if (!allowedOCIDs.contains(LabOrder.getOrderControlId())) {
-                    logger.warn("Ignoring order control ID = \"" + LabOrder.getOrderControlId() + "\"");
+                labOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
+                if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                    logger.warn("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
                 } else {
-                    orders.add(LabOrder);
+                    orders.add(labOrder);
                 }
             } catch (Hl7MessageIgnoredException e) {
                 // if the entire message is being skipped, stop now
@@ -115,12 +115,12 @@ public class LabOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrder LabOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
-            String testBatteryLocalCode = LabOrder.getTestBatteryLocalCode();
-            if (!allowedOCIDs.contains(LabOrder.getOrderControlId())) {
-                logger.warn("Ignoring order control ID = \"" + LabOrder.getOrderControlId() + "\"");
+            LabOrder labOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
+            String testBatteryLocalCode = labOrder.getTestBatteryLocalCode();
+            if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                logger.warn("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
             } else {
-                orders.add(LabOrder);
+                orders.add(labOrder);
             }
         }
         reparentOrders(orders);
@@ -264,8 +264,8 @@ public class LabOrderBuilder {
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            LabResultBuilder LabResult = new LabResultBuilder(obx, obr, notes);
-            tempResults.add(LabResult);
+            LabResultBuilder labResult = new LabResultBuilder(obx, obr, notes);
+            tempResults.add(labResult);
         }
         // join some of the observations under this fact together (or ignore some of them)
         mergeOrFilterResults(tempResults);
@@ -276,34 +276,34 @@ public class LabOrderBuilder {
      * Use the sub IDs to see which observations (results) belong together
      * and should be combined. Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments,
      * linked by a sub ID.
-     * @param LabResults the list of lab results to merge. This elements of the list will be modified and/or removed.
+     * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
      */
-    private static void mergeOrFilterResults(List<LabResultBuilder> LabResults) {
+    private static void mergeOrFilterResults(List<LabResultBuilder> labResults) {
         Map<String, LabResultBuilder> subIdMapping = new HashMap<>();
-        for (int i = 0; i < LabResults.size(); i++) {
+        for (int i = 0; i < labResults.size(); i++) {
             // can this "result" be ignored altogether?
-            if (LabResults.get(i).isIgnorable()) {
-                LabResults.set(i, null);
+            if (labResults.get(i).isIgnorable()) {
+                labResults.set(i, null);
                 continue;
             }
             // must this line of a result be merged with a previous line to give the
             // full result?
-            String subId = LabResults.get(i).getMessage().getObservationSubId();
+            String subId = labResults.get(i).getMessage().getObservationSubId();
             if (!subId.isEmpty()) {
                 LabResultBuilder existing = subIdMapping.get(subId);
                 if (existing == null) {
                     // save it for future results that will need to refer back to it
-                    subIdMapping.put(subId, LabResults.get(i));
+                    subIdMapping.put(subId, labResults.get(i));
                 } else {
                     // the sub ID has already been seen, so merge this result
                     // into the existing result, and delete this result
-                    existing.mergeResult(LabResults.get(i).getMessage());
-                    LabResults.set(i, null);
+                    existing.mergeResult(labResults.get(i).getMessage());
+                    labResults.set(i, null);
                 }
             }
         }
         // remove those which have been merged in and marked as null (all their data should have been incorporated in the merge)
-        LabResults.removeIf(pr -> pr == null);
+        labResults.removeIf(pr -> pr == null);
     }
 
     /**
