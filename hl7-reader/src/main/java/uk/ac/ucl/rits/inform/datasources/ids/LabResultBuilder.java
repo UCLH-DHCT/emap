@@ -20,23 +20,24 @@ import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
-import uk.ac.ucl.rits.inform.interchange.PathologyResult;
+import uk.ac.ucl.rits.inform.interchange.LabResult;
 
 /**
- * Turn part of an HL7 pathology result message into a (flatter) structure
+ * Turn part of an HL7 lab result message into a (flatter) structure
  * more suited to our needs.
  *
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
-public class PathologyResultBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(PathologyResultBuilder.class);
+public class LabResultBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(LabResultBuilder.class);
 
-    private PathologyResult msg = new PathologyResult();
+    private LabResult msg = new LabResult();
 
     /**
      * @return the underlying message we have now built
      */
-    public PathologyResult getMessage() {
+    public LabResult getMessage() {
         return msg;
     }
 
@@ -50,7 +51,7 @@ public class PathologyResultBuilder {
      * @param notes list of NTE segments for this result
      * @throws DataTypeException if required datetime fields cannot be parsed
      */
-    public PathologyResultBuilder(OBX obx, OBR obr, List<NTE> notes) throws DataTypeException {
+    public LabResultBuilder(OBX obx, OBR obr, List<NTE> notes) throws DataTypeException {
         // see HL7 Table 0125 for value types
         // In addition to NM (Numeric), we get (descending popularity):
         //     ED (Encapsulated Data), ST (String), FT (Formatted text - display),
@@ -182,18 +183,18 @@ public class PathologyResultBuilder {
     }
 
     /**
-     * Merge another pathology result into this one.
+     * Merge another lab result into this one.
      * Eg. an adjacent OBX segment that is linked by a sub ID.
-     * @param pathologyResult the other pathology result to merge in
+     * @param LabResult the other lab result to merge in
      */
-    public void mergeResult(PathologyResult pathologyResult) {
+    public void mergeResult(LabResult LabResult) {
         // Will need to identify HOW to merge results.
-        // Eg. identify that pathologyResult contains an isolate,
+        // Eg. identify that LabResult contains an isolate,
         // so only copy the isolate fields from it.
-        if (!pathologyResult.getIsolateLocalCode().isEmpty()) {
-            msg.setIsolateLocalCode(pathologyResult.getIsolateLocalCode());
-            msg.setIsolateLocalDescription(pathologyResult.getIsolateLocalDescription());
-            msg.setIsolateCodingSystem(pathologyResult.getIsolateCodingSystem());
+        if (!LabResult.getIsolateLocalCode().isEmpty()) {
+            msg.setIsolateLocalCode(LabResult.getIsolateLocalCode());
+            msg.setIsolateLocalDescription(LabResult.getIsolateLocalDescription());
+            msg.setIsolateCodingSystem(LabResult.getIsolateCodingSystem());
         }
     }
 }

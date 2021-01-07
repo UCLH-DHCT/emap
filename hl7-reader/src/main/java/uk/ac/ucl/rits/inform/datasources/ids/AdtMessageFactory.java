@@ -89,7 +89,7 @@ public class AdtMessageFactory {
         // will be replaced if there is an evn segment
         msg.setRecordedDateTime(patientInfoHl7.getMessageTimestamp());
         if (patientInfoHl7.pv1SegmentExists()) {
-            // will we want demographics to be included in pathology messages too?
+            // will we want demographics to be included in lab messages too?
             msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
             try {
                 msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
@@ -307,7 +307,7 @@ public class AdtMessageFactory {
 
     /**
      * get PV1 segment if it exists.
-     * Parses from ADT sources, and non-ADT sources (e.g. Pathology)
+     * Parses from ADT sources, and non-ADT sources (e.g. Lab)
      * @param hl7Msg        hl7 message
      * @param secondSegment get the second segment
      * @return PV1
@@ -350,7 +350,7 @@ public class AdtMessageFactory {
 
     /**
      * Get PID if it exists.
-     * Parses from ADT sources, and non-ADT sources (e.g. Pathology)
+     * Parses from ADT sources, and non-ADT sources (e.g. Lab)
      * @param hl7Msg        hl7 message
      * @param secondSegment Get the second segment
      * @return PID

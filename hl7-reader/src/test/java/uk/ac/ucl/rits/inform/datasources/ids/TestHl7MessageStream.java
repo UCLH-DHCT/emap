@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrder;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.File;
@@ -45,10 +45,10 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<PathologyOrder> processSinglePathologyOrderMessage(String resourceFileName) throws Exception {
+    protected List<LabOrder> processSingleLabOrderMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
-        return PathologyOrderBuilder.buildPathologyOrdersFromResults("42", hl7Msg);
+        return LabOrderBuilder.buildLabOrdersFromResults("42", hl7Msg);
     }
 
     /**
@@ -65,13 +65,13 @@ public abstract class TestHl7MessageStream {
     }
 
     /**
-     * Convert multiple HL7 pathology order messages and then filter out Adt messages.
+     * Convert multiple HL7 lab order messages and then filter out Adt messages.
      * @param resourceFileName filename containing the HL7 message
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<? extends EmapOperationMessage> processPathologyHl7AndFilterToPathologyOrders(String resourceFileName) throws Exception {
-        return processMultiplePathologyHl7Messages(resourceFileName).stream().filter(msg -> !(msg instanceof AdtMessage)).collect(Collectors.toList());
+    protected List<? extends EmapOperationMessage> processLabHl7AndFilterToLabOrders(String resourceFileName) throws Exception {
+        return processMultipleLabHl7Messages(resourceFileName).stream().filter(msg -> !(msg instanceof AdtMessage)).collect(Collectors.toList());
     }
 
     /**
@@ -85,12 +85,12 @@ public abstract class TestHl7MessageStream {
     }
 
     /**
-     * Process multiple pathology order HL7 messages within one text file
+     * Process multiple lab order HL7 messages within one text file
      * @param resourceFileName filename containing the HL7 message
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<EmapOperationMessage> processMultiplePathologyHl7Messages(String resourceFileName) throws Exception {
+    protected List<EmapOperationMessage> processMultipleLabHl7Messages(String resourceFileName) throws Exception {
         Hl7InputStreamMessageIterator hl7Iter = HL7Utils.hl7Iterator(new File(HL7Utils.getPathFromResource(resourceFileName)));
         List<EmapOperationMessage> messagesFromHl7Message = new ArrayList<>();
         while (hl7Iter.hasNext()) {

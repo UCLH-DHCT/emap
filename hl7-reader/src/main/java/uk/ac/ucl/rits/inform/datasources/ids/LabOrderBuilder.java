@@ -34,28 +34,28 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
-import uk.ac.ucl.rits.inform.interchange.PathologyResult;
+import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabResult;
 
 /**
- * Build one or more PathologyOrder object(s) from an HL7 message.
+ * Build one or more LabOrder object(s) from an HL7 message.
  *
  * @author Jeremy Stein
  */
-public class PathologyOrderBuilder {
+public class LabOrderBuilder {
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
-    private static final Logger logger = LoggerFactory.getLogger(PathologyOrderBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(LabOrderBuilder.class);
 
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
 
-    private PathologyOrder msg = new PathologyOrder();
+    private LabOrder msg = new LabOrder();
 
     /**
      * @return the underlying message we have now built
      */
-    public PathologyOrder getMessage() {
+    public LabOrder getMessage() {
         return msg;
     }
 
@@ -63,25 +63,25 @@ public class PathologyOrderBuilder {
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param idsUnid unique Id from the IDS
      * @param ormO01 the ORM message
-     * @return list of PathologyOrder orders, one for each order
+     * @return list of LabOrder orders, one for each order
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    public static List<PathologyOrder> buildPathologyOrders(String idsUnid, ORM_O01 ormO01)
+    public static List<LabOrder> buildLabOrders(String idsUnid, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException {
-        List<PathologyOrder> orders = new ArrayList<>();
+        List<LabOrder> orders = new ArrayList<>();
         List<ORM_O01_ORDER> orderAll = ormO01.getORDERAll();
         int msgSuffix = 0;
         for (ORM_O01_ORDER order : orderAll) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            PathologyOrder pathologyOrder;
+            LabOrder LabOrder;
             try {
-                pathologyOrder = new PathologyOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
-                if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
-                    logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
+                LabOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
+                if (!allowedOCIDs.contains(LabOrder.getOrderControlId())) {
+                    logger.warn("Ignoring order control ID = \"" + LabOrder.getOrderControlId() + "\"");
                 } else {
-                    orders.add(pathologyOrder);
+                    orders.add(LabOrder);
                 }
             } catch (Hl7MessageIgnoredException e) {
                 // if the entire message is being skipped, stop now
@@ -92,16 +92,16 @@ public class PathologyOrderBuilder {
     }
 
     /**
-     * Several sets of results can exist in an ORU message, so build multiple PathologyOrder objects.
+     * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
      * @param idsUnid unique Id from the IDS
      * @param oruR01 the HL7 message
-     * @return a list of PathologyOrder messages built from the results message
+     * @return a list of LabOrder messages built from the results message
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public static List<PathologyOrder> buildPathologyOrdersFromResults(String idsUnid, ORU_R01 oruR01)
+    public static List<LabOrder> buildLabOrdersFromResults(String idsUnid, ORU_R01 oruR01)
             throws HL7Exception, Hl7InconsistencyException {
-        List<PathologyOrder> orders = new ArrayList<>();
+        List<LabOrder> orders = new ArrayList<>();
         if (oruR01.getPATIENT_RESULTReps() != 1) {
             throw new RuntimeException("not handling this yet");
         }
@@ -115,12 +115,12 @@ public class PathologyOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            PathologyOrder pathologyOrder = new PathologyOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
-            String testBatteryLocalCode = pathologyOrder.getTestBatteryLocalCode();
-            if (!allowedOCIDs.contains(pathologyOrder.getOrderControlId())) {
-                logger.warn("Ignoring order control ID = \"" + pathologyOrder.getOrderControlId() + "\"");
+            LabOrder LabOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
+            String testBatteryLocalCode = LabOrder.getTestBatteryLocalCode();
+            if (!allowedOCIDs.contains(LabOrder.getOrderControlId())) {
+                logger.warn("Ignoring order control ID = \"" + LabOrder.getOrderControlId() + "\"");
             } else {
-                orders.add(pathologyOrder);
+                orders.add(LabOrder);
             }
         }
         reparentOrders(orders);
@@ -134,30 +134,30 @@ public class PathologyOrderBuilder {
      * @param orders the list of all orders (usually with results(?)). This list
      *               will have items modified and/or deleted.
      */
-    private static void reparentOrders(List<PathologyOrder> orders) {
+    private static void reparentOrders(List<LabOrder> orders) {
         // we may have multiple orders that are unrelated to each other (apart from
         // being for the same patient).
         for (int i = 0; i < orders.size(); i++) {
-            PathologyOrder orderToReparent = orders.get(i);
+            LabOrder orderToReparent = orders.get(i);
             if (!orderToReparent.getParentSubId().isEmpty()) {
                 // The order has a parent, let's find it.
                 // Not many elements, a linear search should be fine.
                 // I'm assuming that the parent always appears before the child in the list.
                 for (int j = 0; j < i; j++) {
-                    PathologyOrder possibleOrder = orders.get(j);
+                    LabOrder possibleOrder = orders.get(j);
                     if (possibleOrder == null) {
                         // we already re-parented this one, skip
                         continue;
                     }
-                    // An HL7 PathologyOrderBuilder will always contain HL7 PathologyResultBuilder objects for its results,
+                    // An HL7 LabOrderBuilder will always contain HL7 LabResultBuilder objects for its results,
                     // so downcast will be safe. Find a better way of encoding this in the type system.
-                    List<PathologyResult> possibleParents = possibleOrder.getPathologyResults();
+                    List<LabResult> possibleParents = possibleOrder.getLabResults();
                     try {
-                        PathologyResult foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
+                        LabResult foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
                                 .findFirst().get();
                         // add the order to the list of sensitivities and delete from the original list
                         logger.info("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
-                        foundParent.getPathologySensitivities().add(orderToReparent);
+                        foundParent.getLabSensitivities().add(orderToReparent);
                         orders.set(i, null);
                         break;
                     } catch (NoSuchElementException e) {
@@ -169,7 +169,7 @@ public class PathologyOrderBuilder {
     }
 
     /**
-     * Build a pathology order structure from a pathology order (ORM)  message.
+     * Build a lab order structure from a lab order (ORM)  message.
      * @param subMessageSourceId unique Id from the IDS
      * @param order one of the order groups in the message that is to be converted into an order structure
      * @param ormO01 the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
@@ -177,7 +177,7 @@ public class PathologyOrderBuilder {
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      * @throws Hl7MessageIgnoredException if the entire message should be ignored
      */
-    public PathologyOrderBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
+    public LabOrderBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         msg.setSourceMessageId(subMessageSourceId);
         MSH msh = (MSH) ormO01.get("MSH");
@@ -245,7 +245,7 @@ public class PathologyOrderBuilder {
      * @throws HL7Exception if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public PathologyOrderBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+    public LabOrderBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
             throws HL7Exception, Hl7InconsistencyException {
         msg.setSourceMessageId(subMessageSourceId);
         // Can only seem to get these segments at the ORU_R01_PATIENT_RESULT level.
@@ -259,51 +259,51 @@ public class PathologyOrderBuilder {
         populateFromOrcObr(orc, obr);
         validateRedundantFields();
 
-        List<PathologyResultBuilder> tempResults = new ArrayList<>();
+        List<LabResultBuilder> tempResults = new ArrayList<>();
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            PathologyResultBuilder pathologyResult = new PathologyResultBuilder(obx, obr, notes);
-            tempResults.add(pathologyResult);
+            LabResultBuilder LabResult = new LabResultBuilder(obx, obr, notes);
+            tempResults.add(LabResult);
         }
         // join some of the observations under this fact together (or ignore some of them)
         mergeOrFilterResults(tempResults);
-        msg.setPathologyResults(tempResults.stream().map(b -> b.getMessage()).collect(Collectors.toList()));
+        msg.setLabResults(tempResults.stream().map(b -> b.getMessage()).collect(Collectors.toList()));
     }
 
     /**
      * Use the sub IDs to see which observations (results) belong together
      * and should be combined. Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments,
      * linked by a sub ID.
-     * @param pathologyResults the list of pathology results to merge. This elements of the list will be modified and/or removed.
+     * @param LabResults the list of lab results to merge. This elements of the list will be modified and/or removed.
      */
-    private static void mergeOrFilterResults(List<PathologyResultBuilder> pathologyResults) {
-        Map<String, PathologyResultBuilder> subIdMapping = new HashMap<>();
-        for (int i = 0; i < pathologyResults.size(); i++) {
+    private static void mergeOrFilterResults(List<LabResultBuilder> LabResults) {
+        Map<String, LabResultBuilder> subIdMapping = new HashMap<>();
+        for (int i = 0; i < LabResults.size(); i++) {
             // can this "result" be ignored altogether?
-            if (pathologyResults.get(i).isIgnorable()) {
-                pathologyResults.set(i, null);
+            if (LabResults.get(i).isIgnorable()) {
+                LabResults.set(i, null);
                 continue;
             }
             // must this line of a result be merged with a previous line to give the
             // full result?
-            String subId = pathologyResults.get(i).getMessage().getObservationSubId();
+            String subId = LabResults.get(i).getMessage().getObservationSubId();
             if (!subId.isEmpty()) {
-                PathologyResultBuilder existing = subIdMapping.get(subId);
+                LabResultBuilder existing = subIdMapping.get(subId);
                 if (existing == null) {
                     // save it for future results that will need to refer back to it
-                    subIdMapping.put(subId, pathologyResults.get(i));
+                    subIdMapping.put(subId, LabResults.get(i));
                 } else {
                     // the sub ID has already been seen, so merge this result
                     // into the existing result, and delete this result
-                    existing.mergeResult(pathologyResults.get(i).getMessage());
-                    pathologyResults.set(i, null);
+                    existing.mergeResult(LabResults.get(i).getMessage());
+                    LabResults.set(i, null);
                 }
             }
         }
         // remove those which have been merged in and marked as null (all their data should have been incorporated in the merge)
-        pathologyResults.removeIf(pr -> pr == null);
+        LabResults.removeIf(pr -> pr == null);
     }
 
     /**
@@ -371,12 +371,12 @@ public class PathologyOrderBuilder {
 
     /**
      * HL7-specific way of determining parentage. The workings of this shouldn't be
-     * exposed to the interchange format (ie. PathologyOrder).
+     * exposed to the interchange format (ie. LabOrder).
      * @param possibleChild the order to test whether possibleParent is a parent of it
      * @param possibleParent the result to test whether possibleChild is a child of it
      * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent
      */
-    public static boolean isChildOf(PathologyOrder possibleChild, PathologyResult possibleParent) {
+    public static boolean isChildOf(LabOrder possibleChild, LabResult possibleParent) {
         return !possibleChild.getEpicCareOrderNumber().isEmpty()
                 && possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
                 && !possibleChild.getParentObservationIdentifier().isEmpty()
