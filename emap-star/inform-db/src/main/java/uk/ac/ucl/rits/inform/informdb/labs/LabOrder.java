@@ -1,26 +1,22 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import java.time.Instant;
 
 /**
  * A LabOrder contains the details of the request to perform a lab. A given
  * LabNumber may have multiple LabOrders.
- *
  * @author Roma Klapaukh
- *
  */
 @SuppressWarnings("serial")
 @Entity
@@ -32,11 +28,11 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long    labOrderId;
-    private long    labOrderDurableId;
-
-    private long    labNumberId;
-    private long    labBatteryTypeDurableId;
+    private long labOrderId;
+    @Column(nullable = false)
+    private Long labNumberId;
+    @Column(nullable = false)
+    private Long labBatteryTypeId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
@@ -45,12 +41,9 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     public LabOrder(LabOrder other) {
         super(other);
-
-        this.labOrderDurableId = other.labOrderDurableId;
-
+        this.labOrderId = other.labOrderId;
         this.labNumberId = other.labNumberId;
-        this.labBatteryTypeDurableId = other.labBatteryTypeDurableId;
-
+        this.labBatteryTypeId = other.labBatteryTypeId;
         this.orderDatetime = other.orderDatetime;
     }
 

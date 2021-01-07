@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.labs;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
@@ -30,21 +29,22 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultId;
-    private long labResultDurableId;
 
-    private long labNumberId;
-    private long labTestDefinitionDurableId;
+    @Column(nullable = false)
+    private Long labNumberId;
+    @Column(nullable = false)
+    private Long labTestDefinitionId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resultLastModifiedTime;
 
-    private boolean abnormal;
+    private Boolean abnormal;
     private String resultAsText;
-    private double resultAsReal;
+    private Double resultAsReal;
 
     private String resultOperator;
-    private double rangeHigh;
-    private double rangeLow;
+    private Double rangeHigh;
+    private Double rangeLow;
 
     private String comment;
 
@@ -53,9 +53,9 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     public LabResult(LabResult other) {
         super(other);
 
-        this.labResultDurableId = other.labResultDurableId;
+        this.labResultId = other.labResultId;
         this.labNumberId = other.labNumberId;
-        this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
+        this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedTime = other.resultLastModifiedTime;
         this.abnormal = other.abnormal;
         this.resultAsText = other.resultAsText;

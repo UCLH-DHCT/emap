@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.labs;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
@@ -32,8 +31,8 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labCollectionId;
 
-    private long labCollectionDurableId;
-    private long labNumberId;
+    @Column(nullable = false)
+    private Long labNumberId;
 
     /**
      * The time the sample arrived at the lab where there test was being performed.
@@ -53,13 +52,10 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
 
     public LabCollection(LabCollection other) {
         super(other);
-
-        this.labCollectionDurableId = other.labCollectionDurableId;
+        this.labCollectionId = other.labCollectionId;
         this.labNumberId = other.labNumberId;
-
         this.sampleReceiptTime = other.sampleReceiptTime;
         this.sampleCollectionTime = other.sampleCollectionTime;
-
         this.sampleType = other.sampleType;
     }
 

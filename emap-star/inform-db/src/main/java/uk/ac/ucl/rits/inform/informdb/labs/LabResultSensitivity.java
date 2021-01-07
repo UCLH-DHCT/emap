@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.labs;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
@@ -29,9 +28,9 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultSensitivityId;
-    private long labResultSensitivityDurableId;
 
-    private long labResultDurableId;
+    @Column(nullable = false)
+    private Long labResultId;
 
     /**
      * The chemical (often antibiotic) this applies too.
@@ -46,10 +45,8 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
 
     public LabResultSensitivity(LabResultSensitivity other) {
         super(other);
-
-        this.labResultSensitivityDurableId = other.labResultSensitivityDurableId;
-
-        this.labResultDurableId = other.labResultDurableId;
+        this.labResultSensitivityId = other.labResultSensitivityId;
+        this.labResultId = other.labResultId;
         this.agent = other.agent;
         this.sensitivity = other.sensitivity;
         this.reportingDatetime = other.reportingDatetime;

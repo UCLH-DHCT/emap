@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.labs;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
@@ -31,9 +30,6 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labTestDefinitionId;
-
-    private long labTestDefinitionDurableId;
-
     /**
      * What system this code belongs to. Examples could be WinPath, or Epic.
      */
@@ -65,7 +61,7 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
 
     public LabTestDefinition(LabTestDefinition other) {
         super(other);
-        this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
+        this.labTestDefinitionId = other.labTestDefinitionId;
         this.labProvider = other.labProvider;
         this.labDepartment = other.labDepartment;
         this.testLabCode = other.testLabCode;

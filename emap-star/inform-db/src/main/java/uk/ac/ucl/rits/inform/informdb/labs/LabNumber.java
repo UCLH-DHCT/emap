@@ -26,8 +26,11 @@ public class LabNumber implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labNumberId;
 
-    private long mrnId;
-    private long hospitalVisitDurableId;
+    @Column(nullable = false)
+    private Long mrnId;
+
+    @Column(nullable = false)
+    private Long hospitalVisitId;
 
     /**
      * Lab number in the EHR.
