@@ -69,8 +69,8 @@ public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends Audit
 
     /**
      * @param validUntil the event time that invalidated the current state
-     * @param storedFrom the time that star started processing the message that invalidated the current state
+     * @param storedUntil the time that star started processing the message that invalidated the current state
      * @return A new audit entity with the current state of the object.
      */
-    public abstract A createAuditEntity(Instant validUntil, Instant storedFrom);
+    public abstract A createAuditEntity(Instant validUntil, Instant storedUntil);
 }
