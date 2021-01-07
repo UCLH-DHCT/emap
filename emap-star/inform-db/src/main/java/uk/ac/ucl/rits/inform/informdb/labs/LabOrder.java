@@ -37,8 +37,8 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     private LabNumber labNumberId;
 
     @ManyToOne
-    @JoinColumn(name = "labBatteryTypeId", nullable = false)
-    private LabBatteryType labBatteryTypeId;
+    @JoinColumn(name = "labBatteryElementId", nullable = false)
+    private LabBatteryElement labBatteryElementId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
@@ -49,7 +49,7 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
         super(other);
         this.labOrderId = other.labOrderId;
         this.labNumberId = other.labNumberId;
-        this.labBatteryTypeId = other.labBatteryTypeId;
+        this.labBatteryElementId = other.labBatteryElementId;
         this.orderDatetime = other.orderDatetime;
     }
 

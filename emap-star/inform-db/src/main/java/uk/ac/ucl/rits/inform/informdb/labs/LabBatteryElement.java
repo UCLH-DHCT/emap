@@ -6,15 +6,12 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import java.time.Instant;
 
 /**
@@ -28,11 +25,11 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabBatteryType extends TemporalCore<LabBatteryType, LabBatteryTypeAudit> {
+public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatteryElementAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long labBatteryTypeId;
+    private long labBatteryElementId;
 
 
     @ManyToOne
@@ -46,24 +43,33 @@ public class LabBatteryType extends TemporalCore<LabBatteryType, LabBatteryTypeA
      */
     private String labDepartment;
 
-    public LabBatteryType() {}
+    public LabBatteryElement() {}
 
-    public LabBatteryType(LabBatteryType other) {
+    public LabBatteryElement(LabTestDefinition labTestDefinitionId, String battery, String labDepartment) {
+        this.labTestDefinitionId = labTestDefinitionId;
+        this.battery = battery;
+        this.labDepartment = labDepartment;
+    }
+
+    // TODO: add description field?
+    // TODO: add source system field?
+
+    public LabBatteryElement(LabBatteryElement other) {
         super(other);
-        this.labBatteryTypeId = other.labBatteryTypeId;
+        this.labBatteryElementId = other.labBatteryElementId;
         this.battery = other.battery;
         this.labTestDefinitionId = other.labTestDefinitionId;
         this.labDepartment = other.labDepartment;
     }
 
     @Override
-    public LabBatteryType copy() {
-        return new LabBatteryType(this);
+    public LabBatteryElement copy() {
+        return new LabBatteryElement(this);
     }
 
     @Override
-    public LabBatteryTypeAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new LabBatteryTypeAudit(this, validUntil, storedFrom);
+    public LabBatteryElementAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabBatteryElementAudit(this, validUntil, storedUntil);
     }
 
 }
