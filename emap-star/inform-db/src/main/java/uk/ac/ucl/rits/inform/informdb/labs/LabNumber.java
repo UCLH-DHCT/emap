@@ -1,12 +1,16 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
 import lombok.Data;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -26,11 +30,13 @@ public class LabNumber implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labNumberId;
 
-    @Column(nullable = false)
-    private Long mrnId;
+    @ManyToOne
+    @JoinColumn(name = "mrnId", nullable = false)
+    private Mrn mrnId;
 
-    @Column(nullable = false)
-    private Long hospitalVisitId;
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    private HospitalVisit hospitalVisitId;
 
     /**
      * Lab number in the EHR.

@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
@@ -30,10 +32,13 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultId;
 
-    @Column(nullable = false)
-    private Long labNumberId;
-    @Column(nullable = false)
-    private Long labTestDefinitionId;
+    @ManyToOne
+    @JoinColumn(name = "labNumberId", nullable = false)
+    private LabNumber labNumberId;
+
+    @ManyToOne
+    @JoinColumn(name = "labTestDefinitionId", nullable = false)
+    private LabTestDefinition labTestDefinitionId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resultLastModifiedTime;

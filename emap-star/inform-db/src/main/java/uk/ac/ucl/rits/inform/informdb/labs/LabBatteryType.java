@@ -23,7 +23,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatteryElementAudit> {
+public class LabBatteryType extends TemporalCore<LabBatteryType, LabBatteryTypeAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,9 +33,9 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
 
     private String labTestDefinitionId;
 
-    public LabBatteryElement() {}
+    public LabBatteryType() {}
 
-    public LabBatteryElement(LabBatteryElement other) {
+    public LabBatteryType(LabBatteryType other) {
         super(other);
         this.labBatteryTypeId = other.labBatteryTypeId;
         this.battery = other.battery;
@@ -43,13 +43,13 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
     }
 
     @Override
-    public LabBatteryElement copy() {
-        return new LabBatteryElement(this);
+    public LabBatteryType copy() {
+        return new LabBatteryType(this);
     }
 
     @Override
-    public LabBatteryElementAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new LabBatteryElementAudit(this, validUntil, storedFrom);
+    public LabBatteryTypeAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new LabBatteryTypeAudit(this, validUntil, storedFrom);
     }
 
 }
