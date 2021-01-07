@@ -43,30 +43,30 @@ public class InterchangeMessageFactory {
 
 
     /**
-     * Builds pathology orders from yaml file given, overriding default values for pathology orders and pathology results
-     * @param fileName            filename in test resources/PathologyOrders,
+     * Builds lab orders from yaml file given, overriding default values for lab orders and lab results
+     * @param fileName            filename in test resources/LabOrders,
      *                            defaults are '{file_stem}_order_defaults.yaml' and '{file_stem}_order_defaults.yaml'
      *                            sensitivity defaults are '{file_stem}_sens_order_defaults.yaml' and '{file_stem}_sens_order_defaults.yaml'
      * @param sourceMessagePrefix message prefix
-     * @return List of pathology orders deserialised from the files
+     * @return List of lab orders deserialised from the files
      */
-    public List<PathologyOrder> getPathologyOrders(final String fileName, final String sourceMessagePrefix) {
-        List<PathologyOrder> pathologyOrders = new ArrayList<>();
-        String resourcePath = "/PathologyOrders/" + fileName;
+    public List<LabOrder> getLabOrders(final String fileName, final String sourceMessagePrefix) {
+        List<LabOrder> labOrders = new ArrayList<>();
+        String resourcePath = "/LabOrders/" + fileName;
         try {
             InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            pathologyOrders = mapper.readValue(inputStream, new TypeReference<List<PathologyOrder>>() {});
+            labOrders = mapper.readValue(inputStream, new TypeReference<List<LabOrder>>() {});
             int count = 1;
-            for (PathologyOrder order : pathologyOrders) {
+            for (LabOrder order : labOrders) {
                 String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
-                updatePathologyOrderItsAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
-                updatePathologySensitivities(order, sourceMessageId, resourcePath.replace(".yaml", "_sens"));
+                updateLabOrderItsAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
+                updateLabSensitivities(order, sourceMessageId, resourcePath.replace(".yaml", "_sens"));
                 count++;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return pathologyOrders;
+        return labOrders;
     }
 
     /**
@@ -101,14 +101,14 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Update all of a pathology order's pathology results from yaml file
-     * @param order              pathology order
+     * Update all of a lab order's lab results from yaml file
+     * @param order              lab order
      * @param resourcePathPrefix prefix in the form '{directory}/{file_stem}'
      * @throws IOException if files don't exist
      */
-    private void updatePathologyResults(PathologyOrder order, final String resourcePathPrefix) throws IOException {
+    private void updateLabResults(LabOrder order, final String resourcePathPrefix) throws IOException {
         String resultDefaultPath = resourcePathPrefix + "_result_defaults.yaml";
-        for (PathologyResult result : order.getPathologyResults()) {
+        for (LabResult result : order.getLabResults()) {
             //  update results from parent order data
             result.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
             result.setResultTime(order.getStatusChangeTime());
@@ -119,34 +119,34 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Update a pathology order and its pathology results from yaml defaults files
-     * @param order              pathology order
+     * Update a lab order and its lab results from yaml defaults files
+     * @param order              lab order
      * @param sourceMessageId    messageId
      * @param resourcePathPrefix prefix in the form '{directory}/{file_stem}'
      * @throws IOException if files don't exist
      */
-    private void updatePathologyOrderItsAndResults(PathologyOrder order, final String sourceMessageId, final String resourcePathPrefix) throws IOException {
+    private void updateLabOrderItsAndResults(LabOrder order, final String sourceMessageId, final String resourcePathPrefix) throws IOException {
         order.setSourceMessageId(sourceMessageId);
         // update order with yaml data
         ObjectReader orderReader = mapper.readerForUpdating(order);
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
         order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
-        updatePathologyResults(order, resourcePathPrefix);
+        updateLabResults(order, resourcePathPrefix);
     }
 
     /**
-     * If a pathology order's results has a sensitivity, update the sensitivity with default values
-     * @param order           pathology order
+     * If a lab order's results has a sensitivity, update the sensitivity with default values
+     * @param order           lab order
      * @param sourceMessageId message Id
      * @param resourcePath    resource path in form '{directory}/{file_stem}_sens_'
      * @throws IOException if file doesn't exist
      */
-    private void updatePathologySensitivities(PathologyOrder order, final String sourceMessageId, final String resourcePath) throws IOException {
-        for (PathologyResult result : order.getPathologyResults()) {
-            if (!result.getPathologySensitivities().isEmpty()) {
-                for (PathologyOrder sensitivityPathologyOrder : result.getPathologySensitivities()) {
-                    updatePathologyOrderItsAndResults(sensitivityPathologyOrder, sourceMessageId, resourcePath);
+    private void updateLabSensitivities(LabOrder order, final String sourceMessageId, final String resourcePath) throws IOException {
+        for (LabResult result : order.getLabResults()) {
+            if (!result.getLabSensitivities().isEmpty()) {
+                for (LabOrder sensitivityLabOrder : result.getLabSensitivities()) {
+                    updateLabOrderItsAndResults(sensitivityLabOrder, sourceMessageId, resourcePath);
                 }
             }
         }

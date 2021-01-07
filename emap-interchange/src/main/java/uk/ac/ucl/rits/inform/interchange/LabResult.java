@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represent a pathology result. Note that this doesn't implement
+ * Represent a lab result. Note that this doesn't implement
  * EmapOperationMessage because it's not a message type
- * by itself, it is owned by a message type (PathologyOrder).
+ * by itself, it is owned by a message type (LabOrder).
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PathologyResult implements Serializable {
+public class LabResult implements Serializable {
     private static final long serialVersionUID = 140970942335476554L;
     private String valueType = "";
 
@@ -40,11 +40,10 @@ public class PathologyResult implements Serializable {
     private String notes = "";
 
     /**
-     * A sensitivity is just a nested pathology order with results.
+     * A sensitivity is just a nested lab order with results.
      * HL7 has fields for working out parentage.
-     * PathologySensitivity type can probably go away.
      */
-    private List<PathologyOrder> pathologySensitivities = new ArrayList<>();
+    private List<LabOrder> labSensitivities = new ArrayList<>();
 
     private String epicCareOrderNumber = "";
 
@@ -276,15 +275,15 @@ public class PathologyResult implements Serializable {
     /**
      * @return all sensitivities
      */
-    public List<PathologyOrder> getPathologySensitivities() {
-        return pathologySensitivities;
+    public List<LabOrder> getLabSensitivities() {
+        return labSensitivities;
     }
 
     /**
-     * @param pathologySensitivities the pathologySensitivities to set
+     * @param labSensitivities the labSensitivities to set
      */
-    public void setPathologySensitivities(List<PathologyOrder> pathologySensitivities) {
-        this.pathologySensitivities = pathologySensitivities;
+    public void setLabSensitivities(List<LabOrder> labSensitivities) {
+        this.labSensitivities = labSensitivities;
     }
 
     /**
@@ -309,7 +308,7 @@ public class PathologyResult implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PathologyResult that = (PathologyResult) o;
+        LabResult that = (LabResult) o;
         return Objects.equals(testItemLocalCode, that.testItemLocalCode)
                 && Objects.equals(valueType, that.valueType)
                 && Objects.equals(testItemLocalDescription, that.testItemLocalDescription)
@@ -323,7 +322,7 @@ public class PathologyResult implements Serializable {
                 && Objects.equals(units, that.units) && Objects.equals(referenceRange, that.referenceRange)
                 && Objects.equals(abnormalFlags, that.abnormalFlags) && Objects.equals(resultStatus, that.resultStatus)
                 && Objects.equals(resultTime, that.resultTime) && Objects.equals(notes, that.notes)
-                && Objects.equals(pathologySensitivities, that.pathologySensitivities)
+                && Objects.equals(labSensitivities, that.labSensitivities)
                 && Objects.equals(epicCareOrderNumber, that.epicCareOrderNumber);
     }
 
@@ -331,18 +330,18 @@ public class PathologyResult implements Serializable {
     public int hashCode() {
         return Objects.hash(valueType, testItemLocalCode, testItemLocalDescription, testItemCodingSystem,
                 observationSubId, numericValue, stringValue, isolateLocalCode, isolateLocalDescription, isolateCodingSystem,
-                units, referenceRange, abnormalFlags, resultStatus, resultTime, notes, pathologySensitivities, epicCareOrderNumber);
+                units, referenceRange, abnormalFlags, resultStatus, resultTime, notes, labSensitivities, epicCareOrderNumber);
     }
 
     @Override
     public String toString() {
         return String.format(new StringBuilder()
-                        .append("PathologyResult{\nvalueType='%s', testItemLocalCode='%s', testItemLocalDescription='%s', ")
+                        .append("LabResult{\nvalueType='%s', testItemLocalCode='%s', testItemLocalDescription='%s', ")
                         .append("testItemCodingSystem='%s', observationSubId='%s', numericValue=%s, stringValue='%s', isolateLocalCode='%s', ")
                         .append("isolateLocalDescription='%s', isolateCodingSystem='%s', units='%s', referenceRange='%s', abnormalFlags='%s', ")
-                        .append("resultStatus='%s', resultTime=%s, notes='%s', pathologySensitivities=%s, epicCareOrderNumber='%s'}").toString(),
+                        .append("resultStatus='%s', resultTime=%s, notes='%s', labSensitivities=%s, epicCareOrderNumber='%s'}").toString(),
                 valueType, testItemLocalCode, testItemLocalDescription, testItemCodingSystem, observationSubId,
                 numericValue, stringValue, isolateLocalCode, isolateLocalDescription, isolateCodingSystem, units,
-                referenceRange, abnormalFlags, resultStatus, resultTime, notes, pathologySensitivities, epicCareOrderNumber);
+                referenceRange, abnormalFlags, resultStatus, resultTime, notes, labSensitivities, epicCareOrderNumber);
     }
 }
