@@ -8,8 +8,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 /**
  * A LabOrder contains the details of the request to perform a lab. A given
@@ -19,6 +23,10 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
  *
  */
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
 public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
 
     @Id
@@ -43,76 +51,6 @@ public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
         this.labBatteryTypeDurableId = other.labBatteryTypeDurableId;
 
         this.orderDatetime = other.orderDatetime;
-    }
-
-    /**
-     * @return the labOrderId
-     */
-    public long getLabOrderId() {
-        return labOrderId;
-    }
-
-    /**
-     * @param labOrderId the labOrderId to set
-     */
-    public void setLabOrderId(long labOrderId) {
-        this.labOrderId = labOrderId;
-    }
-
-    /**
-     * @return the labOrderDurableId
-     */
-    public long getLabOrderDurableId() {
-        return labOrderDurableId;
-    }
-
-    /**
-     * @param labOrderDurableId the labOrderDurableId to set
-     */
-    public void setLabOrderDurableId(long labOrderDurableId) {
-        this.labOrderDurableId = labOrderDurableId;
-    }
-
-    /**
-     * @return the labNumberId
-     */
-    public long getLabNumberId() {
-        return labNumberId;
-    }
-
-    /**
-     * @param labNumberId the labNumberId to set
-     */
-    public void setLabNumberId(long labNumberId) {
-        this.labNumberId = labNumberId;
-    }
-
-    /**
-     * @return the labBatteryTypeDurableId
-     */
-    public long getLabBatteryTypeDurableId() {
-        return labBatteryTypeDurableId;
-    }
-
-    /**
-     * @param labBatteryTypeDurableId the labBatteryTypeDurableId to set
-     */
-    public void setLabBatteryTypeDurableId(long labBatteryTypeDurableId) {
-        this.labBatteryTypeDurableId = labBatteryTypeDurableId;
-    }
-
-    /**
-     * @return the orderDatetime
-     */
-    public Instant getOrderDatetime() {
-        return orderDatetime;
-    }
-
-    /**
-     * @param orderDatetime the orderDatetime to set
-     */
-    public void setOrderDatetime(Instant orderDatetime) {
-        this.orderDatetime = orderDatetime;
     }
 
     @Override

@@ -1,11 +1,16 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import java.time.Instant;
 
@@ -16,6 +21,11 @@ import java.time.Instant;
  * @author Roma Klapaukh
  *
  */
+@Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
 public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore> {
 
     @Id
@@ -35,62 +45,6 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore
         this.labBatteryTypeDurableId = other.labBatteryTypeDurableId;
         this.battery = other.battery;
         this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
-    }
-
-    /**
-     * @return the labBatteryTypeId
-     */
-    public long getLabBatteryTypeId() {
-        return labBatteryTypeId;
-    }
-
-    /**
-     * @param labBatteryTypeId the labBatteryTypeId to set
-     */
-    public void setLabBatteryTypeId(long labBatteryTypeId) {
-        this.labBatteryTypeId = labBatteryTypeId;
-    }
-
-    /**
-     * @return the labBatteryTypeDurableId
-     */
-    public long getLabBatteryTypeDurableId() {
-        return labBatteryTypeDurableId;
-    }
-
-    /**
-     * @param labBatteryTypeDurableId the labBatteryTypeDurableId to set
-     */
-    public void setLabBatteryTypeDurableId(long labBatteryTypeDurableId) {
-        this.labBatteryTypeDurableId = labBatteryTypeDurableId;
-    }
-
-    /**
-     * @return the battery
-     */
-    public String getBattery() {
-        return battery;
-    }
-
-    /**
-     * @param battery the battery to set
-     */
-    public void setBattery(String battery) {
-        this.battery = battery;
-    }
-
-    /**
-     * @return the labTestDefinitionDurableId
-     */
-    public String getLabTestDefinitionDurableId() {
-        return labTestDefinitionDurableId;
-    }
-
-    /**
-     * @param labTestDefinitionDurableId the labTestDefinitionDurableId to set
-     */
-    public void setLabTestDefinitionDurableId(String labTestDefinitionDurableId) {
-        this.labTestDefinitionDurableId = labTestDefinitionDurableId;
     }
 
     @Override

@@ -1,7 +1,11 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,10 +15,14 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * Sensitivites show the affect of specific agents on isolates from cultures.
+ * Sensitivities show the affect of specific agents on isolates from cultures.
  * @author Roma Klapaukh
  */
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
 public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, AuditCore> {
 
     @Id
@@ -44,90 +52,6 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Aud
         this.agent = other.agent;
         this.sensitivity = other.sensitivity;
         this.reportingDatetime = other.reportingDatetime;
-    }
-
-    /**
-     * @return the labResultSensitivityId
-     */
-    public long getLabResultSensitivityId() {
-        return labResultSensitivityId;
-    }
-
-    /**
-     * @param labResultSensitivityId the labResultSensitivityId to set
-     */
-    public void setLabResultSensitivityId(long labResultSensitivityId) {
-        this.labResultSensitivityId = labResultSensitivityId;
-    }
-
-    /**
-     * @return the labResultSensitivityDurableId
-     */
-    public long getLabResultSensitivityDurableId() {
-        return labResultSensitivityDurableId;
-    }
-
-    /**
-     * @param labResultSensitivityDurableId the labResultSensitivityDurableId to set
-     */
-    public void setLabResultSensitivityDurableId(long labResultSensitivityDurableId) {
-        this.labResultSensitivityDurableId = labResultSensitivityDurableId;
-    }
-
-    /**
-     * @return the labResultDurableId
-     */
-    public long getLabResultDurableId() {
-        return labResultDurableId;
-    }
-
-    /**
-     * @param labResultDurableId the labResultDurableId to set
-     */
-    public void setLabResultDurableId(long labResultDurableId) {
-        this.labResultDurableId = labResultDurableId;
-    }
-
-    /**
-     * @return the agent
-     */
-    public String getAgent() {
-        return agent;
-    }
-
-    /**
-     * @param agent the agent to set
-     */
-    public void setAgent(String agent) {
-        this.agent = agent;
-    }
-
-    /**
-     * @return the sensitivity
-     */
-    public String getSensitivity() {
-        return sensitivity;
-    }
-
-    /**
-     * @param sensitivity the sensitivity to set
-     */
-    public void setSensitivity(String sensitivity) {
-        this.sensitivity = sensitivity;
-    }
-
-    /**
-     * @return the reportingDatetime
-     */
-    public Instant getReportingDatetime() {
-        return reportingDatetime;
-    }
-
-    /**
-     * @param reportingDatetime the reportingDatetime to set
-     */
-    public void setReportingDatetime(Instant reportingDatetime) {
-        this.reportingDatetime = reportingDatetime;
     }
 
     @Override

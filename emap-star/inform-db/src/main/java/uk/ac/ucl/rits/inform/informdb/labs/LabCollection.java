@@ -1,7 +1,11 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,6 +21,10 @@ import java.time.Instant;
  * @author Roma Klapaukh
  */
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
 public class LabCollection extends TemporalCore<LabCollection, AuditCore> {
 
     @Id
@@ -52,90 +60,6 @@ public class LabCollection extends TemporalCore<LabCollection, AuditCore> {
         this.sampleCollectionTime = other.sampleCollectionTime;
 
         this.sampleType = other.sampleType;
-    }
-
-    /**
-     * @return the labCollectionId
-     */
-    public long getLabCollectionId() {
-        return labCollectionId;
-    }
-
-    /**
-     * @param labCollectionId the labCollectionId to set
-     */
-    public void setLabCollectionId(long labCollectionId) {
-        this.labCollectionId = labCollectionId;
-    }
-
-    /**
-     * @return the labCollectionDurableId
-     */
-    public long getLabCollectionDurableId() {
-        return labCollectionDurableId;
-    }
-
-    /**
-     * @param labCollectionDurableId the labCollectionDurableId to set
-     */
-    public void setLabCollectionDurableId(long labCollectionDurableId) {
-        this.labCollectionDurableId = labCollectionDurableId;
-    }
-
-    /**
-     * @return the labNumberId
-     */
-    public long getLabNumberId() {
-        return labNumberId;
-    }
-
-    /**
-     * @param labNumberId the labNumberId to set
-     */
-    public void setLabNumberId(long labNumberId) {
-        this.labNumberId = labNumberId;
-    }
-
-    /**
-     * @return the sampleReceiptTime
-     */
-    public Instant getSampleReceiptTime() {
-        return sampleReceiptTime;
-    }
-
-    /**
-     * @param sampleReceiptTime the sampleReceiptTime to set
-     */
-    public void setSampleReceiptTime(Instant sampleReceiptTime) {
-        this.sampleReceiptTime = sampleReceiptTime;
-    }
-
-    /**
-     * @return the sampleCollectionTime
-     */
-    public Instant getSampleCollectionTime() {
-        return sampleCollectionTime;
-    }
-
-    /**
-     * @param sampleCollectionTime the sampleCollectionTime to set
-     */
-    public void setSampleCollectionTime(Instant sampleCollectionTime) {
-        this.sampleCollectionTime = sampleCollectionTime;
-    }
-
-    /**
-     * @return the sampleType
-     */
-    public String getSampleType() {
-        return sampleType;
-    }
-
-    /**
-     * @param sampleType the sampleType to set
-     */
-    public void setSampleType(String sampleType) {
-        this.sampleType = sampleType;
     }
 
     @Override
