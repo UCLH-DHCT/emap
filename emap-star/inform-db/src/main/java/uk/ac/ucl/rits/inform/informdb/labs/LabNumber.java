@@ -59,11 +59,14 @@ public class LabNumber implements Serializable {
     public LabNumber() {
     }
 
-    public LabNumber(Mrn mrnId, HospitalVisit hospitalVisitId, String internalLabNumber, String externalLabNumber, String sourceSystem, Instant storedFrom) {
+    public LabNumber(
+            Mrn mrnId, HospitalVisit hospitalVisitId, String internalLabNumber, String externalLabNumber, String specimenType,
+            String sourceSystem, Instant storedFrom) {
         this.mrnId = mrnId;
         this.hospitalVisitId = hospitalVisitId;
         this.internalLabNumber = internalLabNumber;
         this.externalLabNumber = externalLabNumber;
+        this.specimenType = specimenType;
         this.sourceSystem = sourceSystem;
         this.storedFrom = storedFrom;
     }
