@@ -7,7 +7,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrder;
 
 import java.time.Instant;
 
@@ -31,7 +31,7 @@ public class LabController {
         this.labResultRepository = labResultRepository;
     }
 
-    public void processLabOrder(Mrn mrn, HospitalVisit visit, PathologyOrder msg, Instant validFrom, Instant storedFrom) {
+    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant validFrom, Instant storedFrom) {
 
     }
 }
