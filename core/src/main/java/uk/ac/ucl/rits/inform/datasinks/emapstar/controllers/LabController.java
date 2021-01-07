@@ -67,26 +67,24 @@ public class LabController {
      * @param visit      hospital visit
      * @param msg        order message
      * @param storedFrom time that star started processing the message
-     * @return
+     * @return lab number
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      */
     private LabNumber getOrCreateLabNumber(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         LabNumber labNumber = labNumberRepo
                 .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
                         mrn, visit, msg.getEpicCareOrderNumber(), msg.getLabSpecimenNumber())
-                .orElseGet(() -> createAndSaveLabNumber(mrn, visit, msg, storedFrom));
+                .orElseGet(() -> {
+                    logger.trace("Creating new lab number");
+                    LabNumber labNum = new LabNumber(
+                            mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(),
+                            msg.getSpecimenType(), msg.getSourceSystem(), storedFrom);
+                    return labNumberRepo.save(labNum);
+                });
 
         if (!labNumber.getSpecimenType().equals(msg.getSpecimenType())) {
             throw new IncompatibleDatabaseStateException("Message specimen type doesn't match the database");
         }
-        return labNumber;
-    }
-
-    private LabNumber createAndSaveLabNumber(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant storedFrom) {
-        logger.trace("Creating new lab number");
-        LabNumber labNumber = new LabNumber(
-                mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(), msg.getSpecimenType(), msg.getSourceSystem(), storedFrom);
-        labNumberRepo.save(labNumber);
         return labNumber;
     }
 
