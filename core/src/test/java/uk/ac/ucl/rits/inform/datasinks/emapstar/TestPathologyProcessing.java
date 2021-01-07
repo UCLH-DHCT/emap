@@ -1,10 +1,15 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
@@ -18,26 +23,27 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 class TestPathologyProcessing extends MessageProcessingBase {
-    private List<PathologyOrder> messages;
+    private List<PathologyOrder> messages = messageFactory.getPathologyOrders("ORU_R01.yaml", "0000040");
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    private HospitalVisitAuditRepository hospitalVisitAuditRepository;
+    LabBatteryTypeRepository labBatteryTypeRepository;
+    @Autowired
+    LabNumberRepository labNumberRepository;
+    @Autowired
+    LabOrderRepository labOrderRepository;
+    @Autowired
+    LabResultRepository labResultRepository;
 
 
-    @BeforeEach
-    void setup() {
-        messages = messageFactory.getPathologyOrders("ORU_R01.yaml", "0000040");
-    }
 
     /**
      * no existing data. rows should be created for: mrns, so new mrn, mrn_to_live, core_demographics, hospital visit
      */
     @Test
-    void testCreateNewPatient() throws EmapOperationMessageProcessingException {
-        for (PathologyOrder msg : messages) {
-            processSingleMessage(msg);
-        }
+    void testCreateNew() throws EmapOperationMessageProcessingException {
+        processSingleMessage(messages.get(0));
+
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
         assertEquals("Corepoint", mrns.get(0).getSourceSystem());
@@ -50,9 +56,18 @@ class TestPathologyProcessing extends MessageProcessingBase {
         assertNull(visit.getPatientClass());
         assertNull(visit.getArrivalMethod());
         assertNull(visit.getAdmissionTime());
-        // then new results
+        // then lab results:
+        // lab result
+        Assertions.assertEquals(1, labResultRepository.count());
+        Assertions.assertEquals(1, labNumberRepository.count());
+        Assertions.assertEquals(1, labBatteryTypeRepository.count());
+        Assertions.assertEquals(1, labOrderRepository.count());
+
+
+        // -- for now skipping over, will also need to do the foreign keys for these when we get there
+        // lab collection
+        // LabResultSensitivity
 
     }
-
 
 }
