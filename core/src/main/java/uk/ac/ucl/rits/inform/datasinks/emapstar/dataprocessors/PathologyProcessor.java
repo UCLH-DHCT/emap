@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LabController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -22,14 +23,12 @@ public class PathologyProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
     private final VisitController visitController;
+    private final LabController labController;
 
-    /**
-     * @param personController person controller
-     * @param visitController  visit controller
-     */
-    public PathologyProcessor(PersonController personController, VisitController visitController) {
+    public PathologyProcessor(PersonController personController, VisitController visitController, LabController labController) {
         this.personController = personController;
         this.visitController = visitController;
+        this.labController = labController;
     }
 
     /**
@@ -45,5 +44,6 @@ public class PathologyProcessor {
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
+        labController.processLabOrder(mrn, visit, msg, observationTime, storedFrom);
     }
 }
