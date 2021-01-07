@@ -8,9 +8,11 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.LabOrder;
 
@@ -32,6 +34,8 @@ class TestLabProcessing extends MessageProcessingBase {
     LabOrderRepository labOrderRepository;
     @Autowired
     LabResultRepository labResultRepository;
+    @Autowired
+    LabTestDefinitionRepository labTestDefinitionRepository;
 
 
 
@@ -57,6 +61,7 @@ class TestLabProcessing extends MessageProcessingBase {
         // then lab results:
         // lab result
         Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
+        Assertions.assertEquals(1, labTestDefinitionRepository.count(), "labTestDefinition should have been created");
         Assertions.assertEquals(1, labResultRepository.count(), "lab result should have been created");
         Assertions.assertEquals(1, labBatteryTypeRepository.count(), "lab battery type should have been created");
         Assertions.assertEquals(1, labOrderRepository.count(), "lab order should have been created");
