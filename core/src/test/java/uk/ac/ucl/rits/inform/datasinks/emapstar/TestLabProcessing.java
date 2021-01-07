@@ -12,7 +12,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepositor
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
-import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.LabOrder;
 
@@ -38,7 +37,6 @@ class TestLabProcessing extends MessageProcessingBase {
     LabTestDefinitionRepository labTestDefinitionRepository;
 
 
-
     /**
      * no existing data. rows should be created for: mrns, so new mrn, mrn_to_live, core_demographics, hospital visit
      */
@@ -61,9 +59,9 @@ class TestLabProcessing extends MessageProcessingBase {
         // then lab results:
         // lab result
         Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
-        Assertions.assertEquals(1, labTestDefinitionRepository.count(), "labTestDefinition should have been created");
-        Assertions.assertEquals(1, labResultRepository.count(), "lab result should have been created");
+        Assertions.assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinition should have been created");
         Assertions.assertEquals(1, labBatteryTypeRepository.count(), "lab battery type should have been created");
+        Assertions.assertEquals(1, labResultRepository.count(), "lab result should have been created");
         Assertions.assertEquals(1, labOrderRepository.count(), "lab order should have been created");
 
 
