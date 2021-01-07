@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
@@ -26,7 +26,7 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    LabBatteryTypeRepository labBatteryTypeRepository;
+    LabBatteryElementRepository labBatteryElementRepository;
     @Autowired
     LabNumberRepository labNumberRepository;
     @Autowired
@@ -59,10 +59,10 @@ class TestLabProcessing extends MessageProcessingBase {
         // then lab results:
         // lab result
         Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
-        Assertions.assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinition should have been created");
-        Assertions.assertEquals(1, labBatteryTypeRepository.count(), "lab battery type should have been created");
-        Assertions.assertEquals(1, labResultRepository.count(), "lab result should have been created");
-        Assertions.assertEquals(1, labOrderRepository.count(), "lab order should have been created");
+        Assertions.assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
+        Assertions.assertEquals(4, labBatteryElementRepository.count(), "lab batteries type should have been created");
+        Assertions.assertEquals(4, labResultRepository.count(), "lab results should have been created");
+        Assertions.assertEquals(4, labOrderRepository.count(), "lab order should have been created");
 
 
         // -- for now skipping over, will also need to do the foreign keys for these when we get there

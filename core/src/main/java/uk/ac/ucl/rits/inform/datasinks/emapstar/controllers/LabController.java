@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.LabOrder;
@@ -29,14 +30,14 @@ public class LabController {
 
     private final LabNumberRepository labNumberRepo;
     private final LabTestDefinitionRepository labTestDefinitionRepo;
-    private final LabBatteryTypeRepository labBatteryTypeRepo;
+    private final LabBatteryElementRepository labBatteryElementRepo;
     private final LabOrderRepository labOrderRepo;
     private final LabResultRepository labResultRepository;
 
     public LabController(
-            LabBatteryTypeRepository labBatteryTypeRepo, LabNumberRepository labNumberRepo, LabTestDefinitionRepository labTestDefinitionRepo,
+            LabBatteryElementRepository labBatteryElementRepo, LabNumberRepository labNumberRepo, LabTestDefinitionRepository labTestDefinitionRepo,
             LabOrderRepository labOrderRepo, LabResultRepository labResultRepository) {
-        this.labBatteryTypeRepo = labBatteryTypeRepo;
+        this.labBatteryElementRepo = labBatteryElementRepo;
         this.labNumberRepo = labNumberRepo;
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labOrderRepo = labOrderRepo;
@@ -56,6 +57,7 @@ public class LabController {
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         for (LabResult result : msg.getLabResults()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
+            LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
         }
 
     }
@@ -101,5 +103,21 @@ public class LabController {
                     return labTestDefinitionRepo.save(testDefinition);
                 });
     }
+
+
+    private LabBatteryElement getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabOrder msg, Instant validFrom, Instant storedFrom) {
+        return labBatteryElementRepo
+                .findByBatteryAndLabTestDefinitionIdAndLabDepartment(
+                        msg.getTestBatteryLocalCode(), testDefinition, testDefinition.getLabDepartment())
+                .orElseGet(() -> {
+                    logger.trace("Creating new Lab Test Battery Element");
+                    LabBatteryElement batteryElement = new LabBatteryElement(
+                            testDefinition, msg.getTestBatteryLocalCode(), testDefinition.getLabDepartment());
+                    batteryElement.setValidFrom(validFrom);
+                    batteryElement.setStoredFrom(storedFrom);
+                    return labBatteryElementRepo.save(batteryElement);
+                });
+    }
+
 
 }
