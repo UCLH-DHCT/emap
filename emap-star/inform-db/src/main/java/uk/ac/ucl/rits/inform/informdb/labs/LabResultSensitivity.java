@@ -18,12 +18,13 @@ import java.time.Instant;
  * Sensitivities show the affect of specific agents on isolates from cultures.
  * @author Roma Klapaukh
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, AuditCore> {
+public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, LabResultSensitivityAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -60,7 +61,7 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Aud
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
-        throw new UnsupportedOperationException();
+    public LabResultSensitivityAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabResultSensitivityAudit(this, validUntil, storedUntil);
     }
 }

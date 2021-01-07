@@ -21,12 +21,13 @@ import java.time.Instant;
  * @author Roma Klapaukh
  *
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore> {
+public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatteryElementAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -53,8 +54,8 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedFrom) {
-        throw new UnsupportedOperationException();
+    public LabBatteryElementAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new LabBatteryElementAudit(this, validUntil, storedFrom);
     }
 
 }

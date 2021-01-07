@@ -22,12 +22,13 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
  * @author Roma Klapaukh
  *
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
+public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -59,7 +60,7 @@ public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
-        throw new UnsupportedOperationException();
+    public LabOrderAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabOrderAudit(this, validUntil, storedUntil);
     }
 }

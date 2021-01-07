@@ -19,12 +19,13 @@ import java.time.Instant;
  * is likely to produce several results.
  * @author Roma Klapaukh
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabResult extends TemporalCore<LabResult, AuditCore> {
+public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -71,7 +72,7 @@ public class LabResult extends TemporalCore<LabResult, AuditCore> {
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
-        throw new UnsupportedOperationException();
+    public LabResultAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabResultAudit(this, validUntil, storedUntil);
     }
 }

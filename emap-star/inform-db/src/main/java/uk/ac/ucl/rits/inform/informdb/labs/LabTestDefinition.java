@@ -20,12 +20,13 @@ import java.time.Instant;
  * than one lab provider that supplies it.
  * @author Roma Klapaukh
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabTestDefinition extends TemporalCore<LabTestDefinition, AuditCore> {
+public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDefinitionAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -78,7 +79,7 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, AuditCore
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
-        throw new UnsupportedOperationException();
+    public LabTestDefinitionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabTestDefinitionAudit(this, validUntil, storedUntil);
     }
 }

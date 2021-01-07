@@ -20,12 +20,13 @@ import java.time.Instant;
  * LabNumber.
  * @author Roma Klapaukh
  */
+@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabCollection extends TemporalCore<LabCollection, AuditCore> {
+public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -73,7 +74,7 @@ public class LabCollection extends TemporalCore<LabCollection, AuditCore> {
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedFrom) {
-        throw new UnsupportedOperationException();
+    public LabCollectionAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
+        return new LabCollectionAudit(this, validUntil, storedFrom);
     }
 }
