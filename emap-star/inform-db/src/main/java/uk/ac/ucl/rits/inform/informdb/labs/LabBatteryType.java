@@ -6,10 +6,15 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import java.time.Instant;
 
 /**
@@ -29,9 +34,17 @@ public class LabBatteryType extends TemporalCore<LabBatteryType, LabBatteryTypeA
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labBatteryTypeId;
 
+
+    @ManyToOne
+    @JoinColumn(name = "labTestDefinitionId", nullable = false)
+    private LabTestDefinition labTestDefinitionId;
+
     private String battery;
 
-    private String labTestDefinitionId;
+    /**
+     * Department that has defined the battery.
+     */
+    private String labDepartment;
 
     public LabBatteryType() {}
 
@@ -40,6 +53,7 @@ public class LabBatteryType extends TemporalCore<LabBatteryType, LabBatteryTypeA
         this.labBatteryTypeId = other.labBatteryTypeId;
         this.battery = other.battery;
         this.labTestDefinitionId = other.labTestDefinitionId;
+        this.labDepartment = other.labDepartment;
     }
 
     @Override

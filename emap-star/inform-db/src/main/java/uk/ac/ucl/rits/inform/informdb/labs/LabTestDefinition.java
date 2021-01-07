@@ -59,6 +59,12 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
 
     public LabTestDefinition() {}
 
+    public LabTestDefinition(String labProvider, String labDepartment, String testLabCode) {
+        this.labProvider = labProvider;
+        this.labDepartment = labDepartment;
+        this.testLabCode = testLabCode;
+    }
+
     public LabTestDefinition(LabTestDefinition other) {
         super(other);
         this.labTestDefinitionId = other.labTestDefinitionId;
