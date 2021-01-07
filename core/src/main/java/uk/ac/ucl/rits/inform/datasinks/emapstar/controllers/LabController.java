@@ -110,7 +110,7 @@ public class LabController {
                 .orElseGet(() -> {
                     logger.trace("Creating new Lab Test Battery Element");
                     LabBatteryElement batteryElement = new LabBatteryElement(
-                            testDefinition, msg.getTestBatteryLocalCode(), testDefinition.getLabDepartment());
+                            testDefinition, msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem());
                     batteryElement.setValidFrom(validFrom);
                     batteryElement.setStoredFrom(storedFrom);
                     return labBatteryElementRepo.save(batteryElement);
