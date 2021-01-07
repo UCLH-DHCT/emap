@@ -1,12 +1,16 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.interchange.LabOrder;
 
 import java.time.Instant;
@@ -17,6 +21,8 @@ import java.time.Instant;
  */
 @Component
 public class LabController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final LabBatteryTypeRepository labBatteryTypeRepo;
     private final LabNumberRepository labNumberRepo;
     private final LabOrderRepository labOrderRepo;
@@ -31,7 +37,44 @@ public class LabController {
         this.labResultRepository = labResultRepository;
     }
 
-    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant validFrom, Instant storedFrom) {
+    /**
+     * @param mrn        MRN
+     * @param visit      hospital visit
+     * @param msg        order message
+     * @param validFrom  time that the message was created
+     * @param storedFrom time that star started processing the message
+     * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
+     */
+    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
+        LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
 
+    }
+
+    /**
+     * @param mrn        MRN
+     * @param visit      hospital visit
+     * @param msg        order message
+     * @param storedFrom time that star started processing the message
+     * @return
+     * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
+     */
+    private LabNumber getOrCreateLabNumber(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+        LabNumber labNumber = labNumberRepo
+                .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
+                        mrn, visit, msg.getEpicCareOrderNumber(), msg.getLabSpecimenNumber())
+                .orElseGet(() -> createAndSaveLabNumber(mrn, visit, msg, storedFrom));
+
+        if (!labNumber.getSpecimenType().equals(msg.getSpecimenType())) {
+            throw new IncompatibleDatabaseStateException("Message specimen type doesn't match the database");
+        }
+        return labNumber;
+    }
+
+    private LabNumber createAndSaveLabNumber(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant storedFrom) {
+        logger.trace("Creating new lab number");
+        LabNumber labNumber = new LabNumber(
+                mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(), msg.getSpecimenType(), msg.getSourceSystem(), storedFrom);
+        labNumberRepo.save(labNumber);
+        return labNumber;
     }
 }

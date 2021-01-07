@@ -56,10 +56,10 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNull(visit.getAdmissionTime());
         // then lab results:
         // lab result
-//        Assertions.assertEquals(1, labResultRepository.count());
-//        Assertions.assertEquals(1, labNumberRepository.count());
-//        Assertions.assertEquals(1, labBatteryTypeRepository.count());
-//        Assertions.assertEquals(1, labOrderRepository.count());
+        Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
+        Assertions.assertEquals(1, labResultRepository.count(), "lab result should have been created");
+        Assertions.assertEquals(1, labBatteryTypeRepository.count(), "lab battery type should have been created");
+        Assertions.assertEquals(1, labOrderRepository.count(), "lab order should have been created");
 
 
         // -- for now skipping over, will also need to do the foreign keys for these when we get there
