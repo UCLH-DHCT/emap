@@ -23,7 +23,7 @@ public class LabOrder extends EmapOperationMessage implements Serializable {
     private String orderControlId;
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
-    private String labSpecimenNumberOCS;
+    private String specimenType;
     private Instant orderDateTime;
     private Instant sampleEnteredTime;
     private String labDepartment;
@@ -75,15 +75,15 @@ public class LabOrder extends EmapOperationMessage implements Serializable {
      * @return the lab number with an extra character appended (known as the OCS
      * number in WinPath)
      */
-    public String getLabSpecimenNumberOCS() {
-        return labSpecimenNumberOCS;
+    public String getSpecimenType() {
+        return specimenType;
     }
 
     /**
-     * @param labSpecimenNumberOCS the labSpecimenNumberOCS to set
+     * @param specimenType the labSpecimenNumberOCS to set
      */
-    public void setLabSpecimenNumberOCS(String labSpecimenNumberOCS) {
-        this.labSpecimenNumberOCS = labSpecimenNumberOCS;
+    public void setSpecimenType(String specimenType) {
+        this.specimenType = specimenType;
     }
 
     /**
@@ -388,7 +388,7 @@ public class LabOrder extends EmapOperationMessage implements Serializable {
                 && Objects.equals(labResults, that.labResults)
                 && Objects.equals(epicCareOrderNumber, that.epicCareOrderNumber)
                 && Objects.equals(labSpecimenNumber, that.labSpecimenNumber)
-                && Objects.equals(labSpecimenNumberOCS, that.labSpecimenNumberOCS)
+                && Objects.equals(specimenType, that.specimenType)
                 && Objects.equals(orderDateTime, that.orderDateTime)
                 && Objects.equals(sampleEnteredTime, that.sampleEnteredTime)
                 && Objects.equals(labDepartment, that.labDepartment)
@@ -411,7 +411,7 @@ public class LabOrder extends EmapOperationMessage implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(labResults, orderControlId, epicCareOrderNumber, labSpecimenNumber,
-                labSpecimenNumberOCS, orderDateTime, sampleEnteredTime, labDepartment, orderStatus,
+                specimenType, orderDateTime, sampleEnteredTime, labDepartment, orderStatus,
                 resultStatus, orderType, mrn, visitNumber, requestedDateTime, observationDateTime,
                 testBatteryLocalCode, testBatteryLocalDescription, testBatteryCodingSystem, statusChangeTime,
                 parentObservationIdentifier, parentSubId, getSourceSystem());
@@ -427,7 +427,7 @@ public class LabOrder extends EmapOperationMessage implements Serializable {
                         .append("testBatteryCodingSystem='%s', statusChangeTime=%s, parentObservationIdentifier='%s', parentSubId='%s', ")
                         .append("sourceSystem='%s'}")
                         .toString(),
-                labResults, orderControlId, epicCareOrderNumber, labSpecimenNumber, labSpecimenNumberOCS,
+                labResults, orderControlId, epicCareOrderNumber, labSpecimenNumber, specimenType,
                 orderDateTime, sampleEnteredTime, labDepartment, orderStatus, resultStatus, orderType, mrn,
                 visitNumber, requestedDateTime, observationDateTime, testBatteryLocalCode, testBatteryLocalDescription,
                 testBatteryCodingSystem, statusChangeTime, parentObservationIdentifier, parentSubId, getSourceSystem());
