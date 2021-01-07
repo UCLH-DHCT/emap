@@ -6,6 +6,7 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -39,27 +40,25 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
     private String battery;
 
     /**
-     * Department that has defined the battery.
+     * What system this code belongs to. Examples could be WinPath, or Epic.
      */
-    private String labDepartment;
+    @Column(nullable = false)
+    private String labProvider;
 
     public LabBatteryElement() {}
 
-    public LabBatteryElement(LabTestDefinition labTestDefinitionId, String battery, String labDepartment) {
+    public LabBatteryElement(LabTestDefinition labTestDefinitionId, String battery, String labProvider) {
         this.labTestDefinitionId = labTestDefinitionId;
         this.battery = battery;
-        this.labDepartment = labDepartment;
+        this.labProvider = labProvider;
     }
-
-    // TODO: add description field?
-    // TODO: add source system field?
 
     public LabBatteryElement(LabBatteryElement other) {
         super(other);
         this.labBatteryElementId = other.labBatteryElementId;
         this.battery = other.battery;
         this.labTestDefinitionId = other.labTestDefinitionId;
-        this.labDepartment = other.labDepartment;
+        this.labProvider = other.labProvider;
     }
 
     @Override

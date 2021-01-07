@@ -13,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import java.time.Instant;
 
 /**
@@ -36,7 +37,7 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @JoinColumn(name = "labNumberId", nullable = false)
     private LabNumber labNumberId;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "labBatteryElementId", nullable = false)
     private LabBatteryElement labBatteryElementId;
 
