@@ -46,8 +46,25 @@ public class LabNumber implements Serializable {
      * Lab number for the system doing the lab test.
      */
     private String externalLabNumber;
+
+    /**
+     * Code for specimen type.
+     */
+    private String specimenType;
     private String sourceSystem;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedFrom;
+
+    public LabNumber() {
+    }
+
+    public LabNumber(Mrn mrnId, HospitalVisit hospitalVisitId, String internalLabNumber, String externalLabNumber, String sourceSystem, Instant storedFrom) {
+        this.mrnId = mrnId;
+        this.hospitalVisitId = hospitalVisitId;
+        this.internalLabNumber = internalLabNumber;
+        this.externalLabNumber = externalLabNumber;
+        this.sourceSystem = sourceSystem;
+        this.storedFrom = storedFrom;
+    }
 }
