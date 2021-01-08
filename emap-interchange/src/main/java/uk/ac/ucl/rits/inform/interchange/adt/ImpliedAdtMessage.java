@@ -8,7 +8,11 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 /**
  * ADT message implied from a non-ADT source (such as Flowsheet or Pathology results).
- * Demographics and encounter information can be used. Location information from the messages is not trusted.
+ *
+ * Demographics and encounter information can be used if there is no existing information, but will always be updated from a trusted source.
+ * Location information from the messages is not trusted.
+ *
+ * @author Stef Piatek
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
