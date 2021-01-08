@@ -15,11 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -55,6 +56,9 @@ public abstract class MessageStreamBaseCase {
     @Autowired
     protected CoreDemographicRepository  coreDemographicRepository;
 
+    @Autowired
+    protected LocationVisitRepository    locationVisitRepository;
+
     protected List<EmapOperationMessage> messageStream                = new ArrayList<>();
     /**
      * How far though the message stream processing is.
@@ -62,7 +66,7 @@ public abstract class MessageStreamBaseCase {
     protected int                        nextToProcess                = 0;
 
     protected Instant                    currentTime                  = Instant.parse("2020-03-01T06:30:00.000Z");
-    protected final String[]             allLocations                 = { "T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
+    protected final String[]             allLocations                 = {"T42^BADGERS^WISCONSIN", "ED^BADGERS^HONEY",
             "ED^BADGERS^HOG", "ED^BADGERS^PALAWAN", "ED^BADGERS^JAPANESE", "ED^BADGERS^JAVAN", "ED^BADGERS^EURASIAN" };
     protected int                        currentLocation              = 0;
     protected String                     mrn                          = "1234ABCD";
@@ -232,6 +236,8 @@ public abstract class MessageStreamBaseCase {
     /**
      * See the next location without changing state. When the end of the array is
      * reached, loop around.
+     *
+     * @return The next location coming up in the list
      */
     protected String peekNextLocation() {
         int loc = (this.currentLocation + 1) % this.allLocations.length;
@@ -249,7 +255,7 @@ public abstract class MessageStreamBaseCase {
     }
 
     /**
-     * Get the time of the last transfer
+     * Get the time of the last transfer.
      *
      * @return The time of the last transfer
      */
@@ -264,7 +270,7 @@ public abstract class MessageStreamBaseCase {
      * Make sure that the patient has an admission time.
      */
     protected void ensureAdmitted() {
-        if (this.admissionTime == null) {
+        if (this.admissionTime.isUnknown()) {
             this.admissionTime = new Hl7Value<>(this.nextTime());
         }
     }
@@ -295,14 +301,14 @@ public abstract class MessageStreamBaseCase {
 
     /**
      * Queue a patient update message.
+     *
+     * @param patientClass the patient class to set
      */
     public void queueUpdatePatientDetails(Hl7Value<PatientClass> patientClass) {
-        boolean impliedTransfer = this.admissionTime == null;
+        boolean impliedTransfer = this.transferTime.isEmpty();
 
         // clock must be changed before anything which might cause a change
         this.stepClock();
-
-        this.ensureAdmitted();
 
         if (impliedTransfer) {
             this.transferTime.add(this.currentTime);
@@ -355,10 +361,10 @@ public abstract class MessageStreamBaseCase {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
-        if (this.admissionTime == null || transfer) {
+        if (this.transferTime.isEmpty() || transfer) {
             this.transferTime.add(eventTime);
         }
-        if (this.admissionTime == null) {
+        if (this.admissionTime.isUnknown()) {
             this.admissionTime = new Hl7Value<Instant>(eventTime);
         }
         if (transfer) {
@@ -391,7 +397,7 @@ public abstract class MessageStreamBaseCase {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
-        if (this.admissionTime.isUnknown() || this.presentationTime.isUnknown()) {
+        if (this.transferTime.isEmpty()) {
             this.transferTime.add(eventTime);
         }
         if (this.presentationTime.isUnknown()) {
@@ -506,17 +512,11 @@ public abstract class MessageStreamBaseCase {
      * Queue a cancel transfer message.
      */
     public void queueCancelTransfer() {
-        this.ensureAdmitted();
         Instant erroneousTransferDateTime;
-        if (this.transferTime.isEmpty()) {
-            erroneousTransferDateTime = this.nextTime();
-        } else {
+        if (!this.transferTime.isEmpty()){
             erroneousTransferDateTime = this.transferTime.remove(this.transferTime.size() - 1);
-        }
-
-        if (this.transferTime.isEmpty()) {
-            // This is really acting as a place holder for NULL
-            this.transferTime.add(Instant.MIN);
+        } else {
+            erroneousTransferDateTime = this.nextTime();
         }
 
         Instant eventTime = this.nextTime();
@@ -531,6 +531,7 @@ public abstract class MessageStreamBaseCase {
         cancelTransfer.setPatientGivenName(this.fName);
         cancelTransfer.setPatientMiddleName(this.mName);
         cancelTransfer.setPatientFamilyName(this.lName);
+        cancelTransfer.setCancelledLocation(this.currentLocation().get());
         cancelTransfer.setFullLocationString(this.previousLocation());
         cancelTransfer.setPatientIsAlive(this.patientAlive);
         cancelTransfer.setPatientDeathDateTime(deathTime);
@@ -553,6 +554,7 @@ public abstract class MessageStreamBaseCase {
         discharge.setSourceSystem("EPIC");
         discharge.setMrn(this.mrn);
         discharge.setFullLocationString(currentLocation());
+        discharge.setPreviousLocationString(previousLocation());
         discharge.setVisitNumber(this.csn);
         discharge.setPatientClass(this.getPatientClass());
         discharge.setPatientGivenName(this.fName);
