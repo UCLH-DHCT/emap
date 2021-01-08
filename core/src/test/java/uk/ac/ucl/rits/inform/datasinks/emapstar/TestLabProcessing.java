@@ -61,8 +61,8 @@ class TestLabProcessing extends MessageProcessingBase {
         Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
         Assertions.assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
         Assertions.assertEquals(4, labBatteryElementRepository.count(), "lab batteries type should have been created");
-        Assertions.assertEquals(4, labResultRepository.count(), "lab results should have been created");
         Assertions.assertEquals(4, labOrderRepository.count(), "lab order should have been created");
+        Assertions.assertEquals(4, labResultRepository.count(), "lab results should have been created");
 
 
         // -- for now skipping over, will also need to do the foreign keys for these when we get there

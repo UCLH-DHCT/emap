@@ -59,6 +59,7 @@ public class LabController {
         for (LabResult result : msg.getLabResults()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
+            LabOrder order = getOrCreateLabOrder(batteryElement, labNumber, msg.getOrderDateTime(), validFrom, storedFrom);
         }
 
     }
@@ -115,6 +116,19 @@ public class LabController {
                     batteryElement.setValidFrom(validFrom);
                     batteryElement.setStoredFrom(storedFrom);
                     return labBatteryElementRepo.save(batteryElement);
+                });
+    }
+
+    private LabOrder getOrCreateLabOrder(
+            LabBatteryElement batteryElement, LabNumber labNumber, Instant orderDateTime, Instant validFrom, Instant storedFrom) {
+        return labOrderRepo
+                .findByLabBatteryElementIdAndLabNumberIdAndOrderDatetime(batteryElement, labNumber, orderDateTime)
+                .orElseGet(() -> {
+                    logger.trace("Creating new Lab Order");
+                    LabOrder order = new LabOrder(batteryElement, labNumber, orderDateTime);
+                    order.setValidFrom(validFrom);
+                    order.setStoredFrom(storedFrom);
+                    return labOrderRepo.save(order);
                 });
     }
 
