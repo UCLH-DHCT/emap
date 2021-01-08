@@ -1,23 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -32,6 +18,19 @@ import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
@@ -113,11 +112,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // Presentation time should not be changed by admission message
-        assertEquals(Instant.parse("2012-09-17T13:25:00.65Z"), visit.getPresentationTime());
+        assertEquals(Instant.parse("2012-09-17T13:25:00Z"), visit.getPresentationTime());
         // Admission time should be changed
         assertEquals(Instant.parse("2013-02-11T10:00:52Z"), visit.getAdmissionTime());
         // validFrom and Stored from should be updated
-        Instant originalStoredFrom = Instant.parse("2012-09-17T13:25:00.650Z");
+        Instant originalStoredFrom = Instant.parse("2012-09-17T13:25:00Z");
         assertTrue(visit.getStoredFrom().isAfter(originalStoredFrom));
         assertTrue(visit.getValidFrom().isAfter(originalStoredFrom));
 
@@ -134,6 +133,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     public void testAdmitThenCancelAdmit() throws EmapOperationMessageProcessingException {
         AdmitPatient addMsg = messageFactory.getAdtMessage("generic/A01.yaml");
         CancelAdmitPatient removeMsg = messageFactory.getAdtMessage("generic/A11.yaml");
+        addMsg.setFullLocationString(removeMsg.getFullLocationString());
+        addMsg.setEventOccurredDateTime(removeMsg.getCancelledDateTime());
 
         dbOps.processMessage(addMsg);
         dbOps.processMessage(removeMsg);
@@ -173,6 +174,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     public void testDischargeThenCancelDischarge() throws EmapOperationMessageProcessingException {
         DischargePatient addMsg = messageFactory.getAdtMessage("generic/A03.yaml");
         CancelDischargePatient removeMsg = messageFactory.getAdtMessage("generic/A13.yaml");
+        addMsg.setFullLocationString(removeMsg.getFullLocationString());
+        addMsg.setEventOccurredDateTime(removeMsg.getCancelledDateTime());
 
         dbOps.processMessage(addMsg);
         dbOps.processMessage(removeMsg);
