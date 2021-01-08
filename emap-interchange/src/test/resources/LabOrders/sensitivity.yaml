@@ -1,4 +1,4 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "ST"
@@ -10,7 +10,7 @@
       isolateLocalDescription: "Klebsiella oxytoca"
       abnormalFlags: "A"
       labSensitivities:
-        - "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+        - "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
           labResults:
             - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
               testItemLocalCode: "VAK"
@@ -48,7 +48,7 @@
       isolateLocalDescription: "Proteus mirabilis"
       abnormalFlags: "A"
       labSensitivities:
-        - "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+        - "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
           labResults:
             - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
               testItemLocalCode: "VAK"
@@ -80,7 +80,7 @@
   testBatteryLocalCode: "URNC"
   testBatteryLocalDescription: "URINE CULTURE"
   statusChangeTime: "2019-07-15T08:37:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "FT"

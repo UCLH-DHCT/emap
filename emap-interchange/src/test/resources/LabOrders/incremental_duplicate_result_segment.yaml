@@ -1,4 +1,4 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -43,7 +43,7 @@
   statusChangeTime: "2020-04-22T03:25:00Z"
   orderStatus: "A"
   resultStatus: "A"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"

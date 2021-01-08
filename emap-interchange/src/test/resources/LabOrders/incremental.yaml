@@ -1,4 +1,4 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -55,7 +55,7 @@
   testBatteryLocalCode: "FBC"
   testBatteryLocalDescription: "FBC AND DIFFERENTIAL"
   statusChangeTime: "2019-07-16T23:04:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "FT"
@@ -79,7 +79,7 @@
   testBatteryLocalCode: "TELH"
   testBatteryLocalDescription: "TELEPHONED HAEM RESULTS"
   statusChangeTime: "2019-07-16T23:01:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -232,7 +232,7 @@
   testBatteryLocalCode: "FBC"
   testBatteryLocalDescription: "FBC AND DIFFERENTIAL"
   statusChangeTime: "2019-07-16T23:05:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "FT"

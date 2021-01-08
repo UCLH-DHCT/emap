@@ -1,4 +1,4 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -37,7 +37,7 @@
   testBatteryLocalCode: "BON"
   testBatteryLocalDescription: "BONE PROFILE"
   statusChangeTime: "2013-07-25T12:58:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -76,7 +76,7 @@
   testBatteryLocalCode: "IRON"
   testBatteryLocalDescription: "IRON PROFILE"
   statusChangeTime: "2013-07-25T12:59:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -101,7 +101,7 @@
   testBatteryLocalCode: "HBA"
   testBatteryLocalDescription: "HAEMOGLOBIN A1C"
   statusChangeTime: "2013-07-25T11:29:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "FT"
@@ -116,7 +116,7 @@
   testBatteryLocalCode: "GLU"
   testBatteryLocalDescription: "GLUCOSE"
   statusChangeTime: "2013-07-26T11:21:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -164,7 +164,7 @@
   testBatteryLocalCode: "LPF"
   testBatteryLocalDescription: "LIPID PROFILE"
   statusChangeTime: "2013-07-25T12:59:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -189,7 +189,7 @@
   testBatteryLocalCode: "BFOL"
   testBatteryLocalDescription: "VITAMIN B12 & SERUM FOLAT"
   statusChangeTime: "2013-07-25T18:14:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -276,7 +276,7 @@
   testBatteryLocalCode: "FBCY"
   testBatteryLocalDescription: "FULL BLOOD COUNT"
   statusChangeTime: "2013-07-24T18:26:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -323,7 +323,7 @@
   testBatteryLocalCode: "FBCZ"
   testBatteryLocalDescription: "DIFFERENTIAL"
   statusChangeTime: "2013-07-24T18:26:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
@@ -338,7 +338,7 @@
   testBatteryLocalCode: "VITD"
   testBatteryLocalDescription: "25-HYDROXY VITAMIN D"
   statusChangeTime: "2013-07-29T08:41:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
+- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResults:
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
       valueType: "NM"
