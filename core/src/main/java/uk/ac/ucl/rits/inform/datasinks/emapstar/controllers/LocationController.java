@@ -172,11 +172,8 @@ public class LocationController {
             currentLocation.getEntity().setInferredAdmission(true);
         }
 
-        List<RowState<LocationVisit, LocationVisitAudit>> previousVisits = updateOrCreatePreviousMoveLocations(
-                visit, msg, storedFrom, validFrom, visitLocations, indexCurrentOrPrevious);
-
-        saveAllLocationVisitsIfRequired(currentLocation, previousVisits);
-
+        updateOrCreatePreviousMoveLocations(visit, msg, storedFrom, validFrom, visitLocations, indexCurrentOrPrevious);
+        currentLocation.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
     }
 
     /**
@@ -320,7 +317,7 @@ public class LocationController {
     }
 
     /**
-     * Update or create previous message(s), ensuring that they are discharged.
+     * Update or create previous message(s), ensuring that they are discharged and saving any changes.
      * If message has previous location, create or update the location.
      * If message previous location doesn't (exist or match existing previous location), infer discharge of existing previous location.
      * If no message previous location and no existing previous locations, return empty list
@@ -330,16 +327,14 @@ public class LocationController {
      * @param validFrom              event time from the hl7 message
      * @param visitLocations         in descending order of admission time
      * @param indexOfPreviousMessage index of previous message
-     * @return list of zero or more previous visits
      */
-    private List<RowState<LocationVisit, LocationVisitAudit>> updateOrCreatePreviousMoveLocations(
+    private void updateOrCreatePreviousMoveLocations(
             HospitalVisit visit, AdtMessage msg, Instant storedFrom, Instant validFrom,
             List<LocationVisit> visitLocations, Long indexOfPreviousMessage) {
 
         Optional<Location> previousLocationId = getPreviousLocationId(msg);
         RowState<LocationVisit, LocationVisitAudit> previousHl7Location = null;
 
-        List<RowState<LocationVisit, LocationVisitAudit>> previousLocations = new ArrayList<>();
         if (indexInRange(visitLocations, indexOfPreviousMessage)) {
             LocationVisit existingLocation = visitLocations.get(indexOfPreviousMessage.intValue());
             if (previousLocationId.isPresent()) {
@@ -356,7 +351,7 @@ public class LocationController {
                         RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
                         Instant inferredDischargeTime = validFrom.minus(1, ChronoUnit.SECONDS);
                         setInferredDischargeAndTime(true, inferredDischargeTime, existingPrevious);
-                        previousLocations.add(existingPrevious);
+                        existingPrevious.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
                     }
                 }
             } else {
@@ -367,7 +362,7 @@ public class LocationController {
                     logger.debug("No previous hl7 location, but found existing previous location. Inferring existing location discharge.");
                     RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
                     setInferredDischargeAndTime(true, validFrom, existingPrevious);
-                    previousLocations.add(existingPrevious);
+                    existingPrevious.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
                 }
             }
         } else if (previousLocationId.isPresent()) {
@@ -378,11 +373,10 @@ public class LocationController {
             logger.debug("No existing locations for visit and no HL7 previous location");
         }
 
-        // Always add previous hl7 location if it exists
+        // Always save previous hl7 location if it exists
         if (previousHl7Location != null) {
-            previousLocations.add(previousHl7Location);
+            previousHl7Location.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
         }
-        return previousLocations;
     }
 
     private boolean zeroLengthVisitWouldBeCreated(AdtMessage msg, LocationVisit existingLocation, Instant validFrom) {
@@ -392,19 +386,6 @@ public class LocationController {
 
     private boolean openLocationOrInferredDischarge(LocationVisit existingLocation) {
         return existingLocation.getDischargeTime() == null || existingLocation.getInferredDischarge();
-    }
-
-    /**
-     * Save current and previous locations visits if required.
-     * @param currentLocation current location visit
-     * @param previousVisits  collection of zero or more previous location visits
-     */
-    private void saveAllLocationVisitsIfRequired(
-            RowState<LocationVisit, LocationVisitAudit> currentLocation, Collection<RowState<LocationVisit, LocationVisitAudit>> previousVisits) {
-        Collection<RowState<LocationVisit, LocationVisitAudit>> savingVisits = new ArrayList<>();
-        savingVisits.add(currentLocation);
-        savingVisits.addAll(previousVisits);
-        savingVisits.forEach(rowState -> rowState.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo));
     }
 
     /**
