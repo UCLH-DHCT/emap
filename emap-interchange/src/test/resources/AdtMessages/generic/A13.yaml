@@ -1,5 +1,6 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient"
 recordedDateTime: "2013-02-11T10:01:52Z"
+eventOccurredDateTime: "2010-09-16T10:00:00Z"
 eventReasonCode: "ADT_EVENT"
 visitNumber: "123412341234"
 nhsNumber: "9999999999"
