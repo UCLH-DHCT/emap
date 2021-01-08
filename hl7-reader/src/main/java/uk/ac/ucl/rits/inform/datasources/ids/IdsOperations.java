@@ -424,7 +424,7 @@ public class IdsOperations implements AutoCloseable {
                 return;
             }
 
-            // One HL7 message can give rise to multiple interchange messages (pathology orders),
+            // One HL7 message can give rise to multiple interchange messages (lab orders),
             // but failure is only expressed on a per-HL7 message basis.
             try {
                 List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
@@ -482,7 +482,7 @@ public class IdsOperations implements AutoCloseable {
                     } else {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         // get all result batteries in the message
-                        messages.addAll(PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
+                        messages.addAll(LabOrderBuilder.buildLabOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
                     }
                 }
                 break;
@@ -490,7 +490,7 @@ public class IdsOperations implements AutoCloseable {
                 if (triggerEvent.equals("O01")) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     // get all orders in the message
-                    messages.addAll(PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds));
+                    messages.addAll(LabOrderBuilder.buildLabOrders(sourceId, (ORM_O01) msgFromIds));
                 }
                 break;
             default:

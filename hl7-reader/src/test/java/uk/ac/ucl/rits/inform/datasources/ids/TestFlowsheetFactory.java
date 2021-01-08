@@ -99,8 +99,8 @@ public class TestFlowsheetFactory {
         Hl7Value<Double> numericValue = flowsheets.get(5).getNumericValue();
         Hl7Value<String> stringValue = flowsheets.get(5).getStringValue();
 
-        Assertions.assertEquals(Hl7Value.delete(), numericValue);
-        Assertions.assertEquals(Hl7Value.delete(), stringValue);
+        Assertions.assertTrue(numericValue.isUnknown());
+        Assertions.assertTrue(stringValue.isDelete());
     }
 
     @Test
