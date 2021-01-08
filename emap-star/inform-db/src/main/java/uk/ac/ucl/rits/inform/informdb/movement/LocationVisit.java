@@ -40,7 +40,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@AuditTable
+@AuditTable(indexes = {@Index(name = "lva_hospital_visit_id", columnList = "hospitalVisitId"),
+        @Index(name = "lva_location_id", columnList = "locationId")})
 public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudit> {
 
     @Id
@@ -58,15 +59,19 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     @Column(columnDefinition = "timestamp with time zone")
     private Instant           dischargeTime;
 
-    /**
-     * The source system from which we learnt about this hospital visit.
-     */
-    @Column(nullable = false)
-    private String            sourceSystem;
-
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location          locationId;
+    /**
+     * Admission time has been inferred (not set from an A01, A02 or A03).
+     */
+    @Column(nullable = false)
+    private Boolean           inferredAdmission = false;
+    /**
+     * Discharge time has been inferred (not set from an A01, A02 or A03).
+     */
+    @Column(nullable = false)
+    private Boolean           inferredDischarge = false;
 
     public LocationVisit() {}
 
@@ -77,14 +82,20 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
      * @param storedFrom    Time that emap-core encountered the message
      * @param location      Location
      * @param hospitalVisit Hospital visit
-     * @param sourceSystem  source system
      */
-    public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit,
-            String sourceSystem) {
+    public LocationVisit(Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
         super();
         setAdmissionTime(validFrom);
         setLocationId(location);
-        setSourceSystem(sourceSystem);
+        setHospitalVisitId(hospitalVisit);
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
+    }
+
+    public LocationVisit(Instant admissionTime, Instant validFrom, Instant storedFrom, Location location, HospitalVisit hospitalVisit) {
+        super();
+        setAdmissionTime(admissionTime);
+        setLocationId(location);
         setHospitalVisitId(hospitalVisit);
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
@@ -95,10 +106,11 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
         this.locationVisitId = other.locationVisitId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.parentLocationVisitId = other.parentLocationVisitId;
-        this.sourceSystem = other.sourceSystem;
         this.admissionTime = other.admissionTime;
         this.dischargeTime = other.dischargeTime;
         this.locationId = other.locationId;
+        this.inferredAdmission = other.inferredAdmission;
+        this.inferredDischarge = other.inferredDischarge;
     }
 
     @Override
