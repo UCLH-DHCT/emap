@@ -99,6 +99,14 @@ public class Hl7Value<T> implements Serializable {
         return ResultStatus.IGNORE == status;
     }
 
+    /**
+     * @return if the value should be saved.
+     */
+    @JsonIgnore
+    public boolean isSave() {
+        return ResultStatus.SAVE == status;
+    }
+
 
     /**
      * @return if the value should be deleted.
