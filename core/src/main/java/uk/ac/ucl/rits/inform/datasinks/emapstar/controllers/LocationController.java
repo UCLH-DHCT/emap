@@ -414,22 +414,16 @@ public class LocationController {
      * @return incremented counter
      */
     private Long incrementNullable(@Nullable Long input) {
-        Long incremented = input;
-        if (incremented == null) {
-            incremented = 0L;
-        } else {
-            incremented += 1;
-        }
-        return incremented;
+        return input == null ? 0 : input + 1;
     }
 
     /**
      * Is the index in the range of the collection.
      * @param collection collection of any objects
-     * @param index      index
+     * @param index      index, may be null collection is empty
      * @return true if index is in range of the collection.
      */
-    private boolean indexInRange(Collection<?> collection, Long index) {
+    private boolean indexInRange(Collection<?> collection, @Nullable Long index) {
         return index != null && (index < collection.size());
     }
 
