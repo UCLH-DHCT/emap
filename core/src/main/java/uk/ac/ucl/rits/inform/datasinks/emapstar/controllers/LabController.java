@@ -106,7 +106,7 @@ public class LabController {
 
     private LabBatteryElement getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         return labBatteryElementRepo
-                .findByBatteryAndLabTestDefinitionIdAndLabDepartment(
+                .findByBatteryAndLabTestDefinitionIdAndLabProvider(
                         msg.getTestBatteryLocalCode(), testDefinition, msg.getTestBatteryCodingSystem())
                 .orElseGet(() -> {
                     logger.trace("Creating new Lab Test Battery Element");

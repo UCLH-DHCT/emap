@@ -11,6 +11,6 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabBatteryElementRepository extends CrudRepository<LabBatteryElement, Long> {
-    Optional<LabBatteryElement> findByBatteryAndLabTestDefinitionIdAndLabDepartment(
-            String battery, LabTestDefinition testDefinition, String labDepartment);
+    Optional<LabBatteryElement> findByBatteryAndLabTestDefinitionIdAndLabProvider(
+            String battery, LabTestDefinition testDefinition, String labProvider);
 }
