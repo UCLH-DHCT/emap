@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.springframework.stereotype.Component;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
@@ -17,15 +17,15 @@ import java.time.Instant;
  */
 @Component
 public class LabController {
-    private final LabBatteryTypeRepository labBatteryTypeRepo;
+    private final LabBatteryElementRepository labBatteryElementRepo;
     private final LabNumberRepository labNumberRepo;
     private final LabOrderRepository labOrderRepo;
     private final LabResultRepository labResultRepository;
 
     public LabController(
-            LabBatteryTypeRepository labBatteryTypeRepo, LabNumberRepository labNumberRepo,
+            LabBatteryElementRepository labBatteryElementRepo, LabNumberRepository labNumberRepo,
             LabOrderRepository labOrderRepo, LabResultRepository labResultRepository) {
-        this.labBatteryTypeRepo = labBatteryTypeRepo;
+        this.labBatteryElementRepo = labBatteryElementRepo;
         this.labNumberRepo = labNumberRepo;
         this.labOrderRepo = labOrderRepo;
         this.labResultRepository = labResultRepository;

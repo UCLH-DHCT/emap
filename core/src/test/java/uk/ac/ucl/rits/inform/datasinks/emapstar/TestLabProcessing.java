@@ -1,10 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
@@ -25,7 +24,7 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    LabBatteryTypeRepository labBatteryTypeRepository;
+    LabBatteryElementRepository labBatteryElementRepository;
     @Autowired
     LabNumberRepository labNumberRepository;
     @Autowired
