@@ -14,10 +14,10 @@ import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
  */
 public interface EmapOperationMessageProcessor {
     /**
-     * @param msg the pathology order message to process
+     * @param msg the lab order message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(PathologyOrder msg) throws EmapOperationMessageProcessingException;
+    void processMessage(LabOrder msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the ADT message to process
