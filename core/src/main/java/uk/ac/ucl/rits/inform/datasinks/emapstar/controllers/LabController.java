@@ -17,7 +17,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.LabResult;
+import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
 import java.time.Instant;
 
@@ -56,7 +56,7 @@ public class LabController {
     @Transactional
     public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
-        for (LabResult result : msg.getLabResults()) {
+        for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
             LabOrder order = getOrCreateLabOrder(batteryElement, labNumber, msg.getOrderDateTime(), validFrom, storedFrom);
@@ -91,7 +91,7 @@ public class LabController {
         return labNumber;
     }
 
-    private LabTestDefinition getOrCreateLabTestDefinition(LabResult result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
+    private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         return labTestDefinitionRepo
                 .findByLabProviderAndLabDepartmentAndTestLabCode(
                         msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode())
