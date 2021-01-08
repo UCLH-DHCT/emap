@@ -45,17 +45,17 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(messages.get(0));
 
         List<Mrn> mrns = getAllMrns();
-        assertEquals(1, mrns.size());
-        assertEquals("Corepoint", mrns.get(0).getSourceSystem());
+        Assertions.assertEquals(1, mrns.size());
+        Assertions.assertEquals("Corepoint", mrns.get(0).getSourceSystem());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
-        assertNotNull(mrnToLive);
+        Assertions.assertNotNull(mrnToLive);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-        assertEquals("Corepoint", visit.getSourceSystem());
-        assertNull(visit.getPatientClass());
-        assertNull(visit.getArrivalMethod());
-        assertNull(visit.getAdmissionTime());
+        Assertions.assertEquals("Corepoint", visit.getSourceSystem());
+        Assertions.assertNull(visit.getPatientClass());
+        Assertions.assertNull(visit.getArrivalMethod());
+        Assertions.assertNull(visit.getAdmissionTime());
         // then lab results:
         // lab result
         Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
