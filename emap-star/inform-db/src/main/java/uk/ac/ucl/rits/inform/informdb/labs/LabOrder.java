@@ -46,6 +46,12 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     public LabOrder() {}
 
+    public LabOrder(LabBatteryElement labBatteryElementId, LabNumber labNumberId, Instant orderDatetime) {
+        this.labBatteryElementId = labBatteryElementId;
+        this.labNumberId = labNumberId;
+        this.orderDatetime = orderDatetime;
+    }
+
     public LabOrder(LabOrder other) {
         super(other);
         this.labOrderId = other.labOrderId;
