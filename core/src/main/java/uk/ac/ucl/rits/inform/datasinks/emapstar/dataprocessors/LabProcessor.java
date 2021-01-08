@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 
 import java.time.Instant;
 
@@ -38,7 +38,7 @@ public class LabProcessor {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final LabOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
+    public void processMessage(final LabOrderMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);

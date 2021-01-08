@@ -14,8 +14,9 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.LabResult;
 
 import java.time.Instant;
@@ -53,7 +54,7 @@ public class LabController {
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      */
     @Transactional
-    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
+    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         for (LabResult result : msg.getLabResults()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
@@ -70,7 +71,8 @@ public class LabController {
      * @return lab number
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      */
-    private LabNumber getOrCreateLabNumber(Mrn mrn, HospitalVisit visit, LabOrder msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+    private LabNumber getOrCreateLabNumber(
+            Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         LabNumber labNumber = labNumberRepo
                 .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
                         mrn, visit, msg.getEpicCareOrderNumber(), msg.getLabSpecimenNumber())
@@ -88,7 +90,7 @@ public class LabController {
         return labNumber;
     }
 
-    private LabTestDefinition getOrCreateLabTestDefinition(LabResult result, LabOrder msg, Instant validFrom, Instant storedFrom) {
+    private LabTestDefinition getOrCreateLabTestDefinition(LabResult result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         return labTestDefinitionRepo
                 .findByLabProviderAndLabDepartmentAndTestLabCode(
                         msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode())
@@ -102,8 +104,7 @@ public class LabController {
                 });
     }
 
-
-    private LabBatteryElement getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabOrder msg, Instant validFrom, Instant storedFrom) {
+    private LabBatteryElement getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         return labBatteryElementRepo
                 .findByBatteryAndLabTestDefinitionIdAndLabDepartment(
                         msg.getTestBatteryLocalCode(), testDefinition, msg.getTestBatteryCodingSystem())

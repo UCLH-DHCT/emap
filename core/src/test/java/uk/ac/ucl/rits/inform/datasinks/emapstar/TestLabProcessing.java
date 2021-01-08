@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 class TestLabProcessing extends MessageProcessingBase {
-    private List<LabOrder> messages = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
+    private List<LabOrderMsg> messages = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired

@@ -12,7 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -48,14 +48,14 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     /**
      * Process a lab order message.
-     * @param labOrder the message
+     * @param labOrderMsg the message
      * @throws EmapOperationMessageProcessingException if message could not be processed
      */
     @Override
     @Transactional
-    public void processMessage(LabOrder labOrder) throws EmapOperationMessageProcessingException {
+    public void processMessage(LabOrderMsg labOrderMsg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        labProcessor.processMessage(labOrder, storedFrom);
+        labProcessor.processMessage(labOrderMsg, storedFrom);
     }
 
 
