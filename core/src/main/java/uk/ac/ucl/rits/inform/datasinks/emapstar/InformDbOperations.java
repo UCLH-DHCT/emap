@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PathologyProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.PathologyOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrder;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -35,7 +35,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private FlowsheetProcessor flowsheetProcessor;
     @Autowired
-    private PathologyProcessor pathologyProcessor;
+    private LabProcessor labProcessor;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -47,15 +47,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
 
     /**
-     * Process a pathology order message.
-     * @param pathologyOrder the message
+     * Process a lab order message.
+     * @param labOrder the message
      * @throws EmapOperationMessageProcessingException if message could not be processed
      */
     @Override
     @Transactional
-    public void processMessage(PathologyOrder pathologyOrder) throws EmapOperationMessageProcessingException {
+    public void processMessage(LabOrder labOrder) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        pathologyProcessor.processMessage(pathologyOrder, storedFrom);
+        labProcessor.processMessage(labOrder, storedFrom);
     }
 
 
