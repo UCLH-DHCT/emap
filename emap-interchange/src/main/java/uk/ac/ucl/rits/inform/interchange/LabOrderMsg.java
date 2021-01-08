@@ -19,7 +19,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class LabOrder extends EmapOperationMessage implements Serializable {
+public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -8476559759815762054L;
 
     private List<LabResult> labResults = new ArrayList<>();

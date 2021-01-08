@@ -43,7 +43,7 @@ public class LabResult implements Serializable {
      * A sensitivity is just a nested lab order with results.
      * HL7 has fields for working out parentage.
      */
-    private List<LabOrder> labSensitivities = new ArrayList<>();
+    private List<LabOrderMsg> labSensitivities = new ArrayList<>();
 
     private String epicCareOrderNumber = "";
 
@@ -275,14 +275,14 @@ public class LabResult implements Serializable {
     /**
      * @return all sensitivities
      */
-    public List<LabOrder> getLabSensitivities() {
+    public List<LabOrderMsg> getLabSensitivities() {
         return labSensitivities;
     }
 
     /**
      * @param labSensitivities the labSensitivities to set
      */
-    public void setLabSensitivities(List<LabOrder> labSensitivities) {
+    public void setLabSensitivities(List<LabOrderMsg> labSensitivities) {
         this.labSensitivities = labSensitivities;
     }
 

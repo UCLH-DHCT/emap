@@ -17,7 +17,7 @@ public interface EmapOperationMessageProcessor {
      * @param msg the lab order message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(LabOrder msg) throws EmapOperationMessageProcessingException;
+    void processMessage(LabOrderMsg msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the ADT message to process
