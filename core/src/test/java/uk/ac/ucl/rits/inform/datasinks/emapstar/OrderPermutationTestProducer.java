@@ -78,9 +78,9 @@ class OrderPermutationTestProducer {
     }
 
     private void checkVisit(Instant admissionTime, Instant dischargeTime, String locationString, String messageInformation) {
-        // visits and audits for debugging, keeping in because they seem useful
-//        List<LocationVisit> visits = StreamSupport.stream(locationVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
-//        List<LocationVisitAudit> audits =  StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
+        // keeping visits and audits for debugging
+        List<LocationVisit> visits = StreamSupport.stream(locationVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
+        List<LocationVisitAudit> audits =  StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
         logger.info("Checking visit {}", messageInformation);
         LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
                 .orElseThrow(() -> new NoSuchElementException(messageInformation));
