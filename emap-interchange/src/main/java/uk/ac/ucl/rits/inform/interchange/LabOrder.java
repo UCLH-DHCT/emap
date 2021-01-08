@@ -10,16 +10,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The top level of the pathology tree, the order. Only the interchange format
+ * The top level of the lab tree, the order. Only the interchange format
  * is declared here, for serialisation purposes. Builder classes (eg. HL7
  * parser) construct this class.
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PathologyOrder extends EmapOperationMessage implements Serializable {
+public class LabOrder extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -8476559759815762054L;
 
-    private List<PathologyResult> pathologyResults = new ArrayList<>();
+    private List<LabResult> labResults = new ArrayList<>();
     private String orderControlId;
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
@@ -209,31 +209,31 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
      * @return The results for this order (will be empty if constructed from an ORM
      * message)
      */
-    public List<PathologyResult> getPathologyResults() {
-        return pathologyResults;
+    public List<LabResult> getLabResults() {
+        return labResults;
     }
 
     /**
-     * @return int number of pathology results in list
+     * @return int number of lab results in list
      */
     @JsonIgnore
-    public int getNumPathologyResults() {
-        return pathologyResults.size();
+    public int getNumLabResults() {
+        return labResults.size();
     }
 
     /**
-     * Add a PathologyResult to list.
-     * @param result PathologyResult to add
+     * Add a LabResult to list.
+     * @param result LabResult to add
      */
-    public void addPathologyResult(PathologyResult result) {
-        pathologyResults.add(result);
+    public void addLabResult(LabResult result) {
+        labResults.add(result);
     }
 
     /**
-     * @param pathologyResults the pathologyResults to set
+     * @param labResults the labResults to set
      */
-    public void setPathologyResults(List<PathologyResult> pathologyResults) {
-        this.pathologyResults = pathologyResults;
+    public void setLabResults(List<LabResult> labResults) {
+        this.labResults = labResults;
     }
 
     /**
@@ -383,9 +383,9 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PathologyOrder that = (PathologyOrder) o;
+        LabOrder that = (LabOrder) o;
         return Objects.equals(orderControlId, that.orderControlId)
-                && Objects.equals(pathologyResults, that.pathologyResults)
+                && Objects.equals(labResults, that.labResults)
                 && Objects.equals(epicCareOrderNumber, that.epicCareOrderNumber)
                 && Objects.equals(labSpecimenNumber, that.labSpecimenNumber)
                 && Objects.equals(labSpecimenNumberOCS, that.labSpecimenNumberOCS)
@@ -410,7 +410,7 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
 
     @Override
     public int hashCode() {
-        return Objects.hash(pathologyResults, orderControlId, epicCareOrderNumber, labSpecimenNumber,
+        return Objects.hash(labResults, orderControlId, epicCareOrderNumber, labSpecimenNumber,
                 labSpecimenNumberOCS, orderDateTime, sampleEnteredTime, labDepartment, orderStatus,
                 resultStatus, orderType, mrn, visitNumber, requestedDateTime, observationDateTime,
                 testBatteryLocalCode, testBatteryLocalDescription, testBatteryCodingSystem, statusChangeTime,
@@ -420,14 +420,14 @@ public class PathologyOrder extends EmapOperationMessage implements Serializable
     @Override
     public String toString() {
         return String.format(new StringBuilder()
-                        .append("\nPathologyOrder{pathologyResults=%s, orderControlId='%s', epicCareOrderNumber='%s', ")
+                        .append("\nLabOrder{labResults=%s, orderControlId='%s', epicCareOrderNumber='%s', ")
                         .append("labSpecimenNumber='%s', labSpecimenNumberOCS='%s', orderDateTime=%s, sampleEnteredTime=%s, labDepartment='%s', ")
                         .append("orderStatus='%s', resultStatus='%s', orderType='%s', mrn='%s', visitNumber='%s', requestedDateTime=%s, ")
                         .append("observationDateTime=%s, testBatteryLocalCode='%s', testBatteryLocalDescription='%s', ")
                         .append("testBatteryCodingSystem='%s', statusChangeTime=%s, parentObservationIdentifier='%s', parentSubId='%s', ")
                         .append("sourceSystem='%s'}")
                         .toString(),
-                pathologyResults, orderControlId, epicCareOrderNumber, labSpecimenNumber, labSpecimenNumberOCS,
+                labResults, orderControlId, epicCareOrderNumber, labSpecimenNumber, labSpecimenNumberOCS,
                 orderDateTime, sampleEnteredTime, labDepartment, orderStatus, resultStatus, orderType, mrn,
                 visitNumber, requestedDateTime, observationDateTime, testBatteryLocalCode, testBatteryLocalDescription,
                 testBatteryCodingSystem, statusChangeTime, parentObservationIdentifier, parentSubId, getSourceSystem());
