@@ -54,33 +54,11 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     }
 
     /**
-     * @return was the entity updated by this message.
-     */
-    public boolean isEntityUpdated() {
-        return entityUpdated;
-    }
-
-    /**
      * @return the hibernate entity.
      */
     public T getEntity() {
         return entity;
     }
-
-    /**
-     * @return message date time
-     */
-    public Instant getMessageDateTime() {
-        return messageDateTime;
-    }
-
-    /**
-     * @return stored from
-     */
-    public Instant getStoredFrom() {
-        return storedFrom;
-    }
-
 
     /**
      * @param entityUpdated is entity updated
@@ -96,6 +74,9 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * @param setPatientClass setter lambda
      */
     public void assignHl7ValueIfDifferent(Hl7Value<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
+        if (newValue.isUnknown()) {
+            return;
+        }
         assignIfDifferent(newValue.get().toString(), currentValue, setPatientClass);
     }
 
@@ -171,8 +152,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      */
     public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Long> entityRepo, CrudRepository<A, Long> auditRepo) {
         if (entityCreated) {
-            entityRepo.save(entity);
-            logger.info("New Entity saved: {}", entity);
+            logger.info("New Entity saved: {}", entityRepo.save(entity));
         } else if (entityUpdated) {
             A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
             auditRepo.save(auditEntity);

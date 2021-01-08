@@ -7,7 +7,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import java.util.Optional;
 
 /**
- * Lab battery type repository.
+ * Lab battery Element repository.
  * @author Stef Piatek
  */
 public interface LabBatteryElementRepository extends CrudRepository<LabBatteryElement, Long> {

@@ -4,13 +4,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Hl7Value;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
@@ -25,6 +26,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 class TestAdtProcessingLocation extends MessageProcessingBase {
@@ -54,6 +56,24 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
         Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
+
+    /**
+     * No locations or location-visit in database.
+     * Two admits for the same time and location should only create a single entry
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testDuplicateAdmit() throws EmapOperationMessageProcessingException {
+        AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
+
+        dbOps.processMessage(msg);
+        msg.setEventOccurredDateTime(Instant.now());
+        dbOps.processMessage(msg);
+
+        Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
+    }
+
 
 
     /**
@@ -95,10 +115,38 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        Assertions.assertNotNull(dischargedVisit.getDischargeTime());
+        List<LocationVisit> dischargedVisits = locationVisitRepository
+                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+        Assertions.assertEquals(1, dischargedVisits.size());
+        dischargedVisits.forEach(visit -> Assertions.assertNotNull(visit.getDischargeTime()));
 
         // audit row for location when it had no discharge time
+        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
+        Assertions.assertNull(audit.getDischargeTime());
+    }
+
+    /**
+     * Visit and location visit already exist in the database.
+     * Duplicate discharge should have no effect
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testDuplicateDischargeMessage() throws EmapOperationMessageProcessingException {
+        DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
+        msg.setFullLocationString(Hl7Value.buildFromHl7(originalLocation));
+        // first discharge
+        dbOps.processMessage(msg);
+        // duplicate discharge message
+        dbOps.processMessage(msg);
+
+        // original location visit is discharged
+        List<LocationVisit> dischargedVisits = locationVisitRepository
+                .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
+        Assertions.assertEquals(1, dischargedVisits.size());
+        dischargedVisits.forEach(visit -> Assertions.assertNotNull(visit.getDischargeTime()));
+
+        // single audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
         Assertions.assertNull(audit.getDischargeTime());
     }
@@ -122,38 +170,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // audit row for location when it had no discharge time
         Optional<LocationVisitAudit> audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation);
         Assertions.assertTrue(audit.isEmpty());
-    }
-
-    /**
-     * Visit and location visit already exist in the database, old message given.
-     * Should do nothing to location
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    @Sql("/populate_db.sql")
-    void testTrustedMessageUpdatedUntrustedLocation() throws EmapOperationMessageProcessingException {
-        TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
-        msg.setEventOccurredDateTime(past);
-        msg.setMrn(null);
-        msg.setNhsNumber("222222222");
-        msg.setVisitNumber("0999999999");
-        String untrustedLocation = "T11E^T11E BY02^BY02-17";
-
-        dbOps.processMessage(msg);
-
-        // original location visit is discharged
-        LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
-        Assertions.assertNotNull(dischargedVisit.getDischargeTime());
-
-        // current location visit is different
-        LocationVisit currentVisit = locationVisitRepository
-                .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
-                .orElseThrow(NullPointerException::new);
-        Assertions.assertNotEquals(untrustedLocation, currentVisit.getLocationId().getLocationString());
-
-        // audit row for location when it had no discharge time
-        LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(untrustedLocation).orElseThrow(NullPointerException::new);
-        Assertions.assertNull(audit.getDischargeTime());
     }
 
     /**
@@ -206,7 +222,6 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         dbOps.processMessage(msg);
 
         Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
     }
 
     /**
@@ -225,10 +240,55 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         Assertions.assertTrue(deletedVisit.isEmpty());
     }
 
+    /**
+     * In validation, a lot of single admissions that are then cancelled but with no cancellation times in message
+     * If only one location exists for a visit, and we don't have a cancellation time, cancel the the single location
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testMalformedCancelAdmitWithSingleLocation() throws EmapOperationMessageProcessingException {
+        CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
+        msg.setCancelledDateTime(null);
+        setDataForHospitalVisitId4002(msg);
+        String location = "T06C^T06C SR41^SR41-41";
+        msg.setFullLocationString(Hl7Value.buildFromHl7(location));
+
+        dbOps.processMessage(msg);
+        // original location visit is deleted
+        Optional<LocationVisit> deletedVisit = locationVisitRepository.findByLocationIdLocationString(location);
+        Assertions.assertTrue(deletedVisit.isEmpty());
+    }
+
+    /**
+     * If there's a cancellation message with no cancellation time and there's multiple locations, shouldn't delete the message.
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testCancelAdmitMalformedWithMultipleLocations() {
+        CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
+        msg.setCancelledDateTime(null);
+        setDataForHospitalVisitId4002(msg);
+        Assertions.assertThrows(RequiredDataMissingException.class, () -> dbOps.processMessage(msg));
+    }
+
+    /**
+     * If there's a cancellation message with no cancellation time a single location but it doesn't match the cancel message.
+     * shouldn't delete the message
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testCancelAdmitMalformedWithSingleMismatchedLocation() {
+        CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
+        msg.setCancelledDateTime(null);
+        msg.setFullLocationString(Hl7Value.buildFromHl7("I^don't^exist"));
+        Assertions.assertThrows(RequiredDataMissingException.class, () -> dbOps.processMessage(msg));
+    }
+
 
     /**
      * No locations or location-visit in database.
-     * Cancel transfer patient should create a new location visit.
+     * Cancel transfer patient should not create the correct location
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -236,8 +296,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
         dbOps.processMessage(msg);
 
-        Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
     }
 
     /**
@@ -265,7 +324,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
     /**
      * No locations or location-visit in database.
-     * Cancel transfer patient should create new location
+     * Cancel discharge should do nothing
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -273,8 +332,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         dbOps.processMessage(msg);
 
-        Assertions.assertEquals(1L, getAllEntities(locationVisitRepository).size());
-        Assertions.assertEquals(0L, getAllEntities(locationVisitAuditRepository).size());
+        Assertions.assertEquals(0L, getAllEntities(locationVisitRepository).size());
     }
 
     /**
@@ -310,16 +368,12 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         // update patient info for discharged location
         UpdatePatientInfo updatePatientInfo = messageFactory.getAdtMessage("generic/A08_v1.yaml");
         updatePatientInfo.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
-        updatePatientInfo.setVisitNumber("1234567890");
-        updatePatientInfo.setMrn("60600000");
-        updatePatientInfo.setNhsNumber("1111111111");
+        setDataForHospitalVisitId4002(updatePatientInfo);
         updatePatientInfo.setRecordedDateTime(messageDateTime);
         // cancel discharge
         CancelDischargePatient cancelDischarge = messageFactory.getAdtMessage("generic/A13.yaml");
         cancelDischarge.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
-        cancelDischarge.setVisitNumber("1234567890");
-        cancelDischarge.setMrn("60600000");
-        cancelDischarge.setNhsNumber("1111111111");
+        setDataForHospitalVisitId4002(cancelDischarge);
         cancelDischarge.setRecordedDateTime(messageDateTime);
         // A08s will have a later message date time than the cancellation event occurred time
         cancelDischarge.setEventOccurredDateTime(messageDateTime.minus(1, ChronoUnit.HOURS));

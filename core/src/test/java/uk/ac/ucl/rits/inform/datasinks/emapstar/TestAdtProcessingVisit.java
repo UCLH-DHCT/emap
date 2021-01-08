@@ -112,11 +112,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // Presentation time should not be changed by admission message
-        assertEquals(Instant.parse("2012-09-17T13:25:00.65Z"), visit.getPresentationTime());
+        assertEquals(Instant.parse("2012-09-17T13:25:00Z"), visit.getPresentationTime());
         // Admission time should be changed
         assertEquals(Instant.parse("2013-02-11T10:00:52Z"), visit.getAdmissionTime());
         // validFrom and Stored from should be updated
-        Instant originalStoredFrom = Instant.parse("2012-09-17T13:25:00.650Z");
+        Instant originalStoredFrom = Instant.parse("2012-09-17T13:25:00Z");
         assertTrue(visit.getStoredFrom().isAfter(originalStoredFrom));
         assertTrue(visit.getValidFrom().isAfter(originalStoredFrom));
 
@@ -126,14 +126,15 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Admit a patient and then cancel the admit
+     * Admit a patient and then cancel the admit.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
     public void testAdmitThenCancelAdmit() throws EmapOperationMessageProcessingException {
         AdmitPatient addMsg = messageFactory.getAdtMessage("generic/A01.yaml");
         CancelAdmitPatient removeMsg = messageFactory.getAdtMessage("generic/A11.yaml");
+        addMsg.setFullLocationString(removeMsg.getFullLocationString());
+        addMsg.setEventOccurredDateTime(removeMsg.getCancelledDateTime());
 
         dbOps.processMessage(addMsg);
         dbOps.processMessage(removeMsg);
@@ -173,6 +174,8 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     public void testDischargeThenCancelDischarge() throws EmapOperationMessageProcessingException {
         DischargePatient addMsg = messageFactory.getAdtMessage("generic/A03.yaml");
         CancelDischargePatient removeMsg = messageFactory.getAdtMessage("generic/A13.yaml");
+        addMsg.setFullLocationString(removeMsg.getFullLocationString());
+        addMsg.setEventOccurredDateTime(removeMsg.getCancelledDateTime());
 
         dbOps.processMessage(addMsg);
         dbOps.processMessage(removeMsg);
@@ -183,8 +186,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         assertNull(visit.getDischargeDestination());
         assertNull(visit.getDischargeDisposition());
         assertNull(visit.getDischargeTime());
-        // cancelled date time is missing from message, so should use recordedDateTime
-        assertEquals(removeMsg.getRecordedDateTime(), visit.getValidFrom());
+        assertEquals(removeMsg.getCancelledDateTime(), visit.getValidFrom());
     }
 
 
@@ -308,7 +310,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Database has information that is not from a trusted source, older message should still be processed
+     * Database has information that is not from a trusted source, older message should still be processed.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -330,7 +332,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
 
     /**
-     * Duplicate admit message should not create another audit table row
+     * Duplicate admit message should not create another audit table row.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -368,7 +370,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * Older message should to nothing
+     * Older message should to nothing.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -388,7 +390,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     }
 
     /**
-     * MoveVisitInformation for existing MRNs and visits
+     * MoveVisitInformation for existing MRNs and visits.
      * Should change the MRN and encounter string,
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
