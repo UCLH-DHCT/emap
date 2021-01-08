@@ -29,6 +29,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
@@ -91,6 +92,7 @@ public class AdtMessageFactory {
         if (patientInfoHl7.pv1SegmentExists()) {
             // will we want demographics to be included in lab messages too?
             msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
+            msg.setPreviousLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getPreviousLocation()));
             try {
                 msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
             } catch (IllegalArgumentException e) {
@@ -197,9 +199,11 @@ public class AdtMessageFactory {
             case "A08":
             case "A28":
             case "A31":
-            case "R01": // build update patient info from non-ADT HL7 messages
-            case "O01":
                 msg = new UpdatePatientInfo();
+                break;
+            case "R01": // build implied adt from non-ADT HL7 messages
+            case "O01":
+                msg = new ImpliedAdtMessage();
                 break;
             case "A11":
                 CancelAdmitPatient cancelAdmitPatient = new CancelAdmitPatient();

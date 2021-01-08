@@ -65,7 +65,8 @@ interface PV1Wrap {
         if (!pv1SegmentExists()) {
             return null;
         }
-        return String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
+        String joinedLocations = String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
+        return (getCurrentWardCode() != null || getCurrentRoomCode() != null || getCurrentBed() != null) ? joinedLocations : null;
     }
 
     /**
@@ -74,7 +75,11 @@ interface PV1Wrap {
      */
     default String getPreviousLocation() {
         PL location = getPV1().getPriorPatientLocation();
-        return String.join("^", location.getPl1_PointOfCare().getValue(), location.getPl2_Room().getValue(), location.getPl3_Bed().getValue());
+        String joinedLocations = String.join("^",
+                location.getPl1_PointOfCare().getValue(), location.getPl2_Room().getValue(), location.getPl3_Bed().getValue());
+        boolean locationExists = (location.getPl1_PointOfCare().getValue() != null || location.getPl2_Room().getValue() != null
+                || location.getPl3_Bed().getValue() != null);
+        return locationExists ? joinedLocations : null;
     }
 
     /**
