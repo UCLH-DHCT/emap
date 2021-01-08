@@ -1,42 +1,40 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient"
-recordedDateTime: "2013-02-11T10:02:52Z"
-eventOccurredDateTime: "2013-02-11T10:01:52Z"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient"
+recordedDateTime: "2013-02-11T12:00:52Z"
+eventOccurredDateTime: "2013-02-11T11:00:52Z"
 eventReasonCode: "ADT_EVENT"
 sourceSystem: "EPIC"
 mrn: "40800000"
 nhsNumber: "9999999999"
 visitNumber: "123412341234"
-cancelledDateTime: "2013-02-11T10:01:52Z"
-cancelledLocation: "THP3^UCHP03THR POOL01^THR"
+presentationDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T11:00:52Z"
+modeOfArrival:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "Ambulance"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "T11E^T11E BY02^BY02-25"
-  status: "SAVE"
-previousLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "THP3^UCHP03THR POOL01^THR"
-patientBirthDate:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "1980-01-01T00:00:00Z"
+  value: "ED^UCHED RAT CHAIR^RAT-CHAIR"
   status: "SAVE"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "DAY_CASE"
   status: "SAVE"
+  value: "EMERGENCY"
 patientIsAlive:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: true
   status: "SAVE"
+  value: true
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "ORANGE"
   status: "SAVE"
+  value: "ORANGE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value:  "BLOOD"
   status: "SAVE"
+  value: "BLOOD"
 patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "F"
   status: "SAVE"
+  value: "F"

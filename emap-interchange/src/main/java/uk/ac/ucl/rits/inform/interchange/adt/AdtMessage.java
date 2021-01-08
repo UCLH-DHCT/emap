@@ -29,6 +29,7 @@ public abstract class AdtMessage extends EmapOperationMessage {
     private Hl7Value<String> modeOfArrival = Hl7Value.unknown();
     private Hl7Value<String> ethnicGroup = Hl7Value.unknown();
     private Hl7Value<String> fullLocationString = Hl7Value.unknown();
+    private Hl7Value<String> previousLocationString = Hl7Value.unknown();
     private Hl7Value<Instant> patientBirthDate = Hl7Value.unknown();
     private Hl7Value<PatientClass> patientClass = Hl7Value.unknown();
     private Hl7Value<Instant> patientDeathDateTime = Hl7Value.unknown();

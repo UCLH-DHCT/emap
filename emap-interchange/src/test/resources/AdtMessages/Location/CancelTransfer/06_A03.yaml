@@ -1,20 +1,22 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient"
-recordedDateTime: "2013-02-11T10:01:52Z"
-eventOccurredDateTime: "2010-09-16T10:00:00Z"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.DischargePatient"
+recordedDateTime: "2013-02-11T15:00:52Z"
+eventOccurredDateTime: "2013-02-11T14:00:52Z"
 eventReasonCode: "ADT_EVENT"
 visitNumber: "123412341234"
 nhsNumber: "9999999999"
 sourceSystem: "EPIC"
 mrn: "40800000"
-cancelledDateTime: "2010-09-16T10:00:00Z"
+dischargeDateTime: "2013-02-11T14:00:52Z"
+dischargeDisposition: "Feeling great"
+dischargeLocation: "Home"
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "2013-02-11T11:00:52Z"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "T11E^T11E BY02^BY02-17"
-patientBirthDate:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "IGNORE"
-  value: null
+  value: "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
@@ -26,24 +28,12 @@ patientIsAlive:
 patientFamilyName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "AGBTESTD"
+  value: "ORANGE"
 patientGivenName:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
-  value: "Satesta"
-patientReligion:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "2A"
+  value: "BLOOD"
 patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   status: "SAVE"
   value: "F"
-patientTitle:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "MRS"
-patientZipOrPostalCode:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  status: "SAVE"
-  value: "T5 1TT"

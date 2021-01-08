@@ -1,19 +1,29 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation"
-recordedDateTime: "2013-02-11T10:00:52Z"
-eventOccurredDateTime: "2013-02-11T10:00:52Z"
-eventReasonCode: "REG_PAT_DELETE"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient"
+recordedDateTime: "2013-02-11T12:45:52Z"
+eventOccurredDateTime: "2013-02-11T12:30:52Z"
+eventReasonCode: "ADT_EVENT"
 sourceSystem: "EPIC"
 mrn: "40800000"
 nhsNumber: "9999999999"
-visitNumber: ""
+visitNumber: "123412341234"
+cancelledDateTime: "2013-02-11T12:30:52Z"
+cancelledLocation: "ED^DELETE ME^DELETE"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "T11E^T11E BY02^BY02-25"
+  status: "SAVE"
+previousLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  status: "SAVE"
+  value: "THP3^UCHP03THR POOL01^THR"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "1980-01-01T00:00:00Z"
   status: "SAVE"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  value: "DAY_CASE"
   status: "SAVE"
-  value: "NOT_APPLICABLE"
 patientIsAlive:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: true
@@ -30,7 +40,3 @@ patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
   value: "F"
   status: "SAVE"
-fullLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: null
-  status: "IGNORE"

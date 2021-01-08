@@ -1,15 +1,15 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient"
 recordedDateTime: "2013-02-11T10:02:52Z"
-eventOccurredDateTime: "2013-02-11T10:01:52Z"
+eventOccurredDateTime: "2010-09-14T15:27:00Z"
 eventReasonCode: "ADT_EVENT"
 sourceSystem: "EPIC"
 mrn: "40800000"
 nhsNumber: "9999999999"
 visitNumber: "123412341234"
-cancelledDateTime: "2013-02-11T10:01:52Z"
+cancelledDateTime: "2010-09-14T15:27:00Z"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
-  value: "CCIC^null^null"
+  value: "T42E^T42E BY03^BY03-17"
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
