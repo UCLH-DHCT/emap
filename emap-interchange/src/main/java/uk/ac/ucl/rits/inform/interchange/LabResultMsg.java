@@ -15,7 +15,7 @@ import java.util.Objects;
  * @author Jeremy Stein
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class LabResult implements Serializable {
+public class LabResultMsg implements Serializable {
     private static final long serialVersionUID = 140970942335476554L;
     private String valueType = "";
 

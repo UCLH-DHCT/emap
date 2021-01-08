@@ -22,7 +22,7 @@ import java.util.List;
 public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private static final long serialVersionUID = -8476559759815762054L;
 
-    private List<LabResult> labResults = new ArrayList<>();
+    private List<LabResultMsg> labResultMsgs = new ArrayList<>();
     private String orderControlId;
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
@@ -51,22 +51,22 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
      */
     @JsonIgnore
     public int getNumLabResults() {
-        return labResults.size();
+        return labResultMsgs.size();
     }
 
     /**
      * Add a LabResult to list.
      * @param result LabResult to add
      */
-    public void addLabResult(LabResult result) {
-        labResults.add(result);
+    public void addLabResult(LabResultMsg result) {
+        labResultMsgs.add(result);
     }
 
     /**
-     * @param labResults the labResults to set
+     * @param labResultMsgs the labResults to set
      */
-    public void setLabResults(List<LabResult> labResults) {
-        this.labResults = labResults;
+    public void setLabResultMsgs(List<LabResultMsg> labResultMsgs) {
+        this.labResultMsgs = labResultMsgs;
     }
 
     /**

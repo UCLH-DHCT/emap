@@ -108,7 +108,7 @@ public class InterchangeMessageFactory {
      */
     private void updateLabResults(LabOrderMsg order, final String resourcePathPrefix) throws IOException {
         String resultDefaultPath = resourcePathPrefix + "_result_defaults.yaml";
-        for (LabResult result : order.getLabResults()) {
+        for (LabResultMsg result : order.getLabResultMsgs()) {
             //  update results from parent order data
             result.setEpicCareOrderNumber(order.getEpicCareOrderNumber());
             result.setResultTime(order.getStatusChangeTime());
@@ -143,7 +143,7 @@ public class InterchangeMessageFactory {
      * @throws IOException if file doesn't exist
      */
     private void updateLabSensitivities(LabOrderMsg order, final String sourceMessageId, final String resourcePath) throws IOException {
-        for (LabResult result : order.getLabResults()) {
+        for (LabResultMsg result : order.getLabResultMsgs()) {
             if (!result.getLabSensitivities().isEmpty()) {
                 for (LabOrderMsg sensitivityLabOrderMsg : result.getLabSensitivities()) {
                     updateLabOrderItsAndResults(sensitivityLabOrderMsg, sourceMessageId, resourcePath);
