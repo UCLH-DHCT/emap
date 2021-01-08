@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +17,7 @@ import java.time.Instant;
  * @author Roma Klapaukh
  *
  */
+@Entity
 public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore> {
 
     @Id
