@@ -5,20 +5,20 @@
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 104.0
       stringValue: "104"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "IU/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 35
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 104
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -26,20 +26,20 @@
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 48.0
       stringValue: "48"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "g/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 34
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -47,20 +47,20 @@
       testItemLocalCode: "CA"
       testItemLocalDescription: "Calcium"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.43
       stringValue: "2.43"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.15
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.55
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -68,20 +68,20 @@
       testItemLocalCode: "PHOS"
       testItemLocalDescription: "Phosphate"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.07
       stringValue: "1.07"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.87
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.45
   epicCareOrderNumber: "12121212"
@@ -96,20 +96,20 @@
       testItemLocalCode: "FE"
       testItemLocalDescription: "Iron"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 21.6
       stringValue: "21.6"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "umol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 6.6
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 26.0
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -117,20 +117,20 @@
       testItemLocalCode: "UIBC"
       testItemLocalDescription: "Unsaturated iron binding"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 30.9
       stringValue: "30.9"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "umol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 20
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 66
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -138,20 +138,20 @@
       testItemLocalCode: "TIBC"
       testItemLocalDescription: "Total iron binding capacity"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 53.0
       stringValue: "53"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "umol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 41
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 77
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -159,20 +159,20 @@
       testItemLocalCode: "IBS"
       testItemLocalDescription: "Iron-binding saturation"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 41.0
       stringValue: "41"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "%"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 15
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
   epicCareOrderNumber: "12121213"
@@ -187,24 +187,24 @@
       testItemLocalCode: "HBA"
       testItemLocalDescription: "Haemoglobin A1c (%)"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5.5
       stringValue: "5.5"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "% total Hb"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 4
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 6
       notes:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "HbA1c results traceable to the IFCC reference\nmethod effective 26th April\
       \ 2010\nPlease note analyser changed from Tosoh G7 to G8\non 06/05/2010"
@@ -213,20 +213,20 @@
       testItemLocalCode: "GHBI"
       testItemLocalDescription: "Haemoglobin A1c (mmol/mol)"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 37.0
       stringValue: "37"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/mol"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 20
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 42
   epicCareOrderNumber: "12121214"
@@ -242,7 +242,7 @@
       testItemLocalDescription: "Glucose"
       stringValue: "Cancelled - Regret sample lost in laboratory\\.br\\ accident."
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
   epicCareOrderNumber: "12121215"
@@ -257,20 +257,20 @@
       testItemLocalCode: "CHOL"
       testItemLocalDescription: "Cholesterol"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5.0
       stringValue: "5.0"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.5
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -278,20 +278,20 @@
       testItemLocalCode: "TRIG"
       testItemLocalDescription: "Triglyceride"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.7
       stringValue: "1.7"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.4
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.3
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -299,24 +299,24 @@
       testItemLocalCode: "HDL"
       testItemLocalDescription: "HDL Cholesterol"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.7
       stringValue: "0.7"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.2
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.7
       abnormalFlags:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "L"
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -324,20 +324,20 @@
       testItemLocalCode: "LDLU"
       testItemLocalDescription: "LDL Cholesterol"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3.5
       stringValue: "3.5"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "mmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3.5
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -345,7 +345,7 @@
       testItemLocalCode: "CHDR"
       testItemLocalDescription: "Cholesterol:HDL ratio"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7.1
       stringValue: "7.1"
@@ -361,24 +361,24 @@
       testItemLocalCode: "VB12"
       testItemLocalDescription: "Vitamin B12"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 702.0
       stringValue: "702"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "pg/mL"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 191
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 663
       abnormalFlags:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "H"
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -386,24 +386,24 @@
       testItemLocalCode: "SFOL"
       testItemLocalDescription: "Serum folate"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 17.6
       stringValue: "17.6"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "ng/mL"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 4.6
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 18.7
       notes:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Folate result assumes no folic acid supplement\non day of sampling"
   epicCareOrderNumber: "12121217"
@@ -418,20 +418,20 @@
       testItemLocalCode: "WCC"
       testItemLocalDescription: "White cell count"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7.28
       stringValue: "7.28"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 10
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -439,20 +439,20 @@
       testItemLocalCode: "RCC"
       testItemLocalDescription: "Red cell count"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 4.55
       stringValue: "4.55"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^12/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3.95
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5.15
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -460,20 +460,20 @@
       testItemLocalCode: "HGB"
       testItemLocalDescription: "Haemoglobin"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 14.1
       stringValue: "14.1"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "g/dl"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 11.5
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 15.5
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -481,20 +481,20 @@
       testItemLocalCode: "HCTU"
       testItemLocalDescription: "HCT"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.424
       stringValue: "0.424"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "L/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.33
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.45
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -502,20 +502,20 @@
       testItemLocalCode: "MCVU"
       testItemLocalDescription: "MCV"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 93.2
       stringValue: "93.2"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "fL"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 80
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 99
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -523,20 +523,20 @@
       testItemLocalCode: "MCHU"
       testItemLocalDescription: "MCH"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 31.0
       stringValue: "31.0"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "pg"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 27
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 33.5
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -544,20 +544,20 @@
       testItemLocalCode: "CHCU"
       testItemLocalDescription: "MCHC"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 33.3
       stringValue: "33.3"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "g/dl"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 32
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 36
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -565,20 +565,20 @@
       testItemLocalCode: "RDWU"
       testItemLocalDescription: "RDW"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 14.8
       stringValue: "14.8"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "%"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 11.5
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 15
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -586,20 +586,20 @@
       testItemLocalCode: "PLT"
       testItemLocalDescription: "Platelet count"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 364.0
       stringValue: "364"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 150
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 400
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -607,20 +607,20 @@
       testItemLocalCode: "MPVU"
       testItemLocalDescription: "MPV"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 12.2
       stringValue: "12.2"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "fL"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 13
   epicCareOrderNumber: "12121218"
@@ -636,15 +636,15 @@
       testItemLocalDescription: "Neutrophils"
       stringValue: "41.5%  3.02"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7.5
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -653,15 +653,15 @@
       testItemLocalDescription: "Lymphocytes"
       stringValue: "44.9%  3.27"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.2
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3.65
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -670,15 +670,15 @@
       testItemLocalDescription: "Monocytes"
       stringValue: "7.8%  0.57"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.2
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.0
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -687,15 +687,15 @@
       testItemLocalDescription: "Eosinophils"
       stringValue: "5.4%  0.39"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.4
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
@@ -704,15 +704,15 @@
       testItemLocalDescription: "Basophils"
       stringValue: "0.4%  0.03"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "x10^9/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.0
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.1
   epicCareOrderNumber: "12121219"
@@ -728,12 +728,12 @@
       testItemLocalDescription: "25-hydroxy Vitamin D2"
       resultOperator: "<"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7
       stringValue: "<7"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "nmol/L"
   epicCareOrderNumber: "12121220"
@@ -748,20 +748,20 @@
       testItemLocalCode: "PTH"
       testItemLocalDescription: "Parathyroid hormone"
       numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 6.9
       stringValue: "6.9"
       units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "pmol/L"
       referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.6
       referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 6.9
   epicCareOrderNumber: "12121221"

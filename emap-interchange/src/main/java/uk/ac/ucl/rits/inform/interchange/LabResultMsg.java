@@ -25,22 +25,22 @@ public class LabResultMsg implements Serializable {
     private String testItemCodingSystem = "";
 
     private String observationSubId = "";
-    private Hl7Value<Double> numericValue = Hl7Value.unknown();
+    private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private String stringValue = "";
 
     private String isolateLocalCode = "";
     private String isolateLocalDescription = "";
     private String isolateCodingSystem = "";
 
-    private Hl7Value<String> units = Hl7Value.unknown();
-    private Hl7Value<Double> referenceLow = Hl7Value.unknown();
-    private Hl7Value<Double> referenceHigh = Hl7Value.unknown();
-    private Hl7Value<String> abnormalFlags = Hl7Value.unknown();
+    private InterchangeValue<String> units = InterchangeValue.unknown();
+    private InterchangeValue<Double> referenceLow = InterchangeValue.unknown();
+    private InterchangeValue<Double> referenceHigh = InterchangeValue.unknown();
+    private InterchangeValue<String> abnormalFlags = InterchangeValue.unknown();
     private String resultOperator = "=";
     private String resultStatus;
 
     private Instant resultTime;
-    private Hl7Value<String> notes = Hl7Value.unknown();
+    private InterchangeValue<String> notes = InterchangeValue.unknown();
 
     /**
      * A sensitivity is just a nested lab order with results.
