@@ -14,7 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLiveAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -272,7 +272,7 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
         msg2.setEventOccurredDateTime(Instant.parse("2020-10-01T00:00:00Z"));
-        msg2.setPatientMiddleName(Hl7Value.buildFromHl7("lime"));
+        msg2.setPatientMiddleName(InterchangeValue.buildFromHl7("lime"));
 
         // process messages
         dbOps.processMessage(msg1);
