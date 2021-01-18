@@ -18,7 +18,7 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabResultMsg implements Serializable {
     private static final long serialVersionUID = 140970942335476554L;
-    private String valueType = "";
+    private String valueType;
 
     private String testItemLocalCode = "";
     private String testItemLocalDescription = "";
@@ -35,7 +35,7 @@ public class LabResultMsg implements Serializable {
     private Hl7Value<String> units = Hl7Value.unknown();
     private Hl7Value<String> referenceRange = Hl7Value.unknown();
     private Hl7Value<String> abnormalFlags = Hl7Value.unknown();
-    private String resultStatus = "";
+    private String resultStatus;
 
     private Instant resultTime;
     private Hl7Value<String> notes = Hl7Value.unknown();
@@ -46,6 +46,6 @@ public class LabResultMsg implements Serializable {
      */
     private List<LabOrderMsg> labSensitivities = new ArrayList<>();
 
-    private String epicCareOrderNumber = "";
+    private String epicCareOrderNumber;
 
 }
