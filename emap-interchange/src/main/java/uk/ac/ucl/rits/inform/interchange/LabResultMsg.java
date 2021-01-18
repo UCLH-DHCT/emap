@@ -49,4 +49,8 @@ public class LabResultMsg implements Serializable {
 
     private String epicCareOrderNumber;
 
+    public boolean isAbnormal(){
+        return abnormalFlags.isSave();
+    }
+
 }
