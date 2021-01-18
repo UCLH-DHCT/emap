@@ -26,7 +26,7 @@ public class LabResultMsg implements Serializable {
 
     private String observationSubId = "";
     private Hl7Value<Double> numericValue = Hl7Value.unknown();
-    private Hl7Value<String> stringValue = Hl7Value.unknown();
+    private String stringValue = "";
 
     private String isolateLocalCode = "";
     private String isolateLocalDescription = "";
