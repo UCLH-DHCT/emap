@@ -36,7 +36,7 @@ public class LabResultMsg implements Serializable {
     private Hl7Value<Double> referenceLow = Hl7Value.unknown();
     private Hl7Value<Double> referenceHigh = Hl7Value.unknown();
     private Hl7Value<String> abnormalFlags = Hl7Value.unknown();
-    private Hl7Value<String> resultOperator = Hl7Value.unknown();
+    private String resultOperator = "=";
     private String resultStatus;
 
     private Instant resultTime;
