@@ -44,6 +44,6 @@ public class LabProcessor {
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
-        labController.processLabOrder(mrn, visit, msg, observationTime, storedFrom);
+        labController.processLabOrder(mrn, visit, msg, storedFrom);
     }
 }

@@ -4,10 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -15,6 +17,8 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
@@ -33,33 +37,37 @@ public class LabController {
     private final LabTestDefinitionRepository labTestDefinitionRepo;
     private final LabBatteryElementRepository labBatteryElementRepo;
     private final LabOrderRepository labOrderRepo;
-    private final LabResultRepository labResultRepository;
+    private final LabResultRepository labResultRepo;
+    private final LabResultAuditRepository labResultAuditRepo;
 
     public LabController(
             LabBatteryElementRepository labBatteryElementRepo, LabNumberRepository labNumberRepo, LabTestDefinitionRepository labTestDefinitionRepo,
-            LabOrderRepository labOrderRepo, LabResultRepository labResultRepository) {
+            LabOrderRepository labOrderRepo, LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo) {
         this.labBatteryElementRepo = labBatteryElementRepo;
         this.labNumberRepo = labNumberRepo;
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labOrderRepo = labOrderRepo;
-        this.labResultRepository = labResultRepository;
+        this.labResultRepo = labResultRepo;
+        this.labResultAuditRepo = labResultAuditRepo;
     }
 
     /**
      * @param mrn        MRN
      * @param visit      hospital visit
      * @param msg        order message
-     * @param validFrom  time that the message was created
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      */
     @Transactional
-    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
+    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
+            throws IncompatibleDatabaseStateException {
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
+        Instant validFrom = msg.getStatusChangeTime();
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
             LabOrder order = getOrCreateLabOrder(batteryElement, labNumber, msg.getOrderDateTime(), validFrom, storedFrom);
+            RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
         }
 
     }
@@ -132,5 +140,45 @@ public class LabController {
                 });
     }
 
+
+    private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
+            LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
+        RowState<LabResult, LabResultAudit> resultState = labResultRepo
+                .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
+                .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
+                .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
+
+        if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
+            logger.trace("LabResult database is more recent than LabResult message, not doing anything");
+            return resultState;
+        }
+
+        updateLabResult(resultState, result);
+
+        resultState.saveEntityOrAuditLogIfRequired(labResultRepo, labResultAuditRepo);
+        return resultState;
+    }
+
+    private RowState<LabResult, LabResultAudit> createLabResult(
+            LabNumber labNumber, LabTestDefinition testDefinition, Instant resultModified, Instant validFrom, Instant storedFrom) {
+        LabResult labResult = new LabResult(labNumber, testDefinition, resultModified);
+        return new RowState<>(labResult, validFrom, storedFrom, true);
+    }
+
+    private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
+        LabResult labResult = resultState.getEntity();
+        resultState.assignHl7ValueIfDifferent(resultMsg.getNumericValue(), labResult.getResultAsReal(), labResult::setResultAsReal);
+        resultState.assignHl7ValueIfDifferent(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
+//        resultState.assignHl7ValueIfDifferent(resultMsg.getUnits(), labResult.get(), labResult::setResultAsText);
+//        resultState.assignHl7ValueIfDifferent(resultMsg.getReferenceRange(), labResult.getResultAsText(), labResult::setResultAsText);
+//        resultState.assignHl7ValueIfDifferent(resultMsg.getAbnormalFlags(), labResult.getAbnormal(), labResult::setComment);
+        // result operator needs to be added to HL7
+        resultState.assignHl7ValueIfDifferent(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
+
+
+        if (resultState.isEntityUpdated()) {
+            labResult.setResultLastModifiedTime(resultMsg.getResultTime());
+        }
+    }
 
 }
