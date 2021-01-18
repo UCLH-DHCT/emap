@@ -124,7 +124,9 @@ public class LabResultBuilder {
             CE ceData = (CE) data;
             msg.setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
             msg.setIsolateLocalDescription(ceData.getCe2_Text().getValue());
-            msg.setIsolateCodingSystem(ceData.getCe3_NameOfCodingSystem().getValue());
+            // Isolate coding system should default to empty string
+            String isolateCodingSystem = ceData.getCe3_NameOfCodingSystem().getValue();
+            msg.setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
 
         }
         // also need to handle case where (data instanceof ED)
