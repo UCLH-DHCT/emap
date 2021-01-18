@@ -55,7 +55,13 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
      * Most of the time, values are precise so have a `=` result operator
      */
     private String resultOperator;
+    /**
+     * Upper limit of reference range.
+     */
     private Double rangeHigh;
+    /**
+     * Lower limit of reference range.
+     */
     private Double rangeLow;
     private String resultStatus;
     private String units;
