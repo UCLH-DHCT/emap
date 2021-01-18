@@ -111,7 +111,7 @@ public class LabResultBuilder {
                     logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
                 }
                 try {
-                    setNumericValueAndResultOperator();
+                    setNumericValueAndResultOperator(msg.getStringValue());
                 } catch (NumberFormatException e) {
                     logger.debug(String.format("Non numeric result %s", msg.getStringValue()));
                 }
@@ -139,8 +139,12 @@ public class LabResultBuilder {
         msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags));
     }
 
-    private void setNumericValueAndResultOperator() {
-        String value = msg.getStringValue();
+    /**
+     * Set numeric value and result operator (if required)
+     * @param inputValue string value
+     */
+    private void setNumericValueAndResultOperator(String inputValue) {
+        String value = inputValue;
 
         if (!value.isEmpty() && (value.charAt(0) == '>' || value.charAt(0) == '<')) {
             String resultOperator = value.substring(0, 1);
@@ -152,6 +156,10 @@ public class LabResultBuilder {
         msg.setNumericValue(InterchangeValue.buildFromHl7(numericValue));
     }
 
+    /**
+     * Set reference low and reference high fields from OBX7.
+     * @param obx OBX segment
+     */
     private void setReferenceRange(OBX obx) {
         String[] range = obx.getObx7_ReferencesRange().getValueOrEmpty().split("-");
         if (range.length == 2) {
