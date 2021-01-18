@@ -195,8 +195,8 @@ public class VisitController {
      */
     private void updateGenericData(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignHl7ValueIfDifferent(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
-        visitState.assignHl7ValueIfDifferent(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
+        visitState.assignInterchangeValue(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
+        visitState.assignInterchangeValue(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
         visitState.assignIfDifferent(msg.getSourceSystem(), visit.getSourceSystem(), visit::setSourceSystem);
     }
 
@@ -207,7 +207,7 @@ public class VisitController {
      */
     private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+        visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
     }
 
     /**
@@ -227,7 +227,7 @@ public class VisitController {
      */
     private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignHl7ValueIfDifferent(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
+        visitState.assignInterchangeValue(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
     }
 
     /**
@@ -244,7 +244,7 @@ public class VisitController {
 
         // If started mid-stream, no admission information so add this in on discharge
         if (visit.getAdmissionTime() == null && !msg.getAdmissionDateTime().isUnknown()) {
-            visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+            visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
         }
     }
 

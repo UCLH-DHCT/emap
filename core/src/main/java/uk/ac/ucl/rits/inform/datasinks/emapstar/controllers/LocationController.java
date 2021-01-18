@@ -123,9 +123,9 @@ public class LocationController {
         RowState<LocationVisit, LocationVisitAudit> visitStateB = getOrCreateOpenLocationByLocation(
                 visitB, locationA, validFrom, storedFrom);
         // swap to the correct locations
-        visitStateA.assignHl7ValueIfDifferent(
+        visitStateA.assignInterchangeValue(
                 InterchangeValue.buildFromHl7(locationA), visitStateA.getEntity().getLocationId(), visitStateA.getEntity()::setLocationId);
-        visitStateB.assignHl7ValueIfDifferent(
+        visitStateB.assignInterchangeValue(
                 InterchangeValue.buildFromHl7(locationB), visitStateB.getEntity().getLocationId(), visitStateB.getEntity()::setLocationId);
         // save newly created or audit
         visitStateA.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);

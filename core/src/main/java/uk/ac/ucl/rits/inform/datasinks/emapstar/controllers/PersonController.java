@@ -241,17 +241,17 @@ public class PersonController {
      */
     private void updateCoreDemographicFields(final AdtMessage adtMessage, RowState<CoreDemographic, CoreDemographicAudit> demographicState) {
         CoreDemographic demo = demographicState.getEntity();
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientGivenName(), demo.getFirstname(), demo::setFirstname);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientMiddleName(), demo.getMiddlename(), demo::setMiddlename);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientFamilyName(), demo.getLastname(), demo::setLastname);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientBirthDate(), demo.getDateOfBirth(), demo::setDateOfBirth);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientBirthDate(), demo.getDatetimeOfBirth(), demo::setDatetimeOfBirth);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientSex(), demo.getSex(), demo::setSex);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientZipOrPostalCode(), demo.getHomePostcode(), demo::setHomePostcode);
+        demographicState.assignInterchangeValue(adtMessage.getPatientGivenName(), demo.getFirstname(), demo::setFirstname);
+        demographicState.assignInterchangeValue(adtMessage.getPatientMiddleName(), demo.getMiddlename(), demo::setMiddlename);
+        demographicState.assignInterchangeValue(adtMessage.getPatientFamilyName(), demo.getLastname(), demo::setLastname);
+        demographicState.assignInterchangeValue(adtMessage.getPatientBirthDate(), demo.getDateOfBirth(), demo::setDateOfBirth);
+        demographicState.assignInterchangeValue(adtMessage.getPatientBirthDate(), demo.getDatetimeOfBirth(), demo::setDatetimeOfBirth);
+        demographicState.assignInterchangeValue(adtMessage.getPatientSex(), demo.getSex(), demo::setSex);
+        demographicState.assignInterchangeValue(adtMessage.getPatientZipOrPostalCode(), demo.getHomePostcode(), demo::setHomePostcode);
         // death
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientIsAlive(), demo.getAlive(), demo::setAlive);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientDeathDateTime(), demo.getDateOfDeath(), demo::setDateOfDeath);
-        demographicState.assignHl7ValueIfDifferent(adtMessage.getPatientDeathDateTime(), demo.getDatetimeOfDeath(), demo::setDatetimeOfDeath);
+        demographicState.assignInterchangeValue(adtMessage.getPatientIsAlive(), demo.getAlive(), demo::setAlive);
+        demographicState.assignInterchangeValue(adtMessage.getPatientDeathDateTime(), demo.getDateOfDeath(), demo::setDateOfDeath);
+        demographicState.assignInterchangeValue(adtMessage.getPatientDeathDateTime(), demo.getDatetimeOfDeath(), demo::setDatetimeOfDeath);
     }
 
     /**

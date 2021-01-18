@@ -80,7 +80,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * @param currentValue    current value
      * @param setPatientClass setter lambda
      */
-    public void assignHl7ValueIfDifferent(InterchangeValue<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
+    public void assignInterchangeValue(InterchangeValue<PatientClass> newValue, String currentValue, Consumer<String> setPatientClass) {
         if (newValue.isUnknown()) {
             return;
         }
@@ -94,7 +94,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * @param currentValue    current value
      * @param setPatientClass setter lambda
      */
-    public void assignHl7ValueIfDifferent(InterchangeValue<Instant> newValue, LocalDate currentValue, Consumer<LocalDate> setPatientClass) {
+    public void assignInterchangeValue(InterchangeValue<Instant> newValue, LocalDate currentValue, Consumer<LocalDate> setPatientClass) {
         if (newValue.isUnknown()) {
             return;
         }
@@ -111,7 +111,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
      * @param setter       setter lambda
      * @param <R>          type of the value in the hibernate entity
      */
-    public <R> void assignHl7ValueIfDifferent(InterchangeValue<R> newValue, R currentValue, Consumer<R> setter) {
+    public <R> void assignInterchangeValue(InterchangeValue<R> newValue, R currentValue, Consumer<R> setter) {
         if (newValue.isUnknown()) {
             return;
         }

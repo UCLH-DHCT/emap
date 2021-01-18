@@ -168,17 +168,17 @@ public class LabController {
     private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
         LabResult labResult = resultState.getEntity();
         if (resultMsg.isNumeric()) {
-            resultState.assignHl7ValueIfDifferent(resultMsg.getNumericValue(), labResult.getResultAsReal(), labResult::setResultAsReal);
-            resultState.assignHl7ValueIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
+            resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getResultAsReal(), labResult::setResultAsReal);
+            resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
         } else {
-            resultState.assignHl7ValueIfDifferent(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
+            resultState.assignIfDifferent(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
         }
 
-        resultState.assignHl7ValueIfDifferent(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
-        resultState.assignHl7ValueIfDifferent(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
-        resultState.assignHl7ValueIfDifferent(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
+        resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
+        resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
+        resultState.assignInterchangeValue(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
         resultState.assignIfDifferent(resultMsg.isAbnormal(), labResult.getAbnormal(), labResult::setAbnormal);
-        resultState.assignHl7ValueIfDifferent(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
+        resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
 
         if (resultState.isEntityUpdated()) {
