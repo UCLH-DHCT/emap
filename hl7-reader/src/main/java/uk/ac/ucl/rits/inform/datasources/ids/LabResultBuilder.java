@@ -1,12 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
@@ -20,13 +13,18 @@ import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Turn part of an HL7 lab result message into a (flatter) structure
  * more suited to our needs.
- *
  * @author Jeremy Stein
  * @author Stef Piatek
  */
@@ -47,8 +45,8 @@ public class LabResultBuilder {
      * because this maps 1:1 with a patient fact in Inform-db.
      * Although of course there is parent information in the HL7
      * message (ORC + OBR), this is flattened here.
-     * @param obx the OBX segment for this result
-     * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
+     * @param obx   the OBX segment for this result
+     * @param obr   the OBR segment for this result (will be the same segment shared with other OBXs)
      * @param notes list of NTE segments for this result
      * @throws DataTypeException if required datetime fields cannot be parsed
      */
@@ -107,14 +105,13 @@ public class LabResultBuilder {
                     stringVal.append(line);
                 }
             }
-            msg.setStringValue( stringVal.toString());
+            msg.setStringValue(stringVal.toString());
             if (data instanceof NM) {
                 if (repCount > 1) {
                     logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
                 }
                 try {
-                    Double numericValue = Double.parseDouble(msg.getStringValue());
-                    msg.setNumericValue(InterchangeValue.buildFromHl7(numericValue));
+                    setNumericValueAndResultOperator();
                 } catch (NumberFormatException e) {
                     logger.debug(String.format("Non numeric result %s", msg.getStringValue()));
                 }
@@ -148,6 +145,19 @@ public class LabResultBuilder {
             abnormalFlags += flag.getValueOrEmpty();
         }
         msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags));
+    }
+
+    private void setNumericValueAndResultOperator() {
+        String value = msg.getStringValue();
+
+        if (!value.isEmpty() && (value.charAt(0) == '>' || value.charAt(0) == '<')) {
+            String resultOperator = value.substring(0, 1);
+            msg.setResultOperator(resultOperator);
+            value = value.substring(1);
+        }
+        Double numericValue = Double.parseDouble(value);
+
+        msg.setNumericValue(InterchangeValue.buildFromHl7(numericValue));
     }
 
     private void setReferenceRange(OBX obx) {
