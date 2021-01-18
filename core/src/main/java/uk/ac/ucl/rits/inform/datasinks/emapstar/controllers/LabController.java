@@ -172,7 +172,7 @@ public class LabController {
         resultState.assignHl7ValueIfDifferent(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
         resultState.assignHl7ValueIfDifferent(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
         resultState.assignHl7ValueIfDifferent(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
-//        resultState.assignHl7ValueIfDifferent(resultMsg.getAbnormalFlags(), labResult.getAbnormal(), labResult::setComment);
+        resultState.assignIfDifferent(resultMsg.isAbnormal(), labResult.getAbnormal(), labResult::setAbnormal);
         // result operator needs to be added to HL7
         resultState.assignHl7ValueIfDifferent(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
