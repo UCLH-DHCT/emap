@@ -20,7 +20,8 @@ import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
-import uk.ac.ucl.rits.inform.interchange.LabResult;
+import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
 /**
  * Turn part of an HL7 lab result message into a (flatter) structure
@@ -32,12 +33,12 @@ import uk.ac.ucl.rits.inform.interchange.LabResult;
 public class LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(LabResultBuilder.class);
 
-    private LabResult msg = new LabResult();
+    private LabResultMsg msg = new LabResultMsg();
 
     /**
      * @return the underlying message we have now built
      */
-    public LabResult getMessage() {
+    public LabResultMsg getMessage() {
         return msg;
     }
 
@@ -106,13 +107,14 @@ public class LabResultBuilder {
                     stringVal.append(line);
                 }
             }
-            msg.setStringValue(stringVal.toString());
+            msg.setStringValue( stringVal.toString());
             if (data instanceof NM) {
                 if (repCount > 1) {
                     logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
                 }
                 try {
-                    msg.setNumericValue(Double.parseDouble(msg.getStringValue()));
+                    Double numericValue = Double.parseDouble(msg.getStringValue());
+                    msg.setNumericValue(Hl7Value.buildFromHl7(numericValue));
                 } catch (NumberFormatException e) {
                     logger.debug(String.format("Non numeric result %s", msg.getStringValue()));
                 }
@@ -138,14 +140,24 @@ public class LabResultBuilder {
         }
         // also need to handle case where (data instanceof ED)
 
-        msg.setUnits(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty());
-        msg.setReferenceRange(obx.getObx7_ReferencesRange().getValueOrEmpty());
+        msg.setUnits(Hl7Value.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
+        setReferenceRange(obx);
         String abnormalFlags = "";
         // will there ever be more than one abnormal flag in practice?
         for (IS flag : obx.getObx8_AbnormalFlags()) {
             abnormalFlags += flag.getValueOrEmpty();
         }
-        msg.setAbnormalFlags(abnormalFlags);
+        msg.setAbnormalFlags(Hl7Value.buildFromHl7(abnormalFlags));
+    }
+
+    private void setReferenceRange(OBX obx) {
+        String[] range = obx.getObx7_ReferencesRange().getValueOrEmpty().split("-");
+        if (range.length == 2) {
+            Double lower = Double.parseDouble(range[0]);
+            Double upper = Double.parseDouble(range[1]);
+            msg.setReferenceLow(Hl7Value.buildFromHl7(lower));
+            msg.setReferenceHigh(Hl7Value.buildFromHl7(upper));
+        }
     }
 
     /**
@@ -161,7 +173,7 @@ public class LabResultBuilder {
                 allNotes.add(ft.getValueOrEmpty());
             }
         }
-        msg.setNotes(String.join("\n", allNotes));
+        msg.setNotes(Hl7Value.buildFromHl7(String.join("\n", allNotes)));
     }
 
     /**
@@ -176,25 +188,23 @@ public class LabResultBuilder {
         }
         String pattern = "COMPLETE: \\d\\d/\\d\\d/\\d\\d";
         Pattern p = Pattern.compile(pattern);
-        if (p.matcher(msg.getStringValue()).matches()) {
-            return true;
-        }
-        return false;
+
+        return p.matcher(msg.getStringValue()).matches();
     }
 
     /**
      * Merge another lab result into this one.
      * Eg. an adjacent OBX segment that is linked by a sub ID.
-     * @param labResult the other lab result to merge in
+     * @param LabResultMsg the other lab result to merge in
      */
-    public void mergeResult(LabResult labResult) {
+    public void mergeResult(LabResultMsg LabResultMsg) {
         // Will need to identify HOW to merge results.
-        // Eg. identify that LabResult contains an isolate,
+        // Eg. identify that LabResultMsg contains an isolate,
         // so only copy the isolate fields from it.
-        if (!labResult.getIsolateLocalCode().isEmpty()) {
-            msg.setIsolateLocalCode(labResult.getIsolateLocalCode());
-            msg.setIsolateLocalDescription(labResult.getIsolateLocalDescription());
-            msg.setIsolateCodingSystem(labResult.getIsolateCodingSystem());
+        if (!LabResultMsg.getIsolateLocalCode().isEmpty()) {
+            msg.setIsolateLocalCode(LabResultMsg.getIsolateLocalCode());
+            msg.setIsolateLocalDescription(LabResultMsg.getIsolateLocalDescription());
+            msg.setIsolateCodingSystem(LabResultMsg.getIsolateCodingSystem());
         }
     }
 }

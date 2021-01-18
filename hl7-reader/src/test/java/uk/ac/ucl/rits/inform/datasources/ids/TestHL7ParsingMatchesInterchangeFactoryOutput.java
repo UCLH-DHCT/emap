@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
@@ -113,36 +113,36 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     public void testLabIncrementalLoad() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrders("LabOrders/Incremental.txt");
-        List<LabOrder> expectedOrders = interchangeFactory.getLabOrders("incremental.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrderMsgs/Incremental.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("incremental.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testLabIncrementalDuplicateResultSegment() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrders("LabOrders/LabDuplicateResultSegment.txt");
-        List<LabOrder> expectedOrders = interchangeFactory.getLabOrders("incremental_duplicate_result_segment.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrderMsgs/LabDuplicateResultSegment.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("incremental_duplicate_result_segment.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
-    public void testLabOrder() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/ORU_R01.txt");
-        List<LabOrder> expectedOrders = interchangeFactory.getLabOrders("ORU_R01.yaml", "0000000042");
+    public void testLabOrderMsg() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrderMsgs/ORU_R01.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("ORU_R01.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
-    public void testLabOrderProducesAdtFirst() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("LabOrders/ORU_R01.txt").get(0);
+    public void testLabOrderMsgProducesAdtFirst() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("LabOrderMsgs/ORU_R01.txt").get(0);
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/lab_oru_r01.yaml");
         assertEquals(expectedAdt, messageFromHl7);
     }
 
     @Test
     public void testLabSensitivity() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/Sensitivity.txt");
-        List<LabOrder> expectedOrders = interchangeFactory.getLabOrders("sensitivity.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrderMsgs/Sensitivity.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("sensitivity.yaml", "0000000042");
         assertEquals(expectedOrders, messagesFromHl7Message);
     }
 

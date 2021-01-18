@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<LabOrder> processSingleLabOrderMessage(String resourceFileName) throws Exception {
+    protected List<LabOrderMsg> processSingleLabOrderMsgMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
         return LabOrderBuilder.buildLabOrdersFromResults("42", hl7Msg);
@@ -70,7 +70,7 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<? extends EmapOperationMessage> processLabHl7AndFilterToLabOrders(String resourceFileName) throws Exception {
+    protected List<? extends EmapOperationMessage> processLabHl7AndFilterToLabOrderMsgs(String resourceFileName) throws Exception {
         return processMultipleLabHl7Messages(resourceFileName).stream().filter(msg -> !(msg instanceof AdtMessage)).collect(Collectors.toList());
     }
 

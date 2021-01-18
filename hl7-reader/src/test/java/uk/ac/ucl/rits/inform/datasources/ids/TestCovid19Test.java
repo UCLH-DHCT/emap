@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
-import uk.ac.ucl.rits.inform.interchange.LabResult;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
 /**
  * Test an A03 with a death indicator set.
@@ -21,11 +21,11 @@ import uk.ac.ucl.rits.inform.interchange.LabResult;
  * @author Jeremy Stein
  */
 public class TestCovid19Test extends TestHl7MessageStream {
-    private LabOrder msg;
+    private LabOrderMsg msg;
 
     @BeforeEach
     public void setup() throws Exception {
-        List<LabOrder> msgs = processSingleLabOrderMessage("LabOrders/covid19test.txt");
+        List<LabOrderMsg> msgs = processSingleLabOrderMsgMessage("LabOrderMsgs/covid19test.txt");
         assertEquals(1, msgs.size());
         msg = msgs.get(0);
     }
@@ -43,14 +43,14 @@ public class TestCovid19Test extends TestHl7MessageStream {
      */
     @Test
     public void testResults() {
-        List<LabResult> LabResults = msg.getLabResults();
-        assertEquals(3, LabResults.size());
-        Map<String, LabResult> resultsByItemCode = LabResults.stream()
-                .collect(Collectors.toMap(LabResult::getTestItemLocalCode, v -> v));
+        List<LabResultMsg> LabResultMsgs = msg.getLabResultMsgs();
+        assertEquals(3, LabResultMsgs.size());
+        Map<String, LabResultMsg> resultsByItemCode = LabResultMsgs.stream()
+                .collect(Collectors.toMap(LabResultMsg::getTestItemLocalCode, v -> v));
         assertEquals(new HashSet<>(Arrays.asList("NCVS", "NCVP", "NCVL")), resultsByItemCode.keySet());
-        LabResult ncvs = resultsByItemCode.get("NCVS");
-        LabResult ncvp = resultsByItemCode.get("NCVP");
-        LabResult ncvl = resultsByItemCode.get("NCVL");
+        LabResultMsg ncvs = resultsByItemCode.get("NCVS");
+        LabResultMsg ncvp = resultsByItemCode.get("NCVP");
+        LabResultMsg ncvl = resultsByItemCode.get("NCVL");
 
         assertNull(ncvs.getNumericValue());
         assertEquals("CTNS", ncvs.getStringValue());

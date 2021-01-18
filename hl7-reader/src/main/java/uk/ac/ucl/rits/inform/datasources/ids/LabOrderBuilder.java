@@ -1,19 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
@@ -32,14 +18,26 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
-import uk.ac.ucl.rits.inform.interchange.LabResult;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Build one or more LabOrder object(s) from an HL7 message.
- *
  * @author Jeremy Stein
  */
 public class LabOrderBuilder {
@@ -50,32 +48,32 @@ public class LabOrderBuilder {
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
 
-    private LabOrder msg = new LabOrder();
+    private LabOrderMsg msg = new LabOrderMsg();
 
     /**
      * @return the underlying message we have now built
      */
-    public LabOrder getMessage() {
+    public LabOrderMsg getMessage() {
         return msg;
     }
 
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param idsUnid unique Id from the IDS
-     * @param ormO01 the ORM message
+     * @param ormO01  the ORM message
      * @return list of LabOrder orders, one for each order
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    public static List<LabOrder> buildLabOrders(String idsUnid, ORM_O01 ormO01)
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException {
-        List<LabOrder> orders = new ArrayList<>();
+        List<LabOrderMsg> orders = new ArrayList<>();
         List<ORM_O01_ORDER> orderAll = ormO01.getORDERAll();
         int msgSuffix = 0;
         for (ORM_O01_ORDER order : orderAll) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrder labOrder;
+            LabOrderMsg labOrder;
             try {
                 labOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
                 if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
@@ -94,14 +92,14 @@ public class LabOrderBuilder {
     /**
      * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
      * @param idsUnid unique Id from the IDS
-     * @param oruR01 the HL7 message
+     * @param oruR01  the HL7 message
      * @return a list of LabOrder messages built from the results message
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public static List<LabOrder> buildLabOrdersFromResults(String idsUnid, ORU_R01 oruR01)
+    public static List<LabOrderMsg> buildLabOrdersFromResults(String idsUnid, ORU_R01 oruR01)
             throws HL7Exception, Hl7InconsistencyException {
-        List<LabOrder> orders = new ArrayList<>();
+        List<LabOrderMsg> orders = new ArrayList<>();
         if (oruR01.getPATIENT_RESULTReps() != 1) {
             throw new RuntimeException("not handling this yet");
         }
@@ -115,7 +113,7 @@ public class LabOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrder labOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
+            LabOrderMsg labOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
             String testBatteryLocalCode = labOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
                 logger.warn("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
@@ -130,30 +128,29 @@ public class LabOrderBuilder {
     /**
      * Use the HL7 fields to re-parent the (sensitivity) orders in this list so they point to the results
      * that they apply to. Parents and children must all be in the list supplied.
-     *
      * @param orders the list of all orders (usually with results(?)). This list
      *               will have items modified and/or deleted.
      */
-    private static void reparentOrders(List<LabOrder> orders) {
+    private static void reparentOrders(List<LabOrderMsg> orders) {
         // we may have multiple orders that are unrelated to each other (apart from
         // being for the same patient).
         for (int i = 0; i < orders.size(); i++) {
-            LabOrder orderToReparent = orders.get(i);
+            LabOrderMsg orderToReparent = orders.get(i);
             if (!orderToReparent.getParentSubId().isEmpty()) {
                 // The order has a parent, let's find it.
                 // Not many elements, a linear search should be fine.
                 // I'm assuming that the parent always appears before the child in the list.
                 for (int j = 0; j < i; j++) {
-                    LabOrder possibleOrder = orders.get(j);
+                    LabOrderMsg possibleOrder = orders.get(j);
                     if (possibleOrder == null) {
                         // we already re-parented this one, skip
                         continue;
                     }
                     // An HL7 LabOrderBuilder will always contain HL7 LabResultBuilder objects for its results,
                     // so downcast will be safe. Find a better way of encoding this in the type system.
-                    List<LabResult> possibleParents = possibleOrder.getLabResults();
+                    List<LabResultMsg> possibleParents = possibleOrder.getLabResultMsgs();
                     try {
-                        LabResult foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
+                        LabResultMsg foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
                                 .findFirst().get();
                         // add the order to the list of sensitivities and delete from the original list
                         logger.info("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
@@ -171,10 +168,10 @@ public class LabOrderBuilder {
     /**
      * Build a lab order structure from a lab order (ORM)  message.
      * @param subMessageSourceId unique Id from the IDS
-     * @param order one of the order groups in the message that is to be converted into an order structure
-     * @param ormO01 the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
-     * @throws HL7Exception if HAPI does
-     * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
+     * @param order              one of the order groups in the message that is to be converted into an order structure
+     * @param ormO01             the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
      * @throws Hl7MessageIgnoredException if the entire message should be ignored
      */
     public LabOrderBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
@@ -203,46 +200,45 @@ public class LabOrderBuilder {
      * same structure in both cases. Most/all of the details of the order are contained in the
      * results message - at least the order numbers are present so we can look up the order
      * which we should already know about from a preceding ORM message.
-     *
+     * <p>
      * ORU_R01_PATIENT_RESULT repeating
-     *      ORU_R01_PATIENT optional
-     *          PID (Patient Identification)
-     *          PRT (Participation Information) optional repeating
-     *          PD1 (Patient Additional Demographic) optional
-     *          NTE (Notes and Comments) optional repeating
-     *          NK1 (Next of Kin / Associated Parties) optional repeating
-     *          ORU_R01_PATIENT_OBSERVATION (a Group object) optional repeating
-     *              OBX (Observation/Result)
-     *              PRT (Participation Information) optional repeating
-     *          ORU_R01_VISIT (a Group object) optional
-     *              PV1 (Patient Visit)
-     *              PV2 (Patient Visit - Additional Information) optional
-     *              PRT (Participation Information) optional repeating
-     *      ORU_R01_ORDER_OBSERVATION repeating
-     *          ORC (Common Order) optional
-     *          OBR (Observation Request)
-     *          NTE (Notes and Comments) optional repeating
-     *          PRT (Participation Information) optional repeating
-     *          ORU_R01_TIMING_QTY (a Group object) optional repeating
-     *          CTD (Contact Data) optional
-     *          ORU_R01_OBSERVATION (a Group object) optional repeating
-     *              OBX (Observation/Result)
-     *              PRT (Participation Information) optional repeating
-     *              NTE (Notes and Comments) optional repeating
-     *          FT1 (Financial Transaction) optional repeating
-     *          CTI (Clinical Trial Identification) optional repeating
-     *          ORU_R01_SPECIMEN (a Group object) optional repeating
-     *              SPM (Specimen)
-     *              ORU_R01_SPECIMEN_OBSERVATION (a Group object) optional repeating
-     *                  OBX (Observation/Result)
-     *                  PRT (Participation Information) optional repeating
-     *
+     * ORU_R01_PATIENT optional
+     * PID (Patient Identification)
+     * PRT (Participation Information) optional repeating
+     * PD1 (Patient Additional Demographic) optional
+     * NTE (Notes and Comments) optional repeating
+     * NK1 (Next of Kin / Associated Parties) optional repeating
+     * ORU_R01_PATIENT_OBSERVATION (a Group object) optional repeating
+     * OBX (Observation/Result)
+     * PRT (Participation Information) optional repeating
+     * ORU_R01_VISIT (a Group object) optional
+     * PV1 (Patient Visit)
+     * PV2 (Patient Visit - Additional Information) optional
+     * PRT (Participation Information) optional repeating
+     * ORU_R01_ORDER_OBSERVATION repeating
+     * ORC (Common Order) optional
+     * OBR (Observation Request)
+     * NTE (Notes and Comments) optional repeating
+     * PRT (Participation Information) optional repeating
+     * ORU_R01_TIMING_QTY (a Group object) optional repeating
+     * CTD (Contact Data) optional
+     * ORU_R01_OBSERVATION (a Group object) optional repeating
+     * OBX (Observation/Result)
+     * PRT (Participation Information) optional repeating
+     * NTE (Notes and Comments) optional repeating
+     * FT1 (Financial Transaction) optional repeating
+     * CTI (Clinical Trial Identification) optional repeating
+     * ORU_R01_SPECIMEN (a Group object) optional repeating
+     * SPM (Specimen)
+     * ORU_R01_SPECIMEN_OBSERVATION (a Group object) optional repeating
+     * OBX (Observation/Result)
+     * PRT (Participation Information) optional repeating
      * @param subMessageSourceId unique Id from the IDS
-     * @param obs the result group from HAPI (ORU_R01_ORDER_OBSERVATION)
-     * @param msh the MSH segment
-     * @param pid the PID segment
-     * @param pv1 the PV1 segment
-     * @throws HL7Exception if HAPI does
+     * @param obs                the result group from HAPI (ORU_R01_ORDER_OBSERVATION)
+     * @param msh                the MSH segment
+     * @param pid                the PID segment
+     * @param pv1                the PV1 segment
+     * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
     public LabOrderBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
@@ -269,7 +265,7 @@ public class LabOrderBuilder {
         }
         // join some of the observations under this fact together (or ignore some of them)
         mergeOrFilterResults(tempResults);
-        msg.setLabResults(tempResults.stream().map(b -> b.getMessage()).collect(Collectors.toList()));
+        msg.setLabResultMsgs(tempResults.stream().map(b -> b.getMessage()).collect(Collectors.toList()));
     }
 
     /**
@@ -316,8 +312,10 @@ public class LabOrderBuilder {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        msg.setLabSpecimenNumber(orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
-        msg.setLabSpecimenNumberOCS(orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        String labSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        msg.setLabSpecimenNumber(labSpecimen);
+        String labSpecimenOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        msg.setSpecimenType(labSpecimenOCS.replace(labSpecimen, ""));
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
 
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
@@ -372,11 +370,11 @@ public class LabOrderBuilder {
     /**
      * HL7-specific way of determining parentage. The workings of this shouldn't be
      * exposed to the interchange format (ie. LabOrder).
-     * @param possibleChild the order to test whether possibleParent is a parent of it
+     * @param possibleChild  the order to test whether possibleParent is a parent of it
      * @param possibleParent the result to test whether possibleChild is a child of it
      * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent
      */
-    public static boolean isChildOf(LabOrder possibleChild, LabResult possibleParent) {
+    public static boolean isChildOf(LabOrderMsg possibleChild, LabResultMsg possibleParent) {
         return !possibleChild.getEpicCareOrderNumber().isEmpty()
                 && possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
                 && !possibleChild.getParentObservationIdentifier().isEmpty()
