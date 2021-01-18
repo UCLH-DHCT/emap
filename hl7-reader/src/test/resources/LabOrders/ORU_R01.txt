@@ -51,11 +51,11 @@ OBX|9|NM|PLT^Platelet count^Winpath||364|x10\S\9/L|150-400||||F
 OBX|10|NM|MPVU^MPV^Winpath||12.2|fL|7-13||||F
 ORC|RE|12121219|13U444444|13U4444441|CM||||201307290941
 OBR|8|12121219|13U444444|FBCZ^DIFFERENTIAL^WinPath||201307241746|201307241641|||||||||HB^BADGER, MR. H||||||201307241926||H1|F
-OBX|1|NM|NE^Neutrophils^Winpath||41.5%  3.02|x10\S\9/L|2.0-7.5||||F
-OBX|2|NM|LY^Lymphocytes^Winpath||44.9%  3.27|x10\S\9/L|1.2-3.65||||F
-OBX|3|NM|MO^Monocytes^Winpath||7.8%  0.57|x10\S\9/L|0.2-1.0||||F
-OBX|4|NM|EO^Eosinophils^Winpath||5.4%  0.39|x10\S\9/L|0.0-0.4||||F
-OBX|5|NM|BA^Basophils^Winpath||0.4%  0.03|x10\S\9/L|0.0-0.1||||F
+OBX|1|NM|NE^Neutrophils^Winpath||3.02|x10\S\9/L|2.0-7.5||||F
+OBX|2|NM|LY^Lymphocytes^Winpath||3.27|x10\S\9/L|1.2-3.65||||F
+OBX|3|NM|MO^Monocytes^Winpath||0.57|x10\S\9/L|0.2-1.0||||F
+OBX|4|NM|EO^Eosinophils^Winpath||0.39|x10\S\9/L|0.0-0.4||||F
+OBX|5|NM|BA^Basophils^Winpath||0.03|x10\S\9/L|0.0-0.1||||F
 ORC|RE|12121220|13U444444|13U4444441|CM||||201307290941
 OBR|9|12121220|13U444444|VITD^25-HYDROXY VITAMIN D^WinPath||201307241746|201307241641|||||||||HB^BADGER, MR. H||||||201307290941||CS|F
 OBX|1|NM|25D2^25-hydroxy Vitamin D2^Winpath||<7|nmol/L|||||F
