@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,13 +53,13 @@ public class TestCovid19Test extends TestHl7MessageStream {
         LabResultMsg ncvp = resultsByItemCode.get("NCVP");
         LabResultMsg ncvl = resultsByItemCode.get("NCVL");
 
-        assertNull(ncvs.getNumericValue());
+        Assertions.assertTrue(ncvs.getNumericValue().isUnknown());
         assertEquals("CTNS", ncvs.getStringValue());
 
-        assertNull(ncvp.getNumericValue());
+        Assertions.assertTrue(ncvp.getNumericValue().isUnknown());
         assertEquals("NOT detected", ncvp.getStringValue());
 
-        assertNull(ncvl.getNumericValue());
+        Assertions.assertTrue(ncvl.getNumericValue().isUnknown());
         // why are the leading spaces on each repeat (line) being trimmed?
         assertEquals("Please note that this test was performed using\n" + "the Hologic Panther Fusion Assay.\n"
                 + "This new assay is currently not UKAS accredited,\n" + "but is internally verified. UKAS extension\n"
