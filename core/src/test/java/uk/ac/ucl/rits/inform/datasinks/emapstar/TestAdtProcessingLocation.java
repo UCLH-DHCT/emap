@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -111,7 +111,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testDischargeMessage() throws EmapOperationMessageProcessingException {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
-        msg.setFullLocationString(Hl7Value.buildFromHl7(originalLocation));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(originalLocation));
         dbOps.processMessage(msg);
 
         // original location visit is discharged
@@ -134,7 +134,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testDuplicateDischargeMessage() throws EmapOperationMessageProcessingException {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
-        msg.setFullLocationString(Hl7Value.buildFromHl7(originalLocation));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(originalLocation));
         // first discharge
         dbOps.processMessage(msg);
         // duplicate discharge message
@@ -252,7 +252,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         msg.setCancelledDateTime(null);
         setDataForHospitalVisitId4002(msg);
         String location = "T06C^T06C SR41^SR41-41";
-        msg.setFullLocationString(Hl7Value.buildFromHl7(location));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(location));
 
         dbOps.processMessage(msg);
         // original location visit is deleted
@@ -281,7 +281,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     void testCancelAdmitMalformedWithSingleMismatchedLocation() {
         CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
         msg.setCancelledDateTime(null);
-        msg.setFullLocationString(Hl7Value.buildFromHl7("I^don't^exist"));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7("I^don't^exist"));
         Assertions.assertThrows(RequiredDataMissingException.class, () -> dbOps.processMessage(msg));
     }
 
@@ -345,7 +345,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     void testCancelDischarge() throws EmapOperationMessageProcessingException {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         String correctLocation = "T06C^T06C SR41^SR41-41";
-        msg.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(correctLocation));
         msg = setDataForHospitalVisitId4002(msg);
         dbOps.processMessage(msg);
 
@@ -367,12 +367,12 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // update patient info for discharged location
         UpdatePatientInfo updatePatientInfo = messageFactory.getAdtMessage("generic/A08_v1.yaml");
-        updatePatientInfo.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
+        updatePatientInfo.setFullLocationString(InterchangeValue.buildFromHl7(correctLocation));
         setDataForHospitalVisitId4002(updatePatientInfo);
         updatePatientInfo.setRecordedDateTime(messageDateTime);
         // cancel discharge
         CancelDischargePatient cancelDischarge = messageFactory.getAdtMessage("generic/A13.yaml");
-        cancelDischarge.setFullLocationString(Hl7Value.buildFromHl7(correctLocation));
+        cancelDischarge.setFullLocationString(InterchangeValue.buildFromHl7(correctLocation));
         setDataForHospitalVisitId4002(cancelDischarge);
         cancelDischarge.setRecordedDateTime(messageDateTime);
         // A08s will have a later message date time than the cancellation event occurred time
@@ -398,7 +398,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         SwapLocations msg = messageFactory.getAdtMessage("generic/A17.yaml");
         String locationA = "T11E^T11E BY02^BY02-17";
         String visitNumberA = "123412341234";
-        msg.setFullLocationString(Hl7Value.buildFromHl7(locationA));
+        msg.setFullLocationString(InterchangeValue.buildFromHl7(locationA));
         msg.setVisitNumber(visitNumberA);
 
         String locationB = "T42E^T42E BY03^BY03-17";
@@ -406,7 +406,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         msg.setOtherVisitNumber(visitNumberB);
         msg.setOtherMrn(null);
         msg.setOtherNhsNumber("222222222");
-        msg.setOtherFullLocationString(Hl7Value.buildFromHl7(locationB));
+        msg.setOtherFullLocationString(InterchangeValue.buildFromHl7(locationB));
 
         HospitalVisit visitA = hospitalVisitRepository.findByEncounter(visitNumberA).orElseThrow();
         HospitalVisit visitB = hospitalVisitRepository.findByEncounter(visitNumberB).orElseThrow();

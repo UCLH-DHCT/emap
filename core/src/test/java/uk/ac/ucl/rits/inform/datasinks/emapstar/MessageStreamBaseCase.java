@@ -20,7 +20,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -71,21 +71,21 @@ public abstract class MessageStreamBaseCase {
     protected int                        currentLocation              = 0;
     protected String                     mrn                          = "1234ABCD";
     protected String                     csn                          = "1234567890";
-    private Hl7Value<PatientClass>       patientClass                 = new Hl7Value<>(PatientClass.EMERGENCY);
+    private InterchangeValue<PatientClass> patientClass                 = new InterchangeValue<>(PatientClass.EMERGENCY);
     private Instant                      latestPatientClassChangeTime = null;
-    protected Hl7Value<Instant>          admissionTime                = Hl7Value.unknown();
-    protected Hl7Value<Instant>          presentationTime             = Hl7Value.unknown();
+    protected InterchangeValue<Instant> admissionTime                = InterchangeValue.unknown();
+    protected InterchangeValue<Instant> presentationTime             = InterchangeValue.unknown();
     protected Instant                    dischargeTime                = null;
     protected String                     nhsNumber                    = "9999999999";
-    protected Hl7Value<String>           fName                         = new Hl7Value<>("Fred");
-    protected Hl7Value<String>           mName                         = Hl7Value.unknown();
-    protected Hl7Value<String>           lName                         = new Hl7Value<>("Blogger");
+    protected InterchangeValue<String> fName                         = new InterchangeValue<>("Fred");
+    protected InterchangeValue<String> mName                         = InterchangeValue.unknown();
+    protected InterchangeValue<String> lName                         = new InterchangeValue<>("Blogger");
     protected final List<Instant>        transferTime                 = new ArrayList<>();
 
     protected String                     dischargeDisposition         = "Peachy";
     protected String                     dischargeLocation            = "Home";
-    protected Hl7Value<Boolean>          patientAlive                 = new Hl7Value<Boolean>(true);
-    protected Hl7Value<Instant>          deathTime                    = Hl7Value.unknown();
+    protected InterchangeValue<Boolean> patientAlive                 = new InterchangeValue<Boolean>(true);
+    protected InterchangeValue<Instant> deathTime                    = InterchangeValue.unknown();
 
     protected double                     vitalReading                 = 92.;
     protected List<Instant>              vitalTime                    = new ArrayList<>();
@@ -104,15 +104,15 @@ public abstract class MessageStreamBaseCase {
     protected void reinitialise() {
         messageStream.clear();
         nextToProcess = 0;
-        this.patientClass = new Hl7Value<>(PatientClass.EMERGENCY);
+        this.patientClass = new InterchangeValue<>(PatientClass.EMERGENCY);
         latestPatientClassChangeTime = null;
         this.vitalTime.clear();
         this.transferTime.clear();
-        this.admissionTime = Hl7Value.unknown();
-        this.presentationTime = Hl7Value.unknown();
+        this.admissionTime = InterchangeValue.unknown();
+        this.presentationTime = InterchangeValue.unknown();
         this.dischargeTime = null;
-        this.patientAlive = new Hl7Value<>(true);
-        this.deathTime = Hl7Value.unknown();
+        this.patientAlive = new InterchangeValue<>(true);
+        this.deathTime = InterchangeValue.unknown();
         dischargeDisposition = "Peachy";
         dischargeLocation = "Home";
     }
@@ -201,8 +201,8 @@ public abstract class MessageStreamBaseCase {
      *
      * @return Current location.
      */
-    protected Hl7Value<String> currentLocation() {
-        return new Hl7Value<>(this.allLocations[this.currentLocation]);
+    protected InterchangeValue<String> currentLocation() {
+        return new InterchangeValue<>(this.allLocations[this.currentLocation]);
     }
 
     /**
@@ -249,9 +249,9 @@ public abstract class MessageStreamBaseCase {
      *
      * @return A location.
      */
-    protected Hl7Value<String> previousLocation() {
+    protected InterchangeValue<String> previousLocation() {
         this.backLocation();
-        return new Hl7Value<>(allLocations[currentLocation]);
+        return new InterchangeValue<>(allLocations[currentLocation]);
     }
 
     /**
@@ -271,7 +271,7 @@ public abstract class MessageStreamBaseCase {
      */
     protected void ensureAdmitted() {
         if (this.admissionTime.isUnknown()) {
-            this.admissionTime = new Hl7Value<>(this.nextTime());
+            this.admissionTime = new InterchangeValue<>(this.nextTime());
         }
     }
 
@@ -287,8 +287,8 @@ public abstract class MessageStreamBaseCase {
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
         vital.setFlowsheetId("HEART_RATE");
-        vital.setNumericValue(Hl7Value.buildFromHl7(vitalReading));
-        vital.setUnit(Hl7Value.buildFromHl7("/min"));
+        vital.setNumericValue(InterchangeValue.buildFromHl7(vitalReading));
+        vital.setUnit(InterchangeValue.buildFromHl7("/min"));
         vital.setObservationTime(vitalTime);
         vital.setUpdatedTime(vitalTime);
         vital.setIsNumericType(true);
@@ -304,7 +304,7 @@ public abstract class MessageStreamBaseCase {
      *
      * @param patientClass the patient class to set
      */
-    public void queueUpdatePatientDetails(Hl7Value<PatientClass> patientClass) {
+    public void queueUpdatePatientDetails(InterchangeValue<PatientClass> patientClass) {
         boolean impliedTransfer = this.transferTime.isEmpty();
 
         // clock must be changed before anything which might cause a change
@@ -325,7 +325,7 @@ public abstract class MessageStreamBaseCase {
         update.setPatientGivenName(this.fName);
         update.setPatientMiddleName(this.mName);
         update.setPatientFamilyName(this.lName);
-        update.setFullLocationString(new Hl7Value<>(allLocations[this.currentLocation]));
+        update.setFullLocationString(new InterchangeValue<>(allLocations[this.currentLocation]));
         update.setPatientClass(this.patientClass);
         update.setPatientIsAlive(this.patientAlive);
         update.setPatientDeathDateTime(this.deathTime);
@@ -357,7 +357,7 @@ public abstract class MessageStreamBaseCase {
      *                     location.
      * @param patientClass the patient class for this admit.
      */
-    public void queueAdmit(boolean transfer, Hl7Value<PatientClass> patientClass) {
+    public void queueAdmit(boolean transfer, InterchangeValue<PatientClass> patientClass) {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
@@ -365,7 +365,7 @@ public abstract class MessageStreamBaseCase {
             this.transferTime.add(eventTime);
         }
         if (this.admissionTime.isUnknown()) {
-            this.admissionTime = new Hl7Value<Instant>(eventTime);
+            this.admissionTime = new InterchangeValue<Instant>(eventTime);
         }
         if (transfer) {
             this.stepLocation();
@@ -393,7 +393,7 @@ public abstract class MessageStreamBaseCase {
      *
      * @param patientClass the patient class for this registration.
      */
-    public void queueRegister(Hl7Value<PatientClass> patientClass) {
+    public void queueRegister(InterchangeValue<PatientClass> patientClass) {
         Instant eventTime = this.nextTime();
         setPatientClass(patientClass, eventTime);
 
@@ -401,7 +401,7 @@ public abstract class MessageStreamBaseCase {
             this.transferTime.add(eventTime);
         }
         if (this.presentationTime.isUnknown()) {
-            this.presentationTime = new Hl7Value<Instant>(eventTime);
+            this.presentationTime = new InterchangeValue<Instant>(eventTime);
         }
 
         RegisterPatient register = new RegisterPatient();
@@ -444,17 +444,17 @@ public abstract class MessageStreamBaseCase {
      * @param updateLocation if false the patient location will not be advanced.
      * @param patientClass   The patient class for the transfered patient
      */
-    public void queueTransfer(boolean updateLocation, Hl7Value<PatientClass> patientClass) {
+    public void queueTransfer(boolean updateLocation, InterchangeValue<PatientClass> patientClass) {
         this.ensureAdmitted();
 
         // Handle non-moving update
-        Hl7Value<String> location;
+        InterchangeValue<String> location;
 
         Instant tTime = this.nextTime();
         setPatientClass(patientClass, tTime);
 
         if (updateLocation) {
-            location = new Hl7Value<>(nextLocation());
+            location = new InterchangeValue<>(nextLocation());
             this.transferTime.add(tTime);
         } else {
             location = currentLocation();
@@ -616,7 +616,7 @@ public abstract class MessageStreamBaseCase {
     /**
      * @return the patientClass
      */
-    public Hl7Value<PatientClass> getPatientClass() {
+    public InterchangeValue<PatientClass> getPatientClass() {
         return patientClass;
     }
 
@@ -627,7 +627,7 @@ public abstract class MessageStreamBaseCase {
      * @param patientClass the patientClass to set
      * @param eventTime    the current event time
      */
-    protected void setPatientClass(Hl7Value<PatientClass> patientClass, Instant eventTime) {
+    protected void setPatientClass(InterchangeValue<PatientClass> patientClass, Instant eventTime) {
         // Ignore not real changes.
         if (patientClass.equals(this.patientClass)) {
             return;
