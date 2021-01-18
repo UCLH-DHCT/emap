@@ -8,31 +8,31 @@ visitNumber: "123412341234"
 mrn: "60600000"
 nhsNumber: "1111111111"
 fullLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "T42E^T42E BY02^BY02-17"
   status: "SAVE"
 patientBirthDate:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   # Explicitly set as midnight in BST so should go back an hour.
   value: "2000-06-01T23:00:00Z"
   status: "SAVE"
 patientClass:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "INPATIENT"
   status: "SAVE"
 patientIsAlive:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: true
   status: "SAVE"
 patientFamilyName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "ORANGE"
   status: "SAVE"
 patientGivenName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value:  "BLOOD"
   status: "SAVE"
 patientSex:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "F"
   status: "SAVE"

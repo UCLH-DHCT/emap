@@ -9,34 +9,34 @@ visitNumber: "123412341234"
 cancelledDateTime: "2013-02-11T10:01:52Z"
 cancelledLocation: "THP3^UCHP03THR POOL01^THR"
 fullLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "T11E^T11E BY02^BY02-25"
   status: "SAVE"
 previousLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "THP3^UCHP03THR POOL01^THR"
 patientBirthDate:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "1980-01-01T00:00:00Z"
   status: "SAVE"
 patientClass:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "DAY_CASE"
   status: "SAVE"
 patientIsAlive:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: true
   status: "SAVE"
 patientFamilyName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "ORANGE"
   status: "SAVE"
 patientGivenName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value:  "BLOOD"
   status: "SAVE"
 patientSex:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "F"
   status: "SAVE"

@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 /**
  * Swap two patients' locations.
@@ -23,7 +23,7 @@ public class SwapLocations extends AdtMessage {
     private String otherMrn;
     private String otherNhsNumber;
     private String otherVisitNumber;
-    private Hl7Value<String> otherFullLocationString = Hl7Value.unknown();
+    private InterchangeValue<String> otherFullLocationString = InterchangeValue.unknown();
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {

@@ -7,30 +7,30 @@ mrn: "40800000"
 nhsNumber: "9999999999"
 visitNumber: "123412341234"
 modeOfArrival:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "Ambulance"
 fullLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "ED^UCHED RAT CHAIR^RAT-CHAIR"
   status: "SAVE"
 patientClass:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "EMERGENCY"
 patientIsAlive:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: true
 patientFamilyName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "ORANGE"
 patientGivenName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "BLOOD"
 patientSex:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "F"

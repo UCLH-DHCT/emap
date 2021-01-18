@@ -10,30 +10,30 @@ dischargeDateTime: "2013-02-11T15:00:52Z"
 dischargeDisposition: "Feeling great"
 dischargeLocation: "Home"
 admissionDateTime:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "2013-02-11T13:00:52Z"
 fullLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
 patientClass:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "INPATIENT"
 patientIsAlive:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: true
 patientFamilyName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "ORANGE"
 patientGivenName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "BLOOD"
 patientSex:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "F"

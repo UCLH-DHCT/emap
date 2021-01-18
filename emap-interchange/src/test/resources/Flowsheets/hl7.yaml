@@ -2,59 +2,59 @@
   flowsheetId: "5"
   isNumericType: false
   stringValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "140/90"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "6"
   isNumericType: true
   numericValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 102.2
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "8"
   isNumericType: true
   numericValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 90.0
   comment:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "patient was running really fast (on a hamster wheel)"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "10"
   isNumericType: true
   numericValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 95.0
   comment:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "comment 1a\ncomment 1b\ncomment 2"
   unit:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "%"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "6466"
   isNumericType: false
   stringValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "A"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "28315"
   isNumericType: false
   stringValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "DELETE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.Flowsheet"
   flowsheetId: "3040109304"
   isNumericType: false
   stringValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Supplemental Oxygen\nextra line"

@@ -1,6 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.adt;
 
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
 
@@ -13,7 +13,7 @@ import java.time.Instant;
  * A04 uses it for presentation time.
  */
 public interface AdmissionDateTime {
-    Hl7Value<Instant> getAdmissionDateTime();
+    InterchangeValue<Instant> getAdmissionDateTime();
 
-    void setAdmissionDateTime(Hl7Value<Instant> admissionDateTime);
+    void setAdmissionDateTime(InterchangeValue<Instant> admissionDateTime);
 }

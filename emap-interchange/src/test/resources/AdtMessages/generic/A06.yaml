@@ -7,50 +7,50 @@ sourceSystem: "EPIC"
 mrn: "A/AA1111"
 nhsNumber: "9999999999"
 admissionDateTime:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "2020-04-01T18:30:00Z"
 modeOfArrival:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "Public Trans"
 fullLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "T06C^T06C SR41^SR41-41"
 previousLocationString:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "ED^UCHED OTF POOL^OTF"
 patientBirthDate:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "2001-01-01T00:00:00Z"
 patientClass:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "INPATIENT"
 patientIsAlive:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: true
 patientFamilyName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "AAA"
 patientGivenName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "BBB"
 patientMiddleName:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "C"
 patientSex:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "M"
 patientTitle:
-  "@class": "uk.ac.ucl.rits.inform.interchange.Hl7Value"
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "MR."
