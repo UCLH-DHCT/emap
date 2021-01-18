@@ -16,13 +16,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 
 /**
@@ -65,9 +64,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private final int                noDemoEndIndex = 0;
 
     @SuppressWarnings("unchecked")
-    private Hl7Value<PatientClass>[] patientClass   = new Hl7Value[] { new Hl7Value<>(PatientClass.EMERGENCY),
-            new Hl7Value<>(PatientClass.OUTPATIENT), new Hl7Value<>(PatientClass.INPATIENT),
-            new Hl7Value<>(PatientClass.DAY_CASE), new Hl7Value<>(PatientClass.SURGICAL_ADMISSION) };
+    private InterchangeValue<PatientClass>[] patientClass   = new InterchangeValue[] { new InterchangeValue<>(PatientClass.EMERGENCY),
+            new InterchangeValue<>(PatientClass.OUTPATIENT), new InterchangeValue<>(PatientClass.INPATIENT),
+            new InterchangeValue<>(PatientClass.DAY_CASE), new InterchangeValue<>(PatientClass.SURGICAL_ADMISSION) };
     private int                      currentClass;
 
     /**

@@ -15,7 +15,7 @@ import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.util.List;
 import java.util.Optional;
@@ -164,7 +164,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // process flowsheet with delete numeric value
         Flowsheet msg = messages.get(2);
-        msg.setNumericValue(Hl7Value.delete());
+        msg.setNumericValue(InterchangeValue.delete());
         processSingleMessage(msg);
 
         // visit observation now does not exist
