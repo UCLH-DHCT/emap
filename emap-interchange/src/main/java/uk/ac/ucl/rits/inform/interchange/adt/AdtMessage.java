@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
 
@@ -26,22 +26,22 @@ public abstract class AdtMessage extends EmapOperationMessage {
     private String mrn;
     private String nhsNumber;
     private String visitNumber;
-    private Hl7Value<String> modeOfArrival = Hl7Value.unknown();
-    private Hl7Value<String> ethnicGroup = Hl7Value.unknown();
-    private Hl7Value<String> fullLocationString = Hl7Value.unknown();
-    private Hl7Value<String> previousLocationString = Hl7Value.unknown();
-    private Hl7Value<Instant> patientBirthDate = Hl7Value.unknown();
-    private Hl7Value<PatientClass> patientClass = Hl7Value.unknown();
-    private Hl7Value<Instant> patientDeathDateTime = Hl7Value.unknown();
-    private Hl7Value<Boolean> patientIsAlive = Hl7Value.unknown();
+    private InterchangeValue<String> modeOfArrival = InterchangeValue.unknown();
+    private InterchangeValue<String> ethnicGroup = InterchangeValue.unknown();
+    private InterchangeValue<String> fullLocationString = InterchangeValue.unknown();
+    private InterchangeValue<String> previousLocationString = InterchangeValue.unknown();
+    private InterchangeValue<Instant> patientBirthDate = InterchangeValue.unknown();
+    private InterchangeValue<PatientClass> patientClass = InterchangeValue.unknown();
+    private InterchangeValue<Instant> patientDeathDateTime = InterchangeValue.unknown();
+    private InterchangeValue<Boolean> patientIsAlive = InterchangeValue.unknown();
 
-    private Hl7Value<String> patientFamilyName = Hl7Value.unknown();
-    private Hl7Value<String> patientGivenName = Hl7Value.unknown();
-    private Hl7Value<String> patientMiddleName = Hl7Value.unknown();
-    private Hl7Value<String> patientReligion = Hl7Value.unknown();
-    private Hl7Value<String> patientSex = Hl7Value.unknown();
-    private Hl7Value<String> patientTitle = Hl7Value.unknown();
-    private Hl7Value<String> patientZipOrPostalCode = Hl7Value.unknown();
+    private InterchangeValue<String> patientFamilyName = InterchangeValue.unknown();
+    private InterchangeValue<String> patientGivenName = InterchangeValue.unknown();
+    private InterchangeValue<String> patientMiddleName = InterchangeValue.unknown();
+    private InterchangeValue<String> patientReligion = InterchangeValue.unknown();
+    private InterchangeValue<String> patientSex = InterchangeValue.unknown();
+    private InterchangeValue<String> patientTitle = InterchangeValue.unknown();
+    private InterchangeValue<String> patientZipOrPostalCode = InterchangeValue.unknown();
 
 
     /**
