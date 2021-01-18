@@ -142,7 +142,7 @@ public class LabResultBuilder {
     }
 
     /**
-     * Set numeric value and result operator (if required)
+     * Set numeric value and result operator (if required).
      * @param inputValue string value
      */
     private void setNumericValueAndResultOperator(String inputValue) {
@@ -207,16 +207,16 @@ public class LabResultBuilder {
     /**
      * Merge another lab result into this one.
      * Eg. an adjacent OBX segment that is linked by a sub ID.
-     * @param LabResultMsg the other lab result to merge in
+     * @param labResultMsg the other lab result to merge in
      */
-    public void mergeResult(LabResultMsg LabResultMsg) {
+    public void mergeResult(LabResultMsg labResultMsg) {
         // Will need to identify HOW to merge results.
         // Eg. identify that LabResultMsg contains an isolate,
         // so only copy the isolate fields from it.
-        if (!LabResultMsg.getIsolateLocalCode().isEmpty()) {
-            msg.setIsolateLocalCode(LabResultMsg.getIsolateLocalCode());
-            msg.setIsolateLocalDescription(LabResultMsg.getIsolateLocalDescription());
-            msg.setIsolateCodingSystem(LabResultMsg.getIsolateCodingSystem());
+        if (!labResultMsg.getIsolateLocalCode().isEmpty()) {
+            msg.setIsolateLocalCode(labResultMsg.getIsolateLocalCode());
+            msg.setIsolateLocalDescription(labResultMsg.getIsolateLocalDescription());
+            msg.setIsolateCodingSystem(labResultMsg.getIsolateCodingSystem());
         }
     }
 }
