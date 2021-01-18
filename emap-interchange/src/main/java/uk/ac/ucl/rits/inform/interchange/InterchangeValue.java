@@ -9,12 +9,12 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Wrapper for data in hl7 fields that can either be unknown or known.
- * @param <T> HL7 field data type.
+ * Wrapper for data in interchange fields that can either be unknown or known.
+ * @param <T> Interchange field data type.
  */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class Hl7Value<T> implements Serializable {
+public class InterchangeValue<T> implements Serializable {
     private static final long serialVersionUID = -8863675097743487929L;
     private T value;
     private ResultStatus status;
@@ -22,15 +22,15 @@ public class Hl7Value<T> implements Serializable {
     /**
      * Default constructor for serialisation.
      */
-    public Hl7Value() {
+    public InterchangeValue() {
     }
 
     /**
      * @param status status to set.
      */
-    private Hl7Value(ResultStatus status) {
+    private InterchangeValue(ResultStatus status) {
         if (status == ResultStatus.SAVE) {
-            throw new IllegalArgumentException("Hl7Value with no value set cannot have a status of SAVE");
+            throw new IllegalArgumentException("InterchangeValue with no value set cannot have a status of SAVE");
         }
         this.status = status;
     }
@@ -38,34 +38,34 @@ public class Hl7Value<T> implements Serializable {
     /**
      * Create an unknown Value.
      * @param <T> value type
-     * @return Hl7Value of unknown data
+     * @return InterchangeValue of unknown data
      */
-    public static <T> Hl7Value<T> unknown() {
-        return new Hl7Value<T>(ResultStatus.IGNORE);
+    public static <T> InterchangeValue<T> unknown() {
+        return new InterchangeValue<T>(ResultStatus.IGNORE);
     }
 
     /**
      * Create a delete value.
      * @param <T> value type
-     * @return Hl7Value of unknown data
+     * @return InterchangeValue of unknown data
      */
-    public static <T> Hl7Value<T> delete() {
-        return new Hl7Value<T>(ResultStatus.DELETE);
+    public static <T> InterchangeValue<T> delete() {
+        return new InterchangeValue<T>(ResultStatus.DELETE);
     }
 
     /**
-     * Builds HL7Value class from hl7 field value.
+     * Builds InterchangeValue class from hl7 value.
      * @param hl7Value value from HL7 message
      * @param <T>      type of the value
-     * @return Hl7Value class set with the correct status and data.
+     * @return InterchangeValue class set with the correct status and data.
      */
-    public static <T> Hl7Value<T> buildFromHl7(T hl7Value) {
+    public static <T> InterchangeValue<T> buildFromHl7(T hl7Value) {
         if (hl7Value == null || hl7Value.equals("")) {
             return unknown();
         } else if (hl7Value.equals("\"\"")) {
             return delete();
         }
-        return new Hl7Value<>(hl7Value);
+        return new InterchangeValue<>(hl7Value);
     }
 
 
@@ -73,9 +73,9 @@ public class Hl7Value<T> implements Serializable {
      * Construct with a known value.
      * @param value of the field, cannot be null
      */
-    public Hl7Value(T value) {
+    public InterchangeValue(T value) {
         if (value == null) {
-            throw new IllegalStateException("Hl7Value with a status of SAVE can't have a null value set");
+            throw new IllegalStateException("InterchangeValue with a status of SAVE can't have a null value set");
         }
         this.value = value;
         status = ResultStatus.SAVE;
@@ -86,7 +86,7 @@ public class Hl7Value<T> implements Serializable {
      */
     public T get() {
         if (status == ResultStatus.IGNORE) {
-            throw new IllegalStateException("Hl7Value get method shouldn't be called when the result is unknown");
+            throw new IllegalStateException("InterchangeValue get method shouldn't be called when the result is unknown");
         }
         return value;
     }
@@ -135,9 +135,9 @@ public class Hl7Value<T> implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Hl7Value<?> hl7Value = (Hl7Value<?>) o;
-        return Objects.equals(value, hl7Value.value)
-                && status == hl7Value.status;
+        InterchangeValue<?> interchangeValue = (InterchangeValue<?>) o;
+        return Objects.equals(value, interchangeValue.value)
+                && status == interchangeValue.status;
     }
 
     @Override
@@ -147,6 +147,6 @@ public class Hl7Value<T> implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Hl7Value{value=%s, status=%s}", value, status);
+        return String.format("InterchangeValue{value=%s, status=%s}", value, status);
     }
 }

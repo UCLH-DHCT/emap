@@ -40,22 +40,22 @@ public class Flowsheet extends EmapOperationMessage {
     /**
      * Numeric value.
      */
-    private Hl7Value<Double> numericValue = Hl7Value.unknown();
+    private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
 
     /**
      * String value.
      */
-    private Hl7Value<String> stringValue = Hl7Value.unknown();
+    private InterchangeValue<String> stringValue = InterchangeValue.unknown();
 
     /**
      * Comment.
      */
-    private Hl7Value<String> comment = Hl7Value.unknown();
+    private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
      * Unit of numeric value.
      */
-    private Hl7Value<String> unit = Hl7Value.unknown();
+    private InterchangeValue<String> unit = InterchangeValue.unknown();
 
     /**
      * Time of the observation.

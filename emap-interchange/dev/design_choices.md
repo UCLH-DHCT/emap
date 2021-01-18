@@ -32,7 +32,7 @@ The Java Optional class is pretty close to what we are looking for.
 - A lot of extra functionality that isn't required
 
 
-### Custom Hl7Value<> wrapper class
+### Custom InterchangeValue<> wrapper class
 
 Create custom wrapper class for values. Storing the expected outcome (save, delete or ignore) and the value.
 Build method from HL7 value would instantiate the wrapper with the correct data. 
@@ -50,7 +50,7 @@ Build method from HL7 value would instantiate the wrapper with the correct data.
 
 ## Decision
 
-*Custom Hl7Value<> wrapper class*: created an HL7Value wrapper class to ensure the expected outcome of HL7 message.
+*Custom InterchangeValue<> wrapper class*: created an InterchangeValue wrapper class to ensure the expected outcome of HL7 message.
 
 ## Consequences
 
