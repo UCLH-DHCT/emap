@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
@@ -149,7 +149,7 @@ public class TestAdtVarious extends TestHl7MessageStream {
      */
     @Test
     public void testNoTimeOfDeath() {
-        assertEquals(Hl7Value.unknown(), msg.getPatientDeathDateTime());
+        assertEquals(InterchangeValue.unknown(), msg.getPatientDeathDateTime());
     }
 
     /**

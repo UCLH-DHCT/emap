@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 
@@ -26,7 +26,7 @@ public class TestAdtDeath3 extends TestHl7MessageStream {
 
     @Test
     public void testTimeOfDeath()  {
-        assertEquals(Hl7Value.unknown(), msg.getPatientDeathDateTime());
+        assertEquals(InterchangeValue.unknown(), msg.getPatientDeathDateTime());
     }
 
     @Test
