@@ -48,6 +48,12 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     private String resultAsText;
     private Double resultAsReal;
 
+    /**
+     * For numeric results, defines the operator used to define the value.
+     *
+     * For example an estimated GFR is given as `>90`, this would have a valueAsReal of `90` and a numeric operator of `>`
+     * Most of the time, values are precise so have a `=` result operator
+     */
     private String resultOperator;
     private Double rangeHigh;
     private Double rangeLow;
@@ -70,6 +76,12 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.rangeHigh = other.rangeHigh;
         this.rangeLow = other.rangeLow;
         this.comment = other.comment;
+    }
+
+    public LabResult(LabNumber labNumberId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime)  {
+        this.labNumberId = labNumberId;
+        this.labTestDefinitionId = labTestDefinitionId;
+        this.resultLastModifiedTime = resultLastModifiedTime;
     }
 
     @Override
