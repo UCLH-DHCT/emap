@@ -125,15 +125,7 @@ public class LabResultBuilder {
             msg.setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
             msg.setIsolateLocalDescription(ceData.getCe2_Text().getValue());
             msg.setIsolateCodingSystem(ceData.getCe3_NameOfCodingSystem().getValue());
-            if (msg.getIsolateLocalCode() == null) {
-                msg.setIsolateLocalCode("");
-            }
-            if (msg.getIsolateLocalDescription() == null) {
-                msg.setIsolateLocalDescription("");
-            }
-            if (msg.getIsolateCodingSystem() == null) {
-                msg.setIsolateCodingSystem("");
-            }
+
         }
         // also need to handle case where (data instanceof ED)
 
