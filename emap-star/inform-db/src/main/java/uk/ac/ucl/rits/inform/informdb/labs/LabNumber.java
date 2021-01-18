@@ -19,6 +19,7 @@ import java.time.Instant;
  * often done externally, there is separate fields to track the lab number from
  * the point of view of the EHR compared to the system processing the lab.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
 @Entity
 @Data

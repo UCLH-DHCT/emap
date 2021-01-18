@@ -18,6 +18,7 @@ import java.time.Instant;
  * individual test may feature more than once in this table, where there is more
  * than one lab provider that supplies it.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
 @SuppressWarnings("serial")
 @Entity

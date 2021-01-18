@@ -20,6 +20,7 @@ import java.time.Instant;
  * A LabOrder contains the details of the request to perform a lab. A given
  * LabNumber may have multiple LabOrders.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
 @SuppressWarnings("serial")
 @Entity

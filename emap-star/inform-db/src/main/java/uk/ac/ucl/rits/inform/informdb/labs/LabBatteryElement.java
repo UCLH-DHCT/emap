@@ -19,6 +19,7 @@ import java.time.Instant;
  * This represents all the different batteries of test that can be ordered, and
  * what we know about which constituent tests make them up.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
 @SuppressWarnings("serial")
 @Entity

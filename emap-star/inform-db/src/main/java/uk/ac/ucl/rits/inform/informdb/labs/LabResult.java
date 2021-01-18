@@ -19,6 +19,7 @@ import java.time.Instant;
  * A LabResult is a single component result of a lab. A single order or sample
  * is likely to produce several results.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
 @SuppressWarnings("serial")
 @Entity
