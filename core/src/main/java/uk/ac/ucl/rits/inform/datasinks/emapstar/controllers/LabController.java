@@ -174,6 +174,7 @@ public class LabController {
 //        resultState.assignHl7ValueIfDifferent(resultMsg.getAbnormalFlags(), labResult.getAbnormal(), labResult::setComment);
         // result operator needs to be added to HL7
         resultState.assignHl7ValueIfDifferent(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
+        resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
 
 
         if (resultState.isEntityUpdated()) {
