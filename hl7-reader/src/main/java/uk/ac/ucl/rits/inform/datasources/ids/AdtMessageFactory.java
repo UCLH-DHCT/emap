@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -91,42 +91,42 @@ public class AdtMessageFactory {
         msg.setRecordedDateTime(patientInfoHl7.getMessageTimestamp());
         if (patientInfoHl7.pv1SegmentExists()) {
             // will we want demographics to be included in lab messages too?
-            msg.setFullLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getFullLocationString()));
-            msg.setPreviousLocationString(Hl7Value.buildFromHl7(patientInfoHl7.getPreviousLocation()));
+            msg.setFullLocationString(InterchangeValue.buildFromHl7(patientInfoHl7.getFullLocationString()));
+            msg.setPreviousLocationString(InterchangeValue.buildFromHl7(patientInfoHl7.getPreviousLocation()));
             try {
-                msg.setPatientClass(Hl7Value.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
+                msg.setPatientClass(InterchangeValue.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
             } catch (IllegalArgumentException e) {
                 throw new HL7Exception("Patient class was not recognised", e);
             }
             msg.setVisitNumber(patientInfoHl7.getVisitNumber());
         }
         if (patientInfoHl7.pv2SegmentExists()) {
-            msg.setModeOfArrival(Hl7Value.buildFromHl7(patientInfoHl7.getModeOfArrivalCode()));
+            msg.setModeOfArrival(InterchangeValue.buildFromHl7(patientInfoHl7.getModeOfArrivalCode()));
         }
         if (patientInfoHl7.pidSegmentExists()) {
-            msg.setEthnicGroup(Hl7Value.buildFromHl7(patientInfoHl7.getEthnicGroup()));
+            msg.setEthnicGroup(InterchangeValue.buildFromHl7(patientInfoHl7.getEthnicGroup()));
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
-            msg.setPatientBirthDate(Hl7Value.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
+            msg.setPatientBirthDate(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
 
             // Despite what the HL7 spec hints at, this death information can occur
             // in any message, not just A03
             String hl7DeathIndicator = patientInfoHl7.getPatientDeathIndicator();
             if ("Y".equals(hl7DeathIndicator)) {
-                msg.setPatientIsAlive(new Hl7Value<>(false));
+                msg.setPatientIsAlive(new InterchangeValue<>(false));
             } else if ("N".equals(hl7DeathIndicator)) {
-                msg.setPatientIsAlive(new Hl7Value<>(true));
+                msg.setPatientIsAlive(new InterchangeValue<>(true));
             }
             // set the death time even if indicator says they're not dead (it happens...)
-            msg.setPatientDeathDateTime(Hl7Value.buildFromHl7(patientInfoHl7.getPatientDeathDateTime()));
+            msg.setPatientDeathDateTime(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientDeathDateTime()));
 
-            msg.setPatientFamilyName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientFamilyName()));
-            msg.setPatientGivenName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientGivenName()));
-            msg.setPatientMiddleName(Hl7Value.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
-            msg.setPatientReligion(Hl7Value.buildFromHl7(patientInfoHl7.getPatientReligion()));
-            msg.setPatientSex(Hl7Value.buildFromHl7(patientInfoHl7.getPatientSex()));
-            msg.setPatientTitle(Hl7Value.buildFromHl7(patientInfoHl7.getPatientTitle()));
-            msg.setPatientZipOrPostalCode(Hl7Value.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
+            msg.setPatientFamilyName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientFamilyName()));
+            msg.setPatientGivenName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientGivenName()));
+            msg.setPatientMiddleName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
+            msg.setPatientReligion(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientReligion()));
+            msg.setPatientSex(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientSex()));
+            msg.setPatientTitle(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientTitle()));
+            msg.setPatientZipOrPostalCode(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
         }
         if (null != evn) {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
@@ -165,19 +165,19 @@ public class AdtMessageFactory {
         switch (triggerEvent) {
             case "A01":
                 AdmitPatient admitPatient = new AdmitPatient();
-                admitPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
+                admitPatient.setAdmissionDateTime(InterchangeValue.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = admitPatient;
                 break;
             case "A02":
             case "A06":
             case "A07":
                 TransferPatient transferPatient = new TransferPatient();
-                transferPatient.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
+                transferPatient.setAdmissionDateTime(InterchangeValue.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = transferPatient;
                 break;
             case "A03":
                 DischargePatient dischargeMsg = new DischargePatient();
-                dischargeMsg.setAdmissionDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
+                dischargeMsg.setAdmissionDateTime(InterchangeValue.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 dischargeMsg.setDischargeDateTime(pv1Wrap.getDischargeDateTime());
                 dischargeMsg.setDischargeDisposition(pv1Wrap.getDischargeDisposition());
                 dischargeMsg.setDischargeLocation(pv1Wrap.getDischargeLocation());
@@ -188,7 +188,7 @@ public class AdtMessageFactory {
                     throw new Hl7MessageNotImplementedException("ENC_CREATE not implemented");
                 }
                 RegisterPatient registerPatient = new RegisterPatient();
-                registerPatient.setPresentationDateTime(Hl7Value.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
+                registerPatient.setPresentationDateTime(InterchangeValue.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = registerPatient;
                 break;
             // We are receiving A05 and A14, A38 messages but not doing any scheduling yet
@@ -265,7 +265,7 @@ public class AdtMessageFactory {
         PatientInfoHl7 otherPatientInfo = new PatientInfoHl7(null, pid, pv1, null);
         SwapLocations msg = new SwapLocations();
         msg.setOtherVisitNumber(otherPatientInfo.getVisitNumber());
-        msg.setOtherFullLocationString(Hl7Value.buildFromHl7(otherPatientInfo.getFullLocationString()));
+        msg.setOtherFullLocationString(InterchangeValue.buildFromHl7(otherPatientInfo.getFullLocationString()));
 
         msg.setOtherMrn(otherPatientInfo.getMrn());
         msg.setOtherNhsNumber(otherPatientInfo.getNHSNumber());

@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -96,8 +96,8 @@ public class TestFlowsheetFactory {
     @Test
     public void testResultStatusDtoDelete() {
         // result status is 'D' so should be converted to DELETE
-        Hl7Value<Double> numericValue = flowsheets.get(5).getNumericValue();
-        Hl7Value<String> stringValue = flowsheets.get(5).getStringValue();
+        InterchangeValue<Double> numericValue = flowsheets.get(5).getNumericValue();
+        InterchangeValue<String> stringValue = flowsheets.get(5).getStringValue();
 
         Assertions.assertTrue(numericValue.isUnknown());
         Assertions.assertTrue(stringValue.isDelete());
