@@ -33,7 +33,8 @@ public class LabResultMsg implements Serializable {
     private String isolateCodingSystem = "";
 
     private Hl7Value<String> units = Hl7Value.unknown();
-    private Hl7Value<String> referenceRange = Hl7Value.unknown();
+    private Hl7Value<Double> referenceLow = Hl7Value.unknown();
+    private Hl7Value<Double> referenceHigh = Hl7Value.unknown();
     private Hl7Value<String> abnormalFlags = Hl7Value.unknown();
     private String resultStatus;
 
