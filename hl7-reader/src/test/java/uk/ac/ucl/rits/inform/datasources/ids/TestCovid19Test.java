@@ -25,7 +25,7 @@ public class TestCovid19Test extends TestHl7MessageStream {
 
     @BeforeEach
     public void setup() throws Exception {
-        List<LabOrderMsg> msgs = processSingleLabOrderMsgMessage("LabOrderMsgs/covid19test.txt");
+        List<LabOrderMsg> msgs = processSingleLabOrderMsgMessage("LabOrders/covid19test.txt");
         assertEquals(1, msgs.size());
         msg = msgs.get(0);
     }
