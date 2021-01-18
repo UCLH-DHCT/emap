@@ -58,6 +58,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     private Double rangeHigh;
     private Double rangeLow;
     private String resultStatus;
+    private String units;
 
     private String comment;
 
