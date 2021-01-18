@@ -36,6 +36,7 @@ public class LabResultMsg implements Serializable {
     private Hl7Value<Double> referenceLow = Hl7Value.unknown();
     private Hl7Value<Double> referenceHigh = Hl7Value.unknown();
     private Hl7Value<String> abnormalFlags = Hl7Value.unknown();
+    private Hl7Value<String> resultOperator = Hl7Value.unknown();
     private String resultStatus;
 
     private Instant resultTime;
@@ -49,8 +50,22 @@ public class LabResultMsg implements Serializable {
 
     private String epicCareOrderNumber;
 
-    public boolean isAbnormal(){
+    public boolean isAbnormal() {
         return abnormalFlags.isSave();
+    }
+
+    /**
+     * @return true if the type of result is numeric
+     */
+    public boolean isNumeric() {
+        return "NM".equals(valueType) || "SN".equals(valueType);
+    }
+
+    /**
+     * @return true if the type of result is text
+     */
+    public boolean isText() {
+        return "ST".equals(valueType) || "TX".equals(valueType) || "FT".equals(valueType);
     }
 
 }
