@@ -634,7 +634,11 @@
       valueType: "NM"
       testItemLocalCode: "NE"
       testItemLocalDescription: "Neutrophils"
-      stringValue: "41.5%  3.02"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 3.02
+      stringValue: "3.02"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -651,7 +655,11 @@
       valueType: "NM"
       testItemLocalCode: "LY"
       testItemLocalDescription: "Lymphocytes"
-      stringValue: "44.9%  3.27"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 3.27
+      stringValue: "3.27"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -668,7 +676,11 @@
       valueType: "NM"
       testItemLocalCode: "MO"
       testItemLocalDescription: "Monocytes"
-      stringValue: "7.8%  0.57"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0.57
+      stringValue: "0.57"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -685,7 +697,11 @@
       valueType: "NM"
       testItemLocalCode: "EO"
       testItemLocalDescription: "Eosinophils"
-      stringValue: "5.4%  0.39"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0.39
+      stringValue: "0.39"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -702,7 +718,11 @@
       valueType: "NM"
       testItemLocalCode: "BA"
       testItemLocalDescription: "Basophils"
-      stringValue: "0.4%  0.03"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0.03
+      stringValue: "0.03"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
