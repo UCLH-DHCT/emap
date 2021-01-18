@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
-import uk.ac.ucl.rits.inform.interchange.Hl7Value;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -128,13 +128,13 @@ public class FlowsheetFactory {
 
         if (!notes.isEmpty()) {
             String comment = getComments(notes);
-            flowsheet.setComment(Hl7Value.buildFromHl7(comment));
+            flowsheet.setComment(InterchangeValue.buildFromHl7(comment));
         }
         if (flowsheet.getComment().isUnknown() && flowsheet.getStringValue().isUnknown() && flowsheet.getNumericValue().isUnknown()) {
             throw new Hl7InconsistencyException(String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
         }
 
-        flowsheet.setUnit(Hl7Value.buildFromHl7(getUnits(obx)));
+        flowsheet.setUnit(InterchangeValue.buildFromHl7(getUnits(obx)));
         flowsheet.setObservationTime(HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation()));
         return flowsheet;
     }
@@ -173,10 +173,10 @@ public class FlowsheetFactory {
         if (singularData instanceof NM) {
             flowsheet.setIsNumericType(true);
             if ("D".equals(resultStatus)) {
-                flowsheet.setNumericValue(Hl7Value.delete());
+                flowsheet.setNumericValue(InterchangeValue.delete());
             } else {
                 try {
-                    flowsheet.setNumericValue(Hl7Value.buildFromHl7(Double.parseDouble(value)));
+                    flowsheet.setNumericValue(InterchangeValue.buildFromHl7(Double.parseDouble(value)));
                 } catch (NumberFormatException e) {
                     throw new Hl7InconsistencyException(
                             String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
@@ -185,10 +185,10 @@ public class FlowsheetFactory {
         } else if (singularData instanceof ST) {
             flowsheet.setIsNumericType(false);
             if ("D".equals(resultStatus)) {
-                flowsheet.setStringValue(Hl7Value.delete());
+                flowsheet.setStringValue(InterchangeValue.delete());
             } else if (!value.isEmpty()) {
                 String stringValue = getStringValue(obx);
-                flowsheet.setStringValue(Hl7Value.buildFromHl7(stringValue.trim()));
+                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
             }
         } else {
             throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM or ST)");
