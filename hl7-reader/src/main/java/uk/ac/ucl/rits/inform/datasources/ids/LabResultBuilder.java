@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -189,10 +190,9 @@ public class LabResultBuilder {
      * @param notes all NTE segments for the observation
      */
     private void populateNotes(List<NTE> notes) {
-        List<String> allNotes = new ArrayList<>();
+        Collection<String> allNotes = new ArrayList<>(notes.size());
         for (NTE nt : notes) {
-            FT[] fts = nt.getNte3_Comment();
-            for (FT ft : fts) {
+            for (FT ft : nt.getNte3_Comment()) {
                 allNotes.add(ft.getValueOrEmpty());
             }
         }
@@ -206,7 +206,7 @@ public class LabResultBuilder {
      */
     public boolean isIgnorable() {
         // this will need expanding as we discover new cases
-        if (msg.getStringValue().equals("URINE CULTURE REPORT") || msg.getStringValue().equals("FLUID CULTURE REPORT")) {
+        if ("URINE CULTURE REPORT".equals(msg.getStringValue()) || "FLUID CULTURE REPORT".equals(msg.getStringValue())) {
             return true;
         }
         String pattern = "COMPLETE: \\d\\d/\\d\\d/\\d\\d";
