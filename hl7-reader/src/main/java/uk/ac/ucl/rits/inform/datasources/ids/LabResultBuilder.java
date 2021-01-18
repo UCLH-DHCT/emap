@@ -88,24 +88,7 @@ public class LabResultBuilder {
                 || data instanceof FT
                 || data instanceof TX
                 || data instanceof NM) {
-            // Store the string value for numerics too, as they can be
-            // ranges or "less than" values
-            // If repCount > 1, for a string this can be handled by concatenating.
-            // Will take more effort to implement for any other data type - so
-            // hoping this doesn't ever happen, but add warnings to check for it.
-            StringBuilder stringVal = new StringBuilder();
-            for (int r = 0; r < repCount; r++) {
-                Type repData = obx.getObx5_ObservationValue(r).getData();
-                String line = repData.toString();
-                // HAPI can return null from toString
-                if (line != null) {
-                    if (r > 0) {
-                        stringVal.append("\n");
-                    }
-                    stringVal.append(line);
-                }
-            }
-            msg.setStringValue(stringVal.toString());
+            buildAndSetStringValue(obx, repCount);
             if (data instanceof NM) {
                 if (repCount > 1) {
                     logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
@@ -120,25 +103,53 @@ public class LabResultBuilder {
             if (repCount > 1) {
                 logger.warn(String.format("WARNING - is coded (CE) result but repcount = %d", repCount));
             }
-            // we are assuming that all coded data is an isolate, not a great assumption
-            CE ceData = (CE) data;
-            msg.setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
-            msg.setIsolateLocalDescription(ceData.getCe2_Text().getValue());
-            // Isolate coding system should default to empty string
-            String isolateCodingSystem = ceData.getCe3_NameOfCodingSystem().getValue();
-            msg.setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
-
+            setIsolateFields((CE) data);
         }
         // also need to handle case where (data instanceof ED)
 
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
-        String abnormalFlags = "";
+        setAbnormalFlags(obx);
+    }
+
+    private void setAbnormalFlags(OBX obx) {
+        StringBuilder abnormalFlags = new StringBuilder();
         // will there ever be more than one abnormal flag in practice?
         for (IS flag : obx.getObx8_AbnormalFlags()) {
-            abnormalFlags += flag.getValueOrEmpty();
+            abnormalFlags.append(flag.getValueOrEmpty());
         }
-        msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags));
+        msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
+    }
+
+    private void setIsolateFields(CE data) {
+        // we are assuming that all coded data is an isolate, not a great assumption
+        CE ceData = data;
+        msg.setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
+        msg.setIsolateLocalDescription(ceData.getCe2_Text().getValue());
+        // Isolate coding system should default to empty string
+        String isolateCodingSystem = ceData.getCe3_NameOfCodingSystem().getValue();
+        msg.setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
+    }
+
+    private void buildAndSetStringValue(OBX obx, int repCount) {
+        // Store the string value for numerics too, as they can be
+        // ranges or "less than" values
+        // If repCount > 1, for a string this can be handled by concatenating.
+        // Will take more effort to implement for any other data type - so
+        // hoping this doesn't ever happen, but add warnings to check for it.
+        StringBuilder stringVal = new StringBuilder();
+        for (int r = 0; r < repCount; r++) {
+            Type repData = obx.getObx5_ObservationValue(r).getData();
+            String line = repData.toString();
+            // HAPI can return null from toString
+            if (line != null) {
+                if (r > 0) {
+                    stringVal.append("\n");
+                }
+                stringVal.append(line);
+            }
+        }
+        msg.setStringValue(stringVal.toString());
     }
 
     /**

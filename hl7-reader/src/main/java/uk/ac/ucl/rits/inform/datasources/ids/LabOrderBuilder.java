@@ -398,14 +398,4 @@ public class LabOrderBuilder {
         msg.setEpicCareOrderNumber(epicCareOrderNumberOrc);
     }
 
-    /**
-     * Try to infer whether this order is a sensitivity order.
-     * @return is this order a sensitivity order?
-     */
-    public boolean isSensitivity() {
-        // a better test might be the test ID = "Micro^Sensitivities^WinPath"
-        boolean emptyOrc5 = msg.getOrderStatus().isEmpty();
-        return emptyOrc5;
-    }
-
 }
