@@ -169,7 +169,7 @@ public class LabController {
         LabResult labResult = resultState.getEntity();
         resultState.assignHl7ValueIfDifferent(resultMsg.getNumericValue(), labResult.getResultAsReal(), labResult::setResultAsReal);
         resultState.assignHl7ValueIfDifferent(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
-//        resultState.assignHl7ValueIfDifferent(resultMsg.getUnits(), labResult.get(), labResult::setResultAsText);
+        resultState.assignHl7ValueIfDifferent(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
 //        resultState.assignHl7ValueIfDifferent(resultMsg.getReferenceRange(), labResult.getResultAsText(), labResult::setResultAsText);
 //        resultState.assignHl7ValueIfDifferent(resultMsg.getAbnormalFlags(), labResult.getAbnormal(), labResult::setComment);
         // result operator needs to be added to HL7
