@@ -36,7 +36,14 @@ public class LabResultMsg implements Serializable {
     private InterchangeValue<String> units = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceLow = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceHigh = InterchangeValue.unknown();
-    private InterchangeValue<String> abnormalFlags = InterchangeValue.unknown();
+
+    /**
+     * Abnormal flags.
+     * <p>
+     * If this is empty, then it should be deleted in the database.
+     * if never see multiple abnormal flags from warning logs on running, change this to abnormalFlag
+     */
+    private InterchangeValue<String> abnormalFlags = InterchangeValue.delete();
     private String resultOperator = "=";
     private String resultStatus;
 
