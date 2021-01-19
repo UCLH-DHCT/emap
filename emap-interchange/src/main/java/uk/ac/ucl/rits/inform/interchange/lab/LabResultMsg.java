@@ -1,7 +1,8 @@
-package uk.ac.ucl.rits.inform.interchange;
+package uk.ac.ucl.rits.inform.interchange.lab;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.Serializable;
 import java.time.Instant;

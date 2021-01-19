@@ -1,6 +1,6 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
@@ -21,7 +21,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 104
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
@@ -42,7 +42,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "CA"
       testItemLocalDescription: "Calcium"
@@ -63,7 +63,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.55
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "PHOS"
       testItemLocalDescription: "Phosphate"
@@ -89,9 +89,9 @@
   testBatteryLocalCode: "BON"
   testBatteryLocalDescription: "BONE PROFILE"
   statusChangeTime: "2013-07-25T12:58:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "FE"
       testItemLocalDescription: "Iron"
@@ -112,7 +112,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 26.0
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "UIBC"
       testItemLocalDescription: "Unsaturated iron binding"
@@ -133,7 +133,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 66
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "TIBC"
       testItemLocalDescription: "Total iron binding capacity"
@@ -154,7 +154,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 77
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "IBS"
       testItemLocalDescription: "Iron-binding saturation"
@@ -180,9 +180,9 @@
   testBatteryLocalCode: "IRON"
   testBatteryLocalDescription: "IRON PROFILE"
   statusChangeTime: "2013-07-25T12:59:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "HBA"
       testItemLocalDescription: "Haemoglobin A1c (%)"
@@ -208,7 +208,7 @@
         status: "SAVE"
         value: "HbA1c results traceable to the IFCC reference\nmethod effective 26th April\
       \ 2010\nPlease note analyser changed from Tosoh G7 to G8\non 06/05/2010"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "GHBI"
       testItemLocalDescription: "Haemoglobin A1c (mmol/mol)"
@@ -234,9 +234,9 @@
   testBatteryLocalCode: "HBA"
   testBatteryLocalDescription: "HAEMOGLOBIN A1C"
   statusChangeTime: "2013-07-25T11:29:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "GLU"
       testItemLocalDescription: "Glucose"
@@ -250,9 +250,9 @@
   testBatteryLocalCode: "GLU"
   testBatteryLocalDescription: "GLUCOSE"
   statusChangeTime: "2013-07-26T11:21:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "CHOL"
       testItemLocalDescription: "Cholesterol"
@@ -273,7 +273,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "TRIG"
       testItemLocalDescription: "Triglyceride"
@@ -294,7 +294,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 2.3
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "HDL"
       testItemLocalDescription: "HDL Cholesterol"
@@ -319,7 +319,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "L"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "LDLU"
       testItemLocalDescription: "LDL Cholesterol"
@@ -340,7 +340,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3.5
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "CHDR"
       testItemLocalDescription: "Cholesterol:HDL ratio"
@@ -354,9 +354,9 @@
   testBatteryLocalCode: "LPF"
   testBatteryLocalDescription: "LIPID PROFILE"
   statusChangeTime: "2013-07-25T12:59:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "VB12"
       testItemLocalDescription: "Vitamin B12"
@@ -381,7 +381,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "H"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "SFOL"
       testItemLocalDescription: "Serum folate"
@@ -411,9 +411,9 @@
   testBatteryLocalCode: "BFOL"
   testBatteryLocalDescription: "VITAMIN B12 & SERUM FOLAT"
   statusChangeTime: "2013-07-25T18:14:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "WCC"
       testItemLocalDescription: "White cell count"
@@ -434,7 +434,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 10
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "RCC"
       testItemLocalDescription: "Red cell count"
@@ -455,7 +455,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5.15
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "HGB"
       testItemLocalDescription: "Haemoglobin"
@@ -476,7 +476,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 15.5
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "HCTU"
       testItemLocalDescription: "HCT"
@@ -497,7 +497,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.45
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "MCVU"
       testItemLocalDescription: "MCV"
@@ -518,7 +518,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 99
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "MCHU"
       testItemLocalDescription: "MCH"
@@ -539,7 +539,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 33.5
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "CHCU"
       testItemLocalDescription: "MCHC"
@@ -560,7 +560,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 36
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "RDWU"
       testItemLocalDescription: "RDW"
@@ -581,7 +581,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 15
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "PLT"
       testItemLocalDescription: "Platelet count"
@@ -602,7 +602,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 400
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "MPVU"
       testItemLocalDescription: "MPV"
@@ -628,9 +628,9 @@
   testBatteryLocalCode: "FBCY"
   testBatteryLocalDescription: "FULL BLOOD COUNT"
   statusChangeTime: "2013-07-24T18:26:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "NE"
       testItemLocalDescription: "Neutrophils"
@@ -651,7 +651,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7.5
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "LY"
       testItemLocalDescription: "Lymphocytes"
@@ -672,7 +672,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 3.65
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "MO"
       testItemLocalDescription: "Monocytes"
@@ -693,7 +693,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.0
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "EO"
       testItemLocalDescription: "Eosinophils"
@@ -714,7 +714,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 0.4
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "BA"
       testItemLocalDescription: "Basophils"
@@ -740,9 +740,9 @@
   testBatteryLocalCode: "FBCZ"
   testBatteryLocalDescription: "DIFFERENTIAL"
   statusChangeTime: "2013-07-24T18:26:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "25D2"
       testItemLocalDescription: "25-hydroxy Vitamin D2"
@@ -761,9 +761,9 @@
   testBatteryLocalCode: "VITD"
   testBatteryLocalDescription: "25-HYDROXY VITAMIN D"
   statusChangeTime: "2013-07-29T08:41:00Z"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "PTH"
       testItemLocalDescription: "Parathyroid hormone"

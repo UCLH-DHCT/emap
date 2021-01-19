@@ -1,9 +1,12 @@
-package uk.ac.ucl.rits.inform.interchange;
+package uk.ac.ucl.rits.inform.interchange.lab;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
 import java.time.Instant;
