@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 /**
  * Test an A03 with a death indicator set.
