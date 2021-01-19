@@ -5,4 +5,4 @@ ORC|RE|108888888|21U222222|21U222222|CM
 OBR|1|108888888|21U222222|NCOV^COVID19 PCR^WinPath||202003161000|202003151710||||||Can you confirm this order has been discussed with and approved by a Virologist-||CTNS^Combined throat and nose swab|BB1||||||202003171735||CC|F
 OBX|1|FT|NCVS^Specimen Type^Winpath||CTNS||||||F
 OBX|2|FT|NCVP^SARS CoV-2 RNA^Winpath||NOT detected||||||F
-OBX|3|FT|NCVL^Laboratory Comment^Winpath||Please note that this test was performed using~ the Hologic Panther Fusion Assay.~ This new assay is currently not UKAS accredited,~ but is internally verified. UKAS extension~ to scope to include this has been submitted.||||||F+
+OBX|3|FT|NCVL^Laboratory Comment^Winpath||Please note that this test was performed using~ the Hologic Panther Fusion Assay.~ This new assay is currently not UKAS accredited,~ but is internally verified. UKAS extension~ to scope to include this has been submitted.||||||F

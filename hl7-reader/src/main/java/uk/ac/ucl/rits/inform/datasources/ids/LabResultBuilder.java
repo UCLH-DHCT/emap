@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,7 +116,7 @@ public class LabResultBuilder {
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
         setAbnormalFlags(obx);
-        msg.setResultStatus(obx.getObx11_ObservationResultStatus().getValueOrEmpty());
+        msg.setResultStatus(LabResultStatus.findByHl7Code(obx.getObx11_ObservationResultStatus().getValueOrEmpty()));
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
     }
 
