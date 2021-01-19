@@ -15,7 +15,7 @@ import java.util.List;
  * EmapOperationMessage because it's not a message type
  * by itself, it is owned by a message type (LabOrderMsg).
  * @author Jeremy Stein
- * @auther Stef Piatek
+ * @author Stef Piatek
  */
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
