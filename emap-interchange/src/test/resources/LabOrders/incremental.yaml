@@ -1,5 +1,6 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResultMsgs:
+    # original result
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "RDWU"
@@ -51,6 +52,35 @@
   statusChangeTime: "2019-07-16T23:01:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.LabOrderMsg"
   labResultMsgs:
+    # updated result
+    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
+      valueType: "NM"
+      testItemLocalCode: "RDWU"
+      testItemLocalDescription: "RDW"
+      # value changed
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 12.7
+      stringValue: "12.7"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "%"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 11.5
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 15
+      # abnormalFlags changed
+      abnormalFlags:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "DELETE"
+        value: null
+      resultStatus: "F"
     - "@class": "uk.ac.ucl.rits.inform.interchange.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "WCC"
