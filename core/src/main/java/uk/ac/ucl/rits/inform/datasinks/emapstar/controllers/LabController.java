@@ -84,12 +84,12 @@ public class LabController {
             Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         LabNumber labNumber = labNumberRepo
                 .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
-                        mrn, visit, msg.getEpicCareOrderNumber(), msg.getLabSpecimenNumber())
+                        mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber())
                 .orElseGet(() -> {
-                    logger.trace("Creating new lab number");
                     LabNumber labNum = new LabNumber(
                             mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(),
                             msg.getSpecimenType(), msg.getSourceSystem(), storedFrom);
+                    logger.trace("Creating new lab number {}", labNum);
                     return labNumberRepo.save(labNum);
                 });
 
@@ -104,11 +104,11 @@ public class LabController {
                 .findByLabProviderAndLabDepartmentAndTestLabCode(
                         msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode())
                 .orElseGet(() -> {
-                    logger.trace("Creating new Lab Test Definition");
                     LabTestDefinition testDefinition = new LabTestDefinition(
                             msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode());
                     testDefinition.setValidFrom(validFrom);
                     testDefinition.setStoredFrom(storedFrom);
+                    logger.trace("Creating new Lab Test Definition {}", testDefinition);
                     return labTestDefinitionRepo.save(testDefinition);
                 });
     }
@@ -118,11 +118,11 @@ public class LabController {
                 .findByBatteryAndLabTestDefinitionIdAndLabProvider(
                         msg.getTestBatteryLocalCode(), testDefinition, msg.getTestBatteryCodingSystem())
                 .orElseGet(() -> {
-                    logger.trace("Creating new Lab Test Battery Element");
                     LabBatteryElement batteryElement = new LabBatteryElement(
                             testDefinition, msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem());
                     batteryElement.setValidFrom(validFrom);
                     batteryElement.setStoredFrom(storedFrom);
+                    logger.trace("Creating new Lab Test Battery Element {}", batteryElement);
                     return labBatteryElementRepo.save(batteryElement);
                 });
     }
@@ -132,10 +132,10 @@ public class LabController {
         return labOrderRepo
                 .findByLabBatteryElementIdAndLabNumberIdAndOrderDatetime(batteryElement, labNumber, orderDateTime)
                 .orElseGet(() -> {
-                    logger.trace("Creating new Lab Order");
                     LabOrder order = new LabOrder(batteryElement, labNumber, orderDateTime);
                     order.setValidFrom(validFrom);
                     order.setStoredFrom(storedFrom);
+                    logger.trace("Creating new Lab Order {}", order);
                     return labOrderRepo.save(order);
                 });
     }

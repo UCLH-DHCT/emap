@@ -14,7 +14,9 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -35,7 +37,17 @@ class TestLabProcessing extends MessageProcessingBase {
     LabResultRepository labResultRepository;
     @Autowired
     LabTestDefinitionRepository labTestDefinitionRepository;
+    private final Instant now = Instant.now();
 
+
+    private void checkFirstMessageLabEntityCount() {
+        Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
+        Assertions.assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
+        Assertions.assertEquals(4, labBatteryElementRepository.count(), "lab batteries type should have been created");
+        Assertions.assertEquals(4, labOrderRepository.count(), "lab order should have been created");
+        Assertions.assertEquals(4, labResultRepository.count(), "lab results should have been created");
+        // will add lab collection when POCT is added
+    }
 
     /**
      * no existing data. rows should be created for: mrns, so new mrn, mrn_to_live, core_demographics, hospital visit
@@ -57,18 +69,29 @@ class TestLabProcessing extends MessageProcessingBase {
         Assertions.assertNull(visit.getArrivalMethod());
         Assertions.assertNull(visit.getAdmissionTime());
         // then lab results:
-        // lab result
-        Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
-        Assertions.assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
-        Assertions.assertEquals(4, labBatteryElementRepository.count(), "lab batteries type should have been created");
-        Assertions.assertEquals(4, labOrderRepository.count(), "lab order should have been created");
-        Assertions.assertEquals(4, labResultRepository.count(), "lab results should have been created");
-
+        checkFirstMessageLabEntityCount();
 
         // -- for now skipping over, will also need to do the foreign keys for these when we get there
-        // lab collection
         // LabResultSensitivity
-
     }
+
+    /**
+     * Message sent twice, with later timestamp, shouldn't change the results.
+     */
+    @Test
+    void testDuplicateMessage() throws EmapOperationMessageProcessingException {
+        // process original message
+        LabOrderMsg msg = messages.get(0);
+        processSingleMessage(msg);
+        // process duplicate message with updated times
+        msg.setStatusChangeTime(now);
+        for (LabResultMsg result: msg.getLabResultMsgs()) {
+            result.setResultTime(now);
+        }
+        processSingleMessage(msg);
+
+        checkFirstMessageLabEntityCount();
+    }
+
 
 }
