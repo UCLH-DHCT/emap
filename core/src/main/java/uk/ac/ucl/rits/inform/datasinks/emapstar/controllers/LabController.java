@@ -20,8 +20,8 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
-import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 
