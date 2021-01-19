@@ -40,6 +40,7 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     LabTestDefinitionRepository labTestDefinitionRepository;
     private final Instant now = Instant.now();
+    private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
 
     private List<LabResult> getAllLabResults() {
         return StreamSupport.stream(labResultRepository.findAll().spliterator(), false).collect(Collectors.toList());
@@ -125,6 +126,37 @@ class TestLabProcessing extends MessageProcessingBase {
         // single result should have been changed, so one audit
         Assertions.assertEquals(1, labResultAuditRepository.count());
 
+        // extra results should be added to results under the same EPIC lab number
+        List<LabResult> epicResults = labResultRepository.findAllByLabNumberIdExternalLabNumber("94000002");
+        Assertions.assertEquals(3, epicResults.size());
+    }
+
+    /**
+     * First result is processed, then all results are set with earlier time.
+     * First result message should not be updated by the subsequent results, but new results should be added
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testResultNotUpdatedIfEarlierThanDatabase() throws EmapOperationMessageProcessingException {
+
+        List<LabOrderMsg> messages = messageFactory.getLabOrders("incremental.yaml", "0000040");
+
+        // process first message which should not get updated by other incremental updated
+        processSingleMessage(messages.get(0));
+
+        // process all other messages, setting the time to be earlier than the first message time
+        for (LabOrderMsg msg : messages) {
+            for (LabResultMsg result : msg.getLabResultMsgs()) {
+                result.setResultTime(past);
+            }
+            processSingleMessage(msg);
+        }
+
+        LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
+        Assertions.assertEquals(true, updatedResult.getAbnormal());
+        Assertions.assertEquals(15.7, updatedResult.getResultAsReal());
+        // no results should have been changed
+        Assertions.assertEquals(0, labResultAuditRepository.count());
         // extra results should be added to results under the same EPIC lab number
         List<LabResult> epicResults = labResultRepository.findAllByLabNumberIdExternalLabNumber("94000002");
         Assertions.assertEquals(3, epicResults.size());
