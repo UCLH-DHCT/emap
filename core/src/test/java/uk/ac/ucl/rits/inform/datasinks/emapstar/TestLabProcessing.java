@@ -125,6 +125,10 @@ class TestLabProcessing extends MessageProcessingBase {
         Assertions.assertEquals(12.7, updatedResult.getResultAsReal());
         // single result should have been changed, so one audit
         Assertions.assertEquals(1, labResultAuditRepository.count());
+
+        // extra results should be added to results under the same EPIC lab number
+        List<LabResult> epicResults = labResultRepository.findAllByLabNumberId_ExternalLabNumber("94000002");
+        Assertions.assertEquals(3, epicResults.size());
     }
 
 
