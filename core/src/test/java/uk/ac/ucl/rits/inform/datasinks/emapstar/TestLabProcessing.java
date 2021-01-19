@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
-import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
@@ -120,14 +119,14 @@ class TestLabProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
 
-        LabResult updatedResult = labResultRepository.findByLabTestDefinitionId_TestLabCode("RDWU").orElseThrow();
+        LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
         Assertions.assertEquals(false, updatedResult.getAbnormal());
         Assertions.assertEquals(12.7, updatedResult.getResultAsReal());
         // single result should have been changed, so one audit
         Assertions.assertEquals(1, labResultAuditRepository.count());
 
         // extra results should be added to results under the same EPIC lab number
-        List<LabResult> epicResults = labResultRepository.findAllByLabNumberId_ExternalLabNumber("94000002");
+        List<LabResult> epicResults = labResultRepository.findAllByLabNumberIdExternalLabNumber("94000002");
         Assertions.assertEquals(3, epicResults.size());
     }
 
