@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -75,7 +76,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     }
 
     /**
-     * If new value is different assign from HL7Value of PatientClass to a setter taking a string.
+     * If new value is different assign from InterchangeValue of PatientClass to a setter taking a string.
      * @param newValue        new value
      * @param currentValue    current value
      * @param setPatientClass setter lambda
@@ -87,6 +88,15 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         assignIfDifferent(newValue.get().toString(), currentValue, setPatientClass);
     }
 
+    /**
+     * If new value is different assign from LabResultStatus to a setter taking a string.
+     * @param newValue        new value
+     * @param currentValue    current value
+     * @param setResultStatus setter method reference
+     */
+    public void assignIfDifferent(LabResultStatus newValue, String currentValue, Consumer<String> setResultStatus) {
+        assignIfDifferent(newValue.toString(), currentValue, setResultStatus);
+    }
 
     /**
      * Assign new Instant value to LocalDate if different.
@@ -105,7 +115,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
 
 
     /**
-     * If new value is different assign from HL7Value to a setter taking the same type.
+     * If new value is different assign from InterchangeValue to a setter taking the same type.
      * @param newValue     new value
      * @param currentValue current value
      * @param setter       setter lambda
