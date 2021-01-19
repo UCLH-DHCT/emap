@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
@@ -57,10 +58,18 @@ public class LabController {
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
+     * @throws RequiredDataMissingException if OrderDateTime missing from message
      */
     @Transactional
     public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
-            throws IncompatibleDatabaseStateException {
+            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
+        if (msg.getStatusChangeTime() == null) {
+            throw new RequiredDataMissingException("LabOrder had no StatusChangeTime in message");
+        }
+        if (msg.getOrderDateTime() == null) {
+            throw new RequiredDataMissingException("LabOrder had no OrderDateTime in message");
+        }
+
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         Instant validFrom = msg.getStatusChangeTime();
         for (LabResultMsg result : msg.getLabResultMsgs()) {
