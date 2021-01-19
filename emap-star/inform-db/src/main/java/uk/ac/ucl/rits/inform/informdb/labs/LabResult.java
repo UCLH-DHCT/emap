@@ -11,8 +11,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.Instant;
 
 /**
@@ -24,6 +26,8 @@ import java.time.Instant;
 @SuppressWarnings("serial")
 @Entity
 @Data
+@Table(indexes = {@Index(name = "lr_lab_number_id", columnList = "labNumberId"),
+        @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId")})
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
@@ -50,7 +54,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
     /**
      * For numeric results, defines the operator used to define the value.
-     *
+     * <p>
      * For example an estimated GFR is given as `>90`, this would have a valueAsReal of `90` and a numeric operator of `>`
      * Most of the time, values are precise so have a `=` result operator
      */
@@ -86,7 +90,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.comment = other.comment;
     }
 
-    public LabResult(LabNumber labNumberId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime)  {
+    public LabResult(LabNumber labNumberId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
         this.labNumberId = labNumberId;
         this.labTestDefinitionId = labTestDefinitionId;
         this.resultLastModifiedTime = resultLastModifiedTime;
