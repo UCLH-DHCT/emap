@@ -177,14 +177,23 @@ public class LabResultBuilder {
      * @param obx OBX segment
      */
     private void setReferenceRange(OBX obx) {
-        String[] range = obx.getObx7_ReferencesRange().getValueOrEmpty().split("-");
-        if (range.length == 2) {
-            Double lower = Double.parseDouble(range[0]);
-            Double upper = Double.parseDouble(range[1]);
+        String referenceRange = obx.getObx7_ReferencesRange().getValueOrEmpty();
+        String[] rangeValues = referenceRange.split("-");
+        if (rangeValues.length == 2) {
+            Double lower = Double.parseDouble(rangeValues[0]);
+            Double upper = Double.parseDouble(rangeValues[1]);
             msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
             msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
-        } else if (range.length > 1 || !range[0].isBlank()) {
-            logger.warn(String.format("LabResult range not empty and not separated by single '-': %s", String.join("-", range)));
+        } else if (!referenceRange.isBlank()) {
+            if (referenceRange.startsWith("<")) {
+                Double upper = Double.parseDouble(referenceRange.replace("<", ""));
+                msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
+            } else if (referenceRange.startsWith(">")) {
+                Double lower = Double.parseDouble(referenceRange.replace(">", ""));
+                msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
+            } else {
+                logger.warn(String.format("LabResult reference range not recognised: %s", String.join("-", rangeValues)));
+            }
         }
     }
 
