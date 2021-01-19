@@ -42,10 +42,7 @@ public class LabResultBuilder {
     }
 
     /**
-     * This class stores an individual result (ie. OBX segment)
-     * because this maps 1:1 with a patient fact in Inform-db.
-     * Although of course there is parent information in the HL7
-     * message (ORC + OBR), this is flattened here.
+     * This class stores an individual result (i.e. OBX segment) and some patient information (OBR).
      * @param obx   the OBX segment for this result
      * @param obr   the OBR segment for this result (will be the same segment shared with other OBXs)
      * @param notes list of NTE segments for this result
@@ -63,7 +60,16 @@ public class LabResultBuilder {
 
         // each result needs to know this so sensitivities can be correctly assigned
         msg.setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
-        // identifies the particular test (eg. red cell count)
+        setTestIdentifiers(obx);
+        populateResults(obx);
+        populateComments(notes);
+    }
+
+    /**
+     * Set test identifiers.
+     * @param obx OBX segment
+     */
+    private void setTestIdentifiers(OBX obx) {
         CWE obx3 = obx.getObx3_ObservationIdentifier();
         msg.setTestItemLocalCode(obx3.getCwe1_Identifier().getValueOrEmpty());
         msg.setTestItemLocalDescription(obx3.getCwe2_Text().getValueOrEmpty());
@@ -74,7 +80,7 @@ public class LabResultBuilder {
      * Populate OBX fields. Mainly tested where value type is NM - numeric.
      * @param obx the OBX segment
      */
-    private void populateObx(OBX obx) {
+    private void populateResults(OBX obx) {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -106,6 +112,8 @@ public class LabResultBuilder {
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
         setAbnormalFlags(obx);
+        msg.setResultStatus(obx.getObx11_ObservationResultStatus().getValueOrEmpty());
+        msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
     }
 
     private void setAbnormalFlags(OBX obx) {
@@ -189,7 +197,7 @@ public class LabResultBuilder {
      * Ignores NTE-1 for now.
      * @param notes all NTE segments for the observation
      */
-    private void populateNotes(List<NTE> notes) {
+    private void populateComments(List<NTE> notes) {
         Collection<String> allNotes = new ArrayList<>(notes.size());
         for (NTE nt : notes) {
             for (FT ft : nt.getNte3_Comment()) {
