@@ -128,7 +128,9 @@ public class LabResultBuilder {
         if (abnormalFlags.length() > 1) {
             logger.warn(String.format("LabResult had more than one abnormal flag: %s", abnormalFlags));
         }
-        msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
+        if (abnormalFlags.length() != 0) {
+            msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
+        }
     }
 
     private void setIsolateFields(CE data) {
