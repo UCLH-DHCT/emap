@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.lab;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -14,6 +15,7 @@ import java.util.List;
  * EmapOperationMessage because it's not a message type
  * by itself, it is owned by a message type (LabOrderMsg).
  * @author Jeremy Stein
+ * @auther Stef Piatek
  */
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
@@ -58,6 +60,7 @@ public class LabResultMsg implements Serializable {
 
     private String epicCareOrderNumber;
 
+    @JsonIgnore
     public boolean isAbnormal() {
         return abnormalFlags.isSave();
     }
@@ -65,6 +68,7 @@ public class LabResultMsg implements Serializable {
     /**
      * @return true if the type of result is numeric
      */
+    @JsonIgnore
     public boolean isNumeric() {
         return "NM".equals(valueType) || "SN".equals(valueType);
     }
@@ -72,6 +76,7 @@ public class LabResultMsg implements Serializable {
     /**
      * @return true if the type of result is text
      */
+    @JsonIgnore
     public boolean isText() {
         return "ST".equals(valueType) || "TX".equals(valueType) || "FT".equals(valueType);
     }
