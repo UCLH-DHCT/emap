@@ -5,14 +5,41 @@ package uk.ac.ucl.rits.inform.interchange.lab;
  * @author Stef Piatek
  */
 public enum LabResultStatus {
+    /**
+     * final.
+     */
     FINAL("F"),
+    /**
+     * corrected.
+     */
     CORRECTED("C"),
+    /**
+     * preiminary.
+     */
     PRELIMINARY("P"),
+    /**
+     * incomplete.
+     */
     INCOMPLETE("I"),
+    /**
+     * not available.
+     */
     RESULT_NOT_AVAILABLE("X"),
+    /**
+     * deleted.
+     */
     DELETED("D"),
+    /**
+     * invalid.
+     */
     INVALID_RESULT("W"),
+    /**
+     * non standard.
+     */
     NONSTANDARD_VALUE("Z"),
+    /**
+     * unknown.
+     */
     UNKNOWN("");
 
     final String labCode;
