@@ -19,9 +19,12 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Turn part of an HL7 lab result message into a (flatter) structure
@@ -90,7 +93,7 @@ public class LabResultBuilder {
                 || data instanceof FT
                 || data instanceof TX
                 || data instanceof NM) {
-            buildAndSetStringValue(obx, repCount);
+            setStringValue(obx);
             if (data instanceof NM) {
                 if (repCount > 1) {
                     logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
@@ -138,25 +141,15 @@ public class LabResultBuilder {
         msg.setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
     }
 
-    private void buildAndSetStringValue(OBX obx, int repCount) {
-        // Store the string value for numerics too, as they can be
-        // ranges or "less than" values
-        // If repCount > 1, for a string this can be handled by concatenating.
-        // Will take more effort to implement for any other data type - so
-        // hoping this doesn't ever happen, but add warnings to check for it.
-        StringBuilder stringVal = new StringBuilder();
-        for (int r = 0; r < repCount; r++) {
-            Type repData = obx.getObx5_ObservationValue(r).getData();
-            String line = repData.toString();
-            // HAPI can return null from toString
-            if (line != null) {
-                if (r > 0) {
-                    stringVal.append("\n");
-                }
-                stringVal.append(line);
-            }
-        }
-        msg.setStringValue(stringVal.toString());
+    private void setStringValue(OBX obx) {
+        // Store the string value for numeric types to allow for debugging in case new result operator needs to be added
+        String stringValue = Arrays.stream(obx.getObx5_ObservationValue())
+                .map(Varies::getData)
+                .map(Type::toString)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("\n"));
+
+        msg.setStringValue(stringValue);
     }
 
     /**
