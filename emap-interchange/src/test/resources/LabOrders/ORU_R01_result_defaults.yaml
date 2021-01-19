@@ -1,2 +1,2 @@
 testItemCodingSystem: "Winpath"
-resultStatus: "F" # TODO: Use enum here
+resultStatus: "FINAL"
