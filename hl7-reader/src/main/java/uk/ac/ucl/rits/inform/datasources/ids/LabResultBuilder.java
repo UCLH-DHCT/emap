@@ -183,7 +183,7 @@ public class LabResultBuilder {
             Double upper = Double.parseDouble(range[1]);
             msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
             msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
-        } else if (range.length > 0) {
+        } else if (range.length > 1 || !range[0].isBlank()) {
             logger.warn(String.format("LabResult range not empty and not separated by single '-': %s", String.join("-", range)));
         }
     }
