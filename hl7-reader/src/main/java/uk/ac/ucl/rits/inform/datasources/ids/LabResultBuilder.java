@@ -68,11 +68,6 @@ public class LabResultBuilder {
         msg.setTestItemLocalCode(obx3.getCwe1_Identifier().getValueOrEmpty());
         msg.setTestItemLocalDescription(obx3.getCwe2_Text().getValueOrEmpty());
         msg.setTestItemCodingSystem(obx3.getCwe3_NameOfCodingSystem().getValueOrEmpty());
-        msg.setResultStatus(obx.getObx11_ObservationResultStatus().getValueOrEmpty());
-        msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
-
-        populateObx(obx);
-        populateNotes(notes);
     }
 
     /**
@@ -97,7 +92,7 @@ public class LabResultBuilder {
                 try {
                     setNumericValueAndResultOperator(msg.getStringValue());
                 } catch (NumberFormatException e) {
-                    logger.debug(String.format("Non numeric result %s", msg.getStringValue()));
+                    logger.debug(String.format("LabResult numeric result couldn't be parsed: %s", msg.getStringValue()));
                 }
             }
         } else if (data instanceof CE) {
@@ -118,6 +113,9 @@ public class LabResultBuilder {
         // will there ever be more than one abnormal flag in practice?
         for (IS flag : obx.getObx8_AbnormalFlags()) {
             abnormalFlags.append(flag.getValueOrEmpty());
+        }
+        if (abnormalFlags.length() > 1) {
+            logger.warn(String.format("LabResult had more than one abnormal flag: %s", abnormalFlags));
         }
         msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
     }
@@ -181,6 +179,8 @@ public class LabResultBuilder {
             Double upper = Double.parseDouble(range[1]);
             msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
             msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
+        } else if (range.length > 0) {
+            logger.warn(String.format("LabResult range not empty and not separated by '-': %", range));
         }
     }
 
