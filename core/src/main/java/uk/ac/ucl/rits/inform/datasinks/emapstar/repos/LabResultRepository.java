@@ -13,4 +13,11 @@ import java.util.Optional;
  */
 public interface LabResultRepository extends CrudRepository<LabResult, Long> {
     Optional<LabResult> findByLabNumberIdAndLabTestDefinitionId(LabNumber labNumber, LabTestDefinition labTestDefinition);
+
+    /**
+     * For testing.
+     * @param labTestCode test code
+     * @return
+     */
+    Optional<LabResult> findByLabTestDefinitionId_TestLabCode(String labTestCode);
 }

@@ -7,24 +7,25 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.LabResultMsg;
 
 import java.time.Instant;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 class TestLabProcessing extends MessageProcessingBase {
-    private List<LabOrderMsg> messages = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
+    private List<LabOrderMsg> defaultORUR01s = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
@@ -36,9 +37,14 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     LabResultRepository labResultRepository;
     @Autowired
+    LabResultAuditRepository labResultAuditRepository;
+    @Autowired
     LabTestDefinitionRepository labTestDefinitionRepository;
     private final Instant now = Instant.now();
 
+    private List<LabResult> getAllLabResults() {
+        return StreamSupport.stream(labResultRepository.findAll().spliterator(), false).collect(Collectors.toList());
+    }
 
     private void checkFirstMessageLabEntityCount() {
         Assertions.assertEquals(1, labNumberRepository.count(), "lab number should have been created");
@@ -54,7 +60,7 @@ class TestLabProcessing extends MessageProcessingBase {
      */
     @Test
     void testCreateNew() throws EmapOperationMessageProcessingException {
-        processSingleMessage(messages.get(0));
+        processSingleMessage(defaultORUR01s.get(0));
 
         List<Mrn> mrns = getAllMrns();
         Assertions.assertEquals(1, mrns.size());
@@ -76,21 +82,49 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Message sent twice, with later timestamp, shouldn't change the results.
+     * Message sent twice, with later timestamp, shouldn't add in new entities.
+     * Only results can be updated, so check that these haven't changed.
      */
     @Test
-    void testDuplicateMessage() throws EmapOperationMessageProcessingException {
+    void testDuplicateMessageWithSameData() throws EmapOperationMessageProcessingException {
         // process original message
-        LabOrderMsg msg = messages.get(0);
+        LabOrderMsg msg = defaultORUR01s.get(0);
         processSingleMessage(msg);
+        List<LabResult> originalResults = getAllLabResults();
         // process duplicate message with updated times
         msg.setStatusChangeTime(now);
-        for (LabResultMsg result: msg.getLabResultMsgs()) {
+        for (LabResultMsg result : msg.getLabResultMsgs()) {
             result.setResultTime(now);
         }
         processSingleMessage(msg);
 
+        List<LabResult> finalResults = getAllLabResults();
         checkFirstMessageLabEntityCount();
+        for (int i = 0; i < finalResults.size(); i++) {
+            LabResult originalLab = originalResults.get(i);
+            LabResult finaLab = finalResults.get(i);
+            Assertions.assertEquals(originalLab.getResultLastModifiedTime(), finaLab.getResultLastModifiedTime());
+        }
+    }
+
+    /**
+     * Message sent twice, with later timestamp, shouldn't add in new entities.
+     * Only results can be updated, so check that these haven't changed.
+     */
+    @Test
+    void testIncrementalLoad() throws EmapOperationMessageProcessingException {
+        List<LabOrderMsg> messages = messageFactory.getLabOrders("incremental.yaml", "0000040");
+
+        // process all other messages
+        for (LabOrderMsg msg : messages) {
+            processSingleMessage(msg);
+        }
+
+        LabResult updatedResult = labResultRepository.findByLabTestDefinitionId_TestLabCode("RDWU").orElseThrow();
+        Assertions.assertEquals(false, updatedResult.getAbnormal());
+        Assertions.assertEquals(12.7, updatedResult.getResultAsReal());
+        // single result should have been changed, so one audit
+        Assertions.assertEquals(1, labResultAuditRepository.count());
     }
 
 
