@@ -45,7 +45,7 @@ public class LabResultMsg implements Serializable {
      */
     private InterchangeValue<String> abnormalFlags = InterchangeValue.delete();
     private String resultOperator = "=";
-    private String resultStatus;
+    private LabResultStatus resultStatus = LabResultStatus.UNKNOWN;
 
     private Instant resultTime;
     private InterchangeValue<String> notes = InterchangeValue.unknown();
