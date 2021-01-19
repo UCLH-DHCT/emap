@@ -44,46 +44,40 @@
         value: 50
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
-      testItemLocalCode: "CA"
-      testItemLocalDescription: "Calcium"
+      testItemLocalCode: "GRE"
+      testItemLocalDescription: "Greater than example"
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
-        value: 2.43
-      stringValue: "2.43"
+        value: 7.18
+      stringValue: "7.18"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
-        value: "mmol/L"
+        value: "Ratio"
+      # range only has >7.2 so referenceLow is 7.2
       referenceLow:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
-        value: 2.15
-      referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: 2.55
+        value: 7.2
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
-      testItemLocalCode: "PHOS"
-      testItemLocalDescription: "Phosphate"
+      testItemLocalCode: "ALBR"
+      testItemLocalDescription: "QALB (CSF/Serum Albumin ratio)"
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
-        value: 1.07
-      stringValue: "1.07"
+        value: 7.18
+      stringValue: "7.18"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
-        value: "mmol/L"
-      referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: 0.87
+        value: "Ratio"
+      # range only has <7.2 so referenceHigh is 7.2
       referenceHigh:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
-        value: 1.45
+        value: 7.2
   epicCareOrderNumber: "12121212"
   labDepartment: "CC"
   testBatteryLocalCode: "BON"
