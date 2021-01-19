@@ -64,10 +64,7 @@ public class LabController {
     public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
             throws IncompatibleDatabaseStateException, RequiredDataMissingException {
         if (msg.getStatusChangeTime() == null) {
-            throw new RequiredDataMissingException("LabOrder had no StatusChangeTime in message");
-        }
-        if (msg.getOrderDateTime() == null) {
-            throw new RequiredDataMissingException("LabOrder had no OrderDateTime in message");
+            throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
         }
 
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
@@ -75,10 +72,11 @@ public class LabController {
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-            LabOrder order = getOrCreateLabOrder(batteryElement, labNumber, msg.getOrderDateTime(), validFrom, storedFrom);
+            if (msg.getOrderDateTime() != null) {
+                getOrCreateLabOrder(batteryElement, labNumber, msg.getOrderDateTime(), validFrom, storedFrom);
+            }
             RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
         }
-
     }
 
     /**
@@ -136,9 +134,9 @@ public class LabController {
                 });
     }
 
-    private LabOrder getOrCreateLabOrder(
+    private void getOrCreateLabOrder(
             LabBatteryElement batteryElement, LabNumber labNumber, Instant orderDateTime, Instant validFrom, Instant storedFrom) {
-        return labOrderRepo
+        labOrderRepo
                 .findByLabBatteryElementIdAndLabNumberIdAndOrderDatetime(batteryElement, labNumber, orderDateTime)
                 .orElseGet(() -> {
                     LabOrder order = new LabOrder(batteryElement, labNumber, orderDateTime);
