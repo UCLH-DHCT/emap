@@ -146,18 +146,21 @@ public class LabController {
         updateLabOrder(orderState, msg);
     }
 
-    private RowState<LabOrder, LabOrderAudit> createLabOrder(LabBatteryElement batteryElement, LabNumber labNumber, Instant validFrom, Instant storedFrom) {
+    private RowState<LabOrder, LabOrderAudit> createLabOrder(
+            LabBatteryElement batteryElement, LabNumber labNumber, Instant validFrom, Instant storedFrom) {
         LabOrder order = new LabOrder(batteryElement, labNumber);
         order.setValidFrom(validFrom);
         order.setStoredFrom(storedFrom);
-        return new RowState<>(order, validFrom, storedFrom, false);
+        return new RowState<>(order, validFrom, storedFrom, true);
     }
 
     private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg) {
-        // update all lab order time information
+        LabOrder order = orderState.getEntity();
+        orderState.assignInterchangeValue(msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime);
+        orderState.assignInterchangeValue(msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime);
+        orderState.assignInterchangeValue(msg.getSampleEnteredTime(), order.getSampleDatetime(), order::setSampleDatetime);
         orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
     }
-
 
     private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
             LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {

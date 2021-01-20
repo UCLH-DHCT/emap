@@ -5,7 +5,6 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 
-import java.time.Instant;
 import java.util.Optional;
 
 /**
