@@ -45,12 +45,17 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
 
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant requestDatetime;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant sampleDatetime;
+
     public LabOrder() {}
 
-    public LabOrder(LabBatteryElement labBatteryElementId, LabNumber labNumberId, Instant orderDatetime) {
+    public LabOrder(LabBatteryElement labBatteryElementId, LabNumber labNumberId) {
         this.labBatteryElementId = labBatteryElementId;
         this.labNumberId = labNumberId;
-        this.orderDatetime = orderDatetime;
     }
 
     public LabOrder(LabOrder other) {
@@ -59,6 +64,8 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
         this.labNumberId = other.labNumberId;
         this.labBatteryElementId = other.labBatteryElementId;
         this.orderDatetime = other.orderDatetime;
+        this.requestDatetime = other.requestDatetime;
+        this.sampleDatetime = other.sampleDatetime;
     }
 
     @Override
