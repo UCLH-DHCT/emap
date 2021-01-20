@@ -77,7 +77,7 @@ public class LabController {
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-            updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
+            RowState<LabOrder, LabOrderAudit> orderState = updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
             RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
         }
     }
@@ -137,13 +137,21 @@ public class LabController {
                 });
     }
 
-    private void updateOrCreateLabOrder(
+    private RowState<LabOrder, LabOrderAudit> updateOrCreateLabOrder(
             LabBatteryElement batteryElement, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
                 .findByLabBatteryElementIdAndLabNumberId(batteryElement, labNumber)
                 .map(order -> new RowState<>(order, validFrom, storedFrom, false))
                 .orElseGet(() -> createLabOrder(batteryElement, labNumber, validFrom, storedFrom));
+
+        if (!orderState.isEntityCreated() && validFrom.isBefore(orderState.getEntity().getValidFrom())) {
+            logger.trace("LabOrder database is more recent than LabOrder message, not updating information");
+            return orderState;
+        }
+
         updateLabOrder(orderState, msg);
+        orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
+        return orderState;
     }
 
     private RowState<LabOrder, LabOrderAudit> createLabOrder(
@@ -159,7 +167,6 @@ public class LabController {
         orderState.assignInterchangeValue(msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime);
         orderState.assignInterchangeValue(msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime);
         orderState.assignInterchangeValue(msg.getSampleEnteredTime(), order.getSampleDatetime(), order::setSampleDatetime);
-        orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
     }
 
     private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
@@ -170,7 +177,7 @@ public class LabController {
                 .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
-            logger.trace("LabResult database is more recent than LabResult message, not doing anything");
+            logger.trace("LabResult database is more recent than LabResult message, not updating information");
             return resultState;
         }
 
