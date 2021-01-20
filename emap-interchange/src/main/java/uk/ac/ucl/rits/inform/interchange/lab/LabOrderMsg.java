@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -18,6 +19,7 @@ import java.util.List;
  * is declared here, for serialisation purposes. Builder classes (eg. HL7
  * parser) construct this class.
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -30,8 +32,8 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
     private String specimenType;
-    private Instant orderDateTime;
-    private Instant sampleEnteredTime;
+    private InterchangeValue<Instant> orderDateTime = InterchangeValue.unknown();
+    private InterchangeValue<Instant> sampleEnteredTime = InterchangeValue.unknown();
     private String labDepartment;
     private String orderStatus;
     private String resultStatus;
@@ -39,7 +41,7 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String mrn;
 
     private String visitNumber;
-    private Instant requestedDateTime;
+    private InterchangeValue<Instant> requestedDateTime = InterchangeValue.unknown();
     private Instant observationDateTime;
     private String testBatteryLocalCode;
     private String testBatteryLocalDescription;
