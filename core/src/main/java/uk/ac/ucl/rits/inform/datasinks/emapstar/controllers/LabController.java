@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseS
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
@@ -18,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
@@ -38,16 +40,19 @@ public class LabController {
     private final LabTestDefinitionRepository labTestDefinitionRepo;
     private final LabBatteryElementRepository labBatteryElementRepo;
     private final LabOrderRepository labOrderRepo;
+    private final LabOrderAuditRepository labOrderAuditRepo;
     private final LabResultRepository labResultRepo;
     private final LabResultAuditRepository labResultAuditRepo;
 
     public LabController(
             LabBatteryElementRepository labBatteryElementRepo, LabNumberRepository labNumberRepo, LabTestDefinitionRepository labTestDefinitionRepo,
-            LabOrderRepository labOrderRepo, LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo) {
+            LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo, LabResultRepository labResultRepo,
+            LabResultAuditRepository labResultAuditRepo) {
         this.labBatteryElementRepo = labBatteryElementRepo;
         this.labNumberRepo = labNumberRepo;
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labOrderRepo = labOrderRepo;
+        this.labOrderAuditRepo = labOrderAuditRepo;
         this.labResultRepo = labResultRepo;
         this.labResultAuditRepo = labResultAuditRepo;
     }
@@ -58,7 +63,7 @@ public class LabController {
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
-     * @throws RequiredDataMissingException if OrderDateTime missing from message
+     * @throws RequiredDataMissingException       if OrderDateTime missing from message
      */
     @Transactional
     public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
@@ -72,9 +77,7 @@ public class LabController {
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-            if (msg.getOrderDateTime() != null) {
-                getOrCreateLabOrder(batteryElement, labNumber, msg.getOrderDateTime(), validFrom, storedFrom);
-            }
+            updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
             RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
         }
     }
@@ -134,17 +137,25 @@ public class LabController {
                 });
     }
 
-    private void getOrCreateLabOrder(
-            LabBatteryElement batteryElement, LabNumber labNumber, Instant orderDateTime, Instant validFrom, Instant storedFrom) {
-        labOrderRepo
-                .findByLabBatteryElementIdAndLabNumberIdAndOrderDatetime(batteryElement, labNumber, orderDateTime)
-                .orElseGet(() -> {
-                    LabOrder order = new LabOrder(batteryElement, labNumber, orderDateTime);
-                    order.setValidFrom(validFrom);
-                    order.setStoredFrom(storedFrom);
-                    logger.trace("Creating new Lab Order {}", order);
-                    return labOrderRepo.save(order);
-                });
+    private void updateOrCreateLabOrder(
+            LabBatteryElement batteryElement, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
+        RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
+                .findByLabBatteryElementIdAndLabNumberId(batteryElement, labNumber)
+                .map(order -> new RowState<>(order, validFrom, storedFrom, false))
+                .orElseGet(() -> createLabOrder(batteryElement, labNumber, validFrom, storedFrom));
+        updateLabOrder(orderState, msg);
+    }
+
+    private RowState<LabOrder, LabOrderAudit> createLabOrder(LabBatteryElement batteryElement, LabNumber labNumber, Instant validFrom, Instant storedFrom) {
+        LabOrder order = new LabOrder(batteryElement, labNumber);
+        order.setValidFrom(validFrom);
+        order.setStoredFrom(storedFrom);
+        return new RowState<>(order, validFrom, storedFrom, false);
+    }
+
+    private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg) {
+        // update all lab order time information
+        orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
     }
 
 

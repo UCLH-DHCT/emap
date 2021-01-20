@@ -13,5 +13,5 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabOrderRepository extends CrudRepository<LabOrder, Long> {
-    Optional<LabOrder> findByLabBatteryElementIdAndLabNumberIdAndOrderDatetime(LabBatteryElement element, LabNumber number, Instant orderDateTime);
+    Optional<LabOrder> findByLabBatteryElementIdAndLabNumberId(LabBatteryElement element, LabNumber number);
 }
