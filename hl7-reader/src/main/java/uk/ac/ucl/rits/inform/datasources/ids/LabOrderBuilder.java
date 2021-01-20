@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -326,12 +327,12 @@ public class LabOrderBuilder {
         // in a status change (SC) message.
         Instant orc9 = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
         if (msg.getOrderControlId().equals("NW")) {
-            msg.setOrderDateTime(orc9);
+            msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
         } else if (msg.getOrderControlId().equals("SC")) {
             // possibly need to check for other result status codes that signify "in progress"?
             if (resultStatus.equals("I")) {
                 // ORC-9 = time sample entered onto WinPath
-                msg.setSampleEnteredTime(orc9);
+                msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(orc9));
             }
         }
         msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
@@ -341,7 +342,8 @@ public class LabOrderBuilder {
         // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
         msg.setObservationDateTime(HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime()));
-        msg.setRequestedDateTime(HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime()));
+        Instant requestedTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
+        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(requestedTime));
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
