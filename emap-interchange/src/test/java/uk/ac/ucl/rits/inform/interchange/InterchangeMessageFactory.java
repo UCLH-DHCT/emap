@@ -69,6 +69,19 @@ public class InterchangeMessageFactory {
         return labOrders;
     }
 
+    public List<PatientInfection> getPatientInfections(final String fileName){
+        List<PatientInfection> patientInfections = new ArrayList<>();
+
+        String resourcePath = "/PatientInfection/" + fileName;
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+            patientInfections = mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return patientInfections;
+    }
+
     /**
      * Builds Flowsheets from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
      * @param fileName            yaml filename in test resources/Flowsheets, default values from '{file_stem}_defaults.yaml'
