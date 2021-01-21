@@ -8,7 +8,7 @@
       stringValue: "10,000 - 100,000 CFU/mL"
       isolateLocalCode: "KLEOXY"
       isolateLocalDescription: "Klebsiella oxytoca"
-      abnormalFlags:
+      abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "A"
@@ -19,7 +19,7 @@
               testItemLocalCode: "VAK"
               testItemLocalDescription: "Amikacin"
               stringValue: "VAK"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "S"
@@ -27,7 +27,7 @@
               testItemLocalCode: "VAC"
               testItemLocalDescription: "Amoxi/Clav.acid"
               stringValue: "VAC"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "S"
@@ -35,7 +35,7 @@
               testItemLocalCode: "VM"
               testItemLocalDescription: "Amoxicillin"
               stringValue: "VM"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "R"
@@ -43,7 +43,7 @@
               testItemLocalCode: "VCN"
               testItemLocalDescription: "Gentamicin"
               stringValue: "VCN"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "R"
@@ -51,7 +51,7 @@
               testItemLocalCode: "VF"
               testItemLocalDescription: "Nitrofurantoin"
               stringValue: "VF"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "R"
@@ -64,7 +64,7 @@
       stringValue: "10,000 - 100,000 CFU/mL"
       isolateLocalCode: "PROMIR"
       isolateLocalDescription: "Proteus mirabilis"
-      abnormalFlags:
+      abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "A"
@@ -75,7 +75,7 @@
               testItemLocalCode: "VAK"
               testItemLocalDescription: "Amikacin"
               stringValue: "VAK"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "S"
@@ -83,7 +83,7 @@
               testItemLocalCode: "VM"
               testItemLocalDescription: "Amoxicillin"
               stringValue: "VM"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "S"
@@ -91,7 +91,7 @@
               testItemLocalCode: "VFS"
               testItemLocalDescription: "Fosfomycin"
               stringValue: "VFS"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "R"
@@ -99,7 +99,7 @@
               testItemLocalCode: "VCN"
               testItemLocalDescription: "Gentamicin"
               stringValue: "VCN"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "I"
@@ -107,7 +107,7 @@
               testItemLocalCode: "VF"
               testItemLocalDescription: "Nitrofurantoin"
               stringValue: "VF"
-              abnormalFlags:
+              abnormalFlag:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
                 value: "R"

@@ -317,7 +317,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.7
-      abnormalFlags:
+      abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "L"
@@ -379,7 +379,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 663
-      abnormalFlags:
+      abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "H"

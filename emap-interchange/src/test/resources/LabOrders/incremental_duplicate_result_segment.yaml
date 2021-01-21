@@ -165,7 +165,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "IU/L"
-      abnormalFlags:
+      abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "H"

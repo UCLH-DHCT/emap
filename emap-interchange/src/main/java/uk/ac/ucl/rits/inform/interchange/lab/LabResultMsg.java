@@ -43,9 +43,8 @@ public class LabResultMsg implements Serializable {
      * Abnormal flags.
      * <p>
      * If this is empty, then it should be deleted in the database.
-     * if never see multiple abnormal flags from warning logs on running, change this to abnormalFlag
      */
-    private InterchangeValue<String> abnormalFlags = InterchangeValue.delete();
+    private InterchangeValue<String> abnormalFlag = InterchangeValue.delete();
     private String resultOperator = "=";
     private LabResultStatus resultStatus = LabResultStatus.UNKNOWN;
 
@@ -59,11 +58,6 @@ public class LabResultMsg implements Serializable {
     private List<LabOrderMsg> labSensitivities = new ArrayList<>();
 
     private String epicCareOrderNumber;
-
-    @JsonIgnore
-    public boolean isAbnormal() {
-        return abnormalFlags.isSave();
-    }
 
     /**
      * @return true if the type of result is numeric
