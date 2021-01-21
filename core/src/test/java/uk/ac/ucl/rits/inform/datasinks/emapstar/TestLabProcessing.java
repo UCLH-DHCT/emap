@@ -24,6 +24,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -36,6 +37,7 @@ class TestLabProcessing extends MessageProcessingBase {
     private final String singleResultMrn = "40800000";
     private final String singleResultLabNumber = "13U444444";
     private final String singleResultTestCode = "FE";
+    private final Instant singleResultRequestTime = Instant.parse("2013-07-24T16:46:00Z");
 
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
@@ -224,9 +226,81 @@ class TestLabProcessing extends MessageProcessingBase {
     void testHappyPathLabOrder() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        Assertions.assertEquals(Instant.parse("2013-07-24T16:46:00Z"), result.getRequestDatetime());
+        Assertions.assertEquals(singleResultRequestTime, result.getRequestDatetime());
         Assertions.assertNull(result.getOrderDatetime());
         Assertions.assertNull(result.getSampleDatetime());
+    }
+
+    /**
+     * Order with more recent status change time should update the temporal fields that are set (here request date time)
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabOrderUpdatesWithNewResults() throws EmapOperationMessageProcessingException {
+        // first process original message
+        processSingleMessage(singleResult);
+
+        // set up message with later status change time and requested date
+        LabOrderMsg msg = singleResult;
+        Instant laterTime = singleResultRequestTime.plus(100, ChronoUnit.DAYS);
+        msg.setStatusChangeTime(laterTime);
+        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(laterTime));
+        // process new message
+        processSingleMessage(msg);
+
+        // check time has updated
+        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        Assertions.assertEquals(laterTime, result.getRequestDatetime());
+    }
+
+    /**
+     * Order with older status change time shouldn't update the temporal fields that are set (here request date time)
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabOrderFromThePastDoesntUpdateNonNullField() throws EmapOperationMessageProcessingException {
+        // first process original message
+        processSingleMessage(singleResult);
+
+        // set up message with an earlier status change time and later requested date
+        LabOrderMsg msg = singleResult;
+        Instant laterTime = singleResultRequestTime.plus(100, ChronoUnit.DAYS);
+        msg.setStatusChangeTime(singleResultRequestTime.minus(100, ChronoUnit.DAYS));
+        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(laterTime));
+        // process new message
+        processSingleMessage(msg);
+
+        // check time has not updated
+        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        Assertions.assertEquals(singleResultRequestTime, result.getRequestDatetime());
+    }
+
+
+    /**
+     * Order with older recent status change time should update the temporal fields that are currently null
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabOrderFromThePastUpdatedNullTemporalData() throws EmapOperationMessageProcessingException {
+        // first process original message
+        processSingleMessage(singleResult);
+
+        // set up message with later status change time and requested date
+        LabOrderMsg msg = singleResult;
+        Instant earlierTime = singleResultRequestTime.minus(100, ChronoUnit.DAYS);
+        msg.setStatusChangeTime(earlierTime);
+        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(earlierTime));
+        msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(earlierTime));
+        msg.setOrderDateTime(InterchangeValue.buildFromHl7(earlierTime));
+        // process new message
+        processSingleMessage(msg);
+
+        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        // check that already set value hasn't updated
+        Assertions.assertEquals(singleResultRequestTime, result.getRequestDatetime());
+        // check time has updated for previously null fields
+        Assertions.assertEquals(earlierTime, result.getOrderDatetime());
+        Assertions.assertEquals(earlierTime, result.getSampleDatetime());
     }
 
     @Test
