@@ -192,5 +192,16 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
         assertEquals(expected, result.getNotes());
     }
 
+    @Test
+    void testAbnormalFlagPresent() {
+        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "VB12");
+        assertEquals(InterchangeValue.buildFromHl7("H"), result.getAbnormalFlags());
+    }
+    @Test
+    void testAbnormalFlagAbsent() {
+        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
+        assertTrue(result.getAbnormalFlags().isDelete());
+    }
+
 
 }

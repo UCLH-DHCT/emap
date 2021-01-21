@@ -13,3 +13,4 @@ OBX|7|NM|UNPARSABLE_RANGE^Less than range^Winpath||7.18|Ratio|~7.2||||F
 OBX|8|NM|SFOL^Serum folate^Winpath||17.6|ng/mL|4.6-18.7||||F
 NTE|1||Folate result assumes no folic acid supplement
 NTE|1||on day of sampling
+OBX|9|NM|VB12^Vitamin B12^Winpath||702|pg/mL|191-663|H|||F
