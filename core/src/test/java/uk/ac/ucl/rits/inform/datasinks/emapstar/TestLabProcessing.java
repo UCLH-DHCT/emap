@@ -13,8 +13,13 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepositor
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
+import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
+import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -27,6 +32,10 @@ class TestLabProcessing extends MessageProcessingBase {
     private LabOrderMsg fourResults;
     private LabOrderMsg singleResult;
     private List<LabOrderMsg> incremental;
+
+    private final String singleResultMrn = "40800000";
+    private final String singleResultLabNumber = "13U444444";
+    private final String singleResultTestCode = "FE";
 
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
@@ -185,4 +194,79 @@ class TestLabProcessing extends MessageProcessingBase {
         // lab number should not have a hospital visit
         labNumberRepository.findAll().forEach(ln -> Assertions.assertNull(ln.getHospitalVisitId()));
     }
+
+    @Test
+    void testHappyPathLabNumber() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        LabNumber result = labNumberRepository.findByMrnIdMrn(singleResultMrn).orElseThrow();
+        Assertions.assertEquals(singleResultLabNumber, result.getInternalLabNumber());
+        Assertions.assertEquals("1", result.getSpecimenType());
+        Assertions.assertEquals("12121213", result.getExternalLabNumber());
+        Assertions.assertEquals("Corepoint", result.getSourceSystem());
+    }
+
+    @Test
+    void testHappyPathLabTestDefinition() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        LabTestDefinition result = labTestDefinitionRepository.findByTestLabCode(singleResultTestCode).orElseThrow();
+        Assertions.assertEquals("WinPath", result.getLabProvider());
+        Assertions.assertEquals("CC", result.getLabDepartment());
+    }
+
+    @Test
+    void testHappyPathLabBatteryElement() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        LabBatteryElement result = labBatteryElementRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
+        Assertions.assertEquals("IRON", result.getBattery());
+    }
+
+    @Test
+    void testHappyPathLabOrder() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        Assertions.assertEquals(Instant.parse("2013-07-24T16:46:00Z"), result.getRequestDatetime());
+        Assertions.assertNull(result.getOrderDatetime());
+        Assertions.assertNull(result.getSampleDatetime());
+    }
+
+    @Test
+    void testHappyPathLabResultNumeric() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
+        Assertions.assertNull(result.getResultAsText());
+        Assertions.assertNull(result.getComment());
+        Assertions.assertEquals(21.6, result.getResultAsReal());
+        Assertions.assertEquals(6.6, result.getRangeLow());
+        Assertions.assertEquals(26.0, result.getRangeHigh());
+        Assertions.assertEquals("=", result.getResultOperator());
+        Assertions.assertEquals("umol/L", result.getUnits());
+    }
+
+    @Test
+    void testHappyPathLabResultString() throws EmapOperationMessageProcessingException {
+        // change result to message
+        LabOrderMsg msg = singleResult;
+        LabResultMsg labResultMsg = msg.getLabResultMsgs().get(0);
+        labResultMsg.setNumericValue(InterchangeValue.unknown());
+        labResultMsg.setReferenceLow(InterchangeValue.unknown());
+        labResultMsg.setReferenceHigh(InterchangeValue.unknown());
+        labResultMsg.setUnits(InterchangeValue.unknown());
+        labResultMsg.setValueType("FT"); // string value
+        String notes = "I am a note";
+        String resultValue = "I am a result";
+        labResultMsg.setNotes(InterchangeValue.buildFromHl7(notes));
+        labResultMsg.setStringValue(resultValue);
+        // process message
+        processSingleMessage(msg);
+        // test message
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
+        Assertions.assertEquals(resultValue, result.getResultAsText());
+        Assertions.assertEquals(notes, result.getComment());
+        Assertions.assertNull(result.getResultAsReal());
+        Assertions.assertNull(result.getRangeLow());
+        Assertions.assertNull(result.getRangeHigh());
+        Assertions.assertNull(result.getResultOperator());
+        Assertions.assertNull(result.getUnits());
+    }
+
 }

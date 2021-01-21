@@ -14,4 +14,11 @@ import java.util.Optional;
 public interface LabNumberRepository extends CrudRepository<LabNumber, Long> {
     Optional<LabNumber> findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
             Mrn mrn, HospitalVisit visit, String internalOrderNumber, String externalOrderNumber);
+
+    /**
+     * for testing.
+     * @param mrn MRN string
+     * @return LabNumber
+     */
+    Optional<LabNumber> findByMrnIdMrn(String mrn);
 }

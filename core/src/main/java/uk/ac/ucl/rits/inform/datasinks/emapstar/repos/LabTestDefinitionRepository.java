@@ -14,4 +14,11 @@ public interface LabTestDefinitionRepository extends CrudRepository<LabTestDefin
             String labProvider, String labDepartment, String labTestCode
     );
 
+    /**
+     * For testing.
+     * @param testCode individual test code
+     * @return LabTestDefinition
+     */
+    Optional<LabTestDefinition> findByTestLabCode(String testCode);
+
 }
