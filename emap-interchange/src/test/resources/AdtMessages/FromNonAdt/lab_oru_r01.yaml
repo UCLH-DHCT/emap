@@ -12,9 +12,10 @@ patientBirthDate:
   status: "SAVE"
   value: "1989-09-09T00:00:00Z"
 patientClass:
+  # patient class not in message
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-  status: "SAVE"
-  value: "INPATIENT"
+  status: "IGNORE"
+  value: null
 patientIsAlive:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"

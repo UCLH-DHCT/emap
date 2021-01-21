@@ -1,99 +1,278 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
-  labResults:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "BILI"
       testItemLocalDescription: "Bilirubin (total)"
-      numericValue: 5
-      stringValue: "5"
-      units: "umol/L"
-      referenceRange: "0-20"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 5
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "5"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "umol/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 20
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
-      numericValue: 108.0
-      stringValue: "108"
-      units: "IU/L"
-      referenceRange: "40-129"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 108.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "108"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "IU/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 40
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 129
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
-      numericValue: 37.0
-      stringValue: "37"
-      units: "g/L"
-      referenceRange: "34-50"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 37.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "37"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "g/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 34
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 50
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
-      numericValue: 108.0
-      stringValue: "108"
-      units: "IU/L"
-      referenceRange: "40-129"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 108.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "108"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "IU/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 40
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 129
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
-      numericValue: 37.0
-      stringValue: "37"
-      units: "g/L"
-      referenceRange: "34-50"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 37.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "37"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "g/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 34
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 50
   statusChangeTime: "2020-04-22T03:25:00Z"
   orderStatus: "A"
   resultStatus: "A"
-- "@class": "uk.ac.ucl.rits.inform.interchange.LabOrder"
-  labResults:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "BILI"
       testItemLocalDescription: "Bilirubin (total)"
-      numericValue: 5
-      stringValue: "5"
-      units: "umol/L"
-      referenceRange: "0-20"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 5
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "5"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "umol/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 20
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
-      numericValue: 108.0
-      stringValue: "108"
-      units: "IU/L"
-      referenceRange: "40-129"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 108.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "108"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "IU/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 40
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 129
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALT"
       testItemLocalDescription: "Alanine transaminase"
-      numericValue: 58.0
-      stringValue: "58"
-      units: "IU/L"
-      abnormalFlags: "H"
-      referenceRange: "10-50"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 58.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "58"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "IU/L"
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "H"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 10
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 50
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
-      numericValue: 37.0
-      stringValue: "37"
-      units: "g/L"
-      referenceRange: "34-50"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 37.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "37"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "g/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 34
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 50
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
-      numericValue: 110.0
-      stringValue: "110"
-      units: "IU/L"
-      referenceRange: "40-129"
-    - "@class": "uk.ac.ucl.rits.inform.interchange.LabResult"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 110.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "110"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "IU/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 40
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 129
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
-      numericValue: 37.0
-      stringValue: "37"
-      units: "g/L"
-      referenceRange: "34-50"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 37.0
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "37"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "g/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 34
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 50
   statusChangeTime: "2020-04-22T05:24:00Z"
   orderStatus: "CM"
   resultStatus: "F"

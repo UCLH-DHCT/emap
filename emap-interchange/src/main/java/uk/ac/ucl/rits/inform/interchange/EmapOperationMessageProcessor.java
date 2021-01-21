@@ -6,6 +6,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 /**
  * Define the message types that an Emap processor
@@ -17,7 +18,7 @@ public interface EmapOperationMessageProcessor {
      * @param msg the lab order message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(LabOrder msg) throws EmapOperationMessageProcessingException;
+    void processMessage(LabOrderMsg msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the ADT message to process
