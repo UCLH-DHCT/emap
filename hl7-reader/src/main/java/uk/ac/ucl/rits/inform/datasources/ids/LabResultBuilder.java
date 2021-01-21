@@ -188,8 +188,10 @@ public class LabResultBuilder {
             if (referenceRange.startsWith("<")) {
                 Double upper = Double.parseDouble(referenceRange.replace("<", ""));
                 msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
+                msg.setReferenceLow(InterchangeValue.delete());
             } else if (referenceRange.startsWith(">")) {
                 Double lower = Double.parseDouble(referenceRange.replace(">", ""));
+                msg.setReferenceHigh(InterchangeValue.delete());
                 msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
             } else {
                 logger.warn(String.format("LabResult reference range not recognised: %s", String.join("-", rangeValues)));

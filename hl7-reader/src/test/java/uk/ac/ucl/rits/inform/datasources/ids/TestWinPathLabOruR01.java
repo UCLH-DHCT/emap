@@ -132,4 +132,58 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
         assertTrue(result.getNumericValue().isUnknown());
         assertEquals("?7", result.getStringValue());
     }
+
+    /**
+     * Range is 35-104 -> should be parsed correctly
+     */
+    @Test
+    public void testSimpleRange() {
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_numeric.txt", 0);
+        List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
+        Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
+        LabResultMsg result = resultsByItemCode.get("ALP");
+        assertEquals(InterchangeValue.buildFromHl7(104.0), result.getReferenceHigh());
+        assertEquals(InterchangeValue.buildFromHl7(35.0), result.getReferenceLow());
+    }
+
+    /**
+     * Range is <7.2. Upper limit should be 7.2 - lower should delete if exists
+     */
+    @Test
+    public void testLessThanRange() {
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_numeric.txt", 0);
+        List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
+        Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
+        LabResultMsg result = resultsByItemCode.get("LESS_RANGE");
+        assertEquals(InterchangeValue.buildFromHl7(7.2), result.getReferenceHigh());
+        assertTrue(result.getReferenceLow().isDelete());
+    }
+
+    /**
+     * Range is >7.2. Lower limit should be 7.2, upper should delete if exists
+     */
+    @Test
+    public void testGreaterThanRange() {
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_numeric.txt", 0);
+        List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
+        Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
+        LabResultMsg result = resultsByItemCode.get("GREATER_RANGE");
+        assertTrue(result.getReferenceHigh().isDelete());
+        assertEquals(InterchangeValue.buildFromHl7(7.2), result.getReferenceLow());
+    }
+
+    /**
+     * Range is ~7.2. Unparsable so should not set a range
+     */
+    @Test
+    public void testRangeUnparsable() {
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_numeric.txt", 0);
+        List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
+        Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
+        LabResultMsg result = resultsByItemCode.get("UNPARSABLE_RANGE");
+        assertTrue(result.getReferenceHigh().isUnknown());
+        assertTrue(result.getReferenceLow().isUnknown());
+    }
+
+
 }

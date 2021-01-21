@@ -7,5 +7,6 @@ OBX|1|NM|ALP^Alkaline phosphatase^Winpath||104|IU/L|35-104||||F
 OBX|2|NM|<VAL^value less than 7^Winpath||<7|nmol/L|||||F
 OBX|3|NM|>VAL^value greater than 7^Winpath||>7|nmol/L|||||F
 OBX|4|NM|UNKONWN_OPERATOR^operator isn't known^Winpath||?7|nmol/L|||||F
-OBX|5|NM|GRE^Greater than example^Winpath||7.18|Ratio|>7.2||||F
-OBX|6|NM|ALBR^QALB (CSF/Serum Albumin ratio)^Winpath||7.18|Ratio|<7.2||||F
+OBX|5|NM|GREATER_RANGE^Greater than example^Winpath||7.18|Ratio|>7.2||||F
+OBX|6|NM|LESS_RANGE^Less than range^Winpath||7.18|Ratio|<7.2||||F
+OBX|7|NM|UNPARSABLE_RANGE^Less than range^Winpath||7.18|Ratio|~7.2||||F
