@@ -7,10 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LabController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.LabOrder;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
 
@@ -38,12 +39,17 @@ public class LabProcessor {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final LabOrder msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
+    public void processMessage(final LabOrderMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
-        HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
-                msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
-        labController.processLabOrder(mrn, visit, msg, observationTime, storedFrom);
+        HospitalVisit visit = null;
+        try {
+            visit = visitController.getOrCreateMinimalHospitalVisit(
+                    msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
+        } catch (RequiredDataMissingException e) {
+            logger.debug("No visit for LabOrder, skipping creating an encounter");
+        }
+        labController.processLabOrder(mrn, visit, msg, storedFrom);
     }
 }

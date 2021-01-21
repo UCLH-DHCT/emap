@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
@@ -51,7 +52,7 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return Hospital visit from database or minimal hospital visit
-     * @throws NullPointerException if no encounter
+     * @throws RequiredDataMissingException if no encounter in message
      */
     public HospitalVisit getOrCreateMinimalHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom
@@ -113,7 +114,7 @@ public class VisitController {
      * @param msg        adt message
      * @param storedFrom time that emap-core started processing the message.
      * @param mrn        mrn
-     * @return hospital visit, may be null if an UpdatePatientInfo message doesn't have any encounter information.
+     * @return hospital visit, may be null if an UpdatePatientInfo or ImpliedAdtMessage message doesn't have any encounter information.
      * @throws RequiredDataMissingException if an adt message has no visit number set and is not an UpdatePatientInfo message
      */
     @Transactional
@@ -122,6 +123,9 @@ public class VisitController {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             if (msg instanceof UpdatePatientInfo) {
                 logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
+                return null;
+            } else if (msg instanceof ImpliedAdtMessage) {
+                logger.debug(String.format("ImpliedAdtMessage had no encounter information: %s", msg));
                 return null;
             }
             throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));
@@ -195,8 +199,8 @@ public class VisitController {
      */
     private void updateGenericData(final AdtMessage msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignHl7ValueIfDifferent(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
-        visitState.assignHl7ValueIfDifferent(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
+        visitState.assignInterchangeValue(msg.getPatientClass(), visit.getPatientClass(), visit::setPatientClass);
+        visitState.assignInterchangeValue(msg.getModeOfArrival(), visit.getArrivalMethod(), visit::setArrivalMethod);
         visitState.assignIfDifferent(msg.getSourceSystem(), visit.getSourceSystem(), visit::setSourceSystem);
     }
 
@@ -207,7 +211,7 @@ public class VisitController {
      */
     private void addAdmissionDateTime(final AdmissionDateTime msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+        visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
     }
 
     /**
@@ -227,7 +231,7 @@ public class VisitController {
      */
     private void addRegistrationInformation(final RegisterPatient msg, RowState<HospitalVisit, HospitalVisitAudit> visitState) {
         HospitalVisit visit = visitState.getEntity();
-        visitState.assignHl7ValueIfDifferent(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
+        visitState.assignInterchangeValue(msg.getPresentationDateTime(), visit.getPresentationTime(), visit::setPresentationTime);
     }
 
     /**
@@ -244,7 +248,7 @@ public class VisitController {
 
         // If started mid-stream, no admission information so add this in on discharge
         if (visit.getAdmissionTime() == null && !msg.getAdmissionDateTime().isUnknown()) {
-            visitState.assignHl7ValueIfDifferent(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
+            visitState.assignInterchangeValue(msg.getAdmissionDateTime(), visit.getAdmissionTime(), visit::setAdmissionTime);
         }
     }
 

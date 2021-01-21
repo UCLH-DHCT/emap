@@ -123,9 +123,9 @@ public class LocationController {
         RowState<LocationVisit, LocationVisitAudit> visitStateB = getOrCreateOpenLocationByLocation(
                 visitB, locationA, validFrom, storedFrom);
         // swap to the correct locations
-        visitStateA.assignHl7ValueIfDifferent(
+        visitStateA.assignInterchangeValue(
                 InterchangeValue.buildFromHl7(locationA), visitStateA.getEntity().getLocationId(), visitStateA.getEntity()::setLocationId);
-        visitStateB.assignHl7ValueIfDifferent(
+        visitStateB.assignInterchangeValue(
                 InterchangeValue.buildFromHl7(locationB), visitStateB.getEntity().getLocationId(), visitStateB.getEntity()::setLocationId);
         // save newly created or audit
         visitStateA.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
@@ -417,15 +417,21 @@ public class LocationController {
      * @param storedFrom        when the message has been read by emap core
      * @param currentLocationId Location entity
      * @throws MessageLocationCancelledException if discharge message was cancelled
+     * @throws RequiredDataMissingException if the discharge message doesn't have a time
      */
     private void processDischargeMessage(
-            HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location currentLocationId) throws MessageLocationCancelledException {
+            HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location currentLocationId)
+            throws MessageLocationCancelledException, RequiredDataMissingException {
         if (locationVisitAuditRepo.messageLocationIsCancelled(visit, currentLocationId, msg.getDischargeDateTime(), true)) {
             throw new MessageLocationCancelledException("Discharge has previously been cancelled");
         }
+        Instant dischargeTime = msg.getDischargeDateTime();
+
+        if (dischargeTime == null) {
+            throw new RequiredDataMissingException("No discharge time found for discharge message");
+        }
 
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
-        Instant dischargeTime = msg.getDischargeDateTime();
 
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, currentLocationId, dischargeTime, storedFrom);

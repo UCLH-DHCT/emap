@@ -162,12 +162,12 @@ public class VisitObservationController {
     private void updateVisitObservation(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
         VisitObservation observation = observationState.getEntity();
         if (msg.getIsNumericType()) {
-            observationState.assignHl7ValueIfDifferent(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
+            observationState.assignInterchangeValue(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
         } else {
-            observationState.assignHl7ValueIfDifferent(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
+            observationState.assignInterchangeValue(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
         }
-        observationState.assignHl7ValueIfDifferent(msg.getUnit(), observation.getUnit(), observation::setUnit);
-        observationState.assignHl7ValueIfDifferent(msg.getComment(), observation.getComment(), observation::setComment);
+        observationState.assignInterchangeValue(msg.getUnit(), observation.getUnit(), observation::setUnit);
+        observationState.assignInterchangeValue(msg.getComment(), observation.getComment(), observation::setComment);
     }
 
 }
