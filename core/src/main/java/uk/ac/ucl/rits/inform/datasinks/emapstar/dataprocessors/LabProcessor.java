@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LabController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -42,8 +43,13 @@ public class LabProcessor {
         String mrnStr = msg.getMrn();
         Instant observationTime = msg.getObservationDateTime();
         Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
-        HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
-                msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
+        HospitalVisit visit = null;
+        try {
+            visit = visitController.getOrCreateMinimalHospitalVisit(
+                    msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
+        } catch (RequiredDataMissingException e) {
+            logger.debug("No visit for LabOrder, skipping creating an encounter");
+        }
         labController.processLabOrder(mrn, visit, msg, storedFrom);
     }
 }

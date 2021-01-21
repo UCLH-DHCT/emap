@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
@@ -59,14 +60,14 @@ public class LabController {
 
     /**
      * @param mrn        MRN
-     * @param visit      hospital visit
+     * @param visit      hospital visit, can be null
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      * @throws RequiredDataMissingException       if OrderDateTime missing from message
      */
     @Transactional
-    public void processLabOrder(Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
+    public void processLabOrder(Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
             throws IncompatibleDatabaseStateException, RequiredDataMissingException {
         if (msg.getStatusChangeTime() == null) {
             throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
@@ -84,14 +85,14 @@ public class LabController {
 
     /**
      * @param mrn        MRN
-     * @param visit      hospital visit
+     * @param visit      hospital visit, can be null
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @return lab number
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      */
     private LabNumber getOrCreateLabNumber(
-            Mrn mrn, HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+            Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         LabNumber labNumber = labNumberRepo
                 .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
                         mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber())

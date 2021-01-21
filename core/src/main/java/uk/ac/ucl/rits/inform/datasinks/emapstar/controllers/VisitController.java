@@ -51,7 +51,7 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return Hospital visit from database or minimal hospital visit
-     * @throws NullPointerException if no encounter
+     * @throws RequiredDataMissingException if no encounter in message
      */
     public HospitalVisit getOrCreateMinimalHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime, final Instant storedFrom

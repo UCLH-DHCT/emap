@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepositor
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -162,5 +163,18 @@ class TestLabProcessing extends MessageProcessingBase {
         Assertions.assertEquals(3, epicResults.size());
     }
 
-
+    /**
+     * Processing a Labs result without an encounter should be processed to the end
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testEncounterNotRequired() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = defaultORUR01s.get(0);
+        msg.setVisitNumber(null);
+        processSingleMessage(msg);
+        // all processed
+        checkFirstMessageLabEntityCount();
+        // lab number should not have a hospital visit
+        labNumberRepository.findAll().forEach(ln -> Assertions.assertNull(ln.getHospitalVisitId()));
+    }
 }
