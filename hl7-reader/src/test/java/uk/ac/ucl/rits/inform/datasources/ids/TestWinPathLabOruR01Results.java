@@ -6,8 +6,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test ORU RO1 from Winpath
+ * Test LabResults derived from ORU RO1 from Winpath
  * @author Stef Piatek
  */
-public class TestWinPathLabOruR01 extends TestHl7MessageStream {
+public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
 
     private LabOrderMsg processLab(String filePath) {
         List<LabOrderMsg> msgs = null;
@@ -65,6 +63,7 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_text.txt", "NCVS");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
     }
+
     /**
      * OBX result status is unkonwn - should
      */
@@ -197,6 +196,7 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "VB12");
         assertEquals(InterchangeValue.buildFromHl7("H"), result.getAbnormalFlags());
     }
+
     @Test
     void testAbnormalFlagAbsent() {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
