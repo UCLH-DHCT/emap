@@ -101,7 +101,9 @@ public class LabResultBuilder {
                     logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
                 }
                 try {
-                    setNumericValueAndResultOperator(msg.getStringValue());
+                    if (msg.getStringValue().isSave()) {
+                        setNumericValueAndResultOperator(msg.getStringValue().get());
+                    }
                 } catch (NumberFormatException e) {
                     logger.debug(String.format("LabResult numeric result couldn't be parsed: %s", msg.getStringValue()));
                 }
@@ -161,7 +163,7 @@ public class LabResultBuilder {
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining("\n"));
 
-        msg.setStringValue(stringValue);
+        msg.setStringValue(InterchangeValue.buildFromHl7(stringValue));
     }
 
     /**
@@ -228,13 +230,15 @@ public class LabResultBuilder {
      * that can be ignored? Eg. header and footer of a report intended
      * to be human-readable.
      */
-    public boolean isIgnorable() {
+    boolean isIgnorable() {
         // this will need expanding as we discover new cases
-        if ("URINE CULTURE REPORT".equals(msg.getStringValue()) || "FLUID CULTURE REPORT".equals(msg.getStringValue())) {
+        if (!msg.getStringValue().isSave()) {
+            return false;
+        }
+        if ("URINE CULTURE REPORT".equals(msg.getStringValue().get()) || "FLUID CULTURE REPORT".equals(msg.getStringValue().get())) {
             return true;
         }
-
-        return completePattern.matcher(msg.getStringValue()).matches();
+        return completePattern.matcher(msg.getStringValue().get()).matches();
     }
 
     /**

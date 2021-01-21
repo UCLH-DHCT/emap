@@ -86,19 +86,18 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
         LabResultMsg ncvl = resultsByItemCode.get("NCVL");
 
         assertTrue(ncvs.getNumericValue().isUnknown());
-        assertEquals("CTNS", ncvs.getStringValue());
+        assertEquals(InterchangeValue.buildFromHl7("CTNS"), ncvs.getStringValue());
 
         assertTrue(ncvp.getNumericValue().isUnknown());
-        assertEquals("NOT detected", ncvp.getStringValue());
+        assertEquals(InterchangeValue.buildFromHl7("NOT detected"), ncvp.getStringValue());
 
         assertTrue(ncvl.getNumericValue().isUnknown());
-        // why are the leading spaces on each repeat (line) being trimmed?
-        assertEquals(new StringBuilder()
-                .append("Please note that this test was performed using\n")
+        String ncvlResult = new StringBuilder("Please note that this test was performed using\n")
                 .append("the Hologic Panther Fusion Assay.\n")
                 .append("This new assay is currently not UKAS accredited,\n")
                 .append("but is internally verified. UKAS extension\n")
-                .append("to scope to include this has been submitted.").toString(), ncvl.getStringValue());
+                .append("to scope to include this has been submitted.").toString();
+        assertEquals(InterchangeValue.buildFromHl7(ncvlResult), ncvl.getStringValue());
     }
 
 
@@ -139,7 +138,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
     public void testUnknownResultOperator() {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "UNKONWN_OPERATOR");
         assertTrue(result.getNumericValue().isUnknown());
-        assertEquals("?7", result.getStringValue());
+        assertEquals(InterchangeValue.buildFromHl7("?7"), result.getStringValue());
     }
 
     /**
