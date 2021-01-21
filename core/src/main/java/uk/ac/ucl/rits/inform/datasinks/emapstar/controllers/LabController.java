@@ -24,10 +24,12 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
+import java.util.function.Consumer;
 
 /**
  * All interaction with labs tables.
@@ -138,6 +140,16 @@ public class LabController {
                 });
     }
 
+    /**
+     * Create new lab order or update existing one.
+     * As temporal data can come from different sources, update each one if it is currently null, or the message is newer and has a different value.
+     * @param batteryElement Lab Battery Element
+     * @param labNumber      LabNumber
+     * @param msg            Msg
+     * @param validFrom      most recent change to results
+     * @param storedFrom     time that star encountered the message
+     * @return Lab order wrapped in row state
+     */
     private RowState<LabOrder, LabOrderAudit> updateOrCreateLabOrder(
             LabBatteryElement batteryElement, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
@@ -145,12 +157,7 @@ public class LabController {
                 .map(order -> new RowState<>(order, validFrom, storedFrom, false))
                 .orElseGet(() -> createLabOrder(batteryElement, labNumber, validFrom, storedFrom));
 
-        if (!orderState.isEntityCreated() && validFrom.isBefore(orderState.getEntity().getValidFrom())) {
-            logger.trace("LabOrder database is more recent than LabOrder message, not updating information");
-            return orderState;
-        }
-
-        updateLabOrder(orderState, msg);
+        updateLabOrder(orderState, msg, validFrom);
         orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
         return orderState;
     }
@@ -163,11 +170,21 @@ public class LabController {
         return new RowState<>(order, validFrom, storedFrom, true);
     }
 
-    private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg) {
+    private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg, Instant validFrom) {
         LabOrder order = orderState.getEntity();
-        orderState.assignInterchangeValue(msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime);
-        orderState.assignInterchangeValue(msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime);
-        orderState.assignInterchangeValue(msg.getSampleEnteredTime(), order.getSampleDatetime(), order::setSampleDatetime);
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom);
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom);
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                orderState, msg.getSampleEnteredTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
+    }
+
+    private void assignIfCurrentlyNullOrNewerAndDifferent(
+            RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter, Instant validFrom) {
+        if (currentValue == null || validFrom.isAfter(state.getEntity().getValidFrom())) {
+            state.assignInterchangeValue(msgValue, currentValue, setter);
+        }
     }
 
     private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
