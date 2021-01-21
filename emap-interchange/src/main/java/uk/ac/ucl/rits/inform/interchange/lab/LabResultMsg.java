@@ -29,7 +29,7 @@ public class LabResultMsg implements Serializable {
 
     private String observationSubId = "";
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
-    private String stringValue = "";
+    private InterchangeValue<String> stringValue = InterchangeValue.unknown();
 
     private String isolateLocalCode = "";
     private String isolateLocalDescription = "";

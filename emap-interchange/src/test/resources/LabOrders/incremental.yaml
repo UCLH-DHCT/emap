@@ -9,7 +9,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 15.7
-      stringValue: "15.7"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "15.7"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -38,13 +41,19 @@
       valueType: "FT"
       testItemLocalCode: "DATP"
       testItemLocalDescription: "Date & time phoned/faxed"
-      stringValue: "Cancelled - Previously known abnormal result."
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
       epicCareOrderNumber: "94000001"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "PER"
       testItemLocalDescription: "Person informed of result"
-      stringValue: "Cancelled - Previously known abnormal result."
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
   epicCareOrderNumber: "94000001"
   labDepartment: "H1"
   testBatteryLocalCode: "TELH"
@@ -62,7 +71,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 12.7
-      stringValue: "12.7"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "12.7"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -89,7 +101,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 10.04
-      stringValue: "10.04"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "10.04"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -115,7 +130,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 4.54
-      stringValue: "4.54"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "4.54"
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -139,13 +157,19 @@
       valueType: "FT"
       testItemLocalCode: "DATP"
       testItemLocalDescription: "Date & time phoned/faxed"
-      stringValue: "Cancelled - Previously known abnormal result."
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
       epicCareOrderNumber: "94000001"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "PER"
       testItemLocalDescription: "Person informed of result"
-      stringValue: "Cancelled - Previously known abnormal result."
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
   epicCareOrderNumber: "94000001"
   labDepartment: "H1"
   testBatteryLocalCode: "TELH"
