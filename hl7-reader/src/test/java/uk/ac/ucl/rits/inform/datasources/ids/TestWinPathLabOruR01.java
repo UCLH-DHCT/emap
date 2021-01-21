@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,6 +47,18 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
         LabOrderMsg msg = processLab("LabOrders/covid19test.txt", 0);
         assertEquals("NCOV", msg.getTestBatteryLocalCode());
         assertEquals("COVID19 PCR", msg.getTestBatteryLocalDescription());
+    }
+
+    /**
+     * Test LabResult result status is parsed correctly
+     */
+    @Test
+    public void testResultStatus() {
+        LabOrderMsg msg = processLab("LabOrders/covid19test.txt", 0);
+        List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
+        Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
+        LabResultMsg result = resultsByItemCode.get("NCVS");
+        assertEquals(LabResultStatus.FINAL, result.getResultStatus());
     }
 
     /**
