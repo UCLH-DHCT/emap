@@ -13,7 +13,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepositor
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -25,7 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 class TestLabProcessing extends MessageProcessingBase {
-    private List<LabOrderMsg> defaultORUR01s = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
+    private LabOrderMsg fourResults;
+    private LabOrderMsg singleResult;
+    private List<LabOrderMsg> incremental;
+
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
@@ -42,6 +44,13 @@ class TestLabProcessing extends MessageProcessingBase {
     LabTestDefinitionRepository labTestDefinitionRepository;
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
+
+    public TestLabProcessing() {
+        List<LabOrderMsg> messages = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
+        fourResults = messages.get(0);
+        singleResult = messages.get(1);
+        incremental = messageFactory.getLabOrders("incremental.yaml", null);
+    }
 
     private List<LabResult> getAllLabResults() {
         return StreamSupport.stream(labResultRepository.findAll().spliterator(), false).collect(Collectors.toList());
@@ -61,7 +70,7 @@ class TestLabProcessing extends MessageProcessingBase {
      */
     @Test
     void testCreateNew() throws EmapOperationMessageProcessingException {
-        processSingleMessage(defaultORUR01s.get(0));
+        processSingleMessage(fourResults);
 
         List<Mrn> mrns = getAllMrns();
         Assertions.assertEquals(1, mrns.size());
@@ -89,7 +98,7 @@ class TestLabProcessing extends MessageProcessingBase {
     @Test
     void testDuplicateMessageWithSameData() throws EmapOperationMessageProcessingException {
         // process original message
-        LabOrderMsg msg = defaultORUR01s.get(0);
+        LabOrderMsg msg = fourResults;
         processSingleMessage(msg);
         List<LabResult> originalResults = getAllLabResults();
         // process duplicate message with updated times
@@ -109,20 +118,19 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Message sent twice, with later timestamp, shouldn't add in new entities.
-     * Only results can be updated, so check that these haven't changed.
+     * Incremental load should change result from fist message
      */
     @Test
     void testIncrementalLoad() throws EmapOperationMessageProcessingException {
-        List<LabOrderMsg> messages = messageFactory.getLabOrders("incremental.yaml", "0000040");
-
-        // process all other messages
-        for (LabOrderMsg msg : messages) {
+        // process all messages
+        for (LabOrderMsg msg : incremental) {
             processSingleMessage(msg);
         }
 
         LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
         Assertions.assertNull(updatedResult.getAbnormalFlag());
+        Double resultToBeReplaced = incremental.get(0).getLabResultMsgs().get(0).getNumericValue().get();
+        Assertions.assertNotEquals(resultToBeReplaced, updatedResult.getResultAsReal());
         Assertions.assertEquals(12.7, updatedResult.getResultAsReal());
         // single result should have been changed, so one audit
         Assertions.assertEquals(1, labResultAuditRepository.count());
@@ -140,7 +148,7 @@ class TestLabProcessing extends MessageProcessingBase {
     @Test
     void testResultNotUpdatedIfEarlierThanDatabase() throws EmapOperationMessageProcessingException {
 
-        List<LabOrderMsg> messages = messageFactory.getLabOrders("incremental.yaml", "0000040");
+        List<LabOrderMsg> messages = incremental;
 
         // process first message which should not get updated by other incremental updated
         processSingleMessage(messages.get(0));
@@ -169,7 +177,7 @@ class TestLabProcessing extends MessageProcessingBase {
      */
     @Test
     void testEncounterNotRequired() throws EmapOperationMessageProcessingException {
-        LabOrderMsg msg = defaultORUR01s.get(0);
+        LabOrderMsg msg = fourResults;
         msg.setVisitNumber(null);
         processSingleMessage(msg);
         // all processed
