@@ -4,11 +4,6 @@ PV1||NH|ED^EMERGENCY SERVICES DIVISION||||^Unknown Clinician|||||||||||NH|123412
 ORC|RE|94000002|20U777773|20U777773|CM
 OBR|1|94000002|20U777773|FBC^FBC AND DIFFERENTIAL^WinPath||201907162333|201907162307||||||:-vacant episode||BLD^Blood|||||||201907170004||H1|F
 OBX|1|NM|RDWU^RDW^Winpath||15.7|%|11.5-15.0|H|||F
-OBX|2|NM|MO^Monocytes^Winpath||0.35|x10\S\9/L|0.2-1.0||||F
-OBX|3|NM|EO^Eosinophils^Winpath||0.00|x10\S\9/L|0.0-0.4||||F
-OBX|4|NM|BA^Basophils^Winpath||0.01|x10\S\9/L|0.0-0.1||||F
-OBX|5|NM|NRC^Nucleated RBCs abs^Winpath||0.00|x10\S\9/L|0-0.01||||F
-OBX|6|NM|NRP^Nucleated RBCs %^Winpath||0.0||||||F
 ORC|RE|94000001|20U777773|20U777773|CM
 OBR|2|94000001|20U777773|TELH^TELEPHONED HAEM RESULTS^WinPath||201907162333|201907162307||||||:-vacant episode||BLD^Blood|||||||201907170001||H1|F
 OBX|1|FT|DATP^Date \T\ time phoned/faxed^Winpath||Cancelled - Previously known abnormal result.||||||F
@@ -19,23 +14,9 @@ PID|||40800000^^^MRENTR^MEDREC|
 PV1||NH|ED^EMERGENCY SERVICES DIVISION||||^Unknown Clinician|||||||||||NH|123412341234^^^VISITID
 ORC|RE|94000002|20U777773|20U777773|CM
 OBR|1|94000002|20U777773|FBC^FBC AND DIFFERENTIAL^WinPath||201907162333|201907162307||||||:-vacant episode||BLD^Blood|||||||201907170005||H1|F
-OBX|1|NM|WCC^White cell count^Winpath||10.04|x10\S\9/L|3.0-10.0|H|||F
-OBX|2|NM|RCC^Red cell count^Winpath||4.54|x10\S\12/L|4.4-5.8||||F
-OBX|3|NM|HBGL^Haemoglobin (g/L)^Winpath||149|g/L|130-170||||F
-OBX|4|NM|HCTU^HCT^Winpath||0.432|L/L|0.37-0.50||||F
-OBX|5|NM|MCVU^MCV^Winpath||95.2|fL|80-99||||F
-OBX|6|NM|MCHU^MCH^Winpath||32.8|pg|27.0-33.5||||F
-OBX|7|NM|MCGL^MCHC (g/L)^Winpath||345|g/L|320-360||||F
-OBX|8|NM|RDWU^RDW^Winpath||15.7|%|11.5-15.0|H|||F
-OBX|9|NM|PLT^Platelet count^Winpath||95|x10\S\9/L|150-400|L|||F
-OBX|10|NM|MPVU^MPV^Winpath||9.4|fL|7-13||||F
-OBX|11|NM|NE^Neutrophils^Winpath||9.28|x10\S\9/L|2.0-7.5|H|||F
-OBX|12|NM|LY^Lymphocytes^Winpath||0.40|x10\S\9/L|1.2-3.65|L|||F
-OBX|13|NM|MO^Monocytes^Winpath||0.5|x10\S\9/L|0.2-1.0||||F
-OBX|14|NM|EO^Eosinophils^Winpath||0.00|x10\S\9/L|0.0-0.4||||F
-OBX|15|NM|BA^Basophils^Winpath||0.01|x10\S\9/L|0.0-0.1||||F
-OBX|16|NM|NRC^Nucleated RBCs abs^Winpath||0.00|x10\S\9/L|0-0.01||||F
-OBX|17|NM|NRP^Nucleated RBCs %^Winpath||0.0||||||F
+OBX|1|NM|RDWU^RDW^Winpath||12.7|%|11.5-15.0||||F
+OBX|2|NM|WCC^White cell count^Winpath||10.04|x10\S\9/L|3.0-10.0|H|||F
+OBX|3|NM|RCC^Red cell count^Winpath||4.54|x10\S\12/L|4.4-5.8||||F
 ORC|RE|94000001|20U777773|20U777773|CM
 OBR|2|94000001|20U777773|TELH^TELEPHONED HAEM RESULTS^WinPath||201907162333|201907162307||||||:-vacant episode||BLD^Blood|||||||201907170001||H1|F
 OBX|1|FT|DATP^Date \T\ time phoned/faxed^Winpath||Cancelled - Previously known abnormal result.||||||F

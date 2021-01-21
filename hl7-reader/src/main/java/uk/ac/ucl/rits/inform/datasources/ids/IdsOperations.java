@@ -516,7 +516,7 @@ public class IdsOperations implements AutoCloseable {
             if (fromAdtStream && e instanceof HL7Exception) {
                 throw (HL7Exception) e;
             } else {
-                logger.warn("Ignoring message: " + e.toString());
+                logger.warn("Hl7Exception from non-ADT message", e);
             }
         }
     }

@@ -27,3 +27,4 @@ config-envs
 .idea/
 *.iml
 
+/src/test/resources/*/PatientData.txt

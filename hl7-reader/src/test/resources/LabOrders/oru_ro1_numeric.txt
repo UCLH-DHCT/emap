@@ -4,9 +4,13 @@ PV1|1||T11E^T11E BY02^BY02-17^U^R^^^^^^DEPID|Matern Ante|||HB^BADGER^HONEY^^^^^^
 ORC|RE|12121212|13U444444|13U4444441|CM||||201307290941
 OBR|1|12121212|13U444444|BON^BONE PROFILE^WinPath||201307241746|201307241641|||||||||HB^BADGER, MR. H||||||201307251358||CC|F
 OBX|1|NM|ALP^Alkaline phosphatase^Winpath||104|IU/L|35-104||||F
-OBX|2|NM|ALB^Albumin^Winpath||48|g/L|34-50||||F
-OBX|3|NM|GRE^Greater than example^Winpath||7.18|Ratio|>7.2||||F
-OBX|4|NM|ALBR^QALB (CSF/Serum Albumin ratio)^Winpath||7.18|Ratio|<7.2||||F
-ORC|RE|12121213|13U444444|13U4444441|CM||||201307290941
-OBR|2|12121213|13U444444|IRON^IRON PROFILE^WinPath||201307241746|201307241641|||||||||HB^BADGER, MR. H||||||201307251359||CC|F
-OBX|1|NM|FE^Iron^Winpath||21.6|umol/L|6.6-26.0||||F
+OBX|2|NM|<VAL^value less than 7^Winpath||<7|nmol/L|||||F
+OBX|3|NM|>VAL^value greater than 7^Winpath||>7|nmol/L|||||F
+OBX|4|NM|UNKONWN_OPERATOR^operator isn't known^Winpath||?7|nmol/L|||||F
+OBX|5|NM|GREATER_RANGE^Greater than example^Winpath||7.18|Ratio|>7.2||||F
+OBX|6|NM|LESS_RANGE^Less than range^Winpath||7.18|Ratio|<7.2||||F
+OBX|7|NM|UNPARSABLE_RANGE^Less than range^Winpath||7.18|Ratio|0-2-7.2||||F
+OBX|8|NM|SFOL^Serum folate^Winpath||17.6|ng/mL|4.6-18.7||||F
+NTE|1||Folate result assumes no folic acid supplement
+NTE|1||on day of sampling
+OBX|9|NM|VB12^Vitamin B12^Winpath||702|pg/mL|191-663|H|||F

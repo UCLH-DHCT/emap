@@ -93,11 +93,7 @@ public class AdtMessageFactory {
             // will we want demographics to be included in lab messages too?
             msg.setFullLocationString(InterchangeValue.buildFromHl7(patientInfoHl7.getFullLocationString()));
             msg.setPreviousLocationString(InterchangeValue.buildFromHl7(patientInfoHl7.getPreviousLocation()));
-            try {
-                msg.setPatientClass(InterchangeValue.buildFromHl7(PatientClass.findByHl7Code(patientInfoHl7.getPatientClass())));
-            } catch (IllegalArgumentException e) {
-                throw new HL7Exception("Patient class was not recognised", e);
-            }
+            setPatientClassIfExists(patientInfoHl7, msg);
             msg.setVisitNumber(patientInfoHl7.getVisitNumber());
         }
         if (patientInfoHl7.pv2SegmentExists()) {
@@ -132,6 +128,16 @@ public class AdtMessageFactory {
             msg.setRecordedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
             msg.setEventReasonCode(evn.getEvn4_EventReasonCode().getValue());
             msg.setEventOccurredDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
+        }
+    }
+
+    private void setPatientClassIfExists(PV1Wrap pv1, AdtMessage msg) throws HL7Exception {
+        if (pv1.getPatientClass() != null) {
+            try {
+                msg.setPatientClass(InterchangeValue.buildFromHl7(PatientClass.findByHl7Code(pv1.getPatientClass())));
+            } catch (IllegalArgumentException e) {
+                throw new HL7Exception("Patient class was not recognised", e);
+            }
         }
     }
 
