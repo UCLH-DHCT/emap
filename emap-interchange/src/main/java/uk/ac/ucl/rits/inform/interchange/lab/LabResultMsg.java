@@ -45,7 +45,7 @@ public class LabResultMsg implements Serializable {
      * If this is empty, then it should be deleted in the database.
      */
     private InterchangeValue<String> abnormalFlag = InterchangeValue.delete();
-    private String resultOperator = "=";
+    private String resultOperator;
     private LabResultStatus resultStatus = LabResultStatus.UNKNOWN;
 
     private Instant resultTime;
