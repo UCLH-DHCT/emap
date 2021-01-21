@@ -116,7 +116,7 @@ public class LabResultBuilder {
 
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
-        setAbnormalFlags(obx);
+        setAbnormalFlag(obx);
         setResultStatus(obx);
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
     }
@@ -129,17 +129,17 @@ public class LabResultBuilder {
         }
     }
 
-    private void setAbnormalFlags(OBX obx) {
+    private void setAbnormalFlag(OBX obx) {
         StringBuilder abnormalFlags = new StringBuilder();
-        // will there ever be more than one abnormal flag in practice?
+        // Can't find any example in database of multiple flags but keeping in iteration and warning in case this changes with new data types
         for (IS flag : obx.getObx8_AbnormalFlags()) {
             abnormalFlags.append(flag.getValueOrEmpty());
         }
         if (abnormalFlags.length() > 1) {
-            logger.warn(String.format("LabResult had more than one abnormal flag: %s", abnormalFlags));
+            logger.warn("LabResult had more than one abnormal flag: {}", abnormalFlags);
         }
         if (abnormalFlags.length() != 0) {
-            msg.setAbnormalFlags(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
+            msg.setAbnormalFlag(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
         }
     }
 
