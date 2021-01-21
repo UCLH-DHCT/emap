@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.DischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
@@ -113,7 +114,7 @@ public class VisitController {
      * @param msg        adt message
      * @param storedFrom time that emap-core started processing the message.
      * @param mrn        mrn
-     * @return hospital visit, may be null if an UpdatePatientInfo message doesn't have any encounter information.
+     * @return hospital visit, may be null if an UpdatePatientInfo or ImpliedAdtMessage message doesn't have any encounter information.
      * @throws RequiredDataMissingException if an adt message has no visit number set and is not an UpdatePatientInfo message
      */
     @Transactional
@@ -122,6 +123,9 @@ public class VisitController {
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
             if (msg instanceof UpdatePatientInfo) {
                 logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
+                return null;
+            } else if (msg instanceof ImpliedAdtMessage) {
+                logger.debug(String.format("ImpliedAdtMessage had no encounter information: %s", msg));
                 return null;
             }
             throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));
