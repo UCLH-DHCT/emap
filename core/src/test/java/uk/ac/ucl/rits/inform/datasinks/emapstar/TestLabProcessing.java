@@ -312,7 +312,7 @@ class TestLabProcessing extends MessageProcessingBase {
         Assertions.assertEquals(21.6, result.getResultAsReal());
         Assertions.assertEquals(6.6, result.getRangeLow());
         Assertions.assertEquals(26.0, result.getRangeHigh());
-        Assertions.assertEquals("=", result.getResultOperator());
+        Assertions.assertNull(result.getResultOperator());
         Assertions.assertEquals("umol/L", result.getUnits());
     }
 
