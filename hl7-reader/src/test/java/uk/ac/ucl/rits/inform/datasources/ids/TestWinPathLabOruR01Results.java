@@ -175,7 +175,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
     }
 
     /**
-     * Range is ~7.2. Unparsable so should not set a range
+     * Range is 0-2-7.2. Unparsable so should not set a range
      */
     @Test
     public void testRangeUnparsable() {
