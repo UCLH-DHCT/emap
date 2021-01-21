@@ -39,8 +39,11 @@ public class LabNumber implements Serializable {
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
+    /**
+     * Can have labs that are not linked to a hospital visit.
+     */
     @ManyToOne
-    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
     /**
