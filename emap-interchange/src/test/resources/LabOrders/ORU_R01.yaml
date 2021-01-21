@@ -56,6 +56,10 @@
         status: "SAVE"
         value: "Ratio"
       # range only has >7.2 so referenceLow is 7.2
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "DELETE"
+        value: null
       referenceLow:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -78,6 +82,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7.2
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "DELETE"
+        value: null
   epicCareOrderNumber: "12121212"
   labDepartment: "CC"
   testBatteryLocalCode: "BON"
