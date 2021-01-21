@@ -103,15 +103,13 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
 
 
     /**
-     * Test that numeric value, units, range are all set in simple calse
+     * Test that numeric value, and units are set
      */
     @Test
     public void testNumericSimplePath() {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
         assertEquals(InterchangeValue.buildFromHl7(104.0), result.getNumericValue());
         assertEquals(InterchangeValue.buildFromHl7("IU/L"), result.getUnits());
-        assertEquals(InterchangeValue.buildFromHl7(104.0), result.getReferenceHigh());
-        assertEquals(InterchangeValue.buildFromHl7(35.0), result.getReferenceLow());
     }
 
     /**
