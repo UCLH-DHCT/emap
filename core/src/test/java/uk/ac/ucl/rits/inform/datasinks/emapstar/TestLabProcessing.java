@@ -121,7 +121,7 @@ class TestLabProcessing extends MessageProcessingBase {
         }
 
         LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
-        Assertions.assertEquals(false, updatedResult.getAbnormal());
+        Assertions.assertNull(updatedResult.getAbnormalFlag());
         Assertions.assertEquals(12.7, updatedResult.getResultAsReal());
         // single result should have been changed, so one audit
         Assertions.assertEquals(1, labResultAuditRepository.count());
@@ -153,7 +153,7 @@ class TestLabProcessing extends MessageProcessingBase {
         }
 
         LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
-        Assertions.assertEquals(true, updatedResult.getAbnormal());
+        Assertions.assertEquals("H", updatedResult.getAbnormalFlag());
         Assertions.assertEquals(15.7, updatedResult.getResultAsReal());
         // no results should have been changed
         Assertions.assertEquals(0, labResultAuditRepository.count());

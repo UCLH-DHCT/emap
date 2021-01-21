@@ -205,7 +205,7 @@ public class LabController {
         resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
         resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
         resultState.assignInterchangeValue(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
-        resultState.assignIfDifferent(resultMsg.isAbnormal(), labResult.getAbnormal(), labResult::setAbnormal);
+        resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
         resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
 
