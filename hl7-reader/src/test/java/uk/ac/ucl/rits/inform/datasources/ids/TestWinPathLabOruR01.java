@@ -44,7 +44,7 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
      */
     @Test
     public void testTestCodes() {
-        LabOrderMsg msg = processLab("LabOrders/covid19test.txt", 0);
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_text.txt", 0);
         assertEquals("NCOV", msg.getTestBatteryLocalCode());
         assertEquals("COVID19 PCR", msg.getTestBatteryLocalDescription());
     }
@@ -54,11 +54,22 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
      */
     @Test
     public void testResultStatus() {
-        LabOrderMsg msg = processLab("LabOrders/covid19test.txt", 0);
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_text.txt", 0);
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
         Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
         LabResultMsg result = resultsByItemCode.get("NCVS");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
+    }
+    /**
+     * OBX result status is unkonwn - should
+     */
+    @Test
+    public void testResultStatusUnkonwn() {
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_text.txt", 0);
+        List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
+        Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
+        LabResultMsg result = resultsByItemCode.get("UNKNOWN_RS");
+        assertEquals(LabResultStatus.UNKNOWN, result.getResultStatus());
     }
 
     /**
@@ -66,11 +77,9 @@ public class TestWinPathLabOruR01 extends TestHl7MessageStream {
      */
     @Test
     public void testStringResultOnlyParsed() {
-        LabOrderMsg msg = processLab("LabOrders/covid19test.txt", 0);
+        LabOrderMsg msg = processLab("LabOrders/oru_ro1_text.txt", 0);
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
-        assertEquals(3, labResultMsgs.size());
         Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
-        assertEquals(new HashSet<>(Arrays.asList("NCVS", "NCVP", "NCVL")), resultsByItemCode.keySet());
         LabResultMsg ncvs = resultsByItemCode.get("NCVS");
         LabResultMsg ncvp = resultsByItemCode.get("NCVP");
         LabResultMsg ncvl = resultsByItemCode.get("NCVL");

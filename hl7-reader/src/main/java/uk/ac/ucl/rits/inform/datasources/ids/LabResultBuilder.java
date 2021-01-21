@@ -116,8 +116,16 @@ public class LabResultBuilder {
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
         setAbnormalFlags(obx);
-        msg.setResultStatus(LabResultStatus.findByHl7Code(obx.getObx11_ObservationResultStatus().getValueOrEmpty()));
+        setResultStatus(obx);
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
+    }
+
+    private void setResultStatus(OBX obx) {
+        try {
+            msg.setResultStatus(LabResultStatus.findByHl7Code(obx.getObx11_ObservationResultStatus().getValueOrEmpty()));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Could not parse the PatientClass", e);
+        }
     }
 
     private void setAbnormalFlags(OBX obx) {
