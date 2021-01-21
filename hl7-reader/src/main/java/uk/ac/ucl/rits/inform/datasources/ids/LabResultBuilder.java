@@ -193,12 +193,12 @@ public class LabResultBuilder {
             Double upper = Double.parseDouble(rangeValues[1]);
             msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
             msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
-        } else if (!referenceRange.isBlank()) {
-            if (referenceRange.startsWith("<")) {
+        } else if (!referenceRange.isEmpty()) {
+            if (referenceRange.charAt(0) == '<') {
                 Double upper = Double.parseDouble(referenceRange.replace("<", ""));
                 msg.setReferenceHigh(InterchangeValue.buildFromHl7(upper));
                 msg.setReferenceLow(InterchangeValue.delete());
-            } else if (referenceRange.startsWith(">")) {
+            } else if (referenceRange.charAt(0) == '>') {
                 Double lower = Double.parseDouble(referenceRange.replace(">", ""));
                 msg.setReferenceHigh(InterchangeValue.delete());
                 msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
