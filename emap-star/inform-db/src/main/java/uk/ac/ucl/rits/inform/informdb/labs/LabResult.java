@@ -1,41 +1,77 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.Instant;
 
 /**
  * A LabResult is a single component result of a lab. A single order or sample
  * is likely to produce several results.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
+@SuppressWarnings("serial")
 @Entity
-public class LabResult extends TemporalCore<LabResult, AuditCore> {
+@Data
+@Table(indexes = {@Index(name = "lr_lab_number_id", columnList = "labNumberId"),
+        @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId")})
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
+public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultId;
-    private long labResultDurableId;
 
-    private long labNumberId;
-    private long labTestDefinitionDurableId;
+    @ManyToOne
+    @JoinColumn(name = "labNumberId", nullable = false)
+    private LabNumber labNumberId;
+
+    @ManyToOne
+    @JoinColumn(name = "labTestDefinitionId", nullable = false)
+    private LabTestDefinition labTestDefinitionId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resultLastModifiedTime;
 
-    private boolean abnormal;
+    /**
+     * Lab system flag for value outside of normal range.
+     */
+    private String abnormalFlag;
     private String resultAsText;
-    private double resultAsReal;
+    private Double resultAsReal;
 
+    /**
+     * For numeric results, defines the operator used to define the value.
+     * <p>
+     * For example an estimated GFR is given as `>90`, this would have a valueAsReal of `90` and a numeric operator of `>`
+     * Most of the time, values are precise so have a `=` result operator
+     */
     private String resultOperator;
-    private double rangeHigh;
-    private double rangeLow;
+    /**
+     * Upper limit of reference range.
+     */
+    private Double rangeHigh;
+    /**
+     * Lower limit of reference range.
+     */
+    private Double rangeLow;
+    private String resultStatus;
+    private String units;
 
     private String comment;
 
@@ -44,11 +80,11 @@ public class LabResult extends TemporalCore<LabResult, AuditCore> {
     public LabResult(LabResult other) {
         super(other);
 
-        this.labResultDurableId = other.labResultDurableId;
+        this.labResultId = other.labResultId;
         this.labNumberId = other.labNumberId;
-        this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
+        this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedTime = other.resultLastModifiedTime;
-        this.abnormal = other.abnormal;
+        this.abnormalFlag = other.abnormalFlag;
         this.resultAsText = other.resultAsText;
         this.resultAsReal = other.resultAsReal;
         this.resultOperator = other.resultOperator;
@@ -57,172 +93,10 @@ public class LabResult extends TemporalCore<LabResult, AuditCore> {
         this.comment = other.comment;
     }
 
-    /**
-     * @return the labResultId
-     */
-    public long getLabResultId() {
-        return labResultId;
-    }
-
-    /**
-     * @param labResultId the labResultId to set
-     */
-    public void setLabResultId(long labResultId) {
-        this.labResultId = labResultId;
-    }
-
-    /**
-     * @return the labResultDurableId
-     */
-    public long getLabResultDurableId() {
-        return labResultDurableId;
-    }
-
-    /**
-     * @param labResultDurableId the labResultDurableId to set
-     */
-    public void setLabResultDurableId(long labResultDurableId) {
-        this.labResultDurableId = labResultDurableId;
-    }
-
-    /**
-     * @return the labNumberId
-     */
-    public long getLabNumberId() {
-        return labNumberId;
-    }
-
-    /**
-     * @param labNumberId the labNumberId to set
-     */
-    public void setLabNumberId(long labNumberId) {
+    public LabResult(LabNumber labNumberId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
         this.labNumberId = labNumberId;
-    }
-
-    /**
-     * @return the labTestDefinitionDurableId
-     */
-    public long getLabTestDefinitionDurableId() {
-        return labTestDefinitionDurableId;
-    }
-
-    /**
-     * @param labTestDefinitionDurableId the labTestDefinitionDurableId to set
-     */
-    public void setLabTestDefinitionDurableId(long labTestDefinitionDurableId) {
-        this.labTestDefinitionDurableId = labTestDefinitionDurableId;
-    }
-
-    /**
-     * @return the resultLastModifiedTime
-     */
-    public Instant getResultLastModifiedTime() {
-        return resultLastModifiedTime;
-    }
-
-    /**
-     * @param resultLastModifiedTime the resultLastModifiedTime to set
-     */
-    public void setResultLastModifiedTime(Instant resultLastModifiedTime) {
+        this.labTestDefinitionId = labTestDefinitionId;
         this.resultLastModifiedTime = resultLastModifiedTime;
-    }
-
-    /**
-     * @return the abnormal
-     */
-    public boolean isAbnormal() {
-        return abnormal;
-    }
-
-    /**
-     * @param abnormal the abnormal to set
-     */
-    public void setAbnormal(boolean abnormal) {
-        this.abnormal = abnormal;
-    }
-
-    /**
-     * @return the resultAsText
-     */
-    public String getResultAsText() {
-        return resultAsText;
-    }
-
-    /**
-     * @param resultAsText the resultAsText to set
-     */
-    public void setResultAsText(String resultAsText) {
-        this.resultAsText = resultAsText;
-    }
-
-    /**
-     * @return the resultAsReal
-     */
-    public double getResultAsReal() {
-        return resultAsReal;
-    }
-
-    /**
-     * @param resultAsReal the resultAsReal to set
-     */
-    public void setResultAsReal(double resultAsReal) {
-        this.resultAsReal = resultAsReal;
-    }
-
-    /**
-     * @return the resultOperator
-     */
-    public String getResultOperator() {
-        return resultOperator;
-    }
-
-    /**
-     * @param resultOperator the resultOperator to set
-     */
-    public void setResultOperator(String resultOperator) {
-        this.resultOperator = resultOperator;
-    }
-
-    /**
-     * @return the rangeHigh
-     */
-    public double getRangeHigh() {
-        return rangeHigh;
-    }
-
-    /**
-     * @param rangeHigh the rangeHigh to set
-     */
-    public void setRangeHigh(double rangeHigh) {
-        this.rangeHigh = rangeHigh;
-    }
-
-    /**
-     * @return the rangeLow
-     */
-    public double getRangeLow() {
-        return rangeLow;
-    }
-
-    /**
-     * @param rangeLow the rangeLow to set
-     */
-    public void setRangeLow(double rangeLow) {
-        this.rangeLow = rangeLow;
-    }
-
-    /**
-     * @return the comment
-     */
-    public String getComment() {
-        return comment;
-    }
-
-    /**
-     * @param comment the comment to set
-     */
-    public void setComment(String comment) {
-        this.comment = comment;
     }
 
     @Override
@@ -231,7 +105,7 @@ public class LabResult extends TemporalCore<LabResult, AuditCore> {
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
-        throw new UnsupportedOperationException();
+    public LabResultAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabResultAudit(this, validUntil, storedUntil);
     }
 }

@@ -1,98 +1,65 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
  * This represents all the different batteries of test that can be ordered, and
  * what we know about which constituent tests make them up.
- *
  * @author Roma Klapaukh
- *
+ * @author Stef Piatek
  */
+@SuppressWarnings("serial")
 @Entity
-public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore> {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
+public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatteryElementAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long   labBatteryTypeId;
+    private long labBatteryElementId;
 
-    private long   labBatteryTypeDurableId;
+
+    @ManyToOne
+    @JoinColumn(name = "labTestDefinitionId", nullable = false)
+    private LabTestDefinition labTestDefinitionId;
 
     private String battery;
 
-    private String labTestDefinitionDurableId;
+    /**
+     * What system this code belongs to. Examples could be WinPath, or Epic.
+     */
+    @Column(nullable = false)
+    private String labProvider;
 
     public LabBatteryElement() {}
 
+    public LabBatteryElement(LabTestDefinition labTestDefinitionId, String battery, String labProvider) {
+        this.labTestDefinitionId = labTestDefinitionId;
+        this.battery = battery;
+        this.labProvider = labProvider;
+    }
+
     public LabBatteryElement(LabBatteryElement other) {
         super(other);
-        this.labBatteryTypeDurableId = other.labBatteryTypeDurableId;
+        this.labBatteryElementId = other.labBatteryElementId;
         this.battery = other.battery;
-        this.labTestDefinitionDurableId = other.labTestDefinitionDurableId;
-    }
-
-    /**
-     * @return the labBatteryTypeId
-     */
-    public long getLabBatteryTypeId() {
-        return labBatteryTypeId;
-    }
-
-    /**
-     * @param labBatteryTypeId the labBatteryTypeId to set
-     */
-    public void setLabBatteryTypeId(long labBatteryTypeId) {
-        this.labBatteryTypeId = labBatteryTypeId;
-    }
-
-    /**
-     * @return the labBatteryTypeDurableId
-     */
-    public long getLabBatteryTypeDurableId() {
-        return labBatteryTypeDurableId;
-    }
-
-    /**
-     * @param labBatteryTypeDurableId the labBatteryTypeDurableId to set
-     */
-    public void setLabBatteryTypeDurableId(long labBatteryTypeDurableId) {
-        this.labBatteryTypeDurableId = labBatteryTypeDurableId;
-    }
-
-    /**
-     * @return the battery
-     */
-    public String getBattery() {
-        return battery;
-    }
-
-    /**
-     * @param battery the battery to set
-     */
-    public void setBattery(String battery) {
-        this.battery = battery;
-    }
-
-    /**
-     * @return the labTestDefinitionDurableId
-     */
-    public String getLabTestDefinitionDurableId() {
-        return labTestDefinitionDurableId;
-    }
-
-    /**
-     * @param labTestDefinitionDurableId the labTestDefinitionDurableId to set
-     */
-    public void setLabTestDefinitionDurableId(String labTestDefinitionDurableId) {
-        this.labTestDefinitionDurableId = labTestDefinitionDurableId;
+        this.labTestDefinitionId = other.labTestDefinitionId;
+        this.labProvider = other.labProvider;
     }
 
     @Override
@@ -101,8 +68,8 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, AuditCore
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedFrom) {
-        throw new UnsupportedOperationException();
+    public LabBatteryElementAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabBatteryElementAudit(this, validUntil, storedUntil);
     }
 
 }

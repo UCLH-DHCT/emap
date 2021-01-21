@@ -1,118 +1,71 @@
 package uk.ac.ucl.rits.inform.informdb.labs;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import uk.ac.ucl.rits.inform.informdb.AuditCore;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import java.time.Instant;
 
 /**
  * A LabOrder contains the details of the request to perform a lab. A given
  * LabNumber may have multiple LabOrders.
- *
  * @author Roma Klapaukh
- *
+ * @author Stef Piatek
  */
+@SuppressWarnings("serial")
 @Entity
-public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@AuditTable
+public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long    labOrderId;
-    private long    labOrderDurableId;
+    private long labOrderId;
 
-    private long    labNumberId;
-    private long    labBatteryTypeDurableId;
+    @ManyToOne
+    @JoinColumn(name = "labNumberId", nullable = false)
+    private LabNumber labNumberId;
+
+    @OneToOne
+    @JoinColumn(name = "labBatteryElementId", nullable = false)
+    private LabBatteryElement labBatteryElementId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
 
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant requestDatetime;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant sampleDatetime;
+
     public LabOrder() {}
 
-    public LabOrder(LabOrder other) {
-        super(other);
-
-        this.labOrderDurableId = other.labOrderDurableId;
-
-        this.labNumberId = other.labNumberId;
-        this.labBatteryTypeDurableId = other.labBatteryTypeDurableId;
-
-        this.orderDatetime = other.orderDatetime;
-    }
-
-    /**
-     * @return the labOrderId
-     */
-    public long getLabOrderId() {
-        return labOrderId;
-    }
-
-    /**
-     * @param labOrderId the labOrderId to set
-     */
-    public void setLabOrderId(long labOrderId) {
-        this.labOrderId = labOrderId;
-    }
-
-    /**
-     * @return the labOrderDurableId
-     */
-    public long getLabOrderDurableId() {
-        return labOrderDurableId;
-    }
-
-    /**
-     * @param labOrderDurableId the labOrderDurableId to set
-     */
-    public void setLabOrderDurableId(long labOrderDurableId) {
-        this.labOrderDurableId = labOrderDurableId;
-    }
-
-    /**
-     * @return the labNumberId
-     */
-    public long getLabNumberId() {
-        return labNumberId;
-    }
-
-    /**
-     * @param labNumberId the labNumberId to set
-     */
-    public void setLabNumberId(long labNumberId) {
+    public LabOrder(LabBatteryElement labBatteryElementId, LabNumber labNumberId) {
+        this.labBatteryElementId = labBatteryElementId;
         this.labNumberId = labNumberId;
     }
 
-    /**
-     * @return the labBatteryTypeDurableId
-     */
-    public long getLabBatteryTypeDurableId() {
-        return labBatteryTypeDurableId;
-    }
-
-    /**
-     * @param labBatteryTypeDurableId the labBatteryTypeDurableId to set
-     */
-    public void setLabBatteryTypeDurableId(long labBatteryTypeDurableId) {
-        this.labBatteryTypeDurableId = labBatteryTypeDurableId;
-    }
-
-    /**
-     * @return the orderDatetime
-     */
-    public Instant getOrderDatetime() {
-        return orderDatetime;
-    }
-
-    /**
-     * @param orderDatetime the orderDatetime to set
-     */
-    public void setOrderDatetime(Instant orderDatetime) {
-        this.orderDatetime = orderDatetime;
+    public LabOrder(LabOrder other) {
+        super(other);
+        this.labOrderId = other.labOrderId;
+        this.labNumberId = other.labNumberId;
+        this.labBatteryElementId = other.labBatteryElementId;
+        this.orderDatetime = other.orderDatetime;
+        this.requestDatetime = other.requestDatetime;
+        this.sampleDatetime = other.sampleDatetime;
     }
 
     @Override
@@ -121,7 +74,7 @@ public class LabOrder extends TemporalCore<LabOrder, AuditCore> {
     }
 
     @Override
-    public AuditCore createAuditEntity(Instant validUntil, Instant storedUntil) {
-        throw new UnsupportedOperationException();
+    public LabOrderAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabOrderAudit(this, validUntil, storedUntil);
     }
 }
