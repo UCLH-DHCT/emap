@@ -48,7 +48,10 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resultLastModifiedTime;
 
-    private Boolean abnormal;
+    /**
+     * Lab system flag for value outside of normal range.
+     */
+    private String abnormalFlag;
     private String resultAsText;
     private Double resultAsReal;
 
@@ -81,7 +84,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.labNumberId = other.labNumberId;
         this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedTime = other.resultLastModifiedTime;
-        this.abnormal = other.abnormal;
+        this.abnormalFlag = other.abnormalFlag;
         this.resultAsText = other.resultAsText;
         this.resultAsReal = other.resultAsReal;
         this.resultOperator = other.resultOperator;
