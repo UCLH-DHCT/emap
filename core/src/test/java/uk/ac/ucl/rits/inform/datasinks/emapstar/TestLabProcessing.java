@@ -329,7 +329,7 @@ class TestLabProcessing extends MessageProcessingBase {
         String notes = "I am a note";
         String resultValue = "I am a result";
         labResultMsg.setNotes(InterchangeValue.buildFromHl7(notes));
-        labResultMsg.setStringValue(resultValue);
+        labResultMsg.setStringValue(InterchangeValue.buildFromHl7(resultValue));
         // process message
         processSingleMessage(msg);
         // test message

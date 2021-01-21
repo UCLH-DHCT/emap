@@ -217,7 +217,7 @@ public class LabController {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getResultAsReal(), labResult::setResultAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
         } else {
-            resultState.assignIfDifferent(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
+            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
         }
 
         resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
