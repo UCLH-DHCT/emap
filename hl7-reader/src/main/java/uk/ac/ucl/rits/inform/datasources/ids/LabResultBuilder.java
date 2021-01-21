@@ -37,6 +37,7 @@ public class LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(LabResultBuilder.class);
 
     private LabResultMsg msg = new LabResultMsg();
+    private final Pattern completePattern = Pattern.compile("COMPLETE: \\d{1,2}/\\d{1,2}/\\d{2,4}");
 
     /**
      * @return the underlying message we have now built
@@ -232,10 +233,8 @@ public class LabResultBuilder {
         if ("URINE CULTURE REPORT".equals(msg.getStringValue()) || "FLUID CULTURE REPORT".equals(msg.getStringValue())) {
             return true;
         }
-        String pattern = "COMPLETE: \\d\\d/\\d\\d/\\d\\d";
-        Pattern p = Pattern.compile(pattern);
 
-        return p.matcher(msg.getStringValue()).matches();
+        return completePattern.matcher(msg.getStringValue()).matches();
     }
 
     /**
