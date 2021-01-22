@@ -85,8 +85,8 @@ public class DataSourceConfiguration {
                 break;
             } catch (AmqpException e) {
                 int secondsSleep = 5;
-                logger.warn(String.format("Creating RabbitMQ queue \"%s\" failed with exception %s, retrying in %d seconds",
-                        queueName, e.toString(), secondsSleep));
+                logger.warn("Creating RabbitMQ queue '{}' failed with exception {}, retrying in {} seconds",
+                        queueName, e.getMessage(), secondsSleep);
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException e1) {
