@@ -109,6 +109,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
         assertEquals(InterchangeValue.buildFromHl7(104.0), result.getNumericValue());
         assertEquals(InterchangeValue.buildFromHl7("IU/L"), result.getUnits());
+        assertEquals("=", result.getResultOperator());
     }
 
     /**
