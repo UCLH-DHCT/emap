@@ -4,6 +4,7 @@
       valueType: "NM"
       testItemLocalCode: "BILI"
       testItemLocalDescription: "Bilirubin (total)"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -28,6 +29,7 @@
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -52,6 +54,7 @@
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -76,6 +79,7 @@
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -100,6 +104,7 @@
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -129,6 +134,7 @@
       valueType: "NM"
       testItemLocalCode: "BILI"
       testItemLocalDescription: "Bilirubin (total)"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -153,6 +159,7 @@
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -177,6 +184,7 @@
       valueType: "NM"
       testItemLocalCode: "ALT"
       testItemLocalDescription: "Alanine transaminase"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -205,6 +213,7 @@
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -229,6 +238,7 @@
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -253,6 +263,7 @@
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
