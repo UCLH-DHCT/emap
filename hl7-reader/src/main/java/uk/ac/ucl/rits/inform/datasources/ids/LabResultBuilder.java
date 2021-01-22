@@ -98,19 +98,19 @@ public class LabResultBuilder {
             setStringValue(obx);
             if (data instanceof NM) {
                 if (repCount > 1) {
-                    logger.warn(String.format("WARNING - is numerical (NM) result but repcount = %d", repCount));
+                    logger.warn("LabResult is Numerical (NM) result but repcount = {}", repCount);
                 }
                 try {
                     if (msg.getStringValue().isSave()) {
                         setNumericValueAndResultOperator(msg.getStringValue().get());
                     }
                 } catch (NumberFormatException e) {
-                    logger.debug(String.format("LabResult numeric result couldn't be parsed: %s", msg.getStringValue()));
+                    logger.warn("LabResult numeric result couldn't be parsed: {}", msg.getStringValue());
                 }
             }
         } else if (data instanceof CE) {
             if (repCount > 1) {
-                logger.warn(String.format("WARNING - is coded (CE) result but repcount = %d", repCount));
+                logger.warn("LabResult is coded (CE) result but repcount = {}", repCount);
             }
             setIsolateFields((CE) data);
         }
@@ -205,7 +205,7 @@ public class LabResultBuilder {
                 msg.setReferenceHigh(InterchangeValue.delete());
                 msg.setReferenceLow(InterchangeValue.buildFromHl7(lower));
             } else {
-                logger.warn(String.format("LabResult reference range not recognised: %s", String.join("-", rangeValues)));
+                logger.warn("LabResult reference range not recognised: {}", referenceRange);
             }
         }
     }

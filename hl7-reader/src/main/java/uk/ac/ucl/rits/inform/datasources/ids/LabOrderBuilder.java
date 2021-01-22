@@ -78,7 +78,7 @@ public class LabOrderBuilder {
             try {
                 labOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
                 if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                    logger.warn("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
+                    logger.trace("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
                 } else {
                     orders.add(labOrder);
                 }
@@ -117,7 +117,7 @@ public class LabOrderBuilder {
             LabOrderMsg labOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
             String testBatteryLocalCode = labOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                logger.warn("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
+                logger.trace("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
             } else {
                 orders.add(labOrder);
             }
@@ -154,7 +154,7 @@ public class LabOrderBuilder {
                         LabResultMsg foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
                                 .findFirst().get();
                         // add the order to the list of sensitivities and delete from the original list
-                        logger.info("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
+                        logger.debug("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
                         foundParent.getLabSensitivities().add(orderToReparent);
                         orders.set(i, null);
                         break;
