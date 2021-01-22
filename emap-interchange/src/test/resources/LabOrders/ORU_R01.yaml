@@ -4,6 +4,7 @@
       valueType: "NM"
       testItemLocalCode: "ALP"
       testItemLocalDescription: "Alkaline phosphatase"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -28,6 +29,7 @@
       valueType: "NM"
       testItemLocalCode: "ALB"
       testItemLocalDescription: "Albumin"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -52,6 +54,7 @@
       valueType: "NM"
       testItemLocalCode: "GRE"
       testItemLocalDescription: "Greater than example"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -77,6 +80,7 @@
       valueType: "NM"
       testItemLocalCode: "ALBR"
       testItemLocalDescription: "QALB (CSF/Serum Albumin ratio)"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -109,6 +113,7 @@
       valueType: "NM"
       testItemLocalCode: "FE"
       testItemLocalDescription: "Iron"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"

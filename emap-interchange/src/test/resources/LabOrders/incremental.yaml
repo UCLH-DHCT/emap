@@ -5,6 +5,7 @@
       valueType: "NM"
       testItemLocalCode: "RDWU"
       testItemLocalDescription: "RDW"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -67,6 +68,7 @@
       testItemLocalCode: "RDWU"
       testItemLocalDescription: "RDW"
       # value changed
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -97,6 +99,7 @@
       valueType: "NM"
       testItemLocalCode: "WCC"
       testItemLocalDescription: "White cell count"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -126,6 +129,7 @@
       valueType: "NM"
       testItemLocalCode: "RCC"
       testItemLocalDescription: "Red cell count"
+      resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
