@@ -37,8 +37,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,9 +97,9 @@ public class IdsOperations implements AutoCloseable {
         // Since progress is stored as the unid (the date info is purely for human convenience),
         // there is no way to translate a future date into a unid.
         // This feature is only intended for processing messages in the past, so that's OK.
-        logger.info(String.format(
-                "IDS message processing boundaries: Start date = %s, start unid = %d  -->  End date = %s, end unid = %d",
-                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid));
+        logger.info(
+                "IDS message processing boundaries: Start date = {}, start unid = {} -->  End date = {}, end unid = {}",
+                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid);
     }
 
 
@@ -166,7 +164,7 @@ public class IdsOperations implements AutoCloseable {
             qexists.setMaxResults(1);
             List<IdsMaster> msgs = qexists.list();
             if (msgs.isEmpty()) {
-                logger.warn(String.format("No IDS messages were found beyond the specified date %s, is it in the future?", fromDateTime));
+                logger.warn("No IDS messages were found beyond the specified date {}, is it in the future?", fromDateTime);
                 return null;
             } else {
                 return msgs.get(0).getUnid();
@@ -225,7 +223,7 @@ public class IdsOperations implements AutoCloseable {
         if (onlyRow == null) {
             onlyRow = new IdsProgress();
             // use default start time, if specified
-            logger.info(String.format("No progress found, initialising to unid = %d", this.defaultStartUnid));
+            logger.info("No progress found, initialising to unid = {}", this.defaultStartUnid);
             if (this.defaultStartUnid != null) {
                 // initialise progress as per config, otherwise it'll just stay at 0 (ie. the very beginning)
                 onlyRow.setLastProcessedIdsUnid(this.defaultStartUnid);
@@ -367,7 +365,7 @@ public class IdsOperations implements AutoCloseable {
         while (true) {
             idsMsg = getNextHL7IdsRecord(lastProcessedId);
             if (idsMsg == null) {
-                logger.info(String.format("No more messages in IDS, retrying in %d seconds", secondsSleep));
+                logger.debug("No more messages in IDS, retrying in {} seconds", secondsSleep);
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException ie) {
@@ -393,9 +391,9 @@ public class IdsOperations implements AutoCloseable {
     @Transactional
     public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException, ReachedEndException {
         int lastProcessedId = getLatestProcessedId();
-        logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
+        logger.debug("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         if (this.endUnid != null && lastProcessedId >= this.endUnid) {
-            logger.info(String.format("lastProcessedId = %d  >=  endUnid = %d, exiting", lastProcessedId, this.endUnid));
+            logger.info("lastProcessedId = {} >= endUnid = {}, exiting", lastProcessedId, this.endUnid);
             throw new ReachedEndException();
         }
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
@@ -407,7 +405,7 @@ public class IdsOperations implements AutoCloseable {
 
         try {
             if (!allowedSenders.contains(sender)) {
-                logger.warn(String.format("[" + idsMsg.getUnid() + "] Skipping message with senderapplication=\"%s\"", sender));
+                logger.trace("[{}}] Skipping message with senderapplication='{}'", idsMsg.getUnid(), sender);
                 return;
             }
             String hl7msg = idsMsg.getHl7message();
@@ -418,9 +416,7 @@ public class IdsOperations implements AutoCloseable {
             try {
                 msgFromIds = parser.parse(hl7msg);
             } catch (HL7Exception hl7e) {
-                StringWriter st = new StringWriter();
-                hl7e.printStackTrace(new PrintWriter(st));
-                logger.error("[" + idsMsg.getUnid() + "] HL7 parsing error:\n" + st.toString());
+                logger.error("[{}] HL7 parsing error", idsMsg.getUnid(), hl7e);
                 return;
             }
 
@@ -431,19 +427,17 @@ public class IdsOperations implements AutoCloseable {
                 int subMessageCount = 0;
                 for (EmapOperationMessage msg : messagesFromHl7Message) {
                     subMessageCount++;
-                    logger.info(String.format("[%d] sending message (%d/%d) to RabbitMQ ", idsMsg.getUnid(),
-                            subMessageCount, messagesFromHl7Message.size()));
+                    logger.trace("[{}] sending message ({}/{}) to RabbitMQ",
+                            idsMsg.getUnid(), subMessageCount, messagesFromHl7Message.size());
                     Semaphore semaphore = new Semaphore(0);
                     publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
-                        logger.warn("callback for " + msg.getSourceMessageId());
+                        logger.trace("callback for " + msg.getSourceMessageId());
                         semaphore.release();
                     });
                     semaphore.acquire();
                 }
             } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
-                String errMsg =
-                        "[" + idsMsg.getUnid() + "] Skipping due to " + e.getStackTrace() + " (" + msgFromIds.getClass() + ")";
-                logger.error(errMsg);
+                logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {
             Instant processingEnd = Instant.now();
@@ -466,7 +460,7 @@ public class IdsOperations implements AutoCloseable {
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
-        logger.info(String.format("%s^%s", messageType, triggerEvent));
+        logger.debug("{}^{}", messageType, triggerEvent);
         String sourceId = String.format("%010d", idsUnid);
 
         List<EmapOperationMessage> messages = new ArrayList<>();
@@ -494,7 +488,7 @@ public class IdsOperations implements AutoCloseable {
                 }
                 break;
             default:
-                logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
+                logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
 
         }
         return messages;

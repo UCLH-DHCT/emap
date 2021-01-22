@@ -55,7 +55,7 @@ public class FlowsheetFactory {
 
             flowsheets = buildAllFlowsheets(idsUnid, pid, msh, pv1, recordedDateTime, patientResult.getORDER_OBSERVATIONAll());
         } catch (HL7Exception e) {
-            FlowsheetFactory.logger.error(String.format("HL7 Exception encountered for msg %s", idsUnid), e);
+            FlowsheetFactory.logger.error("HL7 Exception encountered for msg {}", idsUnid, e);
         }
         return flowsheets;
     }
@@ -85,7 +85,7 @@ public class FlowsheetFactory {
                     Flowsheet flowsheet = buildFlowsheet(subMessageSourceId, observation, msh, pid, pv1, recordedDateTime);
                     flowsheets.add(flowsheet);
                 } catch (Hl7InconsistencyException e) {
-                    FlowsheetFactory.logger.error(String.format("Flowsheet could not be parsed for msg %s", subMessageSourceId), e);
+                    FlowsheetFactory.logger.error("Flowsheet could not be parsed for msg {}", subMessageSourceId, e);
                 }
             }
         }

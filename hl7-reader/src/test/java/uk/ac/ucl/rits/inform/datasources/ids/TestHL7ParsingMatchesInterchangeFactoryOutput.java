@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,11 +17,12 @@ import java.util.List;
  *
  */
 @ActiveProfiles("test")
+@Slf4j
 public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
     private void testAdtMessage(String adtFileStem) throws Exception {
-        System.out.println("Testing ADT message with stem:" + adtFileStem);
+        log.info("Testing ADT message with stem '{}'", adtFileStem);
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem + ".txt");
         AdtMessage expectedAdtMessage = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
         Assertions.assertEquals(1, messagesFromHl7Message.size());
