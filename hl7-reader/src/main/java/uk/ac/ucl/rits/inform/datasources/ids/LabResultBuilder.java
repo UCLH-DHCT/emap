@@ -172,12 +172,12 @@ public class LabResultBuilder {
      */
     private void setNumericValueAndResultOperator(String inputValue) {
         String value = inputValue;
-
+        String resultOperator = "=";
         if (!value.isEmpty() && (value.charAt(0) == '>' || value.charAt(0) == '<')) {
-            String resultOperator = value.substring(0, 1);
-            msg.setResultOperator(resultOperator);
+            resultOperator = value.substring(0, 1);
             value = value.substring(1);
         }
+        msg.setResultOperator(resultOperator);
         Double numericValue = Double.parseDouble(value);
 
         msg.setNumericValue(InterchangeValue.buildFromHl7(numericValue));
