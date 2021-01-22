@@ -78,7 +78,7 @@ public class LabOrderBuilder {
             try {
                 labOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
                 if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                    logger.trace("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
+                    logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
                 } else {
                     orders.add(labOrder);
                 }
@@ -117,7 +117,7 @@ public class LabOrderBuilder {
             LabOrderMsg labOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
             String testBatteryLocalCode = labOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                logger.trace("Ignoring order control ID = \"" + labOrder.getOrderControlId() + "\"");
+                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
             } else {
                 orders.add(labOrder);
             }
@@ -154,7 +154,7 @@ public class LabOrderBuilder {
                         LabResultMsg foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
                                 .findFirst().get();
                         // add the order to the list of sensitivities and delete from the original list
-                        logger.debug("Reparenting sensitivity order " + orderToReparent + " onto " + foundParent);
+                        logger.debug("Reparenting sensitivity order {} onto {}", orderToReparent, foundParent);
                         foundParent.getLabSensitivities().add(orderToReparent);
                         orders.set(i, null);
                         break;
@@ -203,37 +203,37 @@ public class LabOrderBuilder {
      * which we should already know about from a preceding ORM message.
      * <p>
      * ORU_R01_PATIENT_RESULT repeating
-     *      ORU_R01_PATIENT optional
-     *          PID (Patient Identification)
-     *          PRT (Participation Information) optional repeating
-     *          PD1 (Patient Additional Demographic) optional
-     *          NTE (Notes and Comments) optional repeating
-     *          NK1 (Next of Kin / Associated Parties) optional repeating
-     *          ORU_R01_PATIENT_OBSERVATION (a Group object) optional repeating
-     *              OBX (Observation/Result)
-     *              PRT (Participation Information) optional repeating
-     *          ORU_R01_VISIT (a Group object) optional
-     *              PV1 (Patient Visit)
-     *              PV2 (Patient Visit - Additional Information) optional
-     *              PRT (Participation Information) optional repeating
-     *      ORU_R01_ORDER_OBSERVATION repeating
-     *          ORC (Common Order) optional
-     *          OBR (Observation Request)
-     *          NTE (Notes and Comments) optional repeating
-     *          PRT (Participation Information) optional repeating
-     *          ORU_R01_TIMING_QTY (a Group object) optional repeating
-     *          CTD (Contact Data) optional
-     *          ORU_R01_OBSERVATION (a Group object) optional repeating
-     *              OBX (Observation/Result)
-     *              PRT (Participation Information) optional repeating
-     *              NTE (Notes and Comments) optional repeating
-     *          FT1 (Financial Transaction) optional repeating
-     *          CTI (Clinical Trial Identification) optional repeating
-     *          ORU_R01_SPECIMEN (a Group object) optional repeating
-     *              SPM (Specimen)
-     *              ORU_R01_SPECIMEN_OBSERVATION (a Group object) optional repeating
-     *                  OBX (Observation/Result)
-     *                  PRT (Participation Information) optional repeating
+     * ORU_R01_PATIENT optional
+     * PID (Patient Identification)
+     * PRT (Participation Information) optional repeating
+     * PD1 (Patient Additional Demographic) optional
+     * NTE (Notes and Comments) optional repeating
+     * NK1 (Next of Kin / Associated Parties) optional repeating
+     * ORU_R01_PATIENT_OBSERVATION (a Group object) optional repeating
+     * OBX (Observation/Result)
+     * PRT (Participation Information) optional repeating
+     * ORU_R01_VISIT (a Group object) optional
+     * PV1 (Patient Visit)
+     * PV2 (Patient Visit - Additional Information) optional
+     * PRT (Participation Information) optional repeating
+     * ORU_R01_ORDER_OBSERVATION repeating
+     * ORC (Common Order) optional
+     * OBR (Observation Request)
+     * NTE (Notes and Comments) optional repeating
+     * PRT (Participation Information) optional repeating
+     * ORU_R01_TIMING_QTY (a Group object) optional repeating
+     * CTD (Contact Data) optional
+     * ORU_R01_OBSERVATION (a Group object) optional repeating
+     * OBX (Observation/Result)
+     * PRT (Participation Information) optional repeating
+     * NTE (Notes and Comments) optional repeating
+     * FT1 (Financial Transaction) optional repeating
+     * CTI (Clinical Trial Identification) optional repeating
+     * ORU_R01_SPECIMEN (a Group object) optional repeating
+     * SPM (Specimen)
+     * ORU_R01_SPECIMEN_OBSERVATION (a Group object) optional repeating
+     * OBX (Observation/Result)
+     * PRT (Participation Information) optional repeating
      * @param subMessageSourceId unique Id from the IDS
      * @param obs                the result group from HAPI (ORU_R01_ORDER_OBSERVATION)
      * @param msh                the MSH segment
