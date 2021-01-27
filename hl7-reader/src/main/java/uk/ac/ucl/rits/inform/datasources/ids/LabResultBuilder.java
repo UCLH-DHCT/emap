@@ -105,7 +105,8 @@ public class LabResultBuilder {
                         setNumericValueAndResultOperator(msg.getStringValue().get());
                     }
                 } catch (NumberFormatException e) {
-                    logger.warn("LabResult numeric result couldn't be parsed: {}", msg.getStringValue());
+                    logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", msg.getStringValue());
+                    msg.setNumericValue(InterchangeValue.delete());
                 }
             }
         } else if (data instanceof CE) {
