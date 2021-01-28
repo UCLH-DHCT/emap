@@ -476,7 +476,7 @@ public class IdsOperations implements AutoCloseable {
                     } else {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         // get all result batteries in the message
-                        messages.addAll(LabOrderBuilder.buildLabOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
+                        messages.addAll(LabParser.buildLabOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
                     }
                 }
                 break;
@@ -484,7 +484,7 @@ public class IdsOperations implements AutoCloseable {
                 if (triggerEvent.equals("O01")) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     // get all orders in the message
-                    messages.addAll(LabOrderBuilder.buildLabOrders(sourceId, (ORM_O01) msgFromIds));
+                    messages.addAll(LabParser.buildLabOrders(sourceId, (ORM_O01) msgFromIds));
                 }
                 break;
             default:

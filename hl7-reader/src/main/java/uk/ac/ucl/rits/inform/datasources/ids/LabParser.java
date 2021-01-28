@@ -34,17 +34,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Build one or more LabOrder object(s) from an HL7 message.
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
-public class LabOrderBuilder {
+public class LabParser {
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
-    private static final Logger logger = LoggerFactory.getLogger(LabOrderBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
 
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
@@ -76,7 +78,7 @@ public class LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder;
             try {
-                labOrder = new LabOrderBuilder(subMessageSourceId, order, ormO01).getMessage();
+                labOrder = new LabParser(subMessageSourceId, order, ormO01).getMessage();
                 if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
                     logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
                 } else {
@@ -114,7 +116,7 @@ public class LabOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new LabOrderBuilder(subMessageSourceId, obs, msh, pid, pv1).getMessage();
+            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).getMessage();
             String testBatteryLocalCode = labOrder.getTestBatteryLocalCode();
             if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
@@ -175,7 +177,7 @@ public class LabOrderBuilder {
      * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
      * @throws Hl7MessageIgnoredException if the entire message should be ignored
      */
-    public LabOrderBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
+    public LabParser(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         msg.setSourceMessageId(subMessageSourceId);
         MSH msh = (MSH) ormO01.get("MSH");
@@ -242,7 +244,7 @@ public class LabOrderBuilder {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public LabOrderBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+    public LabParser(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
             throws HL7Exception, Hl7InconsistencyException {
         msg.setSourceMessageId(subMessageSourceId);
         // Can only seem to get these segments at the ORU_R01_PATIENT_RESULT level.
@@ -300,7 +302,7 @@ public class LabOrderBuilder {
             }
         }
         // remove those which have been merged in and marked as null (all their data should have been incorporated in the merge)
-        labResults.removeIf(pr -> pr == null);
+        labResults.removeIf(Objects::isNull);
     }
 
     /**
@@ -350,9 +352,6 @@ public class LabOrderBuilder {
         // this is the "last updated" field for results as well as changing to order "in progress"
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
-        // only present in Epic -> WinPath msg
-        String labSpecimenNum = obr.getObr20_FillerField1().getValueOrEmpty();
-
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
         msg.setTestBatteryLocalCode(obr4.getCwe1_Identifier().getValueOrEmpty());
@@ -377,11 +376,14 @@ public class LabOrderBuilder {
      * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent
      */
     public static boolean isChildOf(LabOrderMsg possibleChild, LabResultMsg possibleParent) {
-        return !possibleChild.getEpicCareOrderNumber().isEmpty()
-                && possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
-                && !possibleChild.getParentObservationIdentifier().isEmpty()
+        if (possibleChild.getEpicCareOrderNumber().isEmpty()
+                || possibleChild.getParentObservationIdentifier().isEmpty()
+                || possibleChild.getParentSubId().isEmpty()) {
+            return false;
+        }
+
+        return possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
                 && possibleChild.getParentObservationIdentifier().equals(possibleParent.getTestItemLocalCode())
-                && !possibleChild.getParentSubId().isEmpty()
                 && possibleChild.getParentSubId().equals(possibleParent.getObservationSubId());
     }
 
