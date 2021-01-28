@@ -70,26 +70,27 @@ public class LabParser {
      */
     public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException {
-        List<LabOrderMsg> orders = new ArrayList<>();
-        List<ORM_O01_ORDER> orderAll = ormO01.getORDERAll();
+        List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
+
+        List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());
         int msgSuffix = 0;
-        for (ORM_O01_ORDER order : orderAll) {
+        for (ORM_O01_ORDER order : hl7Orders) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder;
             try {
-                labOrder = new LabParser(subMessageSourceId, order, ormO01).getMessage();
-                if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                labOrder = new LabParser(subMessageSourceId, order, ormO01).msg;
+                if (!LabParser.allowedOCIDs.contains(labOrder.getOrderControlId())) {
                     logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
                 } else {
-                    orders.add(labOrder);
+                    interchangeOrders.add(labOrder);
                 }
             } catch (Hl7MessageIgnoredException e) {
                 // if the entire message is being skipped, stop now
-                return orders;
+                return interchangeOrders;
             }
         }
-        return orders;
+        return interchangeOrders;
     }
 
     /**
@@ -102,7 +103,6 @@ public class LabParser {
      */
     public static List<LabOrderMsg> buildLabOrdersFromResults(String idsUnid, ORU_R01 oruR01)
             throws HL7Exception, Hl7InconsistencyException {
-        List<LabOrderMsg> orders = new ArrayList<>();
         if (oruR01.getPATIENT_RESULTReps() != 1) {
             throw new RuntimeException("not handling this yet");
         }
@@ -112,19 +112,19 @@ public class LabParser {
         PID pid = patientResults.getPATIENT().getPID();
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
 
+        List<LabOrderMsg> orders = new ArrayList<>(orderObservations.size());
         int msgSuffix = 0;
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).getMessage();
-            String testBatteryLocalCode = labOrder.getTestBatteryLocalCode();
+            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
             if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
             } else {
                 orders.add(labOrder);
             }
         }
-        reparentOrders(orders);
+        LabParser.reparentOrders(orders);
         return orders;
     }
 
@@ -161,11 +161,12 @@ public class LabParser {
                         orders.set(i, null);
                         break;
                     } catch (NoSuchElementException e) {
+                        // should we do something here?
                     }
                 }
             }
         }
-        orders.removeIf(o -> o == null);
+        orders.removeIf(Objects::isNull);
     }
 
     /**
@@ -195,7 +196,7 @@ public class LabParser {
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
         populateFromOrcObr(orc, obr);
-        validateRedundantFields();
+        validateAndSetEpicOrderNumber();
     }
 
     /**
@@ -256,9 +257,9 @@ public class LabParser {
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
         populateFromOrcObr(orc, obr);
-        validateRedundantFields();
+        validateAndSetEpicOrderNumber();
 
-        List<LabResultBuilder> tempResults = new ArrayList<>();
+        List<LabResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
@@ -267,8 +268,8 @@ public class LabParser {
             tempResults.add(labResult);
         }
         // join some of the observations under this fact together (or ignore some of them)
-        mergeOrFilterResults(tempResults);
-        msg.setLabResultMsgs(tempResults.stream().map(b -> b.getMessage()).collect(Collectors.toList()));
+        LabParser.mergeOrFilterResults(tempResults);
+        msg.setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
     /**
@@ -278,7 +279,7 @@ public class LabParser {
      * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
      */
     private static void mergeOrFilterResults(List<LabResultBuilder> labResults) {
-        Map<String, LabResultBuilder> subIdMapping = new HashMap<>();
+        Map<String, LabResultBuilder> subIdMapping = new HashMap<>(labResults.size());
         for (int i = 0; i < labResults.size(); i++) {
             // can this "result" be ignored altogether?
             if (labResults.get(i).isIgnorable()) {
@@ -328,11 +329,11 @@ public class LabParser {
         // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
         // in a status change (SC) message.
         Instant orc9 = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
-        if (msg.getOrderControlId().equals("NW")) {
+        if ("NW".equals(msg.getOrderControlId())) {
             msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
-        } else if (msg.getOrderControlId().equals("SC")) {
+        } else if ("SC".equals(msg.getOrderControlId())) {
             // possibly need to check for other result status codes that signify "in progress"?
-            if (resultStatus.equals("I")) {
+            if ("I".equals(resultStatus)) {
                 // ORC-9 = time sample entered onto WinPath
                 msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(orc9));
             }
@@ -388,12 +389,12 @@ public class LabParser {
     }
 
     /**
-     * There are a number of fields that seem to be duplicated between the ORC and OBR segments.
+     * EpicCareOrderNumber duplicated between the ORC and OBR segments.
      * Check that everything matches as expected. If it doesn't we might have to do some integration
      * here.
      * @throws Hl7InconsistencyException if anything doesn't match
      */
-    private void validateRedundantFields() throws Hl7InconsistencyException {
+    private void validateAndSetEpicOrderNumber() throws Hl7InconsistencyException {
         // check we're not confused and these order numbers match - they can be empty though (eg. if ORC-1 = "SN")
         if (!epicCareOrderNumberOrc.equals(epicCareOrderNumberObr)) {
             throw new Hl7InconsistencyException(String.format("ORC-2 %s does not match OBR-2 %s", epicCareOrderNumberOrc, epicCareOrderNumberObr));
