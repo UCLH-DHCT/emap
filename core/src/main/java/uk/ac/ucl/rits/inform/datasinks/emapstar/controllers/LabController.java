@@ -214,10 +214,10 @@ public class LabController {
     private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
         LabResult labResult = resultState.getEntity();
         if (resultMsg.isNumeric()) {
-            resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getResultAsReal(), labResult::setResultAsReal);
+            resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
         } else {
-            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getResultAsText(), labResult::setResultAsText);
+            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
         }
 
         resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);

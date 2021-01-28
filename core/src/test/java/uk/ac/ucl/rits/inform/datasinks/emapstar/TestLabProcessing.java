@@ -141,8 +141,8 @@ class TestLabProcessing extends MessageProcessingBase {
         LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
         Assertions.assertNull(updatedResult.getAbnormalFlag());
         Double resultToBeReplaced = incremental.get(0).getLabResultMsgs().get(0).getNumericValue().get();
-        Assertions.assertNotEquals(resultToBeReplaced, updatedResult.getResultAsReal());
-        Assertions.assertEquals(12.7, updatedResult.getResultAsReal());
+        Assertions.assertNotEquals(resultToBeReplaced, updatedResult.getValueAsReal());
+        Assertions.assertEquals(12.7, updatedResult.getValueAsReal());
         // single result should have been changed, so one audit
         Assertions.assertEquals(1, labResultAuditRepository.count());
 
@@ -174,7 +174,7 @@ class TestLabProcessing extends MessageProcessingBase {
 
         LabResult updatedResult = labResultRepository.findByLabTestDefinitionIdTestLabCode("RDWU").orElseThrow();
         Assertions.assertEquals("H", updatedResult.getAbnormalFlag());
-        Assertions.assertEquals(15.7, updatedResult.getResultAsReal());
+        Assertions.assertEquals(15.7, updatedResult.getValueAsReal());
         // no results should have been changed
         Assertions.assertEquals(0, labResultAuditRepository.count());
         // extra results should be added to results under the same EPIC lab number
@@ -307,9 +307,9 @@ class TestLabProcessing extends MessageProcessingBase {
     void testHappyPathLabResultNumeric() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
-        Assertions.assertNull(result.getResultAsText());
+        Assertions.assertNull(result.getValueAsText());
         Assertions.assertNull(result.getComment());
-        Assertions.assertEquals(21.6, result.getResultAsReal());
+        Assertions.assertEquals(21.6, result.getValueAsReal());
         Assertions.assertEquals(6.6, result.getRangeLow());
         Assertions.assertEquals(26.0, result.getRangeHigh());
         Assertions.assertEquals("=", result.getResultOperator());
@@ -334,9 +334,9 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
         // test message
         LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
-        Assertions.assertEquals(resultValue, result.getResultAsText());
+        Assertions.assertEquals(resultValue, result.getValueAsText());
         Assertions.assertEquals(notes, result.getComment());
-        Assertions.assertNull(result.getResultAsReal());
+        Assertions.assertNull(result.getValueAsReal());
         Assertions.assertNull(result.getRangeLow());
         Assertions.assertNull(result.getRangeHigh());
         Assertions.assertNull(result.getResultOperator());
