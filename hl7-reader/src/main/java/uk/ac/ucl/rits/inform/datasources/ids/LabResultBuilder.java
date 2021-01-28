@@ -68,6 +68,7 @@ public class LabResultBuilder {
     /**
      * Set test identifiers.
      * @param obx OBX segment
+     * @return the builder
      */
     public LabResultBuilder setTestIdentifiers(OBX obx) {
         CWE obx3 = obx.getObx3_ObservationIdentifier();
@@ -80,6 +81,7 @@ public class LabResultBuilder {
     /**
      * Populate OBX fields. Mainly tested where value type is NM - numeric.
      * @param obx the OBX segment
+     * @return the builder
      */
     public LabResultBuilder populateResults(OBX obx) {
         int repCount = obx.getObx5_ObservationValueReps();
@@ -212,6 +214,7 @@ public class LabResultBuilder {
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.
      * Ignores NTE-1 for now.
      * @param notes all NTE segments for the observation
+     * @return the builder
      */
     public LabResultBuilder populateComments(List<NTE> notes) {
         Collection<String> allNotes = new ArrayList<>(notes.size());
