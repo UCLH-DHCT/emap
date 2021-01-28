@@ -39,19 +39,12 @@ public class LabResultBuilder {
     private final Pattern completePattern = Pattern.compile("COMPLETE: \\d{1,2}/\\d{1,2}/\\d{2,4}");
 
     /**
-     * @return the underlying message we have now built
-     */
-    public LabResultMsg getMessage() {
-        return msg;
-    }
-
-    /**
      * Builder for LabResults, public methods are used for populating the LabResultMsg.
      * @param obx the OBX segment for this result
      * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
      * @throws DataTypeException if required datetime fields cannot be parsed
      */
-    public LabResultBuilder(OBX obx, OBR obr) throws DataTypeException {
+    LabResultBuilder(OBX obx, OBR obr) throws DataTypeException {
         // see HL7 Table 0125 for value types
         // In addition to NM (Numeric), we get (descending popularity):
         //     ED (Encapsulated Data), ST (String), FT (Formatted text - display),
@@ -63,6 +56,13 @@ public class LabResultBuilder {
 
         // each result needs to know this so sensitivities can be correctly assigned
         msg.setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+    }
+
+    /**
+     * @return the underlying message we have now built
+     */
+    public LabResultMsg getMessage() {
+        return msg;
     }
 
     /**
