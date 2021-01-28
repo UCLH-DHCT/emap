@@ -138,7 +138,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
     @Test
     public void testUnknownResultOperator() {
         LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "UNKONWN_OPERATOR");
-        assertTrue(result.getNumericValue().isUnknown());
+        assertTrue(result.getNumericValue().isDelete());
         assertEquals(InterchangeValue.buildFromHl7("?7"), result.getStringValue());
     }
 
