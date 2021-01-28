@@ -48,7 +48,7 @@ public abstract class TestHl7MessageStream {
     protected List<LabOrderMsg> processSingleLabOrderMsgMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
-        return LabParser.buildLabOrdersFromResults("42", hl7Msg);
+        return LabParser.buildLabOrders("42", hl7Msg);
     }
 
     /**

@@ -476,7 +476,7 @@ public class IdsOperations implements AutoCloseable {
                     } else {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         // get all result batteries in the message
-                        messages.addAll(LabParser.buildLabOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
+                        messages.addAll(LabParser.buildLabOrders(sourceId, (ORU_R01) msgFromIds));
                     }
                 }
                 break;

@@ -101,7 +101,7 @@ public class LabParser {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public static List<LabOrderMsg> buildLabOrdersFromResults(String idsUnid, ORU_R01 oruR01)
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R01 oruR01)
             throws HL7Exception, Hl7InconsistencyException {
         if (oruR01.getPATIENT_RESULTReps() != 1) {
             throw new RuntimeException("not handling this yet");
@@ -170,7 +170,7 @@ public class LabParser {
     }
 
     /**
-     * Build a lab order structure from a lab order (ORM)  message.
+     * Build a lab order structure from a lab order (ORM) message.
      * @param subMessageSourceId unique Id from the IDS
      * @param order              one of the order groups in the message that is to be converted into an order structure
      * @param ormO01             the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
@@ -178,19 +178,15 @@ public class LabParser {
      * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
      * @throws Hl7MessageIgnoredException if the entire message should be ignored
      */
-    public LabParser(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
+    private LabParser(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
-        msg.setSourceMessageId(subMessageSourceId);
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
         PID pid = patient.getPID();
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
-        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
-        msg.setSourceSystem(patientHl7.getSendingApplication());
-        msg.setVisitNumber(patientHl7.getVisitNumber());
-        msg.setMrn(patientHl7.getMrn());
-        String sendingApplication = patientHl7.getSendingApplication();
-        if (!sendingApplication.equals("WinPath")) {
+        setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
+        String sendingApplication = msg.getSourceSystem();
+        if (!"WinPath".equals(sendingApplication)) {
             throw new Hl7MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
         }
         ORC orc = order.getORC();
@@ -200,8 +196,7 @@ public class LabParser {
     }
 
     /**
-     * Construct order details from a results (ORU) message. For simplicity we are using the
-     * same structure in both cases. Most/all of the details of the order are contained in the
+     * Construct order details from a WinPath results (ORU) message. Most/all of the details of the order are contained in the
      * results message - at least the order numbers are present so we can look up the order
      * which we should already know about from a preceding ORM message.
      * <p>
@@ -245,15 +240,9 @@ public class LabParser {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    public LabParser(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+    private LabParser(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
             throws HL7Exception, Hl7InconsistencyException {
-        msg.setSourceMessageId(subMessageSourceId);
-        // Can only seem to get these segments at the ORU_R01_PATIENT_RESULT level.
-        // Could there really be more than one patient per message?
-        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
-        msg.setVisitNumber(patientHl7.getVisitNumber());
-        msg.setMrn(patientHl7.getMrn());
-        msg.setSourceSystem(patientHl7.getSendingApplication());
+        setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         OBR obr = obs.getOBR();
         ORC orc = obs.getORC();
         populateFromOrcObr(orc, obr);
@@ -273,6 +262,22 @@ public class LabParser {
         // join some of the observations under this fact together (or ignore some of them)
         LabParser.mergeOrFilterResults(tempResults);
         msg.setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
+    }
+
+    /**
+     * Set LabOrder message source information and patient/encounter identifiers.
+     * @param subMessageSourceId unique Id from the IDS
+     * @param msh                the MSH segment
+     * @param pid                the PID segment
+     * @param pv1                the PV1 segment
+     * @throws HL7Exception if there is missing hl7 data
+     */
+    private void setSourceAndPatientIdentifiers(String subMessageSourceId, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
+        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
+        msg.setSourceMessageId(subMessageSourceId);
+        msg.setSourceSystem(patientHl7.getSendingApplication());
+        msg.setVisitNumber(patientHl7.getVisitNumber());
+        msg.setMrn(patientHl7.getMrn());
     }
 
     /**
