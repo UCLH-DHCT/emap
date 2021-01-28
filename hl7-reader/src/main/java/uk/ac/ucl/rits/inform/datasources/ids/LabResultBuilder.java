@@ -28,8 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Turn part of an HL7 lab result message into a (flatter) structure
- * more suited to our needs.
+ * Builder that allows for customised creation of HL7 lab result message into a (flatter) structure more suited to our needs.
  * @author Jeremy Stein
  * @author Stef Piatek
  */
@@ -47,13 +46,12 @@ public class LabResultBuilder {
     }
 
     /**
-     * This class stores an individual result (i.e. OBX segment) and some patient information (OBR).
-     * @param obx   the OBX segment for this result
-     * @param obr   the OBR segment for this result (will be the same segment shared with other OBXs)
-     * @param notes list of NTE segments for this result
+     * Builder for LabResults, public methods are used for populating the LabResultMsg.
+     * @param obx the OBX segment for this result
+     * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
      * @throws DataTypeException if required datetime fields cannot be parsed
      */
-    public LabResultBuilder(OBX obx, OBR obr, List<NTE> notes) throws DataTypeException {
+    public LabResultBuilder(OBX obx, OBR obr) throws DataTypeException {
         // see HL7 Table 0125 for value types
         // In addition to NM (Numeric), we get (descending popularity):
         //     ED (Encapsulated Data), ST (String), FT (Formatted text - display),
@@ -65,27 +63,25 @@ public class LabResultBuilder {
 
         // each result needs to know this so sensitivities can be correctly assigned
         msg.setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
-        setTestIdentifiers(obx);
-        populateResults(obx);
-        populateComments(notes);
     }
 
     /**
      * Set test identifiers.
      * @param obx OBX segment
      */
-    private void setTestIdentifiers(OBX obx) {
+    public LabResultBuilder setTestIdentifiers(OBX obx) {
         CWE obx3 = obx.getObx3_ObservationIdentifier();
         msg.setTestItemLocalCode(obx3.getCwe1_Identifier().getValueOrEmpty());
         msg.setTestItemLocalDescription(obx3.getCwe2_Text().getValueOrEmpty());
         msg.setTestItemCodingSystem(obx3.getCwe3_NameOfCodingSystem().getValueOrEmpty());
+        return this;
     }
 
     /**
      * Populate OBX fields. Mainly tested where value type is NM - numeric.
      * @param obx the OBX segment
      */
-    private void populateResults(OBX obx) {
+    public LabResultBuilder populateResults(OBX obx) {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -122,6 +118,7 @@ public class LabResultBuilder {
         setAbnormalFlag(obx);
         setResultStatus(obx);
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
+        return this;
     }
 
     private void setResultStatus(OBX obx) {
@@ -216,7 +213,7 @@ public class LabResultBuilder {
      * Ignores NTE-1 for now.
      * @param notes all NTE segments for the observation
      */
-    private void populateComments(List<NTE> notes) {
+    public LabResultBuilder populateComments(List<NTE> notes) {
         Collection<String> allNotes = new ArrayList<>(notes.size());
         for (NTE nt : notes) {
             for (FT ft : nt.getNte3_Comment()) {
@@ -224,6 +221,7 @@ public class LabResultBuilder {
             }
         }
         msg.setNotes(InterchangeValue.buildFromHl7(String.join("\n", allNotes)));
+        return this;
     }
 
     /**

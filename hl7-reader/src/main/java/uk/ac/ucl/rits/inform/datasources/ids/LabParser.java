@@ -264,7 +264,10 @@ public class LabParser {
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            LabResultBuilder labResult = new LabResultBuilder(obx, obr, notes);
+            LabResultBuilder labResult = new LabResultBuilder(obx, obr)
+                    .setTestIdentifiers(obx)
+                    .populateResults(obx)
+                    .populateComments(notes);
             tempResults.add(labResult);
         }
         // join some of the observations under this fact together (or ignore some of them)
