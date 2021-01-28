@@ -20,7 +20,6 @@ public class Hl7MessageIgnoredException extends EmapOperationMessageProcessingEx
      *
      * @param errorMessage a string error message
      */
-    @Deprecated
     public Hl7MessageIgnoredException(String errorMessage) {
         super(errorMessage);
     }
