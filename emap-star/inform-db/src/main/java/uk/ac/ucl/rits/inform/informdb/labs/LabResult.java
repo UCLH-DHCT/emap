@@ -52,8 +52,8 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
      * Lab system flag for value outside of normal range.
      */
     private String abnormalFlag;
-    private String resultAsText;
-    private Double resultAsReal;
+    private String valueAsText;
+    private Double valueAsReal;
 
     /**
      * For numeric results, defines the operator used to define the value.
@@ -85,8 +85,8 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedTime = other.resultLastModifiedTime;
         this.abnormalFlag = other.abnormalFlag;
-        this.resultAsText = other.resultAsText;
-        this.resultAsReal = other.resultAsReal;
+        this.valueAsText = other.valueAsText;
+        this.valueAsReal = other.valueAsReal;
         this.resultOperator = other.resultOperator;
         this.rangeHigh = other.rangeHigh;
         this.rangeLow = other.rangeLow;
