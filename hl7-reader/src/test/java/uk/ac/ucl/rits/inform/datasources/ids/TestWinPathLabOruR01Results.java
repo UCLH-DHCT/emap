@@ -50,7 +50,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testTestCodes() {
-        LabOrderMsg msg = processLab("LabOrders/oru_ro1_text.txt");
+        LabOrderMsg msg = processLab("LabOrders/winpath/oru_ro1_text.txt");
         assertEquals("NCOV", msg.getTestBatteryLocalCode());
         assertEquals("COVID19 PCR", msg.getTestBatteryLocalDescription());
     }
@@ -60,7 +60,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testResultStatus() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_text.txt", "NCVS");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_text.txt", "NCVS");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
     }
 
@@ -69,7 +69,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testResultStatusUnkonwn() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_text.txt", "UNKNOWN_RS");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_text.txt", "UNKNOWN_RS");
         assertEquals(LabResultStatus.UNKNOWN, result.getResultStatus());
     }
 
@@ -78,7 +78,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testStringResultOnlyParsed() {
-        LabOrderMsg msg = processLab("LabOrders/oru_ro1_text.txt");
+        LabOrderMsg msg = processLab("LabOrders/winpath/oru_ro1_text.txt");
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
         Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
         LabResultMsg ncvs = resultsByItemCode.get("NCVS");
@@ -106,7 +106,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testNumericSimplePath() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "ALP");
         assertEquals(InterchangeValue.buildFromHl7(104.0), result.getNumericValue());
         assertEquals(InterchangeValue.buildFromHl7("IU/L"), result.getUnits());
         assertEquals("=", result.getResultOperator());
@@ -117,7 +117,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testResultOperatorLessThan() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "<VAL");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "<VAL");
         assertEquals("<", result.getResultOperator());
         assertEquals(InterchangeValue.buildFromHl7(7.0), result.getNumericValue());
     }
@@ -127,7 +127,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testResultOperatorGreaterThan() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", ">VAL");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", ">VAL");
         assertEquals(">", result.getResultOperator());
         assertEquals(InterchangeValue.buildFromHl7(7.0), result.getNumericValue());
     }
@@ -137,7 +137,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testUnknownResultOperator() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "UNKONWN_OPERATOR");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "UNKONWN_OPERATOR");
         assertTrue(result.getNumericValue().isDelete());
         assertEquals(InterchangeValue.buildFromHl7("?7"), result.getStringValue());
     }
@@ -147,7 +147,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testSimpleRange() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "ALP");
         assertEquals(InterchangeValue.buildFromHl7(104.0), result.getReferenceHigh());
         assertEquals(InterchangeValue.buildFromHl7(35.0), result.getReferenceLow());
     }
@@ -157,7 +157,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testLessThanRange() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "LESS_RANGE");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "LESS_RANGE");
         assertEquals(InterchangeValue.buildFromHl7(7.2), result.getReferenceHigh());
         assertTrue(result.getReferenceLow().isDelete());
     }
@@ -167,7 +167,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testGreaterThanRange() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "GREATER_RANGE");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "GREATER_RANGE");
         assertTrue(result.getReferenceHigh().isDelete());
         assertEquals(InterchangeValue.buildFromHl7(7.2), result.getReferenceLow());
     }
@@ -177,27 +177,27 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
      */
     @Test
     public void testRangeUnparsable() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "UNPARSABLE_RANGE");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "UNPARSABLE_RANGE");
         assertTrue(result.getReferenceHigh().isUnknown());
         assertTrue(result.getReferenceLow().isUnknown());
     }
 
     @Test
     public void testNotes() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "SFOL");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "SFOL");
         InterchangeValue<String> expected = InterchangeValue.buildFromHl7("Folate result assumes no folic acid supplement\non day of sampling");
         assertEquals(expected, result.getNotes());
     }
 
     @Test
     void testAbnormalFlagPresent() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "VB12");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "VB12");
         assertEquals(InterchangeValue.buildFromHl7("H"), result.getAbnormalFlag());
     }
 
     @Test
     void testAbnormalFlagAbsent() {
-        LabResultMsg result = getLabResult("LabOrders/oru_ro1_numeric.txt", "ALP");
+        LabResultMsg result = getLabResult("LabOrders/winpath/oru_ro1_numeric.txt", "ALP");
         assertTrue(result.getAbnormalFlag().isDelete());
     }
 
