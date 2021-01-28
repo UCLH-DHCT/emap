@@ -233,7 +233,7 @@ public class LabResultBuilder {
      */
     boolean isIgnorable() {
         // this will need expanding as we discover new cases
-        if (!msg.getStringValue().isSave()) {
+        if (msg.getStringValue().isUnknown()) {
             return false;
         }
         if ("URINE CULTURE REPORT".equals(msg.getStringValue().get()) || "FLUID CULTURE REPORT".equals(msg.getStringValue().get())) {
