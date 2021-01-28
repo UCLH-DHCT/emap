@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author Jeremy Stein
  * @author Stef Piatek
  */
-public class LabParser {
+final class LabParser {
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
@@ -51,123 +51,7 @@ public class LabParser {
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
 
-    private LabOrderMsg msg = new LabOrderMsg();
-
-    /**
-     * @return the underlying message we have now built
-     */
-    public LabOrderMsg getMessage() {
-        return msg;
-    }
-
-    /**
-     * Several orders for one patient can exist in the same message, so make one object for each.
-     * @param idsUnid unique Id from the IDS
-     * @param ormO01  the ORM message
-     * @return list of LabOrder orders, one for each order
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
-     */
-    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORM_O01 ormO01)
-            throws HL7Exception, Hl7InconsistencyException {
-        List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
-
-        List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());
-        int msgSuffix = 0;
-        for (ORM_O01_ORDER order : hl7Orders) {
-            msgSuffix++;
-            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder;
-            try {
-                labOrder = new LabParser(subMessageSourceId, order, ormO01).msg;
-                if (!LabParser.allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                    logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
-                } else {
-                    interchangeOrders.add(labOrder);
-                }
-            } catch (Hl7MessageIgnoredException e) {
-                // if the entire message is being skipped, stop now
-                return interchangeOrders;
-            }
-        }
-        return interchangeOrders;
-    }
-
-    /**
-     * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
-     * @param idsUnid unique Id from the IDS
-     * @param oruR01  the HL7 message
-     * @return a list of LabOrder messages built from the results message
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
-     */
-    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R01 oruR01)
-            throws HL7Exception, Hl7InconsistencyException {
-        if (oruR01.getPATIENT_RESULTReps() != 1) {
-            throw new RuntimeException("not handling this yet");
-        }
-        ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
-        List<ORU_R01_ORDER_OBSERVATION> orderObservations = patientResults.getORDER_OBSERVATIONAll();
-        MSH msh = (MSH) oruR01.get("MSH");
-        PID pid = patientResults.getPATIENT().getPID();
-        PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
-
-        List<LabOrderMsg> orders = new ArrayList<>(orderObservations.size());
-        int msgSuffix = 0;
-        for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
-            msgSuffix++;
-            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
-            if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
-            } else {
-                orders.add(labOrder);
-            }
-        }
-        LabParser.reparentOrders(orders);
-        return orders;
-    }
-
-    /**
-     * Use the HL7 fields to re-parent the (sensitivity) orders in this list so they point to the results
-     * that they apply to. Parents and children must all be in the list supplied.
-     * @param orders the list of all orders (usually with results(?)). This list
-     *               will have items modified and/or deleted.
-     */
-    private static void reparentOrders(List<LabOrderMsg> orders) {
-        // we may have multiple orders that are unrelated to each other (apart from
-        // being for the same patient).
-        for (int i = 0; i < orders.size(); i++) {
-            LabOrderMsg orderToReparent = orders.get(i);
-            if (!orderToReparent.getParentSubId().isEmpty()) {
-                // The order has a parent, let's find it.
-                // Not many elements, a linear search should be fine.
-                // I'm assuming that the parent always appears before the child in the list.
-                for (int j = 0; j < i; j++) {
-                    LabOrderMsg possibleOrder = orders.get(j);
-                    if (possibleOrder == null) {
-                        // we already re-parented this one, skip
-                        continue;
-                    }
-                    // An HL7 LabOrderBuilder will always contain HL7 LabResultBuilder objects for its results,
-                    // so downcast will be safe. Find a better way of encoding this in the type system.
-                    List<LabResultMsg> possibleParents = possibleOrder.getLabResultMsgs();
-                    try {
-                        LabResultMsg foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
-                                .findFirst().get();
-                        // add the order to the list of sensitivities and delete from the original list
-                        logger.debug("Reparenting sensitivity order {} onto {}", orderToReparent, foundParent);
-                        foundParent.getLabSensitivities().add(orderToReparent);
-                        orders.set(i, null);
-                        break;
-                    } catch (NoSuchElementException e) {
-                        // should we do something here?
-                    }
-                }
-            }
-        }
-        orders.removeIf(Objects::isNull);
-    }
+    private final LabOrderMsg msg = new LabOrderMsg();
 
     /**
      * Build a lab order structure from a lab order (ORM) message.
@@ -265,6 +149,81 @@ public class LabParser {
     }
 
     /**
+     * @return the underlying message we have now built
+     */
+    public LabOrderMsg getMessage() {
+        return msg;
+    }
+
+    /**
+     * Several orders for one patient can exist in the same message, so make one object for each.
+     * @param idsUnid unique Id from the IDS
+     * @param ormO01  the ORM message
+     * @return list of LabOrder orders, one for each order
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
+     */
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORM_O01 ormO01)
+            throws HL7Exception, Hl7InconsistencyException {
+        List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
+
+        List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());
+        int msgSuffix = 0;
+        for (ORM_O01_ORDER order : hl7Orders) {
+            msgSuffix++;
+            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
+            LabOrderMsg labOrder;
+            try {
+                labOrder = new LabParser(subMessageSourceId, order, ormO01).msg;
+                if (!LabParser.allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                    logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
+                } else {
+                    interchangeOrders.add(labOrder);
+                }
+            } catch (Hl7MessageIgnoredException e) {
+                // if the entire message is being skipped, stop now
+                return interchangeOrders;
+            }
+        }
+        return interchangeOrders;
+    }
+
+    /**
+     * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
+     * @param idsUnid unique Id from the IDS
+     * @param oruR01  the HL7 message
+     * @return a list of LabOrder messages built from the results message
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
+     */
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R01 oruR01)
+            throws HL7Exception, Hl7InconsistencyException {
+        if (oruR01.getPATIENT_RESULTReps() != 1) {
+            throw new RuntimeException("not handling this yet");
+        }
+        ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
+        List<ORU_R01_ORDER_OBSERVATION> orderObservations = patientResults.getORDER_OBSERVATIONAll();
+        MSH msh = (MSH) oruR01.get("MSH");
+        PID pid = patientResults.getPATIENT().getPID();
+        PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
+
+        List<LabOrderMsg> orders = new ArrayList<>(orderObservations.size());
+        int msgSuffix = 0;
+        for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
+            msgSuffix++;
+            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
+            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
+            if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
+            } else {
+                orders.add(labOrder);
+            }
+        }
+        LabParser.reparentOrders(orders);
+        return orders;
+    }
+
+    /**
      * Set LabOrder message source information and patient/encounter identifiers.
      * @param subMessageSourceId unique Id from the IDS
      * @param msh                the MSH segment
@@ -278,6 +237,47 @@ public class LabParser {
         msg.setSourceSystem(patientHl7.getSendingApplication());
         msg.setVisitNumber(patientHl7.getVisitNumber());
         msg.setMrn(patientHl7.getMrn());
+    }
+
+    /**
+     * Use the HL7 fields to re-parent the (sensitivity) orders in this list so they point to the results
+     * that they apply to. Parents and children must all be in the list supplied.
+     * @param orders the list of all orders (usually with results(?)). This list
+     *               will have items modified and/or deleted.
+     */
+    private static void reparentOrders(List<LabOrderMsg> orders) {
+        // we may have multiple orders that are unrelated to each other (apart from
+        // being for the same patient).
+        for (int i = 0; i < orders.size(); i++) {
+            LabOrderMsg orderToReparent = orders.get(i);
+            if (!orderToReparent.getParentSubId().isEmpty()) {
+                // The order has a parent, let's find it.
+                // Not many elements, a linear search should be fine.
+                // I'm assuming that the parent always appears before the child in the list.
+                for (int j = 0; j < i; j++) {
+                    LabOrderMsg possibleOrder = orders.get(j);
+                    if (possibleOrder == null) {
+                        // we already re-parented this one, skip
+                        continue;
+                    }
+                    // An HL7 LabOrderBuilder will always contain HL7 LabResultBuilder objects for its results,
+                    // so downcast will be safe. Find a better way of encoding this in the type system.
+                    List<LabResultMsg> possibleParents = possibleOrder.getLabResultMsgs();
+                    try {
+                        LabResultMsg foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
+                                .findFirst().get();
+                        // add the order to the list of sensitivities and delete from the original list
+                        logger.debug("Reparenting sensitivity order {} onto {}", orderToReparent, foundParent);
+                        foundParent.getLabSensitivities().add(orderToReparent);
+                        orders.set(i, null);
+                        break;
+                    } catch (NoSuchElementException e) {
+                        // should we do something here?
+                    }
+                }
+            }
+        }
+        orders.removeIf(Objects::isNull);
     }
 
     /**
