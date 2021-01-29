@@ -83,7 +83,7 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
         LabOrderMsg msg = processLab("LabOrders/abl90_flex/venous.txt");
         assertEquals("VBG", msg.getTestBatteryLocalCode());
         assertEquals("", msg.getTestBatteryLocalDescription());
-        assertEquals("", msg.getTestBatteryCodingSystem());
+        assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
     }
 
     @Test
