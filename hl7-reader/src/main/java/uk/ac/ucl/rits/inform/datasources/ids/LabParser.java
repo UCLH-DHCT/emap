@@ -142,8 +142,6 @@ final class LabParser {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
             LabResultBuilder labResult = new LabResultBuilder(obx, obr)
-                    .setTestIdentifiers(obx)
-                    .populateResults(obx)
                     .setAbnormalFlagIgnoring(obx, null)
                     .setResultTime(obr)
                     .populateComments(notes);
@@ -175,9 +173,7 @@ final class LabParser {
         for (ORU_R30_OBSERVATION ob : observations) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            LabResultMsg labResult = new LabResultBuilder(obx, obr)
-                    .setTestIdentifiers(obx)
-                    .populateResults(obx)
+            LabResultMsg labResult = new LabResultBuilder(obx)
                     .setAbnormalFlagIgnoring(obx, LabParser.ignoredABLFlag)
                     .setTestCodingSystem(msg.getSourceSystem())
                     .setResultTime(obx)

@@ -41,7 +41,9 @@ public class LabResultBuilder {
     private final Pattern completePattern = Pattern.compile("COMPLETE: \\d{1,2}/\\d{1,2}/\\d{2,4}");
 
     /**
-     * Builder for LabResults, public methods are used for populating the LabResultMsg.
+     * Builder for LabResults for Winpath.
+     * <p>
+     * Public methods are used flexibly for populating the LabResultMsg.
      * @param obx the OBX segment for this result
      * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
      */
@@ -54,6 +56,20 @@ public class LabResultBuilder {
 
         // each result needs to know this so sensitivities can be correctly assigned
         msg.setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        setTestIdentifiers(obx);
+        populateResults(obx);
+    }
+
+    /**
+     * Builder for LabResults for ABL 90 Flex.
+     * <p>
+     * Public methods are used flexibly for populating the LabResultMsg.
+     * @param obx the OBX segment for this result
+     */
+    LabResultBuilder(OBX obx) {
+        msg.setValueType(obx.getObx2_ValueType().getValueOrEmpty());
+        setTestIdentifiers(obx);
+        populateResults(obx);
     }
 
     /**
@@ -66,14 +82,12 @@ public class LabResultBuilder {
     /**
      * Set test identifiers.
      * @param obx OBX segment
-     * @return the builder
      */
-    public LabResultBuilder setTestIdentifiers(OBX obx) {
+    private void setTestIdentifiers(OBX obx) {
         CWE obx3 = obx.getObx3_ObservationIdentifier();
         msg.setTestItemLocalCode(obx3.getCwe1_Identifier().getValueOrEmpty());
         msg.setTestItemLocalDescription(obx3.getCwe2_Text().getValueOrEmpty());
         msg.setTestItemCodingSystem(obx3.getCwe3_NameOfCodingSystem().getValueOrEmpty());
-        return this;
     }
 
     /**
@@ -89,9 +103,8 @@ public class LabResultBuilder {
     /**
      * Populate OBX fields. Mainly tested where value type is NM - numeric.
      * @param obx the OBX segment
-     * @return the builder
      */
-    public LabResultBuilder populateResults(OBX obx) {
+    private void populateResults(OBX obx) {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -127,7 +140,6 @@ public class LabResultBuilder {
         setReferenceRange(obx);
         setResultStatus(obx);
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
-        return this;
     }
 
     private void setResultStatus(OBX obx) {
