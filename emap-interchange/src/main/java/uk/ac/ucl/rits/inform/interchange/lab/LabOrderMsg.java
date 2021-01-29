@@ -32,8 +32,35 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
     private String specimenType;
+
+    /**
+     * Best we can get to time the sample was collected (label printing time).
+     * <p>
+     * Constant throughout workflow.
+     */
+    private Instant collectionDateTime;
+
+    /**
+     * Last updated time for an order.
+     */
+    private Instant statusChangeTime;
+
+    /**
+     * Time the order was entered on the lab system.
+     */
     private InterchangeValue<Instant> orderDateTime = InterchangeValue.unknown();
-    private InterchangeValue<Instant> sampleEnteredTime = InterchangeValue.unknown();
+
+    /**
+     * Time that the sample was received at the lab.
+     */
+    private InterchangeValue<Instant> sampleReceivedTime = InterchangeValue.unknown();
+
+    /**
+     * Time the order was requested.
+     * (e.g. Time of the epic request time to WinPath)
+     * Not set for POC testing.
+     */
+    private InterchangeValue<Instant> requestedDateTime = InterchangeValue.unknown();
     private String labDepartment = "";
     private String orderStatus;
     private String resultStatus;
@@ -41,12 +68,9 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String mrn;
 
     private String visitNumber;
-    private InterchangeValue<Instant> requestedDateTime = InterchangeValue.unknown();
-    private Instant observationDateTime;
     private String testBatteryLocalCode;
     private String testBatteryLocalDescription = "";
     private String testBatteryCodingSystem;
-    private Instant statusChangeTime;
 
     private String parentObservationIdentifier = "";
     private String parentSubId = "";

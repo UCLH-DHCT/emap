@@ -7,7 +7,7 @@ requestedDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "2020-04-21T10:13:00Z"
-observationDateTime: "2020-04-21T08:28:00Z"
+collectionDateTime: "2020-04-21T08:28:00Z"
 testBatteryCodingSystem: "WinPath"
 sourceSystem: "WinPath"
 parentObservationIdentifier: ""

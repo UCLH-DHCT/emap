@@ -8,10 +8,10 @@ orderDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "2013-02-11T10:00:52Z"
-sampleEnteredTime:
+sampleReceivedTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "2013-02-11T10:00:52Z"
-observationDateTime: "2013-02-11T10:00:52Z"
+collectionDateTime: "2013-02-11T10:00:52Z"
 testBatteryCodingSystem: "ABL90 FLEX Plus"
 sourceSystem: "ABL90 FLEX Plus"
