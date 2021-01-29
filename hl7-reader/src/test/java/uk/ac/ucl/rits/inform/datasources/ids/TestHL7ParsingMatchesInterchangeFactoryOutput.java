@@ -126,21 +126,21 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testLabIncrementalLoad() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/winpath/Incremental.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("incremental.yaml", "0000000042");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/incremental.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testLabIncrementalDuplicateResultSegment() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/winpath/LabDuplicateResultSegment.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("incremental_duplicate_result_segment.yaml", "0000000042");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/incremental_duplicate_result_segment.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testLabOrderMsg() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/ORU_R01.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("ORU_R01.yaml", "0000000042");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/ORU_R01.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
@@ -154,7 +154,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     public void testLabSensitivity() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/Sensitivity.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("sensitivity.yaml", "0000000042");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/sensitivity.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
