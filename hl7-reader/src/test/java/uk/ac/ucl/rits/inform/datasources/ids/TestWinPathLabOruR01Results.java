@@ -24,7 +24,7 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
     private LabOrderMsg processLab(String filePath) {
         List<LabOrderMsg> msgs = null;
         try {
-            msgs = processSingleLabOrderMsgMessage(filePath);
+            msgs = processSingleWinPathOruR01(filePath);
         } catch (Exception e) {
             e.printStackTrace();
         }

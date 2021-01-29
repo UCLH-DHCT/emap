@@ -45,7 +45,7 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<LabOrderMsg> processSingleLabOrderMsgMessage(String resourceFileName) throws Exception {
+    protected List<LabOrderMsg> processSingleWinPathOruR01(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
         return LabParser.buildLabOrders("42", hl7Msg);
