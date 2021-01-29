@@ -1,0 +1,12 @@
+orderControlId: "1"
+labSpecimenNumber: "12345006210113012345"
+resultStatus: "F"
+mrn: "40800000"
+visitNumber: "123412341234"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+observationDateTime: "2013-07-29T09:41:00Z"
+testBatteryCodingSystem: "ABL90 FLEX Plus"
+sourceSystem: "ABL90 FLEX Plus"
