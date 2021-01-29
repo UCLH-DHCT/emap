@@ -389,9 +389,6 @@ final class LabParser {
                 msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(orc9));
             }
         }
-
-        String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
-        msg.setResultStatus(resultStatus);
     }
 
     /**
@@ -419,8 +416,10 @@ final class LabParser {
         msg.setObservationDateTime(HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime()));
         Instant requestedTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(requestedTime));
-
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
+        String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
+        msg.setResultStatus(resultStatus);
+
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"

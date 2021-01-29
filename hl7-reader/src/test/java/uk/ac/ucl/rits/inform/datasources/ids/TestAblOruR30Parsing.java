@@ -91,7 +91,7 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
      */
     @Test
     public void testResultStatus() {
-        LabResultMsg result = getLabResult("LabOrders/abl90_flex/venous.txt", "NCVS");
+        LabResultMsg result = getLabResult("LabOrders/abl90_flex/venous.txt", "pCO2");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
     }
 
