@@ -18,5 +18,24 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "kPa"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "ST"
+      testItemLocalCode: "pO2"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "3.68"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "kPa"
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "L"
+      notes:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Value below reference range"
   testBatteryLocalCode: "VBG"
   statusChangeTime: "2013-02-11T10:00:52Z"
