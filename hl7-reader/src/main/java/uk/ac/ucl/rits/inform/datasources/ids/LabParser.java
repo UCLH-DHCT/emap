@@ -78,7 +78,8 @@ final class LabParser {
         }
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
-        populateFromOrcObr(orc, obr);
+        populateObrFields(obr);
+        populateObcFields(orc, obr);
         validateAndSetEpicOrderNumber();
     }
 
@@ -131,8 +132,8 @@ final class LabParser {
             throws HL7Exception, Hl7InconsistencyException {
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         OBR obr = obs.getOBR();
-        ORC orc = obs.getORC();
-        populateFromOrcObr(orc, obr);
+        populateObrFields(obr);
+        populateObcFields(obs.getORC(), obr);
         validateAndSetEpicOrderNumber();
 
         List<LabResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
@@ -157,7 +158,8 @@ final class LabParser {
         setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
 
         OBR obr = oruR30.getOBR();
-        populateFromOrcObr(oruR30.getORC(), obr);
+        populateObrFields(obr);
+        msg.setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
 
         List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
         List<LabResultMsg> results = new ArrayList<>(observations.size());
@@ -352,12 +354,12 @@ final class LabParser {
     }
 
     /**
-     * Extract the fields found in the ORC+OBR segments, of which there is one of each per object.
+     * Extract the fields found in the ORC segment (some context from OBR required), of which there is one of each per object.
      * @param orc the ORC segment
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
      */
-    private void populateFromOrcObr(ORC orc, OBR obr) throws DataTypeException {
+    private void populateObcFields(ORC orc, OBR obr) throws DataTypeException {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
@@ -365,11 +367,8 @@ final class LabParser {
         msg.setLabSpecimenNumber(labSpecimen);
         String labSpecimenOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         msg.setSpecimenType(labSpecimenOCS.replace(labSpecimen, ""));
-        msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
-
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
-        String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
-        msg.setResultStatus(resultStatus);
+        msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
 
         // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
         // in a status change (SC) message.
@@ -378,13 +377,22 @@ final class LabParser {
             msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
         } else if ("SC".equals(msg.getOrderControlId())) {
             // possibly need to check for other result status codes that signify "in progress"?
-            if ("I".equals(resultStatus)) {
+            if ("I".equals(obr.getObr25_ResultStatus().getValueOrEmpty())) {
                 // ORC-9 = time sample entered onto WinPath
                 msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(orc9));
             }
         }
-        msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
 
+        String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
+        msg.setResultStatus(resultStatus);
+    }
+
+    /**
+     * Extract the fields found in the OBR segment, of which there is one of each per object.
+     * @param obr the OBR segment
+     * @throws DataTypeException if HAPI does
+     */
+    private void populateObrFields(OBR obr) throws DataTypeException {
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
         // which is the closest we get to a "collection" time. The actual collection will happen some point
         // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
@@ -393,6 +401,7 @@ final class LabParser {
         Instant requestedTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(requestedTime));
 
+        msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"

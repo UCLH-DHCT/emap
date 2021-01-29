@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -44,6 +45,15 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
         Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
         return resultsByItemCode.get(testLocalCode);
+    }
+
+    @Test
+    public void testIdentifiers() {
+        LabOrderMsg msg = processLab("LabOrders/abl90_flex/venous.txt");
+        assertNull(msg.getEpicCareOrderNumber());
+        assertEquals("40800000", msg.getMrn());
+        assertEquals("12345006210113012345", msg.getLabSpecimenNumber());
+        assertEquals("123412341234", msg.getVisitNumber());
     }
 
     /**
