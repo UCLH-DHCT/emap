@@ -49,7 +49,7 @@ final class LabParser {
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
-    private static final String ignoredABLFlag = "N";
+    private static final String IGNORED_ABL_FLAG = "N";
 
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
@@ -174,7 +174,7 @@ final class LabParser {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
             LabResultMsg labResult = new LabResultBuilder(obx)
-                    .setAbnormalFlagIgnoring(obx, LabParser.ignoredABLFlag)
+                    .setAbnormalFlagIgnoring(obx, LabParser.IGNORED_ABL_FLAG)
                     .setTestCodingSystem(msg.getSourceSystem())
                     .setResultTime(obx)
                     .populateComments(notes)

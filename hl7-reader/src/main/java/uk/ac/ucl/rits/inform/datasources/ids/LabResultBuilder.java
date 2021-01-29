@@ -93,7 +93,7 @@ public class LabResultBuilder {
     /**
      * Manually set the test coding system.
      * @param codingSystem coding system to set
-     * @return
+     * @return builder
      */
     public LabResultBuilder setTestCodingSystem(String codingSystem) {
         msg.setTestItemCodingSystem(codingSystem);
@@ -179,6 +179,7 @@ public class LabResultBuilder {
     /**
      * Set abnormal flag, with an optional normal flag to ignore.
      * @param obx OBX
+     * @param ignoredFlag nullable normal flag that will be ignored.
      * @return builder
      */
     public LabResultBuilder setAbnormalFlagIgnoring(OBX obx, @Nullable String ignoredFlag) {
