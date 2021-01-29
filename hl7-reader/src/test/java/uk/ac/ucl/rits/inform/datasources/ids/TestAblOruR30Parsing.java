@@ -108,6 +108,12 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
         assertEquals("ABL90 FLEX Plus", result.getTestItemCodingSystem());
     }
 
+    @Test
+    public void testResultTime() {
+        LabResultMsg result = getLabResult("LabOrders/abl90_flex/venous.txt", "pCO2");
+        assertEquals(resultTime, result.getResultTime());
+    }
+
     /**
      * Test that numeric value, and units are set
      */

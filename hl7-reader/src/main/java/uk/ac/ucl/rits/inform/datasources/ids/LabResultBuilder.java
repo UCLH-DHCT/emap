@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,17 +44,13 @@ public class LabResultBuilder {
      * Builder for LabResults, public methods are used for populating the LabResultMsg.
      * @param obx the OBX segment for this result
      * @param obr the OBR segment for this result (will be the same segment shared with other OBXs)
-     * @throws DataTypeException if required datetime fields cannot be parsed
      */
-    LabResultBuilder(OBX obx, OBR obr) throws DataTypeException {
+    LabResultBuilder(OBX obx, OBR obr) {
         // see HL7 Table 0125 for value types
         // In addition to NM (Numeric), we get (descending popularity):
         //     ED (Encapsulated Data), ST (String), FT (Formatted text - display),
         //     TX (Text data - display), DT (Date), CE (deprecated and replaced by CNE or CWE, coded entry with or without exceptions)
         msg.setValueType(obx.getObx2_ValueType().getValueOrEmpty());
-        // OBR segments for sensitivities don't have an OBR-22 status change time
-        // so use the time from the parent?
-        msg.setResultTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         // each result needs to know this so sensitivities can be correctly assigned
         msg.setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
@@ -139,6 +136,31 @@ public class LabResultBuilder {
         } catch (IllegalArgumentException e) {
             logger.warn("Could not parse the PatientClass", e);
         }
+    }
+
+    /**
+     * Set result time from OBR segment (WinPath).
+     * @param obr OBR segment
+     * @return builder
+     * @throws DataTypeException
+     */
+    public LabResultBuilder setResultTime(OBR obr) throws DataTypeException {
+        // OBR segments for sensitivities don't have an OBR-22 status change time
+        // so use the time from the parent?
+        msg.setResultTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
+        return this;
+    }
+
+    /**
+     * Set result time from OBX segment (ABL 90 Flex).
+     * @param obx OBX segment
+     * @return builder
+     * @throws DataTypeException if HAPI does
+     */
+    public LabResultBuilder setResultTime(OBX obx) throws DataTypeException {
+        Instant resultTime = HL7Utils.interpretLocalTime(obx.getObx14_DateTimeOfTheObservation());
+        msg.setResultTime(resultTime);
+        return this;
     }
 
 

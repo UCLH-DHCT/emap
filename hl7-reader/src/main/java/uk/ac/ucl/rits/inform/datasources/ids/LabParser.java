@@ -145,6 +145,7 @@ final class LabParser {
                     .setTestIdentifiers(obx)
                     .populateResults(obx)
                     .setAbnormalFlagIgnoring(obx, null)
+                    .setResultTime(obr)
                     .populateComments(notes);
             tempResults.add(labResult);
         }
@@ -179,6 +180,7 @@ final class LabParser {
                     .populateResults(obx)
                     .setAbnormalFlagIgnoring(obx, LabParser.ignoredABLFlag)
                     .setTestCodingSystem(msg.getSourceSystem())
+                    .setResultTime(obx)
                     .populateComments(notes)
                     .getMessage();
             results.add(labResult);
