@@ -79,7 +79,7 @@ final class LabParser {
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
         populateObrFields(obr);
-        populateObcFields(orc, obr);
+        populateOrderInformation(orc, obr);
         validateAndSetEpicOrderNumber();
     }
 
@@ -133,7 +133,7 @@ final class LabParser {
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         OBR obr = obs.getOBR();
         populateObrFields(obr);
-        populateObcFields(obs.getORC(), obr);
+        populateOrderInformation(obs.getORC(), obr);
         validateAndSetEpicOrderNumber();
 
         List<LabResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
@@ -153,12 +153,19 @@ final class LabParser {
         msg.setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
+    /**
+     * Construct parser from ABL ORU R30 message.
+     * @param subMessageSourceId unique Id from the IDS
+     * @param oruR30             ORU R30 message
+     * @throws HL7Exception if HAPI does
+     */
     private LabParser(String subMessageSourceId, ORU_R30 oruR30)
-            throws HL7Exception, Hl7InconsistencyException {
+            throws HL7Exception {
         setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
 
         OBR obr = oruR30.getOBR();
         populateObrFields(obr);
+        populateOrderInformation(obr);
         msg.setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
 
         List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
@@ -359,7 +366,7 @@ final class LabParser {
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
      */
-    private void populateObcFields(ORC orc, OBR obr) throws DataTypeException {
+    private void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
@@ -385,6 +392,18 @@ final class LabParser {
 
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
         msg.setResultStatus(resultStatus);
+    }
+
+    /**
+     * Populate order information from OBR segment (ABL 90 Flex).
+     * @param obr OBR
+     * @throws DataTypeException if HAPI does
+     */
+    private void populateOrderInformation(OBR obr) throws DataTypeException {
+        Instant sampleReceived = HL7Utils.interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime());
+        msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(sampleReceived));
+        msg.setOrderDateTime(InterchangeValue.buildFromHl7(sampleReceived));
+        msg.setStatusChangeTime(sampleReceived);
     }
 
     /**

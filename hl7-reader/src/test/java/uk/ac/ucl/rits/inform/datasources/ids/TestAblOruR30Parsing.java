@@ -7,6 +7,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Stef Piatek
  */
 public class TestAblOruR30Parsing extends TestHl7MessageStream {
+    private final Instant resultTime = Instant.parse("2013-02-11T10:00:52Z");
+    private final Instant messageTime = Instant.parse("2013-07-29T09:41:00Z");
 
     private LabOrderMsg processLab(String filePath) {
         List<? extends EmapOperationMessage> msgs = null;
@@ -54,6 +57,22 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
         assertEquals("40800000", msg.getMrn());
         assertEquals("12345006210113012345", msg.getLabSpecimenNumber());
         assertEquals("123412341234", msg.getVisitNumber());
+    }
+
+    @Test
+    void testSourceSystem() {
+        LabOrderMsg msg = processLab("LabOrders/abl90_flex/venous.txt");
+        assertEquals("ABL90 FLEX Plus", msg.getSourceSystem());
+    }
+
+    @Test
+    void testOrderTimes() {
+        LabOrderMsg msg = processLab("LabOrders/abl90_flex/venous.txt");
+        assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getSampleEnteredTime());
+        assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getOrderDateTime());
+        assertTrue(msg.getRequestedDateTime().isUnknown());
+        assertEquals(resultTime, msg.getStatusChangeTime());
+        assertEquals(resultTime, msg.getObservationDateTime());
     }
 
     /**
@@ -103,6 +122,13 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
         LabResultMsg result = getLabResult("LabOrders/abl90_flex/venous.txt", "pH");
         assertTrue(result.getAbnormalFlag().isDelete());
     }
+
+    /* Notes for parsing of ORU R30
+    - Not parsing Notes on OBR
+    - To test:
+        - Collection information
+        -
+     */
 
 
 }
