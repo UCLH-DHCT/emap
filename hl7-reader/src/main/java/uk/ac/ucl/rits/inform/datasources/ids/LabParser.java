@@ -167,6 +167,7 @@ final class LabParser {
         populateObrFields(obr);
         populateOrderInformation(obr);
         msg.setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        msg.setTestBatteryCodingSystem(msg.getSourceSystem());
 
         List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
         List<LabResultMsg> results = new ArrayList<>(observations.size());
@@ -177,6 +178,7 @@ final class LabParser {
                     .setTestIdentifiers(obx)
                     .populateResults(obx)
                     .setAbnormalFlagIgnoring(obx, LabParser.ignoredABLFlag)
+                    .setTestCodingSystem(msg.getSourceSystem())
                     .populateComments(notes)
                     .getMessage();
             results.add(labResult);

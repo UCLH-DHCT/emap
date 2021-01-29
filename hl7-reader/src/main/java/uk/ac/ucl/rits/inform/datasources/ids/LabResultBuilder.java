@@ -80,6 +80,16 @@ public class LabResultBuilder {
     }
 
     /**
+     * Manually set the test coding system.
+     * @param codingSystem coding system to set
+     * @return
+     */
+    public LabResultBuilder setTestCodingSystem(String codingSystem) {
+        msg.setTestItemCodingSystem(codingSystem);
+        return this;
+    }
+
+    /**
      * Populate OBX fields. Mainly tested where value type is NM - numeric.
      * @param obx the OBX segment
      * @return the builder
@@ -216,6 +226,7 @@ public class LabResultBuilder {
             }
         }
     }
+
 
     /**
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.

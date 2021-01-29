@@ -86,6 +86,12 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
         assertEquals("", msg.getTestBatteryCodingSystem());
     }
 
+    @Test
+    public void testBatteryCodingSystem() {
+        LabOrderMsg msg = processLab("LabOrders/abl90_flex/venous.txt");
+        assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
+    }
+
     /**
      * Test LabResult result status is parsed correctly
      */
@@ -93,6 +99,13 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
     public void testResultStatus() {
         LabResultMsg result = getLabResult("LabOrders/abl90_flex/venous.txt", "pCO2");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
+    }
+
+
+    @Test
+    public void testTestCodingSystem() {
+        LabResultMsg result = getLabResult("LabOrders/abl90_flex/venous.txt", "pCO2");
+        assertEquals("ABL90 FLEX Plus", result.getTestItemCodingSystem());
     }
 
     /**
