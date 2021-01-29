@@ -15,6 +15,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -117,7 +118,6 @@ public class LabResultBuilder {
 
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
-        setAbnormalFlag(obx);
         setResultStatus(obx);
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
         return this;
@@ -131,7 +131,13 @@ public class LabResultBuilder {
         }
     }
 
-    private void setAbnormalFlag(OBX obx) {
+
+    /**
+     * Set abnormal flag, with an optional normal flag to ignore.
+     * @param obx OBX
+     * @return builder
+     */
+    public LabResultBuilder setAbnormalFlagIgnoring(OBX obx, @Nullable String ignoredFlag) {
         StringBuilder abnormalFlags = new StringBuilder();
         // Can't find any example in database of multiple flags but keeping in iteration and warning in case this changes with new data types
         for (IS flag : obx.getObx8_AbnormalFlags()) {
@@ -140,9 +146,10 @@ public class LabResultBuilder {
         if (abnormalFlags.length() > 1) {
             logger.warn("LabResult had more than one abnormal flag: {}", abnormalFlags);
         }
-        if (abnormalFlags.length() != 0) {
+        if (abnormalFlags.length() != 0 && !abnormalFlags.toString().equals(ignoredFlag)) {
             msg.setAbnormalFlag(InterchangeValue.buildFromHl7(abnormalFlags.toString()));
         }
+        return this;
     }
 
     private void setIsolateFields(CE data) {

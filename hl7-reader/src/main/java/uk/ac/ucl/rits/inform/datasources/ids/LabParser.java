@@ -49,6 +49,7 @@ final class LabParser {
     private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
+    private static final String ignoredABLFlag = "N";
 
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
@@ -142,6 +143,7 @@ final class LabParser {
             LabResultBuilder labResult = new LabResultBuilder(obx, obr)
                     .setTestIdentifiers(obx)
                     .populateResults(obx)
+                    .setAbnormalFlagIgnoring(obx, null)
                     .populateComments(notes);
             tempResults.add(labResult);
         }
@@ -150,9 +152,27 @@ final class LabParser {
         msg.setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
-    private LabParser(String subMessageSourceId, ORU_R30_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+    private LabParser(String subMessageSourceId, ORU_R30 oruR30)
             throws HL7Exception, Hl7InconsistencyException {
-        setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
+        setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
+
+        OBR obr = oruR30.getOBR();
+        populateFromOrcObr(oruR30.getORC(), obr);
+
+        List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
+        List<LabResultMsg> results = new ArrayList<>(observations.size());
+        for (ORU_R30_OBSERVATION ob : observations) {
+            OBX obx = ob.getOBX();
+            List<NTE> notes = ob.getNTEAll();
+            LabResultMsg labResult = new LabResultBuilder(obx, obr)
+                    .setTestIdentifiers(obx)
+                    .populateResults(obx)
+                    .setAbnormalFlagIgnoring(obx, LabParser.ignoredABLFlag)
+                    .populateComments(notes)
+                    .getMessage();
+            results.add(labResult);
+        }
+        msg.setLabResultMsgs(results);
 
     }
 
@@ -198,26 +218,12 @@ final class LabParser {
 
 
     public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30) throws HL7Exception, Hl7InconsistencyException {
-        MSH msh = oruR30.getMSH();
-        PID pid = oruR30.getPID();
-        PV1 pv1 = oruR30.getVISIT().getPV1();
-        List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
-
-        int msgSuffix = 0;
-        List<LabOrderMsg> orders = new ArrayList<>(observations.size());
-        for (ORU_R30_OBSERVATION obs : observations) {
-            msgSuffix++;
-            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
-            if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
-                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
-            } else {
-                orders.add(labOrder);
-            }
-        }
+        LabOrderMsg labOrder = new LabParser(idsUnid, oruR30).msg;
+        // only one observation per message
+        List<LabOrderMsg> orders = new ArrayList<>(1);
+        orders.add(labOrder);
         return orders;
     }
-
 
     /**
      * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
