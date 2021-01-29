@@ -37,5 +37,3 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Value below reference range"
-  testBatteryLocalCode: "VBG"
-  statusChangeTime: "2013-02-11T10:00:52Z"
