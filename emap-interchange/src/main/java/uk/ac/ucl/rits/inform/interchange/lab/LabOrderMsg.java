@@ -34,7 +34,7 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String specimenType;
     private InterchangeValue<Instant> orderDateTime = InterchangeValue.unknown();
     private InterchangeValue<Instant> sampleEnteredTime = InterchangeValue.unknown();
-    private String labDepartment;
+    private String labDepartment = "";
     private String orderStatus;
     private String resultStatus;
     private String orderType;
@@ -44,12 +44,12 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private InterchangeValue<Instant> requestedDateTime = InterchangeValue.unknown();
     private Instant observationDateTime;
     private String testBatteryLocalCode;
-    private String testBatteryLocalDescription;
+    private String testBatteryLocalDescription = "";
     private String testBatteryCodingSystem;
     private Instant statusChangeTime;
 
-    private String parentObservationIdentifier;
-    private String parentSubId;
+    private String parentObservationIdentifier = "";
+    private String parentSubId = "";
 
     /**
      * @return int number of lab results in list
