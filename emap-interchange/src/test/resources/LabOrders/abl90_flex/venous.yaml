@@ -1,14 +1,12 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "ST"
       testItemLocalCode: "pH"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "7.415"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "ST"
       testItemLocalCode: "pCO2"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -19,7 +17,6 @@
         status: "SAVE"
         value: "kPa"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "ST"
       testItemLocalCode: "pO2"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
