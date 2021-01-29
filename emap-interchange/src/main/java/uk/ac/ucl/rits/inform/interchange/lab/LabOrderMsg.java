@@ -92,13 +92,6 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     }
 
     /**
-     * @param labResultMsgs the labResults to set
-     */
-    public void setLabResultMsgs(List<LabResultMsg> labResultMsgs) {
-        this.labResultMsgs = labResultMsgs;
-    }
-
-    /**
      * Call back to the processor so it knows what type this object is (ie. double
      * dispatch).
      * @param processor the processor to call back to
