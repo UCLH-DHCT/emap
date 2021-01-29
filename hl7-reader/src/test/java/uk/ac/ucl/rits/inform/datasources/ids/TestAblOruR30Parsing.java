@@ -68,11 +68,11 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
     @Test
     void testOrderTimes() {
         LabOrderMsg msg = processLab("LabOrders/abl90_flex/venous.txt");
-        assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getSampleEnteredTime());
+        assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getSampleReceivedTime());
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getOrderDateTime());
         assertTrue(msg.getRequestedDateTime().isUnknown());
         assertEquals(resultTime, msg.getStatusChangeTime());
-        assertEquals(resultTime, msg.getObservationDateTime());
+        assertEquals(resultTime, msg.getCollectionDateTime());
     }
 
     /**

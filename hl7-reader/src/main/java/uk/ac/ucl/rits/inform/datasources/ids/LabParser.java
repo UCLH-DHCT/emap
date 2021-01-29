@@ -227,9 +227,10 @@ final class LabParser {
 
 
     public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30) throws HL7Exception, Hl7InconsistencyException {
+        List<LabOrderMsg> orders = new ArrayList<>(1);
+        // skip message if it is "Proficiency Testing"
         LabOrderMsg labOrder = new LabParser(idsUnid, oruR30).msg;
         // only one observation per message
-        List<LabOrderMsg> orders = new ArrayList<>(1);
         orders.add(labOrder);
         return orders;
     }
@@ -386,7 +387,7 @@ final class LabParser {
             // possibly need to check for other result status codes that signify "in progress"?
             if ("I".equals(obr.getObr25_ResultStatus().getValueOrEmpty())) {
                 // ORC-9 = time sample entered onto WinPath
-                msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(orc9));
+                msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
             }
         }
     }
@@ -398,7 +399,7 @@ final class LabParser {
      */
     private void populateOrderInformation(OBR obr) throws DataTypeException {
         Instant sampleReceived = HL7Utils.interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime());
-        msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(sampleReceived));
+        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(sampleReceived));
         msg.setOrderDateTime(InterchangeValue.buildFromHl7(sampleReceived));
         msg.setStatusChangeTime(sampleReceived);
     }
@@ -413,7 +414,7 @@ final class LabParser {
         // which is the closest we get to a "collection" time. The actual collection will happen some point
         // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
-        msg.setObservationDateTime(HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime()));
+        msg.setCollectionDateTime(HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime()));
         Instant requestedTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(requestedTime));
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
