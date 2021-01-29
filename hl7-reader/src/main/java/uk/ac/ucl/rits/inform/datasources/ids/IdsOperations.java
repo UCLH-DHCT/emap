@@ -5,6 +5,7 @@ import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
@@ -468,9 +469,10 @@ public class IdsOperations implements AutoCloseable {
         switch (messageType) {
             case "ADT":
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
+                break;
             case "ORU":
-                if (triggerEvent.equals("R01")) {
-                    if (sendingFacility.equals("Vitals")) {
+                if ("R01".equals(triggerEvent)) {
+                    if ("Vitals".equals(sendingFacility)) {
                         buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         messages.addAll(flowsheetFactory.getMessages(sourceId, msgFromIds));
                     } else {
@@ -478,10 +480,12 @@ public class IdsOperations implements AutoCloseable {
                         // get all result batteries in the message
                         messages.addAll(LabParser.buildLabOrders(sourceId, (ORU_R01) msgFromIds));
                     }
+                } else if ("R30".equals(triggerEvent)) {
+                    messages.addAll(LabParser.buildLabOrders(sourceId, (ORU_R30) msgFromIds));
                 }
                 break;
             case "ORM":
-                if (triggerEvent.equals("O01")) {
+                if ("O01".equals(triggerEvent)) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     // get all orders in the message
                     messages.addAll(LabParser.buildLabOrders(sourceId, (ORM_O01) msgFromIds));

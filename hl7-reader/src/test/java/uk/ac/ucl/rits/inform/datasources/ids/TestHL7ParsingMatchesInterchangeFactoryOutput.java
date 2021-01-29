@@ -159,6 +159,13 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testPOCLabABL() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/abl90_flex/venous.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("venous.yaml", "0000000042");
+        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
+    }
+
+    @Test
     public void testVitalSigns() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("VitalSigns/MixedHL7Message.txt");
         List<Flowsheet> expectedOrders = interchangeFactory.getFlowsheets("hl7.yaml", "0000000042");

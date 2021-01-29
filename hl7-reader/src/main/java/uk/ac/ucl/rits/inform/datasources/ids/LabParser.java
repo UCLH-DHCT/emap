@@ -9,8 +9,10 @@ import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
+import ca.uhn.hl7v2.model.v26.group.ORU_R30_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
@@ -148,6 +150,12 @@ final class LabParser {
         msg.setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
+    private LabParser(String subMessageSourceId, ORU_R30_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+            throws HL7Exception, Hl7InconsistencyException {
+        setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
+
+    }
+
     /**
      * @return the underlying message we have now built
      */
@@ -187,6 +195,29 @@ final class LabParser {
         }
         return interchangeOrders;
     }
+
+
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30) throws HL7Exception, Hl7InconsistencyException {
+        MSH msh = oruR30.getMSH();
+        PID pid = oruR30.getPID();
+        PV1 pv1 = oruR30.getVISIT().getPV1();
+        List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
+
+        int msgSuffix = 0;
+        List<LabOrderMsg> orders = new ArrayList<>(observations.size());
+        for (ORU_R30_OBSERVATION obs : observations) {
+            msgSuffix++;
+            String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
+            LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
+            if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
+            } else {
+                orders.add(labOrder);
+            }
+        }
+        return orders;
+    }
+
 
     /**
      * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
