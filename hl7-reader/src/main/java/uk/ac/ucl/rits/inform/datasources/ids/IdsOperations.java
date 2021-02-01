@@ -30,6 +30,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
+import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;

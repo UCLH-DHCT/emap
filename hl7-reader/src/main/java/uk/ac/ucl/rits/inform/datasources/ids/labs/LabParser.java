@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
@@ -22,6 +22,8 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -45,11 +47,10 @@ import java.util.stream.Collectors;
  * @author Jeremy Stein
  * @author Stef Piatek
  */
-final class LabParser {
-    private static Set<String> allowedOCIDs = new HashSet<>(Arrays.asList("SC", "RE"));
+public final class LabParser {
+    private static final Set<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE"));
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
-    private static final String IGNORED_ABL_FLAG = "N";
 
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
@@ -136,16 +137,13 @@ final class LabParser {
         populateOrderInformation(obs.getORC(), obr);
         validateAndSetEpicOrderNumber();
 
-        List<LabResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
+        List<WinPathResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
         for (ORU_R01_OBSERVATION ob : observationAll) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            LabResultBuilder labResult = new LabResultBuilder(obx, obr)
-                    .setAbnormalFlagIgnoring(obx, null)
-                    .populateResults(obx)
-                    .setResultTime(obr)
-                    .populateComments(notes);
+            WinPathResultBuilder labResult = new WinPathResultBuilder(obx, obr, notes);
+            labResult.constructMsg();
             tempResults.add(labResult);
         }
         // join some of the observations under this fact together (or ignore some of them)
@@ -176,14 +174,9 @@ final class LabParser {
         for (ORU_R30_OBSERVATION ob : observations) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            LabResultMsg labResult = new LabResultBuilder(obx)
-                    .setAbnormalFlagIgnoring(obx, LabParser.IGNORED_ABL_FLAG)
-                    .setTestCodingSystem(msg.getSourceSystem())
-                    .forceNumericValueAndSet(obx)
-                    .setResultTime(obx)
-                    .populateComments(notes)
-                    .getMessage();
-            results.add(labResult);
+            LabResultBuilder resultBuilder = new AblResultBuilder(obx, notes, msg.getSourceSystem());
+            resultBuilder.constructMsg();
+            results.add(resultBuilder.getMessage());
         }
         msg.setLabResultMsgs(results);
 
@@ -230,7 +223,7 @@ final class LabParser {
             LabOrderMsg labOrder;
             try {
                 labOrder = new LabParser(subMessageSourceId, order, ormO01).msg;
-                if (!LabParser.allowedOCIDs.contains(labOrder.getOrderControlId())) {
+                if (!LabParser.ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
                     logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
                 } else {
                     interchangeOrders.add(labOrder);
@@ -288,7 +281,7 @@ final class LabParser {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
-            if (!allowedOCIDs.contains(labOrder.getOrderControlId())) {
+            if (!ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
             } else {
                 orders.add(labOrder);
@@ -362,8 +355,8 @@ final class LabParser {
      * linked by a sub ID.
      * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
      */
-    private static void mergeOrFilterResults(List<LabResultBuilder> labResults) {
-        Map<String, LabResultBuilder> subIdMapping = new HashMap<>(labResults.size());
+    private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) {
+        Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());
         for (int i = 0; i < labResults.size(); i++) {
             // can this "result" be ignored altogether?
             if (labResults.get(i).isIgnorable()) {
@@ -374,7 +367,7 @@ final class LabParser {
             // full result?
             String subId = labResults.get(i).getMessage().getObservationSubId();
             if (!subId.isEmpty()) {
-                LabResultBuilder existing = subIdMapping.get(subId);
+                WinPathResultBuilder existing = subIdMapping.get(subId);
                 if (existing == null) {
                     // save it for future results that will need to refer back to it
                     subIdMapping.put(subId, labResults.get(i));
