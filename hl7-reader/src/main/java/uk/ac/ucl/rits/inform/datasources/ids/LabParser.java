@@ -143,6 +143,7 @@ final class LabParser {
             List<NTE> notes = ob.getNTEAll();
             LabResultBuilder labResult = new LabResultBuilder(obx, obr)
                     .setAbnormalFlagIgnoring(obx, null)
+                    .populateResults(obx)
                     .setResultTime(obr)
                     .populateComments(notes);
             tempResults.add(labResult);
@@ -178,6 +179,7 @@ final class LabParser {
             LabResultMsg labResult = new LabResultBuilder(obx)
                     .setAbnormalFlagIgnoring(obx, LabParser.IGNORED_ABL_FLAG)
                     .setTestCodingSystem(msg.getSourceSystem())
+                    .forceNumericValueAndSet(obx)
                     .setResultTime(obx)
                     .populateComments(notes)
                     .getMessage();

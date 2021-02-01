@@ -57,7 +57,7 @@ public class LabResultBuilder {
         // each result needs to know this so sensitivities can be correctly assigned
         msg.setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
         setTestIdentifiers(obx);
-        populateResults(obx);
+        setNonValueFields(obx);
     }
 
     /**
@@ -69,7 +69,7 @@ public class LabResultBuilder {
     LabResultBuilder(OBX obx) {
         msg.setValueType(obx.getObx2_ValueType().getValueOrEmpty());
         setTestIdentifiers(obx);
-        populateResults(obx);
+        setNonValueFields(obx);
     }
 
     /**
@@ -101,10 +101,13 @@ public class LabResultBuilder {
     }
 
     /**
-     * Populate OBX fields. Mainly tested where value type is NM - numeric.
+     * Populate results based on the observation type.
+     * <p>
+     * For numeric values, string values are also populated for debugging.
      * @param obx the OBX segment
+     * @return the builder
      */
-    private void populateResults(OBX obx) {
+    public LabResultBuilder populateResults(OBX obx) {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -135,7 +138,32 @@ public class LabResultBuilder {
             setIsolateFields((CE) data);
         }
         // also need to handle case where (data instanceof ED)
+        return this;
+    }
 
+    /**
+     * Populate numeric value (ABL flex 90).
+     * <p>
+     * For numeric values, string values are also populated for debugging.
+     * @param obx the OBX segment
+     * @return the builder
+     */
+    public LabResultBuilder forceNumericValueAndSet(OBX obx) {
+        setStringValue(obx);
+        msg.setValueType("NM");
+        try {
+            if (msg.getStringValue().isSave()) {
+                setNumericValueAndResultOperator(msg.getStringValue().get());
+            }
+        } catch (NumberFormatException e) {
+            logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", msg.getStringValue());
+            msg.setNumericValue(InterchangeValue.delete());
+        }
+        return this;
+    }
+
+
+    private void setNonValueFields(OBX obx) {
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
         setReferenceRange(obx);
         setResultStatus(obx);
@@ -178,7 +206,7 @@ public class LabResultBuilder {
 
     /**
      * Set abnormal flag, with an optional normal flag to ignore.
-     * @param obx OBX
+     * @param obx         OBX
      * @param ignoredFlag nullable normal flag that will be ignored.
      * @return builder
      */

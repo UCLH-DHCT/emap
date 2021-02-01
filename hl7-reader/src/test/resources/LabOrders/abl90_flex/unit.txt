@@ -1,0 +1,10 @@
+MSH|^~\&|ABL90 FLEX Plus^ED Resus|ABL90 FLEX Plus^ED Resus|||201307290941||ORU^R30|12345666678|P|2.5|||AL|AL
+PID|||40800000^^^MRENTR^MEDREC~||ORANG^BLOD||19890909|F
+PV1|1||T11E^T11E BY02^BY02-17^U^R^^^^^^DEPID||||||||||||||||123412341234|||||||||||||||||||20130211100052
+OBR|1||12345006210113012345|VBG|||20130211100052|||||||20130211100052|Venous^^^^^^P||||||||||F
+NTE|1||Oxi compensated for HbF
+OBX|1|ST|pH^M||7.415|||N|||F|||20130211100052||Anonymous
+OBX|2|ST|pCO2^M||5.82|kPa||N|||F|||20130211100052||Anonymous
+OBX|3|ST|pO2^M||3.68|kPa||L|||F|||20130211100052||Anonymous
+NTE|1||Value below reference range
+OBX|4|ST|unparseable^M||....|kPa||L|||F|||20130211100052||Anonymous
