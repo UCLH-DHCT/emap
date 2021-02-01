@@ -290,7 +290,7 @@ class TestLabProcessing extends MessageProcessingBase {
         Instant earlierTime = singleResultRequestTime.minus(100, ChronoUnit.DAYS);
         msg.setStatusChangeTime(earlierTime);
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(earlierTime));
-        msg.setSampleEnteredTime(InterchangeValue.buildFromHl7(earlierTime));
+        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(earlierTime));
         msg.setOrderDateTime(InterchangeValue.buildFromHl7(earlierTime));
         // process new message
         processSingleMessage(msg);

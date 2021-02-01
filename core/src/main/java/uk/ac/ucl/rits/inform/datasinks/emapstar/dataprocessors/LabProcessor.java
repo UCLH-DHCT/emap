@@ -41,12 +41,12 @@ public class LabProcessor {
     @Transactional
     public void processMessage(final LabOrderMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
-        Instant observationTime = msg.getObservationDateTime();
-        Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
+        Instant collectionDateTime = msg.getCollectionDateTime();
+        Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), collectionDateTime, storedFrom);
         HospitalVisit visit = null;
         try {
             visit = visitController.getOrCreateMinimalHospitalVisit(
-                    msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
+                    msg.getVisitNumber(), mrn, msg.getSourceSystem(), collectionDateTime, storedFrom);
         } catch (RequiredDataMissingException e) {
             logger.debug("No visit for LabOrder, skipping creating an encounter");
         }

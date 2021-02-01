@@ -177,7 +177,7 @@ public class LabController {
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getSampleEnteredTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
+                orderState, msg.getSampleReceivedTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
     }
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(
