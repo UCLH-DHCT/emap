@@ -11,6 +11,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import java.time.Instant;
 
 /**
@@ -25,14 +29,16 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"labNumberId", "sampleType"})})
 public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labCollectionId;
 
-    @Column(nullable = false)
-    private Long labNumberId;
+    @ManyToOne
+    @JoinColumn(name = "labNumberId", nullable = false)
+    private LabNumber labNumberId;
 
     /**
      * The time the sample arrived at the lab where there test was being performed.
@@ -65,12 +71,12 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
     }
 
     /**
-     * @param validUntil the event time that invalidated the current state
-     * @param storedFrom the time that star started processing the message that invalidated the current state
+     * @param validUntil  the event time that invalidated the current state
+     * @param storedUntil the time that star started processing the message that invalidated the current state
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public LabCollectionAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new LabCollectionAudit(this, validUntil, storedFrom);
+    public LabCollectionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabCollectionAudit(this, validUntil, storedUntil);
     }
 }
