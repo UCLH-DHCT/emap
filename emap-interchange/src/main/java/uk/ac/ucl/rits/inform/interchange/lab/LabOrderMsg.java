@@ -69,7 +69,6 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
 
     private String visitNumber;
     private String testBatteryLocalCode;
-    private String testBatteryLocalDescription = "";
     private String testBatteryCodingSystem;
 
     private String parentObservationIdentifier = "";

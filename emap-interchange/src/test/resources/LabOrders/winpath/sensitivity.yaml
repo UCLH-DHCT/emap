@@ -3,14 +3,12 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
-      testItemLocalDescription: "ISOLATE"
       observationSubId: "1"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "10,000 - 100,000 CFU/mL"
       isolateLocalCode: "KLEOXY"
-      isolateLocalDescription: "Klebsiella oxytoca"
       abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -20,7 +18,6 @@
           labResultMsgs:
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VAK"
-              testItemLocalDescription: "Amikacin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -31,7 +28,6 @@
                 value: "S"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VAC"
-              testItemLocalDescription: "Amoxi/Clav.acid"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -42,7 +38,6 @@
                 value: "S"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VM"
-              testItemLocalDescription: "Amoxicillin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -53,7 +48,6 @@
                 value: "R"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VCN"
-              testItemLocalDescription: "Gentamicin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -64,7 +58,6 @@
                 value: "R"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VF"
-              testItemLocalDescription: "Nitrofurantoin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -77,14 +70,12 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
-      testItemLocalDescription: "ISOLATE"
       observationSubId: "2"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "10,000 - 100,000 CFU/mL"
       isolateLocalCode: "PROMIR"
-      isolateLocalDescription: "Proteus mirabilis"
       abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -94,7 +85,6 @@
           labResultMsgs:
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VAK"
-              testItemLocalDescription: "Amikacin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -105,7 +95,6 @@
                 value: "S"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VM"
-              testItemLocalDescription: "Amoxicillin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -116,7 +105,6 @@
                 value: "S"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VFS"
-              testItemLocalDescription: "Fosfomycin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -127,7 +115,6 @@
                 value: "R"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VCN"
-              testItemLocalDescription: "Gentamicin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -138,7 +125,6 @@
                 value: "I"
             - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
               testItemLocalCode: "VF"
-              testItemLocalDescription: "Nitrofurantoin"
               stringValue:
                 "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
                 status: "SAVE"
@@ -150,14 +136,12 @@
           parentSubId: "2"
   epicCareOrderNumber: "93939393"
   testBatteryLocalCode: "URNC"
-  testBatteryLocalDescription: "URINE CULTURE"
   statusChangeTime: "2019-07-15T08:37:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "URNM"
-      testItemLocalDescription: "URINE MICROSCOPY"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -165,7 +149,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "UWBC"
-      testItemLocalDescription: "White blood cells"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -173,7 +156,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "URBC"
-      testItemLocalDescription: "Red blood cells"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -181,7 +163,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "UEPC"
-      testItemLocalDescription: "Epithelial cells"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -189,12 +170,10 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "UYEA"
-      testItemLocalDescription: "Yeast cells"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Not seen"
   epicCareOrderNumber: "93939395"
   testBatteryLocalCode: "URNM"
-  testBatteryLocalDescription: "URINE MICROSCOPY"
   statusChangeTime: "2019-07-10T19:39:00Z"

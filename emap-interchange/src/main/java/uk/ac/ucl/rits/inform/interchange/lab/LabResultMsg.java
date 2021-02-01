@@ -24,7 +24,6 @@ public class LabResultMsg implements Serializable {
     private String valueType;
 
     private String testItemLocalCode = "";
-    private String testItemLocalDescription = "";
     private String testItemCodingSystem = "";
 
     private String observationSubId = "";
@@ -32,7 +31,6 @@ public class LabResultMsg implements Serializable {
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
 
     private String isolateLocalCode = "";
-    private String isolateLocalDescription = "";
     private String isolateCodingSystem = "";
 
     private InterchangeValue<String> units = InterchangeValue.unknown();
