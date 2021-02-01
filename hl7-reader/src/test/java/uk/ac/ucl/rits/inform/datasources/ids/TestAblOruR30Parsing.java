@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class TestAblOruR30Parsing extends TestHl7MessageStream {
     private final Instant resultTime = Instant.parse("2013-02-11T10:00:52Z");
-    private final Instant messageTime = Instant.parse("2013-07-29T09:41:00Z");
 
     /**
      * @param filePath relative path from resources root for hl7 message
