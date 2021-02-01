@@ -57,10 +57,10 @@ class TestLabProcessing extends MessageProcessingBase {
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
 
     public TestLabProcessing() {
-        List<LabOrderMsg> messages = messageFactory.getLabOrders("ORU_R01.yaml", "0000040");
+        List<LabOrderMsg> messages = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
         fourResults = messages.get(0);
         singleResult = messages.get(1);
-        incremental = messageFactory.getLabOrders("incremental.yaml", null);
+        incremental = messageFactory.getLabOrders("winpath/incremental.yaml", null);
     }
 
     private List<LabResult> getAllLabResults() {
