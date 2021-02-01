@@ -163,10 +163,7 @@ final class LabParser {
         setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
 
         OBR obr = oruR30.getOBR();
-        if ("Proficiency Testing".equals(obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty())) {
-            throw new Hl7MessageIgnoredException("Test/Calibration reading, skipping processing");
-        }
-
+        populateSpecimenTypeOrIgnoreMessage(obr);
         populateObrFields(obr);
         populateOrderInformation(obr);
         msg.setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
@@ -187,6 +184,20 @@ final class LabParser {
         }
         msg.setLabResultMsgs(results);
 
+    }
+
+    /**
+     * Populate the sample type information for ABL 90 flex.
+     * @param obr
+     * @throws Hl7MessageIgnoredException
+     */
+    private void populateSpecimenTypeOrIgnoreMessage(OBR obr) throws Hl7MessageIgnoredException {
+        String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
+
+        if ("Proficiency Testing".equals(sampleType)) {
+            throw new Hl7MessageIgnoredException("Test/Calibration reading, skipping processing");
+        }
+        msg.setSpecimenType(sampleType);
     }
 
     /**

@@ -153,6 +153,12 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
     }
 
     @Test
+    void testCollectionSpecimenType() throws Hl7MessageIgnoredException {
+        LabOrderMsg msg= processLab("LabOrders/abl90_flex/venous.txt");
+        assertEquals("Venous", msg.getSpecimenType());
+    }
+
+    @Test
     void testProficiencyTestingSamplesSkipped() {
         assertThrows(Hl7MessageIgnoredException.class, () -> processLab("LabOrders/abl90_flex/ignored.txt"));
     }
