@@ -86,7 +86,6 @@ public class LabResultBuilder {
     private void setTestIdentifiers(OBX obx) {
         CWE obx3 = obx.getObx3_ObservationIdentifier();
         msg.setTestItemLocalCode(obx3.getCwe1_Identifier().getValueOrEmpty());
-        msg.setTestItemLocalDescription(obx3.getCwe2_Text().getValueOrEmpty());
         msg.setTestItemCodingSystem(obx3.getCwe3_NameOfCodingSystem().getValueOrEmpty());
     }
 
@@ -229,7 +228,6 @@ public class LabResultBuilder {
         // we are assuming that all coded data is an isolate, not a great assumption
         CE ceData = data;
         msg.setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
-        msg.setIsolateLocalDescription(ceData.getCe2_Text().getValue());
         // Isolate coding system should default to empty string
         String isolateCodingSystem = ceData.getCe3_NameOfCodingSystem().getValue();
         msg.setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
@@ -335,7 +333,6 @@ public class LabResultBuilder {
         // so only copy the isolate fields from it.
         if (!labResultMsg.getIsolateLocalCode().isEmpty()) {
             msg.setIsolateLocalCode(labResultMsg.getIsolateLocalCode());
-            msg.setIsolateLocalDescription(labResultMsg.getIsolateLocalDescription());
             msg.setIsolateCodingSystem(labResultMsg.getIsolateCodingSystem());
         }
     }

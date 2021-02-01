@@ -93,7 +93,6 @@ public class TestAblOruR30Parsing extends TestHl7MessageStream {
     public void testBatteryCodes() throws Exception {
         LabOrderMsg msg = processLab("LabOrders/abl90_flex/unit.txt");
         assertEquals("VBG", msg.getTestBatteryLocalCode());
-        assertEquals("", msg.getTestBatteryLocalDescription());
         assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
     }
 

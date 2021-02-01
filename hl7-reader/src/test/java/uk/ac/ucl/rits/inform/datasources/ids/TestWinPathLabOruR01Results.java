@@ -52,7 +52,6 @@ public class TestWinPathLabOruR01Results extends TestHl7MessageStream {
     public void testTestCodes() {
         LabOrderMsg msg = processLab("LabOrders/winpath/oru_ro1_text.txt");
         assertEquals("NCOV", msg.getTestBatteryLocalCode());
-        assertEquals("COVID19 PCR", msg.getTestBatteryLocalDescription());
     }
 
     /**

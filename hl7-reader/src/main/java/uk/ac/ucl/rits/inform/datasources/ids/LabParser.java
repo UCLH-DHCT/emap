@@ -463,7 +463,6 @@ final class LabParser {
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
         msg.setTestBatteryLocalCode(obr4.getCwe1_Identifier().getValueOrEmpty());
-        msg.setTestBatteryLocalDescription(obr4.getCwe2_Text().getValueOrEmpty());
         msg.setTestBatteryCodingSystem(obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty());
 
         PRL parent = obr.getObr26_ParentResult();
