@@ -43,7 +43,7 @@ class TestLabProcessing extends MessageProcessingBase {
     private final String singleResultMrn = "40800000";
     private final String singleResultLabNumber = "13U444444";
     private final String singleResultTestCode = "FE";
-    private final Instant singleResultRequestTime = Instant.parse("2013-07-24T16:46:00Z");
+    private final Instant statusChangeTime = Instant.parse("2013-07-24T16:46:00Z");
 
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
@@ -235,7 +235,7 @@ class TestLabProcessing extends MessageProcessingBase {
     void testHappyPathLabOrder() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(singleResultRequestTime, result.getRequestDatetime());
+        assertEquals(statusChangeTime, result.getRequestDatetime());
         assertNull(result.getOrderDatetime());
         assertNull(result.getSampleDatetime());
     }
@@ -251,7 +251,7 @@ class TestLabProcessing extends MessageProcessingBase {
 
         // set up message with later status change time and requested date
         LabOrderMsg msg = singleResult;
-        Instant laterTime = singleResultRequestTime.plus(100, ChronoUnit.DAYS);
+        Instant laterTime = statusChangeTime.plus(100, ChronoUnit.DAYS);
         msg.setStatusChangeTime(laterTime);
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(laterTime));
         // process new message
@@ -273,15 +273,15 @@ class TestLabProcessing extends MessageProcessingBase {
 
         // set up message with an earlier status change time and later requested date
         LabOrderMsg msg = singleResult;
-        Instant laterTime = singleResultRequestTime.plus(100, ChronoUnit.DAYS);
-        msg.setStatusChangeTime(singleResultRequestTime.minus(100, ChronoUnit.DAYS));
+        Instant laterTime = statusChangeTime.plus(100, ChronoUnit.DAYS);
+        msg.setStatusChangeTime(statusChangeTime.minus(100, ChronoUnit.DAYS));
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(laterTime));
         // process new message
         processSingleMessage(msg);
 
         // check time has not updated
         LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(singleResultRequestTime, result.getRequestDatetime());
+        assertEquals(statusChangeTime, result.getRequestDatetime());
     }
 
 
@@ -296,7 +296,7 @@ class TestLabProcessing extends MessageProcessingBase {
 
         // set up message with later status change time and requested date
         LabOrderMsg msg = singleResult;
-        Instant earlierTime = singleResultRequestTime.minus(100, ChronoUnit.DAYS);
+        Instant earlierTime = statusChangeTime.minus(100, ChronoUnit.DAYS);
         msg.setStatusChangeTime(earlierTime);
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(earlierTime));
         msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(earlierTime));
@@ -306,7 +306,7 @@ class TestLabProcessing extends MessageProcessingBase {
 
         LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
         // check that already set value hasn't updated
-        assertEquals(singleResultRequestTime, result.getRequestDatetime());
+        assertEquals(statusChangeTime, result.getRequestDatetime());
         // check time has updated for previously null fields
         assertEquals(earlierTime, result.getOrderDatetime());
         assertEquals(earlierTime, result.getSampleDatetime());
@@ -352,13 +352,80 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNull(result.getUnits());
     }
 
+    /**
+     * Creation of lab collection row.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     void testLabCollectionDataCorrect() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
         assertEquals("1", collection.getSampleType());
         assertEquals(Instant.parse("2013-07-24T15:41:00Z"), collection.getSampleCollectionTime());
-        assertNull(collection.getSampleCollectionTime());
+        assertNull(collection.getSampleReceiptTime());
     }
+
+    /**
+     * First message has a collection time but no receipt, second message has the collection time and receipt time.
+     * Entity should be updated to have the receipt time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabCollectionUpdatesReceiptTime() throws EmapOperationMessageProcessingException {
+        // process initial result
+        processSingleMessage(singleResult);
+
+        // add received time to be updated
+        Instant receivedTime = statusChangeTime.plus(1, ChronoUnit.MINUTES);
+        LabOrderMsg msg = singleResult;
+        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(receivedTime));
+        processSingleMessage(msg);
+
+        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals(receivedTime, collection.getSampleReceiptTime());
+    }
+
+    /**
+     * Message with a later status change time can update the collection date time if it's different
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testNewSampleReceiptTimeUpdates() throws EmapOperationMessageProcessingException {
+        // process initial result
+        processSingleMessage(singleResult);
+
+        // later status change and collection time
+        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.DAYS);
+        LabOrderMsg msg = singleResult;
+        msg.setStatusChangeTime(laterTime);
+        msg.setCollectionDateTime(laterTime);
+        processSingleMessage(msg);
+
+        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals(laterTime, collection.getSampleCollectionTime());
+    }
+
+
+    /**
+     * Message with a earlier status change time won't updated the collection date time, even if that is later than the current time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testOldSampleReceiptTimeDoesntUpdate() throws EmapOperationMessageProcessingException {
+        // process initial result
+        processSingleMessage(singleResult);
+
+        // later status change and collection time
+        Instant earlierTime = statusChangeTime.minus(1, ChronoUnit.DAYS);
+        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.DAYS);
+        LabOrderMsg msg = singleResult;
+        msg.setStatusChangeTime(earlierTime);
+        msg.setCollectionDateTime(laterTime);
+        processSingleMessage(msg);
+
+        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertNotEquals(laterTime, collection.getSampleCollectionTime());
+    }
+
 
 }

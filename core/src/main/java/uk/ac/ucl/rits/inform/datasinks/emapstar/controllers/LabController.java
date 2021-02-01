@@ -9,6 +9,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabCollectionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabCollectionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
@@ -18,12 +20,15 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepositor
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
+import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
+import uk.ac.ucl.rits.inform.informdb.labs.LabCollectionAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
+import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -46,11 +51,15 @@ public class LabController {
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final LabResultRepository labResultRepo;
     private final LabResultAuditRepository labResultAuditRepo;
+    private final LabCollectionRepository labCollectionRepo;
+    private final LabCollectionAuditRepository labCollectionAuditRepository;
+
 
     public LabController(
             LabBatteryElementRepository labBatteryElementRepo, LabNumberRepository labNumberRepo, LabTestDefinitionRepository labTestDefinitionRepo,
             LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo, LabResultRepository labResultRepo,
-            LabResultAuditRepository labResultAuditRepo) {
+            LabResultAuditRepository labResultAuditRepo, LabCollectionRepository labCollectionRepo,
+            LabCollectionAuditRepository labCollectionAuditRepository) {
         this.labBatteryElementRepo = labBatteryElementRepo;
         this.labNumberRepo = labNumberRepo;
         this.labTestDefinitionRepo = labTestDefinitionRepo;
@@ -58,6 +67,8 @@ public class LabController {
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.labResultRepo = labResultRepo;
         this.labResultAuditRepo = labResultAuditRepo;
+        this.labCollectionRepo = labCollectionRepo;
+        this.labCollectionAuditRepository = labCollectionAuditRepository;
     }
 
     /**
@@ -77,6 +88,7 @@ public class LabController {
 
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         Instant validFrom = msg.getStatusChangeTime();
+        RowState<LabCollection, LabCollectionAudit> collectionState = updateOrCreateLabCollection(labNumber, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
             LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
@@ -138,6 +150,46 @@ public class LabController {
                     logger.trace("Creating new Lab Test Battery Element {}", batteryElement);
                     return labBatteryElementRepo.save(batteryElement);
                 });
+    }
+
+
+    /**
+     * Create new LabCollection or update existing one.
+     * @param labNumber      LabNumber
+     * @param msg            Msg
+     * @param validFrom      most recent change to results
+     * @param storedFrom     time that star encountered the message
+     * @return Lab Collection wrapped in row state
+     */
+    private RowState<LabCollection, LabCollectionAudit> updateOrCreateLabCollection(
+            LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
+        RowState<LabCollection, LabCollectionAudit> state = labCollectionRepo
+                .findByLabNumberIdAndSampleType(labNumber, msg.getSpecimenType())
+                .map(col -> new RowState<>(col, validFrom, storedFrom, false))
+                .orElseGet(() -> createLabCollection(labNumber, msg.getSpecimenType(), validFrom, storedFrom));
+
+        LabCollection collection = state.getEntity();
+        // If no sample received time or more recent message, try to update it
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                state, msg.getSampleReceivedTime(), collection.getSampleReceiptTime(), collection::setSampleReceiptTime, validFrom);
+        // Allow for change of sample collection time, but don't expect this to happen
+        if (state.isEntityCreated() || collection.getValidFrom().isBefore(validFrom)) {
+            state.assignIfDifferent(msg.getCollectionDateTime(), collection.getSampleCollectionTime(), collection::setSampleCollectionTime);
+            if (!state.isEntityCreated()) {
+                logger.warn("Not expecting Sample collection time to change");
+            }
+        }
+
+        state.saveEntityOrAuditLogIfRequired(labCollectionRepo, labCollectionAuditRepository);
+        return state;
+    }
+
+    private RowState<LabCollection, LabCollectionAudit> createLabCollection(
+            LabNumber labNumber, String specimenType, Instant validFrom, Instant storedFrom) {
+        LabCollection collection = new LabCollection(labNumber, specimenType);
+        collection.setValidFrom(validFrom);
+        collection.setStoredFrom(storedFrom);
+        return new RowState<>(collection, validFrom, storedFrom, true);
     }
 
     /**
