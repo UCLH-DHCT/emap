@@ -26,6 +26,8 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @Component
 class OrderPermutationTestProducer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -84,8 +86,8 @@ class OrderPermutationTestProducer {
         logger.info("Checking visit {}", messageInformation);
         LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
                 .orElseThrow(() -> new NoSuchElementException(messageInformation));
-        Assertions.assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));
-        Assertions.assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
+        assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));
+        assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
     }
 
     private void checkAllVisits() {
@@ -101,7 +103,7 @@ class OrderPermutationTestProducer {
         List<LocationVisit> allVisits = StreamSupport
                 .stream(locationVisitRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        Assertions.assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
+        assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
     }
 
     private void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException {

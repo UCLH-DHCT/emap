@@ -205,9 +205,9 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should be updated because it is null
-        Assertions.assertNotNull(visit.getAdmissionTime());
+        assertNotNull(visit.getAdmissionTime());
         // arrival method should not be updated from the message
-        Assertions.assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
+        assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
     }
 
     /**
@@ -226,7 +226,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
-        Assertions.assertNotEquals(msg.getAdmissionDateTime(), visit.getAdmissionTime());
+        assertNotEquals(msg.getAdmissionDateTime(), visit.getAdmissionTime());
     }
 
     /**
@@ -244,9 +244,9 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should be updated because it is null
-        Assertions.assertNotNull(visit.getPresentationTime());
+        assertNotNull(visit.getPresentationTime());
         // arrival method should not be updated from the message
-        Assertions.assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
+        assertNotEquals(msg.getModeOfArrival(), visit.getArrivalMethod());
     }
 
     /**
@@ -265,7 +265,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
         dbOps.processMessage(msg);
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         // admission time should not be updated
-        Assertions.assertNotEquals(msg.getPresentationDateTime(), visit.getPresentationTime());
+        assertNotEquals(msg.getPresentationDateTime(), visit.getPresentationTime());
     }
 
     /**
