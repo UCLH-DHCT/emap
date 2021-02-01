@@ -1,5 +1,5 @@
 testItemCodingSystem: "ABL90 FLEX Plus"
 resultStatus: "FINAL"
 testItemLocalDescription: "M"
-valueType: "ST" # annoyingly the hl7 messages are all set as string values even when they're clearly numeric
-
+valueType: "NM"
+resultOperator: "="

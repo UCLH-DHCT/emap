@@ -6,12 +6,20 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "7.415"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 7.415
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       testItemLocalCode: "pCO2"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "5.82"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 5.82
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -22,6 +30,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "3.68"
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 3.68
       units:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
