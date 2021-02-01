@@ -27,6 +27,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
@@ -437,7 +438,7 @@ public class IdsOperations implements AutoCloseable {
                     });
                     semaphore.acquire();
                 }
-            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException | Hl7MessageIgnoredException e) {
                 logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {
@@ -452,11 +453,12 @@ public class IdsOperations implements AutoCloseable {
      * @param msgFromIds the HL7 message
      * @param idsUnid    the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages, can be empty if no messages should result
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if the HL7 message contradicts itself
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if the HL7 message contradicts itself
+     * @throws Hl7MessageIgnoredException if the message is a calibration/testing reading
      */
     public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
-            throws HL7Exception, Hl7InconsistencyException {
+            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();

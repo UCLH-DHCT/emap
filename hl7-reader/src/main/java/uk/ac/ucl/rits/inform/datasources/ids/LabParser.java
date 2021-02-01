@@ -156,13 +156,17 @@ final class LabParser {
      * Construct parser from ABL ORU R30 message.
      * @param subMessageSourceId unique Id from the IDS
      * @param oruR30             ORU R30 message
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7MessageIgnoredException if it's a calibration or test message
      */
-    private LabParser(String subMessageSourceId, ORU_R30 oruR30)
-            throws HL7Exception {
+    private LabParser(String subMessageSourceId, ORU_R30 oruR30) throws HL7Exception, Hl7MessageIgnoredException {
         setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
 
         OBR obr = oruR30.getOBR();
+        if ("Proficiency Testing".equals(obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty())) {
+            throw new Hl7MessageIgnoredException("Test/Calibration reading, skipping processing");
+        }
+
         populateObrFields(obr);
         populateOrderInformation(obr);
         msg.setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
@@ -226,7 +230,15 @@ final class LabParser {
     }
 
 
-    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30) throws HL7Exception, Hl7InconsistencyException {
+    /**
+     * Build lab orders from ORU R30 message (ABL 90 Flex).
+     * @param idsUnid  unique Id from the IDS
+     * @param oruR30 the Hl7 message
+     * @return single lab order in a list
+     * @throws HL7Exception if HAPI does
+     * @throws Hl7MessageIgnoredException if it's a calibration or testing message
+     */
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30) throws HL7Exception, Hl7MessageIgnoredException {
         List<LabOrderMsg> orders = new ArrayList<>(1);
         // skip message if it is "Proficiency Testing"
         LabOrderMsg labOrder = new LabParser(idsUnid, oruR30).msg;
