@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
+import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
@@ -58,6 +59,9 @@ class TestLabProcessing extends MessageProcessingBase {
     LabResultAuditRepository labResultAuditRepository;
     @Autowired
     LabTestDefinitionRepository labTestDefinitionRepository;
+    @Autowired
+    LabCollectionRepository labCollectionRepository;
+
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
 
@@ -346,6 +350,15 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNull(result.getRangeHigh());
         assertNull(result.getResultOperator());
         assertNull(result.getUnits());
+    }
+
+    @Test
+    void testLabCollectionDataCorrect() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals("1", collection.getSampleType());
+        assertEquals(Instant.parse("2013-07-24T15:41:00Z"), collection.getSampleCollectionTime());
+        assertNull(collection.getSampleCollectionTime());
     }
 
 }
