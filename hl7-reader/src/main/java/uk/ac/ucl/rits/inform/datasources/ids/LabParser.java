@@ -158,8 +158,9 @@ final class LabParser {
      * @param oruR30             ORU R30 message
      * @throws HL7Exception               if HAPI does
      * @throws Hl7MessageIgnoredException if it's a calibration or test message
+     * @throws Hl7InconsistencyException  if hl7 message is incorrectly formed
      */
-    private LabParser(String subMessageSourceId, ORU_R30 oruR30) throws HL7Exception, Hl7MessageIgnoredException {
+    private LabParser(String subMessageSourceId, ORU_R30 oruR30) throws HL7Exception, Hl7MessageIgnoredException, Hl7InconsistencyException {
         setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
 
         OBR obr = oruR30.getOBR();
@@ -248,8 +249,10 @@ final class LabParser {
      * @return single lab order in a list
      * @throws HL7Exception if HAPI does
      * @throws Hl7MessageIgnoredException if it's a calibration or testing message
+     * @throws Hl7InconsistencyException if hl7 message is malformed
      */
-    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30) throws HL7Exception, Hl7MessageIgnoredException {
+    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30)
+            throws HL7Exception, Hl7MessageIgnoredException, Hl7InconsistencyException {
         List<LabOrderMsg> orders = new ArrayList<>(1);
         // skip message if it is "Proficiency Testing"
         LabOrderMsg labOrder = new LabParser(idsUnid, oruR30).msg;
@@ -431,13 +434,18 @@ final class LabParser {
      * Extract the fields found in the OBR segment, of which there is one of each per object.
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
+     * @throws Hl7InconsistencyException If no collection time in message
      */
-    private void populateObrFields(OBR obr) throws DataTypeException {
+    private void populateObrFields(OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
         // which is the closest we get to a "collection" time. The actual collection will happen some point
         // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
-        msg.setCollectionDateTime(HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime()));
+        Instant collectionTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
+        if (collectionTime == null) {
+            throw new Hl7InconsistencyException("Collection time is required but missing");
+        }
+        msg.setCollectionDateTime(collectionTime);
         Instant requestedTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(requestedTime));
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
