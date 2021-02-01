@@ -246,12 +246,12 @@ final class LabParser {
 
     /**
      * Build lab orders from ORU R30 message (ABL 90 Flex).
-     * @param idsUnid  unique Id from the IDS
-     * @param oruR30 the Hl7 message
+     * @param idsUnid unique Id from the IDS
+     * @param oruR30  the Hl7 message
      * @return single lab order in a list
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception               if HAPI does
      * @throws Hl7MessageIgnoredException if it's a calibration or testing message
-     * @throws Hl7InconsistencyException if hl7 message is malformed
+     * @throws Hl7InconsistencyException  if hl7 message is malformed
      */
     public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORU_R30 oruR30)
             throws HL7Exception, Hl7MessageIgnoredException, Hl7InconsistencyException {
@@ -339,15 +339,16 @@ final class LabParser {
                     // so downcast will be safe. Find a better way of encoding this in the type system.
                     List<LabResultMsg> possibleParents = possibleOrder.getLabResultMsgs();
                     try {
-                        LabResultMsg foundParent = possibleParents.stream().filter(par -> isChildOf(orderToReparent, par))
-                                .findFirst().get();
+                        LabResultMsg foundParent = possibleParents.stream()
+                                .filter(par -> LabParser.isChildOf(orderToReparent, par))
+                                .findFirst().orElseThrow();
                         // add the order to the list of sensitivities and delete from the original list
                         logger.debug("Reparenting sensitivity order {} onto {}", orderToReparent, foundParent);
                         foundParent.getLabSensitivities().add(orderToReparent);
                         orders.set(i, null);
                         break;
                     } catch (NoSuchElementException e) {
-                        // should we do something here?
+                        logger.error("No parent order found for sensitivity", e);
                     }
                 }
             }
@@ -435,7 +436,7 @@ final class LabParser {
     /**
      * Extract the fields found in the OBR segment, of which there is one of each per object.
      * @param obr the OBR segment
-     * @throws DataTypeException if HAPI does
+     * @throws DataTypeException         if HAPI does
      * @throws Hl7InconsistencyException If no collection time in message
      */
     private void populateObrFields(OBR obr) throws DataTypeException, Hl7InconsistencyException {
