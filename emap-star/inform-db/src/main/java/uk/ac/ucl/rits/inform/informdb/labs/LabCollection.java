@@ -56,6 +56,11 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
 
     public LabCollection() {}
 
+    public LabCollection(LabNumber labNumberId, String sampleType) {
+        this.labNumberId = labNumberId;
+        this.sampleType = sampleType;
+    }
+
     public LabCollection(LabCollection other) {
         super(other);
         this.labCollectionId = other.labCollectionId;
