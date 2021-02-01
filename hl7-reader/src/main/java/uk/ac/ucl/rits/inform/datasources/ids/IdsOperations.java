@@ -57,6 +57,8 @@ import java.util.concurrent.Semaphore;
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
+    private static final Set<String> ALLOWED_SENDERS = new HashSet<>(Arrays.asList("WinPath", "EPIC", "ABL90 FLEX Plus"));
+
 
     private SessionFactory idsFactory;
     private AdtMessageFactory adtMessageFactory;
@@ -404,10 +406,8 @@ public class IdsOperations implements AutoCloseable {
         Instant messageDatetime = idsMsg.getMessagedatetime();
         String sender = idsMsg.getSenderapplication();
 
-        final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
-
         try {
-            if (!allowedSenders.contains(sender)) {
+            if (!ALLOWED_SENDERS.contains(sender)) {
                 logger.trace("[{}}] Skipping message with senderapplication='{}'", idsMsg.getUnid(), sender);
                 return;
             }
