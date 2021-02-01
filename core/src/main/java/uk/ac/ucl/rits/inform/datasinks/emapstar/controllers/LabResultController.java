@@ -52,6 +52,13 @@ class LabResultController {
         this.labResultAuditRepo = labResultAuditRepo;
     }
 
+    @Transactional
+    public void processResult(LabOrderMsg msg, LabNumber labNumber, LabResultMsg result, Instant validFrom, Instant storedFrom) {
+        LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
+        LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
+        RowState<LabOrder, LabOrderAudit> orderState = updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
+        RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
+    }
 
     private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         return labTestDefinitionRepo
@@ -173,11 +180,4 @@ class LabResultController {
         }
     }
 
-    @Transactional
-    public void processResult(LabOrderMsg msg, LabNumber labNumber, LabResultMsg result, Instant validFrom, Instant storedFrom) {
-        LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
-        LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-        RowState<LabOrder, LabOrderAudit> orderState = updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
-        RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
-    }
 }
