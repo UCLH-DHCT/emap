@@ -83,14 +83,11 @@ public class LabController {
                 .orElseGet(() -> {
                     LabNumber labNum = new LabNumber(
                             mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(),
-                            msg.getSpecimenType(), msg.getSourceSystem(), storedFrom);
+                            msg.getSourceSystem(), storedFrom);
                     logger.trace("Creating new lab number {}", labNum);
                     return labNumberRepo.save(labNum);
                 });
 
-        if (!labNumber.getSpecimenType().equals(msg.getSpecimenType())) {
-            throw new IncompatibleDatabaseStateException("Message specimen type doesn't match the database");
-        }
         return labNumber;
     }
 

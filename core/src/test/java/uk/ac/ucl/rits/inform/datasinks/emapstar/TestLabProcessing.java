@@ -211,7 +211,6 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(singleResult);
         LabNumber result = labNumberRepository.findByMrnIdMrn(singleResultMrn).orElseThrow();
         assertEquals(singleResultLabNumber, result.getInternalLabNumber());
-        assertEquals("1", result.getSpecimenType());
         assertEquals("12121213", result.getExternalLabNumber());
         assertEquals("Corepoint", result.getSourceSystem());
     }
