@@ -173,7 +173,10 @@ public final class LabParser {
 
         setSourceAndPatientIdentifiers(idsUnid, msh, pid, pv1);
         populateObrFields(obr);
-        populateOrderInformation(obs.getORC(), obr);
+        populateOrderInformation(obr);
+
+        String specimenType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
+        msg.setSpecimenType(specimenType);
 
         OBX obx = obs.getOBSERVATION().getOBX();
         List<NTE> notes = obs.getOBSERVATION().getNTEAll();
