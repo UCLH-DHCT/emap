@@ -34,9 +34,8 @@ class TestBioConnectOruR01 {
         assertNull(msg.getEpicCareOrderNumber());
         assertEquals("40800000", msg.getMrn());
         assertEquals("9876543", msg.getLabSpecimenNumber());
-        assertNull(msg.getVisitNumber());
+        assertTrue(msg.getVisitNumber().isEmpty());
     }
-
 
     @Test
     void testSourceSystem() throws Exception {
