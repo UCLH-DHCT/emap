@@ -433,8 +433,8 @@ public class IdsOperations implements AutoCloseable {
                     logger.trace("[{}] sending message ({}/{}) to RabbitMQ",
                             idsMsg.getUnid(), subMessageCount, messagesFromHl7Message.size());
                     Semaphore semaphore = new Semaphore(0);
-                    publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
-                        logger.trace("callback for " + msg.getSourceMessageId());
+                    publisher.submit(msg, msg.getSourceMessageId(), String.format("%s_1", msg.getSourceMessageId()), () -> {
+                        logger.trace("callback for {}", msg.getSourceMessageId());
                         semaphore.release();
                     });
                     semaphore.acquire();
