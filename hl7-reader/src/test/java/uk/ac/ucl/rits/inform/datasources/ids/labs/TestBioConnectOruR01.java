@@ -33,8 +33,8 @@ class TestBioConnectOruR01 {
         LabOrderMsg msg = labReader.process(String.format(FILE_TEMPLATE, "glucose"));
         assertNull(msg.getEpicCareOrderNumber());
         assertEquals("40800000", msg.getMrn());
-        assertEquals("12345006210113012345", msg.getLabSpecimenNumber());
-        assertEquals("123412341234", msg.getVisitNumber());
+        assertEquals("12345680000000", msg.getLabSpecimenNumber());
+        assertNull(msg.getVisitNumber());
     }
 
 

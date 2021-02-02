@@ -43,9 +43,9 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
@@ -57,7 +57,7 @@ import java.util.concurrent.Semaphore;
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
-    private static final Set<String> ALLOWED_SENDERS = new HashSet<>(Arrays.asList("WinPath", "EPIC", "ABL90 FLEX Plus"));
+    private static final Collection<String> ALLOWED_SENDERS = new HashSet<>(Arrays.asList("WinPath", "EPIC", "ABL90 FLEX Plus", "BIO-CONNECT"));
 
 
     private SessionFactory idsFactory;
@@ -464,6 +464,7 @@ public class IdsOperations implements AutoCloseable {
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
+        String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
         logger.debug("{}^{}", messageType, triggerEvent);
         String sourceId = String.format("%010d", idsUnid);
 
@@ -475,16 +476,16 @@ public class IdsOperations implements AutoCloseable {
                 break;
             case "ORU":
                 if ("R01".equals(triggerEvent)) {
+                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     if ("Vitals".equals(sendingFacility)) {
-                        buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                         messages.addAll(flowsheetFactory.getMessages(sourceId, msgFromIds));
+                    } else if ("BIO-CONNECT".equals(sendingApplication)) {
+                        messages.addAll(LabParser.buildBioConnectLabs(sourceId, (ORU_R01) msgFromIds));
                     } else {
-                        buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                        // get all result batteries in the message
-                        messages.addAll(LabParser.buildLabOrders(sourceId, (ORU_R01) msgFromIds));
+                        messages.addAll(LabParser.buildWinPathLabs(sourceId, (ORU_R01) msgFromIds));
                     }
                 } else if ("R30".equals(triggerEvent)) {
-                    messages.addAll(LabParser.buildLabOrders(sourceId, (ORU_R30) msgFromIds));
+                    messages.addAll(LabParser.buildAblLabs(sourceId, (ORU_R30) msgFromIds));
                 }
                 break;
             case "ORM":
