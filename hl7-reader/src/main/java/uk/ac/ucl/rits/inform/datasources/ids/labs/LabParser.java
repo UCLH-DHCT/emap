@@ -35,7 +35,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -162,7 +161,8 @@ public final class LabParser {
      * @param msh            MSG segment
      * @param patientResults patient results from HL7 message
      */
-    private LabParser(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults) throws HL7Exception, Hl7InconsistencyException {
+    private LabParser(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults) throws
+            HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
         if (obs.getOBSERVATIONReps() > 1) {
             throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one OBX result segment");
@@ -171,12 +171,17 @@ public final class LabParser {
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
         OBR obr = obs.getOBR();
 
+        populateSpecimenTypeOrIgnoreMessage(obr);
         setSourceAndPatientIdentifiers(idsUnid, msh, pid, pv1);
         populateObrFields(obr);
         populateOrderInformation(obr);
 
-        String specimenType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
-        msg.setSpecimenType(specimenType);
+        // although the request datetime is in the message, doesn't seem to make sense to set it
+        msg.setRequestedDateTime(InterchangeValue.unknown());
+        // set battery coding system
+        msg.setTestBatteryCodingSystem(msg.getSourceSystem());
+        msg.setLabSpecimenNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+
 
         OBX obx = obs.getOBSERVATION().getOBX();
         List<NTE> notes = obs.getOBSERVATION().getNTEAll();
