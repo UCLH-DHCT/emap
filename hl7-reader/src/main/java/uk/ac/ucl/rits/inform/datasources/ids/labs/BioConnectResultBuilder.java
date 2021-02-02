@@ -24,6 +24,7 @@ public class BioConnectResultBuilder extends LabResultBuilder {
      * @param obx   the OBX segment for this result
      * @param obr   the OBR segment for this result (will be the same segment shared with other OBXs)
      * @param notes Notes for the OBX segment
+     * @param codingSystem coding system to manually set
      */
     BioConnectResultBuilder(OBX obx, OBR obr, List<NTE> notes, String codingSystem) {
         super(obx, notes, NORMAL_FLAG);
