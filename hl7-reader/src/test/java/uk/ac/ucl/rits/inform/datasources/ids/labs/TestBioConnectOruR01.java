@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TestBioConnectOruR01 {
     @Autowired
     private LabReader labReader;
-    private final Instant resultTime = Instant.parse("2013-02-11T10:00:52Z");
+    private final Instant resultTime = Instant.parse("2013-07-25T12:59:00Z");
     private static final String FILE_TEMPLATE = "LabOrders/bio_connect/%s.txt";
 
     @Test
@@ -61,7 +61,6 @@ class TestBioConnectOruR01 {
     void testBatteryCodes() throws Exception {
         LabOrderMsg msg = labReader.process(String.format(FILE_TEMPLATE, "glucose"));
         assertEquals("Glucose", msg.getTestBatteryLocalCode());
-        assertEquals("BIO-CONNECT", msg.getTestBatteryCodingSystem());
     }
 
     @Test
@@ -76,7 +75,7 @@ class TestBioConnectOruR01 {
     @Test
     void testResultStatus() throws Exception {
         LabResultMsg result = labReader.getResult(String.format(FILE_TEMPLATE, "glucose"), "Glu");
-        assertEquals(LabResultStatus.FINAL, result.getResultStatus());
+        assertEquals(LabResultStatus.INVALID_RESULT, result.getResultStatus());
     }
 
     @Test
