@@ -23,15 +23,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class LabReader extends TestHl7MessageStream {
 
     /**
-     * @param filePath relative path from resources root for hl7 message
+     * Process HL7 message and return the first LabOrderMsg
+     * @param fileTemplate template for filepath with relative path from resources root for hl7 message.
+     * @param fileName filename to add to template
      * @return LabOrderMsg
      * @throws Hl7MessageIgnoredException if thrown during processing
      * @throws Hl7InconsistencyException  if hl7 message malformed
      */
-    LabOrderMsg process(String filePath) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
+    LabOrderMsg process(String fileTemplate, String fileName) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
         List<? extends EmapOperationMessage> msgs = null;
         try {
-            msgs = processSingleMessage(filePath);
+            msgs = processSingleMessage(String.format(fileTemplate, fileName));
         } catch (Hl7MessageIgnoredException | Hl7InconsistencyException e) {
             throw e;
         } catch (Exception e) {
@@ -48,8 +50,17 @@ public class LabReader extends TestHl7MessageStream {
                 .collect(Collectors.toMap(LabResultMsg::getTestItemLocalCode, v -> v));
     }
 
-    LabResultMsg getResult(String filepath, String testLocalCode) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
-        LabOrderMsg msg = process(filepath);
+    /**
+     * Process lab order and get single result
+     * @param fileTemplate template for filepath with relative path from resources root for hl7 message.
+     * @param fileName filename to add to template
+     * @param testLocalCode local test code for result to get
+     * @return lab result message
+     * @throws Hl7MessageIgnoredException shouldn't happen
+     * @throws Hl7InconsistencyException shouldn't happen
+     */
+    LabResultMsg getResult(String fileTemplate, String fileName, String testLocalCode) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
+        LabOrderMsg msg = process(fileTemplate, fileName);
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
         Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
         return resultsByItemCode.get(testLocalCode);

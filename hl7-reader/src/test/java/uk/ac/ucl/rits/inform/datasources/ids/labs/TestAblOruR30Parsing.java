@@ -28,10 +28,12 @@ class TestAblOruR30Parsing {
     @Autowired
     private LabReader labReader;
     private final Instant resultTime = Instant.parse("2013-02-11T10:00:52Z");
+    private static final String FILE_TEMPLATE = "LabOrders/abl90_flex/%s.txt";
+
 
     @Test
     void testIdentifiers() throws Exception {
-        LabOrderMsg msg = labReader.process("LabOrders/abl90_flex/unit.txt");
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertNull(msg.getEpicCareOrderNumber());
         assertEquals("40800000", msg.getMrn());
         assertEquals("12345006210113012345", msg.getLabSpecimenNumber());
@@ -40,13 +42,13 @@ class TestAblOruR30Parsing {
 
     @Test
     void testSourceSystem() throws Exception {
-        LabOrderMsg msg = labReader.process("LabOrders/abl90_flex/unit.txt");
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertEquals("ABL90 FLEX Plus", msg.getSourceSystem());
     }
 
     @Test
     void testOrderTimes() throws Exception {
-        LabOrderMsg msg = labReader.process("LabOrders/abl90_flex/unit.txt");
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getSampleReceivedTime());
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getOrderDateTime());
         assertTrue(msg.getRequestedDateTime().isUnknown());
@@ -59,14 +61,14 @@ class TestAblOruR30Parsing {
      */
     @Test
     void testBatteryCodes() throws Exception {
-        LabOrderMsg msg = labReader.process("LabOrders/abl90_flex/unit.txt");
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertEquals("VBG", msg.getTestBatteryLocalCode());
         assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
     }
 
     @Test
     void testBatteryCodingSystem() throws Exception {
-        LabOrderMsg msg = labReader.process("LabOrders/abl90_flex/unit.txt");
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
     }
 
@@ -75,13 +77,13 @@ class TestAblOruR30Parsing {
      */
     @Test
     void testResultStatus() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pCO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pCO2");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
     }
 
     @Test
     void testNumericValueForced() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pCO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pCO2");
         assertEquals(InterchangeValue.buildFromHl7(5.82), result.getNumericValue());
         assertEquals("NM", result.getValueType());
         assertEquals("=", result.getResultOperator());
@@ -89,13 +91,13 @@ class TestAblOruR30Parsing {
 
     @Test
     void testTestCodingSystem() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pCO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pCO2");
         assertEquals("ABL90 FLEX Plus", result.getTestItemCodingSystem());
     }
 
     @Test
     void testResultTime() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pCO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pCO2");
         assertEquals(resultTime, result.getResultTime());
     }
 
@@ -104,48 +106,48 @@ class TestAblOruR30Parsing {
      */
     @Test
     void testUnitsSet() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pCO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pCO2");
         assertEquals(InterchangeValue.buildFromHl7("kPa"), result.getUnits());
     }
 
     @Test
     void testNotes() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pO2");
         InterchangeValue<String> expected = InterchangeValue.buildFromHl7("Value below reference range");
         assertEquals(expected, result.getNotes());
     }
 
     @Test
     void testAbnormalFlagPresent() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pO2");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pO2");
         assertEquals(InterchangeValue.buildFromHl7("L"), result.getAbnormalFlag());
     }
 
     @Test
     void testAbnormalFlagIsNormal() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "pH");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pH");
         assertTrue(result.getAbnormalFlag().isDelete());
     }
 
     @Test
     void testCollectionSpecimenType() throws Exception {
-        LabOrderMsg msg = labReader.process("LabOrders/abl90_flex/unit.txt");
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertEquals("Venous", msg.getSpecimenType());
     }
 
     @Test
     void testProficiencyTestingSamplesSkipped() {
-        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process("LabOrders/abl90_flex/ignored.txt"));
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "ignored"));
     }
 
     @Test
     void testCollectionTimeRequired() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process("LabOrders/abl90_flex/no_collection_time.txt"));
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "no_collection_time"));
     }
 
     @Test
     void testUnparseableNumericValue() throws Exception {
-        LabResultMsg result = labReader.getResult("LabOrders/abl90_flex/unit.txt", "unparseable");
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "unparseable");
         assertTrue(result.getNumericValue().isDelete());
     }
 
