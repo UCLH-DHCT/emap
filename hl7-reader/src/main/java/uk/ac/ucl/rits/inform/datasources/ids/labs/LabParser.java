@@ -396,7 +396,12 @@ public final class LabParser {
         String labSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         msg.setLabSpecimenNumber(labSpecimen);
         String labSpecimenOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        msg.setSpecimenType(labSpecimenOCS.replace(labSpecimen, ""));
+        String specimenType = labSpecimenOCS.replace(labSpecimen, "");
+        if (specimenType.length() >= 1) {
+            msg.setSpecimenType(specimenType);
+        } else {
+            logger.warn("WinPath specimen type should have been single digit, instead was '{}'", specimenType);
+        }
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
         msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
 
