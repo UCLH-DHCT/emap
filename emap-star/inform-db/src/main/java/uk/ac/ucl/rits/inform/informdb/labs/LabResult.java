@@ -73,6 +73,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     private String resultStatus;
     private String units;
 
+    @Column(columnDefinition = "text")
     private String comment;
 
     public LabResult() {}
