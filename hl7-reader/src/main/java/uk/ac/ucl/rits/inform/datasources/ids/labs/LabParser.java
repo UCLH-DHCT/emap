@@ -33,6 +33,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
  * @author Stef Piatek
  */
 public final class LabParser {
-    private static final Set<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE"));
+    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE"));
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
 
@@ -75,7 +76,7 @@ public final class LabParser {
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         String sendingApplication = msg.getSourceSystem();
         if (!"WinPath".equals(sendingApplication)) {
-            throw new Hl7MessageIgnoredException("Only processing messages from WinPath, not \"" + sendingApplication + "\"");
+            throw new Hl7MessageIgnoredException(String.format("Only processing messages from WinPath, not '%s'", sendingApplication));
         }
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
@@ -184,8 +185,8 @@ public final class LabParser {
 
     /**
      * Populate the sample type information for ABL 90 flex.
-     * @param obr
-     * @throws Hl7MessageIgnoredException
+     * @param obr OBR segment
+     * @throws Hl7MessageIgnoredException if testing/calibration reading
      */
     private void populateSpecimenTypeOrIgnoreMessage(OBR obr) throws Hl7MessageIgnoredException {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
@@ -281,7 +282,7 @@ public final class LabParser {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder = new LabParser(subMessageSourceId, obs, msh, pid, pv1).msg;
-            if (!ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
+            if (!LabParser.ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
             } else {
                 orders.add(labOrder);
