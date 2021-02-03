@@ -61,7 +61,7 @@ public class LabController {
 
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         Instant validFrom = msg.getStatusChangeTime();
-        RowState<LabCollection, LabCollectionAudit> collectionState = updateOrCreateLabCollection(labNumber, msg, validFrom, storedFrom);
+        updateOrCreateLabCollection(labNumber, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             labResultController.processResult(msg, labNumber, result, validFrom, storedFrom);
         }
@@ -104,9 +104,8 @@ public class LabController {
      * @param msg        Msg
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
-     * @return Lab Collection wrapped in row state
      */
-    private RowState<LabCollection, LabCollectionAudit> updateOrCreateLabCollection(
+    private void updateOrCreateLabCollection(
             LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         RowState<LabCollection, LabCollectionAudit> state = labCollectionRepo
                 .findByLabNumberIdAndSampleType(labNumber, msg.getSpecimenType())
@@ -127,7 +126,6 @@ public class LabController {
         }
 
         state.saveEntityOrAuditLogIfRequired(labCollectionRepo, labCollectionAuditRepository);
-        return state;
     }
 
     private RowState<LabCollection, LabCollectionAudit> createLabCollection(

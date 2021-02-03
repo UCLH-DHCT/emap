@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 
 /**
  * Controller for LabResult specific information.
- *
  * @author Stef Piatek
  */
 @Component
@@ -55,9 +54,9 @@ class LabResultController {
     @Transactional
     public void processResult(LabOrderMsg msg, LabNumber labNumber, LabResultMsg result, Instant validFrom, Instant storedFrom) {
         LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
-        RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
+        updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
         LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-        RowState<LabOrder, LabOrderAudit> orderState = updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
+        updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
     }
 
     private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
@@ -96,9 +95,8 @@ class LabResultController {
      * @param msg            Msg
      * @param validFrom      most recent change to results
      * @param storedFrom     time that star encountered the message
-     * @return Lab order wrapped in row state
      */
-    private RowState<LabOrder, LabOrderAudit> updateOrCreateLabOrder(
+    private void updateOrCreateLabOrder(
             LabBatteryElement batteryElement, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
                 .findByLabBatteryElementIdAndLabNumberId(batteryElement, labNumber)
@@ -107,7 +105,6 @@ class LabResultController {
 
         updateLabOrder(orderState, msg, validFrom);
         orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
-        return orderState;
     }
 
     private RowState<LabOrder, LabOrderAudit> createLabOrder(
@@ -135,7 +132,7 @@ class LabResultController {
         }
     }
 
-    private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
+    private void updateOrCreateLabResult(
             LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
         RowState<LabResult, LabResultAudit> resultState = labResultRepo
                 .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
@@ -144,13 +141,12 @@ class LabResultController {
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");
-            return resultState;
+            return;
         }
 
         updateLabResult(resultState, result);
 
         resultState.saveEntityOrAuditLogIfRequired(labResultRepo, labResultAuditRepo);
-        return resultState;
     }
 
     private RowState<LabResult, LabResultAudit> createLabResult(
