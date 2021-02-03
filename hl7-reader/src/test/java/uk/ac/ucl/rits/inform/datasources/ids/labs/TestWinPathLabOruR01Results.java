@@ -26,6 +26,12 @@ class TestWinPathLabOruR01Results {
     private LabReader labReader;
     private static final String FILE_TEMPLATE = "LabOrders/winpath/%s.txt";
 
+    @Test
+    void testSpecimenType() throws Exception {
+        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        assertEquals("CTNS", msg.getSpecimenType());
+    }
+
     /**
      * Test battery code and description are correctly parsed.
      */

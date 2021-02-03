@@ -457,15 +457,11 @@ public final class LabParser {
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         String labSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         msg.setLabSpecimenNumber(labSpecimen);
-        String labSpecimenOCS = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        String specimenType = labSpecimenOCS.replace(labSpecimen, "");
-        if (specimenType.length() <= 1) {
-            msg.setSpecimenType(specimenType);
-        } else {
-            logger.warn("WinPath specimen type should have been single digit, instead was '{}'", specimenType);
-        }
+        String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
+        msg.setSpecimenType(sampleType);
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
         msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
+
 
         // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
         // in a status change (SC) message.
