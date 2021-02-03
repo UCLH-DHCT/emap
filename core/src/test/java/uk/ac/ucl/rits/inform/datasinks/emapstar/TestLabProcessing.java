@@ -357,11 +357,21 @@ class TestLabProcessing extends MessageProcessingBase {
      */
     @Test
     void testLabCollectionDataCorrect() throws EmapOperationMessageProcessingException {
-        processSingleMessage(singleResult);
+        // set relevant values
+        String sampleType = "BLD";
+        Instant collectTime = Instant.parse("2013-07-24T15:41:00Z");
+
+        LabOrderMsg msg = singleResult;
+        msg.setSpecimenType(sampleType);
+        msg.setCollectionDateTime(collectTime);
+        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(collectTime));
+        //process message
+        processSingleMessage(msg);
+        // check results correct
         LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals("1", collection.getSampleType());
-        assertEquals(Instant.parse("2013-07-24T15:41:00Z"), collection.getSampleCollectionTime());
-        assertNull(collection.getSampleReceiptTime());
+        assertEquals(sampleType, collection.getSampleType());
+        assertEquals(collectTime, collection.getSampleCollectionTime());
+        assertEquals(collectTime, collection.getSampleReceiptTime());
     }
 
     /**
