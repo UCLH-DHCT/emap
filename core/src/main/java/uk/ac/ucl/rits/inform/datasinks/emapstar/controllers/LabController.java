@@ -73,7 +73,7 @@ public class LabController {
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @return lab number
-     * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
+     * @throws IncompatibleDatabaseStateException if source system doesn't match the database
      */
     private LabNumber getOrCreateLabNumber(
             Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
@@ -87,6 +87,13 @@ public class LabController {
                     logger.trace("Creating new lab number {}", labNum);
                     return labNumberRepo.save(labNum);
                 });
+        // currently assuming that internal and external lab numbers are unique. If a source system has overlap, throw and error so
+        // we know that we have to change our query to include source system (seems unlikely)
+        if (!labNumber.getSourceSystem().equals(msg.getSourceSystem())) {
+            throw new IncompatibleDatabaseStateException(
+                    String.format("Source system in database for lab number %d is %s, message has value of %s",
+                    labNumber.getLabNumberId(), labNumber.getSourceSystem(), msg.getSourceSystem()));
+        }
 
         return labNumber;
     }
