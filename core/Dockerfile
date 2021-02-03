@@ -26,15 +26,15 @@ COPY Emap-Core/pom.xml /app/Emap-Core/
 COPY Emap-Core/inform-checker.xml /app/Emap-Core/
 RUN source /app/set_mvn_proxy.sh ;mvn dependency:resolve-plugins -f /app/Emap-Core/pom.xml
 # Set up Inform-DB
-COPY Inform-DB/ /app/Inform-DB/
+COPY Inform-DB/inform-db/src/ /app/Inform-DB/inform-db/src/
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -f /app/Inform-DB/pom.xml
 # Set up Emap-Interchange
-COPY Emap-Interchange/ /app/Emap-Interchange/
+COPY Emap-Interchange/src/ /app/Emap-Interchange/src/
 RUN source /app/set_mvn_proxy.sh; mvn install -f /app/Emap-Interchange/pom.xml
 # Set up Emap-Core
 RUN source /app/set_mvn_proxy.sh; mvn dependency:go-offline -f /app/Emap-Core/pom.xml
 WORKDIR /app/Emap-Core
-COPY Emap-Core/. /app/Emap-Core/
+COPY Emap-Core/src/ /app/Emap-Core/src/
 # RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
 # -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
