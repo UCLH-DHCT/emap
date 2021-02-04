@@ -56,6 +56,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant observationDatetime;
 
+    @Column(columnDefinition = "text")
     private String valueAsText;
     private Double valueAsReal;
     private String unit;

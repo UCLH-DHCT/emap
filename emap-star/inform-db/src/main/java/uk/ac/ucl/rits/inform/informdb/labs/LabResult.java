@@ -52,6 +52,8 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
      * Lab system flag for value outside of normal range.
      */
     private String abnormalFlag;
+
+    @Column(columnDefinition = "text")
     private String valueAsText;
     private Double valueAsReal;
 
@@ -73,6 +75,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     private String resultStatus;
     private String units;
 
+    @Column(columnDefinition = "text")
     private String comment;
 
     public LabResult() {}
