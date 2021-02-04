@@ -58,14 +58,7 @@ public class VisitObservationController {
         VisitObservationType observationType = getOrCreateObservationType(msg);
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
         if (messageShouldBeUpdated(msg, flowsheetState)) {
-            boolean isDeleted = deleteVisitObservationIfRequired(msg, flowsheetState);
-            if (isDeleted && flowsheetState.isEntityCreated()) {
-                // don't save entity or audit log if row has just been created and deleted
-                return;
-            }
-            if (!isDeleted) {
-                updateVisitObservation(msg, flowsheetState);
-            }
+            updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
         }
     }
@@ -130,28 +123,6 @@ public class VisitObservationController {
      */
     private boolean messageShouldBeUpdated(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
         return observationState.isEntityCreated() || !msg.getUpdatedTime().isBefore(observationState.getEntity().getValidFrom());
-    }
-
-    /**
-     * Delete flowsheet row if required.
-     * @param msg              flowsheet
-     * @param observationState observation entity wrapped in RowState
-     * @return true row was deleted
-     */
-    private boolean deleteVisitObservationIfRequired(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
-        boolean delete;
-        if (msg.getIsNumericType()) {
-            delete = msg.getNumericValue().isDelete();
-        } else {
-            delete = msg.getStringValue().isDelete();
-        }
-        if (delete) {
-            logger.debug(String.format("Deleting %s", observationState.getEntity()));
-            visitObservationRepo.delete(observationState.getEntity());
-            observationState.setEntityUpdated(true);
-            return true;
-        }
-        return false;
     }
 
     /**
