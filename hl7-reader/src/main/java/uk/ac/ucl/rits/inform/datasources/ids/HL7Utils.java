@@ -1,5 +1,18 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.datatype.DT;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
+import ca.uhn.hl7v2.validation.ValidationContext;
+import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,21 +23,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
-
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.DataTypeException;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v26.datatype.DTM;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
-import ca.uhn.hl7v2.parser.PipeParser;
-import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
-import ca.uhn.hl7v2.validation.ValidationContext;
-import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
 
 /**
  * Utilities for interpreting HL7 messages.
@@ -40,10 +42,9 @@ public class HL7Utils {
      * practice our messages don't, and our current assumption is that all times
      * are local time, which means local for the hospital, NOT local time for
      * the computer this code is running on.
-     *
      * @param hl7DTM the hl7 DTM object as it comes from the message
      * @return an Instant representing this same point in time, or null if no time
-     *         is specified in the DTM
+     * is specified in the DTM
      * @throws DataTypeException if HAPI does
      */
     public static Instant interpretLocalTime(DTM hl7DTM) throws DataTypeException {
@@ -68,6 +69,19 @@ public class HL7Utils {
         TimeZone after = valueAsCal.getTimeZone();
         Instant result = valueAsCal.toInstant();
         return result;
+    }
+
+
+    /**
+     * Process date value from HL7.
+     * @param hl7Date date in format 'yyyyMMdd'
+     * @return instant corrected to London time
+     */
+    public static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
+        if (hl7Date == null) {
+            return null;
+        }
+        return LocalDate.of(hl7Date.getYear(), hl7Date.getMonth(), hl7Date.getDay());
     }
 
     /**
