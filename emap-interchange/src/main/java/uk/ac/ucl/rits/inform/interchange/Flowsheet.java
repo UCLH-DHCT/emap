@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Represent a flowsheet message.
@@ -33,9 +35,10 @@ public class Flowsheet extends EmapOperationMessage {
     private String flowsheetId = "";
 
     /**
-     * Is the data type numeric, if false then data type is String.
+     * Data type of value.
+     * Used to determine which value field should be used
      */
-    private Boolean isNumericType;
+    private ValueType dataType;
 
     /**
      * Numeric value.
@@ -46,6 +49,11 @@ public class Flowsheet extends EmapOperationMessage {
      * String value.
      */
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
+
+    /**
+     * Date value.
+     */
+    private InterchangeValue<LocalDate> dateValue = InterchangeValue.unknown();
 
     /**
      * Comment.
