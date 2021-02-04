@@ -22,7 +22,7 @@ configure_time_window() {
         ' \
         ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
-
+        ../config/hoover-envs \
 }
 
 stop_it_and_tidy_up() {
@@ -55,6 +55,7 @@ run_pipeline() {
 
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source > ${log_file_prefix}_hl7source.txt
+    bash emap-live.sh up --exit-code-from hoover hoover > ${log_file_prefix}_hoover.txt
     bash emap-live.sh ps
 }
 
