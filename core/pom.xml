@@ -71,43 +71,14 @@
     </dependency>
 
     <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-base</artifactId>
-      <version>2.3</version>
-    </dependency>
-
-    <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-structures-v26</artifactId>
-      <version>2.3</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>4.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
-    </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-csv</artifactId>
-      <version>${apache.commons.csv.version}</version>
     </dependency>
 
 	<dependency>
@@ -115,12 +86,6 @@
 	    <artifactId>junit-jupiter-engine</artifactId>
 	    <scope>test</scope>
 	</dependency>
-
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.springframework.amqp</groupId>
