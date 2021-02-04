@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TestFlowsheetProcessing extends MessageProcessingBase {
     private List<Flowsheet> messages;
@@ -63,9 +64,9 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
 
-        // 7 flowsheets in input file, but one is a delete so only 6 should be created
+        // 7 flowsheets in input file
         List<VisitObservation> observations = visitObservationRepository.findAllByHospitalVisitId(visit);
-        assertEquals(6, observations.size());
+        assertEquals(7, observations.size());
     }
 
     /**
@@ -143,9 +144,10 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         // visit observation now does not exist
-        Optional<VisitObservation> deletedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, stringDeleteId);
-        assertTrue(deletedObservation.isEmpty());
+        VisitObservation deletedObservation = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, stringDeleteId)
+                .orElseThrow();
+        assertNull(deletedObservation.getValueAsText());
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
@@ -173,9 +175,10 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         // visit observation now does not exist
-        Optional<VisitObservation> deletedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, numericDeleteId);
-        assertTrue(deletedObservation.isEmpty());
+        VisitObservation deletedObservation = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, numericDeleteId)
+                .orElseThrow();
+        assertNull(deletedObservation.getValueAsText());
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
