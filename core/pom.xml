@@ -178,6 +178,28 @@
           </dependency>
         </dependencies>
       </plugin>
+      <!-- plugin to download dependencies, mvn dependencies:go-offline doesn't exclude artifacts/groups correctly -->
+      <plugin>
+        <groupId>de.qaware.maven</groupId>
+        <artifactId>go-offline-maven-plugin</artifactId>
+        <version>1.2.8</version>
+        <configuration>
+          <dynamicDependencies>
+            <DynamicDependency>
+              <groupId>uk.ac.ucl.rits.inform</groupId>
+              <artifactId>inform-db</artifactId>
+              <version>${inform-db.version}</version>
+              <repositoryType>MAIN</repositoryType>
+            </DynamicDependency>
+            <DynamicDependency>
+              <groupId>uk.ac.ucl.rits.inform</groupId>
+              <artifactId>emap-interchange</artifactId>
+              <version>${emap-interchange.version}</version>
+              <repositoryType>MAIN</repositoryType>
+            </DynamicDependency>
+          </dynamicDependencies>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
