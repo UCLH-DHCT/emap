@@ -161,7 +161,9 @@ public class IdsOperations implements AutoCloseable {
             // bypass this slow query if no bound was requested
             return null;
         }
+        logger.debug("Getting first message unid from {}", fromDateTime);
         try (Session idsSession = idsFactory.openSession()) {
+            logger.trace("IDS session opened");
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qexists = idsSession.createQuery(
                     "select i from IdsMaster i where i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class);
