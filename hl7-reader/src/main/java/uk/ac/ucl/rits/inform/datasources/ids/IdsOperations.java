@@ -96,8 +96,8 @@ public class IdsOperations implements AutoCloseable {
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
         logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
-        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime);
-        this.endUnid = getFirstMessageUnidFromDate(endDatetime);
+        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime, 1);
+        this.endUnid = getFirstMessageUnidFromDate(endDatetime, defaultStartUnid);
 
         // Since progress is stored as the unid (the date info is purely for human convenience),
         // there is no way to translate a future date into a unid.
@@ -153,10 +153,11 @@ public class IdsOperations implements AutoCloseable {
      * Find the first message in the IDS that came in at or after a certain
      * timestamp.
      * @param fromDateTime the timestamp to start from, or null for no boundary
+     * @param fromUnid     starting unid for filtering
      * @return the unid of the first message to be persisted at or after that time,
      * or null if there are no such messages or no bound was requested (fromDateTime == null)
      */
-    private Integer getFirstMessageUnidFromDate(Instant fromDateTime) {
+    private Integer getFirstMessageUnidFromDate(Instant fromDateTime, Integer fromUnid) {
         if (fromDateTime == null) {
             // bypass this slow query if no bound was requested
             return null;
@@ -164,16 +165,17 @@ public class IdsOperations implements AutoCloseable {
         logger.debug("Getting first message unid from {}", fromDateTime);
         try (Session idsSession = idsFactory.openSession()) {
             logger.trace("IDS session opened");
-            IdsMaster msg = idsSession
-                    .createQuery("select i from IdsMaster i where i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
+            List<IdsMaster> msg = idsSession.createQuery(
+                    "select i from IdsMaster i where i.unid >= :fromUnid and i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
                     .setParameter("fromDatetime", fromDateTime)
+                    .setParameter("fromUnid", fromUnid)
                     .setMaxResults(1)
-                    .getSingleResult();
-            if (msg == null) {
+                    .getResultList();
+            if (msg.isEmpty()) {
                 logger.warn("No IDS messages were found beyond the specified date {}, is it in the future?", fromDateTime);
                 return null;
             } else {
-                return msg.getUnid();
+                return msg.get(0).getUnid();
             }
         }
     }
