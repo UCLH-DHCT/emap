@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>HL7Processor</artifactId>
@@ -96,11 +96,11 @@
       <artifactId>hibernate-c3p0</artifactId>
     </dependency>
 
-	<dependency>
-	    <groupId>org.junit.jupiter</groupId>
-	    <artifactId>junit-jupiter-engine</artifactId>
-	    <scope>test</scope>
-	</dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.amqp</groupId>
@@ -142,7 +142,7 @@
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>3.1.8</version>
         <dependencies>
-          <!-- overwrite dependency on spotbugs if you want to specify the 
+          <!-- overwrite dependency on spotbugs if you want to specify the
             version of spotbugs -->
           <dependency>
             <groupId>com.github.spotbugs</groupId>
@@ -186,6 +186,22 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <!-- plugin to download dependencies, mvn dependencies:go-offline doesn't exclude artifacts/groups correctly -->
+      <plugin>
+        <groupId>de.qaware.maven</groupId>
+        <artifactId>go-offline-maven-plugin</artifactId>
+        <version>1.2.8</version>
+        <configuration>
+          <dynamicDependencies>
+            <DynamicDependency>
+              <groupId>uk.ac.ucl.rits.inform</groupId>
+              <artifactId>emap-interchange</artifactId>
+              <version>${emap-interchange.version}</version>
+              <repositoryType>MAIN</repositoryType>
+            </DynamicDependency>
+          </dynamicDependencies>
+        </configuration>
       </plugin>
     </plugins>
     <pluginManagement>
