@@ -164,17 +164,16 @@ public class IdsOperations implements AutoCloseable {
         logger.debug("Getting first message unid from {}", fromDateTime);
         try (Session idsSession = idsFactory.openSession()) {
             logger.trace("IDS session opened");
-            idsSession.setDefaultReadOnly(true);
-            Query<IdsMaster> qexists = idsSession.createQuery(
-                    "select i from IdsMaster i where i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class);
-            qexists.setParameter("fromDatetime", fromDateTime);
-            qexists.setMaxResults(1);
-            List<IdsMaster> msgs = qexists.list();
-            if (msgs.isEmpty()) {
+            IdsMaster msg = idsSession
+                    .createQuery("select i from IdsMaster i where i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
+                    .setParameter("fromDatetime", fromDateTime)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            if (msg == null) {
                 logger.warn("No IDS messages were found beyond the specified date {}, is it in the future?", fromDateTime);
                 return null;
             } else {
-                return msgs.get(0).getUnid();
+                return msg.getUnid();
             }
         }
     }
