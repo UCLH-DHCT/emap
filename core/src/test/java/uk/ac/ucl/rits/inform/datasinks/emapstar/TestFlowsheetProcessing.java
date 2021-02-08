@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,10 @@ import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.util.List;
-import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TestFlowsheetProcessing extends MessageProcessingBase {
@@ -52,17 +53,17 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
         List<Mrn> mrns = getAllMrns();
-        Assertions.assertEquals(1, mrns.size());
-        Assertions.assertEquals("EPIC", mrns.get(0).getSourceSystem());
+        assertEquals(1, mrns.size());
+        assertEquals("EPIC", mrns.get(0).getSourceSystem());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
-        Assertions.assertNotNull(mrnToLive);
+        assertNotNull(mrnToLive);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
 
         // 7 flowsheets in input file
         List<VisitObservation> observations = visitObservationRepository.findAllByHospitalVisitId(visit);
-        Assertions.assertEquals(7, observations.size());
+        assertEquals(7, observations.size());
     }
 
     /**
@@ -86,15 +87,15 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         VisitObservation updatedObservation = visitObservationRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, updateId)
                 .orElseThrow();
-        Assertions.assertNotEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
+        assertNotEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
         // comment is updated
-        Assertions.assertEquals(newComment, updatedObservation.getComment());
+        assertEquals(newComment, updatedObservation.getComment());
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), updateId)
                 .orElseThrow();
-        Assertions.assertEquals(preUpdateObservation.getValueAsReal(), audit.getValueAsReal());
+        assertEquals(preUpdateObservation.getValueAsReal(), audit.getValueAsReal());
 
     }
 
@@ -119,7 +120,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, updateId)
                 .orElseThrow();
 
-        Assertions.assertEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
+        assertEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
     }
 
     /**
@@ -149,7 +150,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         VisitObservationAudit audit = visitObservationAuditRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), stringDeleteId)
                 .orElseThrow();
-        Assertions.assertEquals(preDeleteObservation.getValueAsText(), audit.getValueAsText());
+        assertEquals(preDeleteObservation.getValueAsText(), audit.getValueAsText());
     }
 
     /**
@@ -180,7 +181,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         VisitObservationAudit audit = visitObservationAuditRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), numericDeleteId)
                 .orElseThrow();
-        Assertions.assertEquals(preDeleteObservation.getValueAsReal(), audit.getValueAsReal());
+        assertEquals(preDeleteObservation.getValueAsReal(), audit.getValueAsReal());
     }
 
 
@@ -205,6 +206,6 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, stringDeleteId)
                 .orElseThrow();
 
-        Assertions.assertEquals(preDeleteObservation.getValueAsReal(), notDeletedObservation.getValueAsReal());
+        assertEquals(preDeleteObservation.getValueAsReal(), notDeletedObservation.getValueAsReal());
     }
 }

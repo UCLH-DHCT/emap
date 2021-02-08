@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +19,12 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Component
 class OrderPermutationTestProducer {
@@ -80,12 +80,12 @@ class OrderPermutationTestProducer {
     private void checkVisit(Instant admissionTime, Instant dischargeTime, String locationString, String messageInformation) {
         // keeping visits and audits for debugging
         List<LocationVisit> visits = StreamSupport.stream(locationVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
-        List<LocationVisitAudit> audits =  StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
+        List<LocationVisitAudit> audits = StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
         logger.info("Checking visit {}", messageInformation);
         LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
                 .orElseThrow(() -> new NoSuchElementException(messageInformation));
-        Assertions.assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));
-        Assertions.assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
+        assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));
+        assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
     }
 
     private void checkAllVisits() {
@@ -101,7 +101,7 @@ class OrderPermutationTestProducer {
         List<LocationVisit> allVisits = StreamSupport
                 .stream(locationVisitRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        Assertions.assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
+        assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
     }
 
     private void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException {

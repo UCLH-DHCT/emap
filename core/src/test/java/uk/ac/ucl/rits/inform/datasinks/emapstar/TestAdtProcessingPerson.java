@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -454,15 +453,15 @@ public class TestAdtProcessingPerson extends MessageProcessingBase {
 
         // first MRN should only exist once in the database and have NHS number added to it
         Mrn firstMrn = mrnRepo.findByMrnEquals("mrn").orElseThrow();
-        Assertions.assertNotNull(firstMrn.getNhsNumber());
+        assertNotNull(firstMrn.getNhsNumber());
 
         // second MRN should now be updated with the new NHS number
         Mrn secondMrn = mrnRepo.findByMrnEquals("mrn2").orElseThrow();
-        Assertions.assertEquals("nhs3", secondMrn.getNhsNumber());
+        assertEquals("nhs3", secondMrn.getNhsNumber());
 
         // should have 2 MRNs
         List<Mrn> mrns = getAllMrns();
-        Assertions.assertEquals(2, mrns.size());
+        assertEquals(2, mrns.size());
     }
 
 }
