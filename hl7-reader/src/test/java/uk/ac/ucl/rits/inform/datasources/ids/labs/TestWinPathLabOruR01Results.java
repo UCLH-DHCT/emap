@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -185,6 +187,14 @@ class TestWinPathLabOruR01Results {
     void testAbnormalFlagAbsent() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "ALP");
         assertTrue(result.getAbnormalFlag().isDelete());
+    }
+
+    /**
+     * Non-ISOLATE coded data should throw an exception
+     */
+    @Test
+    void testNonIsolateCoded() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "non_isolate_ce"));
     }
 
 

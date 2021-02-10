@@ -9,6 +9,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.List;
@@ -48,12 +49,17 @@ public class WinPathResultBuilder extends LabResultBuilder {
     /**
      * Set value of coded result (CE).
      * @param data     data item
+     * @param testCode expected test code
      * @param repCount the number of parts of the data item
+     * @throws Hl7InconsistencyException if coded data that is not ISOLATE
      */
     @Override
-    protected void setCustomValue(Type data, int repCount) {
+    protected void setCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
         if (!(data instanceof CE)) {
             return;
+        }
+        if (!"ISOLATE".equals(testCode)) {
+            throw new Hl7InconsistencyException(String.format("Coded data which is not an ISOLATE test, instead is '%s'", testCode));
         }
 
         if (repCount > 1) {

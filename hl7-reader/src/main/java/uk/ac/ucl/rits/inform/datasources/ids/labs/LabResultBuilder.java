@@ -14,6 +14,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -67,8 +68,9 @@ public abstract class LabResultBuilder {
     /**
      * Construct Lab Result msg using set order of methods.
      * @throws DataTypeException if the result time can't be parsed by HAPI
+     * @throws Hl7InconsistencyException if custom value type is incompatible with parser
      */
-    void constructMsg() throws DataTypeException {
+    void constructMsg() throws DataTypeException, Hl7InconsistencyException {
         setTestIdentifiers();
         setValueAdjacentFields();
         setValue();
@@ -164,8 +166,9 @@ public abstract class LabResultBuilder {
      * Populate results based on the observation type.
      * <p>
      * For numeric values, string values are also populated for debugging.
+     * @throws Hl7InconsistencyException If custom data type is not compatible with parsing
      */
-    protected void setValue() {
+    protected void setValue() throws Hl7InconsistencyException {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -190,7 +193,7 @@ public abstract class LabResultBuilder {
                 }
             }
         }
-        setCustomValue(data, repCount);
+        setCustomValue(data, msg.getTestItemLocalCode(), repCount);
     }
 
     void setStringValue(OBX obx) {
@@ -225,9 +228,11 @@ public abstract class LabResultBuilder {
     /**
      * Optionally set a value which is not a numeric or string type.
      * @param data     data item
+     * @param testCode expected test code
      * @param repCount the number of parts of the data item
+     * @throws Hl7InconsistencyException if custom data type is not compatible wth parsing
      */
-    protected void setCustomValue(Type data, int repCount) {
+    protected void setCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
         return;
     }
 
