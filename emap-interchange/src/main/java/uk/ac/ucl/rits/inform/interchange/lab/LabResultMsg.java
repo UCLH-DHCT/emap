@@ -30,8 +30,7 @@ public class LabResultMsg implements Serializable {
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
 
-    private String isolateLocalCode = "";
-    private String isolateCodingSystem = "";
+    private String isolateCodeAndText = "";
 
     private InterchangeValue<String> units = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceLow = InterchangeValue.unknown();
