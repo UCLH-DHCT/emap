@@ -1,6 +1,13 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "FT"
+      testItemLocalCode: "URNC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "URINE CULTURE REPORT"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
       observationSubId: "1"
@@ -134,6 +141,13 @@
                 status: "SAVE"
                 value: "R"
           parentSubId: "2"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "FT"
+      testItemLocalCode: "URST"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "COMPLETE: 14/07/19"
   epicCareOrderNumber: "93939393"
   testBatteryLocalCode: "URNC"
   statusChangeTime: "2019-07-15T08:37:00Z"
