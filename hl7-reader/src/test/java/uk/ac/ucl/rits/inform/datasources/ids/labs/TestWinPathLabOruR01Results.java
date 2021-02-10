@@ -12,8 +12,10 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -195,6 +197,22 @@ class TestWinPathLabOruR01Results {
     @Test
     void testNonIsolateCoded() {
         assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "non_isolate_ce"));
+    }
+
+    /**
+     * No growth has trailing spaces in the code, these should be removed
+     * "NG5   ^No growth after 5 days incubation" -> "NG5^No growth after 5 days incubation"
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testNoGrowthCodeIsStripped() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "culture_no_growth");
+        List<LabResultMsg> result = orderMsg.getLabResultMsgs()
+                .stream()
+                .filter(rs -> rs.getObservationSubId().equals("1"))
+                .collect(Collectors.toList());
+        assertEquals(1, result.size());
+        assertEquals("NG5^No growth after 5 days incubation", result.get(0).getIsolateCodeAndText());
     }
 
 

@@ -67,10 +67,9 @@ public class WinPathResultBuilder extends LabResultBuilder {
         }
         // we are assuming that all coded data is an isolate, not a great assumption
         CE ceData = (CE) data;
-        getMessage().setIsolateLocalCode(ceData.getCe1_Identifier().getValue());
-        // Isolate coding system should default to empty string
-        String isolateCodingSystem = ceData.getCe3_NameOfCodingSystem().getValue();
-        getMessage().setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
+        String isolateCode = ceData.getCe1_Identifier().getValue().stripTrailing();
+        String isolateText = ceData.getCe2_Text().getValue();
+        getMessage().setIsolateCodeAndText(String.format("%s^%s", isolateCode, isolateText));
     }
 
     /**
@@ -79,9 +78,8 @@ public class WinPathResultBuilder extends LabResultBuilder {
      * @param labResultMsg the other lab result to merge in
      */
     void mergeResult(LabResultMsg labResultMsg) {
-        if (!labResultMsg.getIsolateLocalCode().isEmpty()) {
-            getMessage().setIsolateLocalCode(labResultMsg.getIsolateLocalCode());
-            getMessage().setIsolateCodingSystem(labResultMsg.getIsolateCodingSystem());
+        if (!labResultMsg.getIsolateCodeAndText().isEmpty()) {
+            getMessage().setIsolateCodeAndText(labResultMsg.getIsolateCodeAndText());
         }
     }
 }
