@@ -14,3 +14,6 @@ services:
     logging:
       driver: "json-file"
     restart: on-failure
+    depends_on:
+      # uses glowroot-central from Emap-Core, will need to run from Emap-Core/emap-live.sh
+      - glowroot-central
