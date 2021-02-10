@@ -11,11 +11,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Builder for LabResults for WinPath.
@@ -24,8 +20,6 @@ import java.util.regex.Pattern;
  */
 public class WinPathResultBuilder extends LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(WinPathResultBuilder.class);
-    private static final Pattern COMPLETE = Pattern.compile("COMPLETE: \\d{1,2}/\\d{1,2}/\\d{2,4}");
-    private static final Collection<String> REPORT_TITLES = new HashSet<>(Arrays.asList("URINE CULTURE REPORT", "FLUID CULTURE REPORT"));
     private final OBR obr;
 
     /**
@@ -71,22 +65,6 @@ public class WinPathResultBuilder extends LabResultBuilder {
         // Isolate coding system should default to empty string
         String isolateCodingSystem = ceData.getCe3_NameOfCodingSystem().getValue();
         getMessage().setIsolateCodingSystem(isolateCodingSystem == null ? "" : isolateCodingSystem);
-    }
-
-    /**
-     * @return Does this observation contain only redundant information
-     * that can be ignored? Eg. header and footer of a report intended
-     * to be human-readable.
-     */
-    boolean isIgnorable() {
-        // this will need expanding as we discover new cases
-        if (getMessage().getStringValue().isUnknown()) {
-            return false;
-        }
-        if (REPORT_TITLES.contains(getMessage().getStringValue().get())) {
-            return true;
-        }
-        return COMPLETE.matcher(getMessage().getStringValue().get()).matches();
     }
 
     /**

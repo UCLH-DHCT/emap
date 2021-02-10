@@ -420,11 +420,6 @@ public final class LabParser {
     private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) {
         Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());
         for (int i = 0; i < labResults.size(); i++) {
-            // can this "result" be ignored altogether?
-            if (labResults.get(i).isIgnorable()) {
-                labResults.set(i, null);
-                continue;
-            }
             // must this line of a result be merged with a previous line to give the
             // full result?
             String subId = labResults.get(i).getMessage().getObservationSubId();
