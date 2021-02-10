@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
@@ -29,13 +31,17 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultSensitivityId;
 
-    @Column(nullable = false)
-    private Long labResultId;
+    @ManyToOne
+    @JoinColumn(name = "labResultId", nullable = false)
+    private LabResult labResultId;
 
     /**
-     * The chemical (often antibiotic) this applies too.
+     * The chemical (often antibiotic) used.
      */
     private String agent;
+    /**
+     * Sensitivity of the microbe to the agent.
+     */
     private String sensitivity;
 
     @Column(columnDefinition = "timestamp with time zone")
