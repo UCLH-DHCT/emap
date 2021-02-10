@@ -157,14 +157,21 @@ class LabResultController {
 
     private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
         LabResult labResult = resultState.getEntity();
+        resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
+
         if (resultMsg.isNumeric()) {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
+        } else if (!resultMsg.getIsolateCodeAndText().isEmpty()) {
+            // Sadly some custom use of fields for Isolates:
+            // result -  have no isolate detected or isolate type
+            resultState.assignIfDifferent(resultMsg.getIsolateCodeAndText(), labResult.getValueAsText(), labResult::setValueAsText);
+            // unit -  CFU (if present)
+            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getUnits(), labResult::setUnits);
         } else {
             resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
         }
 
-        resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
         resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
         resultState.assignInterchangeValue(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
         resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);

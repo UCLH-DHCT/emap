@@ -436,5 +436,26 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNotEquals(laterTime, collection.getSampleCollectionTime());
     }
 
+    /**
+     * Processing of isolate should have the isolate type as the result, the cfu (string value in msg) as the unit
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabIsolateProcessingResults() throws EmapOperationMessageProcessingException {
+        String isolate = "CANALB^Candida albicans";
+        String cfu = "10,000 - 100,000 CFU/mL";
+        LabOrderMsg msg = singleResult;
+        LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
+        resultMsg.setValueType("ST");
+        resultMsg.setIsolateCodeAndText(isolate);
+        resultMsg.setStringValue(InterchangeValue.buildFromHl7(cfu));
+
+        processSingleMessage(msg);
+
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
+        assertEquals(isolate, result.getValueAsText());
+        assertEquals(cfu, result.getUnits());
+    }
+
 
 }
