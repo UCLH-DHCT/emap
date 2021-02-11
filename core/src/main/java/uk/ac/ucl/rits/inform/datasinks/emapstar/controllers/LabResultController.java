@@ -147,12 +147,35 @@ class LabResultController {
         }
     }
 
+    /**
+     * Updates or creates lab result.
+     * <p>
+     * Special processing for microbiology isolates:
+     * valueAsText stores the isolate name^text (can also be no growth like NG2^No growth after 2 days)
+     * units stores the CFU for an isolate, culturing method for no growth
+     * @param labNumber      lab number
+     * @param testDefinition test definition
+     * @param result         lab result msg
+     * @param validFrom      most recent change to results
+     * @param storedFrom     time that star encountered the message
+     * @return lab result wrapped in row state
+     */
     private LabResult updateOrCreateLabResult(
             LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
-        RowState<LabResult, LabResultAudit> resultState = labResultRepo
-                .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
-                .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
-                .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
+        RowState<LabResult, LabResultAudit> resultState;
+        if (result.getIsolateCodeAndText().isEmpty()) {
+            resultState = labResultRepo
+                    .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
+                    .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
+                    .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
+        } else {
+            // multiple isolates in a result, so these don't get overwritten with different isolates
+            // get by the isolate code as well as the lab number and test definition
+            resultState = labResultRepo
+                    .findByLabNumberIdAndLabTestDefinitionIdAndValueAsText(labNumber, testDefinition, result.getIsolateCodeAndText())
+                    .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
+                    .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
+        }
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");

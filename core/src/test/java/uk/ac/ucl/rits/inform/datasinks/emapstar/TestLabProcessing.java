@@ -461,6 +461,27 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(cfu, result.getUnits());
     }
 
+    /**
+     * Unlike other labs, a message for a single order can have multiple isolates.
+     * 2 different microbes cultured, so should have two results which have a test definition of ISOLATE
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testMultipleIsolates() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        processSingleMessage(msg);
+
+        List<LabResult> isolates = StreamSupport
+                .stream(labResultRepository.findAll().spliterator(), false)
+                .filter(lr -> "ISOLATE".equals(lr.getLabTestDefinitionId().getTestLabCode()))
+                .collect(Collectors.toList());
+        assertEquals(2, isolates.size());
+    }
+
+    /**
+     * Two isolates with 5 sensitivities tested each, 10 sensitivities should be created.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     void testLabSensitivitiesCreated() throws EmapOperationMessageProcessingException {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
