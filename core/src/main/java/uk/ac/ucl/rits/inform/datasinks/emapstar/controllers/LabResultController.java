@@ -10,6 +10,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultSensitivityAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultSensitivityRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
@@ -17,6 +19,8 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResultSensitivity;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResultSensitivityAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -39,24 +43,35 @@ class LabResultController {
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final LabResultRepository labResultRepo;
     private final LabResultAuditRepository labResultAuditRepo;
+    private final LabResultSensitivityRepository labResultSensitivityRepo;
+    private final LabResultSensitivityAuditRepository labResultSensitivityAuditRepo;
 
     LabResultController(
             LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo, LabOrderRepository labOrderRepo,
-            LabOrderAuditRepository labOrderAuditRepo, LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo) {
+            LabOrderAuditRepository labOrderAuditRepo, LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo,
+            LabResultSensitivityRepository labResultSensitivityRepo, LabResultSensitivityAuditRepository labResultSensitivityAuditRepo) {
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labBatteryElementRepo = labBatteryElementRepo;
         this.labOrderRepo = labOrderRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.labResultRepo = labResultRepo;
         this.labResultAuditRepo = labResultAuditRepo;
+        this.labResultSensitivityRepo = labResultSensitivityRepo;
+        this.labResultSensitivityAuditRepo = labResultSensitivityAuditRepo;
     }
 
     @Transactional
-    public void processResult(LabOrderMsg msg, LabNumber labNumber, LabResultMsg result, Instant validFrom, Instant storedFrom) {
-        LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
-        updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
+    public void processResult(LabOrderMsg msg, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
+        LabTestDefinition testDefinition = getOrCreateLabTestDefinition(resultMsg, msg, validFrom, storedFrom);
+        LabResult labResult = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
         LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
         updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
+        // If any lab sensitivities, update or create them
+        for (LabOrderMsg sensOrder : resultMsg.getLabSensitivities()) {
+            for (LabResultMsg sensResult : sensOrder.getLabResultMsgs()) {
+                updateOrCreateSensitivity(labResult, sensResult, validFrom, storedFrom);
+            }
+        }
     }
 
     private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
@@ -132,7 +147,7 @@ class LabResultController {
         }
     }
 
-    private void updateOrCreateLabResult(
+    private LabResult updateOrCreateLabResult(
             LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
         RowState<LabResult, LabResultAudit> resultState = labResultRepo
                 .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
@@ -141,12 +156,13 @@ class LabResultController {
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");
-            return;
+            return resultState.getEntity();
         }
 
         updateLabResult(resultState, result);
 
         resultState.saveEntityOrAuditLogIfRequired(labResultRepo, labResultAuditRepo);
+        return resultState.getEntity();
     }
 
     private RowState<LabResult, LabResultAudit> createLabResult(
@@ -181,6 +197,28 @@ class LabResultController {
         if (resultState.isEntityUpdated()) {
             labResult.setResultLastModifiedTime(resultMsg.getResultTime());
         }
+    }
+
+    private void updateOrCreateSensitivity(LabResult labResult, LabResultMsg sensitivityMsg, Instant validFrom, Instant storedFrom) {
+        if (sensitivityMsg.getStringValue().isUnknown()) {
+            return;
+        }
+        RowState<LabResultSensitivity, LabResultSensitivityAudit> sensitivityState = labResultSensitivityRepo
+                .findByLabResultIdAndAgent(labResult, sensitivityMsg.getStringValue().get())
+                .map(sens -> new RowState<>(sens, validFrom, storedFrom, false))
+                .orElseGet(() -> createSensitivity(labResult, sensitivityMsg.getStringValue().get(), validFrom, storedFrom));
+
+        LabResultSensitivity sensitivity = sensitivityState.getEntity();
+        sensitivityState.assignInterchangeValue(sensitivityMsg.getAbnormalFlag(), sensitivity.getSensitivity(), sensitivity::setSensitivity);
+        sensitivityState.assignIfDifferent(validFrom, sensitivity.getReportingDatetime(), sensitivity::setReportingDatetime);
+
+        sensitivityState.saveEntityOrAuditLogIfRequired(labResultSensitivityRepo, labResultSensitivityAuditRepo);
+    }
+
+    private RowState<LabResultSensitivity, LabResultSensitivityAudit> createSensitivity(
+            LabResult labResult, String agent, Instant validFrom, Instant storedFrom) {
+        LabResultSensitivity sensitivity = new LabResultSensitivity(labResult, agent);
+        return new RowState<>(sensitivity, validFrom, storedFrom, true);
     }
 
 }

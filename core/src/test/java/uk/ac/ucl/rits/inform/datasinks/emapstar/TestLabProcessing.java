@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultSensitivityRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -18,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
+import uk.ac.ucl.rits.inform.informdb.labs.LabResultSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -61,6 +63,8 @@ class TestLabProcessing extends MessageProcessingBase {
     LabTestDefinitionRepository labTestDefinitionRepository;
     @Autowired
     LabCollectionRepository labCollectionRepository;
+    @Autowired
+    LabResultSensitivityRepository labResultSensitivityRepository;
 
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
@@ -457,5 +461,15 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(cfu, result.getUnits());
     }
 
+    @Test
+    void testLabSensitivitiesCreated() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        processSingleMessage(msg);
 
+        List<LabResultSensitivity> sensitivities = StreamSupport
+                .stream(labResultSensitivityRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
+        assertEquals(10, sensitivities.size());
+
+    }
 }
