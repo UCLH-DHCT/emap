@@ -49,6 +49,12 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
 
     public LabResultSensitivity() {}
 
+    public LabResultSensitivity(LabResult labResultId, String agent) {
+        this.labResultId = labResultId;
+        this.agent = agent;
+    }
+
+
     public LabResultSensitivity(LabResultSensitivity other) {
         super(other);
         this.labResultSensitivityId = other.labResultSensitivityId;
@@ -57,6 +63,7 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
         this.sensitivity = other.sensitivity;
         this.reportingDatetime = other.reportingDatetime;
     }
+
 
     @Override
     public LabResultSensitivity copy() {
