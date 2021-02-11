@@ -491,6 +491,83 @@ class TestLabProcessing extends MessageProcessingBase {
                 .stream(labResultSensitivityRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
         assertEquals(10, sensitivities.size());
+    }
 
+    /**
+     * Check the values for a result is as expected.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabSensitivityValuesAdded() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        msg.setStatusChangeTime(statusChangeTime);
+        processSingleMessage(msg);
+
+        LabResultSensitivity sens = labResultSensitivityRepository
+                .findByLabResultIdValueAsTextAndAgent("KLEOXY^Klebsiella oxytoca", "VAK")
+                .orElseThrow();
+
+        assertEquals(statusChangeTime, sens.getReportingDatetime());
+        assertEquals("S", sens.getSensitivity());
+    }
+
+    /**
+     * Check the sensitivity changes when it is updated, and so does the reported time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabSensitivityChangedSensitivity() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        // original message
+        msg.setStatusChangeTime(statusChangeTime);
+        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getIsolateCodeAndText().isEmpty()).findFirst().orElseThrow();
+        result.setAbnormalFlag(InterchangeValue.buildFromHl7("S"));
+        msg.setLabResultMsgs(List.of(result));
+        processSingleMessage(msg);
+
+        // new message with later time and updated sensitivity
+        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
+        msg.setStatusChangeTime(laterTime);
+        String laterSensitivity = "R";
+        for (LabOrderMsg sensOrder: msg.getLabResultMsgs().get(0).getLabSensitivities()) {
+            for (LabResultMsg sensResult: sensOrder.getLabResultMsgs()) {
+                sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
+            }
+        }
+        msg.setLabResultMsgs(List.of(result));
+        processSingleMessage(msg);
+
+        LabResultSensitivity sens = labResultSensitivityRepository
+                .findByLabResultIdValueAsTextAndAgent("KLEOXY^Klebsiella oxytoca", "VAK")
+                .orElseThrow();
+
+        assertEquals(laterTime, sens.getReportingDatetime());
+        assertEquals(laterSensitivity, sens.getSensitivity());
+    }
+
+
+    /**
+     * Only the status change time has changed on a sensitivity, should not update the reporting date time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabSensitivityWithOnlyLaterTime() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        // original message
+        msg.setStatusChangeTime(statusChangeTime);
+        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getIsolateCodeAndText().isEmpty()).findFirst().orElseThrow();
+        msg.setLabResultMsgs(List.of(result));
+        processSingleMessage(msg);
+
+        // new message with only later time
+        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
+        msg.setStatusChangeTime(laterTime);
+        processSingleMessage(msg);
+
+        LabResultSensitivity sens = labResultSensitivityRepository
+                .findByLabResultIdValueAsTextAndAgent("KLEOXY^Klebsiella oxytoca", "VAK")
+                .orElseThrow();
+
+        assertEquals(statusChangeTime, sens.getReportingDatetime());
     }
 }

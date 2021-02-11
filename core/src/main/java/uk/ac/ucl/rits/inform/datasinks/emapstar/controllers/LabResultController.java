@@ -233,14 +233,16 @@ class LabResultController {
 
         LabResultSensitivity sensitivity = sensitivityState.getEntity();
         sensitivityState.assignInterchangeValue(sensitivityMsg.getAbnormalFlag(), sensitivity.getSensitivity(), sensitivity::setSensitivity);
-        sensitivityState.assignIfDifferent(validFrom, sensitivity.getReportingDatetime(), sensitivity::setReportingDatetime);
-
+        if ( sensitivityState.isEntityUpdated()) {
+            sensitivityState.assignIfDifferent(validFrom, sensitivity.getReportingDatetime(), sensitivity::setReportingDatetime);
+        }
         sensitivityState.saveEntityOrAuditLogIfRequired(labResultSensitivityRepo, labResultSensitivityAuditRepo);
     }
 
     private RowState<LabResultSensitivity, LabResultSensitivityAudit> createSensitivity(
             LabResult labResult, String agent, Instant validFrom, Instant storedFrom) {
         LabResultSensitivity sensitivity = new LabResultSensitivity(labResult, agent);
+        sensitivity.setReportingDatetime(validFrom);
         return new RowState<>(sensitivity, validFrom, storedFrom, true);
     }
 
