@@ -1,7 +1,11 @@
 package uk.ac.ucl.rits.inform.informdb.demographics;
 
-import java.time.Instant;
-import java.time.LocalDate;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,25 +18,19 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * A core demographic represents the main demographics stored around patients.
  * These are attached to an MRN and describe patient level, rather than visit
  * level, data.
- *
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
 @Entity
+@Data
 @Table(indexes = {@Index(name = "cd_mrn_id", columnList = "mrnId")})
-@Data()
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -41,27 +39,28 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long      coreDemographicId;
+    private long coreDemographicId;
 
     @OneToOne
     @JoinColumn(name = "mrnId", nullable = false)
-    private Mrn       mrnId;
+    private Mrn mrnId;
 
-    private String    firstname;
-    private String    middlename;
-    private String    lastname;
+    private String firstname;
+    private String middlename;
+    private String lastname;
 
     private LocalDate dateOfBirth;
     private LocalDate dateOfDeath;
 
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant   datetimeOfBirth;
+    private Instant datetimeOfBirth;
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant   datetimeOfDeath;
+    private Instant datetimeOfDeath;
 
-    private Boolean   alive;
-    private String    homePostcode;
-    private String    sex;
+    private Boolean alive;
+    private String homePostcode;
+    private String sex;
+    private String ethnicity;
 
     /**
      * Default constructor.
@@ -70,7 +69,6 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
 
     /**
      * Construct with the Mrn.
-     *
      * @param mrnId MRN object.
      */
     public CoreDemographic(Mrn mrnId) {
@@ -80,7 +78,6 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
 
     /**
      * Copy constructor.
-     *
      * @param other other demographic.
      */
     private CoreDemographic(CoreDemographic other) {
@@ -100,6 +97,7 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
         this.alive = other.alive;
         this.homePostcode = other.homePostcode;
         this.sex = other.sex;
+        this.ethnicity = other.ethnicity;
     }
 
     @Override
