@@ -193,7 +193,7 @@ public abstract class LabResultBuilder {
                 }
             }
         }
-        setCustomValue(data, msg.getTestItemLocalCode(), repCount);
+        setDataFromCustomValue(data, msg.getTestItemLocalCode(), repCount);
     }
 
     void setStringValue(OBX obx) {
@@ -232,7 +232,7 @@ public abstract class LabResultBuilder {
      * @param repCount the number of parts of the data item
      * @throws Hl7InconsistencyException if custom data type is not compatible wth parsing
      */
-    protected void setCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
+    protected void setDataFromCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
         return;
     }
 

@@ -511,6 +511,9 @@ public final class LabParser {
         // this is the "last updated" field for results as well as changing to order "in progress"
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
+        String clinicalInformation = obr.getObr13_RelevantClinicalInformation().getValueOrEmpty();
+        msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
+
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
         msg.setTestBatteryLocalCode(obr4.getCwe1_Identifier().getValueOrEmpty());

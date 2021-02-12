@@ -191,6 +191,13 @@ class TestWinPathLabOruR01Results {
         assertTrue(result.getAbnormalFlag().isDelete());
     }
 
+    @Test
+    void testClinicalInformation() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        String expected = "Can you confirm this order has been discussed with and approved by a Virologist-";
+        assertEquals(InterchangeValue.buildFromHl7(expected), orderMsg.getClinicalInformation());
+    }
+
     /**
      * Non-ISOLATE coded data should throw an exception
      */
@@ -209,10 +216,21 @@ class TestWinPathLabOruR01Results {
         LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "culture_no_growth");
         List<LabResultMsg> result = orderMsg.getLabResultMsgs()
                 .stream()
-                .filter(rs -> rs.getObservationSubId().equals("1"))
+                .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
         assertEquals("NG5^No growth after 5 days incubation", result.get(0).getIsolateCodeAndText());
+    }
+
+    @Test
+    void testClinicalInformationIsAddedToSensitivity() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_clinical_notes");
+        List<LabResultMsg> result = orderMsg.getLabResultMsgs()
+                .stream()
+                .filter(rs -> "1".equals(rs.getObservationSubId()))
+                .collect(Collectors.toList());
+        assertEquals(1, result.size());
+        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), result.get(0).getLabSensitivities().get(0).getClinicalInformation());
     }
 
 

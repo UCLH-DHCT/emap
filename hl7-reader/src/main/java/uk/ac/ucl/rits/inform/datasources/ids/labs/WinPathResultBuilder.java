@@ -54,7 +54,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
      * @throws Hl7InconsistencyException if coded data that is not ISOLATE
      */
     @Override
-    protected void setCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
+    protected void setDataFromCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
         if (!(data instanceof CE)) {
             return;
         }
@@ -65,7 +65,6 @@ public class WinPathResultBuilder extends LabResultBuilder {
         if (repCount > 1) {
             logger.warn("LabResult is coded (CE) result but repcount = {}", repCount);
         }
-        // we are assuming that all coded data is an isolate, not a great assumption
         CE ceData = (CE) data;
         String isolateCode = ceData.getCe1_Identifier().getValue().stripTrailing();
         String isolateText = ceData.getCe2_Text().getValue();
