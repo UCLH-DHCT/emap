@@ -39,7 +39,6 @@ public abstract class AdtMessage extends EmapOperationMessage {
     private InterchangeValue<String> patientGivenName = InterchangeValue.unknown();
     private InterchangeValue<String> patientMiddleName = InterchangeValue.unknown();
     private InterchangeValue<String> patientReligion = InterchangeValue.unknown();
-    private InterchangeValue<String> patientEthnicity = InterchangeValue.unknown();
     private InterchangeValue<String> patientSex = InterchangeValue.unknown();
     private InterchangeValue<String> patientTitle = InterchangeValue.unknown();
     private InterchangeValue<String> patientZipOrPostalCode = InterchangeValue.unknown();

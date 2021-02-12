@@ -42,3 +42,7 @@ patientSex:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "F"
   status: "SAVE"
+ethnicGroup:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Refused to Give"
