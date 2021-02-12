@@ -274,18 +274,15 @@ interface PIDWrap {
     // identifier for the mother of the patient in the PID segment of the message.
     // CX[] c = getPID().getPid21_MotherSIdentifier()
 
-    // PID-22 Ethnic Group.  In place of PID-22 Carecast has PID-10.1 Ethnicity, although according to the spec it doesn't have PID-10!!!
-    // Epic: Patient ethnic group. Only the first component is used
-    // CWE[] getPid22_EthnicGroup() Returns all repetitions of Ethnic Group (PID-22).
-    // Epic: Patient ethnic group. Only the first component is used. Format: <ethnic group>^^^^^^^^~
-
     /**
-     * Looks like Carecast and Epic may be the same (need to see real data to check).
+     * Get ethnic group identifier.
+     * <p>
+     * Only the first item is used in EPIC, and only the identifier is given.
      * @return the ethnic group
      * @throws HL7Exception if HAPI does
      */
-    default String getEthnicGroup() throws HL7Exception {
-        return getPID().getPid22_EthnicGroup(0).getText().toString(); // ???need data to check this is correct.
+    default String getEthnicGroup() {
+        return getPID().getPid22_EthnicGroup(0).getCwe1_Identifier().getValueOrEmpty();
     }
 
     // PID-23 Birth Place This is not mapped in the Carecast spec.

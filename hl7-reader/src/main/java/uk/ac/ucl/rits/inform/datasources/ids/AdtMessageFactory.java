@@ -120,6 +120,7 @@ public class AdtMessageFactory {
             msg.setPatientGivenName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientGivenName()));
             msg.setPatientMiddleName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
             msg.setPatientReligion(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientReligion()));
+            msg.setPatientEthnicity(InterchangeValue.buildFromHl7(patientInfoHl7.getEthnicGroup()));
             msg.setPatientSex(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientSex()));
             msg.setPatientTitle(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientTitle()));
             msg.setPatientZipOrPostalCode(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
