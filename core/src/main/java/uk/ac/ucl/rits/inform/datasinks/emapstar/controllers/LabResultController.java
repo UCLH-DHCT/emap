@@ -5,18 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultSensitivityAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultSensitivityRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
-import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultSensitivity;
@@ -27,7 +20,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
-import java.util.function.Consumer;
 
 /**
  * Controller for LabResult specific information.
@@ -37,23 +29,14 @@ import java.util.function.Consumer;
 class LabResultController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final LabTestDefinitionRepository labTestDefinitionRepo;
-    private final LabBatteryElementRepository labBatteryElementRepo;
-    private final LabOrderRepository labOrderRepo;
-    private final LabOrderAuditRepository labOrderAuditRepo;
     private final LabResultRepository labResultRepo;
     private final LabResultAuditRepository labResultAuditRepo;
     private final LabResultSensitivityRepository labResultSensitivityRepo;
     private final LabResultSensitivityAuditRepository labResultSensitivityAuditRepo;
 
     LabResultController(
-            LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo, LabOrderRepository labOrderRepo,
-            LabOrderAuditRepository labOrderAuditRepo, LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo,
+            LabResultRepository labResultRepo, LabResultAuditRepository labResultAuditRepo,
             LabResultSensitivityRepository labResultSensitivityRepo, LabResultSensitivityAuditRepository labResultSensitivityAuditRepo) {
-        this.labTestDefinitionRepo = labTestDefinitionRepo;
-        this.labBatteryElementRepo = labBatteryElementRepo;
-        this.labOrderRepo = labOrderRepo;
-        this.labOrderAuditRepo = labOrderAuditRepo;
         this.labResultRepo = labResultRepo;
         this.labResultAuditRepo = labResultAuditRepo;
         this.labResultSensitivityRepo = labResultSensitivityRepo;
@@ -61,90 +44,13 @@ class LabResultController {
     }
 
     @Transactional
-    public void processResult(LabOrderMsg msg, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
-        LabTestDefinition testDefinition = getOrCreateLabTestDefinition(resultMsg, msg, validFrom, storedFrom);
+    public void processResult(LabTestDefinition testDefinition, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
         LabResult labResult = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
-        LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-        updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
         // If any lab sensitivities, update or create them
         for (LabOrderMsg sensOrder : resultMsg.getLabSensitivities()) {
             for (LabResultMsg sensResult : sensOrder.getLabResultMsgs()) {
                 updateOrCreateSensitivity(labResult, sensResult, validFrom, storedFrom);
             }
-        }
-    }
-
-    private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
-        return labTestDefinitionRepo
-                .findByLabProviderAndLabDepartmentAndTestLabCode(
-                        msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode())
-                .orElseGet(() -> {
-                    LabTestDefinition testDefinition = new LabTestDefinition(
-                            msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode());
-                    testDefinition.setValidFrom(validFrom);
-                    testDefinition.setStoredFrom(storedFrom);
-                    logger.trace("Creating new Lab Test Definition {}", testDefinition);
-                    return labTestDefinitionRepo.save(testDefinition);
-                });
-    }
-
-    private LabBatteryElement getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
-        return labBatteryElementRepo
-                .findByBatteryAndLabTestDefinitionIdAndLabProvider(
-                        msg.getTestBatteryLocalCode(), testDefinition, msg.getTestBatteryCodingSystem())
-                .orElseGet(() -> {
-                    LabBatteryElement batteryElement = new LabBatteryElement(
-                            testDefinition, msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem());
-                    batteryElement.setValidFrom(validFrom);
-                    batteryElement.setStoredFrom(storedFrom);
-                    logger.trace("Creating new Lab Test Battery Element {}", batteryElement);
-                    return labBatteryElementRepo.save(batteryElement);
-                });
-    }
-
-    /**
-     * Create new lab order or update existing one.
-     * As temporal data can come from different sources, update each one if it is currently null, or the message is newer and has a different value.
-     * @param batteryElement Lab Battery Element
-     * @param labNumber      LabNumber
-     * @param msg            Msg
-     * @param validFrom      most recent change to results
-     * @param storedFrom     time that star encountered the message
-     */
-    private void updateOrCreateLabOrder(
-            LabBatteryElement batteryElement, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
-        RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
-                .findByLabBatteryElementIdAndLabNumberId(batteryElement, labNumber)
-                .map(order -> new RowState<>(order, validFrom, storedFrom, false))
-                .orElseGet(() -> createLabOrder(batteryElement, labNumber, validFrom, storedFrom));
-
-        updateLabOrder(orderState, msg, validFrom);
-        orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
-    }
-
-    private RowState<LabOrder, LabOrderAudit> createLabOrder(
-            LabBatteryElement batteryElement, LabNumber labNumber, Instant validFrom, Instant storedFrom) {
-        LabOrder order = new LabOrder(batteryElement, labNumber);
-        order.setValidFrom(validFrom);
-        order.setStoredFrom(storedFrom);
-        return new RowState<>(order, validFrom, storedFrom, true);
-    }
-
-    private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg, Instant validFrom) {
-        LabOrder order = orderState.getEntity();
-        orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom);
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom);
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getSampleReceivedTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
-    }
-
-    private void assignIfCurrentlyNullOrNewerAndDifferent(
-            RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter, Instant validFrom) {
-        if (currentValue == null || validFrom.isAfter(state.getEntity().getValidFrom())) {
-            state.assignInterchangeValue(msgValue, currentValue, setter);
         }
     }
 
@@ -240,7 +146,7 @@ class LabResultController {
 
         LabResultSensitivity sensitivity = sensitivityState.getEntity();
         sensitivityState.assignInterchangeValue(sensitivityMsg.getAbnormalFlag(), sensitivity.getSensitivity(), sensitivity::setSensitivity);
-        if ( sensitivityState.isEntityUpdated()) {
+        if (sensitivityState.isEntityUpdated()) {
             sensitivityState.assignIfDifferent(validFrom, sensitivity.getReportingDatetime(), sensitivity::setReportingDatetime);
         }
         sensitivityState.saveEntityOrAuditLogIfRequired(labResultSensitivityRepo, labResultSensitivityAuditRepo);
