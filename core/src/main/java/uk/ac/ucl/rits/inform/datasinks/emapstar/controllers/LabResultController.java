@@ -132,6 +132,7 @@ class LabResultController {
 
     private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg, Instant validFrom) {
         LabOrder order = orderState.getEntity();
+        orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(

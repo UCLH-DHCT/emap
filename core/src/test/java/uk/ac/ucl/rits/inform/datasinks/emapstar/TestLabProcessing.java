@@ -243,6 +243,17 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNull(result.getSampleDatetime());
     }
 
+    @Test
+    void testLabOrderClinicalInformation() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = singleResult;
+        String clinicalInfo = "Pre-surgery bloods";
+        msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInfo));
+        processSingleMessage(msg);
+
+        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals(clinicalInfo, result.getClinicalInformation());
+    }
+
     /**
      * Order with more recent status change time should update the temporal fields that are set (here request date time)
      * @throws EmapOperationMessageProcessingException shouldn't happen
