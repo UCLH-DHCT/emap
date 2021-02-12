@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Take an HL7 ADT message as input, and check the correctness of the resultant
  * interchange message (AdtMessage).
  */
-public class TestAdtVarious extends TestHl7MessageStream {
+public class TestAdtFields extends TestHl7MessageStream {
     private AdtMessage msg;
 
     @BeforeEach
@@ -158,5 +158,10 @@ public class TestAdtVarious extends TestHl7MessageStream {
     @Test
     public void testDeathIndicator() {
         assertTrue(msg.getPatientIsAlive().get());
+    }
+
+    @Test
+    void testEthnicGroup() {
+        assertEquals(InterchangeValue.buildFromHl7("Not Yet Asked"), msg.getEthnicGroup());
     }
 }

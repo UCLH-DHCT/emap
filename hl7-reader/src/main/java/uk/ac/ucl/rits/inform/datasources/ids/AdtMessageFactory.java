@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.EthnicGroup;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PV1Wrap;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -48,11 +49,14 @@ import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 @Component
 public class AdtMessageFactory {
     private static final Logger logger = LoggerFactory.getLogger(AdtMessageFactory.class);
+    private final EthnicGroup ethnicGroup;
 
     /**
      * Default constructor.
+     * @param ethnicGroup autowired bean
      */
-    public AdtMessageFactory() {
+    public AdtMessageFactory(EthnicGroup ethnicGroup) {
+        this.ethnicGroup = ethnicGroup;
     }
 
     /**
@@ -102,7 +106,8 @@ public class AdtMessageFactory {
             msg.setModeOfArrival(InterchangeValue.buildFromHl7(patientInfoHl7.getModeOfArrivalCode()));
         }
         if (patientInfoHl7.pidSegmentExists()) {
-            msg.setEthnicGroup(InterchangeValue.buildFromHl7(patientInfoHl7.getEthnicGroup()));
+            String ethnicity = ethnicGroup.convertCodeToName(patientInfoHl7.getEthnicGroup());
+            msg.setEthnicGroup(InterchangeValue.buildFromHl7(ethnicity));
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
             msg.setPatientBirthDate(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
@@ -122,7 +127,6 @@ public class AdtMessageFactory {
             msg.setPatientGivenName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientGivenName()));
             msg.setPatientMiddleName(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientMiddleName()));
             msg.setPatientReligion(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientReligion()));
-            msg.setPatientEthnicity(InterchangeValue.buildFromHl7(patientInfoHl7.getEthnicGroup()));
             msg.setPatientSex(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientSex()));
             msg.setPatientTitle(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientTitle()));
             msg.setPatientZipOrPostalCode(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientZipOrPostalCode()));
