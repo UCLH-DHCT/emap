@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 

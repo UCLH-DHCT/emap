@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7parser;
 
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;

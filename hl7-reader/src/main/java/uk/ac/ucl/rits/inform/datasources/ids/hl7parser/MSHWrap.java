@@ -1,9 +1,10 @@
-package uk.ac.ucl.rits.inform.datasources.ids;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7parser;
 
 import java.time.Instant;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 
 /**
  * Wrapper around the HAPI parser's MSH segment object, to make it easier to use.
