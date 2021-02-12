@@ -74,6 +74,10 @@
                 status: "SAVE"
                 value: "R"
           parentSubId: "1"
+          clinicalInformation:
+            "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+            status: "SAVE"
+            value: "Gentamicin resistant"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
@@ -151,6 +155,10 @@
   epicCareOrderNumber: "93939393"
   testBatteryLocalCode: "URNC"
   statusChangeTime: "2019-07-15T08:37:00Z"
+  clinicalInformation:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: ":-UTI??"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
@@ -191,3 +199,7 @@
   epicCareOrderNumber: "93939395"
   testBatteryLocalCode: "URNM"
   statusChangeTime: "2019-07-10T19:39:00Z"
+  clinicalInformation:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: ":-UTI??"

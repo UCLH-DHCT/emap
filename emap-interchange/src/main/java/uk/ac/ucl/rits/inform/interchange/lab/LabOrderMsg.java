@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The top level of the lab tree, the order. Only the interchange format
@@ -73,6 +74,7 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
 
     private String parentObservationIdentifier = "";
     private String parentSubId = "";
+    private InterchangeValue<String> clinicalInformation = InterchangeValue.unknown();
 
     /**
      * @return int number of lab results in list

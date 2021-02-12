@@ -14,3 +14,7 @@ testBatteryCodingSystem: "WinPath"
 sourceSystem: "WinPath"
 parentObservationIdentifier: ""
 parentSubId: ""
+clinicalInformation:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: ":-vacant episode"
