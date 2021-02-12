@@ -28,6 +28,14 @@ public interface LabResultRepository extends CrudRepository<LabResult, Long> {
     Optional<LabResult> findByLabTestDefinitionIdTestLabCode(String labTestCode);
 
     /**
+     * For testing.
+     * @param labTestCode test code
+     * @param value       value
+     * @return optional of lab result
+     */
+    Optional<LabResult> findByLabTestDefinitionIdTestLabCodeAndValueAsText(String labTestCode, String value);
+
+    /**
      * for testing.
      * @param labNumber epic lab number.
      * @return List of all lab results

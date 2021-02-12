@@ -154,6 +154,7 @@ class LabResultController {
      * Special processing for microbiology isolates:
      * valueAsText stores the isolate name^text (can also be no growth like NG2^No growth after 2 days)
      * units stores the CFU for an isolate, culturing method for no growth
+     * comment stores the clinical notes for the isolate
      * @param labNumber      lab number
      * @param testDefinition test definition
      * @param result         lab result msg
@@ -198,6 +199,11 @@ class LabResultController {
     private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
         LabResult labResult = resultState.getEntity();
         resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
+        resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
+        resultState.assignInterchangeValue(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
+        resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
+        resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
+        resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
 
         if (resultMsg.isNumeric()) {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
@@ -208,15 +214,15 @@ class LabResultController {
             resultState.assignIfDifferent(resultMsg.getIsolateCodeAndText(), labResult.getValueAsText(), labResult::setValueAsText);
             // unit -  CFU (if present)
             resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getUnits(), labResult::setUnits);
+            // comment - lab sensitivity clinical notes
+            InterchangeValue<String> clinicalInfo = resultMsg.getLabSensitivities().stream()
+                    .map(LabOrderMsg::getClinicalInformation)
+                    .findFirst()
+                    .orElseGet(InterchangeValue::unknown);
+            resultState.assignInterchangeValue(clinicalInfo, labResult.getComment(), labResult::setComment);
         } else {
             resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
         }
-
-        resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
-        resultState.assignInterchangeValue(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
-        resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
-        resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
-        resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
 
         if (resultState.isEntityUpdated()) {
             labResult.setResultLastModifiedTime(resultMsg.getResultTime());

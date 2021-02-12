@@ -490,6 +490,19 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     /**
+     * An isolate has clinical information in it's lab result sensitivities, this should be the comment of the lab result for the isolate.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testIsolateClinicalInformationAddedAsComment() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        processSingleMessage(msg);
+        LabResult result = labResultRepository
+                .findByLabTestDefinitionIdTestLabCodeAndValueAsText("ISOLATE", "KLEOXY^Klebsiella oxytoca").orElseThrow();
+        assertEquals("Gentamicin resistant", result.getComment());
+    }
+
+    /**
      * Two isolates with 5 sensitivities tested each, 10 sensitivities should be created.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
