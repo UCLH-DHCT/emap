@@ -15,3 +15,7 @@ parentSubId: ""
 epicCareOrderNumber: "22222222"
 labDepartment: "CC"
 testBatteryLocalCode: "LBN"
+clinicalInformation:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Pre-treatment bloods"

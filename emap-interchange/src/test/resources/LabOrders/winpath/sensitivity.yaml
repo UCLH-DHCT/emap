@@ -1,6 +1,13 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "FT"
+      testItemLocalCode: "URNC"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "URINE CULTURE REPORT"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
       observationSubId: "1"
@@ -8,7 +15,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "10,000 - 100,000 CFU/mL"
-      isolateLocalCode: "KLEOXY"
+      isolateCodeAndText: "KLEOXY^Klebsiella oxytoca"
       abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -67,6 +74,10 @@
                 status: "SAVE"
                 value: "R"
           parentSubId: "1"
+          clinicalInformation:
+            "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+            status: "SAVE"
+            value: "Gentamicin resistant"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
@@ -75,7 +86,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "10,000 - 100,000 CFU/mL"
-      isolateLocalCode: "PROMIR"
+      isolateCodeAndText: "PROMIR^Proteus mirabilis"
       abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -134,9 +145,20 @@
                 status: "SAVE"
                 value: "R"
           parentSubId: "2"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "FT"
+      testItemLocalCode: "URST"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "COMPLETE: 14/07/19"
   epicCareOrderNumber: "93939393"
   testBatteryLocalCode: "URNC"
   statusChangeTime: "2019-07-15T08:37:00Z"
+  clinicalInformation:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: ":-UTI??"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
@@ -177,3 +199,7 @@
   epicCareOrderNumber: "93939395"
   testBatteryLocalCode: "URNM"
   statusChangeTime: "2019-07-10T19:39:00Z"
+  clinicalInformation:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: ":-UTI??"

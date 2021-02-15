@@ -73,6 +73,7 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
 
     private String parentObservationIdentifier = "";
     private String parentSubId = "";
+    private InterchangeValue<String> clinicalInformation = InterchangeValue.unknown();
 
     /**
      * @return int number of lab results in list
