@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -11,8 +12,11 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -185,6 +189,48 @@ class TestWinPathLabOruR01Results {
     void testAbnormalFlagAbsent() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "ALP");
         assertTrue(result.getAbnormalFlag().isDelete());
+    }
+
+    @Test
+    void testClinicalInformation() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        String expected = "Can you confirm this order has been discussed with and approved by a Virologist-";
+        assertEquals(InterchangeValue.buildFromHl7(expected), orderMsg.getClinicalInformation());
+    }
+
+    /**
+     * Non-ISOLATE coded data should throw an exception
+     */
+    @Test
+    void testNonIsolateCoded() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "non_isolate_ce"));
+    }
+
+    /**
+     * No growth has trailing spaces in the code, these should be removed
+     * "NG5   ^No growth after 5 days incubation" -> "NG5^No growth after 5 days incubation"
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testNoGrowthCodeIsStripped() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "culture_no_growth");
+        List<LabResultMsg> result = orderMsg.getLabResultMsgs()
+                .stream()
+                .filter(rs -> "1".equals(rs.getObservationSubId()))
+                .collect(Collectors.toList());
+        assertEquals(1, result.size());
+        assertEquals("NG5^No growth after 5 days incubation", result.get(0).getIsolateCodeAndText());
+    }
+
+    @Test
+    void testClinicalInformationIsAddedToSensitivity() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_clinical_notes");
+        List<LabResultMsg> result = orderMsg.getLabResultMsgs()
+                .stream()
+                .filter(rs -> "1".equals(rs.getObservationSubId()))
+                .collect(Collectors.toList());
+        assertEquals(1, result.size());
+        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), result.get(0).getLabSensitivities().get(0).getClinicalInformation());
     }
 
 

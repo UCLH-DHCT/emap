@@ -420,11 +420,6 @@ public final class LabParser {
     private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) {
         Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());
         for (int i = 0; i < labResults.size(); i++) {
-            // can this "result" be ignored altogether?
-            if (labResults.get(i).isIgnorable()) {
-                labResults.set(i, null);
-                continue;
-            }
             // must this line of a result be merged with a previous line to give the
             // full result?
             String subId = labResults.get(i).getMessage().getObservationSubId();
@@ -515,6 +510,9 @@ public final class LabParser {
 
         // this is the "last updated" field for results as well as changing to order "in progress"
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
+
+        String clinicalInformation = obr.getObr13_RelevantClinicalInformation().getValueOrEmpty();
+        msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
 
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
