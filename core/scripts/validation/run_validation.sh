@@ -19,10 +19,12 @@ configure_time_window() {
     perl -pi.$(date --iso-8601=seconds) \
         -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/;
             s/^(IDS_CFG_END_DATETIME)=.*$/$1=$ENV{"window_end"}/;
+            s/^(HOOVER_DATE_FROM)=.*$/$1=$ENV{"window_start"}/;
+            s/^(HOOVER_DATE_UNTIL)=.*$/$1=$ENV{"window_end"}/;
         ' \
         ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
-        ../config/hoover-envs \
+        ../config/hoover-envs
 }
 
 stop_it_and_tidy_up() {
