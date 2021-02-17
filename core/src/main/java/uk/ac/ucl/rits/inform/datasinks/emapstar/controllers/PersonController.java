@@ -248,6 +248,7 @@ public class PersonController {
         demographicState.assignInterchangeValue(adtMessage.getPatientBirthDate(), demo.getDatetimeOfBirth(), demo::setDatetimeOfBirth);
         demographicState.assignInterchangeValue(adtMessage.getPatientSex(), demo.getSex(), demo::setSex);
         demographicState.assignInterchangeValue(adtMessage.getPatientZipOrPostalCode(), demo.getHomePostcode(), demo::setHomePostcode);
+        demographicState.assignInterchangeValue(adtMessage.getEthnicGroup(), demo.getEthnicity(), demo::setEthnicity);
         // death
         demographicState.assignInterchangeValue(adtMessage.getPatientIsAlive(), demo.getAlive(), demo::setAlive);
         demographicState.assignInterchangeValue(adtMessage.getPatientDeathDateTime(), demo.getDateOfDeath(), demo::setDateOfDeath);
