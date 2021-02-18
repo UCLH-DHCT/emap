@@ -4,6 +4,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -71,7 +72,7 @@ public class IdsOperations implements AutoCloseable {
      * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
      * @param environment           injected param
      * @param adtMessageFactory     injected AdtMessageFactory
-     * @param orderAndResultService           injected FlowsheetFactory
+     * @param orderAndResultService injected FlowsheetFactory
      * @param idsProgressRepository injected IdsProgressRepository
      */
     public IdsOperations(
@@ -470,19 +471,28 @@ public class IdsOperations implements AutoCloseable {
                 }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 break;
+            case "ORM":
+                if ("O01".equals(triggerEvent)) {
+                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                    // get all orders in the message
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORM_O01) msgFromIds));
+                } else {
+                    logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+                }
+                break;
+            case "ORR":
+                if ("O02".equals(triggerEvent)) {
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORR_O02) msgFromIds));
+                } else {
+                    logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+                }
+                break;
             case "ORU":
                 if ("R01".equals(triggerEvent)) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R01) msgFromIds));
                 } else if ("R30".equals(triggerEvent)) {
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R30) msgFromIds));
-                }
-                break;
-            case "ORM":
-                if ("O01".equals(triggerEvent)) {
-                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                    // get all orders in the message
-                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORM_O01) msgFromIds));
                 }
                 break;
             default:

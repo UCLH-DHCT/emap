@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -53,6 +54,10 @@ public class OrderAndResultService {
         return LabParser.buildMessages(sourceId, msg);
     }
 
+    Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORR_O02 msg) throws Hl7MessageIgnoredException {
+        throw new Hl7MessageIgnoredException("WinPath ORR message not implemented for now");
+    }
+
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORM_O01 msg)
             throws Hl7InconsistencyException, HL7Exception {
         OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
@@ -84,4 +89,5 @@ public class OrderAndResultService {
         }
         return OrderCodingSystem.UNKNOWN;
     }
+
 }
