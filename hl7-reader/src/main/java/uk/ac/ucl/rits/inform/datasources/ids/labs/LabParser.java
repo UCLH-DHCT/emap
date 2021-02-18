@@ -11,6 +11,7 @@ import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R30_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
@@ -345,6 +346,19 @@ public final class LabParser {
                 throw new Hl7MessageIgnoredException("Coding system for ORU^R01 not recognised");
         }
     }
+
+    public static Collection<LabOrderMsg> buildMessages(String idsUnid, ORR_O02 msg, OrderCodingSystem codingSystem)
+            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
+        switch (codingSystem) {
+            case WIN_PATH:
+                throw new Hl7MessageIgnoredException("WinPath ORR_O02 not implemented yet");
+            case CO_PATH:
+                throw new Hl7MessageIgnoredException("CoPath ORR_O02 not implemented yet");
+            default:
+                throw new Hl7MessageIgnoredException("Coding system for ORU^R01 not recognised");
+        }
+    }
+
 
     private static List<LabOrderMsg> buildBankManagerLabs(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
             throws Hl7MessageIgnoredException {

@@ -31,6 +31,21 @@ public class OrderAndResultService {
         this.flowsheetFactory = flowsheetFactory;
     }
 
+    Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORM_O01 msg)
+            throws Hl7InconsistencyException, HL7Exception {
+        OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
+        OrderCodingSystem codingSystem = determineCodingSystem(obr);
+
+        return LabParser.buildLabOrders(sourceId, msg, codingSystem);
+    }
+
+    Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORR_O02 msg)
+            throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
+        OBR obr = msg.getRESPONSE().getORDER().getOBR();
+        OrderCodingSystem codingSystem = determineCodingSystem(obr);
+        return LabParser.buildMessages(sourceId, msg, codingSystem);
+    }
+
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORU_R01 msg)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         MSH msh = msg.getMSH();
@@ -54,31 +69,19 @@ public class OrderAndResultService {
         return LabParser.buildMessages(sourceId, msg);
     }
 
-    Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORR_O02 msg) throws Hl7MessageIgnoredException {
-        throw new Hl7MessageIgnoredException("WinPath ORR message not implemented for now");
-    }
-
-    Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORM_O01 msg)
-            throws Hl7InconsistencyException, HL7Exception {
-        OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
-        OrderCodingSystem codingSystem = determineCodingSystem(obr);
-
-        return LabParser.buildLabOrders(sourceId, msg, codingSystem);
-    }
-
     private OrderCodingSystem determineCodingSystem(OBR obr) {
         return determineCodingSystem(obr, "");
     }
 
 
     private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication) {
-        String fillerId = obr.getObr3_FillerOrderNumber().getEi3_UniversalID().getValueOrEmpty();
+        String fillerNamespace = obr.getObr3_FillerOrderNumber().getEi2_NamespaceID().getValueOrEmpty();
         String codingSystem = obr.getObr4_UniversalServiceIdentifier().getCwe3_NameOfCodingSystem().getValueOrEmpty();
         String alternativeIdentifier = obr.getObr4_UniversalServiceIdentifier().getCwe4_AlternateIdentifier().getValueOrEmpty();
 
         if ("WinPath".equals(codingSystem)) {
             return OrderCodingSystem.WIN_PATH;
-        } else if ("CoPathPlus".equals(fillerId) || "CPEAP".equals(codingSystem)) {
+        } else if ("CoPathPlus".equals(fillerNamespace) || "CPEAP".equals(codingSystem)) {
             return OrderCodingSystem.CO_PATH;
         } else if ("Profiles".equals(alternativeIdentifier)) {
             return OrderCodingSystem.BANK_MANAGER;
