@@ -31,7 +31,6 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
-import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
@@ -43,9 +42,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -58,12 +54,12 @@ import java.util.concurrent.Semaphore;
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
-    private static final Collection<String> ALLOWED_SENDERS = new HashSet<>(Arrays.asList("WinPath", "EPIC", "ABL90 FLEX Plus", "BIO-CONNECT"));
+    private static final String ALLOWED_ADT_SENDER = "EPIC";
 
 
     private SessionFactory idsFactory;
     private AdtMessageFactory adtMessageFactory;
-    private FlowsheetFactory flowsheetFactory;
+    private OrderAndResultService orderAndResultService;
     private IdsProgressRepository idsProgressRepository;
     private boolean idsEmptyOnInit;
     private Integer defaultStartUnid;
@@ -75,7 +71,7 @@ public class IdsOperations implements AutoCloseable {
      * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
      * @param environment           injected param
      * @param adtMessageFactory     injected AdtMessageFactory
-     * @param flowsheetFactory      injected FlowsheetFactory
+     * @param orderAndResultService           injected FlowsheetFactory
      * @param idsProgressRepository injected IdsProgressRepository
      */
     public IdsOperations(
@@ -84,14 +80,14 @@ public class IdsOperations implements AutoCloseable {
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
             @Autowired Environment environment,
             @Autowired AdtMessageFactory adtMessageFactory,
-            @Autowired FlowsheetFactory flowsheetFactory,
+            @Autowired OrderAndResultService orderAndResultService,
             @Autowired IdsProgressRepository idsProgressRepository) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
         }
         this.adtMessageFactory = adtMessageFactory;
-        this.flowsheetFactory = flowsheetFactory;
+        this.orderAndResultService = orderAndResultService;
         this.idsProgressRepository = idsProgressRepository;
         logger.info("IdsOperations() opening config file " + idsCfgXml);
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
@@ -407,13 +403,7 @@ public class IdsOperations implements AutoCloseable {
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
 
         Instant messageDatetime = idsMsg.getMessagedatetime();
-        String sender = idsMsg.getSenderapplication();
-
         try {
-            if (!ALLOWED_SENDERS.contains(sender)) {
-                logger.trace("[{}}] Skipping message with senderapplication='{}'", idsMsg.getUnid(), sender);
-                return;
-            }
             String hl7msg = idsMsg.getHl7message();
             // HL7 is supposed to use \r for line endings, but
             // the IDS uses \n
@@ -466,7 +456,6 @@ public class IdsOperations implements AutoCloseable {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
-        String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
         String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
         logger.debug("{}^{}", messageType, triggerEvent);
         String sourceId = String.format("%010d", idsUnid);
@@ -475,27 +464,25 @@ public class IdsOperations implements AutoCloseable {
 
         switch (messageType) {
             case "ADT":
+                if (!ALLOWED_ADT_SENDER.equals(sendingApplication)) {
+                    logger.error("Skipping {}^{} message with sendingApplication {}", messageType, triggerEvent, sendingApplication);
+                    return messages;
+                }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 break;
             case "ORU":
                 if ("R01".equals(triggerEvent)) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                    if ("Vitals".equals(sendingFacility)) {
-                        messages.addAll(flowsheetFactory.getMessages(sourceId, msgFromIds));
-                    } else if ("BIO-CONNECT".equals(sendingApplication)) {
-                        messages.addAll(LabParser.buildBioConnectLabs(sourceId, (ORU_R01) msgFromIds));
-                    } else {
-                        messages.addAll(LabParser.buildWinPathLabs(sourceId, (ORU_R01) msgFromIds));
-                    }
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R01) msgFromIds));
                 } else if ("R30".equals(triggerEvent)) {
-                    messages.addAll(LabParser.buildAblLabs(sourceId, (ORU_R30) msgFromIds));
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R30) msgFromIds));
                 }
                 break;
             case "ORM":
                 if ("O01".equals(triggerEvent)) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     // get all orders in the message
-                    messages.addAll(LabParser.buildLabOrders(sourceId, (ORM_O01) msgFromIds));
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORM_O01) msgFromIds));
                 }
                 break;
             default:
