@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +34,11 @@ class TestWinPathOrders {
     @Test
     void testOrrR01MessagesThrowException() {
         assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "orr_o02"));
+    }
+
+    @Test
+    void testOrmO01MessagesThrowException() {
+        assertThrows(NoSuchElementException.class, () -> labReader.process(FILE_TEMPLATE, "orm_o01"));
     }
 
 }

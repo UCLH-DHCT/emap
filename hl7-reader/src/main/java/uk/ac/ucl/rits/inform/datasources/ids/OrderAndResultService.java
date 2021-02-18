@@ -32,11 +32,14 @@ public class OrderAndResultService {
     }
 
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORM_O01 msg)
-            throws Hl7InconsistencyException, HL7Exception {
+            throws Hl7InconsistencyException, HL7Exception, Hl7MessageIgnoredException {
         OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
         OrderCodingSystem codingSystem = determineCodingSystem(obr);
+        if (OrderCodingSystem.BLOOD_PRODUCTS == codingSystem) {
+            throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
+        }
 
-        return LabParser.buildLabOrders(sourceId, msg, codingSystem);
+        return LabParser.buildMessages(sourceId, msg, codingSystem);
     }
 
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORR_O02 msg)

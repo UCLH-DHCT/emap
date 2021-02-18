@@ -52,7 +52,7 @@ import static java.util.Collections.singletonList;
  * @author Stef Piatek
  */
 public final class LabParser {
-    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE"));
+    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE")); // to add CA, SN, NW
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
 
@@ -249,13 +249,25 @@ public final class LabParser {
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param idsUnid      unique Id from the IDS
      * @param ormO01       the ORM message
-     * @param codingSystem
+     * @param codingSystem coding system for lab order
      * @return list of LabOrder orders, one for each order
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
+     * @throws Hl7MessageIgnoredException if coding sysstem not implemented
      */
-    public static List<LabOrderMsg> buildLabOrders(String idsUnid, ORM_O01 ormO01, OrderCodingSystem codingSystem)
-            throws HL7Exception, Hl7InconsistencyException {
+    public static List<LabOrderMsg> buildMessages(String idsUnid, ORM_O01 ormO01, OrderCodingSystem codingSystem)
+            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
+        switch (codingSystem) {
+            case WIN_PATH:
+                return buildWinPathLabs(idsUnid, ormO01);
+            case CO_PATH:
+                throw new Hl7MessageIgnoredException("Not parsing CoPath ORM^O01 messages");
+            default:
+                throw new Hl7MessageIgnoredException("Coding system for ORM^O01 not recognised");
+        }
+    }
+
+    private static List<LabOrderMsg> buildWinPathLabs(String idsUnid, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
         List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
 
         List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());

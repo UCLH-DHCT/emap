@@ -24,4 +24,14 @@ class TestCoPathOrders {
         assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "orr_o02"));
     }
 
+    @Test
+    void testOrmO01MessagesCpeapThrowException() {
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "orm_o01_cpeap"));
+    }
+
+    @Test
+    void testOrmO01MessagesCoPathPlusThrowException() {
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "orm_o01_copath"));
+    }
+
 }
