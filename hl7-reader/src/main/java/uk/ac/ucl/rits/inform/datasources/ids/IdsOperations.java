@@ -477,14 +477,14 @@ public class IdsOperations implements AutoCloseable {
                     // get all orders in the message
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORM_O01) msgFromIds));
                 } else {
-                    logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+                    logErrorConstructingFromType(messageType, triggerEvent);
                 }
                 break;
             case "ORR":
                 if ("O02".equals(triggerEvent)) {
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORR_O02) msgFromIds));
                 } else {
-                    logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+                    logErrorConstructingFromType(messageType, triggerEvent);
                 }
                 break;
             case "ORU":
@@ -493,13 +493,19 @@ public class IdsOperations implements AutoCloseable {
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R01) msgFromIds));
                 } else if ("R30".equals(triggerEvent)) {
                     messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R30) msgFromIds));
+                } else {
+                    logErrorConstructingFromType(messageType, triggerEvent);
                 }
                 break;
             default:
-                logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+                logErrorConstructingFromType(messageType, triggerEvent);
 
         }
         return messages;
+    }
+
+    private void logErrorConstructingFromType(String messageType, String triggerEvent) {
+        logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
     }
 
     /**
