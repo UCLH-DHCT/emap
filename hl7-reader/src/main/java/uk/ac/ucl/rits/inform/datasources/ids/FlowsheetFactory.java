@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Build one or more flowsheets from HL7 message.
@@ -51,7 +50,7 @@ public class FlowsheetFactory {
      * Allows multiple: OBR segments, OBX segments, NTE segments, OBX lines and NTE lines
      * @param idsUnid Unique id from UDS
      * @param msg     ORU R01 HL7 flowsheet message from EPIC
-     * @return Flowsheet messages populated from contstuctor.
+     * @return Flowsheet messages populated from constructor.
      */
     List<Flowsheet> getMessages(String idsUnid, Message msg) {
         List<Flowsheet> flowsheets = new ArrayList<>();
