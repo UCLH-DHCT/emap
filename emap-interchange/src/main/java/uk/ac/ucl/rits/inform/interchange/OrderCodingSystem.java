@@ -23,9 +23,5 @@ public enum OrderCodingSystem {
     /**
      * Bank manager Blood Products.
      */
-    BLOOD_PRODUCTS,
-    /**
-     * Unknown type.
-     */
-    UNKNOWN
+    BLOOD_PRODUCTS
 }
