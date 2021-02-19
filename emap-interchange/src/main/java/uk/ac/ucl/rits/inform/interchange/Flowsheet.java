@@ -7,7 +7,6 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Represent a flowsheet message.
