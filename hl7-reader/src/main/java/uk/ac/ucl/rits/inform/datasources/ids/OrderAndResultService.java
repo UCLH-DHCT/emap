@@ -31,6 +31,18 @@ public class OrderAndResultService {
         this.flowsheetFactory = flowsheetFactory;
     }
 
+    /**
+     * Build messages from hl7 message.
+     * <p>
+     * blood product ORM O01 -> Blood product
+     * all other ORM O01 -> LabOrder
+     * @param sourceId unique Id from the IDS
+     * @param msg      hl7 message
+     * @return Orders or blood product interchange messages
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
+     * @throws Hl7MessageIgnoredException if coding system not implemented
+     */
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORM_O01 msg)
             throws Hl7InconsistencyException, HL7Exception, Hl7MessageIgnoredException {
         OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
@@ -42,6 +54,17 @@ public class OrderAndResultService {
         return LabParser.buildMessages(sourceId, msg, codingSystem);
     }
 
+    /**
+     * Build messages from hl7 message.
+     * <p>
+     * All ORR O02 -> LabOrder from WinPath or CoPath
+     * @param sourceId unique Id from the IDS
+     * @param msg      hl7 message
+     * @return LabOrder interchange messages
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
+     * @throws Hl7MessageIgnoredException if coding system not implemented
+     */
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORR_O02 msg)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         OBR obr = msg.getRESPONSE().getORDER().getOBR();
@@ -49,6 +72,19 @@ public class OrderAndResultService {
         return LabParser.buildMessages(sourceId, msg, codingSystem);
     }
 
+    /**
+     * Build messages from hl7 message.
+     * <p>
+     * Vitals ORU R01 -> Flowsheets
+     * blood product ORU R01 -> BloodProducts
+     * all other ORU R01 -> LabOrder with Results
+     * @param sourceId unique Id from the IDS
+     * @param msg      hl7 message
+     * @return LabOrder interchange messages
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
+     * @throws Hl7MessageIgnoredException if coding system not implemented
+     */
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORU_R01 msg)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         MSH msh = msg.getMSH();
@@ -67,6 +103,17 @@ public class OrderAndResultService {
         return LabParser.buildMessages(sourceId, msg, codingSystem);
     }
 
+    /**
+     * Build messages from hl7 message.
+     * <p>
+     * ORU R30 -> LabOrder with results from ABL 90 Flex
+     * @param sourceId unique Id from the IDS
+     * @param msg      hl7 message
+     * @return LabOrder interchange messages
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
+     * @throws Hl7MessageIgnoredException if coding system not implemented
+     */
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORU_R30 msg)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         return LabParser.buildMessages(sourceId, msg);
@@ -77,6 +124,16 @@ public class OrderAndResultService {
     }
 
 
+    /**
+     * Determine the coding system for a result type.
+     * <p>
+     * Should determine all orders and results that can't always be determined by sender facility (flowsheet) or message type (ABL 90 flex).
+     * WinPath and CoPath sometimes have information in MSH, but not always - need to determine from OBR.
+     * @param obr                OBR segment
+     * @param sendingApplication sender application
+     * @return order coding system
+     * @throws Hl7MessageIgnoredException if coding system cannot be parsed
+     */
     private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication) throws Hl7MessageIgnoredException {
         String fillerNamespace = obr.getObr3_FillerOrderNumber().getEi2_NamespaceID().getValueOrEmpty();
         String codingSystem = obr.getObr4_UniversalServiceIdentifier().getCwe3_NameOfCodingSystem().getValueOrEmpty();
