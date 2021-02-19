@@ -37,7 +37,7 @@ public class Flowsheet extends EmapOperationMessage {
      * Data type of value.
      * Used to determine which value field should be used
      */
-    private ValueType dataType;
+    private ValueType valueType;
 
     /**
      * Numeric value.
