@@ -14,14 +14,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Test LabOrders derived from Winpath
+ * Test Blood Product Order derived from Bank Manager
  * @author Stef Piatek
  */
 @ActiveProfiles("test")
 @SpringBootTest
-class TestBloodOrders extends TestHl7MessageStream {
+class TestBloodProductOrders extends TestHl7MessageStream {
     @Autowired
-    private static final String FILE_TEMPLATE = "LabOrders/bank_manager/%s.txt";
+    private static final String FILE_TEMPLATE = "BloodProducts/%s.txt";
 
     void process(String fileTemplate, String fileName) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
         List<? extends EmapOperationMessage> msgs = null;
@@ -36,8 +36,7 @@ class TestBloodOrders extends TestHl7MessageStream {
     }
 
     @Test
-    void testOrmO01MessagesThrowException() {
-        assertThrows(Hl7MessageIgnoredException.class, () -> process(FILE_TEMPLATE, "orm_o01"));
+    void testOruR01MessagesThrowException() {
+        assertThrows(Hl7MessageIgnoredException.class, () -> process(FILE_TEMPLATE, "oru_r01"));
     }
-
 }

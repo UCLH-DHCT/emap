@@ -62,7 +62,7 @@ public class OrderAndResultService {
         OBR obr = msg.getPATIENT_RESULT().getORDER_OBSERVATION().getOBR();
         OrderCodingSystem codingSystem = determineCodingSystem(obr, sendingApplication);
         if (OrderCodingSystem.BLOOD_PRODUCTS == codingSystem) {
-            throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
+            throw new Hl7MessageIgnoredException("Bank Manager blood products not implemented for now");
         }
         return LabParser.buildMessages(sourceId, msg, codingSystem);
     }

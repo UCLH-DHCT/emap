@@ -1,0 +1,14 @@
+MSH|^~\&|||||20130730183543||ORU^R01|20130731242|P|2.5
+PID|1||40800000^^^^medrec~||ORANGE^BLOOD^||12312321|F
+PV1|1||||||||||||||||||123412341234
+ORC|RE||709186
+OBR|1||709186|BLOOD^Red Cells^^Products|||201307301835|||||||||DD5^DUCK^DONALD||||||20130730183543|||P
+NTE|||When: 30/07/2013 18:35~Where: T16 HB~Units: 1 pk|ORDER_DETAILS
+OBX|1|ST|unit_code|63715155|G0980287362||||||F
+OBX|2|ST|product_code|63715155|04333||||||F
+OBX|3|ST|allocation_status|63715155|Crossmatched||||||P|||201307301835
+OBX|4|ST|unit_expiry|63715155|202001102359||||||F
+OBX|5|ST|product_name|63715155|Red Cells Additive soln LD||||||F
+OBX|6|ST|blood_group|63715155|O+||||||F
+OBX|7|ST|blood_group_code|63715155|5100||||||F
+OBX|8|ST|product_unit_code_system|63715155|NHSBT||||||F
