@@ -155,9 +155,7 @@ public class FlowsheetFactory {
     }
 
     /**
-     * Sets the string, numeric or datetime value as appropriate setting to delete if required.
-     * <p>
-     * Also sets the dataType.
+     * Sets value type and the appropriate value.
      * @param subMessageSourceId Message ID along with the sub message Id
      * @param flowsheet          flowsheet to add the values to
      * @param obx                OBX segment
