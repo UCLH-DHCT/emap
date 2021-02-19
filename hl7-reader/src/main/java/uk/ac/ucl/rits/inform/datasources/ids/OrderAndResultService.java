@@ -72,12 +72,12 @@ public class OrderAndResultService {
         return LabParser.buildMessages(sourceId, msg);
     }
 
-    private OrderCodingSystem determineCodingSystem(OBR obr) {
+    private OrderCodingSystem determineCodingSystem(OBR obr) throws Hl7MessageIgnoredException {
         return determineCodingSystem(obr, "");
     }
 
 
-    private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication) {
+    private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication) throws Hl7MessageIgnoredException {
         String fillerNamespace = obr.getObr3_FillerOrderNumber().getEi2_NamespaceID().getValueOrEmpty();
         String codingSystem = obr.getObr4_UniversalServiceIdentifier().getCwe3_NameOfCodingSystem().getValueOrEmpty();
         String alternativeIdentifier = obr.getObr4_UniversalServiceIdentifier().getCwe4_AlternateIdentifier().getValueOrEmpty();
@@ -93,7 +93,7 @@ public class OrderAndResultService {
         } else if ("BIO-CONNECT".equals(sendingApplication)) {
             return OrderCodingSystem.BIO_CONNECT;
         }
-        return OrderCodingSystem.UNKNOWN;
+        throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }
 
 }
