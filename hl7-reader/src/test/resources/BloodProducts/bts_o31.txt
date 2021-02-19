@@ -1,0 +1,14 @@
+MSH|^~\&|||||20130730121942|10044534|BTS^O31|49648|P|2.5.1|||AL|NE
+PID|1||40800000^^^MRENTR&&ISO^MEDREC~12312324212^^^NHS^NH||ORANGE^BLOOD^^^^||1232131|M|DONALD,DUCK|||||||||41412|1241222|||K||||||||N||||
+ORC|RE|129457275||709186|||^^^20130730120809||20130730120809|23132^TEDDY^BEAR||JBP^POTTERY^JIMMY^^^^^^CONS^^^^CONS|||20130730120809|||DTPDS4HK1322^DTPDS4HK1322|||UCLH SERVICE AREA^D^^^^UNIVERSITY COLLEGE LONDON HOSPITALS^XX^^^10|TRUST HEADQUARTERS, 2ND FLOOR, 250 EUSTON ROAD^^LONDON^^NW1 2PG^ENGLAND^B
+BPO|1|TPRC^TRANSFUSE PACKED RED CELLS^BMEAP||1||||||||||Unknown
+NTE|1||Has consent for transfusion been obtained?->Yes
+NTE|2||There is a valid transfuse order->Yes
+NTE|3||Unit Number->g 098 028 736 2 u
+NTE|4||Product Type?->PRC
+NTE|5||This unit matches any special requirement the patient has->Yes
+NTE|6||The unit number and the patients� blood group on the compatibility label matches/ is compatible with the blood component->Yes
+NTE|7||Check the integrity of the unit->Yes
+NTE|8||The expiry date of the unit of blood->Yes
+NTE|9||The patient details (Full name, DOB and hospital number) in Epic matches those that are on the compatibility label.->Yes
+BTX|1|G0980287362^ISBT 128|04333^Product Code^ISBT 128|8400^^ISBT 128||||1|238|mL|STARTED|P|20130730121700|||20130730121700||||63715155
