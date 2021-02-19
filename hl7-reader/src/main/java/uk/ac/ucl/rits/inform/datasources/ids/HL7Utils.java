@@ -74,8 +74,8 @@ public class HL7Utils {
 
     /**
      * Process date value from HL7.
-     * @param hl7Date date in format 'yyyyMMdd'
-     * @return instant corrected to London time
+     * @param hl7Date HAPI DT date
+     * @return Local date
      */
     public static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
         if (hl7Date == null) {
