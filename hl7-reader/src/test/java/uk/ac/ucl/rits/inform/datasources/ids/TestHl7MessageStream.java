@@ -8,11 +8,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,10 +48,10 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<LabOrderMsg> processSingleWinPathOruR01(String resourceFileName) throws Exception {
+    protected Collection<LabOrderMsg> processSingleWinPathOruR01(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
-        return LabParser.buildWinPathLabs("42", hl7Msg);
+        return LabParser.buildMessages("42", hl7Msg, OrderCodingSystem.WIN_PATH);
     }
 
     /**

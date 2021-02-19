@@ -1,0 +1,20 @@
+MSH|^~\&|CoPath|UCH|EPIC|UCH|20130710120600||ORU^R01|3600001328533|P|2.3
+PID|1||40800000^^^MRENTR^MEDREC~||ORANGE^BLOOD^^^^^D||19690730|M|||^^^^^ENGLAND^L||||||||6484920753
+PV1|1||T1US|||||||||||||||OP|12312321|||||||||||||||||||||||||201307031152|201307031258
+ORC|RE|12121212|UH20-4444^CoPathPlus||CM||||201307040900|^Someone^Else||SM5^DUCK^DONALD
+OBR|1|12121212|UH20-4444^CoPathPlus|H^Histopathology|||201307031212|||||||201307031548|^^Biopsy - Tru-cut (Histo)|SM5^DUCK^DONALD||||||201307101206||H^Histopathology|F|||||||p145^CHILDERHOUSE^A|p145^CHILDERHOUSE^A
+OBX|1|TX|UH20-4444&rpt^^99DHT||PATIENT NAME:||||||F
+OBX|2|TX|UH20-4444&rpt^^99DHT||BLOOD, ORANGE||||||F
+OBX|2|TX|UH20-4444&rpt^^99DHT||...||||||F
+OBX|3|TX|UH20-4444&rpt^^99DHT||REPORTED:||||||F
+OBX|4|TX|UH20-4444&rpt^^99DHT||10/07/2013||||||F
+OBX|5|TX|UH20-4444&rpt^^99DHT||||||||F
+OBX|6|TX|UH20-4444&rpt^^99DHT||The diagnostic examinations that support this report are supplied by HSL||||||F
+OBX|7|TX|UH20-4444&rpt^^99DHT||Analytics LLP||||||F
+OBX|2|ED||1|Content-Type: text/plain; charset=US-ASCII; name=C:\MIME\qld28373.pdf
+OBX|3|ED||1|Content-transfer-encoding: base64
+OBX|4|ED||1
+OBX|5|ED||1|JVBERi0xLjUNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGF
+OBX|6|ED||1|...
+OBX|7|ED||1|RU9G
+OBX|8|ED||1
