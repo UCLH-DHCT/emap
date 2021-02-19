@@ -76,8 +76,8 @@ wait_for_queue_to_empty() {
         non_empty_queues=$(docker exec $rabbitmq_container_id rabbitmqctl -q list_queues \
             | awk -v RS='\r\n' 'BEGIN {OFS="\t"} {if (($1=="hl7Queue" || $1=="databaseExtracts") && $2!="0") {print $1 $2}  }' )
         if [ -z "$non_empty_queues" ]; then
-            echo "Queues are empty, continuing in 2 minutes"
-            sleep 120 # exits too keenly from databaseExtracts queue, adding in a wait period
+            echo "Queues are empty, continuing in 10 minutes"
+            sleep 600 # exits too keenly from databaseExtracts queue, adding in a wait period
             break
         elif expr \( $(date +%s) - $start_time \) \> $timeout_secs; then
             echo "Waiting for queue timed out"
