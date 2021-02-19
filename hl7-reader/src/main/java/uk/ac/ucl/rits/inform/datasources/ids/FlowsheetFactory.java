@@ -162,7 +162,8 @@ public class FlowsheetFactory {
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
      */
-    private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx) throws Hl7InconsistencyException, DataTypeException {
+    private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
+            throws Hl7InconsistencyException, DataTypeException {
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
 
         if (!("F".equals(resultStatus) || "C".equals(resultStatus) || "D".equals(resultStatus))) {
@@ -188,7 +189,7 @@ public class FlowsheetFactory {
                 }
             }
         } else if (singularData instanceof ST) {
-            flowsheet.setDataType(ValueType.STRING);
+            flowsheet.setDataType(ValueType.TEXT);
             if ("D".equals(resultStatus)) {
                 flowsheet.setStringValue(InterchangeValue.delete());
             } else if (!value.isEmpty()) {
@@ -196,7 +197,7 @@ public class FlowsheetFactory {
                 flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
             }
         } else if (singularData instanceof DT) {
-            flowsheet.setDataType(ValueType.DATETIME);
+            flowsheet.setDataType(ValueType.DATE);
             if ("D".equals(resultStatus)) {
                 flowsheet.setDateValue(InterchangeValue.delete());
             } else {
