@@ -58,10 +58,10 @@ public interface MrnRepository extends CrudRepository<Mrn, Long> {
      * Get all MRNs which match by a non null MRN or a non null Nhs Number.
      * @param mrn       MRN string
      * @param nhsNumber NHS number
-     * @return optional MRN
+     * @return MRNs
      * @throws RequiredDataMissingException if mrn and nhsNumber are both null
      */
-    default Optional<List<Mrn>> findAllByMrnOrNhsNumber(String mrn, String nhsNumber) throws RequiredDataMissingException {
+    default List<Mrn> findAllByMrnOrNhsNumber(String mrn, String nhsNumber) throws RequiredDataMissingException {
         if (mrn == null && nhsNumber == null) {
             throw new RequiredDataMissingException("Both the Mrn and NHS number can't be null");
         }
@@ -76,22 +76,22 @@ public interface MrnRepository extends CrudRepository<Mrn, Long> {
 
     /**
      * @param mrn MRN string
-     * @return optional MRNs
+     * @return MRNs
      */
-    Optional<List<Mrn>> findAllByMrnEquals(String mrn);
+    List<Mrn> findAllByMrnEquals(String mrn);
 
     /**
      * @param nhsNumber NHS number
-     * @return optional MRNs
+     * @return MRNs
      */
-    Optional<List<Mrn>> findAllByNhsNumberEquals(String nhsNumber);
+    List<Mrn> findAllByNhsNumberEquals(String nhsNumber);
 
     /**
      * @param mrn       MRN string
      * @param nhsNumber NHS number
      * @return optional MRNs
      */
-    Optional<List<Mrn>> findAllByMrnEqualsOrNhsNumberEquals(String mrn, String nhsNumber);
+    List<Mrn> findAllByMrnEqualsOrNhsNumberEquals(String mrn, String nhsNumber);
 
     /**
      * @param mrn MRN string
