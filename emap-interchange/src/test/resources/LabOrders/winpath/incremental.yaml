@@ -4,7 +4,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "RDWU"
-      testItemLocalDescription: "RDW"
       resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -34,14 +33,12 @@
   epicCareOrderNumber: "94000002"
   labDepartment: "H1"
   testBatteryLocalCode: "FBC"
-  testBatteryLocalDescription: "FBC AND DIFFERENTIAL"
   statusChangeTime: "2019-07-16T23:04:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "DATP"
-      testItemLocalDescription: "Date & time phoned/faxed"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -50,7 +47,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "PER"
-      testItemLocalDescription: "Person informed of result"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -58,7 +54,6 @@
   epicCareOrderNumber: "94000001"
   labDepartment: "H1"
   testBatteryLocalCode: "TELH"
-  testBatteryLocalDescription: "TELEPHONED HAEM RESULTS"
   statusChangeTime: "2019-07-16T23:01:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
@@ -66,7 +61,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "RDWU"
-      testItemLocalDescription: "RDW"
       # value changed
       resultOperator: "="
       numericValue:
@@ -98,7 +92,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "WCC"
-      testItemLocalDescription: "White cell count"
       resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -128,7 +121,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "RCC"
-      testItemLocalDescription: "Red cell count"
       resultOperator: "="
       numericValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -153,14 +145,12 @@
   epicCareOrderNumber: "94000002"
   labDepartment: "H1"
   testBatteryLocalCode: "FBC"
-  testBatteryLocalDescription: "FBC AND DIFFERENTIAL"
   statusChangeTime: "2019-07-16T23:05:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "DATP"
-      testItemLocalDescription: "Date & time phoned/faxed"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -169,7 +159,6 @@
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "PER"
-      testItemLocalDescription: "Person informed of result"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -177,5 +166,4 @@
   epicCareOrderNumber: "94000001"
   labDepartment: "H1"
   testBatteryLocalCode: "TELH"
-  testBatteryLocalDescription: "TELEPHONED HAEM RESULTS"
   statusChangeTime: "2019-07-16T23:01:00Z"

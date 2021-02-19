@@ -1,0 +1,18 @@
+testBatteryLocalCode: "VBG"
+statusChangeTime: "2013-02-11T10:00:52Z"
+labSpecimenNumber: "12345006210113012345"
+resultStatus: "F"
+mrn: "40800000"
+visitNumber: "123412341234"
+orderDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+sampleReceivedTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+collectionDateTime: "2013-02-11T10:00:52Z"
+testBatteryCodingSystem: "ABL90 FLEX Plus"
+sourceSystem: "ABL90 FLEX Plus"
+specimenType: "Venous"

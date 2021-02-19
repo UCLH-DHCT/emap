@@ -24,17 +24,17 @@ public class LabResultMsg implements Serializable {
     private String valueType;
 
     private String testItemLocalCode = "";
-    private String testItemLocalDescription = "";
     private String testItemCodingSystem = "";
 
+    /**
+     * Id to link an observation over multiple result fields.
+     * <p>
+     * Currently only filled for microbial isolates/sensitivities.
+     */
     private String observationSubId = "";
+    private String isolateCodeAndText = "";
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
-
-    private String isolateLocalCode = "";
-    private String isolateLocalDescription = "";
-    private String isolateCodingSystem = "";
-
     private InterchangeValue<String> units = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceLow = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceHigh = InterchangeValue.unknown();
