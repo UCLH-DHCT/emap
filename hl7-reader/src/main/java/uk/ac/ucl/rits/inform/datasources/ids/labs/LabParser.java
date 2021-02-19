@@ -349,9 +349,9 @@ public final class LabParser {
             case WIN_PATH:
                 return buildWinPathLabs(idsUnid, oruR01, codingSystem);
             case CO_PATH:
-                return buildCoPathLabs(idsUnid, oruR01, codingSystem);
+                throw new Hl7MessageIgnoredException("CoPath lab results not implemented for now");
             case BANK_MANAGER:
-                return buildBankManagerLabs(idsUnid, oruR01, codingSystem);
+                throw new Hl7MessageIgnoredException("Bank Manager lab results not implemented for now");
             case BIO_CONNECT:
                 return buildBioConnectLabs(idsUnid, oruR01, codingSystem);
             default:
@@ -363,23 +363,12 @@ public final class LabParser {
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {
             case WIN_PATH:
-                throw new Hl7MessageIgnoredException("WinPath ORR_O02 not implemented yet");
+                throw new Hl7MessageIgnoredException("WinPath ORR^O02 not implemented yet");
             case CO_PATH:
-                throw new Hl7MessageIgnoredException("CoPath ORR_O02 not implemented yet");
+                throw new Hl7MessageIgnoredException("CoPath ORR^O02 not implemented yet");
             default:
-                throw new Hl7MessageIgnoredException("Coding system for ORU^R01 not recognised");
+                throw new Hl7MessageIgnoredException("Coding system for ORR^O02 not recognised");
         }
-    }
-
-
-    private static List<LabOrderMsg> buildBankManagerLabs(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
-            throws Hl7MessageIgnoredException {
-        throw new Hl7MessageIgnoredException("Bank Manager lab results not implemented for now");
-    }
-
-    private static List<LabOrderMsg> buildCoPathLabs(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
-            throws Hl7MessageIgnoredException {
-        throw new Hl7MessageIgnoredException("CoPath lab results not implemented for now");
     }
 
     /**
