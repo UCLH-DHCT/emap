@@ -52,7 +52,7 @@ import static java.util.Collections.singletonList;
  * @author Stef Piatek
  */
 public final class LabParser {
-    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE")); // to add CA, SN, NW
+    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE")); // other winpath: CA, SN, NW, NA, CR, OC
 
     private static final Logger logger = LoggerFactory.getLogger(LabParser.class);
 
