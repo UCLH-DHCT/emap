@@ -1,21 +1,11 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -23,6 +13,15 @@ import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Generatively test different sequences of messages and that the general state
@@ -35,22 +34,21 @@ import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
  * <p>
  * Tests are generated such that there should never be a message that is
  * ignored.
- *
  * @author Roma Klapaukh
  */
 public class PermutationTestCase extends MessageStreamBaseCase {
 
-    private TransactionTemplate      transactionTemplate;
+    private TransactionTemplate transactionTemplate;
 
     @Value("${test.perm.length:2}")
-    private int                      maxTestLength;
+    private int maxTestLength;
 
     /**
      * List of all queueing operations being tested. Operations that don't create
      * demographics must be at the start, with index <= to the noDemoEndIndex Note
      * that queueDischarge must be last.
      */
-    private Runnable[]               operations     = {
+    private Runnable[] operations = {
             this::queueFlowsheet,                                                                             // 0
             this::queueRegister,                                                                              // 1
             this::queueAdmitTransfer,                                                                         // 2
@@ -61,17 +59,16 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             this::queueDischarge                                                                              // 7
     };
 
-    private final int                noDemoEndIndex = 0;
+    private final int noDemoEndIndex = 0;
 
     @SuppressWarnings("unchecked")
-    private InterchangeValue<PatientClass>[] patientClass   = new InterchangeValue[] { new InterchangeValue<>(PatientClass.EMERGENCY),
+    private InterchangeValue<PatientClass>[] patientClass = new InterchangeValue[]{new InterchangeValue<>(PatientClass.EMERGENCY),
             new InterchangeValue<>(PatientClass.OUTPATIENT), new InterchangeValue<>(PatientClass.INPATIENT),
-            new InterchangeValue<>(PatientClass.DAY_CASE), new InterchangeValue<>(PatientClass.SURGICAL_ADMISSION) };
-    private int                      currentClass;
+            new InterchangeValue<>(PatientClass.DAY_CASE), new InterchangeValue<>(PatientClass.SURGICAL_ADMISSION)};
+    private int currentClass;
 
     /**
      * Create a new Permutation test case.
-     *
      * @param transactionManager Spring transaction manager
      */
     public PermutationTestCase(@Autowired PlatformTransactionManager transactionManager) {
@@ -119,7 +116,6 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
     /**
      * Create all the tests.
-     *
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
@@ -156,7 +152,6 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     /**
      * Recursive method to generate a permutation of all possible array indexes of
      * the operations array.
-     *
      * @param soFar     The permutations created so far. Assumed to be non-empty
      *                  (seed values must be provided)
      * @param step      The current processing step. Usually the maximum list length
@@ -164,7 +159,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      * @param maxLength How many steps to run total. If step = max(list length in
      *                  soFar) then max length also is the final max list length.
      * @return A list of all possible acceptable orderings of the method calls in
-     *         operations.
+     * operations.
      */
     private List<List<Integer>> generatePermutations(List<List<Integer>> soFar, int step, int maxLength) {
         if (step == maxLength) {
@@ -193,7 +188,6 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     /**
      * Run a single stream of indicies as a test. This will involve processing the
      * message stream and checking a subset of properties.
-     *
      * @param seq The sequence of messages to send
      * @throws EmapOperationMessageProcessingException If message processing fails.
      */
@@ -207,19 +201,19 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                 this.checkDemographics();
             }
             switch (i) {
-            case 0:
-                testVital();
-                break;
-            case 1:
-                testRegister();
-                break;
-            case 5:
-                testLastBedVisit(transferTime.size(), currentLocation().get(), super.getPatientClass().get(),
-                        lastTransferTime(), lastTransferTime());
-                break;
-            case 6:
-                testCancelTransfer();
-                break;
+                case 0:
+                    testVital();
+                    break;
+                case 1:
+                    testRegister();
+                    break;
+                case 5:
+                    testLastBedVisit(transferTime.size(), currentLocation().get(), super.getPatientClass().get(),
+                            lastTransferTime(), lastTransferTime());
+                    break;
+                case 6:
+                    testCancelTransfer();
+                    break;
             }
         }
     }
@@ -251,7 +245,6 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
     /**
      * If the last action was a transfer make sure it was processed correctly.
-     *
      * @param expectedVisits        How many valid bed moves there should be in
      *                              total
      * @param thisLocation          What the current patient location should be
@@ -263,7 +256,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      *                              happened.
      */
     private void testLastBedVisit(int expectedVisits, String thisLocation, PatientClass thisPatientClass,
-            Instant thisLocationStartTime, Instant eventTime) {
+                                  Instant thisLocationStartTime, Instant eventTime) {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(this.csn).get();
         List<LocationVisit> locationVisits = super.locationVisitRepository.findAllByHospitalVisitId(visit);
@@ -326,7 +319,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             if (this.deathTime.isUnknown()) {
                 assertNull(demo.getDatetimeOfDeath(), "Non dead patient had death time");
             } else {
-                assertEquals(this.deathTime, demo.getDatetimeOfDeath());
+                assertEquals(this.deathTime, InterchangeValue.buildFromHl7(demo.getDatetimeOfDeath()));
             }
         }
 
@@ -369,7 +362,7 @@ public class PermutationTestCase extends MessageStreamBaseCase {
 
         LocationVisit current = locationVisits.get(0);
         assertEquals(current.getLocationId().getLocationString(), this.currentLocation().get());
-        assertEquals(null, current.getDischargeTime());
+        assertNull(current.getDischargeTime());
 
     }
 }

@@ -9,11 +9,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -21,8 +18,6 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
-import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
-import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -32,32 +27,30 @@ import java.time.Instant;
 import java.util.function.Consumer;
 
 /**
- * All interaction with labs tables.
+ * Main class that interacts with labs tables, either directly or through sub controllers.
  * @author Stef Piatek
  */
 @Component
 public class LabController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final LabNumberRepository labNumberRepo;
+    private final LabNumberController labNumberController;
     private final LabTestDefinitionRepository labTestDefinitionRepo;
     private final LabBatteryElementRepository labBatteryElementRepo;
     private final LabOrderRepository labOrderRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
-    private final LabResultRepository labResultRepo;
-    private final LabResultAuditRepository labResultAuditRepo;
+    private final LabResultController labResultController;
 
     public LabController(
-            LabBatteryElementRepository labBatteryElementRepo, LabNumberRepository labNumberRepo, LabTestDefinitionRepository labTestDefinitionRepo,
-            LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo, LabResultRepository labResultRepo,
-            LabResultAuditRepository labResultAuditRepo) {
-        this.labBatteryElementRepo = labBatteryElementRepo;
-        this.labNumberRepo = labNumberRepo;
+            LabNumberController labNumberController, LabTestDefinitionRepository labTestDefinitionRepo,
+            LabBatteryElementRepository labBatteryElementRepo, LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo,
+            LabResultController labResultController) {
+        this.labNumberController = labNumberController;
         this.labTestDefinitionRepo = labTestDefinitionRepo;
+        this.labBatteryElementRepo = labBatteryElementRepo;
         this.labOrderRepo = labOrderRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
-        this.labResultRepo = labResultRepo;
-        this.labResultAuditRepo = labResultAuditRepo;
+        this.labResultController = labResultController;
     }
 
     /**
@@ -74,43 +67,16 @@ public class LabController {
         if (msg.getStatusChangeTime() == null) {
             throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
         }
-
-        LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         Instant validFrom = msg.getStatusChangeTime();
+        LabNumber labNumber = labNumberController.processLabNumberAndLabCollection(mrn, visit, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
-            LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, validFrom, storedFrom);
-            LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, validFrom, storedFrom);
-            RowState<LabOrder, LabOrderAudit> orderState = updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
-            RowState<LabResult, LabResultAudit> resultState = updateOrCreateLabResult(labNumber, testDefinition, result, validFrom, storedFrom);
+            LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, storedFrom, validFrom);
+            LabBatteryElement batteryElement = getOrCreateLabBatteryElement(testDefinition, msg, storedFrom, validFrom);
+            updateOrCreateLabOrder(batteryElement, labNumber, msg, validFrom, storedFrom);
+            labResultController.processResult(testDefinition, labNumber, result, validFrom, storedFrom);
         }
     }
 
-    /**
-     * @param mrn        MRN
-     * @param visit      hospital visit, can be null
-     * @param msg        order message
-     * @param storedFrom time that star started processing the message
-     * @return lab number
-     * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
-     */
-    private LabNumber getOrCreateLabNumber(
-            Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        LabNumber labNumber = labNumberRepo
-                .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
-                        mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber())
-                .orElseGet(() -> {
-                    LabNumber labNum = new LabNumber(
-                            mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(),
-                            msg.getSpecimenType(), msg.getSourceSystem(), storedFrom);
-                    logger.trace("Creating new lab number {}", labNum);
-                    return labNumberRepo.save(labNum);
-                });
-
-        if (!labNumber.getSpecimenType().equals(msg.getSpecimenType())) {
-            throw new IncompatibleDatabaseStateException("Message specimen type doesn't match the database");
-        }
-        return labNumber;
-    }
 
     private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         return labTestDefinitionRepo
@@ -148,9 +114,8 @@ public class LabController {
      * @param msg            Msg
      * @param validFrom      most recent change to results
      * @param storedFrom     time that star encountered the message
-     * @return Lab order wrapped in row state
      */
-    private RowState<LabOrder, LabOrderAudit> updateOrCreateLabOrder(
+    private void updateOrCreateLabOrder(
             LabBatteryElement batteryElement, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
         RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
                 .findByLabBatteryElementIdAndLabNumberId(batteryElement, labNumber)
@@ -159,7 +124,6 @@ public class LabController {
 
         updateLabOrder(orderState, msg, validFrom);
         orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
-        return orderState;
     }
 
     private RowState<LabOrder, LabOrderAudit> createLabOrder(
@@ -172,63 +136,19 @@ public class LabController {
 
     private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg, Instant validFrom) {
         LabOrder order = orderState.getEntity();
+        orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getSampleEnteredTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
+                orderState, msg.getSampleReceivedTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
     }
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(
             RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter, Instant validFrom) {
         if (currentValue == null || validFrom.isAfter(state.getEntity().getValidFrom())) {
             state.assignInterchangeValue(msgValue, currentValue, setter);
-        }
-    }
-
-    private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
-            LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
-        RowState<LabResult, LabResultAudit> resultState = labResultRepo
-                .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
-                .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
-                .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
-
-        if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
-            logger.trace("LabResult database is more recent than LabResult message, not updating information");
-            return resultState;
-        }
-
-        updateLabResult(resultState, result);
-
-        resultState.saveEntityOrAuditLogIfRequired(labResultRepo, labResultAuditRepo);
-        return resultState;
-    }
-
-    private RowState<LabResult, LabResultAudit> createLabResult(
-            LabNumber labNumber, LabTestDefinition testDefinition, Instant resultModified, Instant validFrom, Instant storedFrom) {
-        LabResult labResult = new LabResult(labNumber, testDefinition, resultModified);
-        return new RowState<>(labResult, validFrom, storedFrom, true);
-    }
-
-    private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
-        LabResult labResult = resultState.getEntity();
-        if (resultMsg.isNumeric()) {
-            resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
-            resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
-        } else {
-            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
-        }
-
-        resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
-        resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
-        resultState.assignInterchangeValue(resultMsg.getReferenceHigh(), labResult.getRangeHigh(), labResult::setRangeHigh);
-        resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
-        resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
-        resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
-
-        if (resultState.isEntityUpdated()) {
-            labResult.setResultLastModifiedTime(resultMsg.getResultTime());
         }
     }
 }
