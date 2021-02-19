@@ -2,7 +2,7 @@
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "PATIENT_CHANGE_ID"
 previousMrn: "40800000"
-sourceSystem: "UCLH4"
+sourceSystem: "EPIC"
 mrn: "40800001"
 nhsNumber: "9999999999"
 patientBirthDate:
