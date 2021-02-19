@@ -178,7 +178,7 @@ public class FlowsheetFactory {
         value = value == null ? "" : value;
 
         if (singularData instanceof NM) {
-            flowsheet.setDataType(ValueType.NUMERIC);
+            flowsheet.setValueType(ValueType.NUMERIC);
             if ("D".equals(resultStatus)) {
                 flowsheet.setNumericValue(InterchangeValue.delete());
             } else {
@@ -190,7 +190,7 @@ public class FlowsheetFactory {
                 }
             }
         } else if (singularData instanceof ST) {
-            flowsheet.setDataType(ValueType.TEXT);
+            flowsheet.setValueType(ValueType.TEXT);
             if ("D".equals(resultStatus)) {
                 flowsheet.setStringValue(InterchangeValue.delete());
             } else if (!value.isEmpty()) {
@@ -198,7 +198,7 @@ public class FlowsheetFactory {
                 flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
             }
         } else if (singularData instanceof DT) {
-            flowsheet.setDataType(ValueType.DATE);
+            flowsheet.setValueType(ValueType.DATE);
             if ("D".equals(resultStatus)) {
                 flowsheet.setDateValue(InterchangeValue.delete());
             } else {
