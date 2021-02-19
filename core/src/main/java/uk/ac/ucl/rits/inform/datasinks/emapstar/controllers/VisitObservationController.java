@@ -51,8 +51,8 @@ public class VisitObservationController {
      */
     @Transactional
     public void processFlowsheet(Flowsheet msg, HospitalVisit visit, Instant storedFrom) throws RequiredDataMissingException {
-        if (msg.getIsNumericType() == null) {
-            throw new RequiredDataMissingException("Flowsheet isNumericType not set");
+        if (msg.getValueType() == null) {
+            throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
 
         VisitObservationType observationType = getOrCreateObservationType(msg);
@@ -129,13 +129,23 @@ public class VisitObservationController {
      * Update observation state from Flowsheet message.
      * @param msg              flowsheet
      * @param observationState observation entity wrapped in RowState
+     * @throws RequiredDataMissingException if data type is not recognised for flowsheets
      */
-    private void updateVisitObservation(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
+    private void updateVisitObservation(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState)
+            throws RequiredDataMissingException {
         VisitObservation observation = observationState.getEntity();
-        if (msg.getIsNumericType()) {
-            observationState.assignInterchangeValue(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
-        } else {
-            observationState.assignInterchangeValue(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
+        switch (msg.getValueType()) {
+            case NUMERIC:
+                observationState.assignInterchangeValue(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
+                break;
+            case TEXT:
+                observationState.assignInterchangeValue(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
+                break;
+            case DATE:
+                observationState.assignInterchangeValue(msg.getDateValue(), observation.getValueAsDate(), observation::setValueAsDate);
+                break;
+            default:
+                throw new RequiredDataMissingException(String.format("Flowsheet DataType '%s' not recognised", msg.getValueType()));
         }
         observationState.assignInterchangeValue(msg.getUnit(), observation.getUnit(), observation::setUnit);
         observationState.assignInterchangeValue(msg.getComment(), observation.getComment(), observation::setComment);

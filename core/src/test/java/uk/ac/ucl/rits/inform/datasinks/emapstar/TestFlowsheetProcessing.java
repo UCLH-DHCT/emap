@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +37,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private String newComment = "patient was running really fast (on a hamster wheel)";
     private String stringDeleteId = "28315";
     private String numericDeleteId = "8";
+    private String flowsheetDateId = "40445";
 
 
     @BeforeEach
@@ -61,9 +63,9 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
 
-        // 7 flowsheets in input file
+        // 8 flowsheets in input file
         List<VisitObservation> observations = visitObservationRepository.findAllByHospitalVisitId(visit);
-        assertEquals(7, observations.size());
+        assertEquals(8, observations.size());
     }
 
     /**
@@ -207,5 +209,18 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
                 .orElseThrow();
 
         assertEquals(preDeleteObservation.getValueAsReal(), notDeletedObservation.getValueAsReal());
+    }
+
+    @Test
+    @Sql("/populate_db.sql")
+    void testDateTimeValueAdded() throws EmapOperationMessageProcessingException {
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+
+        processSingleMessage(messages.get(7));
+        LocalDate expected = LocalDate.parse("2020-01-01");
+        VisitObservation obs = visitObservationRepository
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, flowsheetDateId)
+                .orElseThrow();
+        assertEquals(expected, obs.getValueAsDate());
     }
 }
