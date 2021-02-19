@@ -125,36 +125,50 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     public void testLabIncrementalLoad() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/Incremental.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("incremental.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/winpath/Incremental.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/incremental.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testLabIncrementalDuplicateResultSegment() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/LabDuplicateResultSegment.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("incremental_duplicate_result_segment.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/winpath/LabDuplicateResultSegment.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/incremental_duplicate_result_segment.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testLabOrderMsg() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/ORU_R01.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("ORU_R01.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/ORU_R01.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/ORU_R01.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
     @Test
     public void testLabOrderMsgProducesAdtFirst() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("LabOrders/ORU_R01.txt").get(0);
+        EmapOperationMessage messageFromHl7 = processSingleMessage("LabOrders/winpath/ORU_R01.txt").get(0);
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/lab_oru_r01.yaml");
         Assertions.assertEquals(expectedAdt, messageFromHl7);
     }
 
     @Test
     public void testLabSensitivity() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/Sensitivity.txt");
-        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("sensitivity.yaml", "0000000042");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/Sensitivity.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/sensitivity.yaml", "0000000042");
+        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
+    }
+
+    @Test
+    public void testPOCLabABL() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/abl90_flex/venous.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("abl90_flex/venous.yaml", "0000000042");
+        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
+    }
+
+    @Test
+    public void testPOCLabBioConnect() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/bio_connect/glucose.txt");
+        List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("bio_connect/glucose.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 

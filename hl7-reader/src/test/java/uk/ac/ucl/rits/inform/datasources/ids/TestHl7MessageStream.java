@@ -6,6 +6,7 @@ import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -45,10 +46,10 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<LabOrderMsg> processSingleLabOrderMsgMessage(String resourceFileName) throws Exception {
+    protected List<LabOrderMsg> processSingleWinPathOruR01(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
-        return LabOrderBuilder.buildLabOrdersFromResults("42", hl7Msg);
+        return LabParser.buildWinPathLabs("42", hl7Msg);
     }
 
     /**

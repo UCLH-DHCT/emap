@@ -5,6 +5,7 @@ import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
@@ -26,8 +27,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
@@ -40,9 +44,9 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
@@ -54,6 +58,8 @@ import java.util.concurrent.Semaphore;
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
+    private static final Collection<String> ALLOWED_SENDERS = new HashSet<>(Arrays.asList("WinPath", "EPIC", "ABL90 FLEX Plus", "BIO-CONNECT"));
+
 
     private SessionFactory idsFactory;
     private AdtMessageFactory adtMessageFactory;
@@ -91,8 +97,8 @@ public class IdsOperations implements AutoCloseable {
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
         logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
-        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime);
-        this.endUnid = getFirstMessageUnidFromDate(endDatetime);
+        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime, 1);
+        this.endUnid = getFirstMessageUnidFromDate(endDatetime, defaultStartUnid);
 
         // Since progress is stored as the unid (the date info is purely for human convenience),
         // there is no way to translate a future date into a unid.
@@ -148,26 +154,28 @@ public class IdsOperations implements AutoCloseable {
      * Find the first message in the IDS that came in at or after a certain
      * timestamp.
      * @param fromDateTime the timestamp to start from, or null for no boundary
+     * @param fromUnid     starting unid for filtering
      * @return the unid of the first message to be persisted at or after that time,
      * or null if there are no such messages or no bound was requested (fromDateTime == null)
      */
-    private Integer getFirstMessageUnidFromDate(Instant fromDateTime) {
+    private Integer getFirstMessageUnidFromDate(Instant fromDateTime, Integer fromUnid) {
         if (fromDateTime == null) {
             // bypass this slow query if no bound was requested
             return null;
         }
+        logger.info("Querying IDS for first unid after {}, this can take a while", fromDateTime);
         try (Session idsSession = idsFactory.openSession()) {
-            idsSession.setDefaultReadOnly(true);
-            Query<IdsMaster> qexists = idsSession.createQuery(
-                    "select i from IdsMaster i where i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class);
-            qexists.setParameter("fromDatetime", fromDateTime);
-            qexists.setMaxResults(1);
-            List<IdsMaster> msgs = qexists.list();
-            if (msgs.isEmpty()) {
+            List<IdsMaster> msg = idsSession.createQuery(
+                    "select i from IdsMaster i where i.unid >= :fromUnid and i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
+                    .setParameter("fromDatetime", fromDateTime)
+                    .setParameter("fromUnid", fromUnid)
+                    .setMaxResults(1)
+                    .getResultList();
+            if (msg.isEmpty()) {
                 logger.warn("No IDS messages were found beyond the specified date {}, is it in the future?", fromDateTime);
                 return null;
             } else {
-                return msgs.get(0).getUnid();
+                return msg.get(0).getUnid();
             }
         }
     }
@@ -401,10 +409,8 @@ public class IdsOperations implements AutoCloseable {
         Instant messageDatetime = idsMsg.getMessagedatetime();
         String sender = idsMsg.getSenderapplication();
 
-        final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
-
         try {
-            if (!allowedSenders.contains(sender)) {
+            if (!ALLOWED_SENDERS.contains(sender)) {
                 logger.trace("[{}}] Skipping message with senderapplication='{}'", idsMsg.getUnid(), sender);
                 return;
             }
@@ -430,13 +436,13 @@ public class IdsOperations implements AutoCloseable {
                     logger.trace("[{}] sending message ({}/{}) to RabbitMQ",
                             idsMsg.getUnid(), subMessageCount, messagesFromHl7Message.size());
                     Semaphore semaphore = new Semaphore(0);
-                    publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
-                        logger.trace("callback for " + msg.getSourceMessageId());
+                    publisher.submit(msg, msg.getSourceMessageId(), String.format("%s_1", msg.getSourceMessageId()), () -> {
+                        logger.trace("callback for {}", msg.getSourceMessageId());
                         semaphore.release();
                     });
                     semaphore.acquire();
                 }
-            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException | Hl7MessageIgnoredException e) {
                 logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {
@@ -451,15 +457,17 @@ public class IdsOperations implements AutoCloseable {
      * @param msgFromIds the HL7 message
      * @param idsUnid    the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages, can be empty if no messages should result
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if the HL7 message contradicts itself
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if the HL7 message contradicts itself
+     * @throws Hl7MessageIgnoredException if the message is a calibration/testing reading
      */
     public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
-            throws HL7Exception, Hl7InconsistencyException {
+            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
+        String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
         logger.debug("{}^{}", messageType, triggerEvent);
         String sourceId = String.format("%010d", idsUnid);
 
@@ -468,23 +476,26 @@ public class IdsOperations implements AutoCloseable {
         switch (messageType) {
             case "ADT":
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
+                break;
             case "ORU":
-                if (triggerEvent.equals("R01")) {
-                    if (sendingFacility.equals("Vitals")) {
-                        buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                if ("R01".equals(triggerEvent)) {
+                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                    if ("Vitals".equals(sendingFacility)) {
                         messages.addAll(flowsheetFactory.getMessages(sourceId, msgFromIds));
+                    } else if ("BIO-CONNECT".equals(sendingApplication)) {
+                        messages.addAll(LabParser.buildBioConnectLabs(sourceId, (ORU_R01) msgFromIds));
                     } else {
-                        buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
-                        // get all result batteries in the message
-                        messages.addAll(LabOrderBuilder.buildLabOrdersFromResults(sourceId, (ORU_R01) msgFromIds));
+                        messages.addAll(LabParser.buildWinPathLabs(sourceId, (ORU_R01) msgFromIds));
                     }
+                } else if ("R30".equals(triggerEvent)) {
+                    messages.addAll(LabParser.buildAblLabs(sourceId, (ORU_R30) msgFromIds));
                 }
                 break;
             case "ORM":
-                if (triggerEvent.equals("O01")) {
+                if ("O01".equals(triggerEvent)) {
                     buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
                     // get all orders in the message
-                    messages.addAll(LabOrderBuilder.buildLabOrders(sourceId, (ORM_O01) msgFromIds));
+                    messages.addAll(LabParser.buildLabOrders(sourceId, (ORM_O01) msgFromIds));
                 }
                 break;
             default:
