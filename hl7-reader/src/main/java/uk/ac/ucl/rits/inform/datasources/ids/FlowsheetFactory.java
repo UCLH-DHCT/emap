@@ -206,7 +206,7 @@ public class FlowsheetFactory {
                 flowsheet.setDateValue(InterchangeValue.buildFromHl7(date));
             }
         } else {
-            throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM or ST)");
+            throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM, ST or DT)");
         }
     }
 
