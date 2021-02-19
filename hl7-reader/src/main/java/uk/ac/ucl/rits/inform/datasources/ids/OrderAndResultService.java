@@ -57,7 +57,7 @@ public class OrderAndResultService {
     /**
      * Build messages from hl7 message.
      * <p>
-     * All ORR O02 -> LabOrder from WinPath or CoPath
+     * All ORR O02 -> LabOrder for WinPath or CoPath
      * @param sourceId unique Id from the IDS
      * @param msg      hl7 message
      * @return LabOrder interchange messages
