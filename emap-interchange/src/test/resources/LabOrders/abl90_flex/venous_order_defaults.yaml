@@ -13,6 +13,6 @@ sampleReceivedTime:
   status: "SAVE"
   value: "2013-02-11T10:00:52Z"
 collectionDateTime: "2013-02-11T10:00:52Z"
-testBatteryCodingSystem: "ABL90 FLEX Plus"
+testBatteryCodingSystem: "ABL90_FLEX_PLUS"
 sourceSystem: "ABL90 FLEX Plus"
 specimenType: "Venous"

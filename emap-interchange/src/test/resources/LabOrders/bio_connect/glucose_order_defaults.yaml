@@ -13,6 +13,6 @@ sampleReceivedTime:
   status: "SAVE"
   value: "2013-07-25T12:59:00Z"
 collectionDateTime: "2013-07-25T12:59:00Z"
-testBatteryCodingSystem: "BIO-CONNECT"
+testBatteryCodingSystem: "BIO_CONNECT"
 sourceSystem: "BIO-CONNECT"
 specimenType: "BLD"
