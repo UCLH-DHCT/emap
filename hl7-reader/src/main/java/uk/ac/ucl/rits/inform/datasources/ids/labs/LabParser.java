@@ -66,21 +66,15 @@ public final class LabParser {
      * @param subMessageSourceId unique Id from the IDS
      * @param order              one of the order groups in the message that is to be converted into an order structure
      * @param ormO01             the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
-     * @throws HL7Exception               if HAPI does
-     * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
-     * @throws Hl7MessageIgnoredException if the entire message should be ignored
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    private LabParser(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01)
-            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
+    private LabParser(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
         PID pid = patient.getPID();
         PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
-        String sendingApplication = msg.getSourceSystem();
-        if (!"WinPath".equals(sendingApplication)) {
-            throw new Hl7MessageIgnoredException(String.format("Only processing messages from WinPath, not '%s'", sendingApplication));
-        }
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
         populateObrFields(obr);
@@ -276,16 +270,11 @@ public final class LabParser {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder;
-            try {
-                labOrder = new LabParser(subMessageSourceId, order, ormO01).msg;
-                if (!LabParser.ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
-                    logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
-                } else {
-                    interchangeOrders.add(labOrder);
-                }
-            } catch (Hl7MessageIgnoredException e) {
-                // if the entire message is being skipped, stop now
-                return interchangeOrders;
+            labOrder = new LabParser(subMessageSourceId, order, ormO01).msg;
+            if (!LabParser.ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
+                logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
+            } else {
+                interchangeOrders.add(labOrder);
             }
         }
         return interchangeOrders;
