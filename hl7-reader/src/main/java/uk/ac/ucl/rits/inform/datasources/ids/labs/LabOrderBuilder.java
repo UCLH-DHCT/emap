@@ -28,13 +28,21 @@ abstract class LabOrderBuilder {
         return msg;
     }
 
+    public String getEpicCareOrderNumberOrc() {
+        return epicCareOrderNumberOrc;
+    }
+
+    public String getEpicCareOrderNumberObr() {
+        return epicCareOrderNumberObr;
+    }
+
     /**
      * Extract the fields found in the ORC segment (some context from OBR required), of which there is one of each per object.
      * @param orc the ORC segment
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
      */
-    private void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException {
+    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
