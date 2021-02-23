@@ -112,6 +112,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * @param msh                the MSH segment
      * @param pid                the PID segment
      * @param pv1                the PV1 segment
+     * @param codingSystem       order coding system
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */

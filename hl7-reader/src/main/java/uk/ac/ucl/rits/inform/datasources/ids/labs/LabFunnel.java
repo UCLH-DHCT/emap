@@ -18,6 +18,9 @@ import java.util.List;
  * @author Stef Piatek
  */
 public class LabFunnel {
+    private LabFunnel() {
+    }
+
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param idsUnid      unique Id from the IDS
