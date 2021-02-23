@@ -9,6 +9,10 @@ public enum OrderCodingSystem {
      */
     WIN_PATH,
     /**
+     * ABL90 flex plus labs.
+     */
+    ABL90_FLEX_PLUS,
+    /**
      * Bio connect POC Labs.
      */
     BIO_CONNECT,
