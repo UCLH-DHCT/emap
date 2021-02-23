@@ -116,7 +116,10 @@ public class OrderAndResultService {
      */
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORU_R30 msg)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
-        return LabParser.buildMessages(sourceId, msg);
+        MSH msh = msg.getMSH();
+        String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
+        OrderCodingSystem codingSystem = determineCodingSystem(msg.getOBR(), sendingApplication);
+        return LabParser.buildMessages(sourceId, msg, codingSystem);
     }
 
     private OrderCodingSystem determineCodingSystem(OBR obr) throws Hl7MessageIgnoredException {
@@ -149,6 +152,8 @@ public class OrderAndResultService {
             return OrderCodingSystem.BLOOD_PRODUCTS;
         } else if ("BIO-CONNECT".equals(sendingApplication)) {
             return OrderCodingSystem.BIO_CONNECT;
+        } else if ("ABL90 FLEX Plus".equals(sendingApplication)) {
+            return OrderCodingSystem.ABL90_FLEX_PLUS;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }
