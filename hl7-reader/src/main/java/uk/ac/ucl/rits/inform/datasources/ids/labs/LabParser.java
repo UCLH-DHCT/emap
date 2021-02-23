@@ -149,43 +149,6 @@ public final class LabParser {
         msg.setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
-
-    /**
-     * Construct parsed from BIO-CONNECT ORU R01 message.
-     * @param idsUnid        unique Id from the IDS
-     * @param msh            MSG segment
-     * @param patientResults patient results from HL7 message
-     */
-    private LabParser(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults) throws
-            HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
-        ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
-        if (obs.getOBSERVATIONReps() > 1) {
-            throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one OBX result segment");
-        }
-        PID pid = patientResults.getPATIENT().getPID();
-        PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
-        OBR obr = obs.getOBR();
-
-        populateSpecimenTypeOrIgnoreMessage(obr);
-        setSourceAndPatientIdentifiers(idsUnid, msh, pid, pv1);
-        populateObrFields(obr);
-        populateOrderInformation(obr);
-
-        // although the request datetime is in the message, doesn't seem to make sense to set it
-        msg.setRequestedDateTime(InterchangeValue.unknown());
-        // set battery coding system
-        msg.setTestBatteryCodingSystem(msg.getSourceSystem());
-        msg.setLabSpecimenNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
-
-
-        OBX obx = obs.getOBSERVATION().getOBX();
-        List<NTE> notes = obs.getOBSERVATION().getNTEAll();
-        LabResultBuilder labResult = new BioConnectResultBuilder(obx, obr, notes, msg.getSourceSystem());
-        labResult.constructMsg();
-
-        msg.setLabResultMsgs(singletonList(labResult.getMessage()));
-    }
-
     /**
      * Construct parser from ABL ORU R30 message.
      * @param subMessageSourceId unique Id from the IDS
@@ -300,27 +263,6 @@ public final class LabParser {
         return orders;
     }
 
-    /**
-     * Build Lab Order from BIO-CONNECT point of care device.
-     * @param idsUnid      unique Id from the IDS
-     * @param oruR01       the HL7 message
-     * @param codingSystem
-     * @return a list of LabOrder messages built from the results message
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if hl7 message is malformed
-     */
-    public static Collection<LabOrderMsg> buildBioConnectLabs(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
-            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
-        ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
-        MSH msh = (MSH) oruR01.get("MSH");
-        if (patientResults.getORDER_OBSERVATIONReps() > 1) {
-            throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one order");
-        }
-
-        LabOrderMsg labOrder = new LabParser(idsUnid, msh, patientResults).msg;
-        return singletonList(labOrder);
-    }
-
 
     /**
      * Several sets of results can exist in an ORU message, so build multiple LabOrder objects.
@@ -342,7 +284,7 @@ public final class LabParser {
             case BANK_MANAGER:
                 throw new Hl7MessageIgnoredException("Bank Manager lab results not implemented for now");
             case BIO_CONNECT:
-                return buildBioConnectLabs(idsUnid, oruR01, codingSystem);
+                return BioConnectLabBuilder.build(idsUnid, oruR01, codingSystem);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORU^R01 not recognised");
         }
