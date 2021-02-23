@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  * Represent a flowsheet message.
@@ -53,6 +54,12 @@ public class Flowsheet extends EmapOperationMessage {
      * Date value.
      */
     private InterchangeValue<LocalDate> dateValue = InterchangeValue.unknown();
+
+    /**
+     * Time value, currently not used.
+     */
+    private InterchangeValue<LocalTime> timeValue = InterchangeValue.unknown();
+
 
     /**
      * Comment.

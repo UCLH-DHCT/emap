@@ -2,7 +2,8 @@ package uk.ac.ucl.rits.inform.interchange;
 
 /**
  * Value type that has a toString of it's mime type.
- * If no mime type, a custom value is given.
+ * <p>
+ * Used for flowsheet values, as well as Lab Results. If no mime type, a custom value is given.
  */
 public enum ValueType {
     /**
@@ -17,6 +18,10 @@ public enum ValueType {
      * Date value.
      */
     DATE("temporal/date"),
+    /**
+     * Time value.
+     */
+    TIME("temporal/time"),
     /**
      * PDF value.
      */
