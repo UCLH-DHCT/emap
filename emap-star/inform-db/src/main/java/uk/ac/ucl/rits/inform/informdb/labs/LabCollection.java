@@ -44,7 +44,7 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
      * The time the sample arrived at the lab where there test was being performed.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant sampleReceiptTime;
+    private Instant receiptAtLab;
 
     /**
      * The time the sample was take from the patient (e.g. time of phlebotomy).
@@ -52,7 +52,16 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
     @Column(columnDefinition = "timestamp with time zone")
     private Instant sampleCollectionTime;
 
+    /**
+     * Type of sample.
+     * E.g. Mid Stream Urine
+     */
     private String sampleType;
+    /**
+     * Site the sample was taken from.
+     * E.g. Right kidney
+     */
+    private String sampleSite;
 
     public LabCollection() {}
 
@@ -65,7 +74,7 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
         super(other);
         this.labCollectionId = other.labCollectionId;
         this.labNumberId = other.labNumberId;
-        this.sampleReceiptTime = other.sampleReceiptTime;
+        this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
         this.sampleType = other.sampleType;
     }

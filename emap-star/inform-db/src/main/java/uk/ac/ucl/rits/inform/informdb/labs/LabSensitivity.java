@@ -18,6 +18,7 @@ import java.time.Instant;
 /**
  * Sensitivities show the affect of specific agents on isolates from cultures.
  * @author Roma Klapaukh
+ * @author Stef Piatek
  */
 @SuppressWarnings("serial")
 @Entity
@@ -25,15 +26,15 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, LabResultSensitivityAudit> {
+public class LabSensitivity extends TemporalCore<LabSensitivity, LabSensitivityAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long labResultSensitivityId;
+    private long labSensitivityId;
 
     @ManyToOne
-    @JoinColumn(name = "labResultId", nullable = false)
-    private LabResult labResultId;
+    @JoinColumn(name = "labIsolateId", nullable = false)
+    private LabIsolate labIsolateId;
 
     /**
      * The chemical (often antibiotic) used.
@@ -47,18 +48,18 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
     @Column(columnDefinition = "timestamp with time zone")
     private Instant reportingDatetime;
 
-    public LabResultSensitivity() {}
+    public LabSensitivity() {}
 
-    public LabResultSensitivity(LabResult labResultId, String agent) {
-        this.labResultId = labResultId;
+    public LabSensitivity(LabIsolate labIsolateId, String agent) {
+        this.labIsolateId = labIsolateId;
         this.agent = agent;
     }
 
 
-    public LabResultSensitivity(LabResultSensitivity other) {
+    public LabSensitivity(LabSensitivity other) {
         super(other);
-        this.labResultSensitivityId = other.labResultSensitivityId;
-        this.labResultId = other.labResultId;
+        this.labSensitivityId = other.labSensitivityId;
+        this.labIsolateId = other.labIsolateId;
         this.agent = other.agent;
         this.sensitivity = other.sensitivity;
         this.reportingDatetime = other.reportingDatetime;
@@ -66,12 +67,12 @@ public class LabResultSensitivity extends TemporalCore<LabResultSensitivity, Lab
 
 
     @Override
-    public LabResultSensitivity copy() {
-        return new LabResultSensitivity(this);
+    public LabSensitivity copy() {
+        return new LabSensitivity(this);
     }
 
     @Override
-    public LabResultSensitivityAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new LabResultSensitivityAudit(this, validUntil, storedUntil);
+    public LabSensitivityAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabSensitivityAudit(this, validUntil, storedUntil);
     }
 }
