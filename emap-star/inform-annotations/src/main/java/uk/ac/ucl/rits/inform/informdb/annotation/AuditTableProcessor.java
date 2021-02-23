@@ -19,6 +19,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -320,7 +321,19 @@ public class AuditTableProcessor extends AbstractProcessor {
             case CHAR:
                 typeName = "char";
                 break;
-            case DECLARED:
+            case ARRAY:
+                ArrayType arrayType = (ArrayType) type;
+                TypeMirror individualType = arrayType.getComponentType();
+                TypeKind individualKind = individualType.getKind();
+                if (individualKind == TypeKind.BYTE) {
+                    typeName = "byte[]";
+                } else {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                            "Found field of array with unhandleable type " + type);
+                    continue;
+                }
+                break;
+                case DECLARED:
                 DeclaredType a = (DeclaredType) type;
                 TypeElement elem = (TypeElement) a.asElement();
                 switch (elem.getQualifiedName().toString()) {
