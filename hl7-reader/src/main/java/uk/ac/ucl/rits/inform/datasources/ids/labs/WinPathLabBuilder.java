@@ -49,10 +49,14 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * @param subMessageSourceId unique Id from the IDS
      * @param order              one of the order groups in the message that is to be converted into an order structure
      * @param ormO01             the ORM^O01 message (can contain multiple orders) for extracting data common to the whole message
+     * @param codingSystem       coding system
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    private WinPathLabBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
+    private WinPathLabBuilder(String subMessageSourceId, ORM_O01_ORDER order, ORM_O01 ormO01, OrderCodingSystem codingSystem)
+            throws HL7Exception, Hl7InconsistencyException {
+        setBatteryCodingSystem(codingSystem);
+
         MSH msh = (MSH) ormO01.get("MSH");
         ORM_O01_PATIENT patient = ormO01.getPATIENT();
         PID pid = patient.getPID();
@@ -111,8 +115,9 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    private WinPathLabBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1)
+    private WinPathLabBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
+        setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         OBR obr = obs.getOBR();
         populateObrFields(obr);
@@ -136,13 +141,15 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build order from ORM O01.
-     * @param idsUnid unique Id from the IDS
-     * @param ormO01  message
+     * @param idsUnid      unique Id from the IDS
+     * @param ormO01       message
+     * @param codingSystem coding system
      * @return interchange messages
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contains errors
      */
-    public static List<LabOrderMsg> build(String idsUnid, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
+    public static List<LabOrderMsg> build(String idsUnid, ORM_O01 ormO01, OrderCodingSystem codingSystem)
+            throws HL7Exception, Hl7InconsistencyException {
         List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
 
         List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());
@@ -151,7 +158,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder;
-            labOrder = new WinPathLabBuilder(subMessageSourceId, order, ormO01).getMsg();
+            labOrder = new WinPathLabBuilder(subMessageSourceId, order, ormO01, codingSystem).getMsg();
             if (ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
                 interchangeOrders.add(labOrder);
             } else {
@@ -188,7 +195,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new WinPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1).getMsg();
+            LabOrderMsg labOrder = new WinPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1, codingSystem).getMsg();
             if (ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
                 orders.add(labOrder);
             } else {

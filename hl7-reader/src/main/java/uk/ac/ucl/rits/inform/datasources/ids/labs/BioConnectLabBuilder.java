@@ -32,8 +32,14 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
      * @param idsUnid        unique Id from the IDS
      * @param msh            MSG segment
      * @param patientResults patient results from HL7 message
+     * @param codingSystem   coding system
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if hl7 message is malformed
      */
-    private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults) throws HL7Exception, Hl7InconsistencyException {
+    private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults, OrderCodingSystem codingSystem)
+            throws HL7Exception, Hl7InconsistencyException {
+        setBatteryCodingSystem(codingSystem);
+
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
         if (obs.getOBSERVATIONReps() > 1) {
             throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one OBX result segment");
@@ -48,8 +54,6 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
 
         // although the request datetime is in the message, doesn't seem to make sense to set it
         getMsg().setRequestedDateTime(InterchangeValue.unknown());
-        // set battery coding system
-        getMsg().setTestBatteryCodingSystem(getMsg().getSourceSystem());
         getMsg().setLabSpecimenNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
 
 
@@ -79,7 +83,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
             throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one order");
         }
 
-        LabOrderMsg labOrder = new BioConnectLabBuilder(idsUnid, msh, patientResults).getMsg();
+        LabOrderMsg labOrder = new BioConnectLabBuilder(idsUnid, msh, patientResults, codingSystem).getMsg();
         return singletonList(labOrder);
 
     }

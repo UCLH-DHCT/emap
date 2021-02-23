@@ -17,7 +17,7 @@ import java.util.List;
  * Determines which Lab Order builder subclass and builder method should be called.
  * @author Stef Piatek
  */
-public final class LabFunnel {
+public class LabFunnel {
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param idsUnid      unique Id from the IDS
@@ -32,7 +32,7 @@ public final class LabFunnel {
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {
             case WIN_PATH:
-                return WinPathLabBuilder.build(idsUnid, ormO01);
+                return WinPathLabBuilder.build(idsUnid, ormO01, codingSystem);
             case CO_PATH:
                 throw new Hl7MessageIgnoredException("Not parsing CoPath ORM^O01 messages");
             default:

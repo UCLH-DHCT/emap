@@ -34,13 +34,13 @@ public final class AblLabBuilder extends LabOrderBuilder {
     private AblLabBuilder(String subMessageSourceId, ORU_R30 oruR30, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
+        setBatteryCodingSystem(codingSystem);
 
         OBR obr = oruR30.getOBR();
         populateSpecimenTypeOrIgnoreMessage(obr);
         populateObrFields(obr);
         populateOrderInformation(obr);
         getMsg().setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
-        getMsg().setTestBatteryCodingSystem(getMsg().getSourceSystem());
 
         List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
         List<LabResultMsg> results = new ArrayList<>(observations.size());

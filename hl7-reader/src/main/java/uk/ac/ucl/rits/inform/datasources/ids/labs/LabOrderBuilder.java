@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
@@ -76,6 +77,10 @@ abstract class LabOrderBuilder {
         }
     }
 
+    void setBatteryCodingSystem(OrderCodingSystem codingSystem) {
+        msg.setTestBatteryCodingSystem(codingSystem.name());
+    }
+
     private void setSpecimenType(OBR obr) {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
         msg.setSpecimenType(sampleType);
@@ -92,7 +97,8 @@ abstract class LabOrderBuilder {
     void setSourceAndPatientIdentifiers(String subMessageSourceId, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
         PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
         msg.setSourceMessageId(subMessageSourceId);
-        msg.setSourceSystem(patientHl7.getSendingApplication());
+        String sourceApplication = patientHl7.getSendingApplication().isEmpty() ? "Not in Message" : patientHl7.getSendingApplication();
+        msg.setSourceSystem(sourceApplication);
         msg.setVisitNumber(patientHl7.getVisitNumber());
         msg.setMrn(patientHl7.getMrn());
     }
@@ -143,7 +149,6 @@ abstract class LabOrderBuilder {
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
         msg.setTestBatteryLocalCode(obr4.getCwe1_Identifier().getValueOrEmpty());
-        msg.setTestBatteryCodingSystem(obr4.getCwe3_NameOfCodingSystem().getValueOrEmpty());
 
         PRL parent = obr.getObr26_ParentResult();
 
