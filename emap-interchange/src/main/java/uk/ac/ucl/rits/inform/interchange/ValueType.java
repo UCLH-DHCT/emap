@@ -27,7 +27,7 @@ public enum ValueType {
      */
     PDF("application/pdf");
 
-    private String mimeType;
+    private final String mimeType;
 
     ValueType(String mimeType) {
         this.mimeType = mimeType;
