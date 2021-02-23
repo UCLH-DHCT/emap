@@ -21,7 +21,11 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-public class BioConnectLabBuilder extends LabOrderBuilder {
+/**
+ * Build Bio-connect LabOrders.
+ * @author Stef Piatek
+ */
+public final class BioConnectLabBuilder extends LabOrderBuilder {
 
     /**
      * Construct parsed from BIO-CONNECT ORU R01 message.
@@ -29,7 +33,7 @@ public class BioConnectLabBuilder extends LabOrderBuilder {
      * @param msh            MSG segment
      * @param patientResults patient results from HL7 message
      */
-    public BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults) throws HL7Exception, Hl7InconsistencyException {
+    private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults) throws HL7Exception, Hl7InconsistencyException {
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
         if (obs.getOBSERVATIONReps() > 1) {
             throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one OBX result segment");
@@ -67,7 +71,7 @@ public class BioConnectLabBuilder extends LabOrderBuilder {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if hl7 message is malformed
      */
-    static public Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
+    public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
         MSH msh = (MSH) oruR01.get("MSH");

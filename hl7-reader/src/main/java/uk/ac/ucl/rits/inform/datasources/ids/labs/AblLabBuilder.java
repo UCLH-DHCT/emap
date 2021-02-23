@@ -16,12 +16,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class AblLabBuilder extends LabOrderBuilder {
+/**
+ * Build ABL90 Flex Plus LabOrders.
+ * @author Stef Piatek
+ */
+public final class AblLabBuilder extends LabOrderBuilder {
 
     /**
-     * Construct parser from ABL ORU R30 message.
+     * Construct builder from ABL ORU R30 message.
      * @param subMessageSourceId unique Id from the IDS
      * @param oruR30             ORU R30 message
+     * @param codingSystem       coding system
      * @throws HL7Exception               if HAPI does
      * @throws Hl7MessageIgnoredException if it's a calibration or test message
      * @throws Hl7InconsistencyException  if hl7 message is incorrectly formed
@@ -49,6 +54,16 @@ public class AblLabBuilder extends LabOrderBuilder {
         getMsg().setLabResultMsgs(results);
     }
 
+    /**
+     * Build order with results.
+     * @param idsUnid      unique Id from the IDS
+     * @param oruR30       hl7 message
+     * @param codingSystem coding system to use.
+     * @return interchange messages
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if the HL7 message contains errors
+     * @throws Hl7MessageIgnoredException if message is ignored
+     */
     public static Collection<LabOrderMsg> build(String idsUnid, ORU_R30 oruR30, OrderCodingSystem codingSystem)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         List<LabOrderMsg> orders = new ArrayList<>(1);

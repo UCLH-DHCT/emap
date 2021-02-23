@@ -6,7 +6,7 @@ import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
+import uk.ac.ucl.rits.inform.datasources.ids.labs.LabFunnel;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -51,7 +51,7 @@ public abstract class TestHl7MessageStream {
     protected Collection<LabOrderMsg> processSingleWinPathOruR01(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
-        return LabParser.buildMessages("42", hl7Msg, OrderCodingSystem.WIN_PATH);
+        return LabFunnel.buildMessages("42", hl7Msg, OrderCodingSystem.WIN_PATH);
     }
 
     /**

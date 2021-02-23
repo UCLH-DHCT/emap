@@ -10,7 +10,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBR;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
-import uk.ac.ucl.rits.inform.datasources.ids.labs.LabParser;
+import uk.ac.ucl.rits.inform.datasources.ids.labs.LabFunnel;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 
@@ -51,7 +51,7 @@ public class OrderAndResultService {
             throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
         }
 
-        return LabParser.buildMessages(sourceId, msg, codingSystem);
+        return LabFunnel.buildMessages(sourceId, msg, codingSystem);
     }
 
     /**
@@ -69,7 +69,7 @@ public class OrderAndResultService {
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         OBR obr = msg.getRESPONSE().getORDER().getOBR();
         OrderCodingSystem codingSystem = determineCodingSystem(obr);
-        return LabParser.buildMessages(sourceId, msg, codingSystem);
+        return LabFunnel.buildMessages(sourceId, msg, codingSystem);
     }
 
     /**
@@ -100,7 +100,7 @@ public class OrderAndResultService {
         if (OrderCodingSystem.BLOOD_PRODUCTS == codingSystem) {
             throw new Hl7MessageIgnoredException("Bank Manager blood products not implemented for now");
         }
-        return LabParser.buildMessages(sourceId, msg, codingSystem);
+        return LabFunnel.buildMessages(sourceId, msg, codingSystem);
     }
 
     /**
@@ -119,7 +119,7 @@ public class OrderAndResultService {
         MSH msh = msg.getMSH();
         String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
         OrderCodingSystem codingSystem = determineCodingSystem(msg.getOBR(), sendingApplication);
-        return LabParser.buildMessages(sourceId, msg, codingSystem);
+        return LabFunnel.buildMessages(sourceId, msg, codingSystem);
     }
 
     private OrderCodingSystem determineCodingSystem(OBR obr) throws Hl7MessageIgnoredException {

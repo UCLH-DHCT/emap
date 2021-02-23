@@ -34,7 +34,12 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class WinPathLabBuilder extends LabOrderBuilder {
+/**
+ * Build WinPath LabOrders.
+ * @author Jeremy Stein
+ * @author Stef Piatek
+ */
+public final class WinPathLabBuilder extends LabOrderBuilder {
     private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE")); // other winpath: CA, SN, NW, NA, CR, OC
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
 
@@ -129,6 +134,14 @@ public class WinPathLabBuilder extends LabOrderBuilder {
     }
 
 
+    /**
+     * Build order from ORM O01.
+     * @param idsUnid unique Id from the IDS
+     * @param ormO01  message
+     * @return interchange messages
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if the HL7 message contains errors
+     */
     public static List<LabOrderMsg> build(String idsUnid, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
         List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
 
@@ -149,7 +162,17 @@ public class WinPathLabBuilder extends LabOrderBuilder {
     }
 
 
-    static public Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
+    /**
+     * Build order with results from ORU R01.
+     * @param idsUnid      unique Id from the IDS
+     * @param oruR01       hl7 message
+     * @param codingSystem coding system to use.
+     * @return interchange messages
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if the HL7 message contains errors
+     * @throws Hl7MessageIgnoredException if message is ignored
+     */
+    public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         if (oruR01.getPATIENT_RESULTReps() != 1) {
             throw new RuntimeException("not handling this yet");

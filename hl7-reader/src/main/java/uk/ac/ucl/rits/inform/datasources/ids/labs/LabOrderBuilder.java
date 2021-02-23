@@ -24,15 +24,24 @@ abstract class LabOrderBuilder {
 
     private final LabOrderMsg msg = new LabOrderMsg();
 
+    /**
+     * @return Lab Order Msg.
+     */
     public LabOrderMsg getMsg() {
         return msg;
     }
 
-    public String getEpicCareOrderNumberOrc() {
+    /**
+     * @return ORC epic order number
+     */
+    String getEpicCareOrderNumberOrc() {
         return epicCareOrderNumberOrc;
     }
 
-    public String getEpicCareOrderNumberObr() {
+    /**
+     * @return OBR epic order number
+     */
+    String getEpicCareOrderNumberObr() {
         return epicCareOrderNumberObr;
     }
 
@@ -138,11 +147,10 @@ abstract class LabOrderBuilder {
 
         PRL parent = obr.getObr26_ParentResult();
 
-        // eg. "ISOLATE"
-        // match to OBX-3.1
+        // For results with multiple parts, e.g. WinPath ISOLATES, CoPath results
+        // matches OBX-3.1
         msg.setParentObservationIdentifier(parent.getPrl1_ParentObservationIdentifier().getCwe1_Identifier().getValueOrEmpty());
-
-        // match to OBX-4
+        // matches OBX-4
         msg.setParentSubId(parent.getPrl2_ParentObservationSubIdentifier().getValueOrEmpty());
     }
 

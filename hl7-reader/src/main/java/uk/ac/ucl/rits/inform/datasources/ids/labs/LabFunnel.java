@@ -5,8 +5,6 @@ import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.message.ORU_R30;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
@@ -16,20 +14,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Build one or more LabOrder object(s) from an HL7 message.
- * @author Jeremy Stein
+ * Determines which Lab Order builder subclass and builder method should be called.
  * @author Stef Piatek
  */
-public final class LabParser {
-    private final LabOrderMsg msg = new LabOrderMsg();
-
-    /**
-     * @return the underlying message we have now built
-     */
-    public LabOrderMsg getMessage() {
-        return msg;
-    }
-
+public final class LabFunnel {
     /**
      * Several orders for one patient can exist in the same message, so make one object for each.
      * @param idsUnid      unique Id from the IDS
@@ -54,8 +42,9 @@ public final class LabParser {
 
     /**
      * Build lab orders from ORU R30 message.
-     * @param idsUnid unique Id from the IDS
-     * @param oruR30  the Hl7 message
+     * @param idsUnid      unique Id from the IDS
+     * @param oruR30       the Hl7 message
+     * @param codingSystem coding system
      * @return single lab order in a list
      * @throws HL7Exception               if HAPI does
      * @throws Hl7MessageIgnoredException if it's a calibration or testing message
