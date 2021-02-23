@@ -124,7 +124,7 @@ abstract class LabOrderBuilder {
     void populateObrFields(OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // The first ORM message from Epic->WinPath is only sent when the label for the sample is printed,
         // which is the closest we get to a "collection" time. The actual collection will happen some point
-        // afterwards, we can't really tell. That's why an order message contains a non blank collection time.
+        // before or after this, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
         Instant collectionTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
         if (collectionTime == null) {

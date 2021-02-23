@@ -37,6 +37,7 @@ public final class AblLabBuilder extends LabOrderBuilder {
         setBatteryCodingSystem(codingSystem);
 
         OBR obr = oruR30.getOBR();
+        // skip message if it is "Proficiency Testing"
         populateSpecimenTypeOrIgnoreMessage(obr);
         populateObrFields(obr);
         populateOrderInformation(obr);
@@ -67,7 +68,6 @@ public final class AblLabBuilder extends LabOrderBuilder {
     public static Collection<LabOrderMsg> build(String idsUnid, ORU_R30 oruR30, OrderCodingSystem codingSystem)
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         List<LabOrderMsg> orders = new ArrayList<>(1);
-        // skip message if it is "Proficiency Testing"
         LabOrderMsg labOrder = new AblLabBuilder(idsUnid, oruR30, codingSystem).getMsg();
         // only one observation per message
         orders.add(labOrder);
