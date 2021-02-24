@@ -31,8 +31,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Table(indexes = {@Index(name = "lo_lab_number_id", columnList = "labNumberId"),
-        @Index(name = "lo_lab_battery_element_id", columnList = "labBatteryElementId")})
+@Table(indexes = {@Index(name = "lo_lab_number_id", columnList = "labNumberId")})
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

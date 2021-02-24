@@ -52,6 +52,12 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
      */
     private String quantity;
 
+    /**
+     * Any clinical information for the isolate.
+     * E.g. Gentamicin resistant, or specific sub-species identification
+     */
+    private String clinicalInformation;
+
 
     public LabIsolate() {}
 
@@ -69,6 +75,7 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
         this.isolateName = other.isolateName;
         this.cultureType = other.cultureType;
         this.quantity = other.quantity;
+        this.clinicalInformation = clinicalInformation;
     }
 
 

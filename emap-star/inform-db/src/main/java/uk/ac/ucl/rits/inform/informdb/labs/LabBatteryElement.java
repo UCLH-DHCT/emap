@@ -6,7 +6,6 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -44,9 +43,11 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
 
     public LabBatteryElement() {}
 
-    public LabBatteryElement(LabTestDefinition labTestDefinitionId, String battery, String labProvider) {
+    public LabBatteryElement(LabTestDefinition labTestDefinitionId, LabBattery labBatteryId, Instant validFrom, Instant storedFrom) {
         this.labTestDefinitionId = labTestDefinitionId;
         this.labBatteryId = labBatteryId;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     public LabBatteryElement(LabBatteryElement other) {

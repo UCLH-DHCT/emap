@@ -11,8 +11,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
@@ -32,7 +30,8 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
     private long labBatteryId;
 
 
-    private String battery;
+    private String batteryCode;
+    private String batteryName;
 
     /**
      * What system this code belongs to. Examples could be WinPath, or Epic.
@@ -42,14 +41,17 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
 
     public LabBattery() {}
 
-    public LabBattery(LabTestDefinition labTestDefinitionId, String battery, String labProvider) {
-        this.battery = battery;
+    public LabBattery(String batteryCode, String labProvider, Instant validFrom, Instant storedFrom) {
+        this.batteryCode = batteryCode;
         this.labProvider = labProvider;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     public LabBattery(LabBattery other) {
         super(other);
-        this.battery = other.battery;
+        this.batteryCode = other.batteryCode;
+        this.batteryName = other.batteryName;
         this.labProvider = other.labProvider;
     }
 
