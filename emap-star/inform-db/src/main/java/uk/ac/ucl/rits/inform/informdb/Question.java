@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.shared;
+package uk.ac.ucl.rits.inform.informdb;
 
 import lombok.Data;
 
