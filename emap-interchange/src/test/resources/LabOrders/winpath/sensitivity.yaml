@@ -15,7 +15,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "10,000 - 100,000 CFU/mL"
-      isolateCodeAndText: "KLEOXY^Klebsiella oxytoca"
+      isolateCode: "KLEOXY"
       abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
@@ -86,7 +86,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "10,000 - 100,000 CFU/mL"
-      isolateCodeAndText: "PROMIR^Proteus mirabilis"
+      isolateCode: "PROMIR"
       abnormalFlag:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"

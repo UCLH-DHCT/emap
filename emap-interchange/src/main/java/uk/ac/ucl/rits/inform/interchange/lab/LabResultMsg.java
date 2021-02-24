@@ -32,7 +32,10 @@ public class LabResultMsg implements Serializable {
      * Currently only filled for microbial isolates/sensitivities.
      */
     private String observationSubId = "";
-    private String isolateCodeAndText = "";
+    private String isolateCode = "";
+    private String isolateName = "";
+    private String cultureType = "";
+    private String isolateQuantity = "";
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
     private InterchangeValue<String> units = InterchangeValue.unknown();
