@@ -8,7 +8,7 @@ requestedDateTime:
   status: "SAVE"
   value: "2020-04-21T10:13:00Z"
 collectionDateTime: "2020-04-21T08:28:00Z"
-testBatteryCodingSystem: "WinPath"
+testBatteryCodingSystem: "WIN_PATH"
 sourceSystem: "WinPath"
 parentObservationIdentifier: ""
 parentSubId: ""

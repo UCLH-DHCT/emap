@@ -4,7 +4,7 @@ labSpecimenNumber: "20V042424"
 specimenType: "MSU"
 mrn: "44444444"
 visitNumber: "123412341234"
-testBatteryCodingSystem: "WinPath"
+testBatteryCodingSystem: "WIN_PATH"
 sourceSystem: "WinPath"
 epicCareOrderNumber: "93939393"
 requestedDateTime:
