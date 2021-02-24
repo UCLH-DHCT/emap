@@ -20,6 +20,6 @@ public interface LabSensitivityRepository extends CrudRepository<LabSensitivity,
      * @param agent   antibiotic agent
      * @return optional sensitivity
      */
-    Optional<LabSensitivity> findByLabIsolateIsolateCodeAndAgent(String isolate, String agent);
+    Optional<LabSensitivity> findByLabIsolateIdIsolateCodeAndAgent(String isolate, String agent);
 
 }
