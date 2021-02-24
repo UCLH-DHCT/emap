@@ -7,6 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -63,13 +64,12 @@ class TestAblOruR30Parsing {
     void testBatteryCodes() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
         assertEquals("VBG", msg.getTestBatteryLocalCode());
-        assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
     }
 
     @Test
     void testBatteryCodingSystem() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
-        assertEquals("ABL90 FLEX Plus", msg.getTestBatteryCodingSystem());
+        assertEquals(OrderCodingSystem.ABL90_FLEX_PLUS.name(), msg.getTestBatteryCodingSystem());
     }
 
     /**

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -65,7 +66,7 @@ class TestBioConnectOruR01 {
     @Test
     void testBatteryCodingSystem() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
-        assertEquals("BIO-CONNECT", msg.getTestBatteryCodingSystem());
+        assertEquals(OrderCodingSystem.BIO_CONNECT.name(), msg.getTestBatteryCodingSystem());
     }
 
     /**
