@@ -130,19 +130,21 @@ public class LabOrderController {
      * @param msg        Msg
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
+     * @throws IncompatibleDatabaseStateException if specimen type or sample site changes
      */
     private void updateOrCreateLabCollection(
-            LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
+            LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
         RowState<LabCollection, LabCollectionAudit> state = labCollectionRepo
-                .findByLabNumberIdAndSampleType(labNumber, msg.getSpecimenType())
+                .findByLabNumberId(labNumber)
                 .map(col -> new RowState<>(col, validFrom, storedFrom, false))
-                .orElseGet(() -> createLabCollection(labNumber, msg.getSpecimenType(), validFrom, storedFrom));
+                .orElseGet(() -> createLabCollection(labNumber, validFrom, storedFrom));
 
         LabCollection collection = state.getEntity();
-        // If no sample received time or more recent message, try to update it
-        if (collection.getReceiptAtLab() == null || collection.getValidFrom().isBefore(validFrom)) {
-            state.assignInterchangeValue(msg.getSampleReceivedTime(), collection.getReceiptAtLab(), collection::setReceiptAtLab);
-        }
+
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                state, msg.getSampleReceivedTime(), collection.getReceiptAtLab(), collection::setReceiptAtLab, validFrom);
+        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSpecimenType(), collection.getSpecimenType(), collection::setSpecimenType);
+        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), collection.getSampleSite(), collection::setSampleSite);
         // Allow for change of sample collection time, but don't expect this to happen
         if (state.isEntityCreated() || collection.getValidFrom().isBefore(validFrom)) {
             state.assignIfDifferent(msg.getCollectionDateTime(), collection.getSampleCollectionTime(), collection::setSampleCollectionTime);
@@ -154,14 +156,20 @@ public class LabOrderController {
         state.saveEntityOrAuditLogIfRequired(labCollectionRepo, labCollectionAuditRepository);
     }
 
-    private RowState<LabCollection, LabCollectionAudit> createLabCollection(
-            LabNumber labNumber, String specimenType, Instant validFrom, Instant storedFrom) {
-        LabCollection collection = new LabCollection(labNumber, specimenType);
-        collection.setValidFrom(validFrom);
-        collection.setStoredFrom(storedFrom);
+    private RowState<LabCollection, LabCollectionAudit> createLabCollection(LabNumber labNumber, Instant validFrom, Instant storedFrom) {
+        LabCollection collection = new LabCollection(labNumber, validFrom, storedFrom);
         return new RowState<>(collection, validFrom, storedFrom, true);
     }
 
+    private void assignIfCurrentlyNullOrThrowIfDifferent(
+            RowState<?, ?> state, InterchangeValue<String> msgValue, String currentValue, Consumer<String> setter
+    ) throws IncompatibleDatabaseStateException {
+        if (currentValue == null) {
+            state.assignInterchangeValue(msgValue, currentValue, setter);
+        } else if (msgValue.isSave() && !msgValue.get().equals(currentValue)) {
+            throw new IncompatibleDatabaseStateException(String.format("Current value %s different from message %s", currentValue, msgValue.get()));
+        }
+    }
 
     /**
      * Create new lab order or update existing one.
@@ -207,5 +215,6 @@ public class LabOrderController {
             state.assignInterchangeValue(msgValue, currentValue, setter);
         }
     }
+
 
 }

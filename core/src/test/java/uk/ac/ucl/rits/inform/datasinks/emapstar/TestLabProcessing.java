@@ -1,7 +1,10 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
@@ -31,14 +34,17 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TestLabProcessing extends MessageProcessingBase {
     private LabOrderMsg fourResults;
@@ -381,20 +387,83 @@ class TestLabProcessing extends MessageProcessingBase {
     @Test
     void testLabCollectionDataCorrect() throws EmapOperationMessageProcessingException {
         // set relevant values
-        String sampleType = "BLD";
+        String sampleType = "Tissue";
+        String sampleSite = "Right Kidney";
         Instant collectTime = Instant.parse("2013-07-24T15:41:00Z");
 
         LabOrderMsg msg = singleResult;
-        msg.setSpecimenType(sampleType);
+        msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
+        msg.setSampleSite(InterchangeValue.buildFromHl7(sampleSite));
         msg.setCollectionDateTime(collectTime);
         msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(collectTime));
         //process message
         processSingleMessage(msg);
         // check results correct
         LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(sampleType, collection.getSampleType());
+        assertEquals(sampleType, collection.getSpecimenType());
+        assertEquals(sampleSite, collection.getSampleSite());
         assertEquals(collectTime, collection.getSampleCollectionTime());
         assertEquals(collectTime, collection.getReceiptAtLab());
+    }
+
+    void processWithChangedSampleInformation(String initialValue, boolean changeSpecimenType) throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = singleResult;
+        msg.setSpecimenType(InterchangeValue.buildFromHl7(initialValue));
+        msg.setSampleSite(InterchangeValue.buildFromHl7(initialValue));
+        //process message
+        processSingleMessage(msg);
+        if (changeSpecimenType) {
+            msg.setSpecimenType(InterchangeValue.buildFromHl7(String.format("%s2", initialValue)));
+        } else {
+            msg.setSampleSite(InterchangeValue.buildFromHl7(String.format("%s2", initialValue)));
+        }
+        processSingleMessage(msg);
+    }
+
+    /**
+     * Ensure that unchangeable fields should throw exception if changed
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @TestFactory
+    Iterable<DynamicTest> testLabCollectionThrowsExceptionWhenSampleInfoChanged() throws EmapOperationMessageProcessingException {
+        return Arrays.asList(
+                DynamicTest.dynamicTest(
+                        "SpecimenType", () -> {
+                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", true));
+                        }
+                ),
+                DynamicTest.dynamicTest(
+                        "SampleSite", () -> {
+                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", false));
+                        }
+                )
+        );
+    }
+
+    /**
+     * Ensure that unknown unchangeable fields are updated
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @TestFactory
+    Iterable<DynamicTest> testLabCollectionCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
+        return Arrays.asList(
+                DynamicTest.dynamicTest(
+                        "SpecimenType", () -> {
+                            processWithChangedSampleInformation("", true);
+                            LabCollection collection = labCollectionRepository
+                                    .findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+                            assertEquals("2", collection.getSpecimenType());
+                        }
+                ),
+                DynamicTest.dynamicTest(
+                        "SampleSite", () -> {
+                            processWithChangedSampleInformation("", false);
+                            LabCollection collection = labCollectionRepository
+                                    .findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+                            assertEquals("2", collection.getSampleSite());
+                        }
+                )
+        );
     }
 
     /**
@@ -560,8 +629,8 @@ class TestLabProcessing extends MessageProcessingBase {
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
         String laterSensitivity = "R";
-        for (LabOrderMsg sensOrder: msg.getLabResultMsgs().get(0).getLabSensitivities()) {
-            for (LabResultMsg sensResult: sensOrder.getLabResultMsgs()) {
+        for (LabOrderMsg sensOrder : msg.getLabResultMsgs().get(0).getLabSensitivities()) {
+            for (LabResultMsg sensResult : sensOrder.getLabResultMsgs()) {
                 sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
             }
         }

@@ -11,7 +11,7 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabCollectionRepository extends CrudRepository<LabCollection, Long> {
-    Optional<LabCollection> findByLabNumberIdAndSampleType(LabNumber labNumber, String specimenType);
+    Optional<LabCollection> findByLabNumberId(LabNumber labNumber);
 
     /**
      * For testing.
