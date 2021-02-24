@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -251,32 +252,31 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     }
 
     /**
-     * Use the sub IDs to see which observations (results) belong together
-     * and should be combined. Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments,
-     * linked by a sub ID.
+     * Use the sub IDs to see which observations (results) belong together and should be combined.
+     * <p>
+     * Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments, linked by a sub ID.
      * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
      */
     private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) {
         Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());
-        for (int i = 0; i < labResults.size(); i++) {
-            // must this line of a result be merged with a previous line to give the
-            // full result?
-            String subId = labResults.get(i).getMessage().getObservationSubId();
-            if (!subId.isEmpty()) {
-                WinPathResultBuilder existing = subIdMapping.get(subId);
-                if (existing == null) {
-                    // save it for future results that will need to refer back to it
-                    subIdMapping.put(subId, labResults.get(i));
-                } else {
-                    // the sub ID has already been seen, so merge this result
-                    // into the existing result, and delete this result
-                    existing.mergeResult(labResults.get(i).getMessage());
-                    labResults.set(i, null);
-                }
+        ListIterator<WinPathResultBuilder> iterator = labResults.listIterator();
+        while (iterator.hasNext()) {
+            WinPathResultBuilder builder = iterator.next();
+            String subId = builder.getMessage().getObservationSubId();
+            if (subId.isEmpty()) {
+                continue;
+            }
+            WinPathResultBuilder existing = subIdMapping.get(subId);
+            if (existing == null) {
+                // save it for future results that will need to refer back to it
+                subIdMapping.put(subId, builder);
+            } else {
+                // the sub ID has already been seen, so merge this result
+                // into the existing result, and delete this result
+                existing.mergeResult(builder.getMessage());
+                iterator.remove();
             }
         }
-        // remove those which have been merged in and marked as null (all their data should have been incorporated in the merge)
-        labResults.removeIf(Objects::isNull);
     }
 
     /**
