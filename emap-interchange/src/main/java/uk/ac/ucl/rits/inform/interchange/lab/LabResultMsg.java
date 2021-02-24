@@ -27,9 +27,7 @@ public class LabResultMsg implements Serializable {
     private String testItemCodingSystem = "";
 
     /**
-     * Id to link an observation over multiple result fields.
-     * <p>
-     * Currently only filled for microbial isolates/sensitivities.
+     * Id to link an observation over multiple result fields which can then be combined
      */
     private String observationSubId = "";
     private String isolateCode = "";

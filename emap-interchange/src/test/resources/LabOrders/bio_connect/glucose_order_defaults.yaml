@@ -15,4 +15,7 @@ sampleReceivedTime:
 collectionDateTime: "2013-07-25T12:59:00Z"
 testBatteryCodingSystem: "BIO-CONNECT"
 sourceSystem: "BIO-CONNECT"
-specimenType: "BLD"
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value:  "BLD"

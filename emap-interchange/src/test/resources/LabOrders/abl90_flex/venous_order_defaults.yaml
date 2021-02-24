@@ -15,4 +15,7 @@ sampleReceivedTime:
 collectionDateTime: "2013-02-11T10:00:52Z"
 testBatteryCodingSystem: "ABL90 FLEX Plus"
 sourceSystem: "ABL90 FLEX Plus"
-specimenType: "Venous"
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value:  "Venous"

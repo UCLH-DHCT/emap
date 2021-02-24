@@ -31,7 +31,8 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String orderControlId;
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
-    private String specimenType;
+    private InterchangeValue<String> specimenType = InterchangeValue.unknown();
+    private InterchangeValue<String> sampleSite = InterchangeValue.unknown();
 
     /**
      * Best we can get to time the sample was collected (label printing time).
