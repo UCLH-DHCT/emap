@@ -29,7 +29,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"labNumberId", "sampleType"})})
+@Table
 public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudit> {
 
     @Id
@@ -53,10 +53,10 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
     private Instant sampleCollectionTime;
 
     /**
-     * Type of sample.
+     * Type of specimen.
      * E.g. Mid Stream Urine
      */
-    private String sampleType;
+    private String specimenType;
     /**
      * Site the sample was taken from.
      * E.g. Right kidney
@@ -65,9 +65,10 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
 
     public LabCollection() {}
 
-    public LabCollection(LabNumber labNumberId, String sampleType) {
+    public LabCollection(LabNumber labNumberId, Instant validFrom, Instant storedFrom) {
         this.labNumberId = labNumberId;
-        this.sampleType = sampleType;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     public LabCollection(LabCollection other) {
@@ -76,7 +77,7 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
         this.labNumberId = other.labNumberId;
         this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
-        this.sampleType = other.sampleType;
+        this.specimenType = other.specimenType;
     }
 
     @Override
