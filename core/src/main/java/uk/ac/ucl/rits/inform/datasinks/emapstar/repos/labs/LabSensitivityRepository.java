@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.labs.LabIsolate;
-import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 
 import java.util.Optional;

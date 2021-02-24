@@ -84,7 +84,8 @@ public class LabOrderController {
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      */
     @Transactional
-    public LabNumber processLabNumberLabCollectionAndLabOrder(Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
+    public LabNumber processLabNumberLabCollectionAndLabOrder(
+            Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
             throws IncompatibleDatabaseStateException {
         LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
         updateOrCreateLabCollection(labNumber, msg, validFrom, storedFrom);
