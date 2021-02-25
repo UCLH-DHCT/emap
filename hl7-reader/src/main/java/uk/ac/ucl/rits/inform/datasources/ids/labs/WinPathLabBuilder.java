@@ -68,7 +68,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         OBR obr = order.getORDER_DETAIL().getOBR();
         populateObrFields(obr);
         populateOrderInformation(orc, obr);
-        validateEpicOrderNumber();
+        validateAndSetEpicOrderNumber();
     }
 
 
@@ -125,7 +125,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         OBR obr = obs.getOBR();
         populateObrFields(obr);
         populateOrderInformation(obs.getORC(), obr);
-        validateEpicOrderNumber();
+        validateAndSetEpicOrderNumber();
 
         List<WinPathResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
@@ -290,7 +290,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * here.
      * @throws Hl7InconsistencyException if anything doesn't match
      */
-    private void validateEpicOrderNumber() throws Hl7InconsistencyException {
+    private void validateAndSetEpicOrderNumber() throws Hl7InconsistencyException {
         String orcNumber = getEpicCareOrderNumberOrc();
         String obrNumber = getEpicCareOrderNumberObr();
         // check we're not confused and these order numbers match - they can be empty though (eg. if ORC-1 = "SN")
