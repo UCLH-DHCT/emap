@@ -2,17 +2,22 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
+import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CE;
+import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builder for LabResults for WinPath.
@@ -22,6 +27,7 @@ import java.util.List;
 public class WinPathResultBuilder extends LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(WinPathResultBuilder.class);
     private final OBR obr;
+    private static final String CULTURE_TYPE_SUFFIX = " culture yields:";
 
     /**
      * @param obx   the OBX segment for this result
@@ -42,43 +48,62 @@ public class WinPathResultBuilder extends LabResultBuilder {
 
     @Override
     void setCustomOverrides() {
-        // each result needs to know this so sensitivities can be correctly assigned
-        getMessage().setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        return;
     }
 
     /**
      * Set value of coded result (CE).
-     * @param data     data item
-     * @param testCode expected test code
-     * @param repCount the number of parts of the data item
      * @throws Hl7InconsistencyException if coded data that is not ISOLATE
      */
     @Override
-    protected void setDataFromCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
-        if (!(data instanceof CE)) {
+    protected void setDataFromCustomValue(OBX obx) throws Hl7InconsistencyException {
+        String testCode = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
+        if (!"ISOLATE".equals(testCode)) {
             return;
         }
-        if (!"ISOLATE".equals(testCode)) {
+        int repCount = obx.getObx5_ObservationValueReps();
+        if (repCount > 1) {
+            logger.warn("ISOLATE lab result with repcount = {}", repCount);
+        }
+
+        Varies dataVaries = obx.getObx5_ObservationValue(0);
+        Type data = dataVaries.getData();
+        String subId = obx.getObx4_ObservationSubID().getValueOrEmpty();
+        String epicOrderId = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        if (data instanceof ST) {
+            putIsolateCultureOrQuantity(subId, epicOrderId);
+        } else if (data instanceof CE) {
+            putIsolateCodeAndName(subId, epicOrderId, (CE) data);
+        } else {
             throw new Hl7InconsistencyException(String.format("Coded data which is not an ISOLATE test, instead is '%s'", testCode));
         }
-
-        if (repCount > 1) {
-            logger.warn("LabResult is coded (CE) result but repcount = {}", repCount);
-        }
-        CE ceData = (CE) data;
-        String isolateCode = ceData.getCe1_Identifier().getValue().stripTrailing();
-        String isolateText = ceData.getCe2_Text().getValue();
-        getMessage().setIsolateCodeAndText(String.format("%s^%s", isolateCode, isolateText));
     }
 
-    /**
-     * Merge another lab result into this one.
-     * Eg. an adjacent OBX segment that is linked by a sub ID.
-     * @param labResultMsg the other lab result to merge in
-     */
-    void mergeResult(LabResultMsg labResultMsg) {
-        if (!labResultMsg.getIsolateCodeAndText().isEmpty()) {
-            getMessage().setIsolateCodeAndText(labResultMsg.getIsolateCodeAndText());
+    private void putIsolateCultureOrQuantity(String subId, String epicOrderId) {
+        String cultureOrQuantity = getMessage().getStringValue().isSave() ? getMessage().getStringValue().get() : "";
+        LabIsolateMsg labIsolate = new LabIsolateMsg();
+        if (cultureOrQuantity.endsWith(CULTURE_TYPE_SUFFIX)) {
+            labIsolate.setCultureType(InterchangeValue.buildFromHl7(cultureOrQuantity.replace(CULTURE_TYPE_SUFFIX, "")));
+        } else {
+            labIsolate.setQuantity(InterchangeValue.buildFromHl7(cultureOrQuantity));
         }
+
+        Map<Pair<String, String>, LabIsolateMsg> labIsolates = getMessage().getLabIsolates();
+        // replace with type when interchange format merged in
+        getMessage().setValueType("link/lab_isolate");
+        // remove previously set string value
+        getMessage().setStringValue(InterchangeValue.unknown());
+        labIsolates.put(Pair.of(epicOrderId, subId), labIsolate);
+    }
+
+    private void putIsolateCodeAndName(String subId, String epicOrderId, CE data) {
+        String isolateCode = data.getCe1_Identifier().getValue().stripTrailing();
+        String isolateText = data.getCe2_Text().getValue();
+        LabIsolateMsg labIsolate = new LabIsolateMsg();
+
+        Map<Pair<String, String>, LabIsolateMsg> labIsolates = getMessage().getLabIsolates();
+        labIsolate.setIsolateCode(isolateCode);
+        labIsolate.setIsolateCode(isolateText);
+        labIsolates.put(Pair.of(epicOrderId, subId), labIsolate);
     }
 }

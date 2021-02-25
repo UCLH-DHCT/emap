@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -208,7 +209,7 @@ class TestWinPathLabOruR01Results {
 
     /**
      * No growth has trailing spaces in the code, these should be removed
-     * "NG5   ^No growth after 5 days incubation" -> "NG5^No growth after 5 days incubation"
+     * "NG5   ^No growth after 5 days incubation" -> "NG5"
      * @throws Exception shouldn't happen
      */
     @Test
@@ -219,7 +220,11 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        assertEquals("NG5^No growth after 5 days incubation", result.get(0).getIsolateCodeAndText());
+        String ng5 = result.get(0).getLabIsolates().values().stream()
+                .map(LabIsolateMsg::getIsolateCode)
+                .findFirst()
+                .orElseThrow();
+        assertEquals("NG5^No growth after 5 days incubation", ng5);
     }
 
     @Test
@@ -230,7 +235,13 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), result.get(0).getLabSensitivities().get(0).getClinicalInformation());
+        String sens = result.get(0).getLabIsolates().values().stream()
+                .map(LabIsolateMsg::getClinicalInformation)
+                .filter(InterchangeValue::isSave)
+                .map(InterchangeValue::get)
+                .findFirst()
+                .orElseThrow();
+        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), sens);
     }
 
 

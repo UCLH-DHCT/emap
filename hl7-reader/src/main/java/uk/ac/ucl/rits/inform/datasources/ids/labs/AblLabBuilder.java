@@ -8,6 +8,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -85,6 +86,6 @@ public final class AblLabBuilder extends LabOrderBuilder {
         if ("Proficiency Testing".equals(sampleType)) {
             throw new Hl7MessageIgnoredException("Test/Calibration reading, skipping processing");
         }
-        getMsg().setSpecimenType(sampleType);
+        getMsg().setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
     }
 }

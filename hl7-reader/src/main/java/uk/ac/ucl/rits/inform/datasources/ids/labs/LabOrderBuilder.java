@@ -83,7 +83,7 @@ abstract class LabOrderBuilder {
 
     private void setSpecimenType(OBR obr) {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
-        msg.setSpecimenType(sampleType);
+        msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
     }
 
     /**
