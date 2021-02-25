@@ -130,7 +130,7 @@ class TestBioConnectOruR01 {
     @Test
     void testCollectionSpecimenType() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
-        assertEquals("BLD", msg.getSpecimenType());
+        assertEquals(InterchangeValue.buildFromHl7("BLD"), msg.getSpecimenType());
     }
 
 }

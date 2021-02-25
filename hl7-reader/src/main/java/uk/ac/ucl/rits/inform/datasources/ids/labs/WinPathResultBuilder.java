@@ -76,7 +76,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
         } else if (data instanceof CE) {
             CE ceData = (CE) data;
             labIsolate.setIsolateCode(ceData.getCe1_Identifier().getValue().stripTrailing());
-            labIsolate.setIsolateCode(ceData.getCe2_Text().getValue());
+            labIsolate.setIsolateName(ceData.getCe2_Text().getValue());
         }
     }
 

@@ -34,7 +34,7 @@ class TestWinPathLabOruR01Results {
     @Test
     void testSpecimenType() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
-        assertEquals("CTNS", msg.getSpecimenType());
+        assertEquals(InterchangeValue.buildFromHl7("CTNS"), msg.getSpecimenType());
     }
 
     /**
@@ -221,7 +221,7 @@ class TestWinPathLabOruR01Results {
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
         String ng5 = result.get(0).getLabIsolate().getIsolateCode();
-        assertEquals("NG5^No growth after 5 days incubation", ng5);
+        assertEquals("NG5", ng5);
     }
 
     @Test
@@ -232,9 +232,7 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        InterchangeValue<String> possibleClinical = result.get(0).getLabIsolate().getClinicalInformation();
-        assertTrue(possibleClinical.isSave());
-        String clinical = possibleClinical.get();
+        InterchangeValue<String> clinical = result.get(0).getLabIsolate().getClinicalInformation();
 
         assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), clinical);
     }
