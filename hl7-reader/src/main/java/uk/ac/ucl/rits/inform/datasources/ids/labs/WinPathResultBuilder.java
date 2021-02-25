@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.List;
 
@@ -46,7 +47,8 @@ public class WinPathResultBuilder extends LabResultBuilder {
 
     @Override
     void setCustomOverrides() {
-        return;
+        // each result needs to know this so sensitivities can be correctly assigned
+        getMessage().setEpicCareOrderNumber(obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
     }
 
     /**
@@ -69,7 +71,6 @@ public class WinPathResultBuilder extends LabResultBuilder {
             logger.warn("ISOLATE lab result with repcount = {}", repCount);
         }
         LabIsolateMsg labIsolate = addLabIsolateWithEpicOrderIdAndSubId(obx);
-
         if (data instanceof ST) {
             addCultureOrQuantityAndUpdateMessageValue(labIsolate);
         } else if (data instanceof CE) {
@@ -83,7 +84,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
         String epicOrderId = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         String subId = obx.getObx4_ObservationSubID().getValueOrEmpty();
         LabIsolateMsg labIsolate = new LabIsolateMsg(epicOrderId, subId);
-        getMessage().getLabIsolates().add(labIsolate);
+        getMessage().setLabIsolate(labIsolate);
         return labIsolate;
     }
 
@@ -94,6 +95,17 @@ public class WinPathResultBuilder extends LabResultBuilder {
         } else {
             labIsolate.setQuantity(InterchangeValue.buildFromHl7(cultureOrQuantity));
         }
+    }
+
+    /**
+     * Merge isolate information, updating current lab result with the other message values which have been set.
+     * Eg. an adjacent OBX segment that is linked by a sub ID.
+     * @param otherMsg the other lab result to merge in
+     */
+    void mergeIsolatesAndEnsureValue(LabResultMsg otherMsg) {
+        LabIsolateMsg thisIsolate = getMessage().getLabIsolate();
+        LabIsolateMsg otherIsolate = otherMsg.getLabIsolate();
+        thisIsolate.mergeIsolateInfo(otherIsolate);
 
         // replace with type when interchange format merged in
         getMessage().setValueType("link/lab_isolate");

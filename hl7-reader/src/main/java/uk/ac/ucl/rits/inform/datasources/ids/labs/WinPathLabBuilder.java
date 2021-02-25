@@ -20,13 +20,20 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -129,8 +136,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             labResult.constructMsg();
             tempResults.add(labResult);
         }
-        // join some of the observations under this fact together (or ignore some of them)
-//        mergeOrFilterResults(tempResults);
+        // merge isolate results
+        mergeOrFilterResults(tempResults);
         getMsg().setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
@@ -198,10 +205,84 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
             }
         }
-//        reparentOrders(orders);
+        mergeSensitivities(orders);
         return orders;
     }
 
+    /**
+     * Use the HL7 fields to re-parent the sensitivities in this list so they point to the results
+     * that they apply to. Parents and children must all be in the list supplied.
+     * @param orders the list of all orders from a HL7 message. This list will have items modified and/or deleted.
+     */
+    private static void mergeSensitivities(List<LabOrderMsg> orders) {
+        // we may have multiple orders that are unrelated to each other (apart from
+        // being for the same patient).
+        for (int i = 0; i < orders.size(); i++) {
+            LabOrderMsg orderToReparent = orders.get(i);
+            if (orderToReparent.getParentSubId().isEmpty()) {
+                continue;
+            }
+            // The order has a parent, let's find it.
+            // Not many elements, a linear search should be fine.
+            // I'm assuming that the parent always appears before the child in the list.
+            for (int j = 0; j < i; j++) {
+                LabOrderMsg possibleOrder = orders.get(j);
+                if (possibleOrder == null) {
+                    // we already re-parented this one, skip
+                    continue;
+                }
+                try {
+                    LabResultMsg foundParentResult = possibleOrder.getLabResultMsgs().stream()
+                            .filter(par -> isChildOf(orderToReparent, par))
+                            .findFirst().orElseThrow();
+                    // add the order to the list of sensitivities and delete from the original list
+                    logger.debug("Reparenting sensitivity {} onto {}", orderToReparent, foundParentResult);
+                    LabIsolateMsg parentIsolate = foundParentResult.getLabIsolate();
+                    parentIsolate.setSensitivities(orderToReparent.getLabResultMsgs());
+                    parentIsolate.setClinicalInformation(orderToReparent.getClinicalInformation());
+
+                    orders.set(i, null);
+                    break;
+                } catch (NoSuchElementException e) {
+                    if (j == i - 1) {
+                        logger.error("No parent order found for sensitivity", e);
+                    }
+                }
+            }
+        }
+        orders.removeIf(Objects::isNull);
+    }
+
+    /**
+     * Use the sub IDs to see which observations (results) belong together and should be combined.
+     * <p>
+     * Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments, linked by a sub ID.
+     * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
+     */
+    private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) throws Hl7InconsistencyException {
+        Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());
+        ListIterator<WinPathResultBuilder> iterator = labResults.listIterator();
+        while (iterator.hasNext()) {
+            WinPathResultBuilder builder = iterator.next();
+            String subId = builder.getMessage().getObservationSubId();
+
+            if (subId.isEmpty()) {
+                continue;
+            } else if (builder.getMessage().getLabIsolate() == null) {
+                throw new Hl7InconsistencyException("Lab isolate from result not found from winpath with subId");
+            }
+
+            WinPathResultBuilder existing = subIdMapping.get(subId);
+            if (existing == null) {
+                // save it for future results that will need to refer back to it
+                subIdMapping.put(subId, builder);
+            } else {
+                // the sub ID has already been seen, so merge this result into the existing result, and delete this result
+                existing.mergeIsolatesAndEnsureValue(builder.getMessage());
+                iterator.remove();
+            }
+        }
+    }
 
     /**
      * EpicCareOrderNumber duplicated between the ORC and OBR segments.
@@ -216,6 +297,29 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         if (!orcNumber.equals(obrNumber)) {
             throw new Hl7InconsistencyException(String.format("ORC-2 %s does not match OBR-2 %s", orcNumber, obrNumber));
         }
+        //once we've established they're identical, set the definitive value to be one of them
+        getMsg().setEpicCareOrderNumber(orcNumber);
+    }
+
+
+    /**
+     * HL7-specific way of determining parentage. The workings of this shouldn't be
+     * exposed to the interchange format (ie. LabOrder).
+     * @param possibleChild  the order to test whether possibleParent is a parent of it
+     * @param possibleParent the result to test whether possibleChild is a child of it
+     * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent
+     */
+    private static boolean isChildOf(LabOrderMsg possibleChild, LabResultMsg possibleParent) {
+        if (possibleChild.getEpicCareOrderNumber().isEmpty()
+                || possibleChild.getParentObservationIdentifier().isEmpty()
+                || possibleChild.getParentSubId().isEmpty()) {
+            return false;
+        }
+
+        return possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
+                && possibleChild.getParentObservationIdentifier().equals(possibleParent.getTestItemLocalCode())
+                && possibleChild.getParentSubId().equals(possibleParent.getObservationSubId());
     }
 
 }
+

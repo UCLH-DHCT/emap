@@ -220,10 +220,7 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        String ng5 = result.get(0).getLabIsolates().stream()
-                .map(LabIsolateMsg::getIsolateCode)
-                .findFirst()
-                .orElseThrow();
+        String ng5 = result.get(0).getLabIsolate().getIsolateCode();
         assertEquals("NG5^No growth after 5 days incubation", ng5);
     }
 
@@ -235,13 +232,11 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        String sens = result.get(0).getLabIsolates().stream()
-                .map(LabIsolateMsg::getClinicalInformation)
-                .filter(InterchangeValue::isSave)
-                .map(InterchangeValue::get)
-                .findFirst()
-                .orElseThrow();
-        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), sens);
+        InterchangeValue<String> possibleClinical = result.get(0).getLabIsolate().getClinicalInformation();
+        assertTrue(possibleClinical.isSave());
+        String clinical = possibleClinical.get();
+
+        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), clinical);
     }
 
 
