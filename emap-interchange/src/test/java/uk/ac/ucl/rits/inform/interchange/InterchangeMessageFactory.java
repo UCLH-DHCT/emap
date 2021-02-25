@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -11,6 +12,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,14 +119,34 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * Update all of lab results from yaml file
+     * Utility wrapper for calling updateLabResults without updating the resultTime or epicCareOrderNumber.
      * @param results            lab results to update
      * @param resourcePathPrefix prefix in the form '{directory}/{file_stem}'
      * @throws IOException if files don't exist
      */
     private void updateLabResults(Iterable<LabResultMsg> results, final String resourcePathPrefix) throws IOException {
+        updateLabResults(results, resourcePathPrefix, null, null);
+    }
+
+    /**
+     * Update all of lab results from yaml file
+     * @param results             lab results to update
+     * @param resourcePathPrefix  prefix in the form '{directory}/{file_stem}'
+     * @param resultTime          optional result time to add
+     * @param epicCareOrderNumber optional epic care order number to add
+     * @throws IOException if files don't exist
+     */
+    private void updateLabResults(Iterable<LabResultMsg> results, final String resourcePathPrefix,
+                                  @Nullable Instant resultTime, @Nullable String epicCareOrderNumber)
+            throws IOException {
         String resultDefaultPath = resourcePathPrefix + "_result_defaults.yaml";
         for (LabResultMsg result : results) {
+            // update the epic order number and result time
+            if (epicCareOrderNumber != null && resultTime != null) {
+                result.setEpicCareOrderNumber(epicCareOrderNumber);
+                result.setResultTime(resultTime);
+            }
+
             // update result with yaml data
             ObjectReader resultReader = mapper.readerForUpdating(result);
             resultReader.readValue(getClass().getResourceAsStream(resultDefaultPath));
@@ -145,7 +167,7 @@ public class InterchangeMessageFactory {
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
         order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
-        updateLabResults(order.getLabResultMsgs(), resourcePathPrefix);
+        updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), order.getEpicCareOrderNumber());
     }
 
     /**

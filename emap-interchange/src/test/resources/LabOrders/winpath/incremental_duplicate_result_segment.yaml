@@ -24,7 +24,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 20
-      resultTime: "2020-04-22T03:25:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
@@ -49,7 +48,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 129
-      resultTime: "2020-04-22T03:25:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
@@ -74,7 +72,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
-      resultTime: "2020-04-22T03:25:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
@@ -99,7 +96,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 129
-      resultTime: "2020-04-22T03:25:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
@@ -124,7 +120,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
-      resultTime: "2020-04-22T03:25:00Z"
   statusChangeTime: "2020-04-22T03:25:00Z"
   orderStatus: "A"
   resultStatus: "A"
@@ -154,7 +149,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 20
-      resultTime: "2020-04-22T05:24:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
@@ -179,7 +173,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 129
-      resultTime: "2020-04-22T05:24:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALT"
@@ -208,7 +201,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
-      resultTime: "2020-04-22T05:24:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
@@ -233,7 +225,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
-      resultTime: "2020-04-22T05:24:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALP"
@@ -258,7 +249,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 129
-      resultTime: "2020-04-22T05:24:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
@@ -283,7 +273,6 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
-      resultTime: "2020-04-22T05:24:00Z"
   statusChangeTime: "2020-04-22T05:24:00Z"
   orderStatus: "CM"
   resultStatus: "F"
