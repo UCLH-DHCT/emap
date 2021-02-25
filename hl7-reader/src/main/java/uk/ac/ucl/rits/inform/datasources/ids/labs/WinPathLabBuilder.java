@@ -278,7 +278,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
                 subIdMapping.put(subId, builder);
             } else {
                 // the sub ID has already been seen, so merge this result into the existing result, and delete this result
-                existing.mergeIsolatesAndEnsureValue(builder.getMessage());
+                existing.mergeIsolatesSetMimeTypeAndClearValue(builder.getMessage());
                 iterator.remove();
             }
         }

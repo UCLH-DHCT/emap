@@ -102,7 +102,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
      * Eg. an adjacent OBX segment that is linked by a sub ID.
      * @param otherMsg the other lab result to merge in
      */
-    void mergeIsolatesAndEnsureValue(LabResultMsg otherMsg) {
+    void mergeIsolatesSetMimeTypeAndClearValue(LabResultMsg otherMsg) {
         LabIsolateMsg thisIsolate = getMessage().getLabIsolate();
         LabIsolateMsg otherIsolate = otherMsg.getLabIsolate();
         thisIsolate.mergeIsolateInfo(otherIsolate);
