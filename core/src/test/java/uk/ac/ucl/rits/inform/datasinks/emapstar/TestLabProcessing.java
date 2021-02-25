@@ -29,6 +29,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -239,7 +240,7 @@ class TestLabProcessing extends MessageProcessingBase {
     void testHappyPathLabTestDefinition() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabTestDefinition result = labTestDefinitionRepository.findByTestLabCode(singleResultTestCode).orElseThrow();
-        assertEquals("WinPath", result.getLabProvider());
+        assertEquals(OrderCodingSystem.WIN_PATH.name(), result.getLabProvider());
         assertEquals("CC", result.getLabDepartment());
     }
 
