@@ -30,10 +30,6 @@ public class LabResultMsg implements Serializable {
      * Id to link an observation over multiple result fields which can then be combined.
      */
     private String observationSubId = "";
-    private String isolateCode = "";
-    private String isolateName = "";
-    private String cultureType = "";
-    private String isolateQuantity = "";
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
     private InterchangeValue<String> units = InterchangeValue.unknown();
@@ -53,10 +49,10 @@ public class LabResultMsg implements Serializable {
     private InterchangeValue<String> notes = InterchangeValue.unknown();
 
     /**
-     * A sensitivity is just a nested lab order with results.
+     * Lab Isolate is only every contained within a result.
      * HL7 has fields for working out parentage.
      */
-    private List<LabOrderMsg> labSensitivities = new ArrayList<>();
+    private List<LabIsolateMsg> labIsolates = new ArrayList<>();
 
     private String epicCareOrderNumber;
 

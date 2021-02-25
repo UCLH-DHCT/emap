@@ -24,6 +24,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 104
+      resultTime: "2013-07-25T12:58:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALB"
@@ -48,6 +49,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 50
+      resultTime: "2013-07-25T12:58:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "GRE"
@@ -73,6 +75,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 7.2
+      resultTime: "2013-07-25T12:58:00Z"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "NM"
       testItemLocalCode: "ALBR"
@@ -98,6 +101,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "DELETE"
         value: null
+      resultTime: "2013-07-25T12:58:00Z"
   epicCareOrderNumber: "12121212"
   labDepartment: "CC"
   testBatteryLocalCode: "BON"
@@ -128,6 +132,7 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 26.0
+      resultTime: "2013-07-25T12:59:00Z"
   epicCareOrderNumber: "12121213"
   labDepartment: "CC"
   testBatteryLocalCode: "IRON"
