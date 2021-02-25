@@ -7,7 +7,7 @@ specimenType:
   value:  "MSU"
 mrn: "44444444"
 visitNumber: "123412341234"
-testBatteryCodingSystem: "WinPath"
+testBatteryCodingSystem: "WIN_PATH"
 sourceSystem: "WinPath"
 requestedDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
