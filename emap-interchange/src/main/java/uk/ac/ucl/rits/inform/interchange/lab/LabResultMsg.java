@@ -49,7 +49,7 @@ public class LabResultMsg implements Serializable {
     private InterchangeValue<String> notes = InterchangeValue.unknown();
 
     /**
-     * Lab Isolate is only every contained within a result.
+     * Lab Isolate is only ever contained within a result.
      * HL7 has fields for working out parentage.
      */
     private List<LabIsolateMsg> labIsolates = new ArrayList<>();
