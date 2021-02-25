@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.lab;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -34,5 +35,22 @@ public class LabIsolateMsg implements Serializable {
     public LabIsolateMsg(String epicCareOrderNumber, String parentSubId) {
         this.epicCareOrderNumber = epicCareOrderNumber;
         this.parentSubId = parentSubId;
+    }
+
+    /**
+     * merge isolate information excluding sensitivities.
+     * @param other other lab isolate message
+     */
+    @JsonIgnore
+    public void mergeIsolateInfo(LabIsolateMsg other) {
+        assert epicCareOrderNumber.equals(other.epicCareOrderNumber);
+        assert parentSubId.equals(other.parentSubId);
+
+        isolateCode = other.isolateCode != null ? other.isolateCode : isolateCode;
+        isolateName = other.isolateName != null ? other.isolateName : isolateName;
+        cultureType = other.cultureType.isSave() ? other.cultureType : cultureType;
+        quantity = other.quantity.isSave() ? other.quantity : quantity;
+        clinicalInformation = other.clinicalInformation.isSave() ? other.clinicalInformation : clinicalInformation;
+
     }
 }

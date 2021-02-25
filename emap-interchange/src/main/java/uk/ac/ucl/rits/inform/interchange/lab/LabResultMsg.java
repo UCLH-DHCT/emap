@@ -7,8 +7,6 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represent a lab result. Note that this doesn't implement
@@ -50,9 +48,9 @@ public class LabResultMsg implements Serializable {
 
     /**
      * Lab Isolate is only ever contained within a result.
-     * Each entity has provenance fields linking it to the result.
+     * Hhas provenance fields linking it to the result.
      */
-    private List<LabIsolateMsg> labIsolates = new ArrayList<>();
+    private LabIsolateMsg labIsolate;
 
     private String epicCareOrderNumber;
 

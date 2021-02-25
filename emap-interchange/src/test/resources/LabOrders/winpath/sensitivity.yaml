@@ -17,66 +17,66 @@
         status: "SAVE"
         value: "A"
       resultTime: "2019-07-15T08:37:00Z"
-      labIsolates:
-        - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
-          sensitivities:
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VAK"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VAK"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "S"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VAC"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VAC"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "S"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VM"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VM"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "R"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VCN"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VCN"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "R"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VF"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VF"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "R"
-          parentSubId: "1"
-          isolateCode: "KLEOXY"
-          isolateName: "Klebsiella oxytoca"
-          clinicalInformation:
-            "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-            status: "SAVE"
-            value: "Gentamicin resistant"
+      labIsolate:
+        "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
+        sensitivities:
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VAK"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VAK"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VAC"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VAC"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VM"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VM"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VCN"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VCN"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VF"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VF"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+        parentSubId: "1"
+        isolateCode: "KLEOXY"
+        isolateName: "Klebsiella oxytoca"
+        clinicalInformation:
+          "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+          status: "SAVE"
+          value: "Gentamicin resistant"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
       testItemLocalCode: "ISOLATE"
@@ -86,62 +86,62 @@
         status: "SAVE"
         value: "A"
       resultTime: "2019-07-15T08:37:00Z"
-      labIsolates:
-        - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
-          sensitivities:
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VAK"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VAK"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "S"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VM"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VM"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "S"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VFS"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VFS"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "R"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VCN"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VCN"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "I"
-            - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-              testItemLocalCode: "VF"
-              stringValue:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "VF"
-              abnormalFlag:
-                "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-                status: "SAVE"
-                value: "R"
-          parentSubId: "2"
-          isolateCode: "PROMIR"
-          isolateName: "Proteus mirabilis"
+      labIsolate:
+        "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg"
+        sensitivities:
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VAK"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VAK"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VM"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VM"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "S"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VFS"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VFS"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VCN"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VCN"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "I"
+          - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+            testItemLocalCode: "VF"
+            stringValue:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "VF"
+            abnormalFlag:
+              "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+              status: "SAVE"
+              value: "R"
+        parentSubId: "2"
+        isolateCode: "PROMIR"
+        isolateName: "Proteus mirabilis"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "FT"
       testItemLocalCode: "URST"

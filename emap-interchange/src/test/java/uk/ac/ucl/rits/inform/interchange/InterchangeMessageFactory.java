@@ -156,9 +156,7 @@ public class InterchangeMessageFactory {
      */
     private void updateLabIsolates(LabOrderMsg order, final String resourcePath) throws IOException {
         for (LabResultMsg result : order.getLabResultMsgs()) {
-            for (LabIsolateMsg labIsolate : result.getLabIsolates()) {
-                updateLabIsolateAndSensitivities(labIsolate, resourcePath);
-            }
+            updateLabIsolateAndSensitivities(result.getLabIsolate(), resourcePath);
         }
     }
 
@@ -169,6 +167,9 @@ public class InterchangeMessageFactory {
      * @throws IOException if files don't exist
      */
     private void updateLabIsolateAndSensitivities(LabIsolateMsg isolateMsg, final String resourcePathPrefix) throws IOException {
+        if (isolateMsg == null) {
+            return;
+        }
         // update order with yaml data
         ObjectReader orderReader = mapper.readerForUpdating(isolateMsg);
         String isolateDefaultPath = resourcePathPrefix + "_isolate_defaults.yaml";
