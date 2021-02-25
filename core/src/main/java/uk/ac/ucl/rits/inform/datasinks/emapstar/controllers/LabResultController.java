@@ -20,6 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivityAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -57,9 +58,9 @@ class LabResultController {
     public void processResult(LabTestDefinition testDefinition, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
         LabResult labResult = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
         // If any lab sensitivities, update or create them
-        for (LabOrderMsg sensOrder : resultMsg.getLabSensitivities()) {
-            LabIsolate isolate = updateOrCreateIsolate(labResult, resultMsg, validFrom, storedFrom);
-            for (LabResultMsg sensResult : sensOrder.getLabResultMsgs()) {
+        for (LabIsolateMsg isolateMsg : resultMsg.getLabIsolates()) {
+            LabIsolate isolate = updateOrCreateIsolate(labResult, isolateMsg, validFrom, storedFrom);
+            for (LabResultMsg sensResult : isolateMsg.getSensitivities()) {
                 updateOrCreateSensitivity(isolate, sensResult, validFrom, storedFrom);
             }
         }
@@ -82,19 +83,10 @@ class LabResultController {
     private LabResult updateOrCreateLabResult(
             LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
         RowState<LabResult, LabResultAudit> resultState;
-        if (result.getIsolateCode().isEmpty()) {
-            resultState = labResultRepo
-                    .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
-                    .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
-                    .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
-        } else {
-            // multiple isolates in a result, so these don't get overwritten with different isolates
-            // get by the isolate code as well as the lab number and test definition
-            resultState = labResultRepo
-                    .findByLabNumberIdAndLabTestDefinitionIdAndValueAsText(labNumber, testDefinition, result.getIsolateCode())
-                    .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
-                    .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
-        }
+        resultState = labResultRepo
+                .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
+                .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
+                .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");
@@ -125,13 +117,8 @@ class LabResultController {
         if (resultMsg.isNumeric()) {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
-        } else if (!resultMsg.getIsolateCode().isEmpty()) {
-            // Sadly some custom use of fields for Isolates:
-            // result -  have no isolate detected or isolate type
-            resultState.assignIfDifferent(resultMsg.getIsolateCode(), labResult.getValueAsText(), labResult::setValueAsText);
-            // unit -  CFU (if present)
-            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getUnits(), labResult::setUnits);
-
+        } else if (!resultMsg.getLabIsolates().isEmpty()) {
+            // add in mime type here
         } else {
             resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
         }
@@ -142,22 +129,18 @@ class LabResultController {
     }
 
 
-    private LabIsolate updateOrCreateIsolate(LabResult labResult, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
+    private LabIsolate updateOrCreateIsolate(LabResult labResult, LabIsolateMsg isolateMsg, Instant validFrom, Instant storedFrom) {
         RowState<LabIsolate, LabIsolateAudit> isolateState = labIsolateRepo
-                .findByLabResultIdAndIsolateCode(labResult, resultMsg.getIsolateCode())
+                .findByLabResultIdAndIsolateCode(labResult, isolateMsg.getIsolateCode())
                 .map(isolate -> new RowState<>(isolate, validFrom, storedFrom, false))
-                .orElseGet(() -> createLabIsolate(labResult, resultMsg.getIsolateCode(), validFrom, storedFrom));
+                .orElseGet(() -> createLabIsolate(labResult, isolateMsg.getIsolateCode(), validFrom, storedFrom));
         LabIsolate labIsolate = isolateState.getEntity();
 
-        isolateState.assignIfDifferent(resultMsg.getIsolateName(), labIsolate.getIsolateName(), labIsolate::setIsolateName);
-        isolateState.assignIfDifferent(resultMsg.getCultureType(), labIsolate.getCultureType(), labIsolate::setCultureType);
-        isolateState.assignIfDifferent(resultMsg.getIsolateQuantity(), labIsolate.getQuantity(), labIsolate::setQuantity);
-        // lab sensitivity clinical notes
-        InterchangeValue<String> clinicalInfo = resultMsg.getLabSensitivities().stream()
-                .map(LabOrderMsg::getClinicalInformation)
-                .findFirst()
-                .orElseGet(InterchangeValue::unknown);
-        isolateState.assignInterchangeValue(clinicalInfo, labIsolate.getClinicalInformation(), labIsolate::setClinicalInformation);
+        isolateState.assignIfDifferent(isolateMsg.getIsolateName(), labIsolate.getIsolateName(), labIsolate::setIsolateName);
+        isolateState.assignInterchangeValue(isolateMsg.getCultureType(), labIsolate.getCultureType(), labIsolate::setCultureType);
+        isolateState.assignInterchangeValue(isolateMsg.getQuantity(), labIsolate.getQuantity(), labIsolate::setQuantity);
+        isolateState.assignInterchangeValue(
+                isolateMsg.getClinicalInformation(), labIsolate.getClinicalInformation(), labIsolate::setClinicalInformation);
 
         isolateState.saveEntityOrAuditLogIfRequired(labIsolateRepo, labIsolateAuditRepo);
         return labIsolate;

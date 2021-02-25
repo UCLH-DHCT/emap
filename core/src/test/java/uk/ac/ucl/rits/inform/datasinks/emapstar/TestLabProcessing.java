@@ -29,12 +29,14 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -529,29 +531,39 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Processing of isolate should have the isolate type as the result, the cfu (string value in msg) as the unit
+     * Processing of isolate table
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testLabIsolateProcessingResults() throws EmapOperationMessageProcessingException {
-        String isolate = "CANALB^Candida albicans";
+    void testLabIsolate() throws EmapOperationMessageProcessingException {
+        String isolateCode = "CANALB";
+        String isolateName = "Candida albicans";
         String cfu = "10,000 - 100,000 CFU/mL";
+        String clinicalInformation = "Some clinical info";
+        String cultureType = "Direct";
+        LabIsolateMsg labIsolateMsg = new LabIsolateMsg();
+        labIsolateMsg.setIsolateCode(isolateCode);
+        labIsolateMsg.setIsolateName(isolateName);
+        labIsolateMsg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
+        labIsolateMsg.setQuantity(InterchangeValue.buildFromHl7(cfu));
+        labIsolateMsg.setCultureType(InterchangeValue.buildFromHl7(cultureType));
+
         LabOrderMsg msg = singleResult;
         LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
         resultMsg.setValueType("ST");
-        resultMsg.setIsolateCode(isolate);
-        resultMsg.setStringValue(InterchangeValue.buildFromHl7(cfu));
+        resultMsg.setLabIsolates(Collections.singletonList(labIsolateMsg));
 
         processSingleMessage(msg);
 
-        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
-        assertEquals(isolate, result.getValueAsText());
-        assertEquals(cfu, result.getUnits());
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode(isolateCode).orElseThrow();
+        assertEquals(isolateName, isolate.getIsolateName());
+        assertEquals(cfu, isolate.getQuantity());
+        assertEquals(clinicalInformation, isolate.getClinicalInformation());
+        assertEquals(cultureType, isolate.getCultureType());
     }
 
     /**
-     * Unlike other labs, a message for a single order can have multiple isolates.
-     * 2 different microbes cultured, so should have two results which have a test definition of ISOLATE
+     * Two isolates should have been parsed./
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -559,9 +571,8 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         processSingleMessage(msg);
 
-        List<LabResult> isolates = StreamSupport
-                .stream(labResultRepository.findAll().spliterator(), false)
-                .filter(lr -> "ISOLATE".equals(lr.getLabTestDefinitionId().getTestLabCode()))
+        List<LabIsolate> isolates = StreamSupport
+                .stream(labIsolateRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
         assertEquals(2, isolates.size());
     }
@@ -620,7 +631,9 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
-        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getIsolateCode().isEmpty()).findFirst().orElseThrow();
+        LabResultMsg result = msg.getLabResultMsgs().stream()
+                .filter(r -> !r.getLabIsolates().isEmpty())
+                .findFirst().orElseThrow();
         result.setAbnormalFlag(InterchangeValue.buildFromHl7("S"));
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
@@ -629,8 +642,8 @@ class TestLabProcessing extends MessageProcessingBase {
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
         String laterSensitivity = "R";
-        for (LabOrderMsg sensOrder : msg.getLabResultMsgs().get(0).getLabSensitivities()) {
-            for (LabResultMsg sensResult : sensOrder.getLabResultMsgs()) {
+        for (LabIsolateMsg isolate : msg.getLabResultMsgs().get(0).getLabIsolates()) {
+            for (LabResultMsg sensResult : isolate.getSensitivities()) {
                 sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
             }
         }
@@ -655,7 +668,7 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
-        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getIsolateCode().isEmpty()).findFirst().orElseThrow();
+        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getLabIsolates().isEmpty()).findFirst().orElseThrow();
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
 
