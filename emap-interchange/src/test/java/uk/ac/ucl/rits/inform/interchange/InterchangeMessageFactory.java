@@ -141,8 +141,8 @@ public class InterchangeMessageFactory {
             throws IOException {
         String resultDefaultPath = resourcePathPrefix + "_result_defaults.yaml";
         for (LabResultMsg result : results) {
-            // update the epic order number and result time
-            if (epicCareOrderNumber != null && resultTime != null) {
+            // update the epic order number and result time if either are set
+            if (epicCareOrderNumber != null || resultTime != null) {
                 result.setEpicCareOrderNumber(epicCareOrderNumber);
                 result.setResultTime(resultTime);
             }
