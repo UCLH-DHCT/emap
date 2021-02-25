@@ -150,13 +150,13 @@ public class InterchangeMessageFactory {
 
     /**
      * If a lab order's results has isolates, update the sensitivity with default values
-     * @param order           lab order
-     * @param resourcePath    resource path in form '{directory}/{file_stem}_micro_'
+     * @param order        lab order
+     * @param resourcePath resource path in form '{directory}/{file_stem}_micro_'
      * @throws IOException if file doesn't exist
      */
     private void updateLabIsolates(LabOrderMsg order, final String resourcePath) throws IOException {
         for (LabResultMsg result : order.getLabResultMsgs()) {
-            for (LabIsolateMsg labIsolate : result.getLabIsolates()) {
+            for (LabIsolateMsg labIsolate : result.getLabIsolates().values()) {
                 updateLabIsolateAndSensitivities(labIsolate, resourcePath);
             }
         }
