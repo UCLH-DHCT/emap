@@ -108,7 +108,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
         thisIsolate.mergeIsolateInfo(otherIsolate);
 
         // replace with type when interchange format merged in
-        getMessage().setValueType("link/lab_isolate");
+        getMessage().setMimeType("link/lab_isolate");
         // remove previously set string value
         getMessage().setStringValue(InterchangeValue.unknown());
     }
