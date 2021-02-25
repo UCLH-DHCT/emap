@@ -156,7 +156,7 @@ public class InterchangeMessageFactory {
      */
     private void updateLabIsolates(LabOrderMsg order, final String resourcePath) throws IOException {
         for (LabResultMsg result : order.getLabResultMsgs()) {
-            for (LabIsolateMsg labIsolate : result.getLabIsolates().values()) {
+            for (LabIsolateMsg labIsolate : result.getLabIsolates()) {
                 updateLabIsolateAndSensitivities(labIsolate, resourcePath);
             }
         }

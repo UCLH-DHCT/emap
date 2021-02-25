@@ -3,13 +3,12 @@ package uk.ac.ucl.rits.inform.interchange.lab;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
-import org.apache.commons.lang3.tuple.Pair;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represent a lab result. Note that this doesn't implement
@@ -51,9 +50,9 @@ public class LabResultMsg implements Serializable {
 
     /**
      * Lab Isolate is only ever contained within a result.
-     * Map in the format {[epicOrderId, isolateId], labIsolateMessage}
+     * Each entity has provenance fields linking it to the result.
      */
-    private Map<Pair<String, String>, LabIsolateMsg> labIsolates = new HashMap<>();
+    private List<LabIsolateMsg> labIsolates = new ArrayList<>();
 
     private String epicCareOrderNumber;
 

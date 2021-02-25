@@ -28,4 +28,11 @@ public class LabIsolateMsg implements Serializable {
 
     private List<LabResultMsg> sensitivities = new ArrayList<>();
 
+    public LabIsolateMsg() {
+    }
+
+    public LabIsolateMsg(String epicCareOrderNumber, String parentSubId) {
+        this.epicCareOrderNumber = epicCareOrderNumber;
+        this.parentSubId = parentSubId;
+    }
 }
