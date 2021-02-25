@@ -19,7 +19,10 @@ public class LabIsolateMsg implements Serializable {
     private static final long serialVersionUID = -6188813379454667829L;
 
     private String epicCareOrderNumber;
-    private String parentSubId;
+    /**
+     * Id for the individual isolate, as the code and name can change.
+     */
+    private String isolateId;
 
     private String isolateCode;
     private String isolateName;
@@ -32,9 +35,9 @@ public class LabIsolateMsg implements Serializable {
     public LabIsolateMsg() {
     }
 
-    public LabIsolateMsg(String epicCareOrderNumber, String parentSubId) {
+    public LabIsolateMsg(String epicCareOrderNumber, String isolateId) {
         this.epicCareOrderNumber = epicCareOrderNumber;
-        this.parentSubId = parentSubId;
+        this.isolateId = isolateId;
     }
 
     /**
@@ -44,7 +47,7 @@ public class LabIsolateMsg implements Serializable {
     @JsonIgnore
     public void mergeIsolateInfo(LabIsolateMsg other) {
         assert epicCareOrderNumber.equals(other.epicCareOrderNumber);
-        assert parentSubId.equals(other.parentSubId);
+        assert isolateId.equals(other.isolateId);
 
         isolateCode = other.isolateCode != null ? other.isolateCode : isolateCode;
         isolateName = other.isolateName != null ? other.isolateName : isolateName;
