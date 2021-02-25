@@ -19,9 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivityAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
-import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
@@ -113,12 +111,11 @@ class LabResultController {
         resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
         resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
-
+        // add in mime type here when flowsheet date is merged into interchange format
+        resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getMimeType(), labResult::setMimeType);
         if (resultMsg.isNumeric()) {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
-        } else if (!resultMsg.getLabIsolates().isEmpty()) {
-            // add in mime type here
         } else {
             resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
         }
