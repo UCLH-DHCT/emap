@@ -220,7 +220,7 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        String ng5 = result.get(0).getLabIsolates().values().stream()
+        String ng5 = result.get(0).getLabIsolates().stream()
                 .map(LabIsolateMsg::getIsolateCode)
                 .findFirst()
                 .orElseThrow();
@@ -235,7 +235,7 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        String sens = result.get(0).getLabIsolates().values().stream()
+        String sens = result.get(0).getLabIsolates().stream()
                 .map(LabIsolateMsg::getClinicalInformation)
                 .filter(InterchangeValue::isSave)
                 .map(InterchangeValue::get)
