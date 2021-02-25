@@ -45,6 +45,7 @@ public class LabResultMsg implements Serializable {
 
     private Instant resultTime;
     private InterchangeValue<String> notes = InterchangeValue.unknown();
+    private String mimeType;
 
     /**
      * Lab Isolate is only ever contained within a result.

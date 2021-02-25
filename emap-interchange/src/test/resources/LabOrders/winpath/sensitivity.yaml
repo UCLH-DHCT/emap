@@ -9,6 +9,7 @@
         value: "URINE CULTURE REPORT"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
+      mimeType: "link/lab_isolate"
       testItemLocalCode: "ISOLATE"
       observationSubId: "1"
       abnormalFlag:
@@ -77,6 +78,7 @@
           value: "Gentamicin resistant"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
       valueType: "ST"
+      mimeType: "link/lab_isolate"
       testItemLocalCode: "ISOLATE"
       observationSubId: "2"
       abnormalFlag:
