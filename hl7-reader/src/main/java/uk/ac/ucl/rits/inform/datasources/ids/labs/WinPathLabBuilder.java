@@ -184,7 +184,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         if (oruR01.getPATIENT_RESULTReps() != 1) {
-            throw new RuntimeException("not handling this yet");
+            throw new Hl7MessageIgnoredException("Not expecting WinPath to have multiple patient results in one message");
         }
         ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
         List<ORU_R01_ORDER_OBSERVATION> orderObservations = patientResults.getORDER_OBSERVATIONAll();

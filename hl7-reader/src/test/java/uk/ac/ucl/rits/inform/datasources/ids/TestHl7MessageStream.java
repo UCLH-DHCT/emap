@@ -60,7 +60,7 @@ public abstract class TestHl7MessageStream {
      * @return interchange messages
      * @throws Exception if message malformed
      */
-    protected List<? extends EmapOperationMessage> processSingleMessage(String resourceFileName) throws Exception {
+    public List<? extends EmapOperationMessage> processSingleMessage(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(resourceFileName);
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         List<? extends EmapOperationMessage> messages = idsOperations.messageFromHl7Message(hl7Msg, 42);

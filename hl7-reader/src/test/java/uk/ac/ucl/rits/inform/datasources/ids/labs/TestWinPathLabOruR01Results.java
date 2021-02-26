@@ -5,7 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -197,6 +200,33 @@ class TestWinPathLabOruR01Results {
         LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
         String expected = "Can you confirm this order has been discussed with and approved by a Virologist-";
         assertEquals(InterchangeValue.buildFromHl7(expected), orderMsg.getClinicalInformation());
+    }
+
+    /**
+     * OBR and OBC epic Id don't agree, should throw.
+     */
+    @Test
+    void testMismatchEpicId() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "mistmatch_epic_order_id"));
+    }
+
+    /**
+     * Not expecting WinPath to have multiple patient results in a single message.
+     */
+    @Test
+    void testPatientRepeatsThrows() {
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "patient_repeats"));
+    }
+
+    /**
+     * Order control Id not allowed, the order should not be outputted.
+     */
+    @Test
+    void testNotAllowedOrderControlId() throws Exception {
+        List<? extends EmapOperationMessage> msgs = labReader
+                .processSingleMessage(String.format(FILE_TEMPLATE, "not_allowed_order_control_id"))
+                .stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertTrue(msgs.isEmpty());
     }
 
     /**
