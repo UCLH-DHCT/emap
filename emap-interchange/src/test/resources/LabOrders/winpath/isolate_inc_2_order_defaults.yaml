@@ -1,0 +1,22 @@
+orderControlId: "RE"
+resultStatus: "F"
+labSpecimenNumber: "20V042424"
+epicCareOrderNumber: "93939393"
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value:  "TIBI"
+mrn: "44444444"
+visitNumber: "123412341234"
+testBatteryCodingSystem: "WIN_PATH"
+sourceSystem: "WinPath"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-09-09T12:16:00Z"
+collectionDateTime: "2020-09-08T14:23:00Z"
+statusChangeTime: "2020-09-23T11:58:00Z" # the only field that has changed
+parentObservationIdentifier: ""
+parentSubId: ""
+labDepartment: "MC"
+orderStatus: "CM"
