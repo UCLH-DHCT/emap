@@ -235,6 +235,16 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     @Test
+    void testChangeOfSourceSystemThrowsException() throws EmapOperationMessageProcessingException {
+        // original message
+        processSingleMessage(singleResult);
+        // send again with another source
+        singleResult.setSourceSystem("another source");
+
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(singleResult));
+    }
+
+    @Test
     void testHappyPathLabTestDefinition() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabTestDefinition result = labTestDefinitionRepository.findByTestLabCode(singleResultTestCode).orElseThrow();
