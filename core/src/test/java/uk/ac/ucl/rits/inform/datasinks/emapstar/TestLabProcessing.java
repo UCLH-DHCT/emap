@@ -555,7 +555,6 @@ class TestLabProcessing extends MessageProcessingBase {
         labIsolateMsg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
         labIsolateMsg.setQuantity(InterchangeValue.buildFromHl7(cfu));
         labIsolateMsg.setCultureType(InterchangeValue.buildFromHl7(cultureType));
-        labIsolateMsg.getSensitivities().forEach(r -> r.setResultTime(resultTime));
 
         LabOrderMsg msg = singleResult;
         msg.setStatusChangeTime(resultTime);
@@ -593,13 +592,17 @@ class TestLabProcessing extends MessageProcessingBase {
     void testIsolateUpdatesCodeAndName() throws EmapOperationMessageProcessingException {
         String finalIsolateCode = "NEISU";
         String finalIsolateName = "Neisseria subflava";
+        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
 
         processSingleMessage(addLabIsolateAtResultTime("NEISSP", "Neisseria species", "", "", "", statusChangeTime));
-        processSingleMessage(addLabIsolateAtResultTime(finalIsolateCode, finalIsolateName, "", "", "", statusChangeTime.plus(1, ChronoUnit.HOURS)));
+        processSingleMessage(addLabIsolateAtResultTime(finalIsolateCode, finalIsolateName, "", "", "", laterTime));
 
         assertEquals(1, labIsolateRepository.count());
         LabIsolate isolate = labIsolateRepository.findByIsolateCode(finalIsolateCode).orElseThrow();
         assertEquals(finalIsolateName, isolate.getIsolateName());
+        // should update the isolate time, but also the result's updated time
+        assertEquals(laterTime, isolate.getValidFrom());
+        assertEquals(laterTime, isolate.getLabResultId().getResultLastModifiedTime());
     }
 
     @Test
@@ -763,5 +766,45 @@ class TestLabProcessing extends MessageProcessingBase {
                 .orElseThrow();
 
         assertEquals(statusChangeTime, sens.getReportingDatetime());
+    }
+
+    /**
+     * Incremental update of isolate with sensitivities.
+     * Only the new sensitivity should have the new result time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testIncrementalSensitivity() throws EmapOperationMessageProcessingException {
+        LabOrderMsg inc1 = messageFactory.getLabOrders("winpath/isolate_inc_1.yaml", "0000040").get(0);
+        LabOrderMsg inc2 = messageFactory.getLabOrders("winpath/isolate_inc_2.yaml", "0000040").get(0);
+
+        Instant firstResultTime = Instant.parse("2020-09-12T12:13:00Z");
+        Instant secondResultTime = Instant.parse("2020-09-23T11:58:00Z");
+
+
+        processSingleMessage(inc1);
+        processSingleMessage(inc2);
+
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode("ISOLATE").orElseThrow();
+        LabIsolate updatedIsolate = labIsolateRepository.findByIsolateCode("STAHAE").orElseThrow();
+        LabIsolate notUpdatedIsolate = labIsolateRepository.findByIsolateCode("ENTFAM").orElseThrow();
+
+        LabSensitivity notUpdatedSensitivityFromNotUpdatedIsolate = labSensitivityRepository
+                .findByLabIsolateIdAndAgent(notUpdatedIsolate, "VM").orElseThrow();
+        LabSensitivity notUpdatedSensitivityFromUpdatedIsolate = labSensitivityRepository
+                .findByLabIsolateIdAndAgent(updatedIsolate, "VDP").orElseThrow();
+        LabSensitivity newSensitivityFromUpdatedIsolate = labSensitivityRepository
+                .findByLabIsolateIdAndAgent(updatedIsolate, "VCI").orElseThrow();
+
+        // new sensitivity
+        assertEquals(secondResultTime, newSensitivityFromUpdatedIsolate.getReportingDatetime());
+
+        // non-updated entities
+        assertEquals(firstResultTime, result.getResultLastModifiedTime());
+        assertEquals(firstResultTime, updatedIsolate.getValidFrom());
+        assertEquals(firstResultTime, notUpdatedIsolate.getValidFrom());
+        assertEquals(firstResultTime, notUpdatedSensitivityFromNotUpdatedIsolate.getReportingDatetime());
+        assertEquals(firstResultTime, notUpdatedSensitivityFromUpdatedIsolate.getReportingDatetime());
+        // phew
     }
 }

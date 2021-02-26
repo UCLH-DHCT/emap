@@ -54,11 +54,11 @@ class LabResultController {
 
     @Transactional
     public void processResult(LabTestDefinition testDefinition, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
-        LabResult labResult = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
+        RowState<LabResult, LabResultAudit> labResultState = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
         // If lab isolate, update or create them
         LabIsolateMsg isolateMsg = resultMsg.getLabIsolate();
-        if (isolateMsg != null && !validFrom.isBefore(labResult.getResultLastModifiedTime())) {
-            LabIsolate isolate = updateOrCreateIsolate(labResult, isolateMsg, validFrom, storedFrom);
+        if (isolateMsg != null && !validFrom.isBefore(labResultState.getEntity().getResultLastModifiedTime())) {
+            LabIsolate isolate = updateOrCreateIsolateAndUpdateLabResult(labResultState, isolateMsg, validFrom, storedFrom);
             for (LabResultMsg sensResult : isolateMsg.getSensitivities()) {
                 updateOrCreateSensitivity(isolate, sensResult, validFrom, storedFrom);
             }
@@ -79,7 +79,7 @@ class LabResultController {
      * @param storedFrom     time that star encountered the message
      * @return lab result wrapped in row state
      */
-    private LabResult updateOrCreateLabResult(
+    private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
             LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
         RowState<LabResult, LabResultAudit> resultState;
         resultState = labResultRepo
@@ -89,13 +89,13 @@ class LabResultController {
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");
-            return resultState.getEntity();
+            return resultState;
         }
 
         updateLabResult(resultState, result);
 
         resultState.saveEntityOrAuditLogIfRequired(labResultRepo, labResultAuditRepo);
-        return resultState.getEntity();
+        return resultState;
     }
 
     private RowState<LabResult, LabResultAudit> createLabResult(
@@ -126,7 +126,17 @@ class LabResultController {
     }
 
 
-    private LabIsolate updateOrCreateIsolate(LabResult labResult, LabIsolateMsg isolateMsg, Instant validFrom, Instant storedFrom) {
+    /**
+     * Update or creat isolate, if isolate is changed then also update it's lab result's modified time.
+     * @param labResultState result state
+     * @param isolateMsg     isolate interchange message
+     * @param validFrom      most recent change to results
+     * @param storedFrom     time that star encountered the message
+     * @return lab isolate entity
+     */
+    private LabIsolate updateOrCreateIsolateAndUpdateLabResult(
+            RowState<LabResult, LabResultAudit> labResultState, LabIsolateMsg isolateMsg, Instant validFrom, Instant storedFrom) {
+        LabResult labResult = labResultState.getEntity();
         RowState<LabIsolate, LabIsolateAudit> isolateState = labIsolateRepo
                 .findByLabResultIdAndLabInternalId(labResult, isolateMsg.getIsolateId())
                 .map(isolate -> new RowState<>(isolate, validFrom, storedFrom, false))
@@ -142,7 +152,14 @@ class LabResultController {
                     isolateMsg.getClinicalInformation(), labIsolate.getClinicalInformation(), labIsolate::setClinicalInformation);
         }
 
+        // if change in isolate state we should update the time of the result
+        // because the result is a link, and this has changed
+        if (isolateState.isEntityUpdated()) {
+            labResultState.assignIfDifferent(validFrom, labResult.getResultLastModifiedTime(), labResult::setResultLastModifiedTime);
+        }
+
         isolateState.saveEntityOrAuditLogIfRequired(labIsolateRepo, labIsolateAuditRepo);
+        labResultState.saveEntityOrAuditLogIfRequired(labResultRepo, labResultAuditRepo);
         return labIsolate;
     }
 
