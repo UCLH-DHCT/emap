@@ -9,7 +9,6 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
-import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -19,7 +18,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -276,6 +274,16 @@ class TestWinPathLabOruR01Results {
         assertEquals(1, result.size());
         String ng5 = result.get(0).getLabIsolate().getIsolateCode();
         assertEquals("NG5", ng5);
+    }
+
+    @Test
+    void testMimeTypeForIsolate() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "Sensitivity");
+        for (LabResultMsg result : orderMsg.getLabResultMsgs()) {
+            if (result.getLabIsolate() != null || !result.getObservationSubId().isEmpty()) {
+                assertEquals("link/lab_isolate", result.getMimeType());
+            }
+        }
     }
 
     @Test
