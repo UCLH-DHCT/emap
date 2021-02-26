@@ -55,8 +55,9 @@ class LabResultController {
     @Transactional
     public void processResult(LabTestDefinition testDefinition, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
         LabResult labResult = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
-        // If any lab sensitivities, update or create them
-        for (LabIsolateMsg isolateMsg : resultMsg.getLabIsolates()) {
+        // If lab isolate, update or create them
+        LabIsolateMsg isolateMsg = resultMsg.getLabIsolate();
+        if (isolateMsg != null) {
             LabIsolate isolate = updateOrCreateIsolate(labResult, isolateMsg, validFrom, storedFrom);
             for (LabResultMsg sensResult : isolateMsg.getSensitivities()) {
                 updateOrCreateSensitivity(isolate, sensResult, validFrom, storedFrom);
@@ -111,8 +112,7 @@ class LabResultController {
         resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
         resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
-        // add in mime type here when flowsheet date is merged into interchange format
-        resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getMimeType(), labResult::setMimeType);
+        resultState.assignIfDifferent(resultMsg.getMimeType(), labResult.getMimeType(), labResult::setMimeType);
         if (resultMsg.isNumeric()) {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);

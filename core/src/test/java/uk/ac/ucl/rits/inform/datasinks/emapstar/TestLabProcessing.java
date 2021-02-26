@@ -37,12 +37,10 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -552,7 +550,7 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = singleResult;
         LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
         resultMsg.setValueType("ST");
-        resultMsg.setLabIsolates(Collections.singletonList(labIsolateMsg));
+        resultMsg.setLabIsolate(labIsolateMsg);
 
         processSingleMessage(msg);
 
@@ -633,7 +631,7 @@ class TestLabProcessing extends MessageProcessingBase {
         // original message
         msg.setStatusChangeTime(statusChangeTime);
         LabResultMsg result = msg.getLabResultMsgs().stream()
-                .filter(r -> !r.getLabIsolates().isEmpty())
+                .filter(r -> r.getLabIsolate() != null)
                 .findFirst().orElseThrow();
         result.setAbnormalFlag(InterchangeValue.buildFromHl7("S"));
         msg.setLabResultMsgs(List.of(result));
@@ -643,10 +641,9 @@ class TestLabProcessing extends MessageProcessingBase {
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
         String laterSensitivity = "R";
-        for (LabIsolateMsg isolate : msg.getLabResultMsgs().get(0).getLabIsolates()) {
-            for (LabResultMsg sensResult : isolate.getSensitivities()) {
-                sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
-            }
+        LabIsolateMsg isolate = msg.getLabResultMsgs().get(0).getLabIsolate();
+        for (LabResultMsg sensResult : isolate.getSensitivities()) {
+            sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
         }
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
@@ -669,7 +666,9 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
-        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getLabIsolates().isEmpty()).findFirst().orElseThrow();
+        LabResultMsg result = msg.getLabResultMsgs().stream()
+                .filter(r -> r.getLabIsolate() != null)
+                .findFirst().orElseThrow();
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
 
