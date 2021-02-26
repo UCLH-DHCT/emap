@@ -30,6 +30,7 @@
               "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
               status: "SAVE"
               value: "R"
+          # VDP stays the same
           - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
             testItemLocalCode: "VDP"
             stringValue:
