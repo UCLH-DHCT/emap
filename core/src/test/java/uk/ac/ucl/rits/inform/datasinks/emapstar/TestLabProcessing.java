@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
@@ -242,6 +243,12 @@ class TestLabProcessing extends MessageProcessingBase {
         singleResult.setSourceSystem("another source");
 
         assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(singleResult));
+    }
+
+    @Test
+    void testNoStatusChangeTimeThrows() {
+        singleResult.setStatusChangeTime(null);
+        assertThrows(RequiredDataMissingException.class, () -> processSingleMessage(singleResult));
     }
 
     @Test
