@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -310,6 +311,7 @@ class TestWinPathLabOruR01Results {
         assertEquals("Klebsiella oxytoca", isolate.getIsolateName());
         assertEquals(InterchangeValue.buildFromHl7("10,000 - 100,000 CFU/mL"), isolate.getQuantity());
         assertTrue(isolate.getCultureType().isUnknown());
+        assertNotNull(isolate.getIsolateId());
     }
 
     @Test
@@ -319,6 +321,7 @@ class TestWinPathLabOruR01Results {
         assertEquals("Neisseria subflava", isolate.getIsolateName());
         assertTrue(isolate.getQuantity().isUnknown());
         assertEquals(InterchangeValue.buildFromHl7("Enrichment"), isolate.getCultureType());
+        assertNotNull(isolate.getIsolateId());
     }
 
     @Test
