@@ -656,6 +656,28 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(laterSensitivity, sens.getSensitivity());
     }
 
+    /**
+     * Check the sensitivity changes when it is updated, and so does the reported time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabSensitivityWithNoAgentIsSkipped() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        msg.setStatusChangeTime(statusChangeTime);
+        LabResultMsg resultMsg = msg.getLabResultMsgs().stream()
+                .filter(r -> r.getLabIsolate() != null)
+                .findFirst().orElseThrow();
+        LabResultMsg sensitivityResult = resultMsg.getLabIsolate()
+                .getSensitivities().stream()
+                .findFirst().orElseThrow();
+        sensitivityResult.setStringValue(InterchangeValue.unknown());
+        resultMsg.getLabIsolate().setSensitivities(List.of(sensitivityResult));
+        msg.setLabResultMsgs(List.of(resultMsg));
+        processSingleMessage(msg);
+
+        assertEquals(0, labSensitivityRepository.count(), "No Lab sensitivity should be added");
+    }
+
 
     /**
      * Only the status change time has changed on a sensitivity, should not update the reporting date time.
