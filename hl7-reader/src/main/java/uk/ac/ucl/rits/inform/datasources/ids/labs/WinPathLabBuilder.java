@@ -212,8 +212,9 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * Use the HL7 fields to re-parent the sensitivities in this list so they are added to their parent isolate.
      * Parents and children must all be in the list supplied.
      * @param orders the list of all orders from a HL7 message. This list will have items modified and/or deleted.
+     * @throws Hl7InconsistencyException if no parent found for a message which has a subId.
      */
-    private static void mergeSensitivitiesIntoIsolate(List<LabOrderMsg> orders) {
+    private static void mergeSensitivitiesIntoIsolate(List<LabOrderMsg> orders) throws Hl7InconsistencyException {
         // we may have multiple orders that are unrelated to each other (apart from being for the same patient).
         ListIterator<LabOrderMsg> iter = orders.listIterator();
         while (iter.hasNext()) {
@@ -234,7 +235,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
                 parentIsolate.setClinicalInformation(orderToReparent.getClinicalInformation());
                 iter.remove();
             } catch (NoSuchElementException e) {
-                logger.error("No parent order found for sensitivity", e);
+                throw new Hl7InconsistencyException("No parent order found for sensitivity", e);
             }
         }
     }

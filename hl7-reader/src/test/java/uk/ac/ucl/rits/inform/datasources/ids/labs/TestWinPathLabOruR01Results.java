@@ -219,6 +219,30 @@ class TestWinPathLabOruR01Results {
     }
 
     /**
+     * Only expecting SubId in isolates for winpath.
+     */
+    @Test
+    void testSubIdNotIsolate() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "subid_no_isolate"));
+    }
+
+    /**
+     * WinPath should always have the first order as the isolate, throw if not.
+     */
+    @Test
+    void testSensitivityWhereFirstOrderIsNotIsolate() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "malformed_sensitivity"));
+    }
+
+    /**
+     * Sensitivity with no epic id should throw an exception as it can't be matched as a child.
+     */
+    @Test
+    void testIsolateWhereSensitivityHasNoEpicId() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "isolate_child_no_epic_id"));
+    }
+
+    /**
      * Order control Id not allowed, the order should not be outputted.
      */
     @Test
