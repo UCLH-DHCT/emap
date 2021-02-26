@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredExcepti
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -266,7 +267,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testNoGrowthCodeIsStripped() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "culture_no_growth");
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_no_growth");
         List<LabResultMsg> result = orderMsg.getLabResultMsgs()
                 .stream()
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
@@ -276,14 +277,58 @@ class TestWinPathLabOruR01Results {
         assertEquals("NG5", ng5);
     }
 
+    private LabIsolateMsg getFirstLabIsolate(String file) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, file);
+        return orderMsg.getLabResultMsgs().stream()
+                .filter(res -> res.getLabIsolate() != null)
+                .findFirst()
+                .map(LabResultMsg::getLabIsolate)
+                .orElseThrow();
+    }
+
+    /**
+     * Test the fields for the result that contains isolates.
+     * @throws Exception shouldn't happen
+     */
     @Test
-    void testMimeTypeForIsolate() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "Sensitivity");
-        for (LabResultMsg result : orderMsg.getLabResultMsgs()) {
-            if (result.getLabIsolate() != null || !result.getObservationSubId().isEmpty()) {
-                assertEquals("link/lab_isolate", result.getMimeType());
-            }
-        }
+    void testIsolateResult() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_quantity");
+
+        LabResultMsg isolateResultMsg = orderMsg.getLabResultMsgs().stream()
+                .filter(res -> res.getLabIsolate() != null)
+                .findFirst().orElseThrow();
+        assertEquals(InterchangeValue.buildFromHl7("A"), isolateResultMsg.getAbnormalFlag());
+        assertEquals(LabResultStatus.FINAL, isolateResultMsg.getResultStatus());
+        assertEquals("link/lab_isolate", isolateResultMsg.getMimeType());
+    }
+
+
+    @Test
+    void testIsolateWithQuantity() throws Exception {
+        LabIsolateMsg isolate = getFirstLabIsolate("isolate_quantity");
+        assertEquals("KLEOXY", isolate.getIsolateCode());
+        assertEquals("Klebsiella oxytoca", isolate.getIsolateName());
+        assertEquals(InterchangeValue.buildFromHl7("10,000 - 100,000 CFU/mL"), isolate.getQuantity());
+        assertTrue(isolate.getCultureType().isUnknown());
+    }
+
+    @Test
+    void testIsolateWithCultureType() throws Exception {
+        LabIsolateMsg isolate = getFirstLabIsolate("isolate_culture_type");
+        assertEquals("NEISU", isolate.getIsolateCode());
+        assertEquals("Neisseria subflava", isolate.getIsolateName());
+        assertTrue(isolate.getQuantity().isUnknown());
+        assertEquals(InterchangeValue.buildFromHl7("Enrichment"), isolate.getCultureType());
+    }
+
+    @Test
+    void testIsolateSensitivities() throws Exception {
+        LabIsolateMsg isolate = getFirstLabIsolate("isolate_sensitivity");
+        LabResultMsg sensitivity = isolate.getSensitivities().stream()
+                .filter(sens -> sens.getTestItemLocalCode().equals("VAK"))
+                .findFirst().orElseThrow();
+        assertEquals(InterchangeValue.buildFromHl7("S"), sensitivity.getAbnormalFlag());
+        assertEquals(LabResultStatus.FINAL, sensitivity.getResultStatus());
     }
 
     @Test
