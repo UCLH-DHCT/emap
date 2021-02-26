@@ -35,6 +35,12 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
     private LabResult labResultId;
 
     /**
+     * Internal Id of the lab isolate.
+     * This is constant throughout the results, where isolate code and name can change as more detail added.
+     */
+    private String labInternalId;
+
+    /**
      * Lab system's code for the isolate.
      */
     private String isolateCode;
@@ -60,9 +66,9 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
 
     public LabIsolate() {}
 
-    public LabIsolate(LabResult labResultId, String isolateCode) {
+    public LabIsolate(LabResult labResultId, String labInternalId) {
         this.labResultId = labResultId;
-        this.isolateCode = isolateCode;
+        this.labInternalId = labInternalId;
     }
 
 
@@ -70,6 +76,7 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
         super(other);
         this.labIsolateId = other.labIsolateId;
         this.labResultId = other.labResultId;
+        this.labInternalId = other.labInternalId;
         this.isolateCode = other.isolateCode;
         this.isolateName = other.isolateName;
         this.cultureType = other.cultureType;
