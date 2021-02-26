@@ -128,11 +128,12 @@ class LabResultController {
 
     private LabIsolate updateOrCreateIsolate(LabResult labResult, LabIsolateMsg isolateMsg, Instant validFrom, Instant storedFrom) {
         RowState<LabIsolate, LabIsolateAudit> isolateState = labIsolateRepo
-                .findByLabResultIdAndIsolateCode(labResult, isolateMsg.getIsolateCode())
+                .findByLabResultIdAndLabInternalId(labResult, isolateMsg.getIsolateId())
                 .map(isolate -> new RowState<>(isolate, validFrom, storedFrom, false))
-                .orElseGet(() -> createLabIsolate(labResult, isolateMsg.getIsolateCode(), validFrom, storedFrom));
+                .orElseGet(() -> createLabIsolate(labResult, isolateMsg.getIsolateId(), validFrom, storedFrom));
         LabIsolate labIsolate = isolateState.getEntity();
 
+        isolateState.assignIfDifferent(isolateMsg.getIsolateCode(), labIsolate.getIsolateCode(), labIsolate::setIsolateCode);
         isolateState.assignIfDifferent(isolateMsg.getIsolateName(), labIsolate.getIsolateName(), labIsolate::setIsolateName);
         isolateState.assignInterchangeValue(isolateMsg.getCultureType(), labIsolate.getCultureType(), labIsolate::setCultureType);
         isolateState.assignInterchangeValue(isolateMsg.getQuantity(), labIsolate.getQuantity(), labIsolate::setQuantity);

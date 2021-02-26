@@ -11,7 +11,7 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabIsolateRepository extends CrudRepository<LabIsolate, Long> {
-    Optional<LabIsolate> findByLabResultIdAndIsolateCode(LabResult labResult, String isolateCode);
+    Optional<LabIsolate> findByLabResultIdAndLabInternalId(LabResult labResult, String internalId);
 
     /**
      * for testing.

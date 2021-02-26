@@ -546,6 +546,22 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNotEquals(laterTime, collection.getSampleCollectionTime());
     }
 
+    private LabOrderMsg addLabIsolate(String isolateCode, String isolateName, String cfu, String clinicalInformation, String cultureType) {
+        LabIsolateMsg labIsolateMsg = new LabIsolateMsg();
+        labIsolateMsg.setIsolateId("1");
+        labIsolateMsg.setIsolateCode(isolateCode);
+        labIsolateMsg.setIsolateName(isolateName);
+        labIsolateMsg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
+        labIsolateMsg.setQuantity(InterchangeValue.buildFromHl7(cfu));
+        labIsolateMsg.setCultureType(InterchangeValue.buildFromHl7(cultureType));
+
+        LabOrderMsg msg = singleResult;
+        LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
+        resultMsg.setValueType("ST");
+        resultMsg.setLabIsolate(labIsolateMsg);
+        return msg;
+    }
+
     /**
      * Processing of isolate table
      * @throws EmapOperationMessageProcessingException shouldn't happen
@@ -557,17 +573,7 @@ class TestLabProcessing extends MessageProcessingBase {
         String cfu = "10,000 - 100,000 CFU/mL";
         String clinicalInformation = "Some clinical info";
         String cultureType = "Direct";
-        LabIsolateMsg labIsolateMsg = new LabIsolateMsg();
-        labIsolateMsg.setIsolateCode(isolateCode);
-        labIsolateMsg.setIsolateName(isolateName);
-        labIsolateMsg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
-        labIsolateMsg.setQuantity(InterchangeValue.buildFromHl7(cfu));
-        labIsolateMsg.setCultureType(InterchangeValue.buildFromHl7(cultureType));
-
-        LabOrderMsg msg = singleResult;
-        LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
-        resultMsg.setValueType("ST");
-        resultMsg.setLabIsolate(labIsolateMsg);
+        LabOrderMsg msg = addLabIsolate(isolateCode, isolateName, cfu, clinicalInformation, cultureType);
 
         processSingleMessage(msg);
 
@@ -576,6 +582,19 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(cfu, isolate.getQuantity());
         assertEquals(clinicalInformation, isolate.getClinicalInformation());
         assertEquals(cultureType, isolate.getCultureType());
+    }
+
+    @Test
+    void testIsolateUpdatesCodeAndName() throws EmapOperationMessageProcessingException {
+        String finalIsolateCode = "NEISU";
+        String finalIsolateName = "Neisseria subflava";
+
+        processSingleMessage(addLabIsolate("NEISSP", "Neisseria species", "", "", ""));
+        processSingleMessage(addLabIsolate(finalIsolateCode, finalIsolateName, "", "", ""));
+
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode(finalIsolateCode).orElseThrow();
+        assertEquals(finalIsolateName, isolate.getIsolateName());
+        assertEquals(1, labIsolateRepository.count());
     }
 
     /**
