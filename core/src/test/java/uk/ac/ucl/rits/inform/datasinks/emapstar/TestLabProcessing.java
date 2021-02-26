@@ -546,7 +546,8 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNotEquals(laterTime, collection.getSampleCollectionTime());
     }
 
-    private LabOrderMsg addLabIsolate(String isolateCode, String isolateName, String cfu, String clinicalInformation, String cultureType) {
+    private LabOrderMsg addLabIsolateAtResultTime(
+            String isolateCode, String isolateName, String cfu, String clinicalInformation, String cultureType, Instant resultTime) {
         LabIsolateMsg labIsolateMsg = new LabIsolateMsg();
         labIsolateMsg.setIsolateId("1");
         labIsolateMsg.setIsolateCode(isolateCode);
@@ -554,11 +555,14 @@ class TestLabProcessing extends MessageProcessingBase {
         labIsolateMsg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
         labIsolateMsg.setQuantity(InterchangeValue.buildFromHl7(cfu));
         labIsolateMsg.setCultureType(InterchangeValue.buildFromHl7(cultureType));
+        labIsolateMsg.getSensitivities().forEach(r -> r.setResultTime(resultTime));
 
         LabOrderMsg msg = singleResult;
+        msg.setStatusChangeTime(resultTime);
         LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
         resultMsg.setValueType("ST");
         resultMsg.setLabIsolate(labIsolateMsg);
+        resultMsg.setResultTime(resultTime);
         return msg;
     }
 
@@ -573,7 +577,8 @@ class TestLabProcessing extends MessageProcessingBase {
         String cfu = "10,000 - 100,000 CFU/mL";
         String clinicalInformation = "Some clinical info";
         String cultureType = "Direct";
-        LabOrderMsg msg = addLabIsolate(isolateCode, isolateName, cfu, clinicalInformation, cultureType);
+        LabOrderMsg msg = addLabIsolateAtResultTime(isolateCode, isolateName, cfu, clinicalInformation, cultureType, statusChangeTime);
+
 
         processSingleMessage(msg);
 
@@ -589,12 +594,25 @@ class TestLabProcessing extends MessageProcessingBase {
         String finalIsolateCode = "NEISU";
         String finalIsolateName = "Neisseria subflava";
 
-        processSingleMessage(addLabIsolate("NEISSP", "Neisseria species", "", "", ""));
-        processSingleMessage(addLabIsolate(finalIsolateCode, finalIsolateName, "", "", ""));
+        processSingleMessage(addLabIsolateAtResultTime("NEISSP", "Neisseria species", "", "", "", statusChangeTime));
+        processSingleMessage(addLabIsolateAtResultTime(finalIsolateCode, finalIsolateName, "", "", "", statusChangeTime.plus(1, ChronoUnit.HOURS)));
 
+        assertEquals(1, labIsolateRepository.count());
         LabIsolate isolate = labIsolateRepository.findByIsolateCode(finalIsolateCode).orElseThrow();
         assertEquals(finalIsolateName, isolate.getIsolateName());
+    }
+
+    @Test
+    void testEarlierIsolateMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
+        String finalIsolateCode = "code";
+        String finalIsolateName = "name";
+
+        processSingleMessage(addLabIsolateAtResultTime(finalIsolateCode, finalIsolateName, "", "", "", statusChangeTime));
+        processSingleMessage(addLabIsolateAtResultTime("NEISSP", "Neisseria species", "", "", "", statusChangeTime.minus(1, ChronoUnit.HOURS)));
+
         assertEquals(1, labIsolateRepository.count());
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode(finalIsolateCode).orElseThrow();
+        assertEquals(finalIsolateName, isolate.getIsolateName());
     }
 
     /**
@@ -647,6 +665,7 @@ class TestLabProcessing extends MessageProcessingBase {
     void testLabSensitivityValuesAdded() throws EmapOperationMessageProcessingException {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         msg.setStatusChangeTime(statusChangeTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(statusChangeTime));
         processSingleMessage(msg);
 
         LabSensitivity sens = labSensitivityRepository
@@ -666,6 +685,7 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(statusChangeTime));
         LabResultMsg result = msg.getLabResultMsgs().stream()
                 .filter(r -> r.getLabIsolate() != null)
                 .findFirst().orElseThrow();
@@ -676,6 +696,7 @@ class TestLabProcessing extends MessageProcessingBase {
         // new message with later time and updated sensitivity
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(laterTime));
         String laterSensitivity = "R";
         LabIsolateMsg isolate = msg.getLabResultMsgs().get(0).getLabIsolate();
         for (LabResultMsg sensResult : isolate.getSensitivities()) {
@@ -724,6 +745,7 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(statusChangeTime));
         LabResultMsg result = msg.getLabResultMsgs().stream()
                 .filter(r -> r.getLabIsolate() != null)
                 .findFirst().orElseThrow();
@@ -733,6 +755,7 @@ class TestLabProcessing extends MessageProcessingBase {
         // new message with only later time
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(laterTime));
         processSingleMessage(msg);
 
         LabSensitivity sens = labSensitivityRepository

@@ -57,7 +57,7 @@ class LabResultController {
         LabResult labResult = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
         // If lab isolate, update or create them
         LabIsolateMsg isolateMsg = resultMsg.getLabIsolate();
-        if (isolateMsg != null) {
+        if (isolateMsg != null && !validFrom.isBefore(labResult.getResultLastModifiedTime())) {
             LabIsolate isolate = updateOrCreateIsolate(labResult, isolateMsg, validFrom, storedFrom);
             for (LabResultMsg sensResult : isolateMsg.getSensitivities()) {
                 updateOrCreateSensitivity(isolate, sensResult, validFrom, storedFrom);
@@ -133,12 +133,14 @@ class LabResultController {
                 .orElseGet(() -> createLabIsolate(labResult, isolateMsg.getIsolateId(), validFrom, storedFrom));
         LabIsolate labIsolate = isolateState.getEntity();
 
-        isolateState.assignIfDifferent(isolateMsg.getIsolateCode(), labIsolate.getIsolateCode(), labIsolate::setIsolateCode);
-        isolateState.assignIfDifferent(isolateMsg.getIsolateName(), labIsolate.getIsolateName(), labIsolate::setIsolateName);
-        isolateState.assignInterchangeValue(isolateMsg.getCultureType(), labIsolate.getCultureType(), labIsolate::setCultureType);
-        isolateState.assignInterchangeValue(isolateMsg.getQuantity(), labIsolate.getQuantity(), labIsolate::setQuantity);
-        isolateState.assignInterchangeValue(
-                isolateMsg.getClinicalInformation(), labIsolate.getClinicalInformation(), labIsolate::setClinicalInformation);
+        if (isolateState.isEntityCreated() || validFrom.isAfter(labIsolate.getValidFrom())) {
+            isolateState.assignIfDifferent(isolateMsg.getIsolateCode(), labIsolate.getIsolateCode(), labIsolate::setIsolateCode);
+            isolateState.assignIfDifferent(isolateMsg.getIsolateName(), labIsolate.getIsolateName(), labIsolate::setIsolateName);
+            isolateState.assignInterchangeValue(isolateMsg.getCultureType(), labIsolate.getCultureType(), labIsolate::setCultureType);
+            isolateState.assignInterchangeValue(isolateMsg.getQuantity(), labIsolate.getQuantity(), labIsolate::setQuantity);
+            isolateState.assignInterchangeValue(
+                    isolateMsg.getClinicalInformation(), labIsolate.getClinicalInformation(), labIsolate::setClinicalInformation);
+        }
 
         isolateState.saveEntityOrAuditLogIfRequired(labIsolateRepo, labIsolateAuditRepo);
         return labIsolate;
@@ -160,11 +162,14 @@ class LabResultController {
                 .orElseGet(() -> createSensitivity(isolate, sensitivityMsg.getStringValue().get(), validFrom, storedFrom));
 
         LabSensitivity sensitivity = sensitivityState.getEntity();
-        sensitivityState.assignInterchangeValue(sensitivityMsg.getAbnormalFlag(), sensitivity.getSensitivity(), sensitivity::setSensitivity);
-        if (sensitivityState.isEntityUpdated()) {
-            sensitivityState.assignIfDifferent(validFrom, sensitivity.getReportingDatetime(), sensitivity::setReportingDatetime);
+
+        if (sensitivityState.isEntityCreated() || validFrom.isAfter(sensitivity.getReportingDatetime())) {
+            sensitivityState.assignInterchangeValue(sensitivityMsg.getAbnormalFlag(), sensitivity.getSensitivity(), sensitivity::setSensitivity);
+            if (sensitivityState.isEntityUpdated()) {
+                sensitivityState.assignIfDifferent(validFrom, sensitivity.getReportingDatetime(), sensitivity::setReportingDatetime);
+            }
+            sensitivityState.saveEntityOrAuditLogIfRequired(labSensitivityRepo, labSensitivityAuditRepo);
         }
-        sensitivityState.saveEntityOrAuditLogIfRequired(labSensitivityRepo, labSensitivityAuditRepo);
     }
 
     private RowState<LabSensitivity, LabSensitivityAudit> createSensitivity(
