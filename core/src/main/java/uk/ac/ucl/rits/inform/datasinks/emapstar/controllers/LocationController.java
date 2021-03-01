@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
@@ -172,8 +173,12 @@ public class LocationController {
             currentLocation.getEntity().setInferredAdmission(true);
         }
 
-        updateOrCreatePreviousMoveLocations(visit, msg, storedFrom, validFrom, visitLocations, indexCurrentOrPrevious);
-        currentLocation.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
+        try {
+            updateOrCreatePreviousMoveLocations(visit, msg, storedFrom, validFrom, visitLocations, indexCurrentOrPrevious);
+            currentLocation.saveEntityOrAuditLogIfRequired(locationVisitRepo, locationVisitAuditRepo);
+        } catch (MessageIgnoredException e) {
+            logger.debug(e.getMessage());
+        }
     }
 
     /**
@@ -327,10 +332,11 @@ public class LocationController {
      * @param validFrom              event time from the hl7 message
      * @param visitLocations         in descending order of admission time
      * @param indexOfPreviousMessage index of previous message
+     * @throws MessageIgnoredException if
      */
     private void updateOrCreatePreviousMoveLocations(
             HospitalVisit visit, AdtMessage msg, Instant storedFrom, Instant validFrom,
-            List<LocationVisit> visitLocations, Long indexOfPreviousMessage) {
+            List<LocationVisit> visitLocations, Long indexOfPreviousMessage) throws MessageIgnoredException {
 
         Optional<Location> previousLocationId = getPreviousLocationId(msg);
         RowState<LocationVisit, LocationVisitAudit> previousHl7Location = null;
@@ -343,9 +349,12 @@ public class LocationController {
                     previousHl7Location = new RowState<>(existingLocation, validFrom, storedFrom, false);
                     setInferredDischargeAndTime(false, validFrom, previousHl7Location);
                 } else {
-                    logger.debug("Previous location doesn't match hl7: inferring hl7 previous location");
-                    previousHl7Location = createLocationWithInferredAdmit(visit, previousLocationId.get(), validFrom, validFrom, storedFrom);
-
+                    if (zeroLengthVisitWouldBeCreated(msg, existingLocation, validFrom)) {
+                        throw new MessageIgnoredException("Previous location appears to be the current location and would create zero-length visit");
+                    } else {
+                        logger.debug("Previous location doesn't match hl7: inferring hl7 previous location");
+                        previousHl7Location = createLocationWithInferredAdmit(visit, previousLocationId.get(), validFrom, validFrom, storedFrom);
+                    }
                     if (openLocationOrInferredDischarge(existingLocation)) {
                         logger.debug("Inferring discharge of previous location");
                         RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
@@ -356,8 +365,7 @@ public class LocationController {
                 }
             } else {
                 if (zeroLengthVisitWouldBeCreated(msg, existingLocation, validFrom)) {
-                    logger.debug("Removing previous location because it would create a zero-length current location");
-                    deleteLocationVisit(validFrom, storedFrom, existingLocation);
+                    throw new MessageIgnoredException("Previous location appears to be the current location and would create zero-length visit");
                 } else if (openLocationOrInferredDischarge(existingLocation)) {
                     logger.debug("No previous hl7 location, but found existing previous location. Inferring existing location discharge.");
                     RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
