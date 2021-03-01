@@ -14,7 +14,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import java.time.Instant;
 
 /**
@@ -29,7 +28,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"labNumberId", "sampleType"})})
+@Table
 public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudit> {
 
     @Id
@@ -44,7 +43,7 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
      * The time the sample arrived at the lab where there test was being performed.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant sampleReceiptTime;
+    private Instant receiptAtLab;
 
     /**
      * The time the sample was take from the patient (e.g. time of phlebotomy).
@@ -52,22 +51,32 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
     @Column(columnDefinition = "timestamp with time zone")
     private Instant sampleCollectionTime;
 
-    private String sampleType;
+    /**
+     * Type of specimen.
+     * E.g. Mid Stream Urine
+     */
+    private String specimenType;
+    /**
+     * Site the sample was taken from.
+     * E.g. Right kidney
+     */
+    private String sampleSite;
 
     public LabCollection() {}
 
-    public LabCollection(LabNumber labNumberId, String sampleType) {
+    public LabCollection(LabNumber labNumberId, Instant validFrom, Instant storedFrom) {
         this.labNumberId = labNumberId;
-        this.sampleType = sampleType;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     public LabCollection(LabCollection other) {
         super(other);
         this.labCollectionId = other.labCollectionId;
         this.labNumberId = other.labNumberId;
-        this.sampleReceiptTime = other.sampleReceiptTime;
+        this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
-        this.sampleType = other.sampleType;
+        this.specimenType = other.specimenType;
     }
 
     @Override

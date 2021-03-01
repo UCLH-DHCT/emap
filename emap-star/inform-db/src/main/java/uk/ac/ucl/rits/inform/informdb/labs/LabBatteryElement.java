@@ -6,7 +6,6 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -33,33 +32,29 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labBatteryElementId;
 
+    @ManyToOne
+    @JoinColumn(name = "labBatteryId", nullable = false)
+    private LabBattery labBatteryId;
 
     @ManyToOne
     @JoinColumn(name = "labTestDefinitionId", nullable = false)
     private LabTestDefinition labTestDefinitionId;
 
-    private String battery;
-
-    /**
-     * What system this code belongs to. Examples could be WinPath, or Epic.
-     */
-    @Column(nullable = false)
-    private String labProvider;
 
     public LabBatteryElement() {}
 
-    public LabBatteryElement(LabTestDefinition labTestDefinitionId, String battery, String labProvider) {
+    public LabBatteryElement(LabTestDefinition labTestDefinitionId, LabBattery labBatteryId, Instant validFrom, Instant storedFrom) {
         this.labTestDefinitionId = labTestDefinitionId;
-        this.battery = battery;
-        this.labProvider = labProvider;
+        this.labBatteryId = labBatteryId;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     public LabBatteryElement(LabBatteryElement other) {
         super(other);
         this.labBatteryElementId = other.labBatteryElementId;
-        this.battery = other.battery;
+        this.labBatteryId = other.labBatteryId;
         this.labTestDefinitionId = other.labTestDefinitionId;
-        this.labProvider = other.labProvider;
     }
 
     @Override

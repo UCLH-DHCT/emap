@@ -14,7 +14,6 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.time.Instant;
 
@@ -30,8 +29,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Table(indexes = {@Index(name = "lo_lab_number_id", columnList = "labNumberId"),
-        @Index(name = "lo_lab_battery_element_id", columnList = "labBatteryElementId")})
+@Table(indexes = {@Index(name = "lo_lab_number_id", columnList = "labNumberId")})
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -41,9 +39,9 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @JoinColumn(name = "labNumberId", nullable = false)
     private LabNumber labNumberId;
 
-    @OneToOne
-    @JoinColumn(name = "labBatteryElementId", nullable = false)
-    private LabBatteryElement labBatteryElementId;
+    @ManyToOne
+    @JoinColumn(name = "labBatteryId", nullable = false)
+    private LabBattery labBatteryId;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
@@ -59,8 +57,8 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     public LabOrder() {}
 
-    public LabOrder(LabBatteryElement labBatteryElementId, LabNumber labNumberId) {
-        this.labBatteryElementId = labBatteryElementId;
+    public LabOrder(LabBattery labBatteryId, LabNumber labNumberId) {
+        this.labBatteryId = labBatteryId;
         this.labNumberId = labNumberId;
     }
 
@@ -68,7 +66,7 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
         super(other);
         this.labOrderId = other.labOrderId;
         this.labNumberId = other.labNumberId;
-        this.labBatteryElementId = other.labBatteryElementId;
+        this.labBatteryId = other.labBatteryId;
         this.orderDatetime = other.orderDatetime;
         this.requestDatetime = other.requestDatetime;
         this.sampleDatetime = other.sampleDatetime;

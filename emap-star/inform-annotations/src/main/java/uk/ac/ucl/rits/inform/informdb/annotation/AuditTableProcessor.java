@@ -1,12 +1,6 @@
 package uk.ac.ucl.rits.inform.informdb.annotation;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -19,6 +13,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -33,8 +28,13 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
-
-import com.google.auto.service.AutoService;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Annotation to create an audit version of a table.
@@ -54,9 +54,7 @@ import com.google.auto.service.AutoService;
  * <li>All hibernate annotations must come from the <tt>javax.persistence</tt>
  * package.
  * </ul>
- *
  * @author Roma Klapaukh
- *
  */
 @SupportedAnnotationTypes("uk.ac.ucl.rits.inform.informdb.annotation.AuditTable")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
@@ -182,7 +180,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate the imports.
-     *
      * @param out        The printWriter to write to.
      * @param baseImport The name of the package this class should be in.
      */
@@ -215,14 +212,13 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate annotations and the class declaration for the audit class.
-     *
      * @param out            File to write to
      * @param baseClassName  Name of the data class
      * @param auditClassName Name of the audit class
      * @param indicies       Array of indexes to create on the audit table
      */
     private void generateClassDeclaration(PrintWriter out, String baseClassName, String auditClassName,
-            Index[] indicies) {
+                                          Index[] indicies) {
         out.println("/**");
         out.print(" * Audit table of {@link ");
         out.print(baseClassName);
@@ -261,7 +257,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate all the fields, their getters, and setters.
-     *
      * @param out        The stream to write to
      * @param primaryKey Name of the primary key for this table
      * @param fields     The fields in the object being copied.
@@ -299,101 +294,113 @@ public class AuditTableProcessor extends AbstractProcessor {
                     field.getAnnotation(MapsId.class) != null || field.getAnnotation(JoinColumn.class) != null;
             boolean isTemporal = false; // Default position, check when you know
             switch (kind) {
-            case LONG:
-                typeName = "long";
-                break;
-            case SHORT:
-                typeName = "short";
-                break;
-            case INT:
-                typeName = "int";
-                break;
-            case FLOAT:
-                typeName = "float";
-                break;
-            case DOUBLE:
-                typeName = "double";
-                break;
-            case BYTE:
-                typeName = "byte";
-                break;
-            case CHAR:
-                typeName = "char";
-                break;
-            case DECLARED:
-                DeclaredType a = (DeclaredType) type;
-                TypeElement elem = (TypeElement) a.asElement();
-                switch (elem.getQualifiedName().toString()) {
-                case "java.lang.String":
-                    typeName = "String";
+                case LONG:
+                    typeName = "long";
                     break;
-                case "java.lang.Boolean":
-                    typeName = "Boolean";
+                case SHORT:
+                    typeName = "short";
                     break;
-                case "java.lang.Long":
-                    typeName = "Long";
+                case INT:
+                    typeName = "int";
                     break;
-                case "java.lang.Short":
-                    typeName = "Short";
+                case FLOAT:
+                    typeName = "float";
                     break;
-                case "java.lang.Integer":
-                    typeName = "Integer";
+                case DOUBLE:
+                    typeName = "double";
                     break;
-                case "java.lang.Float":
-                    typeName = "Float";
+                case BYTE:
+                    typeName = "byte";
                     break;
-                case "java.lang.Double":
-                    typeName = "Double";
+                case CHAR:
+                    typeName = "char";
                     break;
-                case "java.lang.Byte":
-                    typeName = "Byte";
-                    break;
-                case "java.lang.Char":
-                    typeName = "Char";
-                    break;
-                case "java.time.LocalDate":
-                    typeName = "LocalDate";
-                    break;
-                case "java.time.Instant":
-                    typeName = "Instant";
-                    break;
-                default:
-                    // Need to check if it's a temporal Type. Otherwise the FK is preserved
-                    TypeElement parent = elem;
-
-                    while (true) {
-                        TypeMirror sup = parent.getSuperclass();
-                        if (sup.getKind().equals(TypeKind.NONE)) {
-                            break;
-                        }
-                        DeclaredType parentType = (DeclaredType) sup;
-                        parent = (TypeElement) parentType.asElement();
-                        if (parent.getQualifiedName().toString()
-                                .equals("uk.ac.ucl.rits.inform.informdb.TemporalCore")) {
-                            isTemporal = true;
-                            break;
-                        }
-
-                    }
-                    if (isTemporal) {
-                        // If it's temporal you need to get the primary key, because the
-                        // foreign key relationship will be dissolved.
-                        typeName = "Long";
+                case ARRAY:
+                    ArrayType arrayType = (ArrayType) type;
+                    TypeMirror individualType = arrayType.getComponentType();
+                    TypeKind individualKind = individualType.getKind();
+                    if (individualKind == TypeKind.BYTE) {
+                        typeName = "byte[]";
                     } else {
-                        // If it's non temporal the foreign key relationship is preserved.
-                        typeName = elem.getQualifiedName().toString();
-                    }
-                    if (!isForeignKey) {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                "Found field of type " + type + " but not detected as a foreign key");
+                                "Found field of array with unhandleable type " + type);
                         continue;
                     }
-                }
-                break;
-            default:
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                        "Found field of unhandleable type " + type);
-                continue;
+                    break;
+                case DECLARED:
+                    DeclaredType a = (DeclaredType) type;
+                    TypeElement elem = (TypeElement) a.asElement();
+                    switch (elem.getQualifiedName().toString()) {
+                        case "java.lang.String":
+                            typeName = "String";
+                            break;
+                        case "java.lang.Boolean":
+                            typeName = "Boolean";
+                            break;
+                        case "java.lang.Long":
+                            typeName = "Long";
+                            break;
+                        case "java.lang.Short":
+                            typeName = "Short";
+                            break;
+                        case "java.lang.Integer":
+                            typeName = "Integer";
+                            break;
+                        case "java.lang.Float":
+                            typeName = "Float";
+                            break;
+                        case "java.lang.Double":
+                            typeName = "Double";
+                            break;
+                        case "java.lang.Byte":
+                            typeName = "Byte";
+                            break;
+                        case "java.lang.Char":
+                            typeName = "Char";
+                            break;
+                        case "java.time.LocalDate":
+                            typeName = "LocalDate";
+                            break;
+                        case "java.time.Instant":
+                            typeName = "Instant";
+                            break;
+                        default:
+                            // Need to check if it's a temporal Type. Otherwise the FK is preserved
+                            TypeElement parent = elem;
+
+                            while (true) {
+                                TypeMirror sup = parent.getSuperclass();
+                                if (sup.getKind().equals(TypeKind.NONE)) {
+                                    break;
+                                }
+                                DeclaredType parentType = (DeclaredType) sup;
+                                parent = (TypeElement) parentType.asElement();
+                                if (parent.getQualifiedName().toString()
+                                        .equals("uk.ac.ucl.rits.inform.informdb.TemporalCore")) {
+                                    isTemporal = true;
+                                    break;
+                                }
+
+                            }
+                            if (isTemporal) {
+                                // If it's temporal you need to get the primary key, because the
+                                // foreign key relationship will be dissolved.
+                                typeName = "Long";
+                            } else {
+                                // If it's non temporal the foreign key relationship is preserved.
+                                typeName = elem.getQualifiedName().toString();
+                            }
+                            if (!isForeignKey) {
+                                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                        "Found field of type " + type + " but not detected as a foreign key");
+                                continue;
+                            }
+                    }
+                    break;
+                default:
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                            "Found field of unhandleable type " + type);
+                    continue;
 
             }
 
@@ -470,7 +477,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate the code for a single field declaration, its getter, and its setter.
-     *
      * @param out         Stream to write to.
      * @param annotations Annotations for the field declaration.
      * @param typeName    The type of the field.
@@ -493,7 +499,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate a copy constructor.
-     *
      * @param out        File to write to
      * @param typeName   The name of the class
      * @param primaryKey The name of the primary key for the audit class
@@ -530,14 +535,13 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Generate a constructor to create an audit instance from a normal instance.
-     *
      * @param out            The stream to write to.
      * @param otherClassName The name of the real instance class.
      * @param auditClassName The name of the audit instance class.
      * @param fields         The list of fields in the real instance.
      */
     private void generateFromMainConstructor(PrintWriter out, String otherClassName, String auditClassName,
-            List<FieldStore> fields) {
+                                             List<FieldStore> fields) {
 
         out.println("\t/**");
         out.println("\t* Constructor from valid instance.");
@@ -576,7 +580,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Capitalise the first letter in a String for camelCase naming.
-     *
      * @param s The text
      * @return the text with a captial first letter
      */
@@ -588,7 +591,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Lowercase the first letter in a String for camelCase naming.
-     *
      * @param s the text
      * @return the text with the first letter lowercase
      */
@@ -600,7 +602,6 @@ public class AuditTableProcessor extends AbstractProcessor {
 
     /**
      * Get the name of the primary key field of a class.
-     *
      * @param type The class to find the primary key for
      * @return The name of the primary key field
      */
@@ -614,9 +615,9 @@ public class AuditTableProcessor extends AbstractProcessor {
     }
 
     private class FieldStore {
-        public final boolean isForeignKey;
-        public final String  primaryKeyName;
-        public final String  fieldName;
+        final boolean isForeignKey;
+        final String primaryKeyName;
+        final String fieldName;
 
         FieldStore(String fieldName, boolean isForeignKey, String primaryKeyName) {
             this.isForeignKey = isForeignKey;

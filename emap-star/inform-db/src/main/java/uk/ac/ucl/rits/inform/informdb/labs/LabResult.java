@@ -53,9 +53,16 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
      */
     private String abnormalFlag;
 
+    /**
+     * Mime type (or custom type) of the value.
+     * This will tell you which column you should expect to be populated for the value.
+     */
+    private String mimeType;
+
     @Column(columnDefinition = "text")
     private String valueAsText;
     private Double valueAsReal;
+    private byte[] valueAsBytes;
 
     /**
      * For numeric results, defines the operator used to define the value.
