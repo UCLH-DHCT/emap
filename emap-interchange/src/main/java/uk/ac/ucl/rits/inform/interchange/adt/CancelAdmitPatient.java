@@ -16,7 +16,6 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class CancelAdmitPatient extends AdtMessage implements AdtCancellation {
-    private static final long serialVersionUID = -1327739046375342715L;
     private Instant cancelledDateTime;
 
     @Override

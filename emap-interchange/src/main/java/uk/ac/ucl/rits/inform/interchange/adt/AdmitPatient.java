@@ -17,7 +17,6 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class AdmitPatient extends AdtMessage implements AdmissionDateTime  {
-    private static final long serialVersionUID = -4310475980149363358L;
     private InterchangeValue<Instant> admissionDateTime = InterchangeValue.unknown();
 
 

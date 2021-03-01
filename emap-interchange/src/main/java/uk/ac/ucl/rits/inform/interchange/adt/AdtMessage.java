@@ -19,7 +19,6 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public abstract class AdtMessage extends EmapOperationMessage {
-    private static final long serialVersionUID = 804256024384466435L;
     private Instant recordedDateTime;
     private String eventReasonCode;
     private Instant eventOccurredDateTime;

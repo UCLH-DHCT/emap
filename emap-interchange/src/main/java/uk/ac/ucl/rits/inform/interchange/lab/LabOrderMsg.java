@@ -25,8 +25,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabOrderMsg extends EmapOperationMessage implements Serializable {
-    private static final long serialVersionUID = -8476559759815762054L;
-
     private List<LabResultMsg> labResultMsgs = new ArrayList<>();
     private String orderControlId;
     private String epicCareOrderNumber;

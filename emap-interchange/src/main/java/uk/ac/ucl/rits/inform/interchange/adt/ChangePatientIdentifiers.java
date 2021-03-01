@@ -15,8 +15,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ChangePatientIdentifiers extends AdtMessage implements PreviousIdentifiers {
-    private static final long serialVersionUID = 2764828119416263690L;
-
     private String previousMrn;
     private String previousNhsNumber;
 

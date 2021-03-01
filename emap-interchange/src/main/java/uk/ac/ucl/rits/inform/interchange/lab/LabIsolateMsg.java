@@ -16,7 +16,6 @@ import java.util.List;
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabIsolateMsg implements Serializable {
-    private static final long serialVersionUID = -6188813379454667829L;
 
     private String epicCareOrderNumber;
     /**
