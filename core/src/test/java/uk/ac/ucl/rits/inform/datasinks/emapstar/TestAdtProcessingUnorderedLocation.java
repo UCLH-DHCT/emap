@@ -133,7 +133,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
-    public Stream<DynamicTest> testDuplicateSimpleCase() {
+    public Stream<DynamicTest> testDuplicateRegisterAdmitTransferDischarge() {
         adtFilenames = new String[]{"01_A04", "02_A01", "03_A02", "04_A03"};
         orderPermutationTestProducer.setMessagePath("Location/DuplicateSimple");
         orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
