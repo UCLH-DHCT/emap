@@ -47,13 +47,14 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     }
 
     /**
-     * Admit, cancel admit, admit, transfer, discharge
+     * Admit, cancel admit, admit, transfer, discharge, cancel admit
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
-    public Stream<DynamicTest> testUnorderedCancelAdmit() {
+    public Stream<DynamicTest> testDuplicateCancelAdmit() {
         adtFilenames = new String[]{"01_A01", "02_A11", "03_A01", "04_A02", "05_A03"};
-
+        List<String> duplicateCancel = new ArrayList<>(List.of(adtFilenames));
+        duplicateCancel.add("02_A11");
         orderPermutationTestProducer.setMessagePath("Location/CancelAdmit");
         orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T13:00:52Z"));
         orderPermutationTestProducer.setLocations(new String[]{
@@ -61,7 +62,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
         });
         orderPermutationTestProducer.setAdtFilenames(adtFilenames);
-        ShuffleIterator<String> permutationIterator = new ShuffleIterator<>(List.of(adtFilenames));
+        ShuffleIterator<String> permutationIterator = new ShuffleIterator<>(duplicateCancel);
 
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
@@ -70,12 +71,14 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     }
 
     /**
-     * admit, transfer, transfer, discharge, cancel discharge, discharge
+     * admit, transfer, transfer, discharge, cancel discharge, discharge, cancel discharge
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
-    public Stream<DynamicTest> testUnorderedCancelDischarge() {
+    public Stream<DynamicTest> testDuplicateCancelDischarge() {
         adtFilenames = new String[]{"01_A01", "02_A02", "03_A03", "04_A13", "05_A03"};
+        List<String> duplicateCancel = new ArrayList<>(List.of(adtFilenames));
+        duplicateCancel.add("04_A13");
         orderPermutationTestProducer.setMessagePath("Location/CancelDischarge");
         orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
         orderPermutationTestProducer.setLocations(new String[]{
@@ -84,7 +87,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         });
 
         orderPermutationTestProducer.setAdtFilenames(adtFilenames);
-        ShuffleIterator<String> permutationIterator = new ShuffleIterator<>(List.of(adtFilenames));
+        ShuffleIterator<String> permutationIterator = new ShuffleIterator<>(duplicateCancel);
 
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
@@ -93,12 +96,14 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     }
 
     /**
-     * admit, transfer, transfer, cancel transfer, transfer, discharge
+     * admit, transfer, transfer, cancel transfer, transfer, discharge,  cancel transfer
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
     public Stream<DynamicTest> testUnorderedCancelTransfer() {
         adtFilenames = new String[]{"01_A01", "02_A02", "03_A02", "04_A12", "05_A02", "06_A03"};
+        List<String> duplicateCancel = new ArrayList<>(List.of(adtFilenames));
+        duplicateCancel.add("04_A12");
         orderPermutationTestProducer.setMessagePath("Location/CancelTransfer");
         orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
         orderPermutationTestProducer.setLocations(new String[]{
@@ -113,7 +118,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
-                        () -> orderPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+                        () -> orderPermutationTestProducer.buildTestFromPermutation(duplicateCancel)));
     }
 
 
