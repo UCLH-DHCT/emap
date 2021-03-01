@@ -15,7 +15,6 @@ import java.util.function.Consumer;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class InterchangeValue<T> implements Serializable {
-    private static final long serialVersionUID = -8863675097743487929L;
     private T value;
     private ResultStatus status;
 

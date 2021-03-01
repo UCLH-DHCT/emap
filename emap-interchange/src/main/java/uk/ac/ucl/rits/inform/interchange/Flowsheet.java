@@ -16,8 +16,6 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class Flowsheet extends EmapOperationMessage {
-    private static final long serialVersionUID = -6678756549815762054L;
-
     private String mrn = "";
 
     private String visitNumber = "";

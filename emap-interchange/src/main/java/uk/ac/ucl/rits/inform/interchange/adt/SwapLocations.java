@@ -18,8 +18,6 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class SwapLocations extends AdtMessage {
-    private static final long serialVersionUID = 1811745798929900545L;
-
     private String otherMrn;
     private String otherNhsNumber;
     private String otherVisitNumber;

@@ -17,7 +17,6 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class RegisterPatient extends AdtMessage {
-    private static final long serialVersionUID = 6241822001508655468L;
     private InterchangeValue<Instant> presentationDateTime = InterchangeValue.unknown();
 
     @Override

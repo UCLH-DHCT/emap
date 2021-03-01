@@ -15,8 +15,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @ToString(callSuper = true)
 public class MoveVisitInformation extends AdtMessage implements PreviousIdentifiers {
 
-    private static final long serialVersionUID = 8612053846611150031L;
-
     private String previousMrn;
     private String previousNhsNumber;
     private String previousVisitNumber;
