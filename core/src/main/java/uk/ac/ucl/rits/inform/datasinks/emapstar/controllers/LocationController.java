@@ -351,10 +351,9 @@ public class LocationController {
                 } else {
                     if (zeroLengthVisitWouldBeCreated(msg, existingLocation, validFrom)) {
                         throw new MessageIgnoredException("Previous location appears to be the current location and would create zero-length visit");
-                    } else {
-                        logger.debug("Previous location doesn't match hl7: inferring hl7 previous location");
-                        previousHl7Location = createLocationWithInferredAdmit(visit, previousLocationId.get(), validFrom, validFrom, storedFrom);
                     }
+                    logger.debug("Previous location doesn't match hl7: inferring hl7 previous location");
+                    previousHl7Location = createLocationWithInferredAdmit(visit, previousLocationId.get(), validFrom, validFrom, storedFrom);
                     if (openLocationOrInferredDischarge(existingLocation)) {
                         logger.debug("Inferring discharge of previous location");
                         RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
@@ -366,7 +365,8 @@ public class LocationController {
             } else {
                 if (zeroLengthVisitWouldBeCreated(msg, existingLocation, validFrom)) {
                     throw new MessageIgnoredException("Previous location appears to be the current location and would create zero-length visit");
-                } else if (openLocationOrInferredDischarge(existingLocation)) {
+                }
+                if (openLocationOrInferredDischarge(existingLocation)) {
                     logger.debug("No previous hl7 location, but found existing previous location. Inferring existing location discharge.");
                     RowState<LocationVisit, LocationVisitAudit> existingPrevious = new RowState<>(existingLocation, validFrom, storedFrom, false);
                     setInferredDischargeAndTime(true, validFrom, existingPrevious);
@@ -425,7 +425,7 @@ public class LocationController {
      * @param storedFrom        when the message has been read by emap core
      * @param currentLocationId Location entity
      * @throws MessageLocationCancelledException if discharge message was cancelled
-     * @throws RequiredDataMissingException if the discharge message doesn't have a time
+     * @throws RequiredDataMissingException      if the discharge message doesn't have a time
      */
     private void processDischargeMessage(
             HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location currentLocationId)
