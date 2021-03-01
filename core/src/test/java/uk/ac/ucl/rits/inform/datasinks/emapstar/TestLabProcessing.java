@@ -1,33 +1,43 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabBatteryElementRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabCollectionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabNumberRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabOrderRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabResultSensitivityRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LabTestDefinitionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabCollectionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabNumberRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSensitivityRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
+import uk.ac.ucl.rits.inform.informdb.labs.LabIsolate;
 import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
-import uk.ac.ucl.rits.inform.informdb.labs.LabResultSensitivity;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -36,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TestLabProcessing extends MessageProcessingBase {
     private LabOrderMsg fourResults;
@@ -49,6 +60,8 @@ class TestLabProcessing extends MessageProcessingBase {
 
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
+    @Autowired
+    LabBatteryRepository labBatteryRepository;
     @Autowired
     LabBatteryElementRepository labBatteryElementRepository;
     @Autowired
@@ -64,7 +77,9 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     LabCollectionRepository labCollectionRepository;
     @Autowired
-    LabResultSensitivityRepository labResultSensitivityRepository;
+    LabIsolateRepository labIsolateRepository;
+    @Autowired
+    LabSensitivityRepository labSensitivityRepository;
 
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
@@ -82,11 +97,12 @@ class TestLabProcessing extends MessageProcessingBase {
 
     private void checkFirstMessageLabEntityCount() {
         assertEquals(1, labNumberRepository.count(), "lab number should have been created");
-        assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
-        assertEquals(4, labBatteryElementRepository.count(), "lab batteries type should have been created");
-        assertEquals(4, labOrderRepository.count(), "lab order should have been created");
-        assertEquals(4, labResultRepository.count(), "lab results should have been created");
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(1, labOrderRepository.count(), "lab order should have been created");
         assertEquals(1, labCollectionRepository.count(), "lab collection should have been created");
+        assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
+        assertEquals(4, labBatteryElementRepository.count(), "lab battery elements type should have been created");
+        assertEquals(4, labResultRepository.count(), "lab results should have been created");
     }
 
     /**
@@ -220,10 +236,26 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     @Test
+    void testChangeOfSourceSystemThrowsException() throws EmapOperationMessageProcessingException {
+        // original message
+        processSingleMessage(singleResult);
+        // send again with another source
+        singleResult.setSourceSystem("another source");
+
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(singleResult));
+    }
+
+    @Test
+    void testNoStatusChangeTimeThrows() {
+        singleResult.setStatusChangeTime(null);
+        assertThrows(RequiredDataMissingException.class, () -> processSingleMessage(singleResult));
+    }
+
+    @Test
     void testHappyPathLabTestDefinition() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabTestDefinition result = labTestDefinitionRepository.findByTestLabCode(singleResultTestCode).orElseThrow();
-        assertEquals("WinPath", result.getLabProvider());
+        assertEquals(OrderCodingSystem.WIN_PATH.name(), result.getLabProvider());
         assertEquals("CC", result.getLabDepartment());
     }
 
@@ -231,7 +263,7 @@ class TestLabProcessing extends MessageProcessingBase {
     void testHappyPathLabBatteryElement() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
         LabBatteryElement result = labBatteryElementRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
-        assertEquals("IRON", result.getBattery());
+        assertEquals("IRON", result.getLabBatteryId().getBatteryCode());
     }
 
     @Test
@@ -373,20 +405,83 @@ class TestLabProcessing extends MessageProcessingBase {
     @Test
     void testLabCollectionDataCorrect() throws EmapOperationMessageProcessingException {
         // set relevant values
-        String sampleType = "BLD";
+        String sampleType = "Tissue";
+        String sampleSite = "Right Kidney";
         Instant collectTime = Instant.parse("2013-07-24T15:41:00Z");
 
         LabOrderMsg msg = singleResult;
-        msg.setSpecimenType(sampleType);
+        msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
+        msg.setSampleSite(InterchangeValue.buildFromHl7(sampleSite));
         msg.setCollectionDateTime(collectTime);
         msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(collectTime));
         //process message
         processSingleMessage(msg);
         // check results correct
         LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(sampleType, collection.getSampleType());
+        assertEquals(sampleType, collection.getSpecimenType());
+        assertEquals(sampleSite, collection.getSampleSite());
         assertEquals(collectTime, collection.getSampleCollectionTime());
-        assertEquals(collectTime, collection.getSampleReceiptTime());
+        assertEquals(collectTime, collection.getReceiptAtLab());
+    }
+
+    void processWithChangedSampleInformation(String initialValue, boolean changeSpecimenType) throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = singleResult;
+        msg.setSpecimenType(InterchangeValue.buildFromHl7(initialValue));
+        msg.setSampleSite(InterchangeValue.buildFromHl7(initialValue));
+        //process message
+        processSingleMessage(msg);
+        if (changeSpecimenType) {
+            msg.setSpecimenType(InterchangeValue.buildFromHl7(String.format("%s2", initialValue)));
+        } else {
+            msg.setSampleSite(InterchangeValue.buildFromHl7(String.format("%s2", initialValue)));
+        }
+        processSingleMessage(msg);
+    }
+
+    /**
+     * Ensure that unchangeable fields should throw exception if changed
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @TestFactory
+    Iterable<DynamicTest> testLabCollectionThrowsExceptionWhenSampleInfoChanged() throws EmapOperationMessageProcessingException {
+        return Arrays.asList(
+                DynamicTest.dynamicTest(
+                        "SpecimenType", () -> {
+                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", true));
+                        }
+                ),
+                DynamicTest.dynamicTest(
+                        "SampleSite", () -> {
+                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", false));
+                        }
+                )
+        );
+    }
+
+    /**
+     * Ensure that unknown unchangeable fields are updated
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @TestFactory
+    Iterable<DynamicTest> testLabCollectionCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
+        return Arrays.asList(
+                DynamicTest.dynamicTest(
+                        "SpecimenType", () -> {
+                            processWithChangedSampleInformation("", true);
+                            LabCollection collection = labCollectionRepository
+                                    .findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+                            assertEquals("2", collection.getSpecimenType());
+                        }
+                ),
+                DynamicTest.dynamicTest(
+                        "SampleSite", () -> {
+                            processWithChangedSampleInformation("", false);
+                            LabCollection collection = labCollectionRepository
+                                    .findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+                            assertEquals("2", collection.getSampleSite());
+                        }
+                )
+        );
     }
 
     /**
@@ -406,7 +501,7 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(receivedTime, collection.getSampleReceiptTime());
+        assertEquals(receivedTime, collection.getReceiptAtLab());
     }
 
     /**
@@ -451,30 +546,80 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNotEquals(laterTime, collection.getSampleCollectionTime());
     }
 
-    /**
-     * Processing of isolate should have the isolate type as the result, the cfu (string value in msg) as the unit
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testLabIsolateProcessingResults() throws EmapOperationMessageProcessingException {
-        String isolate = "CANALB^Candida albicans";
-        String cfu = "10,000 - 100,000 CFU/mL";
+    private LabOrderMsg addLabIsolateAtResultTime(
+            String isolateCode, String isolateName, String cfu, String clinicalInformation, String cultureType, Instant resultTime) {
+        LabIsolateMsg labIsolateMsg = new LabIsolateMsg();
+        labIsolateMsg.setIsolateId("1");
+        labIsolateMsg.setIsolateCode(isolateCode);
+        labIsolateMsg.setIsolateName(isolateName);
+        labIsolateMsg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
+        labIsolateMsg.setQuantity(InterchangeValue.buildFromHl7(cfu));
+        labIsolateMsg.setCultureType(InterchangeValue.buildFromHl7(cultureType));
+
         LabOrderMsg msg = singleResult;
+        msg.setStatusChangeTime(resultTime);
         LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
         resultMsg.setValueType("ST");
-        resultMsg.setIsolateCodeAndText(isolate);
-        resultMsg.setStringValue(InterchangeValue.buildFromHl7(cfu));
-
-        processSingleMessage(msg);
-
-        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
-        assertEquals(isolate, result.getValueAsText());
-        assertEquals(cfu, result.getUnits());
+        resultMsg.setLabIsolate(labIsolateMsg);
+        resultMsg.setResultTime(resultTime);
+        return msg;
     }
 
     /**
-     * Unlike other labs, a message for a single order can have multiple isolates.
-     * 2 different microbes cultured, so should have two results which have a test definition of ISOLATE
+     * Processing of isolate table
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabIsolate() throws EmapOperationMessageProcessingException {
+        String isolateCode = "CANALB";
+        String isolateName = "Candida albicans";
+        String cfu = "10,000 - 100,000 CFU/mL";
+        String clinicalInformation = "Some clinical info";
+        String cultureType = "Direct";
+        LabOrderMsg msg = addLabIsolateAtResultTime(isolateCode, isolateName, cfu, clinicalInformation, cultureType, statusChangeTime);
+
+
+        processSingleMessage(msg);
+
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode(isolateCode).orElseThrow();
+        assertEquals(isolateName, isolate.getIsolateName());
+        assertEquals(cfu, isolate.getQuantity());
+        assertEquals(clinicalInformation, isolate.getClinicalInformation());
+        assertEquals(cultureType, isolate.getCultureType());
+    }
+
+    @Test
+    void testIsolateUpdatesCodeAndName() throws EmapOperationMessageProcessingException {
+        String finalIsolateCode = "NEISU";
+        String finalIsolateName = "Neisseria subflava";
+        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
+
+        processSingleMessage(addLabIsolateAtResultTime("NEISSP", "Neisseria species", "", "", "", statusChangeTime));
+        processSingleMessage(addLabIsolateAtResultTime(finalIsolateCode, finalIsolateName, "", "", "", laterTime));
+
+        assertEquals(1, labIsolateRepository.count());
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode(finalIsolateCode).orElseThrow();
+        assertEquals(finalIsolateName, isolate.getIsolateName());
+        // should update the isolate time, but also the result's updated time
+        assertEquals(laterTime, isolate.getValidFrom());
+        assertEquals(laterTime, isolate.getLabResultId().getResultLastModifiedTime());
+    }
+
+    @Test
+    void testEarlierIsolateMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
+        String finalIsolateCode = "code";
+        String finalIsolateName = "name";
+
+        processSingleMessage(addLabIsolateAtResultTime(finalIsolateCode, finalIsolateName, "", "", "", statusChangeTime));
+        processSingleMessage(addLabIsolateAtResultTime("NEISSP", "Neisseria species", "", "", "", statusChangeTime.minus(1, ChronoUnit.HOURS)));
+
+        assertEquals(1, labIsolateRepository.count());
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode(finalIsolateCode).orElseThrow();
+        assertEquals(finalIsolateName, isolate.getIsolateName());
+    }
+
+    /**
+     * Two isolates should have been parsed./
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -482,9 +627,8 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         processSingleMessage(msg);
 
-        List<LabResult> isolates = StreamSupport
-                .stream(labResultRepository.findAll().spliterator(), false)
-                .filter(lr -> "ISOLATE".equals(lr.getLabTestDefinitionId().getTestLabCode()))
+        List<LabIsolate> isolates = StreamSupport
+                .stream(labIsolateRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
         assertEquals(2, isolates.size());
     }
@@ -494,12 +638,11 @@ class TestLabProcessing extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testIsolateClinicalInformationAddedAsComment() throws EmapOperationMessageProcessingException {
+    void testIsolateClinicalInformation() throws EmapOperationMessageProcessingException {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         processSingleMessage(msg);
-        LabResult result = labResultRepository
-                .findByLabTestDefinitionIdTestLabCodeAndValueAsText("ISOLATE", "KLEOXY^Klebsiella oxytoca").orElseThrow();
-        assertEquals("Gentamicin resistant", result.getComment());
+        LabIsolate isolate = labIsolateRepository.findByIsolateCode("KLEOXY").orElseThrow();
+        assertEquals("Gentamicin resistant", isolate.getClinicalInformation());
     }
 
     /**
@@ -511,8 +654,8 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         processSingleMessage(msg);
 
-        List<LabResultSensitivity> sensitivities = StreamSupport
-                .stream(labResultSensitivityRepository.findAll().spliterator(), false)
+        List<LabSensitivity> sensitivities = StreamSupport
+                .stream(labSensitivityRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
         assertEquals(10, sensitivities.size());
     }
@@ -525,10 +668,11 @@ class TestLabProcessing extends MessageProcessingBase {
     void testLabSensitivityValuesAdded() throws EmapOperationMessageProcessingException {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         msg.setStatusChangeTime(statusChangeTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(statusChangeTime));
         processSingleMessage(msg);
 
-        LabResultSensitivity sens = labResultSensitivityRepository
-                .findByLabResultIdValueAsTextAndAgent("KLEOXY^Klebsiella oxytoca", "VAK")
+        LabSensitivity sens = labSensitivityRepository
+                .findByLabIsolateIdIsolateCodeAndAgent("KLEOXY", "VAK")
                 .orElseThrow();
 
         assertEquals(statusChangeTime, sens.getReportingDatetime());
@@ -544,7 +688,10 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
-        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getIsolateCodeAndText().isEmpty()).findFirst().orElseThrow();
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(statusChangeTime));
+        LabResultMsg result = msg.getLabResultMsgs().stream()
+                .filter(r -> r.getLabIsolate() != null)
+                .findFirst().orElseThrow();
         result.setAbnormalFlag(InterchangeValue.buildFromHl7("S"));
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
@@ -552,21 +699,43 @@ class TestLabProcessing extends MessageProcessingBase {
         // new message with later time and updated sensitivity
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(laterTime));
         String laterSensitivity = "R";
-        for (LabOrderMsg sensOrder: msg.getLabResultMsgs().get(0).getLabSensitivities()) {
-            for (LabResultMsg sensResult: sensOrder.getLabResultMsgs()) {
-                sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
-            }
+        LabIsolateMsg isolate = msg.getLabResultMsgs().get(0).getLabIsolate();
+        for (LabResultMsg sensResult : isolate.getSensitivities()) {
+            sensResult.setAbnormalFlag(InterchangeValue.buildFromHl7(laterSensitivity));
         }
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
 
-        LabResultSensitivity sens = labResultSensitivityRepository
-                .findByLabResultIdValueAsTextAndAgent("KLEOXY^Klebsiella oxytoca", "VAK")
+        LabSensitivity sens = labSensitivityRepository
+                .findByLabIsolateIdIsolateCodeAndAgent("KLEOXY", "VAK")
                 .orElseThrow();
 
         assertEquals(laterTime, sens.getReportingDatetime());
         assertEquals(laterSensitivity, sens.getSensitivity());
+    }
+
+    /**
+     * Check the sensitivity changes when it is updated, and so does the reported time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabSensitivityWithNoAgentIsSkipped() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
+        msg.setStatusChangeTime(statusChangeTime);
+        LabResultMsg resultMsg = msg.getLabResultMsgs().stream()
+                .filter(r -> r.getLabIsolate() != null)
+                .findFirst().orElseThrow();
+        LabResultMsg sensitivityResult = resultMsg.getLabIsolate()
+                .getSensitivities().stream()
+                .findFirst().orElseThrow();
+        sensitivityResult.setStringValue(InterchangeValue.unknown());
+        resultMsg.getLabIsolate().setSensitivities(List.of(sensitivityResult));
+        msg.setLabResultMsgs(List.of(resultMsg));
+        processSingleMessage(msg);
+
+        assertEquals(0, labSensitivityRepository.count(), "No Lab sensitivity should be added");
     }
 
 
@@ -579,19 +748,63 @@ class TestLabProcessing extends MessageProcessingBase {
         LabOrderMsg msg = messageFactory.getLabOrders("winpath/sensitivity.yaml", "0000040").get(0);
         // original message
         msg.setStatusChangeTime(statusChangeTime);
-        LabResultMsg result = msg.getLabResultMsgs().stream().filter(r -> !r.getIsolateCodeAndText().isEmpty()).findFirst().orElseThrow();
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(statusChangeTime));
+        LabResultMsg result = msg.getLabResultMsgs().stream()
+                .filter(r -> r.getLabIsolate() != null)
+                .findFirst().orElseThrow();
         msg.setLabResultMsgs(List.of(result));
         processSingleMessage(msg);
 
         // new message with only later time
         Instant laterTime = statusChangeTime.plus(1, ChronoUnit.HOURS);
         msg.setStatusChangeTime(laterTime);
+        msg.getLabResultMsgs().forEach(r -> r.setResultTime(laterTime));
         processSingleMessage(msg);
 
-        LabResultSensitivity sens = labResultSensitivityRepository
-                .findByLabResultIdValueAsTextAndAgent("KLEOXY^Klebsiella oxytoca", "VAK")
+        LabSensitivity sens = labSensitivityRepository
+                .findByLabIsolateIdIsolateCodeAndAgent("KLEOXY", "VAK")
                 .orElseThrow();
 
         assertEquals(statusChangeTime, sens.getReportingDatetime());
+    }
+
+    /**
+     * Incremental update of isolate with sensitivities.
+     * Only the new sensitivity should have the new result time.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testIncrementalSensitivity() throws EmapOperationMessageProcessingException {
+        LabOrderMsg inc1 = messageFactory.getLabOrders("winpath/isolate_inc_1.yaml", "0000040").get(0);
+        LabOrderMsg inc2 = messageFactory.getLabOrders("winpath/isolate_inc_2.yaml", "0000040").get(0);
+
+        Instant firstResultTime = Instant.parse("2020-09-12T12:13:00Z");
+        Instant secondResultTime = Instant.parse("2020-09-23T11:58:00Z");
+
+
+        processSingleMessage(inc1);
+        processSingleMessage(inc2);
+
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode("ISOLATE").orElseThrow();
+        LabIsolate updatedIsolate = labIsolateRepository.findByIsolateCode("STAHAE").orElseThrow();
+        LabIsolate notUpdatedIsolate = labIsolateRepository.findByIsolateCode("ENTFAM").orElseThrow();
+
+        LabSensitivity notUpdatedSensitivityFromNotUpdatedIsolate = labSensitivityRepository
+                .findByLabIsolateIdAndAgent(notUpdatedIsolate, "VM").orElseThrow();
+        LabSensitivity notUpdatedSensitivityFromUpdatedIsolate = labSensitivityRepository
+                .findByLabIsolateIdAndAgent(updatedIsolate, "VDP").orElseThrow();
+        LabSensitivity newSensitivityFromUpdatedIsolate = labSensitivityRepository
+                .findByLabIsolateIdAndAgent(updatedIsolate, "VCI").orElseThrow();
+
+        // new sensitivity
+        assertEquals(secondResultTime, newSensitivityFromUpdatedIsolate.getReportingDatetime());
+
+        // non-updated entities
+        assertEquals(firstResultTime, result.getResultLastModifiedTime());
+        assertEquals(firstResultTime, updatedIsolate.getValidFrom());
+        assertEquals(firstResultTime, notUpdatedIsolate.getValidFrom());
+        assertEquals(firstResultTime, notUpdatedSensitivityFromNotUpdatedIsolate.getReportingDatetime());
+        assertEquals(firstResultTime, notUpdatedSensitivityFromUpdatedIsolate.getReportingDatetime());
+        // phew
     }
 }

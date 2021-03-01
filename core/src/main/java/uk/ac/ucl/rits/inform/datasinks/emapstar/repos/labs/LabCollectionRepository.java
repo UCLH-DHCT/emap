@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
@@ -11,7 +11,7 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabCollectionRepository extends CrudRepository<LabCollection, Long> {
-    Optional<LabCollection> findByLabNumberIdAndSampleType(LabNumber labNumber, String specimenType);
+    Optional<LabCollection> findByLabNumberId(LabNumber labNumber);
 
     /**
      * For testing.
