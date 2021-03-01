@@ -103,12 +103,12 @@ class CaboodleOperations {
 
     private void submitCaboodleRows(Tuple caboodleRows) {
         Tuple lastCaboodleRow = null;
-        List<ImmutablePair<VitalSigns, String>> batch = new ArrayList<>();
+        List<ImmutablePair<Flowsheet, String>> batch = new ArrayList<>();
 
         for (Tuple caboodleRow : caboodleRows) {
-            VitalSigns vitalSign = processCaboodleRow(caboodleRow);
+            Flowsheet vitalSign = processCaboodleRow(caboodleRow);
             String correlationId = caboodleRow.get("uniqueId");
-            ImmutablePair<VitalSigns, String> pair = new ImmutablePair<>(vitalSign, correlationId);
+            ImmutablePair<Flowsheet, String> pair = new ImmutablePair<>(vitalSign, correlationId);
             batch.add(pair);
 
             lastCaboodleRow = caboodleRow;
