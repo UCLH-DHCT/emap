@@ -1,19 +1,23 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo"
-recordedDateTime: "2013-02-11T11:00:52Z"
-eventOccurredDateTime: "2013-02-11T10:30:52Z"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.TransferPatient"
+recordedDateTime: "2013-02-11T14:00:52Z"
+eventOccurredDateTime: "2013-02-11T13:00:52Z"
 eventReasonCode: "ADT_EVENT"
+visitNumber: "123412341234"
+nhsNumber: "9999999999"
 sourceSystem: "EPIC"
 mrn: "40800000"
-nhsNumber: "9999999999"
-visitNumber: "123412341234"
-modeOfArrival:
+admissionDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
-  value: "Ambulance"
+  value: "2013-02-11T12:00:52Z"
 fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-  value: "ED^UCHED RAT CHAIR^RAT-CHAIR"
   status: "SAVE"
+  value: "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
+previousLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
