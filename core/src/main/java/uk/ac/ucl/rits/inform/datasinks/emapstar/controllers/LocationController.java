@@ -332,7 +332,7 @@ public class LocationController {
      * @param validFrom              event time from the hl7 message
      * @param visitLocations         in descending order of admission time
      * @param indexOfPreviousMessage index of previous message
-     * @throws MessageIgnoredException if
+     * @throws MessageIgnoredException if the current admission to a location matches the previous location and admission time
      */
     private void updateOrCreatePreviousMoveLocations(
             HospitalVisit visit, AdtMessage msg, Instant storedFrom, Instant validFrom,
