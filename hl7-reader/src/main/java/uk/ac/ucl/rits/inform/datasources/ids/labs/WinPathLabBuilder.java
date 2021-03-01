@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -135,7 +135,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             labResult.constructMsg();
             tempResults.add(labResult);
         }
-        // join some of the observations under this fact together (or ignore some of them)
+        // merge isolate results
         mergeOrFilterResults(tempResults);
         getMsg().setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
@@ -184,7 +184,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         if (oruR01.getPATIENT_RESULTReps() != 1) {
-            throw new RuntimeException("not handling this yet");
+            throw new Hl7MessageIgnoredException("Not expecting WinPath to have multiple patient results in one message");
         }
         ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
         List<ORU_R01_ORDER_OBSERVATION> orderObservations = patientResults.getORDER_OBSERVATIONAll();
@@ -204,51 +204,40 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
             }
         }
-        reparentOrders(orders);
+        mergeSensitivitiesIntoIsolate(orders);
         return orders;
     }
 
-
     /**
-     * Use the HL7 fields to re-parent the (sensitivity) orders in this list so they point to the results
-     * that they apply to. Parents and children must all be in the list supplied.
-     * @param orders the list of all orders (usually with results(?)). This list
-     *               will have items modified and/or deleted.
+     * Use the HL7 fields to re-parent the sensitivities in this list so they are added to their parent isolate.
+     * Parents and children must all be in the list supplied.
+     * @param orders the list of all orders from a HL7 message. This list will have items modified and/or deleted.
+     * @throws Hl7InconsistencyException if no parent found for a message which has a subId.
      */
-    private static void reparentOrders(List<LabOrderMsg> orders) {
-        // we may have multiple orders that are unrelated to each other (apart from
-        // being for the same patient).
-        for (int i = 0; i < orders.size(); i++) {
-            LabOrderMsg orderToReparent = orders.get(i);
-            if (!orderToReparent.getParentSubId().isEmpty()) {
-                // The order has a parent, let's find it.
-                // Not many elements, a linear search should be fine.
-                // I'm assuming that the parent always appears before the child in the list.
-                for (int j = 0; j < i; j++) {
-                    LabOrderMsg possibleOrder = orders.get(j);
-                    if (possibleOrder == null) {
-                        // we already re-parented this one, skip
-                        continue;
-                    }
-                    // An HL7 LabOrderBuilder will always contain HL7 LabResultBuilder objects for its results,
-                    // so downcast will be safe. Find a better way of encoding this in the type system.
-                    List<LabResultMsg> possibleParents = possibleOrder.getLabResultMsgs();
-                    try {
-                        LabResultMsg foundParent = possibleParents.stream()
-                                .filter(par -> isChildOf(orderToReparent, par))
-                                .findFirst().orElseThrow();
-                        // add the order to the list of sensitivities and delete from the original list
-                        logger.debug("Reparenting sensitivity order {} onto {}", orderToReparent, foundParent);
-                        foundParent.getLabSensitivities().add(orderToReparent);
-                        orders.set(i, null);
-                        break;
-                    } catch (NoSuchElementException e) {
-                        logger.error("No parent order found for sensitivity", e);
-                    }
-                }
+    private static void mergeSensitivitiesIntoIsolate(List<LabOrderMsg> orders) throws Hl7InconsistencyException {
+        // we may have multiple orders that are unrelated to each other (apart from being for the same patient).
+        ListIterator<LabOrderMsg> iter = orders.listIterator();
+        while (iter.hasNext()) {
+            LabOrderMsg orderToReparent = iter.next();
+            if (orderToReparent.getParentSubId().isEmpty()) {
+                continue;
+            }
+            // Parent order is always first in HL7 from WinPath (single case in IDS which looks like a malformed message)
+            LabOrderMsg possibleOrder = orders.get(0);
+            try {
+                LabResultMsg foundParentResult = possibleOrder.getLabResultMsgs().stream()
+                        .filter(par -> isChildOf(orderToReparent, par))
+                        .findFirst().orElseThrow();
+                // add the order to the list of sensitivities and delete from the original list
+                logger.debug("Reparenting sensitivity {} onto {}", orderToReparent, foundParentResult);
+                LabIsolateMsg parentIsolate = foundParentResult.getLabIsolate();
+                parentIsolate.setSensitivities(orderToReparent.getLabResultMsgs());
+                parentIsolate.setClinicalInformation(orderToReparent.getClinicalInformation());
+                iter.remove();
+            } catch (NoSuchElementException e) {
+                throw new Hl7InconsistencyException("No parent order found for sensitivity", e);
             }
         }
-        orders.removeIf(Objects::isNull);
     }
 
     /**
@@ -257,23 +246,26 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments, linked by a sub ID.
      * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
      */
-    private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) {
+    private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) throws Hl7InconsistencyException {
         Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());
         ListIterator<WinPathResultBuilder> iterator = labResults.listIterator();
         while (iterator.hasNext()) {
             WinPathResultBuilder builder = iterator.next();
             String subId = builder.getMessage().getObservationSubId();
+
             if (subId.isEmpty()) {
                 continue;
+            } else if (builder.getMessage().getLabIsolate() == null) {
+                throw new Hl7InconsistencyException("Lab isolate from result not found from winpath with subId");
             }
+
             WinPathResultBuilder existing = subIdMapping.get(subId);
             if (existing == null) {
                 // save it for future results that will need to refer back to it
                 subIdMapping.put(subId, builder);
             } else {
-                // the sub ID has already been seen, so merge this result
-                // into the existing result, and delete this result
-                existing.mergeResult(builder.getMessage());
+                // the sub ID has already been seen, so merge this result into the existing result, and delete this result
+                existing.mergeIsolatesSetMimeTypeAndClearValue(builder.getMessage());
                 iterator.remove();
             }
         }
@@ -317,3 +309,4 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     }
 
 }
+

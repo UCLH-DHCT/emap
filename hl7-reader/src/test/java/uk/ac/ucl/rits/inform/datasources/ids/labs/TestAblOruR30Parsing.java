@@ -132,7 +132,7 @@ class TestAblOruR30Parsing {
     @Test
     void testCollectionSpecimenType() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
-        assertEquals("Venous", msg.getSpecimenType());
+        assertEquals(InterchangeValue.buildFromHl7("Venous"), msg.getSpecimenType());
     }
 
     @Test

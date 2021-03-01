@@ -5,7 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -15,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,7 +37,7 @@ class TestWinPathLabOruR01Results {
     @Test
     void testSpecimenType() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
-        assertEquals("CTNS", msg.getSpecimenType());
+        assertEquals(InterchangeValue.buildFromHl7("CTNS"), msg.getSpecimenType());
     }
 
     /**
@@ -199,6 +203,57 @@ class TestWinPathLabOruR01Results {
     }
 
     /**
+     * OBR and OBC epic Id don't agree, should throw.
+     */
+    @Test
+    void testMismatchEpicId() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "mistmatch_epic_order_id"));
+    }
+
+    /**
+     * Not expecting WinPath to have multiple patient results in a single message.
+     */
+    @Test
+    void testPatientRepeatsThrows() {
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "patient_repeats"));
+    }
+
+    /**
+     * Only expecting SubId in isolates for winpath.
+     */
+    @Test
+    void testSubIdNotIsolate() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "subid_no_isolate"));
+    }
+
+    /**
+     * WinPath should always have the first order as the isolate, throw if not.
+     */
+    @Test
+    void testSensitivityWhereFirstOrderIsNotIsolate() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "malformed_sensitivity"));
+    }
+
+    /**
+     * Sensitivity with no epic id should throw an exception as it can't be matched as a child.
+     */
+    @Test
+    void testIsolateWhereSensitivityHasNoEpicId() {
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "isolate_child_no_epic_id"));
+    }
+
+    /**
+     * Order control Id not allowed, the order should not be outputted.
+     */
+    @Test
+    void testNotAllowedOrderControlId() throws Exception {
+        List<? extends EmapOperationMessage> msgs = labReader
+                .processSingleMessage(String.format(FILE_TEMPLATE, "not_allowed_order_control_id"))
+                .stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertTrue(msgs.isEmpty());
+    }
+
+    /**
      * Non-ISOLATE coded data should throw an exception
      */
     @Test
@@ -208,18 +263,75 @@ class TestWinPathLabOruR01Results {
 
     /**
      * No growth has trailing spaces in the code, these should be removed
-     * "NG5   ^No growth after 5 days incubation" -> "NG5^No growth after 5 days incubation"
+     * "NG5   ^No growth after 5 days incubation" -> "NG5"
      * @throws Exception shouldn't happen
      */
     @Test
     void testNoGrowthCodeIsStripped() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "culture_no_growth");
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_no_growth");
         List<LabResultMsg> result = orderMsg.getLabResultMsgs()
                 .stream()
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        assertEquals("NG5^No growth after 5 days incubation", result.get(0).getIsolateCodeAndText());
+        String ng5 = result.get(0).getLabIsolate().getIsolateCode();
+        assertEquals("NG5", ng5);
+    }
+
+    private LabIsolateMsg getFirstLabIsolate(String file) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, file);
+        return orderMsg.getLabResultMsgs().stream()
+                .filter(res -> res.getLabIsolate() != null)
+                .findFirst()
+                .map(LabResultMsg::getLabIsolate)
+                .orElseThrow();
+    }
+
+    /**
+     * Test the fields for the result that contains isolates.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testIsolateResult() throws Exception {
+        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_quantity");
+
+        LabResultMsg isolateResultMsg = orderMsg.getLabResultMsgs().stream()
+                .filter(res -> res.getLabIsolate() != null)
+                .findFirst().orElseThrow();
+        assertEquals(InterchangeValue.buildFromHl7("A"), isolateResultMsg.getAbnormalFlag());
+        assertEquals(LabResultStatus.FINAL, isolateResultMsg.getResultStatus());
+        assertEquals("link/lab_isolate", isolateResultMsg.getMimeType());
+    }
+
+
+    @Test
+    void testIsolateWithQuantity() throws Exception {
+        LabIsolateMsg isolate = getFirstLabIsolate("isolate_quantity");
+        assertEquals("KLEOXY", isolate.getIsolateCode());
+        assertEquals("Klebsiella oxytoca", isolate.getIsolateName());
+        assertEquals(InterchangeValue.buildFromHl7("10,000 - 100,000 CFU/mL"), isolate.getQuantity());
+        assertTrue(isolate.getCultureType().isUnknown());
+        assertNotNull(isolate.getIsolateId());
+    }
+
+    @Test
+    void testIsolateWithCultureType() throws Exception {
+        LabIsolateMsg isolate = getFirstLabIsolate("isolate_culture_type");
+        assertEquals("NEISU", isolate.getIsolateCode());
+        assertEquals("Neisseria subflava", isolate.getIsolateName());
+        assertTrue(isolate.getQuantity().isUnknown());
+        assertEquals(InterchangeValue.buildFromHl7("Enrichment"), isolate.getCultureType());
+        assertNotNull(isolate.getIsolateId());
+    }
+
+    @Test
+    void testIsolateSensitivities() throws Exception {
+        LabIsolateMsg isolate = getFirstLabIsolate("isolate_sensitivity");
+        LabResultMsg sensitivity = isolate.getSensitivities().stream()
+                .filter(sens -> sens.getTestItemLocalCode().equals("VAK"))
+                .findFirst().orElseThrow();
+        assertEquals(InterchangeValue.buildFromHl7("S"), sensitivity.getAbnormalFlag());
+        assertEquals(LabResultStatus.FINAL, sensitivity.getResultStatus());
     }
 
     @Test
@@ -230,7 +342,9 @@ class TestWinPathLabOruR01Results {
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
                 .collect(Collectors.toList());
         assertEquals(1, result.size());
-        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), result.get(0).getLabSensitivities().get(0).getClinicalInformation());
+        InterchangeValue<String> clinical = result.get(0).getLabIsolate().getClinicalInformation();
+
+        assertEquals(InterchangeValue.buildFromHl7("Gentamicin resistant"), clinical);
     }
 
 

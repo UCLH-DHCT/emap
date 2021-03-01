@@ -67,7 +67,7 @@ public abstract class LabResultBuilder {
 
     /**
      * Construct Lab Result msg using set order of methods.
-     * @throws DataTypeException if the result time can't be parsed by HAPI
+     * @throws DataTypeException         if the result time can't be parsed by HAPI
      * @throws Hl7InconsistencyException if custom value type is incompatible with parser
      */
     void constructMsg() throws DataTypeException, Hl7InconsistencyException {
@@ -193,7 +193,7 @@ public abstract class LabResultBuilder {
                 }
             }
         }
-        setDataFromCustomValue(data, msg.getTestItemLocalCode(), repCount);
+        setDataFromCustomValue(obx);
     }
 
     void setStringValue(OBX obx) {
@@ -227,12 +227,10 @@ public abstract class LabResultBuilder {
 
     /**
      * Optionally set a value which is not a numeric or string type.
-     * @param data     data item
-     * @param testCode expected test code
-     * @param repCount the number of parts of the data item
+     * @param obx      obx segment
      * @throws Hl7InconsistencyException if custom data type is not compatible wth parsing
      */
-    protected void setDataFromCustomValue(Type data, String testCode, int repCount) throws Hl7InconsistencyException {
+    protected void setDataFromCustomValue(OBX obx) throws Hl7InconsistencyException {
         return;
     }
 
