@@ -25,13 +25,12 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabOrderMsg extends EmapOperationMessage implements Serializable {
-    private static final long serialVersionUID = -8476559759815762054L;
-
     private List<LabResultMsg> labResultMsgs = new ArrayList<>();
     private String orderControlId;
     private String epicCareOrderNumber;
     private String labSpecimenNumber;
-    private String specimenType;
+    private InterchangeValue<String> specimenType = InterchangeValue.unknown();
+    private InterchangeValue<String> sampleSite = InterchangeValue.unknown();
 
     /**
      * Best we can get to time the sample was collected (label printing time).

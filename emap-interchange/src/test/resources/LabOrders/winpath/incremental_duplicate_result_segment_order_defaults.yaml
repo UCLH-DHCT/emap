@@ -1,6 +1,9 @@
 orderControlId: "RE"
 labSpecimenNumber: "333333330"
-specimenType: "BLD"
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value:  "BLD"
 mrn: "11111111110"
 visitNumber: "7878787877"
 requestedDateTime:

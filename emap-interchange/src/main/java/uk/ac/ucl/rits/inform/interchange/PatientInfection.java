@@ -13,7 +13,6 @@ import java.util.Objects;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientInfection extends EmapOperationMessage implements Serializable {
-    private static final long serialVersionUID = 9025316128466696423L;
     private String mrn;
 
     /**

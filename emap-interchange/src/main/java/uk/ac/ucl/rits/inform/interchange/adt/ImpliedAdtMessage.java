@@ -18,8 +18,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ImpliedAdtMessage extends AdtMessage {
-    private static final long serialVersionUID = 6177251667805777164L;
-
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);

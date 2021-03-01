@@ -1,12 +1,11 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import java.io.Serializable;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * Wrapper for data in interchange fields that can either be unknown or known.
@@ -15,7 +14,6 @@ import java.util.function.Consumer;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class InterchangeValue<T> implements Serializable {
-    private static final long serialVersionUID = -8863675097743487929L;
     private T value;
     private ResultStatus status;
 
@@ -68,7 +66,6 @@ public class InterchangeValue<T> implements Serializable {
         return new InterchangeValue<>(hl7Value);
     }
 
-
     /**
      * Construct with a known value.
      * @param value of the field, cannot be null
@@ -114,17 +111,6 @@ public class InterchangeValue<T> implements Serializable {
     @JsonIgnore
     public boolean isDelete() {
         return ResultStatus.DELETE == status;
-    }
-
-    /**
-     * Assign value using the setter Lambda.
-     * @param setterLambda method or lambda to set an objects value
-     */
-    public void assignTo(Consumer<T> setterLambda) {
-        if (status == ResultStatus.IGNORE) {
-            return;
-        }
-        setterLambda.accept(value);
     }
 
     @Override

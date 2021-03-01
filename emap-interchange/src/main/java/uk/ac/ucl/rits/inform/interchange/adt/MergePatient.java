@@ -14,8 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class MergePatient extends AdtMessage implements PreviousIdentifiers {
-    private static final long serialVersionUID = -2500473433999508161L;
-
     /**
      * MRN to be merged and retired.
      */

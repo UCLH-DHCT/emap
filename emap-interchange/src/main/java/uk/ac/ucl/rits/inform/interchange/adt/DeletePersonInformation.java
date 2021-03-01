@@ -14,8 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class DeletePersonInformation extends AdtMessage {
-    private static final long serialVersionUID = 3337977661678135438L;
-
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);

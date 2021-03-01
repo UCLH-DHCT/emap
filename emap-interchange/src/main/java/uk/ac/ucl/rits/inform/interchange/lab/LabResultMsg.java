@@ -7,8 +7,6 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represent a lab result. Note that this doesn't implement
@@ -20,19 +18,15 @@ import java.util.List;
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabResultMsg implements Serializable {
-    private static final long serialVersionUID = 140970942335476554L;
     private String valueType;
 
     private String testItemLocalCode = "";
     private String testItemCodingSystem = "";
 
     /**
-     * Id to link an observation over multiple result fields.
-     * <p>
-     * Currently only filled for microbial isolates/sensitivities.
+     * Id to link an observation over multiple result fields which can then be combined.
      */
     private String observationSubId = "";
-    private String isolateCodeAndText = "";
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
     private InterchangeValue<String> units = InterchangeValue.unknown();
@@ -50,12 +44,13 @@ public class LabResultMsg implements Serializable {
 
     private Instant resultTime;
     private InterchangeValue<String> notes = InterchangeValue.unknown();
+    private String mimeType;
 
     /**
-     * A sensitivity is just a nested lab order with results.
-     * HL7 has fields for working out parentage.
+     * Lab Isolate is only ever contained within a result.
+     * Hhas provenance fields linking it to the result.
      */
-    private List<LabOrderMsg> labSensitivities = new ArrayList<>();
+    private LabIsolateMsg labIsolate;
 
     private String epicCareOrderNumber;
 
