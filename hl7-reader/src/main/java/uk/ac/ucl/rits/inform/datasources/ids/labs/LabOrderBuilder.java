@@ -17,8 +17,12 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 
 abstract class LabOrderBuilder {
+    private static final Collection<String> NEW_ORDER_CONTROL_IDS = new HashSet<>(Arrays.asList("NW", "SN"));
 
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
@@ -63,18 +67,18 @@ abstract class LabOrderBuilder {
         msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
 
 
-        // The order time can only be got from an Epic->WinPath NW message. The ORC-9 means something different
-        // in a status change (SC) message.
+        // ORC-9 has different meanings depending on message context
         Instant orc9 = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
-        if ("NW".equals(msg.getOrderControlId())) {
+        if (NEW_ORDER_CONTROL_IDS.contains(msg.getOrderControlId())) {
             msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
-        } else if ("SC".equals(msg.getOrderControlId())) {
-            // possibly need to check for other result status codes that signify "in progress"?
-            if ("I".equals(obr.getObr25_ResultStatus().getValueOrEmpty())) {
-                // ORC-9 = time sample entered onto WinPath
-                msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
-            }
+        } else if (statusChangeAndInProgress(obr)) {
+            // ORC-9 = time sample entered onto WinPath
+            msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
         }
+    }
+
+    private boolean statusChangeAndInProgress(OBR obr) {
+        return "SC".equals(msg.getOrderControlId()) && "I".equals(obr.getObr25_ResultStatus().getValueOrEmpty());
     }
 
     void setBatteryCodingSystem(OrderCodingSystem codingSystem) {
