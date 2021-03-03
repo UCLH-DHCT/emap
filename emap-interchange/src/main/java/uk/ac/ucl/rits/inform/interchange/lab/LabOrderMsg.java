@@ -63,7 +63,6 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String labDepartment = "";
     private String orderStatus;
     private String resultStatus;
-    private String orderType;
     private String mrn;
 
     private String visitNumber;
