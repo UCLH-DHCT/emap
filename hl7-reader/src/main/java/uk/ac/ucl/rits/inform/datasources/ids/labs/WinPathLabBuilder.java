@@ -41,7 +41,8 @@ import java.util.stream.Collectors;
  * @author Stef Piatek
  */
 public final class WinPathLabBuilder extends LabOrderBuilder {
-    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE")); // other winpath: CA, SN, NW, NA, CR, OC
+    // other winpath: CA, CR, OC
+    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE", "NW", "SC", "SN", "NA"));
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
 
 

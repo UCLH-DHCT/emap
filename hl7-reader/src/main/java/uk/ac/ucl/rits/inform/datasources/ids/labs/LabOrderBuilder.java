@@ -4,6 +4,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
+import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
@@ -20,6 +21,10 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
 abstract class LabOrderBuilder {
     private static final Collection<String> NEW_ORDER_CONTROL_IDS = new HashSet<>(Arrays.asList("NW", "SN"));
@@ -60,17 +65,18 @@ abstract class LabOrderBuilder {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        String labSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        msg.setLabSpecimenNumber(labSpecimen);
+        String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        msg.setLabSpecimenNumber(labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen);
         setSpecimenType(obr);
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
-        msg.setOrderType(orc.getOrc29_OrderType().getCwe1_Identifier().getValue());
 
 
         // ORC-9 has different meanings depending on message context
-        Instant orc9 = HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
+        Instant orc9 = interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
         if (NEW_ORDER_CONTROL_IDS.contains(msg.getOrderControlId())) {
             msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
+            msg.setStatusChangeTime(orc9);
         } else if (statusChangeAndInProgress(obr)) {
             // ORC-9 = time sample entered onto WinPath
             msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
@@ -113,7 +119,7 @@ abstract class LabOrderBuilder {
      * @throws DataTypeException if HAPI does
      */
     void populateOrderInformation(OBR obr) throws DataTypeException {
-        Instant sampleReceived = HL7Utils.interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime());
+        Instant sampleReceived = interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime());
         msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(sampleReceived));
         msg.setOrderDateTime(InterchangeValue.buildFromHl7(sampleReceived));
         msg.setStatusChangeTime(sampleReceived);
@@ -130,12 +136,12 @@ abstract class LabOrderBuilder {
         // which is the closest we get to a "collection" time. The actual collection will happen some point
         // before or after this, we can't really tell. That's why an order message contains a non blank collection time.
         // This field is consistent throughout the workflow.
-        Instant collectionTime = HL7Utils.interpretLocalTime(obr.getObr7_ObservationDateTime());
+        Instant collectionTime = interpretLocalTime(obr.getObr7_ObservationDateTime());
         if (collectionTime == null) {
             throw new Hl7InconsistencyException("Collection time is required but missing");
         }
         msg.setCollectionDateTime(collectionTime);
-        Instant requestedTime = HL7Utils.interpretLocalTime(obr.getObr6_RequestedDateTime());
+        Instant requestedTime = interpretLocalTime(obr.getObr6_RequestedDateTime());
         msg.setRequestedDateTime(InterchangeValue.buildFromHl7(requestedTime));
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
@@ -145,10 +151,17 @@ abstract class LabOrderBuilder {
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"
+        // Will be set from ORC if its an ORM O01 NW message
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
+        String reasonForStudy = List.of(obr.getObr31_ReasonForStudy()).stream()
+                .map(CWE::getCwe2_Text)
+                .map(ST::getValueOrEmpty)
+                .collect(Collectors.joining("\n"))
+                .strip();
+
         String clinicalInformation = obr.getObr13_RelevantClinicalInformation().getValueOrEmpty();
-        msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation));
+        msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInformation.isEmpty() ? reasonForStudy : clinicalInformation));
 
         // identifies the battery of tests that has been performed/ordered (eg. FBC)
         CWE obr4 = obr.getObr4_UniversalServiceIdentifier();
