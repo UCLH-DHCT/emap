@@ -198,4 +198,19 @@ public class InterchangeMessageFactory {
         isolateMsg = orderReader.readValue(getClass().getResourceAsStream(isolateDefaultPath));
         updateLabResults(isolateMsg.getSensitivities(), resourcePathPrefix);
     }
+
+    public LabOrderMsg buildLabOrderOverridingDefaults(String defaultsFile, String overridingFile) {
+        String defaultsPath = String.format("/LabOrders/%s", defaultsFile);
+        String overridingPath = String.format("/LabOrders/%s", overridingFile);
+        LabOrderMsg order = new LabOrderMsg();
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
+            LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+            ObjectReader orderReader = mapper.readerForUpdating(defaults);
+            order = orderReader.readValue(getClass().getResourceAsStream(overridingPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return order;
+    }
 }
