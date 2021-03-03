@@ -7,9 +7,12 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -169,6 +172,16 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     public void testIncrementalIsolate2() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/isolate_inc_2.txt");
         List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/isolate_inc_2.yaml", "0000000042");
+        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
+    }
+
+    @Test
+    public void testWinPathIncrementalOrders() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/incremental_orders/01_orm_o01_nw.txt");
+        List<LabOrderMsg> expectedOrders = new ArrayList<>();
+        String incrementalFolder = "winpath/incremental_orders";
+        String defaultsFile = String.format("%s/orm_defaults.yaml", incrementalFolder);
+        expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(defaultsFile, String.format("%s/01_orm_o01_nw.yaml", incrementalFolder)));
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
     }
 
