@@ -77,6 +77,8 @@ abstract class LabOrderBuilder {
         if (NEW_ORDER_CONTROL_IDS.contains(msg.getOrderControlId())) {
             msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
             msg.setStatusChangeTime(orc9);
+        } else if ("NA".equals(msg.getOrderControlId())) {
+            msg.setStatusChangeTime(orc9);
         } else if (statusChangeAndInProgress(obr)) {
             // ORC-9 = time sample entered onto WinPath
             msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
@@ -151,7 +153,7 @@ abstract class LabOrderBuilder {
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"
-        // Will be set from ORC if its an ORM O01 NW message
+        // Will be set from ORC if staus change time is not in message type
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         String reasonForStudy = List.of(obr.getObr31_ReasonForStudy()).stream()

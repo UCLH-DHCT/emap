@@ -47,7 +47,6 @@ class TestWinPathOrders {
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 
-
     @Test
     void testOrmO01NWOrderInfo() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
@@ -58,7 +57,6 @@ class TestWinPathOrders {
         assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
         assertTrue(order.getOrderStatus().isEmpty());
     }
-
 
     @Test
     void testOrmO01SCTimes() throws Exception {
@@ -78,19 +76,18 @@ class TestWinPathOrders {
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 
-
     @Test
     void testOrmO01SCOrderInfo() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals("WinPath", order.getSourceSystem());
-        assertTrue(order.getSpecimenType().isUnknown());
         assertEquals("1", order.getLabDepartment());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
         assertEquals("NW", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
-    }
 
+        assertTrue(order.getSpecimenType().isUnknown());
+    }
 
     @Test
     void testOrmO01SNTimes() throws Exception {
@@ -106,20 +103,53 @@ class TestWinPathOrders {
     @Test
     void testOrmO01SNLabNumbers() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
-        assertTrue(order.getEpicCareOrderNumber().isEmpty());
         assertEquals(labOrder, order.getLabSpecimenNumber());
-    }
 
+        assertTrue(order.getEpicCareOrderNumber().isEmpty());
+    }
 
     @Test
     void testOrmO01SNOrderInfo() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals("WinPath", order.getSourceSystem());
-        assertTrue(order.getSpecimenType().isUnknown());
         assertEquals("1", order.getLabDepartment());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
         assertEquals("NW", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
+
+        assertTrue(order.getSpecimenType().isUnknown());
+    }
+
+    @Test
+    void testOrrO02NATimes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o01_na");
+        assertEquals(collectionTime, order.getCollectionDateTime());
+        assertNotNull(order.getStatusChangeTime());
+        assertTrue(order.getRequestedDateTime().isSave());
+
+        assertTrue(order.getOrderDateTime().isUnknown());
+        assertTrue(order.getSampleReceivedTime().isUnknown());
+    }
+
+    @Test
+    void testOrrO02NALabNumbers() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o01_na");
+        assertEquals(epicOrder, order.getEpicCareOrderNumber());
+        assertEquals(labOrder, order.getLabSpecimenNumber());
+    }
+
+    @Test
+    void testOrrO02NAOrderInfo() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o01_na");
+        assertEquals("WinPath", order.getSourceSystem());
+        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
+
+        assertTrue(order.getOrderStatus().isEmpty());
+        assertTrue(order.getResultStatus().isEmpty());
+        assertTrue(order.getVisitNumber().isEmpty());
+        assertTrue(order.getSpecimenType().isUnknown());
+        assertTrue(order.getLabDepartment().isEmpty());
     }
 }
