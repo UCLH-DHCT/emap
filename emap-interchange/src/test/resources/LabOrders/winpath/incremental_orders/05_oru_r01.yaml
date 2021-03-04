@@ -1,0 +1,41 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "NM"
+      testItemLocalCode: "MG"
+      resultOperator: "="
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0.83
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "0.83"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "mmol/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 0.60
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 1.0
+  epicCareOrderNumber: "91393666"
+  testBatteryLocalCode: "MG"
+  statusChangeTime: "2013-07-28T08:56:00Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      valueType: "FT"
+      testItemLocalCode: "DATP"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Previously known low result."
+  epicCareOrderNumber: "12121212"
+  testBatteryLocalCode: "TELH"
+  statusChangeTime: "2013-07-28T08:57:00Z"
