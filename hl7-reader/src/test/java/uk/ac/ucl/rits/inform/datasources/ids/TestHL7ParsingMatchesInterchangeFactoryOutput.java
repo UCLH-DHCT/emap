@@ -7,13 +7,13 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
-import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
-import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -177,12 +177,20 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     public void testWinPathIncrementalOrders() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/incremental_orders/01_orm_o01_nw.txt");
+        String hl7PathTemplate = "LabOrders/winpath/incremental_orders/%s.txt";
+        String interchangePathTemplate = "winpath/incremental_orders/%s.yaml";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+
+        List<EmapOperationMessage> builtMessages = new ArrayList<>();
         List<LabOrderMsg> expectedOrders = new ArrayList<>();
-        String incrementalFolder = "winpath/incremental_orders";
-        String defaultsFile = String.format("%s/orm_defaults.yaml", incrementalFolder);
-        expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(defaultsFile, String.format("%s/01_orm_o01_nw.yaml", incrementalFolder)));
-        assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
+        String[] files = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh"};
+        for (String file : files) {
+            builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, file)));
+            expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(
+                    interchangeDefaults, String.format(interchangePathTemplate, file)));
+        }
+        builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertListOfMessagesEqual(expectedOrders, builtMessages);
     }
 
     @Test
