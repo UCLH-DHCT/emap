@@ -1,13 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
@@ -23,9 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabIsolate;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -37,7 +31,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -46,16 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class TestLabProcessing extends MessageProcessingBase {
+class TestLabResultProcessing extends MessageProcessingBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private LabOrderMsg fourResults;
     private LabOrderMsg singleResult;
     private List<LabOrderMsg> incremental;
 
-    private final String singleResultMrn = "40800000";
-    private final String singleResultLabNumber = "13U444444";
     private final String singleResultTestCode = "FE";
     private final Instant statusChangeTime = Instant.parse("2013-07-24T16:46:00Z");
 
@@ -83,7 +73,7 @@ class TestLabProcessing extends MessageProcessingBase {
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
 
-    public TestLabProcessing() {
+    public TestLabResultProcessing() {
         List<LabOrderMsg> messages = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
         fourResults = messages.get(0);
         singleResult = messages.get(1);
@@ -95,9 +85,6 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     private void checkFirstMessageLabEntityCount() {
-        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
-        assertEquals(1, labOrderRepository.count(), "lab order should have been created");
-        assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
         assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
         assertEquals(4, labBatteryElementRepository.count(), "lab battery elements type should have been created");
         assertEquals(4, labResultRepository.count(), "lab results should have been created");
@@ -118,15 +105,8 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNotNull(mrnToLive);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-        assertEquals("Corepoint", visit.getSourceSystem());
-        assertNull(visit.getPatientClass());
-        assertNull(visit.getArrivalMethod());
-        assertNull(visit.getAdmissionTime());
         // then lab results:
         checkFirstMessageLabEntityCount();
-
-        // -- for now skipping over, will also need to do the foreign keys for these when we get there
-        // LabResultSensitivity
     }
 
     /**
@@ -209,26 +189,6 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(3, epicResults.size());
     }
 
-    /**
-     * Processing a Labs result without an encounter should be processed to the end
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testEncounterNotRequired() throws EmapOperationMessageProcessingException {
-        LabOrderMsg msg = fourResults;
-        msg.setVisitNumber(null);
-        processSingleMessage(msg);
-        // all processed
-        checkFirstMessageLabEntityCount();
-        // lab number should not have a hospital visit
-        labOrderRepository.findAll().forEach(lo -> assertNull(lo.getHospitalVisitId()));
-    }
-
-    @Test
-    void testNoStatusChangeTimeThrows() {
-        singleResult.setStatusChangeTime(null);
-        assertThrows(RequiredDataMissingException.class, () -> processSingleMessage(singleResult));
-    }
 
     @Test
     void testHappyPathLabTestDefinition() throws EmapOperationMessageProcessingException {
@@ -243,97 +203,6 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(singleResult);
         LabBatteryElement result = labBatteryElementRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
         assertEquals("IRON", result.getLabBatteryId().getBatteryCode());
-    }
-
-    @Test
-    void testHappyPathLabOrder() throws EmapOperationMessageProcessingException {
-        processSingleMessage(singleResult);
-        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(statusChangeTime, result.getRequestDatetime());
-        assertEquals("Corepoint", result.getSourceSystem());
-        assertNull(result.getOrderDatetime());
-    }
-
-    @Test
-    void testLabOrderClinicalInformation() throws EmapOperationMessageProcessingException {
-        LabOrderMsg msg = singleResult;
-        String clinicalInfo = "Pre-surgery bloods";
-        msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInfo));
-        processSingleMessage(msg);
-
-        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(clinicalInfo, result.getClinicalInformation());
-    }
-
-    /**
-     * Order with more recent status change time should update the temporal fields that are set (here request date time)
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testLabOrderUpdatesWithNewResults() throws EmapOperationMessageProcessingException {
-        // first process original message
-        processSingleMessage(singleResult);
-
-        // set up message with later status change time and requested date
-        LabOrderMsg msg = singleResult;
-        Instant laterTime = statusChangeTime.plus(100, ChronoUnit.DAYS);
-        msg.setStatusChangeTime(laterTime);
-        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(laterTime));
-        // process new message
-        processSingleMessage(msg);
-
-        // check time has updated
-        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(laterTime, result.getRequestDatetime());
-    }
-
-    /**
-     * Order with older status change time shouldn't update the temporal fields that are set (here request date time)
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testLabOrderFromThePastDoesntUpdateNonNullField() throws EmapOperationMessageProcessingException {
-        // first process original message
-        processSingleMessage(singleResult);
-
-        // set up message with an earlier status change time and later requested date
-        LabOrderMsg msg = singleResult;
-        Instant laterTime = statusChangeTime.plus(100, ChronoUnit.DAYS);
-        msg.setStatusChangeTime(statusChangeTime.minus(100, ChronoUnit.DAYS));
-        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(laterTime));
-        // process new message
-        processSingleMessage(msg);
-
-        // check time has not updated
-        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(statusChangeTime, result.getRequestDatetime());
-    }
-
-
-    /**
-     * Order with older recent status change time should update the temporal fields that are currently null
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testLabOrderFromThePastUpdatedNullTemporalData() throws EmapOperationMessageProcessingException {
-        // first process original message
-        processSingleMessage(singleResult);
-
-        // set up message with later status change time and requested date
-        LabOrderMsg msg = singleResult;
-        Instant earlierTime = statusChangeTime.minus(100, ChronoUnit.DAYS);
-        msg.setStatusChangeTime(earlierTime);
-        msg.setRequestedDateTime(InterchangeValue.buildFromHl7(earlierTime));
-        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(earlierTime));
-        msg.setOrderDateTime(InterchangeValue.buildFromHl7(earlierTime));
-        // process new message
-        processSingleMessage(msg);
-
-        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
-        // check that already set value hasn't updated
-        assertEquals(statusChangeTime, result.getRequestDatetime());
-        // check time has updated for previously null fields
-        assertEquals(earlierTime, result.getOrderDatetime());
     }
 
     @Test
@@ -374,155 +243,6 @@ class TestLabProcessing extends MessageProcessingBase {
         assertNull(result.getRangeHigh());
         assertNull(result.getResultOperator());
         assertNull(result.getUnits());
-    }
-
-    /**
-     * Creation of lab collection row.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testLabSampleDataCorrect() throws EmapOperationMessageProcessingException {
-        // set relevant values
-        String sampleType = "Tissue";
-        String sampleSite = "Right Kidney";
-        Instant collectTime = Instant.parse("2013-07-24T15:41:00Z");
-
-        LabOrderMsg msg = singleResult;
-        msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
-        msg.setSampleSite(InterchangeValue.buildFromHl7(sampleSite));
-        msg.setCollectionDateTime(collectTime);
-        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(collectTime));
-        //process message
-        processSingleMessage(msg);
-        // check results correct
-        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(defaultMrn, labSample.getMrnId().getMrn());
-        assertEquals(sampleType, labSample.getSpecimenType());
-        assertEquals(sampleSite, labSample.getSampleSite());
-        assertEquals(collectTime, labSample.getSampleCollectionTime());
-        assertEquals(collectTime, labSample.getReceiptAtLab());
-    }
-
-    void processWithChangedSampleInformation(String initialValue, boolean changeSpecimenType) throws EmapOperationMessageProcessingException {
-        LabOrderMsg msg = singleResult;
-        msg.setSpecimenType(InterchangeValue.buildFromHl7(initialValue));
-        msg.setSampleSite(InterchangeValue.buildFromHl7(initialValue));
-        //process message
-        processSingleMessage(msg);
-        if (changeSpecimenType) {
-            msg.setSpecimenType(InterchangeValue.buildFromHl7(String.format("%s2", initialValue)));
-        } else {
-            msg.setSampleSite(InterchangeValue.buildFromHl7(String.format("%s2", initialValue)));
-        }
-        processSingleMessage(msg);
-    }
-
-    /**
-     * Ensure that unchangeable fields should throw exception if changed
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @TestFactory
-    Iterable<DynamicTest> testLabCollectionThrowsExceptionWhenSampleInfoChanged() throws EmapOperationMessageProcessingException {
-        return Arrays.asList(
-                DynamicTest.dynamicTest(
-                        "SpecimenType", () -> {
-                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", true));
-                        }
-                ),
-                DynamicTest.dynamicTest(
-                        "SampleSite", () -> {
-                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", false));
-                        }
-                )
-        );
-    }
-
-    /**
-     * Ensure that unknown unchangeable fields are updated
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @TestFactory
-    Iterable<DynamicTest> testLabSampleCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
-        return Arrays.asList(
-                DynamicTest.dynamicTest(
-                        "SpecimenType", () -> {
-                            processWithChangedSampleInformation("", true);
-                            LabSample labSample = labSampleRepository
-                                    .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-                            assertEquals("2", labSample.getSpecimenType());
-                        }
-                ),
-                DynamicTest.dynamicTest(
-                        "SampleSite", () -> {
-                            processWithChangedSampleInformation("", false);
-                            LabSample collection = labSampleRepository
-                                    .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-                            assertEquals("2", collection.getSampleSite());
-                        }
-                )
-        );
-    }
-
-    /**
-     * First message has a collection time but no receipt, second message has the collection time and receipt time.
-     * Entity should be updated to have the receipt time.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testLabSampleUpdatesReceiptTime() throws EmapOperationMessageProcessingException {
-        // process initial result
-        processSingleMessage(singleResult);
-
-        // add received time to be updated
-        Instant receivedTime = statusChangeTime.plus(1, ChronoUnit.MINUTES);
-        LabOrderMsg msg = singleResult;
-        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(receivedTime));
-        processSingleMessage(msg);
-
-        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(receivedTime, labSample.getReceiptAtLab());
-    }
-
-    /**
-     * Message with a later status change time can update the collection date time if it's different
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testNewSampleReceiptTimeUpdates() throws EmapOperationMessageProcessingException {
-        // process initial result
-        processSingleMessage(singleResult);
-
-        // later status change and collection time
-        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.DAYS);
-        LabOrderMsg msg = singleResult;
-        msg.setStatusChangeTime(laterTime);
-        msg.setCollectionDateTime(laterTime);
-        processSingleMessage(msg);
-
-        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(laterTime, labSample.getSampleCollectionTime());
-    }
-
-
-    /**
-     * Message with a earlier status change time won't updated the collection date time, even if that is later than the current time.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void testOldSampleReceiptTimeDoesntUpdate() throws EmapOperationMessageProcessingException {
-        // process initial result
-        processSingleMessage(singleResult);
-
-        // later status change and collection time
-        Instant earlierTime = statusChangeTime.minus(1, ChronoUnit.DAYS);
-        Instant laterTime = statusChangeTime.plus(1, ChronoUnit.DAYS);
-        LabOrderMsg msg = singleResult;
-        msg.setStatusChangeTime(earlierTime);
-        msg.setCollectionDateTime(laterTime);
-        processSingleMessage(msg);
-
-        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertNotEquals(laterTime, labSample.getSampleCollectionTime());
     }
 
     private LabOrderMsg addLabIsolateAtResultTime(
@@ -786,41 +506,4 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(firstResultTime, notUpdatedSensitivityFromUpdatedIsolate.getReportingDatetime());
         // phew
     }
-
-    @Test
-    void testIncrementalOrdersThenResult() throws EmapOperationMessageProcessingException {
-        String interchangePathTemplate = "winpath/incremental_orders/%s.yaml";
-        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
-
-        String[] orderFiles = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh", "04_orr_o02_telh"};
-        for (String orderFile : orderFiles) {
-            logger.info("Parsing order file: {}", orderFile);
-            processSingleMessage(messageFactory.buildLabOrderOverridingDefaults(
-                    interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
-        }
-        for (LabOrderMsg resultMsg : messageFactory.getLabOrders(String.format(interchangePathTemplate, "05_oru_r01"), "0000000042")) {
-            logger.info("Parsing ORU R01 for epic Id: {}", resultMsg.getEpicCareOrderNumber());
-            processSingleMessage(resultMsg);
-        }
-        LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
-        assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), labSample.getReceiptAtLab()); // from 02 SC
-
-        LabOrder originalOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("MG", labSample).orElseThrow();
-        assertEquals(Instant.parse("2013-07-28T07:08:06Z"), originalOrder.getOrderDatetime()); // from 01 NW
-        assertEquals("unwell", originalOrder.getClinicalInformation()); // from 01 NW onwards
-        assertEquals("91393667", originalOrder.getInternalLabNumber()); // from 01 NW onwards
-        assertEquals("WinPath", originalOrder.getSourceSystem()); // from 02 SC onwards
-        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), originalOrder.getRequestDatetime()); // updated in 05 ORU R01
-
-        LabOrder laterOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("TELH", labSample).orElseThrow();
-        assertEquals(Instant.parse("2013-07-28T08:55:00Z"), laterOrder.getOrderDatetime()); // from 03 SN
-        assertEquals("WinPath", laterOrder.getSourceSystem()); // from 03 SN onwards
-        assertEquals("12121212", laterOrder.getInternalLabNumber()); // from 04 ORR o02
-        assertNotNull(laterOrder.getHospitalVisitId()); // from 04 ORR o02
-        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), laterOrder.getRequestDatetime()); // updated in 05 ORU R01
-        assertEquals("unwell", laterOrder.getClinicalInformation()); // from 05 ORU R01
-    }
-
 }
