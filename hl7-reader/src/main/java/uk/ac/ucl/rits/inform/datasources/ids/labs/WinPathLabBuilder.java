@@ -177,7 +177,17 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         return interchangeOrders;
     }
 
-    public static Collection<LabOrderMsg> build(String idsUnid, ORR_O02 msg, OrderCodingSystem codingSystem) throws HL7Exception, Hl7InconsistencyException {
+    /**
+     * Build lab order messages from ORR O02.
+     * @param idsUnid      unique Id from the IDS
+     * @param msg          hl7 message
+     * @param codingSystem coding system
+     * @return interchange messages
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if the HL7 message contains errors
+     */
+    public static Collection<LabOrderMsg> build(String idsUnid, ORR_O02 msg, OrderCodingSystem codingSystem)
+            throws HL7Exception, Hl7InconsistencyException {
         List<ORR_O02_ORDER> hl7Orders = msg.getRESPONSE().getORDERAll();
         MSH msh = msg.getMSH();
         ORR_O02_PATIENT patient = msg.getRESPONSE().getPATIENT();
