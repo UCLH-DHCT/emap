@@ -53,9 +53,6 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     private LabOrderMsg fourResults;
     private LabOrderMsg singleResult;
 
-    private final String singleResultLabNumber = "13U444444";
-    private final Instant statusChangeTime = Instant.parse("2013-07-24T16:46:00Z");
-
     @Autowired
     private HospitalVisitRepository hospitalVisitRepository;
     @Autowired
@@ -77,6 +74,8 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     @Autowired
     LabSensitivityRepository labSensitivityRepository;
 
+    private final String singleResultLabNumber = "13U444444";
+    private final Instant statusChangeTime = Instant.parse("2013-07-24T16:46:00Z");
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
 
@@ -84,7 +83,6 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         List<LabOrderMsg> messages = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
         fourResults = messages.get(0);
         singleResult = messages.get(1);
-        incremental = messageFactory.getLabOrders("winpath/incremental.yaml", null);
     }
 
     private void checkFirstMessageLabEntityCount() {
@@ -412,6 +410,48 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         assertNotNull(laterOrder.getHospitalVisitId()); // from 04 ORR o02
         assertEquals(Instant.parse("2013-07-28T08:45:00Z"), laterOrder.getRequestDatetime()); // updated in 05 ORU R01
         assertEquals("unwell", laterOrder.getClinicalInformation()); // from 05 ORU R01
+    }
+
+    /**
+     * Ensure that using original valid from when updating lab sample information.
+     * Otherwise an update of a null/new field can cause the later information not to update.
+     */
+    @Test
+    void testLabSampleValidFromWorkingCorrectly() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        Instant future = singleResult.getStatusChangeTime().plus(1, ChronoUnit.HOURS);
+
+        singleResult.setCollectionDateTime(future);
+        singleResult.setSampleReceivedTime(InterchangeValue.buildFromHl7(future));
+        singleResult.setStatusChangeTime(future);
+        processSingleMessage(singleResult);
+
+        LabSample labSample =  labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+
+        assertEquals(future,labSample.getSampleCollectionTime());
+        assertEquals(future,labSample.getReceiptAtLab());
+    }
+
+    /**
+     * Ensure that using original valid from when updating lab order information.
+     * Otherwise an update of a null/new field can cause the later information not to update.
+     */
+    @Test
+    void testLabOrderValidFromWorkingCorrectly() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+        Instant future = singleResult.getStatusChangeTime().plus(1, ChronoUnit.HOURS);
+        String newValue = "I'm new";
+        singleResult.setStatusChangeTime(future);
+        singleResult.setOrderDateTime(InterchangeValue.buildFromHl7(future));
+        singleResult.setClinicalInformation(InterchangeValue.buildFromHl7(newValue));
+        singleResult.setSourceSystem(newValue);
+        processSingleMessage(singleResult);
+
+        LabOrder labOrder =  labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
+
+        assertEquals(future,labOrder.getOrderDatetime());
+        assertEquals(newValue,labOrder.getClinicalInformation());
+        assertEquals(newValue,labOrder.getSourceSystem());
     }
 
 }
