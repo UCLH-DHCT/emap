@@ -5,21 +5,21 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * A LabOrder contains the details of the request to perform a lab. A given
- * LabNumber may have multiple LabOrders.
+ * A LabOrder contains the details of the request to perform a lab investigation.
+ * A given LabSample may have multiple LabOrders. Each of the lab orders is defined by a unique combination of LabBattery and LabSample.
  * @author Roma Klapaukh
  * @author Stef Piatek
  */
@@ -29,7 +29,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Table(indexes = {@Index(name = "lo_lab_number_id", columnList = "labNumberId")})
+@Table
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,7 +37,14 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     @ManyToOne
     @JoinColumn(name = "labNumberId", nullable = false)
-    private LabNumber labNumberId;
+    private LabSample labSampleId;
+
+    /**
+     * Can have labs that are not linked to a hospital visit.
+     */
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId")
+    private HospitalVisit hospitalVisitId;
 
     @ManyToOne
     @JoinColumn(name = "labBatteryId", nullable = false)
@@ -49,28 +56,34 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant requestDatetime;
 
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant sampleDatetime;
-
     @Column(columnDefinition = "text")
     private String clinicalInformation;
 
+    /**
+     * Lab number in the EHR.
+     */
+    private String internalLabNumber;
+
+    private String sourceSystem;
+
     public LabOrder() {}
 
-    public LabOrder(LabBattery labBatteryId, LabNumber labNumberId) {
+    public LabOrder(LabBattery labBatteryId, LabSample labSampleId) {
         this.labBatteryId = labBatteryId;
-        this.labNumberId = labNumberId;
+        this.labSampleId = labSampleId;
     }
 
     public LabOrder(LabOrder other) {
         super(other);
         this.labOrderId = other.labOrderId;
-        this.labNumberId = other.labNumberId;
+        this.labSampleId = other.labSampleId;
         this.labBatteryId = other.labBatteryId;
+        this.hospitalVisitId = other.hospitalVisitId;
         this.orderDatetime = other.orderDatetime;
         this.requestDatetime = other.requestDatetime;
-        this.sampleDatetime = other.sampleDatetime;
         this.clinicalInformation = other.clinicalInformation;
+        this.internalLabNumber = other.internalLabNumber;
+        this.sourceSystem = other.sourceSystem;
     }
 
     @Override

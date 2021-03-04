@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,9 +18,7 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * A LabCollection details the collection of the sample being analysed and its
- * receipt by the lab system. There may be more than one collection per
- * LabNumber.
+ * A LabSample details the external lab's view of a sample being analysed and its receipt by the lab system.
  * @author Roma Klapaukh
  */
 @SuppressWarnings("serial")
@@ -29,16 +28,20 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @AuditTable
 @Table
-public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudit> {
+public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long labCollectionId;
+    private long labSampleId;
 
     @ManyToOne
-    @JoinColumn(name = "labNumberId", nullable = false)
-    private LabNumber labNumberId;
+    @JoinColumn(name = "mrnId", nullable = false)
+    private Mrn mrnId;
 
+    /**
+     * Lab number for the system doing the lab test.
+     */
+    private String externalLabNumber;
     /**
      * The time the sample arrived at the lab where there test was being performed.
      */
@@ -62,26 +65,28 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
      */
     private String sampleSite;
 
-    public LabCollection() {}
+    public LabSample() {}
 
-    public LabCollection(LabNumber labNumberId, Instant validFrom, Instant storedFrom) {
-        this.labNumberId = labNumberId;
+    public LabSample(Mrn mrnId, String externalLabNumber, Instant validFrom, Instant storedFrom) {
+        this.mrnId = mrnId;
+        this.externalLabNumber = externalLabNumber;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
 
-    public LabCollection(LabCollection other) {
+    public LabSample(LabSample other) {
         super(other);
-        this.labCollectionId = other.labCollectionId;
-        this.labNumberId = other.labNumberId;
+        this.mrnId = other.mrnId;
+        this.labSampleId = other.labSampleId;
+        this.externalLabNumber = externalLabNumber;
         this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
         this.specimenType = other.specimenType;
     }
 
     @Override
-    public LabCollection copy() {
-        return new LabCollection(this);
+    public LabSample copy() {
+        return new LabSample(this);
     }
 
     /**
@@ -90,7 +95,7 @@ public class LabCollection extends TemporalCore<LabCollection, LabCollectionAudi
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public LabCollectionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new LabCollectionAudit(this, validUntil, storedUntil);
+    public LabSampleAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabSampleAudit(this, validUntil, storedUntil);
     }
 }
