@@ -9,23 +9,21 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingEx
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabCollectionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSensitivityRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
-import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
 import uk.ac.ucl.rits.inform.informdb.labs.LabIsolate;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -65,8 +63,6 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     LabBatteryElementRepository labBatteryElementRepository;
     @Autowired
-    LabNumberRepository labNumberRepository;
-    @Autowired
     LabOrderRepository labOrderRepository;
     @Autowired
     LabResultRepository labResultRepository;
@@ -75,7 +71,7 @@ class TestLabProcessing extends MessageProcessingBase {
     @Autowired
     LabTestDefinitionRepository labTestDefinitionRepository;
     @Autowired
-    LabCollectionRepository labCollectionRepository;
+    LabSampleRepository labSampleRepository;
     @Autowired
     LabIsolateRepository labIsolateRepository;
     @Autowired
@@ -96,10 +92,9 @@ class TestLabProcessing extends MessageProcessingBase {
     }
 
     private void checkFirstMessageLabEntityCount() {
-        assertEquals(1, labNumberRepository.count(), "lab number should have been created");
         assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(1, labOrderRepository.count(), "lab order should have been created");
-        assertEquals(1, labCollectionRepository.count(), "lab collection should have been created");
+        assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
         assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
         assertEquals(4, labBatteryElementRepository.count(), "lab battery elements type should have been created");
         assertEquals(4, labResultRepository.count(), "lab results should have been created");
@@ -176,7 +171,7 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(1, labResultAuditRepository.count());
 
         // extra results should be added to results under the same EPIC lab number
-        List<LabResult> epicResults = labResultRepository.findAllByLabNumberIdExternalLabNumber("94000002");
+        List<LabResult> epicResults = labResultRepository.findAllByLabOrderIdInternalLabNumber("94000002");
         assertEquals(3, epicResults.size());
     }
 
@@ -207,7 +202,7 @@ class TestLabProcessing extends MessageProcessingBase {
         // no results should have been changed
         assertEquals(0, labResultAuditRepository.count());
         // extra results should be added to results under the same EPIC lab number
-        List<LabResult> epicResults = labResultRepository.findAllByLabNumberIdExternalLabNumber("94000002");
+        List<LabResult> epicResults = labResultRepository.findAllByLabOrderIdInternalLabNumber("94000002");
         assertEquals(3, epicResults.size());
     }
 
@@ -223,26 +218,7 @@ class TestLabProcessing extends MessageProcessingBase {
         // all processed
         checkFirstMessageLabEntityCount();
         // lab number should not have a hospital visit
-        labNumberRepository.findAll().forEach(ln -> assertNull(ln.getHospitalVisitId()));
-    }
-
-    @Test
-    void testHappyPathLabNumber() throws EmapOperationMessageProcessingException {
-        processSingleMessage(singleResult);
-        LabNumber result = labNumberRepository.findByMrnIdMrn(singleResultMrn).orElseThrow();
-        assertEquals(singleResultLabNumber, result.getInternalLabNumber());
-        assertEquals("12121213", result.getExternalLabNumber());
-        assertEquals("Corepoint", result.getSourceSystem());
-    }
-
-    @Test
-    void testChangeOfSourceSystemThrowsException() throws EmapOperationMessageProcessingException {
-        // original message
-        processSingleMessage(singleResult);
-        // send again with another source
-        singleResult.setSourceSystem("another source");
-
-        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(singleResult));
+        labOrderRepository.findAll().forEach(lo -> assertNull(lo.getHospitalVisitId()));
     }
 
     @Test
@@ -269,10 +245,10 @@ class TestLabProcessing extends MessageProcessingBase {
     @Test
     void testHappyPathLabOrder() throws EmapOperationMessageProcessingException {
         processSingleMessage(singleResult);
-        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
         assertEquals(statusChangeTime, result.getRequestDatetime());
+        assertEquals("Corepoint", result.getSourceSystem());
         assertNull(result.getOrderDatetime());
-        assertNull(result.getSampleDatetime());
     }
 
     @Test
@@ -282,7 +258,7 @@ class TestLabProcessing extends MessageProcessingBase {
         msg.setClinicalInformation(InterchangeValue.buildFromHl7(clinicalInfo));
         processSingleMessage(msg);
 
-        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
         assertEquals(clinicalInfo, result.getClinicalInformation());
     }
 
@@ -304,7 +280,7 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         // check time has updated
-        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
         assertEquals(laterTime, result.getRequestDatetime());
     }
 
@@ -326,7 +302,7 @@ class TestLabProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         // check time has not updated
-        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
         assertEquals(statusChangeTime, result.getRequestDatetime());
     }
 
@@ -350,12 +326,11 @@ class TestLabProcessing extends MessageProcessingBase {
         // process new message
         processSingleMessage(msg);
 
-        LabOrder result = labOrderRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabOrder result = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
         // check that already set value hasn't updated
         assertEquals(statusChangeTime, result.getRequestDatetime());
         // check time has updated for previously null fields
         assertEquals(earlierTime, result.getOrderDatetime());
-        assertEquals(earlierTime, result.getSampleDatetime());
     }
 
     @Test
@@ -403,7 +378,7 @@ class TestLabProcessing extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testLabCollectionDataCorrect() throws EmapOperationMessageProcessingException {
+    void testLabSampleDataCorrect() throws EmapOperationMessageProcessingException {
         // set relevant values
         String sampleType = "Tissue";
         String sampleSite = "Right Kidney";
@@ -417,11 +392,12 @@ class TestLabProcessing extends MessageProcessingBase {
         //process message
         processSingleMessage(msg);
         // check results correct
-        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(sampleType, collection.getSpecimenType());
-        assertEquals(sampleSite, collection.getSampleSite());
-        assertEquals(collectTime, collection.getSampleCollectionTime());
-        assertEquals(collectTime, collection.getReceiptAtLab());
+        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals(defaultMrn, labSample.getMrnId().getMrn());
+        assertEquals(sampleType, labSample.getSpecimenType());
+        assertEquals(sampleSite, labSample.getSampleSite());
+        assertEquals(collectTime, labSample.getSampleCollectionTime());
+        assertEquals(collectTime, labSample.getReceiptAtLab());
     }
 
     void processWithChangedSampleInformation(String initialValue, boolean changeSpecimenType) throws EmapOperationMessageProcessingException {
@@ -463,21 +439,21 @@ class TestLabProcessing extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @TestFactory
-    Iterable<DynamicTest> testLabCollectionCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
+    Iterable<DynamicTest> testLabSampleCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
         return Arrays.asList(
                 DynamicTest.dynamicTest(
                         "SpecimenType", () -> {
                             processWithChangedSampleInformation("", true);
-                            LabCollection collection = labCollectionRepository
-                                    .findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-                            assertEquals("2", collection.getSpecimenType());
+                            LabSample labSample = labSampleRepository
+                                    .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+                            assertEquals("2", labSample.getSpecimenType());
                         }
                 ),
                 DynamicTest.dynamicTest(
                         "SampleSite", () -> {
                             processWithChangedSampleInformation("", false);
-                            LabCollection collection = labCollectionRepository
-                                    .findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
+                            LabSample collection = labSampleRepository
+                                    .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
                             assertEquals("2", collection.getSampleSite());
                         }
                 )
@@ -490,7 +466,7 @@ class TestLabProcessing extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testLabCollectionUpdatesReceiptTime() throws EmapOperationMessageProcessingException {
+    void testLabSampleUpdatesReceiptTime() throws EmapOperationMessageProcessingException {
         // process initial result
         processSingleMessage(singleResult);
 
@@ -500,8 +476,8 @@ class TestLabProcessing extends MessageProcessingBase {
         msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(receivedTime));
         processSingleMessage(msg);
 
-        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(receivedTime, collection.getReceiptAtLab());
+        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals(receivedTime, labSample.getReceiptAtLab());
     }
 
     /**
@@ -520,8 +496,8 @@ class TestLabProcessing extends MessageProcessingBase {
         msg.setCollectionDateTime(laterTime);
         processSingleMessage(msg);
 
-        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertEquals(laterTime, collection.getSampleCollectionTime());
+        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals(laterTime, labSample.getSampleCollectionTime());
     }
 
 
@@ -542,8 +518,8 @@ class TestLabProcessing extends MessageProcessingBase {
         msg.setCollectionDateTime(laterTime);
         processSingleMessage(msg);
 
-        LabCollection collection = labCollectionRepository.findByLabNumberIdInternalLabNumber(singleResultLabNumber).orElseThrow();
-        assertNotEquals(laterTime, collection.getSampleCollectionTime());
+        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertNotEquals(laterTime, labSample.getSampleCollectionTime());
     }
 
     private LabOrderMsg addLabIsolateAtResultTime(

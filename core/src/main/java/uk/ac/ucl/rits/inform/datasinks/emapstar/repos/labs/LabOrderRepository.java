@@ -2,8 +2,8 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 
 import java.util.Optional;
 
@@ -12,12 +12,12 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface LabOrderRepository extends CrudRepository<LabOrder, Long> {
-    Optional<LabOrder> findByLabBatteryIdAndLabNumberId(LabBattery battery, LabNumber number);
+    Optional<LabOrder> findByLabBatteryIdAndLabSampleId(LabBattery battery, LabSample number);
 
     /**
      * for testing.
-     * @param labNumber laboratory internal lab number
+     * @param labNumber laboratory lab number
      * @return LabOrder
      */
-    Optional<LabOrder> findByLabNumberIdInternalLabNumber(String labNumber);
+    Optional<LabOrder> findByLabSampleIdExternalLabNumber(String labNumber);
 }

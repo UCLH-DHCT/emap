@@ -8,19 +8,17 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabCollectionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabCollectionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabNumberRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
-import uk.ac.ucl.rits.inform.informdb.labs.LabCollection;
-import uk.ac.ucl.rits.inform.informdb.labs.LabCollectionAudit;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSampleAudit;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
@@ -35,22 +33,20 @@ import java.util.function.Consumer;
 public class LabOrderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final LabNumberRepository labNumberRepo;
-    private final LabBatteryRepository labBatteryRepository;
-    private final LabCollectionRepository labCollectionRepo;
-    private final LabCollectionAuditRepository labCollectionAuditRepository;
+    private final LabBatteryRepository labBatteryRepo;
+    private final LabSampleRepository labSampleRepo;
+    private final LabSampleAuditRepository labSampleAuditRepo;
     private final LabOrderRepository labOrderRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
 
 
     public LabOrderController(
-            LabNumberRepository labNumberRepo, LabBatteryRepository labBatteryRepository, LabCollectionRepository labCollectionRepo,
-            LabCollectionAuditRepository labCollectionAuditRepository, LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo
+            LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
+            LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo
     ) {
-        this.labNumberRepo = labNumberRepo;
-        this.labBatteryRepository = labBatteryRepository;
-        this.labCollectionRepo = labCollectionRepo;
-        this.labCollectionAuditRepository = labCollectionAuditRepository;
+        this.labBatteryRepo = labBatteryRepo;
+        this.labSampleRepo = labSampleRepo;
+        this.labSampleAuditRepo = labSampleAuditRepo;
         this.labOrderRepo = labOrderRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
     }
@@ -64,16 +60,16 @@ public class LabOrderController {
      */
     @Transactional
     public LabBattery getOrCreateLabBattery(LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
-        return labBatteryRepository.findByBatteryCodeAndLabProvider(msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem())
+        return labBatteryRepo.findByBatteryCodeAndLabProvider(msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem())
                 .orElseGet(() -> {
                     LabBattery labBattery = new LabBattery(msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
                     logger.trace("Creating new lab battery {}", labBattery);
-                    return labBatteryRepository.save(labBattery);
+                    return labBatteryRepo.save(labBattery);
                 });
     }
 
     /**
-     * Process lab number and lab collection information, returning the lab number.
+     * Process lab number and lab labSample information, returning the lab number.
      * @param mrn        MRN entity
      * @param visit      hospital visit entity
      * @param battery    Lab battery entity
@@ -81,85 +77,53 @@ public class LabOrderController {
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
      * @return lab number entity
-     * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
+     * @throws IncompatibleDatabaseStateException if specimen type or sample type doesn't match the database
      */
     @Transactional
-    public LabNumber processLabNumberLabCollectionAndLabOrder(
+    public LabOrder processLabSampleAndLabOrder(
             Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
             throws IncompatibleDatabaseStateException {
-        LabNumber labNumber = getOrCreateLabNumber(mrn, visit, msg, storedFrom);
-        updateOrCreateLabCollection(labNumber, msg, validFrom, storedFrom);
-        updateOrCreateLabOrder(battery, labNumber, msg, validFrom, storedFrom);
-        return labNumber;
-    }
-
-
-    /**
-     * @param mrn        MRN
-     * @param visit      hospital visit, can be null
-     * @param msg        order message
-     * @param storedFrom time that star started processing the message
-     * @return lab number
-     * @throws IncompatibleDatabaseStateException if source system doesn't match the database
-     */
-    private LabNumber getOrCreateLabNumber(
-            Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        LabNumber labNumber = labNumberRepo
-                .findByMrnIdAndHospitalVisitIdAndInternalLabNumberAndExternalLabNumber(
-                        mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber())
-                .orElseGet(() -> {
-                    LabNumber labNum = new LabNumber(
-                            mrn, visit, msg.getLabSpecimenNumber(), msg.getEpicCareOrderNumber(),
-                            msg.getSourceSystem(), storedFrom);
-                    logger.trace("Creating new lab number {}", labNum);
-                    return labNumberRepo.save(labNum);
-                });
-        // currently assuming that internal and external lab numbers are unique. If a source system has overlap, throw and error so
-        // we know that we have to change our query to include source system (seems unlikely)
-        if (!labNumber.getSourceSystem().equals(msg.getSourceSystem())) {
-            throw new IncompatibleDatabaseStateException(
-                    String.format("Source system in database for lab number %d is %s, message has value of %s",
-                            labNumber.getLabNumberId(), labNumber.getSourceSystem(), msg.getSourceSystem()));
-        }
-
-        return labNumber;
+        LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
+        return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 
     /**
-     * Create new LabCollection or update existing one.
-     * @param labNumber  LabNumber
+     * Create new LabSample or update existing one.
+     * @param mrnId      MRN entity
      * @param msg        Msg
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
+     * @return LabSample entity
      * @throws IncompatibleDatabaseStateException if specimen type or sample site changes
      */
-    private void updateOrCreateLabCollection(
-            LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        RowState<LabCollection, LabCollectionAudit> state = labCollectionRepo
-                .findByLabNumberId(labNumber)
+    private LabSample updateOrCreateSample(
+            Mrn mrnId, LabOrderMsg msg, Instant validFrom, Instant storedFrom) throws IncompatibleDatabaseStateException {
+        RowState<LabSample, LabSampleAudit> state = labSampleRepo
+                .findByMrnIdAndExternalLabNumber(mrnId, msg.getLabSpecimenNumber())
                 .map(col -> new RowState<>(col, validFrom, storedFrom, false))
-                .orElseGet(() -> createLabCollection(labNumber, validFrom, storedFrom));
+                .orElseGet(() -> createLabSample(mrnId, msg.getLabSpecimenNumber(), validFrom, storedFrom));
 
-        LabCollection collection = state.getEntity();
+        LabSample labSample = state.getEntity();
 
         assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSampleReceivedTime(), collection.getReceiptAtLab(), collection::setReceiptAtLab, validFrom);
-        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSpecimenType(), collection.getSpecimenType(), collection::setSpecimenType);
-        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), collection.getSampleSite(), collection::setSampleSite);
-        // Allow for change of sample collection time, but don't expect this to happen
-        if (state.isEntityCreated() || collection.getValidFrom().isBefore(validFrom)) {
-            state.assignIfDifferent(msg.getCollectionDateTime(), collection.getSampleCollectionTime(), collection::setSampleCollectionTime);
+                state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom);
+        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
+        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
+        // Allow for change of sample labSample time, but don't expect this to happen
+        if (state.isEntityCreated() || labSample.getValidFrom().isBefore(validFrom)) {
+            state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
             if (!state.isEntityCreated()) {
-                logger.warn("Not expecting Sample collection time to change");
+                logger.warn("Not expecting Sample labSample time to change");
             }
         }
 
-        state.saveEntityOrAuditLogIfRequired(labCollectionRepo, labCollectionAuditRepository);
+        state.saveEntityOrAuditLogIfRequired(labSampleRepo, labSampleAuditRepo);
+        return labSample;
     }
 
-    private RowState<LabCollection, LabCollectionAudit> createLabCollection(LabNumber labNumber, Instant validFrom, Instant storedFrom) {
-        LabCollection collection = new LabCollection(labNumber, validFrom, storedFrom);
-        return new RowState<>(collection, validFrom, storedFrom, true);
+    private RowState<LabSample, LabSampleAudit> createLabSample(Mrn mrn, String externalLabNumber, Instant validFrom, Instant storedFrom) {
+        LabSample labSample = new LabSample(mrn, externalLabNumber, validFrom, storedFrom);
+        return new RowState<>(labSample, validFrom, storedFrom, true);
     }
 
     private void assignIfCurrentlyNullOrThrowIfDifferent(
@@ -175,39 +139,54 @@ public class LabOrderController {
     /**
      * Create new lab order or update existing one.
      * As temporal data can come from different sources, update each one if it is currently null, or the message is newer and has a different value.
+     * @param visit      Optional Hospital Visit Entity
      * @param battery    Lab Battery
-     * @param labNumber  LabNumber
+     * @param labSample  Lab Sample entity
      * @param msg        Msg
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
+     * @return Lab Order
+     * @throws IncompatibleDatabaseStateException If the message epic order number is known and is different from the database's internal lab number
      */
-    private void updateOrCreateLabOrder(
-            LabBattery battery, LabNumber labNumber, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
+    private LabOrder updateOrCreateLabOrder(
+            @Nullable HospitalVisit visit, LabBattery battery, LabSample labSample, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
+            throws IncompatibleDatabaseStateException {
         RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
-                .findByLabBatteryIdAndLabNumberId(battery, labNumber)
+                .findByLabBatteryIdAndLabSampleId(battery, labSample)
                 .map(order -> new RowState<>(order, validFrom, storedFrom, false))
-                .orElseGet(() -> createLabOrder(battery, labNumber, validFrom, storedFrom));
+                .orElseGet(() -> createLabOrder(battery, labSample, validFrom, storedFrom));
 
-        updateLabOrder(orderState, msg, validFrom);
+        updateLabOrder(visit, msg, validFrom, orderState);
         orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
+        return orderState.getEntity();
     }
 
-    private RowState<LabOrder, LabOrderAudit> createLabOrder(LabBattery battery, LabNumber labNumber, Instant validFrom, Instant storedFrom) {
-        LabOrder order = new LabOrder(battery, labNumber);
+    private RowState<LabOrder, LabOrderAudit> createLabOrder(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
+        LabOrder order = new LabOrder(battery, labSample);
         order.setValidFrom(validFrom);
         order.setStoredFrom(storedFrom);
         return new RowState<>(order, validFrom, storedFrom, true);
     }
 
-    private void updateLabOrder(RowState<LabOrder, LabOrderAudit> orderState, LabOrderMsg msg, Instant validFrom) {
+    private void updateLabOrder(HospitalVisit visit, LabOrderMsg msg, Instant validFrom, RowState<LabOrder, LabOrderAudit> orderState)
+            throws IncompatibleDatabaseStateException {
         LabOrder order = orderState.getEntity();
-        orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
+        // Values that should always update if they're null
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom);
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getSampleReceivedTime(), order.getSampleDatetime(), order::setSampleDatetime, validFrom);
+        assignIfCurrentlyNullOrThrowIfDifferent(
+                orderState, InterchangeValue.buildFromHl7(msg.getEpicCareOrderNumber()), order.getInternalLabNumber(), order::setInternalLabNumber
+        );
+        if (visit != null) {
+            orderState.assignIfDifferent(visit, order.getHospitalVisitId(), order::setHospitalVisitId);
+        }
+        // only update if newer
+        if (orderState.isEntityCreated() || validFrom.isAfter(order.getValidFrom())) {
+            orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
+            orderState.assignIfDifferent(msg.getSourceSystem(), order.getSourceSystem(), order::setSourceSystem);
+        }
     }
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(
@@ -216,6 +195,4 @@ public class LabOrderController {
             state.assignInterchangeValue(msgValue, currentValue, setter);
         }
     }
-
-
 }

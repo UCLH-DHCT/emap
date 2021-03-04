@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -58,11 +58,11 @@ public class LabController {
         }
         Instant validFrom = msg.getStatusChangeTime();
         LabBattery battery = labOrderController.getOrCreateLabBattery(msg, validFrom, storedFrom);
-        LabNumber labNumber = labOrderController.processLabNumberLabCollectionAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
+        LabOrder labOrder = labOrderController.processLabSampleAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, storedFrom, validFrom);
             getOrCreateLabBatteryElement(testDefinition, battery, storedFrom, validFrom);
-            labResultController.processResult(testDefinition, labNumber, result, validFrom, storedFrom);
+            labResultController.processResult(testDefinition, labOrder, result, validFrom, storedFrom);
         }
     }
 

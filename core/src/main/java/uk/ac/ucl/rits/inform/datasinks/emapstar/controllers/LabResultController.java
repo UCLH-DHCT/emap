@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSensitivityAuditRe
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSensitivityRepository;
 import uk.ac.ucl.rits.inform.informdb.labs.LabIsolate;
 import uk.ac.ucl.rits.inform.informdb.labs.LabIsolateAudit;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
@@ -53,8 +53,8 @@ class LabResultController {
     }
 
     @Transactional
-    public void processResult(LabTestDefinition testDefinition, LabNumber labNumber, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
-        RowState<LabResult, LabResultAudit> labResultState = updateOrCreateLabResult(labNumber, testDefinition, resultMsg, validFrom, storedFrom);
+    public void processResult(LabTestDefinition testDefinition, LabOrder labOrder, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
+        RowState<LabResult, LabResultAudit> labResultState = updateOrCreateLabResult(labOrder, testDefinition, resultMsg, validFrom, storedFrom);
         // If lab isolate, update or create them
         LabIsolateMsg isolateMsg = resultMsg.getLabIsolate();
         if (isolateMsg != null && !validFrom.isBefore(labResultState.getEntity().getResultLastModifiedTime())) {
@@ -72,7 +72,7 @@ class LabResultController {
      * valueAsText stores the isolate name^text (can also be no growth like NG2^No growth after 2 days)
      * units stores the CFU for an isolate, culturing method for no growth
      * comment stores the clinical notes for the isolate
-     * @param labNumber      lab number
+     * @param labOrder       lab order
      * @param testDefinition test definition
      * @param result         lab result msg
      * @param validFrom      most recent change to results
@@ -80,12 +80,12 @@ class LabResultController {
      * @return lab result wrapped in row state
      */
     private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
-            LabNumber labNumber, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
+            LabOrder labOrder, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
         RowState<LabResult, LabResultAudit> resultState;
         resultState = labResultRepo
-                .findByLabNumberIdAndLabTestDefinitionId(labNumber, testDefinition)
+                .findByLabOrderIdAndLabTestDefinitionId(labOrder, testDefinition)
                 .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
-                .orElseGet(() -> createLabResult(labNumber, testDefinition, result.getResultTime(), validFrom, storedFrom));
+                .orElseGet(() -> createLabResult(labOrder, testDefinition, result.getResultTime(), validFrom, storedFrom));
 
         if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");
@@ -99,8 +99,8 @@ class LabResultController {
     }
 
     private RowState<LabResult, LabResultAudit> createLabResult(
-            LabNumber labNumber, LabTestDefinition testDefinition, Instant resultModified, Instant validFrom, Instant storedFrom) {
-        LabResult labResult = new LabResult(labNumber, testDefinition, resultModified);
+            LabOrder labOrder, LabTestDefinition testDefinition, Instant resultModified, Instant validFrom, Instant storedFrom) {
+        LabResult labResult = new LabResult(labOrder, testDefinition, resultModified);
         return new RowState<>(labResult, validFrom, storedFrom, true);
     }
 
