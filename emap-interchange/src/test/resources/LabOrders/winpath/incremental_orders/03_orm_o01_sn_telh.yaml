@@ -1,0 +1,25 @@
+testBatteryLocalCode: "TELH"
+labDepartment: "1"
+orderStatus: "NW"
+resultStatus: "I"
+statusChangeTime: "2013-07-28T08:55:00Z"
+orderControlId: "SN"
+collectionDateTime: "2013-07-28T07:27:00Z"
+sourceSystem: "WinPath"
+epicCareOrderNumber: ""
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+clinicalInformation:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+orderDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-07-28T08:55:00Z"
