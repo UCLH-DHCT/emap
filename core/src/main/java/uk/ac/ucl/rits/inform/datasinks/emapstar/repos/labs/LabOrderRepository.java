@@ -20,4 +20,13 @@ public interface LabOrderRepository extends CrudRepository<LabOrder, Long> {
      * @return LabOrder
      */
     Optional<LabOrder> findByLabSampleIdExternalLabNumber(String labNumber);
+
+    /**
+     * for testing.
+     * @param battery   code
+     * @param labSample labSample
+     * @return optional lab order
+     */
+    Optional<LabOrder> findByLabBatteryIdBatteryCodeAndLabSampleId(String battery, LabSample labSample);
+
 }

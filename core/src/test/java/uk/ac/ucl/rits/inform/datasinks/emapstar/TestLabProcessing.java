@@ -3,6 +3,8 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
@@ -47,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TestLabProcessing extends MessageProcessingBase {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private LabOrderMsg fourResults;
     private LabOrderMsg singleResult;
     private List<LabOrderMsg> incremental;
@@ -783,4 +786,41 @@ class TestLabProcessing extends MessageProcessingBase {
         assertEquals(firstResultTime, notUpdatedSensitivityFromUpdatedIsolate.getReportingDatetime());
         // phew
     }
+
+    @Test
+    void testIncrementalOrdersThenResult() throws EmapOperationMessageProcessingException {
+        String interchangePathTemplate = "winpath/incremental_orders/%s.yaml";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+
+        String[] orderFiles = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh", "04_orr_o02_telh"};
+        for (String orderFile : orderFiles) {
+            logger.info("Parsing order file: {}", orderFile);
+            processSingleMessage(messageFactory.buildLabOrderOverridingDefaults(
+                    interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
+        }
+        for (LabOrderMsg resultMsg : messageFactory.getLabOrders(String.format(interchangePathTemplate, "05_oru_r01"), "0000000042")) {
+            logger.info("Parsing ORU R01 for epic Id: {}", resultMsg.getEpicCareOrderNumber());
+            processSingleMessage(resultMsg);
+        }
+        LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
+        assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
+        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
+        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), labSample.getReceiptAtLab()); // from 02 SC
+
+        LabOrder originalOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("MG", labSample).orElseThrow();
+        assertEquals(Instant.parse("2013-07-28T07:08:06Z"), originalOrder.getOrderDatetime()); // from 01 NW
+        assertEquals("unwell", originalOrder.getClinicalInformation()); // from 01 NW onwards
+        assertEquals("91393667", originalOrder.getInternalLabNumber()); // from 01 NW onwards
+        assertEquals("WinPath", originalOrder.getSourceSystem()); // from 02 SC onwards
+        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), originalOrder.getRequestDatetime()); // updated in 05 ORU R01
+
+        LabOrder laterOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("TELH", labSample).orElseThrow();
+        assertEquals(Instant.parse("2013-07-28T08:55:00Z"), laterOrder.getOrderDatetime()); // from 03 SN
+        assertEquals("WinPath", laterOrder.getSourceSystem()); // from 03 SN onwards
+        assertEquals("12121212", laterOrder.getInternalLabNumber()); // from 04 ORR o02
+        assertNotNull(laterOrder.getHospitalVisitId()); // from 04 ORR o02
+        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), laterOrder.getRequestDatetime()); // updated in 05 ORU R01
+        assertEquals("unwell", laterOrder.getClinicalInformation()); // from 05 ORU R01
+    }
+
 }

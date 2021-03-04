@@ -104,21 +104,26 @@ public class LabOrderController {
                 .orElseGet(() -> createLabSample(mrnId, msg.getLabSpecimenNumber(), validFrom, storedFrom));
 
         LabSample labSample = state.getEntity();
+        Instant originalValidFrom = labSample.getValidFrom();
 
         assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom);
+                state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, originalValidFrom);
         assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
         assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
         // Allow for change of sample labSample time, but don't expect this to happen
-        if (state.isEntityCreated() || labSample.getValidFrom().isBefore(validFrom)) {
-            state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
-            if (!state.isEntityCreated()) {
-                logger.warn("Not expecting Sample labSample time to change");
+        if (state.isEntityCreated() || validFrom.isAfter(originalValidFrom)) {
+            if (collectionTimeExistsAndWillChange(msg, labSample)) {
+                logger.warn("Not expecting Sample Collection time to change");
             }
+            state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
         }
 
         state.saveEntityOrAuditLogIfRequired(labSampleRepo, labSampleAuditRepo);
         return labSample;
+    }
+
+    private boolean collectionTimeExistsAndWillChange(LabOrderMsg msg, LabSample labSample) {
+        return labSample.getSampleCollectionTime() != null && !labSample.getSampleCollectionTime().equals(msg.getCollectionDateTime());
     }
 
     private RowState<LabSample, LabSampleAudit> createLabSample(Mrn mrn, String externalLabNumber, Instant validFrom, Instant storedFrom) {
@@ -171,27 +176,33 @@ public class LabOrderController {
     private void updateLabOrder(HospitalVisit visit, LabOrderMsg msg, Instant validFrom, RowState<LabOrder, LabOrderAudit> orderState)
             throws IncompatibleDatabaseStateException {
         LabOrder order = orderState.getEntity();
+
+        Instant originalValidFrom = order.getValidFrom();
+        if (order.getHospitalVisitId() == null) {
+            orderState.assignIfDifferent(visit, null, order::setHospitalVisitId);
+        }
+
         // Values that should always update if they're null
         assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom);
+                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, originalValidFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom);
+                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, originalValidFrom);
         assignIfCurrentlyNullOrThrowIfDifferent(
                 orderState, InterchangeValue.buildFromHl7(msg.getEpicCareOrderNumber()), order.getInternalLabNumber(), order::setInternalLabNumber
         );
-        if (visit != null) {
-            orderState.assignIfDifferent(visit, order.getHospitalVisitId(), order::setHospitalVisitId);
-        }
+
         // only update if newer
-        if (orderState.isEntityCreated() || validFrom.isAfter(order.getValidFrom())) {
+        if (orderState.isEntityCreated() || validFrom.isAfter(originalValidFrom)) {
             orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
             orderState.assignIfDifferent(msg.getSourceSystem(), order.getSourceSystem(), order::setSourceSystem);
         }
     }
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(
-            RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter, Instant validFrom) {
-        if (currentValue == null || validFrom.isAfter(state.getEntity().getValidFrom())) {
+            RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter,
+            Instant validFrom, Instant originalValidFrom
+    ) {
+        if (currentValue == null || validFrom.isAfter(originalValidFrom)) {
             state.assignInterchangeValue(msgValue, currentValue, setter);
         }
     }
