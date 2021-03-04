@@ -183,7 +183,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         List<EmapOperationMessage> builtMessages = new ArrayList<>();
         List<LabOrderMsg> expectedOrders = new ArrayList<>();
-        String[] files = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh"};
+        String[] files = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh", "04_orr_o02_telh"};
         for (String file : files) {
             builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, file)));
             expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(
