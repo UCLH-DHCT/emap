@@ -81,10 +81,18 @@ public class LabOrderController {
      */
     @Transactional
     public LabOrder processLabSampleAndLabOrder(
-            Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
-            throws IncompatibleDatabaseStateException {
+            Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
+    ) throws IncompatibleDatabaseStateException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
         return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
+    }
+
+    @Transactional
+    public void processLabSampleAndDeleteLabOrder(
+            Mrn mrn, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
+    ) throws IncompatibleDatabaseStateException {
+        LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
+        deleteLabOrderIfExists(battery, labSample, validFrom, storedFrom);
     }
 
     /**
@@ -188,7 +196,7 @@ public class LabOrderController {
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, originalValidFrom);
         assignIfCurrentlyNullOrThrowIfDifferent(
-                orderState, InterchangeValue.buildFromHl7(msg.getEpicCareOrderNumber()), order.getInternalLabNumber(), order::setInternalLabNumber
+                orderState, InterchangeValue.buildFromHl7(msg.getEpicCareOrderNumber().get()), order.getInternalLabNumber(), order::setInternalLabNumber
         );
 
         // only update if newer
@@ -205,5 +213,15 @@ public class LabOrderController {
         if (currentValue == null || validFrom.isAfter(originalValidFrom)) {
             state.assignInterchangeValue(msgValue, currentValue, setter);
         }
+    }
+
+    private void deleteLabOrderIfExists(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
+        labOrderRepo.findByLabBatteryIdAndLabSampleId(battery, labSample)
+                .ifPresent(order -> {
+                    LabOrderAudit orderAudit = order.createAuditEntity(validFrom, storedFrom);
+                    labOrderAuditRepo.save(orderAudit);
+                    logger.debug("Deleting labOrder {}", order);
+                    labOrderRepo.delete(order);
+                });
     }
 }

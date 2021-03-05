@@ -58,6 +58,10 @@ public class LabController {
         }
         Instant validFrom = msg.getStatusChangeTime();
         LabBattery battery = labOrderController.getOrCreateLabBattery(msg, validFrom, storedFrom);
+        if (msg.getEpicCareOrderNumber().isDelete()) {
+            labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, msg, validFrom, storedFrom);
+            return;
+        }
         LabOrder labOrder = labOrderController.processLabSampleAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, storedFrom, validFrom);
