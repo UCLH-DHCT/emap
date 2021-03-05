@@ -18,17 +18,12 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
 abstract class LabOrderBuilder {
-    private static final Collection<String> NEW_ORDER_CONTROL_IDS = new HashSet<>(Arrays.asList("NW", "SN"));
-
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
 
@@ -74,20 +69,24 @@ abstract class LabOrderBuilder {
 
         // ORC-9 has different meanings depending on message context
         Instant orc9 = interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
-        if (NEW_ORDER_CONTROL_IDS.contains(msg.getOrderControlId())) {
-            msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
-            msg.setStatusChangeTime(orc9);
-        } else if ("NA".equals(msg.getOrderControlId())) {
-            msg.setStatusChangeTime(orc9);
-        } else if (statusChangeAndInProgress(obr)) {
-            // ORC-9 = time sample entered onto WinPath
-            msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
+        switch (msg.getOrderControlId()) {
+            case "NW":
+                // fallthrough for other new order number
+            case "SN":
+                msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
+                msg.setStatusChangeTime(orc9);
+                break;
+            case "NA":
+                msg.setStatusChangeTime(orc9);
+                break;
+            case "SC":
+                if ("I".equals(obr.getObr25_ResultStatus().getValueOrEmpty())) {
+                    // ORC-9 = time sample entered onto WinPath
+                    msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
+                }
         }
     }
 
-    private boolean statusChangeAndInProgress(OBR obr) {
-        return "SC".equals(msg.getOrderControlId()) && "I".equals(obr.getObr25_ResultStatus().getValueOrEmpty());
-    }
 
     void setBatteryCodingSystem(OrderCodingSystem codingSystem) {
         msg.setTestBatteryCodingSystem(codingSystem.name());
