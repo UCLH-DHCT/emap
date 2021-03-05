@@ -20,4 +20,4 @@ requestedDateTime:
 epicCareOrderNumber:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "DELETE"
-  value: "91393666"
+  value: null
