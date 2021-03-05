@@ -130,7 +130,6 @@ class TestWinPathOrders {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_ca");
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
-        assertEquals(epicOrder, epicOrderInterchangeValue.get());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
     }
