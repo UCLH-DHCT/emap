@@ -44,8 +44,14 @@ import java.util.stream.Collectors;
  * @author Stef Piatek
  */
 public final class WinPathLabBuilder extends LabOrderBuilder {
-    // other winpath: CA, CR, OC
-    private static final Collection<String> ALLOWED_OCIDS = new HashSet<>(Arrays.asList("SC", "RE", "NW", "SC", "SN", "NA"));
+    /**
+     * Allowed order control IDs for parsing.
+     * ORM O01: NW (New sample and order), SC (status change), SN (send new order for existing sample)
+     * ORU R01: RE (results)
+     * ORR R02: NA (response to SN)
+     * to add: CA, CR, OC
+     */
+    private static final Collection<String> ALLOWED_OC_IDS = new HashSet<>(Arrays.asList("RE", "NW", "SC", "SN", "NA"));
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
 
 
@@ -168,7 +174,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             OBR obr = order.getORDER_DETAIL().getOBR();
             LabOrderMsg labOrder;
             labOrder = new WinPathLabBuilder(subMessageSourceId, msh, pid, pv1, obr, orc, codingSystem).getMsg();
-            if (ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
+            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
                 interchangeOrders.add(labOrder);
             } else {
                 logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
@@ -203,7 +209,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             OBR obr = order.getOBR();
             LabOrderMsg labOrder;
             labOrder = new WinPathLabBuilder(subMessageSourceId, msh, pid, emptyPV1, obr, orc, codingSystem).getMsg();
-            if (ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
+            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
                 interchangeOrders.add(labOrder);
             } else {
                 logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
@@ -239,7 +245,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderMsg labOrder = new WinPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1, codingSystem).getMsg();
-            if (ALLOWED_OCIDS.contains(labOrder.getOrderControlId())) {
+            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
                 orders.add(labOrder);
             } else {
                 logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
