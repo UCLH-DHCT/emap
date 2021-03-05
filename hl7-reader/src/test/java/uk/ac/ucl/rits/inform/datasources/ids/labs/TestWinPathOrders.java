@@ -43,7 +43,7 @@ class TestWinPathOrders {
     @Test
     void testOrmO01NWLabNumbers() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
-        assertEquals(epicOrder, order.getEpicCareOrderNumber());
+        assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 
@@ -72,7 +72,7 @@ class TestWinPathOrders {
     @Test
     void testOrmO01SCLabNumbers() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
-        assertEquals(epicOrder, order.getEpicCareOrderNumber());
+        assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 
@@ -105,7 +105,7 @@ class TestWinPathOrders {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals(labOrder, order.getLabSpecimenNumber());
 
-        assertTrue(order.getEpicCareOrderNumber().isEmpty());
+        assertTrue(order.getEpicCareOrderNumber().isUnknown());
     }
 
     @Test
@@ -135,7 +135,7 @@ class TestWinPathOrders {
     @Test
     void testOrrO02NALabNumbers() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o01_na");
-        assertEquals(epicOrder, order.getEpicCareOrderNumber());
+        assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 

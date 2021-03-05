@@ -32,7 +32,7 @@ class TestBioConnectOruR01 {
     @Test
     void testIdentifiers() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
-        assertNull(msg.getEpicCareOrderNumber());
+        assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("9876543", msg.getLabSpecimenNumber());
         assertTrue(msg.getVisitNumber().isEmpty());

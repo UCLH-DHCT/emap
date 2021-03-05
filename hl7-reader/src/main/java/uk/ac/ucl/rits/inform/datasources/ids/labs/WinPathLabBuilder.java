@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -332,7 +333,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             throw new Hl7InconsistencyException(String.format("ORC-2 %s does not match OBR-2 %s", orcNumber, obrNumber));
         }
         //once we've established they're identical, set the definitive value to be one of them
-        getMsg().setEpicCareOrderNumber(orcNumber);
+        getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(orcNumber));
     }
 
 
@@ -344,13 +345,13 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent
      */
     private static boolean isChildOf(LabOrderMsg possibleChild, LabResultMsg possibleParent) {
-        if (possibleChild.getEpicCareOrderNumber().isEmpty()
+        if (!possibleChild.getEpicCareOrderNumber().isSave()
                 || possibleChild.getParentObservationIdentifier().isEmpty()
                 || possibleChild.getParentSubId().isEmpty()) {
             return false;
         }
 
-        return possibleChild.getEpicCareOrderNumber().equals(possibleParent.getEpicCareOrderNumber())
+        return possibleChild.getEpicCareOrderNumber().get().equals(possibleParent.getEpicCareOrderNumber())
                 && possibleChild.getParentObservationIdentifier().equals(possibleParent.getTestItemLocalCode())
                 && possibleChild.getParentSubId().equals(possibleParent.getObservationSubId());
     }

@@ -35,7 +35,7 @@ class TestAblOruR30Parsing {
     @Test
     void testIdentifiers() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
-        assertNull(msg.getEpicCareOrderNumber());
+        assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("12345006210113012345", msg.getLabSpecimenNumber());
         assertEquals("123412341234", msg.getVisitNumber());
