@@ -1,11 +1,11 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import java.io.Serializable;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Wrapper for data in interchange fields that can either be unknown or known.
@@ -34,6 +34,32 @@ public class InterchangeValue<T> implements Serializable {
     }
 
     /**
+     * Construct a delete
+     * @param deleteStatus to set
+     * @param value        to be deleted
+     */
+    private InterchangeValue(ResultStatus deleteStatus, T value) {
+        if (deleteStatus != ResultStatus.DELETE) {
+            throw new IllegalArgumentException(String.format("Delete private constructor used, but status was %s", deleteStatus));
+        }
+        this.value = value;
+        this.status = deleteStatus;
+    }
+
+    /**
+     * Construct with a known value.
+     * @param value of the field, cannot be null
+     */
+    public InterchangeValue(T value) {
+        if (value == null) {
+            throw new IllegalStateException("InterchangeValue with a status of SAVE can't have a null value set");
+        }
+        this.value = value;
+        status = ResultStatus.SAVE;
+    }
+
+
+    /**
      * Create an unknown Value.
      * @param <T> value type
      * @return InterchangeValue of unknown data
@@ -52,6 +78,16 @@ public class InterchangeValue<T> implements Serializable {
     }
 
     /**
+     * Delete a specific value.
+     * Rarely used, should only be considered when you need to know the value that you want to delete (e.g. epic lab order number).
+     * @param <T> value type
+     * @return InterchangeValue of unknown data
+     */
+    public static <T> InterchangeValue<T> deleteFromValue(T value) {
+        return new InterchangeValue<T>(ResultStatus.DELETE, value);
+    }
+
+    /**
      * Builds InterchangeValue class from hl7 value.
      * @param hl7Value value from HL7 message
      * @param <T>      type of the value
@@ -64,18 +100,6 @@ public class InterchangeValue<T> implements Serializable {
             return delete();
         }
         return new InterchangeValue<>(hl7Value);
-    }
-
-    /**
-     * Construct with a known value.
-     * @param value of the field, cannot be null
-     */
-    public InterchangeValue(T value) {
-        if (value == null) {
-            throw new IllegalStateException("InterchangeValue with a status of SAVE can't have a null value set");
-        }
-        this.value = value;
-        status = ResultStatus.SAVE;
     }
 
     /**
