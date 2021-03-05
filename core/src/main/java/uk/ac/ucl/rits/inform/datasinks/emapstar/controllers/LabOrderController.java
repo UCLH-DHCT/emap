@@ -195,9 +195,7 @@ public class LabOrderController {
                 orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, originalValidFrom);
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, originalValidFrom);
-        assignIfCurrentlyNullOrThrowIfDifferent(
-                orderState, InterchangeValue.buildFromHl7(msg.getEpicCareOrderNumber().get()), order.getInternalLabNumber(), order::setInternalLabNumber
-        );
+        assignIfCurrentlyNullOrThrowIfDifferent(orderState, msg.getEpicCareOrderNumber(), order.getInternalLabNumber(), order::setInternalLabNumber);
 
         // only update if newer
         if (orderState.isEntityCreated() || validFrom.isAfter(originalValidFrom)) {
