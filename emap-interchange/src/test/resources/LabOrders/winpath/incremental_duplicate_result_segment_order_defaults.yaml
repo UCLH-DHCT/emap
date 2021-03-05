@@ -15,7 +15,10 @@ testBatteryCodingSystem: "WIN_PATH"
 sourceSystem: "WinPath"
 parentObservationIdentifier: ""
 parentSubId: ""
-epicCareOrderNumber: "22222222"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "22222222"
 labDepartment: "CC"
 testBatteryLocalCode: "LBN"
 clinicalInformation:

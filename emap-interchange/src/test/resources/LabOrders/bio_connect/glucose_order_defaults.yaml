@@ -18,4 +18,4 @@ sourceSystem: "BIO-CONNECT"
 specimenType:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
-  value:  "BLD"
+  value: "BLD"

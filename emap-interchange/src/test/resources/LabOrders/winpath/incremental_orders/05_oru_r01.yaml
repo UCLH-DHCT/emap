@@ -24,7 +24,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 1.0
-  epicCareOrderNumber: "91393667"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "91393667"
   testBatteryLocalCode: "MG"
   statusChangeTime: "2013-07-28T08:56:00Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
@@ -36,6 +39,9 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Previously known low result."
-  epicCareOrderNumber: "12121212"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "12121212"
   testBatteryLocalCode: "TELH"
   statusChangeTime: "2013-07-28T08:57:00Z"

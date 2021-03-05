@@ -166,8 +166,9 @@ public class InterchangeMessageFactory {
         ObjectReader orderReader = mapper.readerForUpdating(order);
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
         order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+        String epicOrderNumber = order.getEpicCareOrderNumber().isSave() ? order.getEpicCareOrderNumber().get() : null;
+        updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), epicOrderNumber);
 
-        updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), order.getEpicCareOrderNumber());
     }
 
     /**

@@ -3,7 +3,10 @@ statusChangeTime: "2013-07-28T08:55:00Z"
 orderControlId: "NA"
 collectionDateTime: "2013-07-28T07:27:00Z"
 sourceSystem: "WinPath"
-epicCareOrderNumber: "12121212"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "12121212"
 visitNumber: ""
 specimenType:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"

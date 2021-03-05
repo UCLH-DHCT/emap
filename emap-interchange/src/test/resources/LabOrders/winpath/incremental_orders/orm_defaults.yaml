@@ -11,7 +11,10 @@ specimenType:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "BLD"
-epicCareOrderNumber: "91393667"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "91393667"
 resultStatus: ""
 sourceMessageId: "0000000042_01"
 requestedDateTime:

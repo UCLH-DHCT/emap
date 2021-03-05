@@ -148,7 +148,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "COMPLETE: 14/07/19"
-  epicCareOrderNumber: "93939393"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "93939393"
   testBatteryLocalCode: "URNC"
   statusChangeTime: "2019-07-15T08:37:00Z"
   clinicalInformation:
@@ -192,7 +195,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Not seen"
-  epicCareOrderNumber: "93939395"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "93939395"
   testBatteryLocalCode: "URNM"
   statusChangeTime: "2019-07-10T19:39:00Z"
   clinicalInformation:

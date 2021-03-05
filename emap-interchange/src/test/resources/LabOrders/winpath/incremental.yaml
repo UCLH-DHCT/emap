@@ -30,7 +30,10 @@
         status: "SAVE"
         value: "H"
       resultStatus: "FINAL"
-  epicCareOrderNumber: "94000002"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000002"
   labDepartment: "H1"
   testBatteryLocalCode: "FBC"
   statusChangeTime: "2019-07-16T23:04:00Z"
@@ -51,7 +54,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Cancelled - Previously known abnormal result."
-  epicCareOrderNumber: "94000001"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000001"
   labDepartment: "H1"
   testBatteryLocalCode: "TELH"
   statusChangeTime: "2019-07-16T23:01:00Z"
@@ -142,7 +148,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 5.8
-  epicCareOrderNumber: "94000002"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000002"
   labDepartment: "H1"
   testBatteryLocalCode: "FBC"
   statusChangeTime: "2019-07-16T23:05:00Z"
@@ -163,7 +172,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "Cancelled - Previously known abnormal result."
-  epicCareOrderNumber: "94000001"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000001"
   labDepartment: "H1"
   testBatteryLocalCode: "TELH"
   statusChangeTime: "2019-07-16T23:01:00Z"

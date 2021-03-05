@@ -98,7 +98,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "DELETE"
         value: null
-  epicCareOrderNumber: "12121212"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "12121212"
   labDepartment: "CC"
   testBatteryLocalCode: "BON"
   statusChangeTime: "2013-07-25T12:58:00Z"
@@ -128,7 +131,10 @@
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: 26.0
-  epicCareOrderNumber: "12121213"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "12121213"
   labDepartment: "CC"
   testBatteryLocalCode: "IRON"
   statusChangeTime: "2013-07-25T12:59:00Z"
