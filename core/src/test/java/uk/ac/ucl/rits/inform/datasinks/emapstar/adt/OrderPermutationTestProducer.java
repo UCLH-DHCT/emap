@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import uk.ac.ucl.rits.inform.OrderPermutationBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
@@ -28,7 +29,7 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Component
-class OrderPermutationTestProducer {
+class OrderPermutationTestProducer extends OrderPermutationBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     final String defaultEncounter = "123412341234";
@@ -48,8 +49,8 @@ class OrderPermutationTestProducer {
     /**
      * @param transactionManager Spring transaction manager
      */
-    public OrderPermutationTestProducer(@Autowired PlatformTransactionManager transactionManager) {
-        transactionTemplate = new TransactionTemplate(transactionManager);
+    OrderPermutationTestProducer(@Autowired PlatformTransactionManager transactionManager) {
+        super(transactionManager);
     }
 
     @Transactional
@@ -58,19 +59,19 @@ class OrderPermutationTestProducer {
     }
 
 
-    public void setAdtFilenames(String[] adtFilenames) {
+    void setAdtFilenames(String[] adtFilenames) {
         this.adtFilenames = adtFilenames;
     }
 
-    public void setLocations(String[] locations) {
+    void setLocations(String[] locations) {
         this.locations = locations;
     }
 
-    public void setMessagePath(String messagePath) {
+    void setMessagePath(String messagePath) {
         this.messagePath = messagePath;
     }
 
-    public void setInitialAdmissionTime(Instant initialAdmissionTime) {
+    void setInitialAdmissionTime(Instant initialAdmissionTime) {
         this.initialAdmissionTime = initialAdmissionTime;
     }
 
@@ -105,29 +106,13 @@ class OrderPermutationTestProducer {
         assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
     }
 
-    private void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException {
+    @Override
+    public void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageLocationCancelledException {
         for (String filename : fileNames) {
             logger.info("Processing location message: {}", filename);
             processSingleMessage(getLocationAdtMessage(filename));
         }
         checkAllVisits();
-    }
-
-    public void buildTestFromPermutation(List<String> messages) throws Exception {
-        Exception e = transactionTemplate.execute(status -> {
-            status.setRollbackOnly();
-            try {
-                runTest(messages);
-            } catch (MessageLocationCancelledException allowed) {
-                return null;
-            } catch (EmapOperationMessageProcessingException a) {
-                return a;
-            }
-            return null;
-        });
-        if (e != null) {
-            throw e;
-        }
     }
 
 }
