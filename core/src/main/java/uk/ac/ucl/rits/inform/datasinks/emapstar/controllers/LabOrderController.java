@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 @Component
 public class LabOrderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final String UNKNOWN_SOURCE_SYSTEM = "Not in Message";
 
     private final LabBatteryRepository labBatteryRepo;
     private final LabSampleRepository labSampleRepo;
@@ -188,11 +189,12 @@ public class LabOrderController {
             throws IncompatibleDatabaseStateException {
         LabOrder order = orderState.getEntity();
 
+        // Values that should always update if they're null
         if (order.getHospitalVisitId() == null) {
             orderState.assignIfDifferent(visit, null, order::setHospitalVisitId);
         }
 
-        // Values that should always update if they're null
+
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, order.getValidFrom());
         assignIfCurrentlyNullOrNewerAndDifferent(
