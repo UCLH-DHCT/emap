@@ -78,6 +78,7 @@ abstract class LabOrderBuilder {
             case "NA":
             case "CR":
             case "CA":
+            case "OC":
                 msg.setStatusChangeTime(orc9);
                 break;
             case "SC":
