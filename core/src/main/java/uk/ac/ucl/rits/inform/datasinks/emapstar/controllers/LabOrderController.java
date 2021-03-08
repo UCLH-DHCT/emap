@@ -215,9 +215,13 @@ public class LabOrderController {
         }
     }
 
-    private void deleteLabOrderIfExists(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
+    private void deleteLabOrderIfExistsAndNewer(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
         labOrderRepo.findByLabBatteryIdAndLabSampleId(battery, labSample)
                 .ifPresent(order -> {
+                    if (order.getValidFrom().isAfter(validFrom)) {
+                        logger.debug("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
+                        return;
+                    }
                     LabOrderAudit orderAudit = order.createAuditEntity(validFrom, storedFrom);
                     labOrderAuditRepo.save(orderAudit);
                     logger.debug("Deleting labOrder {}", order);

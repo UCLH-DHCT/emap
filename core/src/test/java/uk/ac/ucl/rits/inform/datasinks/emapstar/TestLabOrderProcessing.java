@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
@@ -21,32 +22,24 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepo
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
-import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
-import uk.ac.ucl.rits.inform.informdb.labs.LabIsolate;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
-import uk.ac.ucl.rits.inform.informdb.labs.LabResult;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
-import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
-import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
-import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLabOrderProcessing extends MessageProcessingBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -61,6 +54,8 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     LabBatteryElementRepository labBatteryElementRepository;
     @Autowired
     LabOrderRepository labOrderRepository;
+    @Autowired
+    LabOrderAuditRepository labOrderAuditRepository;
     @Autowired
     LabResultRepository labResultRepository;
     @Autowired
@@ -426,10 +421,10 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         singleResult.setStatusChangeTime(future);
         processSingleMessage(singleResult);
 
-        LabSample labSample =  labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabSample labSample = labSampleRepository.findByExternalLabNumber(singleResultLabNumber).orElseThrow();
 
-        assertEquals(future,labSample.getSampleCollectionTime());
-        assertEquals(future,labSample.getReceiptAtLab());
+        assertEquals(future, labSample.getSampleCollectionTime());
+        assertEquals(future, labSample.getReceiptAtLab());
     }
 
     /**
@@ -447,11 +442,74 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         singleResult.setSourceSystem(newValue);
         processSingleMessage(singleResult);
 
-        LabOrder labOrder =  labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
+        LabOrder labOrder = labOrderRepository.findByLabSampleIdExternalLabNumber(singleResultLabNumber).orElseThrow();
 
-        assertEquals(future,labOrder.getOrderDatetime());
-        assertEquals(newValue,labOrder.getClinicalInformation());
-        assertEquals(newValue,labOrder.getSourceSystem());
+        assertEquals(future, labOrder.getOrderDatetime());
+        assertEquals(newValue, labOrder.getClinicalInformation());
+        assertEquals(newValue, labOrder.getSourceSystem());
+    }
+
+    /**
+     * Cancelling an order that doesn't exist should create battery and sample but no order.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testCancelOrderWithoutKnownOrder() throws EmapOperationMessageProcessingException {
+        LabOrderMsg cancelMsg = singleResult;
+        // no results and delete epic care order number
+        cancelMsg.setLabResultMsgs(List.of());
+        cancelMsg.setEpicCareOrderNumber(InterchangeValue.delete());
+
+        processSingleMessage(cancelMsg);
+
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(0, labOrderRepository.count(), "lab order should not have been created");
+        assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
+    }
+
+    /**
+     * Process order message and then cancel it.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testCreateOrderAndCancel() throws EmapOperationMessageProcessingException {
+        LabOrderMsg originalOrder = singleResult;
+        originalOrder.setLabResultMsgs(List.of());
+        processSingleMessage(originalOrder);
+
+        LabOrderMsg cancelMsg = singleResult;
+        // delete epic care order number
+        cancelMsg.setEpicCareOrderNumber(InterchangeValue.delete());
+        cancelMsg.setStatusChangeTime(originalOrder.getStatusChangeTime().plusSeconds(1));
+
+        processSingleMessage(cancelMsg);
+
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(0, labOrderRepository.count(), "lab order should not have been created");
+        assertEquals(1, labOrderAuditRepository.count(), "lab audit order should have been created");
+        assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
+    }
+
+    /**
+     * If the current order time is after the cancel message's, it should not be deleted.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testCancelTimeIsBeforeOrderTime() throws EmapOperationMessageProcessingException {
+        LabOrderMsg originalOrder = singleResult;
+        originalOrder.setLabResultMsgs(List.of());
+        processSingleMessage(originalOrder);
+
+        LabOrderMsg cancelMsg = singleResult;
+        // delete epic care order number
+        cancelMsg.setEpicCareOrderNumber(InterchangeValue.delete());
+        cancelMsg.setStatusChangeTime(originalOrder.getStatusChangeTime().minusSeconds(1));
+
+        processSingleMessage(cancelMsg);
+
+        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(1, labOrderRepository.count(), "lab order should not have been created");
+        assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }
 
 }
