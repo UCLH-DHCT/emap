@@ -19,6 +19,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * VisitObservations represent discrete nurse (or machine) recoded observations
@@ -59,6 +60,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     @Column(columnDefinition = "text")
     private String valueAsText;
     private Double valueAsReal;
+    private LocalDate valueAsDate;
     private String unit;
     @Column(columnDefinition = "text")
     private String comment;
@@ -95,6 +97,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
         this.hospitalVisitId = other.hospitalVisitId;
         this.valueAsText = other.valueAsText;
         this.valueAsReal = other.valueAsReal;
+        this.valueAsDate = other.valueAsDate;
         this.unit = other.unit;
         this.comment = other.comment;
         this.observationDatetime = other.observationDatetime;
