@@ -561,18 +561,16 @@ public class AuditTableProcessor extends AbstractProcessor {
 
         // Pull across fields from main class
         for (FieldStore f : fields) {
-            out.print("\t\tthis.");
-            out.print(f.fieldName);
-            out.print(" = other.get");
-            out.print(capitalizeInitial(f.fieldName));
-            out.print("()");
+            String fieldDef = String.format("\t\tthis.%s = other.get%s()", f.fieldName, capitalizeInitial(f.fieldName));
             if (f.isForeignKey) {
+                out.println(String.format("\t\tif (other.get%s() != null) {", capitalizeInitial(f.fieldName)));
                 // Get the Id of foreignKey, rather than just the object itself
-                out.print(".get");
-                out.print(capitalizeInitial(f.primaryKeyName));
-                out.print("()");
+                out.println(String.format("\t%s.get%s();", fieldDef, capitalizeInitial(f.fieldName)));
+                out.println("\t\t}");
+            } else {
+                out.print(fieldDef);
+                out.println(";");
             }
-            out.println(";");
         }
 
         out.println("\t}");
