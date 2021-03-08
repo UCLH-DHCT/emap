@@ -24,7 +24,7 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Component
-class OrderPermutationTestProducer extends OrderPermutationBase {
+class LocationPermutationTestProducer extends OrderPermutationBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String defaultEncounter = "123412341234";
@@ -39,7 +39,7 @@ class OrderPermutationTestProducer extends OrderPermutationBase {
     /**
      * @param transactionManager Spring transaction manager
      */
-    OrderPermutationTestProducer(@Autowired PlatformTransactionManager transactionManager) {
+    LocationPermutationTestProducer(@Autowired PlatformTransactionManager transactionManager) {
         super(transactionManager);
     }
 
@@ -71,7 +71,11 @@ class OrderPermutationTestProducer extends OrderPermutationBase {
         assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
     }
 
-    private void checkAllVisits() {
+    /**
+     * Check each location lasts for a hour and is found in the order given.
+     */
+    @Override
+    public void checkFinalState() {
         int adtCheckCount = 0;
         for (String location : locations) {
             checkVisit(
@@ -93,7 +97,7 @@ class OrderPermutationTestProducer extends OrderPermutationBase {
             logger.info("Processing location message: {}", filename);
             processSingleMessage(getLocationAdtMessage(filename));
         }
-        checkAllVisits();
+        checkFinalState();
     }
 
 }

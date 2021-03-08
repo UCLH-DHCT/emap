@@ -16,7 +16,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     private String[] adtFilenames;
 
     @Autowired
-    private OrderPermutationTestProducer orderPermutationTestProducer;
+    private LocationPermutationTestProducer locationPermutationTestProducer;
 
     /**
      * Presentation, admit, move A- B -A -B, discharge
@@ -25,9 +25,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     @TestFactory
     Stream<DynamicTest> testUnorderedMoves() {
         adtFilenames = new String[]{"02_A01", "03_A02", "04_A02", "05_A02", "06_A02", "07_A06", "08_A03"};
-        orderPermutationTestProducer.setMessagePath("Location/Moves");
-        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
-        orderPermutationTestProducer.setLocations(new String[]{
+        locationPermutationTestProducer.setMessagePath("Location/Moves");
+        locationPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
+        locationPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
                 "ED^NON COVID MAJORS 04^04-NON COVID MAJORS",
@@ -41,7 +41,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
-                        () -> orderPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+                        () -> locationPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
     }
 
     /**
@@ -53,9 +53,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         adtFilenames = new String[]{"01_A01", "02_A11", "03_A01", "04_A02", "05_A03"};
         List<String> duplicateCancel = new ArrayList<>(List.of(adtFilenames));
         duplicateCancel.add("02_A11");
-        orderPermutationTestProducer.setMessagePath("Location/CancelAdmit");
-        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T13:00:52Z"));
-        orderPermutationTestProducer.setLocations(new String[]{
+        locationPermutationTestProducer.setMessagePath("Location/CancelAdmit");
+        locationPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T13:00:52Z"));
+        locationPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
         });
@@ -65,7 +65,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
-                        () -> orderPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+                        () -> locationPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
     }
 
     /**
@@ -77,9 +77,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         adtFilenames = new String[]{"01_A01", "02_A02", "03_A03", "04_A13", "05_A03"};
         List<String> duplicateCancel = new ArrayList<>(List.of(adtFilenames));
         duplicateCancel.add("04_A13");
-        orderPermutationTestProducer.setMessagePath("Location/CancelDischarge");
-        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
-        orderPermutationTestProducer.setLocations(new String[]{
+        locationPermutationTestProducer.setMessagePath("Location/CancelDischarge");
+        locationPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
+        locationPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS"
         });
@@ -90,7 +90,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
-                        () -> orderPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+                        () -> locationPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
     }
 
     /**
@@ -102,9 +102,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         adtFilenames = new String[]{"01_A01", "02_A02", "03_A02", "04_A12", "05_A02", "06_A03"};
         List<String> duplicateCancel = new ArrayList<>(List.of(adtFilenames));
         duplicateCancel.add("04_A12");
-        orderPermutationTestProducer.setMessagePath("Location/CancelTransfer");
-        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
-        orderPermutationTestProducer.setLocations(new String[]{
+        locationPermutationTestProducer.setMessagePath("Location/CancelTransfer");
+        locationPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
+        locationPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
                 "ED^NON COVID MAJORS 04^04-NON COVID MAJORS"
@@ -116,7 +116,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
         return StreamSupport.stream(permutationIterator.spliterator(), false)
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
-                        () -> orderPermutationTestProducer.buildTestFromPermutation(duplicateCancel)));
+                        () -> locationPermutationTestProducer.buildTestFromPermutation(duplicateCancel)));
     }
 
 
@@ -133,9 +133,9 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
     @TestFactory
     Stream<DynamicTest> testDuplicateRegisterAdmitTransferDischarge() {
         adtFilenames = new String[]{"01_A04", "02_A01", "03_A02", "04_A03"};
-        orderPermutationTestProducer.setMessagePath("Location/DuplicateSimple");
-        orderPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
-        orderPermutationTestProducer.setLocations(new String[]{
+        locationPermutationTestProducer.setMessagePath("Location/DuplicateSimple");
+        locationPermutationTestProducer.setInitialAdmissionTime(Instant.parse("2013-02-11T11:00:52Z"));
+        locationPermutationTestProducer.setLocations(new String[]{
                 "ED^UCHED RAT CHAIR^RAT-CHAIR",
                 "ED^NON COVID MAJORS 05^05-NON COVID MAJORS",
                 "ED^NON COVID MAJORS 04^04-NON COVID MAJORS",
@@ -153,7 +153,7 @@ class TestAdtProcessingUnorderedLocation extends MessageProcessingBase {
                 .flatMap(pi -> StreamSupport.stream(pi.spliterator(), false))
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
-                        () -> orderPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+                        () -> locationPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
     }
 
 

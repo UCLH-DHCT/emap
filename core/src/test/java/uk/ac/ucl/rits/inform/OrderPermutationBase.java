@@ -60,6 +60,11 @@ public abstract class OrderPermutationBase {
     protected abstract void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageLocationCancelledException;
 
     /**
+     * Assertions at the end of each permutation test case to ensure that it has run successfully.
+     */
+    protected abstract void checkFinalState();
+
+    /**
      * Build tests from permutation list
      * @param fileNames filenames to process
      * @throws Exception shouldn't happen
