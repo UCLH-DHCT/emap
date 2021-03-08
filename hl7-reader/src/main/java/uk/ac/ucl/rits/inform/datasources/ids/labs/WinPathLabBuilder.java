@@ -47,10 +47,13 @@ import java.util.stream.Collectors;
 public final class WinPathLabBuilder extends LabOrderBuilder {
     /**
      * Allowed order control IDs for parsing.
+     * <p>
      * ORM O01: NW (New sample and order), SC (status change), SN (send new order for existing sample), CA (cancel order)
      * ORU R01: RE (results)
      * ORR R02: NA (response to SN), CR (response to CA)
-     * to add: CR, OC
+     * <p>
+     * OC also exists but a spot-check of 4 messages in the IDS found only an OC message for the lab number or epic order number,
+     * so ignoring these messages seems to be the right thing to do.
      */
     private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR"));
     private static final Collection<String> ALLOWED_OC_IDS = new HashSet<>(Arrays.asList("RE", "NW", "SC", "SN", "NA", "CA", "CR"));
