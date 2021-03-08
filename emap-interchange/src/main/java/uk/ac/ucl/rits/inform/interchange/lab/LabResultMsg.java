@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -18,7 +19,7 @@ import java.time.Instant;
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabResultMsg implements Serializable {
-    private String valueType;
+    private ValueType mimeType;
 
     private String testItemLocalCode = "";
     private String testItemCodingSystem = "";
@@ -44,7 +45,6 @@ public class LabResultMsg implements Serializable {
 
     private Instant resultTime;
     private InterchangeValue<String> notes = InterchangeValue.unknown();
-    private String mimeType;
 
     /**
      * Lab Isolate is only ever contained within a result.
@@ -53,21 +53,5 @@ public class LabResultMsg implements Serializable {
     private LabIsolateMsg labIsolate;
 
     private String epicCareOrderNumber;
-
-    /**
-     * @return true if the type of result is numeric
-     */
-    @JsonIgnore
-    public boolean isNumeric() {
-        return "NM".equals(valueType) || "SN".equals(valueType);
-    }
-
-    /**
-     * @return true if the type of result is text
-     */
-    @JsonIgnore
-    public boolean isText() {
-        return "ST".equals(valueType) || "TX".equals(valueType) || "FT".equals(valueType);
-    }
 
 }

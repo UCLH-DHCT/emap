@@ -1,7 +1,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "BILI"
       resultOperator: "="
       numericValue:
@@ -25,7 +25,7 @@
         status: "SAVE"
         value: 20
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALP"
       resultOperator: "="
       numericValue:
@@ -49,7 +49,7 @@
         status: "SAVE"
         value: 129
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALB"
       resultOperator: "="
       numericValue:
@@ -73,7 +73,7 @@
         status: "SAVE"
         value: 50
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALP"
       resultOperator: "="
       numericValue:
@@ -97,7 +97,7 @@
         status: "SAVE"
         value: 129
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALB"
       resultOperator: "="
       numericValue:
@@ -126,7 +126,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "BILI"
       resultOperator: "="
       numericValue:
@@ -150,7 +150,7 @@
         status: "SAVE"
         value: 20
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALP"
       resultOperator: "="
       numericValue:
@@ -174,7 +174,7 @@
         status: "SAVE"
         value: 129
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALT"
       resultOperator: "="
       numericValue:
@@ -202,7 +202,7 @@
         status: "SAVE"
         value: 50
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALB"
       resultOperator: "="
       numericValue:
@@ -226,7 +226,7 @@
         status: "SAVE"
         value: 50
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALP"
       resultOperator: "="
       numericValue:
@@ -250,7 +250,7 @@
         status: "SAVE"
         value: 129
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "ALB"
       resultOperator: "="
       numericValue:

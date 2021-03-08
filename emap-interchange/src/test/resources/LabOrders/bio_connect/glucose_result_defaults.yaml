@@ -1,5 +1,5 @@
 testItemCodingSystem: "BIO-CONNECT"
 resultStatus: "INVALID_RESULT"
-valueType: "NM"
+mimeType: "NUMERIC"
 resultOperator: "="
 observationSubId: "1"

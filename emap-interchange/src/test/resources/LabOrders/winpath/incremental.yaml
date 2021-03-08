@@ -2,7 +2,7 @@
   labResultMsgs:
     # original result
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "RDWU"
       resultOperator: "="
       numericValue:
@@ -40,7 +40,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "FT"
+      mimeType: "TEXT"
       testItemLocalCode: "DATP"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -48,7 +48,7 @@
         value: "Cancelled - Previously known abnormal result."
       epicCareOrderNumber: "94000001"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "FT"
+      mimeType: "TEXT"
       testItemLocalCode: "PER"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -65,7 +65,7 @@
   labResultMsgs:
     # updated result
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "RDWU"
       # value changed
       resultOperator: "="
@@ -96,7 +96,7 @@
         value: null
       resultStatus: "FINAL"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "WCC"
       resultOperator: "="
       numericValue:
@@ -125,7 +125,7 @@
         value: "H"
       resultStatus: "FINAL"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "NM"
+      mimeType: "NUMERIC"
       testItemLocalCode: "RCC"
       resultOperator: "="
       numericValue:
@@ -158,7 +158,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "FT"
+      mimeType: "TEXT"
       testItemLocalCode: "DATP"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -166,7 +166,7 @@
         value: "Cancelled - Previously known abnormal result."
       epicCareOrderNumber: "94000001"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "FT"
+      mimeType: "TEXT"
       testItemLocalCode: "PER"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
