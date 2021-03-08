@@ -214,8 +214,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                     interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
         }
         // add in final result
-        builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "06_oru_ro1_fbcc")));
-        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "06_oru_ro1_fbcc"), "0000000042"));
+        builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "06_oru_r01_fbcc")));
+        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "06_oru_r01_fbcc"), "0000000042"));
 
         builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
         assertListOfMessagesEqual(expectedOrders, builtMessages);
