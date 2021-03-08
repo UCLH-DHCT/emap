@@ -21,11 +21,14 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     @Autowired
@@ -59,6 +62,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     }
 
     /**
+     * Incremental order stream with a final result set.
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
@@ -101,5 +105,52 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals(Instant.parse("2013-07-28T08:45:00Z"), laterOrder.getRequestDatetime()); // updated in 05 ORU R01
         assertEquals("unwell", laterOrder.getClinicalInformation()); // from 05 ORU R01
     }
+
+    @TestFactory
+    Stream<DynamicTest> testOrderCancellation() {
+        String[] orderFiles = {
+                "01_orm_o01_nw_fbc_mg", "02_orm_o01_ca_fbc", "03_orm_o01_sn_fbcc", "04_orr_o02_cr_fbc", "05_orr_o02_na_fbcc"
+        };
+        labsPermutationTestProducer.setMessagePathAndORMDefaults("winpath/cancel_orders");
+        labsPermutationTestProducer.setFinalStateChecker(this::checkCancelOrders);
+
+        List<Iterable<List<String>>> duplicatedNames = new ArrayList<>();
+        for (int i = 0; i < orderFiles.length; i++) {
+            List<String> filesWithOneDuplicate = duplicateAt(orderFiles, i);
+            duplicatedNames.add(new ShuffleIterator<>(filesWithOneDuplicate));
+        }
+
+        return duplicatedNames.stream()
+                .flatMap(pi -> StreamSupport.stream(pi.spliterator(), false))
+                // can't recover if the order is after the cancellation so remove these
+                .filter(files -> {
+                    int lastOriginalOrder = files.lastIndexOf("01_orm_o01_nw_fbc_mg");
+                    int lastORMCancel = files.lastIndexOf("02_orm_o01_ca_fbc");
+                    int lastORRCancelConfirm = files.lastIndexOf("04_orr_o02_cr_fbc");
+                    return lastOriginalOrder < Math.max(lastORMCancel, lastORRCancelConfirm);
+                })
+                .map(messageOrdering -> DynamicTest.dynamicTest(
+                        String.format("Test %s", messageOrdering),
+                        () -> labsPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
+    }
+
+    private void checkCancelOrders() {
+        LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
+        assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
+        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
+        assertNull(labSample.getReceiptAtLab()); // not in messages
+
+        Optional<LabOrder> cancelledOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBC", labSample);
+        assertTrue(cancelledOrder.isEmpty());
+
+
+        LabOrder remainingOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBCC", labSample).orElseThrow();
+        assertEquals(Instant.parse("2013-07-28T08:41:00Z"), remainingOrder.getOrderDatetime()); // from 03 SN
+        assertEquals("WinPath", remainingOrder.getSourceSystem()); // from 03 SN onwards
+        assertEquals("12121212", remainingOrder.getInternalLabNumber()); // from 04 ORR o02
+        assertNotNull(remainingOrder.getHospitalVisitId()); // from 03 SN
+        assertEquals(Instant.parse("2013-07-28T08:41:00Z"), remainingOrder.getRequestDatetime()); // Added by 05 ORR O02 NA
+    }
+
 
 }

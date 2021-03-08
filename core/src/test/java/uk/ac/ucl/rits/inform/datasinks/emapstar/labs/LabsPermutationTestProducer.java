@@ -16,7 +16,6 @@ import java.util.List;
 class LabsPermutationTestProducer extends OrderPermutationBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String defaultEncounter = "123412341234";
     private String messagePath;
     private Runnable finalStateChecker;
     private String ormDefaults;
@@ -47,12 +46,12 @@ class LabsPermutationTestProducer extends OrderPermutationBase {
         // processing orders and results using different methods
         for (String filename : fileNames) {
             if (!filename.toLowerCase().contains("oru_r01")) {
-                logger.info("Parsing order file: {}", fileNames);
+                logger.info("Parsing order file: {}", filename);
                 processSingleMessage(getMessageFactory().buildLabOrderOverridingDefaults(
                         ormDefaults, String.format("%s/%s.yaml", messagePath, filename)));
             } else {
                 for (LabOrderMsg labOrderMsg : getLabOrders(filename)) {
-                    logger.info("Parsing ORU R01 file: {}", fileNames);
+                    logger.info("Parsing ORU R01 file: {}", filename);
                     processSingleMessage(labOrderMsg);
                 }
             }
