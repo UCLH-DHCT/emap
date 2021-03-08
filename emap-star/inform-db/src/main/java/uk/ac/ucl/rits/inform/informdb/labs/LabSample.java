@@ -78,7 +78,7 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
         super(other);
         this.mrnId = other.mrnId;
         this.labSampleId = other.labSampleId;
-        this.externalLabNumber = externalLabNumber;
+        this.externalLabNumber = other.externalLabNumber;
         this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
         this.specimenType = other.specimenType;
