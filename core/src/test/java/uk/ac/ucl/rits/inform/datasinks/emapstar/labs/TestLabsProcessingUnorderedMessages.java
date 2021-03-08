@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -51,17 +52,29 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     @Autowired
     LabSensitivityRepository labSensitivityRepository;
 
+    private List<String> duplicateAt(String[] strings, int duplicateIndex) {
+        List<String> output = new ArrayList<>(List.of(strings));
+        output.add(strings[duplicateIndex]);
+        return output;
+    }
+
     /**
      * @return A stream of all the possible valid orderings.
      */
     @TestFactory
-    Stream<DynamicTest> testUnorderedMoves() {
+    Stream<DynamicTest> testIncrementalOrders() {
         String[] orderFiles = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh", "04_orr_o02_telh", "05_oru_r01"};
         labsPermutationTestProducer.setMessagePathAndORMDefaults("winpath/incremental_orders");
         labsPermutationTestProducer.setFinalStateChecker(this::checkIncrementalOrders);
-        Iterable<List<String>> permutationIterator = new ShuffleIterator<>(List.of(orderFiles));
 
-        return StreamSupport.stream(permutationIterator.spliterator(), false)
+        List<Iterable<List<String>>> duplicatedNames = new ArrayList<>();
+        for (int i = 0; i < orderFiles.length; i++) {
+            List<String> filesWithOneDuplicate = duplicateAt(orderFiles, i);
+            duplicatedNames.add(new ShuffleIterator<>(filesWithOneDuplicate));
+        }
+
+        return duplicatedNames.stream()
+                .flatMap(pi -> StreamSupport.stream(pi.spliterator(), false))
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
                         () -> labsPermutationTestProducer.buildTestFromPermutation(messageOrdering)));
