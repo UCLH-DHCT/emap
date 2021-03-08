@@ -42,6 +42,10 @@ public abstract class OrderPermutationBase {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
+    public InterchangeMessageFactory getMessageFactory() {
+        return messageFactory;
+    }
+
     @Transactional
     protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
         msg.processMessage(dbOps);
