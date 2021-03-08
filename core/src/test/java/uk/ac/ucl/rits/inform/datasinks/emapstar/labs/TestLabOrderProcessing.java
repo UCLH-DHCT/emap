@@ -6,6 +6,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
@@ -33,14 +34,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLabOrderProcessing extends MessageProcessingBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -511,6 +510,22 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(1, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
+    }
+
+    /**
+     * Don't expect that you can cancel an order which has results, so exception should be thrown to notify us about this happening.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testOrderWithResultsCancelledThrows() throws EmapOperationMessageProcessingException {
+        processSingleMessage(singleResult);
+
+        LabOrderMsg cancelMsg = singleResult;
+        // no results and delete epic care order number
+        cancelMsg.setLabResultMsgs(List.of());
+        cancelMsg.setEpicCareOrderNumber(InterchangeValue.delete());
+
+        assertThrows(DataIntegrityViolationException.class, () -> processSingleMessage(cancelMsg));
     }
 
 }
