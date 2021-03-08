@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivityAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -112,11 +113,11 @@ class LabResultController {
         resultState.assignInterchangeValue(resultMsg.getAbnormalFlag(), labResult.getAbnormalFlag(), labResult::setAbnormalFlag);
         resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
-        resultState.assignIfDifferent(resultMsg.getMimeType(), labResult.getMimeType(), labResult::setMimeType);
-        if (resultMsg.isNumeric()) {
+        resultState.assignIfDifferent(resultMsg.getMimeType().toString(), labResult.getMimeType(), labResult::setMimeType);
+        if (ValueType.NUMERIC == resultMsg.getMimeType()) {
             resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
             resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
-        } else {
+        } else if (ValueType.TEXT == resultMsg.getMimeType()) {
             resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
         }
 

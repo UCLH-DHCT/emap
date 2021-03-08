@@ -25,6 +25,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -216,6 +217,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
         assertEquals(26.0, result.getRangeHigh());
         assertEquals("=", result.getResultOperator());
         assertEquals("umol/L", result.getUnits());
+        assertEquals(ValueType.NUMERIC.toString(), result.getMimeType());
     }
 
     @Test
@@ -227,7 +229,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
         labResultMsg.setReferenceLow(InterchangeValue.unknown());
         labResultMsg.setReferenceHigh(InterchangeValue.unknown());
         labResultMsg.setUnits(InterchangeValue.unknown());
-        labResultMsg.setValueType("FT"); // string value
+        labResultMsg.setMimeType(ValueType.TEXT);
         String notes = "I am a note";
         String resultValue = "I am a result";
         labResultMsg.setNotes(InterchangeValue.buildFromHl7(notes));
@@ -238,6 +240,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
         LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
         assertEquals(resultValue, result.getValueAsText());
         assertEquals(notes, result.getComment());
+        assertEquals(ValueType.TEXT.toString(), result.getMimeType());
         assertNull(result.getValueAsReal());
         assertNull(result.getRangeLow());
         assertNull(result.getRangeHigh());
@@ -258,11 +261,28 @@ class TestLabResultProcessing extends MessageProcessingBase {
         LabOrderMsg msg = singleResult;
         msg.setStatusChangeTime(resultTime);
         LabResultMsg resultMsg = msg.getLabResultMsgs().get(0);
-        resultMsg.setValueType("ST");
+        resultMsg.setMimeType(ValueType.LAB_ISOLATE);
         resultMsg.setLabIsolate(labIsolateMsg);
         resultMsg.setResultTime(resultTime);
         return msg;
     }
+
+    /**
+     * Lab result from an isolate should have a mime type of lab isolate and value set
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testLabResultFromIsolate() throws EmapOperationMessageProcessingException {
+        LabOrderMsg msg = addLabIsolateAtResultTime("CANALB", "Candida albicans", "10,000 - 100,000 CFU/mL", null, null, statusChangeTime);
+
+        processSingleMessage(msg);
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
+        assertEquals(ValueType.LAB_ISOLATE.toString(), result.getMimeType());
+        assertNull(result.getValueAsText());
+        assertNull(result.getValueAsBytes());
+        assertNull(result.getValueAsReal());
+    }
+
 
     /**
      * Processing of isolate table
@@ -279,6 +299,8 @@ class TestLabResultProcessing extends MessageProcessingBase {
 
 
         processSingleMessage(msg);
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(singleResultTestCode).orElseThrow();
+        assertEquals(ValueType.LAB_ISOLATE.toString(), result.getMimeType());
 
         LabIsolate isolate = labIsolateRepository.findByIsolateCode(isolateCode).orElseThrow();
         assertEquals(isolateName, isolate.getIsolateName());
