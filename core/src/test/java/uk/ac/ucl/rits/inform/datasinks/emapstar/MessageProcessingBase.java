@@ -38,9 +38,9 @@ public abstract class MessageProcessingBase {
     @Autowired
     protected InformDbOperations dbOps;
 
-    final String defaultMrn = "40800000";
-    final String defaultEncounter = "123412341234";
-    final Instant past = Instant.parse("2000-01-01T01:01:01Z");
+    protected final String defaultMrn = "40800000";
+    protected final String defaultEncounter = "123412341234";
+    protected final Instant past = Instant.parse("2000-01-01T01:01:01Z");
 
 
     protected final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
@@ -66,7 +66,7 @@ public abstract class MessageProcessingBase {
      * @param <T>
      * @return
      */
-    <T extends AdtMessage> T setDataForHospitalVisitId4002(T msg) {
+    protected <T extends AdtMessage> T setDataForHospitalVisitId4002(T msg) {
         msg.setVisitNumber("1234567890");
         msg.setMrn("60600000");
         msg.setNhsNumber("1111111111");
