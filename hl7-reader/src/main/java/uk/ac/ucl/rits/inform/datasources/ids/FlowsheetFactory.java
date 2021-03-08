@@ -1,9 +1,11 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
+import ca.uhn.hl7v2.model.v26.datatype.DT;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
@@ -24,9 +26,14 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -36,13 +43,14 @@ import java.util.List;
 @Component
 public class FlowsheetFactory {
     private static final Logger logger = LoggerFactory.getLogger(FlowsheetFactory.class);
+    private static final Collection<String> ALLOWED_STATUSES = new HashSet<>(Arrays.asList("C", "F", "D"));
 
     /**
      * Builds Flowsheet messages from an ORU R01 message.
      * Allows multiple: OBR segments, OBX segments, NTE segments, OBX lines and NTE lines
      * @param idsUnid Unique id from UDS
      * @param msg     ORU R01 HL7 flowsheet message from EPIC
-     * @return Flowsheet messages populated from contstuctor.
+     * @return Flowsheet messages populated from constructor.
      */
     List<Flowsheet> getMessages(String idsUnid, Message msg) {
         List<Flowsheet> flowsheets = new ArrayList<>();
@@ -125,13 +133,14 @@ public class FlowsheetFactory {
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
         flowsheet.setFlowsheetId(observationId);
 
-        setFlowsheetValueAndIsNumericType(subMessageSourceId, flowsheet, obx);
+        setFlowsheetValueAndValueType(subMessageSourceId, flowsheet, obx);
 
         if (!notes.isEmpty()) {
             String comment = getComments(notes);
             flowsheet.setComment(InterchangeValue.buildFromHl7(comment));
         }
-        if (flowsheet.getComment().isUnknown() && flowsheet.getStringValue().isUnknown() && flowsheet.getNumericValue().isUnknown()) {
+        if (flowsheet.getComment().isUnknown() && flowsheet.getStringValue().isUnknown()
+                && flowsheet.getNumericValue().isUnknown() && flowsheet.getDateValue().isUnknown()) {
             throw new Hl7InconsistencyException(String.format("msg %s has empty value and comment so was discarded", subMessageSourceId));
         }
 
@@ -150,18 +159,17 @@ public class FlowsheetFactory {
     }
 
     /**
-     * Sets the string value or numeric value as appropriate, setting to delete if required.
-     * <p>
-     * Also sets the isNumericType.
+     * Sets value type and the appropriate value.
      * @param subMessageSourceId Message ID along with the sub message Id
      * @param flowsheet          flowsheet to add the values to
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
      */
-    private void setFlowsheetValueAndIsNumericType(String subMessageSourceId, Flowsheet flowsheet, OBX obx) throws Hl7InconsistencyException {
+    private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
+            throws Hl7InconsistencyException, DataTypeException {
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
 
-        if (!("F".equals(resultStatus) || "C".equals(resultStatus) || "D".equals(resultStatus))) {
+        if (!ALLOWED_STATUSES.contains(resultStatus)) {
             throw new Hl7InconsistencyException(String.format("msg %s result status ('%s') was not recognised.", subMessageSourceId, resultStatus));
         }
 
@@ -172,7 +180,7 @@ public class FlowsheetFactory {
         value = value == null ? "" : value;
 
         if (singularData instanceof NM) {
-            flowsheet.setIsNumericType(true);
+            flowsheet.setValueType(ValueType.NUMERIC);
             if ("D".equals(resultStatus)) {
                 flowsheet.setNumericValue(InterchangeValue.delete());
             } else {
@@ -184,15 +192,23 @@ public class FlowsheetFactory {
                 }
             }
         } else if (singularData instanceof ST) {
-            flowsheet.setIsNumericType(false);
+            flowsheet.setValueType(ValueType.TEXT);
             if ("D".equals(resultStatus)) {
                 flowsheet.setStringValue(InterchangeValue.delete());
             } else if (!value.isEmpty()) {
                 String stringValue = getStringValue(obx);
                 flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
             }
+        } else if (singularData instanceof DT) {
+            flowsheet.setValueType(ValueType.DATE);
+            if ("D".equals(resultStatus)) {
+                flowsheet.setDateValue(InterchangeValue.delete());
+            } else {
+                LocalDate date = HL7Utils.interpretDate((DT) singularData);
+                flowsheet.setDateValue(InterchangeValue.buildFromHl7(date));
+            }
         } else {
-            throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM or ST)");
+            throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM, ST or DT)");
         }
     }
 

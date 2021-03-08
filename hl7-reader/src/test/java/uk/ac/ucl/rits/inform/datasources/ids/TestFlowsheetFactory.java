@@ -13,20 +13,21 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ActiveProfiles("test")
 @SpringBootTest
-public class TestFlowsheetFactory {
+class TestFlowsheetFactory {
     @Autowired
     private FlowsheetFactory flowsheetFactory;
     private List<Flowsheet> flowsheets;
     private Flowsheet firstFlowsheet;
 
     @BeforeEach
-    public void setUp() throws IOException, HL7Exception {
+    void setUp() throws IOException, HL7Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MixedHL7Message.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
@@ -34,7 +35,7 @@ public class TestFlowsheetFactory {
     }
 
     @Test
-    public void testMRN() {
+    void testMRN() {
         for (Flowsheet vitalSign : flowsheets) {
             String result = vitalSign.getMrn();
             assertEquals("40800000", result);
@@ -42,7 +43,7 @@ public class TestFlowsheetFactory {
     }
 
     @Test
-    public void testVisitNumber() {
+    void testVisitNumber() {
         for (Flowsheet vitalSign : flowsheets) {
             String result = vitalSign.getVisitNumber();
             assertEquals("123412341234", result);
@@ -50,51 +51,51 @@ public class TestFlowsheetFactory {
     }
 
     @Test
-    public void testVitalSignIdentifier() {
+    void testVitalSignIdentifier() {
         String result = firstFlowsheet.getFlowsheetId();
         assertEquals("5", result);
     }
 
     @Test
-    public void testNumericValue() {
+    void testNumericValue() {
         Double result = flowsheets.get(1).getNumericValue().get();
         assertEquals(102.2, result);
     }
 
     @Test
-    public void testStringValue() {
+    void testStringValue() {
         String result = firstFlowsheet.getStringValue().get();
         assertEquals("140/90", result);
     }
 
     @Test
-    public void testComment() {
+    void testComment() {
         String result = flowsheets.get(2).getComment().get();
         assertEquals("patient was running really fast (on a hamster wheel)", result);
     }
 
     @Test
-    public void testMultipleComments() {
+    void testMultipleComments() {
         String result = flowsheets.get(3).getComment().get();
         assertEquals("comment 1a\ncomment 1b\ncomment 2", result);
     }
 
     @Test
-    public void testResultStatusFtoValue() {
+    void testResultStatusFtoValue() {
         // result status is 'F' so value should be saved
         String result = firstFlowsheet.getStringValue().get();
         Assertions.assertNotNull(result);
     }
 
     @Test
-    public void testResultStatusCtoValue() {
+    void testResultStatusCtoValue() {
         // result status is 'C' so should be saved
         String result = flowsheets.get(4).getStringValue().get();
         Assertions.assertNotNull(result);
     }
 
     @Test
-    public void testResultStatusDtoDelete() {
+    void testResultStatusDtoDelete() {
         // result status is 'D' so should be converted to DELETE
         InterchangeValue<Double> numericValue = flowsheets.get(5).getNumericValue();
         InterchangeValue<String> stringValue = flowsheets.get(5).getStringValue();
@@ -104,39 +105,54 @@ public class TestFlowsheetFactory {
     }
 
     @Test
-    public void testUnit() {
+    void testUnit() {
         String result = flowsheets.get(3).getUnit().get();
         assertEquals("%", result);
     }
 
     @Test
-    public void testObservationTimeTaken() {
+    void testObservationTimeTaken() {
         Instant result = firstFlowsheet.getObservationTime();
         assertEquals(Instant.parse("2020-01-22T14:03:00.00Z"), result);
     }
 
     @Test
-    public void testSourceMessageId() {
+    void testSourceMessageId() {
         String result = firstFlowsheet.getSourceMessageId();
         assertEquals("42$01", result);
     }
 
     @Test
-    public void testMissingValue() {
-        assertEquals(7, flowsheets.size());
+    void testMissingValue() {
+        assertEquals(8, flowsheets.size());
     }
 
     @Test
-    public void testMultiLineStringValue() {
+    void testMultiLineStringValue() {
         String result = flowsheets.get(6).getStringValue().get();
         assertEquals("Supplemental Oxygen\nextra line", result);
     }
 
     @Test
-    public void testMultipleOBRs() throws IOException, HL7Exception {
+    void testMultipleOBRs() throws IOException, HL7Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MultiOBR.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
         assertEquals(4, flowsheets.size());
+    }
+
+    /**
+     * Date of 20200601 should be parsed to local date.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void tesBSTDateValue() throws Exception {
+        String hl7 = HL7Utils.readHl7FromResource("VitalSigns/datetime_parsing.txt");
+        Message hl7Msg = HL7Utils.parseHl7String(hl7);
+        flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
+        Flowsheet msg = flowsheets.get(1);
+        LocalDate expected = LocalDate.parse("2020-06-01");
+
+        assertEquals(InterchangeValue.buildFromHl7(expected), msg.getDateValue());
     }
 }
