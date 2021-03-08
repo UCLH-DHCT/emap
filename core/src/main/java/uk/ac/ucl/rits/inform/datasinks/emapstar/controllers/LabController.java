@@ -57,7 +57,8 @@ public class LabController {
             throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
         }
         Instant validFrom = msg.getStatusChangeTime();
-        LabBattery battery = labOrderController.getOrCreateLabBattery(msg, validFrom, storedFrom);
+        LabBattery battery = labOrderController.getOrCreateLabBattery(
+                msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
         if (msg.getEpicCareOrderNumber().isDelete()) {
             labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, msg, validFrom, storedFrom);
             return;

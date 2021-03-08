@@ -53,16 +53,17 @@ public class LabOrderController {
 
 
     /**
-     * @param msg        Lab order msg
-     * @param validFrom  most recent change to results
-     * @param storedFrom time that star started processing the message
+     * @param batteryCode  battery code
+     * @param codingSystem coding system that battery is defined by
+     * @param validFrom    most recent change to results
+     * @param storedFrom   time that star started processing the message
      * @return lab battery
      */
     @Transactional
-    public LabBattery getOrCreateLabBattery(LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
-        return labBatteryRepo.findByBatteryCodeAndLabProvider(msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem())
+    public LabBattery getOrCreateLabBattery(String batteryCode, String codingSystem, Instant validFrom, Instant storedFrom) {
+        return labBatteryRepo.findByBatteryCodeAndLabProvider(batteryCode, codingSystem)
                 .orElseGet(() -> {
-                    LabBattery labBattery = new LabBattery(msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
+                    LabBattery labBattery = new LabBattery(batteryCode, codingSystem, validFrom, storedFrom);
                     logger.trace("Creating new lab battery {}", labBattery);
                     return labBatteryRepo.save(labBattery);
                 });
