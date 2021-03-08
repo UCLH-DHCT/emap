@@ -21,6 +21,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -291,7 +292,7 @@ public abstract class MessageStreamBaseCase {
         vital.setUnit(InterchangeValue.buildFromHl7("/min"));
         vital.setObservationTime(vitalTime);
         vital.setUpdatedTime(vitalTime);
-        vital.setIsNumericType(true);
+        vital.setValueType(ValueType.NUMERIC);
         queueMessage(vital);
     }
 
