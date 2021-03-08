@@ -92,7 +92,7 @@ public class LabOrderController {
             Mrn mrn, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
     ) throws IncompatibleDatabaseStateException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        deleteLabOrderIfExists(battery, labSample, validFrom, storedFrom);
+        deleteLabOrderIfExistsAndNewer(battery, labSample, validFrom, storedFrom);
     }
 
     /**
@@ -112,14 +112,13 @@ public class LabOrderController {
                 .orElseGet(() -> createLabSample(mrnId, msg.getLabSpecimenNumber(), validFrom, storedFrom));
 
         LabSample labSample = state.getEntity();
-        Instant originalValidFrom = labSample.getValidFrom();
 
         assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, originalValidFrom);
+                state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
         assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
         assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
         // Allow for change of sample labSample time, but don't expect this to happen
-        if (state.isEntityCreated() || validFrom.isAfter(originalValidFrom)) {
+        if (state.isEntityCreated() || validFrom.isAfter(labSample.getValidFrom())) {
             if (collectionTimeExistsAndWillChange(msg, labSample)) {
                 logger.warn("Not expecting Sample Collection time to change");
             }
@@ -185,20 +184,19 @@ public class LabOrderController {
             throws IncompatibleDatabaseStateException {
         LabOrder order = orderState.getEntity();
 
-        Instant originalValidFrom = order.getValidFrom();
         if (order.getHospitalVisitId() == null) {
             orderState.assignIfDifferent(visit, null, order::setHospitalVisitId);
         }
 
         // Values that should always update if they're null
         assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, originalValidFrom);
+                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, order.getValidFrom());
         assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, originalValidFrom);
+                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, order.getValidFrom());
         assignIfCurrentlyNullOrThrowIfDifferent(orderState, msg.getEpicCareOrderNumber(), order.getInternalLabNumber(), order::setInternalLabNumber);
 
         // only update if newer
-        if (orderState.isEntityCreated() || validFrom.isAfter(originalValidFrom)) {
+        if (orderState.isEntityCreated() || validFrom.isAfter(order.getValidFrom())) {
             orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
             orderState.assignIfDifferent(msg.getSourceSystem(), order.getSourceSystem(), order::setSourceSystem);
         }
@@ -206,9 +204,9 @@ public class LabOrderController {
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(
             RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter,
-            Instant validFrom, Instant originalValidFrom
+            Instant messageValidFrom, Instant entityValidFrom
     ) {
-        if (currentValue == null || validFrom.isAfter(originalValidFrom)) {
+        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
             state.assignInterchangeValue(msgValue, currentValue, setter);
         }
     }
