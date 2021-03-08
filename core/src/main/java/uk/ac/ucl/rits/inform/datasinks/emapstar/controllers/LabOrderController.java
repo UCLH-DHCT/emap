@@ -159,7 +159,10 @@ public class LabOrderController {
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
      * @return Lab Order
-     * @throws IncompatibleDatabaseStateException If the message epic order number is known and is different from the database's internal lab number
+     * @throws IncompatibleDatabaseStateException If the message epic order number is known and is different from the database's internal lab number.
+     *                                            Could happen if message are received out of order
+     *                                            (a battery is ordered for a sample, cancelled and then the same battery is ordered again;
+     *                                            we receive order 1, order 2 before the cancel)
      */
     private LabOrder updateOrCreateLabOrder(
             @Nullable HospitalVisit visit, LabBattery battery, LabSample labSample, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
