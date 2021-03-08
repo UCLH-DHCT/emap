@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
@@ -105,7 +106,6 @@ public abstract class LabResultBuilder {
      */
     private void setValueAdjacentFields() {
         msg.setUnits(InterchangeValue.buildFromHl7(obx.getObx6_Units().getCwe1_Identifier().getValueOrEmpty()));
-        msg.setValueType(obx.getObx2_ValueType().getValueOrEmpty());
         msg.setObservationSubId(obx.getObx4_ObservationSubID().getValueOrEmpty());
         try {
             msg.setResultStatus(LabResultStatus.findByHl7Code(obx.getObx11_ObservationResultStatus().getValueOrEmpty()));
@@ -178,14 +178,14 @@ public abstract class LabResultBuilder {
                 || data instanceof FT
                 || data instanceof TX
                 || data instanceof NM) {
-            setStringValue(obx);
+            setStringValueAndMimeType(obx);
             if (data instanceof NM) {
                 if (repCount > 1) {
                     logger.warn("LabResult is Numerical (NM) result but repcount = {}", repCount);
                 }
                 try {
                     if (msg.getStringValue().isSave()) {
-                        setNumericValueAndResultOperator(msg.getStringValue().get());
+                        setNumericValueAndResultOperatorAndMimeType(msg.getStringValue().get());
                     }
                 } catch (NumberFormatException e) {
                     logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", msg.getStringValue());
@@ -196,7 +196,8 @@ public abstract class LabResultBuilder {
         setDataFromCustomValue(obx);
     }
 
-    void setStringValue(OBX obx) {
+    void setStringValueAndMimeType(OBX obx) {
+        msg.setMimeType(ValueType.TEXT);
         // Store the string value for numeric types to allow for debugging in case new result operator needs to be added
         String stringValue = Arrays.stream(obx.getObx5_ObservationValue())
                 .map(Varies::getData)
@@ -211,7 +212,8 @@ public abstract class LabResultBuilder {
      * Set numeric value and result operator (if required).
      * @param inputValue string value
      */
-    void setNumericValueAndResultOperator(String inputValue) {
+    void setNumericValueAndResultOperatorAndMimeType(String inputValue) {
+        msg.setMimeType(ValueType.NUMERIC);
         String value = inputValue;
         String resultOperator = "=";
         if (!value.isEmpty() && (value.charAt(0) == '>' || value.charAt(0) == '<')) {

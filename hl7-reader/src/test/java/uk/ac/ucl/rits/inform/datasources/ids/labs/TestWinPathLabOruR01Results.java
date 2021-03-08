@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -80,6 +81,7 @@ class TestWinPathLabOruR01Results {
         LabResultMsg ncvl = resultsByItemCode.get("NCVL");
 
         assertTrue(ncvs.getNumericValue().isUnknown());
+        assertEquals(ValueType.TEXT, ncvs.getMimeType());
         assertEquals(InterchangeValue.buildFromHl7("CTNS"), ncvs.getStringValue());
 
         assertTrue(ncvp.getNumericValue().isUnknown());
@@ -300,7 +302,7 @@ class TestWinPathLabOruR01Results {
                 .findFirst().orElseThrow();
         assertEquals(InterchangeValue.buildFromHl7("A"), isolateResultMsg.getAbnormalFlag());
         assertEquals(LabResultStatus.FINAL, isolateResultMsg.getResultStatus());
-        assertEquals("link/lab_isolate", isolateResultMsg.getMimeType());
+        assertEquals(ValueType.LAB_ISOLATE, isolateResultMsg.getMimeType());
     }
 
 

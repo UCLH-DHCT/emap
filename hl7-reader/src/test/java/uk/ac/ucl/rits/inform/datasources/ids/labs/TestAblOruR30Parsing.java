@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -85,7 +86,7 @@ class TestAblOruR30Parsing {
     void testNumericValueForced() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "unit", "pCO2");
         assertEquals(InterchangeValue.buildFromHl7(5.82), result.getNumericValue());
-        assertEquals("NM", result.getValueType());
+        assertEquals(ValueType.NUMERIC, result.getMimeType());
         assertEquals("=", result.getResultOperator());
     }
 

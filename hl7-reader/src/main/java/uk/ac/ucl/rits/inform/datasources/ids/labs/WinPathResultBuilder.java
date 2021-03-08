@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -70,6 +71,8 @@ public class WinPathResultBuilder extends LabResultBuilder {
         if (repCount > 1) {
             logger.warn("ISOLATE lab result with repcount = {}", repCount);
         }
+        getMessage().setMimeType(ValueType.LAB_ISOLATE);
+
         LabIsolateMsg labIsolate = addLabIsolateWithEpicOrderIdAndSubId(obx);
         if (data instanceof ST) {
             addCultureOrQuantityAndUpdateMessageValue(labIsolate);
@@ -107,8 +110,6 @@ public class WinPathResultBuilder extends LabResultBuilder {
         LabIsolateMsg otherIsolate = otherMsg.getLabIsolate();
         thisIsolate.mergeIsolateInfo(otherIsolate);
 
-        // replace with type when interchange format merged in
-        getMessage().setMimeType("link/lab_isolate");
         // remove previously set string value
         getMessage().setStringValue(InterchangeValue.unknown());
     }
