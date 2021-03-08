@@ -109,7 +109,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     @TestFactory
     Stream<DynamicTest> testOrderCancellation() {
         String[] orderFiles = {
-                "01_orm_o01_nw_fbc_mg", "02_orm_o01_ca_fbc", "03_orm_o01_sn_fbcc", "04_orr_o02_cr_fbc", "05_orr_o02_na_fbcc"
+                "01_orm_o01_nw_fbc_mg", "02_orm_o01_ca_fbc", "03_orm_o01_sn_fbcc", "04_orr_o02_cr_fbc", "05_orr_o02_na_fbcc", "06_oru_r01_fbcc"
         };
         labsPermutationTestProducer.setMessagePathAndORMDefaults("winpath/cancel_orders");
         labsPermutationTestProducer.setFinalStateChecker(this::checkCancelOrders);
@@ -149,7 +149,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals("WinPath", remainingOrder.getSourceSystem()); // from 03 SN onwards
         assertEquals("12121212", remainingOrder.getInternalLabNumber()); // from 04 ORR o02
         assertNotNull(remainingOrder.getHospitalVisitId()); // from 03 SN
-        assertEquals(Instant.parse("2013-07-28T08:41:00Z"), remainingOrder.getRequestDatetime()); // Added by 05 ORR O02 NA
+        assertEquals(Instant.parse("2013-07-29T03:24:00Z"), remainingOrder.getRequestDatetime()); // Updated by 06 ORU R01
     }
 
 
