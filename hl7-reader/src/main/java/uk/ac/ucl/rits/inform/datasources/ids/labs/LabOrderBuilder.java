@@ -77,6 +77,7 @@ abstract class LabOrderBuilder {
                 break;
             case "NA":
             case "CR":
+            case "CA":
                 msg.setStatusChangeTime(orc9);
                 break;
             case "SC":
@@ -84,6 +85,9 @@ abstract class LabOrderBuilder {
                     // ORC-9 = time sample entered onto WinPath
                     msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
                 }
+                break;
+            default:
+                break;
         }
     }
 
