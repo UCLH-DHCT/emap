@@ -165,4 +165,17 @@ class TestWinPathOrders {
         assertTrue(order.getSpecimenType().isUnknown());
         assertTrue(order.getLabDepartment().isEmpty());
     }
+
+    /**
+     * Cancel order request should have the epic lab number as a delete and the battery code information to be able to delete.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOrrO02CRDeletes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_cr");
+        InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
+        assertTrue(epicOrderInterchangeValue.isDelete());
+        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
+    }
 }

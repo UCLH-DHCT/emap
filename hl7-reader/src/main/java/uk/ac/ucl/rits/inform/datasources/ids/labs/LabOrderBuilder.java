@@ -71,12 +71,12 @@ abstract class LabOrderBuilder {
         Instant orc9 = interpretLocalTime(orc.getOrc9_DateTimeOfTransaction());
         switch (msg.getOrderControlId()) {
             case "NW":
-                // fallthrough for other new order number
             case "SN":
                 msg.setOrderDateTime(InterchangeValue.buildFromHl7(orc9));
                 msg.setStatusChangeTime(orc9);
                 break;
             case "NA":
+            case "CR":
                 msg.setStatusChangeTime(orc9);
                 break;
             case "SC":

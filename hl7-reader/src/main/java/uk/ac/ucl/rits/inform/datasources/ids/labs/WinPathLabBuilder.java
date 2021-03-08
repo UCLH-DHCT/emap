@@ -49,10 +49,11 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * Allowed order control IDs for parsing.
      * ORM O01: NW (New sample and order), SC (status change), SN (send new order for existing sample), CA (cancel order)
      * ORU R01: RE (results)
-     * ORR R02: NA (response to SN)
+     * ORR R02: NA (response to SN), CR (response to CA)
      * to add: CR, OC
      */
-    private static final Collection<String> ALLOWED_OC_IDS = new HashSet<>(Arrays.asList("RE", "NW", "SC", "SN", "NA", "CA"));
+    private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR"));
+    private static final Collection<String> ALLOWED_OC_IDS = new HashSet<>(Arrays.asList("RE", "NW", "SC", "SN", "NA", "CA", "CR"));
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
 
 
@@ -333,9 +334,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             throw new Hl7InconsistencyException(String.format("ORC-2 %s does not match OBR-2 %s", orcNumber, obrNumber));
         }
         //once we've established they're identical, set the definitive value to be one of them, setting to delete if required
-        if ("CA".equals(getMsg().getOrderControlId())) {
+        if (CANCEL_OC_IDS.contains(getMsg().getOrderControlId())) {
             getMsg().setEpicCareOrderNumber(InterchangeValue.delete());
-
         } else {
             getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(orcNumber));
         }
