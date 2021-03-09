@@ -335,7 +335,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         }
         //once we've established they're identical, set the definitive value to be one of them, setting to delete if required
         if (CANCEL_OC_IDS.contains(getMsg().getOrderControlId())) {
-            getMsg().setEpicCareOrderNumber(InterchangeValue.delete());
+            getMsg().setEpicCareOrderNumber(InterchangeValue.deleteFromValue(orcNumber));
         } else {
             getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(orcNumber));
         }
