@@ -34,7 +34,7 @@ public class InterchangeValue<T> implements Serializable {
     }
 
     /**
-     * Construct a delete
+     * Construct a delete.
      * @param deleteStatus to set
      * @param value        to be deleted
      */
@@ -80,7 +80,8 @@ public class InterchangeValue<T> implements Serializable {
     /**
      * Delete a specific value.
      * Rarely used, should only be considered when you need to know the value that you want to delete (e.g. epic lab order number).
-     * @param <T> value type
+     * @param value value
+     * @param <T>   value type
      * @return InterchangeValue of unknown data
      */
     public static <T> InterchangeValue<T> deleteFromValue(T value) {
