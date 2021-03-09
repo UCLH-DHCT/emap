@@ -122,13 +122,6 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
 
         return duplicatedNames.stream()
                 .flatMap(pi -> StreamSupport.stream(pi.spliterator(), false))
-                // can't recover if the order is after the cancellation so remove these
-                .filter(files -> {
-                    int lastOriginalOrder = files.lastIndexOf("01_orm_o01_nw_fbc_mg");
-                    int lastORMCancel = files.lastIndexOf("02_orm_o01_ca_fbc");
-                    int lastORRCancelConfirm = files.lastIndexOf("04_orr_o02_cr_fbc");
-                    return lastOriginalOrder < Math.max(lastORMCancel, lastORRCancelConfirm);
-                })
                 .map(messageOrdering -> DynamicTest.dynamicTest(
                         String.format("Test %s", messageOrdering),
                         () -> labsPermutationTestProducer.buildTestFromPermutation(messageOrdering)));

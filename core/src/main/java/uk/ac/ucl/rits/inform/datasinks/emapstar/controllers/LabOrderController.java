@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
@@ -23,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -80,21 +83,33 @@ public class LabOrderController {
      * @param storedFrom time that star encountered the message
      * @return lab number entity
      * @throws IncompatibleDatabaseStateException if specimen type or sample type doesn't match the database
+     * @throws MessageCancelledException          Lab Order was previously cancelled
+     * @throws RequiredDataMissingException       Message doesn't have order date time or epic lab order number
      */
     @Transactional
     public LabOrder processLabSampleAndLabOrder(
             Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
-    ) throws IncompatibleDatabaseStateException {
+    ) throws IncompatibleDatabaseStateException, MessageCancelledException, RequiredDataMissingException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
         return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 
+    /**
+     * @param mrn        MRN entity
+     * @param battery    Lab battery entity
+     * @param visit      hospital visit entity
+     * @param msg        lab order msg
+     * @param validFrom  most recent change to results
+     * @param storedFrom time that star encountered the message
+     * @throws IncompatibleDatabaseStateException When epic care order number changes on update, shouldn't happen because we're only creating
+     * @throws RequiredDataMissingException       If order date time or epic care order number not in message
+     */
     @Transactional
     public void processLabSampleAndDeleteLabOrder(
-            Mrn mrn, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
-    ) throws IncompatibleDatabaseStateException {
+            Mrn mrn, LabBattery battery, HospitalVisit visit, LabOrderMsg msg, Instant validFrom, Instant storedFrom
+    ) throws IncompatibleDatabaseStateException, RequiredDataMissingException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        deleteLabOrderIfExistsAndNewer(battery, labSample, validFrom, storedFrom);
+        deleteLabOrderIfExistsAndNewer(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 
     /**
@@ -164,14 +179,22 @@ public class LabOrderController {
      *                                            Could happen if message are received out of order
      *                                            (a battery is ordered for a sample, cancelled and then the same battery is ordered again;
      *                                            we receive order 1, order 2 before the cancel)
+     * @throws MessageCancelledException          If message has previously been cancelled
+     * @throws RequiredDataMissingException       Message doesn't have order date time or epic lab order number
      */
     private LabOrder updateOrCreateLabOrder(
             @Nullable HospitalVisit visit, LabBattery battery, LabSample labSample, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
-            throws IncompatibleDatabaseStateException {
+            throws IncompatibleDatabaseStateException, MessageCancelledException, RequiredDataMissingException {
         RowState<LabOrder, LabOrderAudit> orderState = labOrderRepo
                 .findByLabBatteryIdAndLabSampleId(battery, labSample)
                 .map(order -> new RowState<>(order, validFrom, storedFrom, false))
                 .orElseGet(() -> createLabOrder(battery, labSample, validFrom, storedFrom));
+
+        if (orderState.isEntityCreated()
+                && labOrderAuditRepo.previouslyDeleted(
+                        battery.getLabBatteryId(), labSample.getLabSampleId(), msg.getOrderDateTime(), msg.getEpicCareOrderNumber())) {
+            throw new MessageCancelledException("Message previously cancelled");
+        }
 
         updateLabOrder(visit, msg, validFrom, orderState);
         orderState.saveEntityOrAuditLogIfRequired(labOrderRepo, labOrderAuditRepo);
@@ -217,17 +240,26 @@ public class LabOrderController {
         }
     }
 
-    private void deleteLabOrderIfExistsAndNewer(LabBattery battery, LabSample labSample, Instant validFrom, Instant storedFrom) {
-        labOrderRepo.findByLabBatteryIdAndLabSampleId(battery, labSample)
-                .ifPresent(order -> {
-                    if (order.getValidFrom().isAfter(validFrom)) {
-                        logger.debug("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
-                        return;
-                    }
-                    LabOrderAudit orderAudit = order.createAuditEntity(validFrom, storedFrom);
-                    labOrderAuditRepo.save(orderAudit);
-                    logger.debug("Deleting labOrder {}", order);
-                    labOrderRepo.delete(order);
-                });
+    private void deleteLabOrderIfExistsAndNewer(
+            HospitalVisit visit, LabBattery battery, LabSample labSample, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
+            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
+        Optional<LabOrder> possibleLabOrder = labOrderRepo.findByLabBatteryIdAndLabSampleId(battery, labSample);
+        LabOrder labOrder;
+        if (possibleLabOrder.isPresent()) {
+            labOrder = possibleLabOrder.get();
+            if (labOrder.getValidFrom().isAfter(validFrom)) {
+                logger.debug("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
+                return;
+            }
+        } else {
+            // build a lab order to create an audit row without saving the original lab order
+            RowState<LabOrder, LabOrderAudit> orderState = createLabOrder(battery, labSample, validFrom, storedFrom);
+            updateLabOrder(visit, msg, validFrom, orderState);
+            labOrder = orderState.getEntity();
+        }
+        LabOrderAudit orderAudit = labOrder.createAuditEntity(validFrom, storedFrom);
+        labOrderAuditRepo.save(orderAudit);
+        logger.debug("Deleting LabOrder {}", labOrder);
+        labOrderRepo.delete(labOrder);
     }
 }

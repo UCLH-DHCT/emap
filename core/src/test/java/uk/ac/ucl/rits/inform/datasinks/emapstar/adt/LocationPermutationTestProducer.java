@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import uk.ac.ucl.rits.inform.OrderPermutationBase;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
@@ -92,7 +92,7 @@ class LocationPermutationTestProducer extends OrderPermutationBase {
     }
 
     @Override
-    public void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageLocationCancelledException {
+    public void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException {
         for (String filename : fileNames) {
             logger.info("Processing location message: {}", filename);
             processSingleMessage(getLocationAdtMessage(filename));

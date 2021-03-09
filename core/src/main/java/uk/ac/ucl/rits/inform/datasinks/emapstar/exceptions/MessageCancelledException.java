@@ -2,14 +2,14 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions;
 
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
-public class MessageLocationCancelledException extends EmapOperationMessageProcessingException {
+public class MessageCancelledException extends EmapOperationMessageProcessingException {
     private static final long serialVersionUID = 1011548393240551796L;
 
     /**
      * Exception with a message.
      * @param message the message
      */
-    public MessageLocationCancelledException(String message) {
+    public MessageCancelledException(String message) {
         super(message);
     }
 
@@ -19,6 +19,6 @@ public class MessageLocationCancelledException extends EmapOperationMessageProce
      */
     @Override
     public String getExceptionDescription() {
-        return "Admission, Transfer or Discharge message was cancelled before this message was received";
+        return "Message outcome was cancelled before this message was received";
     }
 }

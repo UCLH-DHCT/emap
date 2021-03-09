@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import uk.ac.ucl.rits.inform.OrderPermutationBase;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
@@ -42,7 +42,7 @@ class LabsPermutationTestProducer extends OrderPermutationBase {
     }
 
     @Override
-    public void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageLocationCancelledException {
+    public void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException {
         // processing orders and results using different methods
         for (String filename : fileNames) {
             if (!filename.toLowerCase().contains("oru_r01")) {

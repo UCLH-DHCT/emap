@@ -6,6 +6,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
@@ -49,10 +50,11 @@ public class LabController {
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      * @throws RequiredDataMissingException       if OrderDateTime missing from message
+     * @throws MessageCancelledException          Lab Order was previously cancelled
      */
     @Transactional
     public void processLabOrder(Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
-            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
+            throws IncompatibleDatabaseStateException, RequiredDataMissingException, MessageCancelledException {
         if (msg.getStatusChangeTime() == null) {
             throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
         }
@@ -60,7 +62,7 @@ public class LabController {
         LabBattery battery = labOrderController.getOrCreateLabBattery(
                 msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
         if (msg.getEpicCareOrderNumber().isDelete()) {
-            labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, msg, validFrom, storedFrom);
+            labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, visit, msg, validFrom, storedFrom);
             return;
         }
         LabOrder labOrder = labOrderController.processLabSampleAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
