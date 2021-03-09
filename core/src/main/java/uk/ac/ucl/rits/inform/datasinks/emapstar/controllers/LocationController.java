@@ -606,7 +606,7 @@ public class LocationController {
             } catch (RequiredDataMissingException e) {
                 List<LocationVisit> existingLocations = locationVisitRepo.findAllByHospitalVisitId(visit);
                 if (existingLocations.size() == 1 && locationId.equals(existingLocations.get(0).getLocationId())) {
-                    logger.info("Cancellation time missing from message, but only one matching location for cancellation so cancelling that");
+                    logger.debug("Cancellation time missing from message, but only one matching location for cancellation so cancelling that");
                     cancellationTime = existingLocations.get(0).getAdmissionTime();
                 } else {
                     throw e;
@@ -648,7 +648,7 @@ public class LocationController {
         cancelled.setStoredUntil(storedFrom);
         cancelled.setInferredAdmission(inferredAdmit || cancelled.getInferredAdmission());
         cancelled.setInferredDischarge(inferredDischarge || cancelled.getInferredDischarge());
-        logger.info("Cancelling location {} at {} for later admission ({}) or discharge ({})",
+        logger.debug("Cancelling location {} at {} for later admission ({}) or discharge ({})",
                 locationId.getLocationString(), cancellationTime, !cancelled.getInferredAdmission(), !cancelled.getInferredDischarge());
         locationVisitAuditRepo.save(cancelled);
         logger.debug("LocationVisitAudit saved: {}", cancelled);
@@ -841,7 +841,7 @@ public class LocationController {
      */
     private void deleteLocationVisit(Instant validFrom, Instant storedFrom, LocationVisit locationVisit) {
         locationVisitAuditRepo.save(new LocationVisitAudit(locationVisit, validFrom, storedFrom));
-        logger.info("Deleting LocationVisit: {}", locationVisit);
+        logger.debug("Deleting LocationVisit: {}", locationVisit);
         locationVisitRepo.delete(locationVisit);
     }
 

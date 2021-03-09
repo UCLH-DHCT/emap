@@ -169,13 +169,13 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         if (entityCreated) {
             entity.setStoredFrom(storedFrom);
             entity.setValidFrom(messageDateTime);
-            logger.info("New Entity saved: {}", entityRepo.save(entity));
+            logger.debug("New Entity saved: {}", entityRepo.save(entity));
         } else if (entityUpdated) {
             entity.setStoredFrom(storedFrom);
             entity.setValidFrom(messageDateTime);
             A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
             auditRepo.save(auditEntity);
-            logger.info("New AuditEntity being saved: {}", auditEntity);
+            logger.debug("New AuditEntity being saved: {}", auditEntity);
         }
     }
 }
