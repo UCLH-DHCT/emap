@@ -33,7 +33,7 @@ import java.time.Instant;
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long labOrderId;
+    private Long labOrderId;
 
     @ManyToOne
     @JoinColumn(name = "labNumberId", nullable = false)
