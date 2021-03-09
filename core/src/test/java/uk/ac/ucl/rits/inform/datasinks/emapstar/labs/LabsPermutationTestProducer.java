@@ -41,22 +41,19 @@ class LabsPermutationTestProducer extends OrderPermutationBase {
         return getMessageFactory().getLabOrders(String.format("%s/%s.yaml", messagePath, filename), "message_prefix");
     }
 
+
     @Override
-    public void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException {
-        // processing orders and results using different methods
-        for (String filename : fileNames) {
-            if (!filename.toLowerCase().contains("oru_r01")) {
-                logger.info("Parsing order file: {}", filename);
-                processSingleMessage(getMessageFactory().buildLabOrderOverridingDefaults(
-                        ormDefaults, String.format("%s/%s.yaml", messagePath, filename)));
-            } else {
-                for (LabOrderMsg labOrderMsg : getLabOrders(filename)) {
-                    logger.info("Parsing ORU R01 file: {}", filename);
-                    processSingleMessage(labOrderMsg);
-                }
+    protected void processFile(String fileName) throws EmapOperationMessageProcessingException {
+        if (!fileName.toLowerCase().contains("oru_r01")) {
+            logger.info("Parsing order file: {}", fileName);
+            processSingleMessage(getMessageFactory().buildLabOrderOverridingDefaults(
+                    ormDefaults, String.format("%s/%s.yaml", messagePath, fileName)));
+        } else {
+            for (LabOrderMsg labOrderMsg : getLabOrders(fileName)) {
+                logger.info("Parsing ORU R01 file: {}", fileName);
+                processSingleMessage(labOrderMsg);
             }
         }
-        checkFinalState();
     }
 
 

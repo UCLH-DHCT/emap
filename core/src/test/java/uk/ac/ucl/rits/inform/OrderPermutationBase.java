@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,17 +10,11 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public abstract class OrderPermutationBase {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private TransactionTemplate transactionTemplate;
+    private final TransactionTemplate transactionTemplate;
     private final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
     @Autowired
-    protected InformDbOperations dbOps;
+    private InformDbOperations dbOps;
 
     /**
      * @param transactionManager Spring transaction manager
@@ -31,7 +23,7 @@ public abstract class OrderPermutationBase {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
-    public InterchangeMessageFactory getMessageFactory() {
+    protected InterchangeMessageFactory getMessageFactory() {
         return messageFactory;
     }
 
@@ -42,11 +34,12 @@ public abstract class OrderPermutationBase {
 
 
     /**
-     * @param fileNames filenames to process
+     * Define the the processing of a single interchange file.
+     * @param fileName fileName to process
      * @throws EmapOperationMessageProcessingException if error in processing message
-     * @throws MessageCancelledException if location visit has been cancelled and then a move message tries to add it
+     * @throws MessageCancelledException               if visit has been previouslty cancelled
      */
-    protected abstract void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException;
+    protected abstract void processFile(String fileName) throws EmapOperationMessageProcessingException, MessageCancelledException;
 
     /**
      * Assertions at the end of each permutation test case to ensure that it has run successfully.
@@ -58,7 +51,7 @@ public abstract class OrderPermutationBase {
      * @param fileNames filenames to process
      * @throws Exception shouldn't happen
      */
-    public void buildTestFromPermutation(List<String> fileNames) throws Exception {
+    public void buildTestFromPermutation(Iterable<String> fileNames) throws Exception {
         Exception e = transactionTemplate.execute(status -> {
             status.setRollbackOnly();
             try {
@@ -73,6 +66,14 @@ public abstract class OrderPermutationBase {
         if (e != null) {
             throw e;
         }
+    }
+
+    private void runTest(Iterable<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException {
+        // processing orders and results using different methods
+        for (String filename : fileNames) {
+            processFile(filename);
+        }
+        checkFinalState();
     }
 
 }
