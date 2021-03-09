@@ -514,7 +514,7 @@ public class IdsOperations implements AutoCloseable {
      * @param sourceId      message source ID
      * @param fromAdtStream if from ADT stream, will throw HL7 exception
      * @param messages      interchange messages build from the single HL7 message
-     * @throws HL7Exception
+     * @throws HL7Exception if HAPI does
      */
     private void buildAndAddAdtMessage(final Message msgFromIds, final String sourceId, final boolean fromAdtStream,
                                        List<EmapOperationMessage> messages) throws HL7Exception {
@@ -524,7 +524,7 @@ public class IdsOperations implements AutoCloseable {
             if (fromAdtStream && e instanceof HL7Exception) {
                 throw (HL7Exception) e;
             } else {
-                logger.warn("Hl7Exception from non-ADT message", e);
+                logger.debug("Hl7Exception from non-ADT message: {}", e.getMessage());
             }
         }
     }
