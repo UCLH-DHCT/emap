@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -28,8 +29,9 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@AuditTable
-@Table
+@AuditTable(indexes = {@Index(name = "lo_lab_sample_id", columnList = "labSampleId")})
+@Table(indexes = {@Index(name = "lo_lab_battery_id", columnList = "labBatteryId"),
+        @Index(name = "lo_lab_sample_id", columnList = "labSampleId")})
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
