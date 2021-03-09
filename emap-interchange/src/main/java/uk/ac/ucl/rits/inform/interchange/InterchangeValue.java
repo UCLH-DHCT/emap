@@ -33,6 +33,18 @@ public class InterchangeValue<T> implements Serializable {
         this.status = status;
     }
 
+    /**
+     * Construct a delete
+     * @param deleteStatus to set
+     * @param value        to be deleted
+     */
+    private InterchangeValue(ResultStatus deleteStatus, T value) {
+        if (deleteStatus != ResultStatus.DELETE) {
+            throw new IllegalArgumentException(String.format("Delete private constructor used, but status was %s", deleteStatus));
+        }
+        this.value = value;
+        this.status = deleteStatus;
+    }
 
     /**
      * Construct with a known value.
@@ -63,6 +75,16 @@ public class InterchangeValue<T> implements Serializable {
      */
     public static <T> InterchangeValue<T> delete() {
         return new InterchangeValue<T>(ResultStatus.DELETE);
+    }
+
+    /**
+     * Delete a specific value.
+     * Rarely used, should only be considered when you need to know the value that you want to delete (e.g. epic lab order number).
+     * @param <T> value type
+     * @return InterchangeValue of unknown data
+     */
+    public static <T> InterchangeValue<T> deleteFromValue(T value) {
+        return new InterchangeValue<T>(ResultStatus.DELETE, value);
     }
 
     /**
