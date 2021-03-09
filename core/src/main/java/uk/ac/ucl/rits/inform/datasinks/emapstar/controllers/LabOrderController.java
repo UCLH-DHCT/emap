@@ -132,7 +132,6 @@ public class LabOrderController {
 
         assignIfCurrentlyNullOrNewerAndDifferent(
                 state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
-        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
         assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
         // Allow for change of sample labSample time, but don't expect this to happen
         if (state.isEntityCreated() || validFrom.isAfter(labSample.getValidFrom())) {
@@ -140,6 +139,7 @@ public class LabOrderController {
                 logger.warn("Not expecting Sample Collection time to change");
             }
             state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
+            state.assignInterchangeValue(msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
         }
 
         state.saveEntityOrAuditLogIfRequired(labSampleRepo, labSampleAuditRepo);

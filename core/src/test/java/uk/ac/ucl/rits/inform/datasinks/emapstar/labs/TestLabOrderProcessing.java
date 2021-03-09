@@ -1,8 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.labs;
 
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -265,48 +262,22 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
     /**
      * Ensure that unchangeable fields should throw exception if changed
-     * @throws EmapOperationMessageProcessingException shouldn't happen
      */
-    @TestFactory
-    Iterable<DynamicTest> testLabCollectionThrowsExceptionWhenSampleInfoChanged() throws EmapOperationMessageProcessingException {
-        return Arrays.asList(
-                DynamicTest.dynamicTest(
-                        "SpecimenType", () -> {
-                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", true));
-                        }
-                ),
-                DynamicTest.dynamicTest(
-                        "SampleSite", () -> {
-                            assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", false));
-                        }
-                )
-        );
+    @Test
+    void testLabCollectionThrowsExceptionWhenSampleSiteChanged() {
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", false));
     }
 
     /**
      * Ensure that unknown unchangeable fields are updated
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
-    @TestFactory
-    Iterable<DynamicTest> testLabSampleCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
-        return Arrays.asList(
-                DynamicTest.dynamicTest(
-                        "SpecimenType", () -> {
-                            processWithChangedSampleInformation("", true);
-                            LabSample labSample = labSampleRepository
-                                    .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-                            assertEquals("2", labSample.getSpecimenType());
-                        }
-                ),
-                DynamicTest.dynamicTest(
-                        "SampleSite", () -> {
-                            processWithChangedSampleInformation("", false);
-                            LabSample collection = labSampleRepository
-                                    .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
-                            assertEquals("2", collection.getSampleSite());
-                        }
-                )
-        );
+    @Test
+    void testLabSampleSiteCanBeUpdatedIfPreviouslyUnknown() throws EmapOperationMessageProcessingException {
+        processWithChangedSampleInformation("", false);
+        LabSample collection = labSampleRepository
+                .findByExternalLabNumber(singleResultLabNumber).orElseThrow();
+        assertEquals("2", collection.getSampleSite());
     }
 
     /**
