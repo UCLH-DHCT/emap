@@ -109,8 +109,10 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     @TestFactory
     Stream<DynamicTest> testOrderCancellation() {
         String[] orderFiles = {
-                "01_orm_o01_nw_fbc_mg", "02_orm_o01_ca_fbc", "03_orm_o01_sn_fbcc", "04_orr_o02_cr_fbc", "05_orr_o02_na_fbcc", "06_oru_r01_fbcc"
+                "01_orm_o01_nw_fbc_mg", "02_orm_o01_ca_fbc", "03_orm_o01_sn_fbcc", "05_orr_o02_na_fbcc", "06_oru_r01_fbcc"
         };
+        // "04_orr_o02_cr_fbc" is essentially a duplicate message so have removed it after initial testing (doesn't change anything)
+        // but does reduce number of messages from 7 to 6 and time from 3 minutes for this test to 30 seconds
         labsPermutationTestProducer.setMessagePathAndORMDefaults("winpath/cancel_orders");
         labsPermutationTestProducer.setFinalStateChecker(this::checkCancelOrders);
 
