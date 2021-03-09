@@ -248,7 +248,7 @@ public class LabOrderController {
         if (possibleLabOrder.isPresent()) {
             labOrder = possibleLabOrder.get();
             if (labOrder.getValidFrom().isAfter(validFrom)) {
-                logger.debug("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
+                logger.warn("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
                 return;
             }
         } else {
