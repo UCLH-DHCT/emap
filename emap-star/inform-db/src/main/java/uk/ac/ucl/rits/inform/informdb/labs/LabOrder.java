@@ -38,7 +38,7 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     private Long labOrderId;
 
     @ManyToOne
-    @JoinColumn(name = "labNumberId", nullable = false)
+    @JoinColumn(name = "labSampleId", nullable = false)
     private LabSample labSampleId;
 
     /**
