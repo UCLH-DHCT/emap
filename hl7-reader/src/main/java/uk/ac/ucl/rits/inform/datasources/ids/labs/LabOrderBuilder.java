@@ -5,11 +5,8 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
-import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
-import ca.uhn.hl7v2.model.v26.segment.PID;
-import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
@@ -75,7 +72,7 @@ abstract class LabOrderBuilder {
         String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         msg.setLabSpecimenNumber(labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen);
-        setSpecimenType(obr);
+        setSpecimenTypeAndCollectionMethod(obr);
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
 
 
@@ -98,6 +95,9 @@ abstract class LabOrderBuilder {
                     // ORC-9 = time sample entered onto WinPath
                     msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
                 }
+                if (msg.getStatusChangeTime() == null) {
+                    msg.setStatusChangeTime(orc9);
+                }
                 break;
             default:
                 break;
@@ -109,9 +109,11 @@ abstract class LabOrderBuilder {
         msg.setTestBatteryCodingSystem(codingSystem.name());
     }
 
-    private void setSpecimenType(OBR obr) {
+    private void setSpecimenTypeAndCollectionMethod(OBR obr) {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
         msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
+        String collectionMethod = obr.getObr15_SpecimenSource().getSps3_SpecimenCollectionMethod().getValueOrEmpty();
+        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethod));
     }
 
     /**
@@ -161,12 +163,12 @@ abstract class LabOrderBuilder {
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
         msg.setResultStatus(resultStatus);
-        setSpecimenType(obr);
+        setSpecimenTypeAndCollectionMethod(obr);
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"
-        // Will be set from ORC if staus change time is not in message type
+        // Will be set from ORC if status change time is not in message type
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         String reasonForStudy = List.of(obr.getObr31_ReasonForStudy()).stream()

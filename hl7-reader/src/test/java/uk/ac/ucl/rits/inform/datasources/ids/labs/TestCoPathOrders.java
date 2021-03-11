@@ -34,6 +34,21 @@ class TestCoPathOrders {
     private Instant collectionTime = Instant.parse("2013-07-28T23:20:00Z");
 
     @Test
+    void testQuestionHasMultipleLinesAndSeparator() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
+        Pair<String, String> questionAndAnswer = order.getQuestions().get(1);
+        assertEquals("How many labels to print?", questionAndAnswer.getLeft());
+        assertEquals("2 \nthis will test \nmulti-line and -> separator", questionAndAnswer.getRight());
+    }
+
+    @Test
+    void testSampleCollectionMethod() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        assertEquals(InterchangeValue.buildFromHl7("FNA (CYTOlogy Use) - ri"), order.getCollectionMethod());
+    }
+
+
+    @Test
     void testOrmO01NWTimes() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
         assertEquals(collectionTime, order.getCollectionDateTime());
@@ -67,11 +82,34 @@ class TestCoPathOrders {
     }
 
     @Test
-    void testQuestionHasMultipleLinesAndSeparator() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
-        Pair<String, String> questionAndAnswer = order.getQuestions().get(1);
-        assertEquals("How many labels to print?", questionAndAnswer.getLeft());
-        assertEquals("2 \nthis will test \nmulti-line and -> separator", questionAndAnswer.getRight());
+    void testOrmO01SCTimes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        assertEquals(collectionTime, order.getCollectionDateTime());
+        assertNotNull(order.getStatusChangeTime());
+        assertTrue(order.getSampleReceivedTime().isSave());
+
+        assertTrue(order.getOrderDateTime().isUnknown());
+        assertTrue(order.getRequestedDateTime().isUnknown());
+    }
+
+    @Test
+    void testOrmO01SCLabNumbers() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
+        assertEquals(labOrder, order.getLabSpecimenNumber());
+    }
+
+    @Test
+    void testOrmO01SCOrderInfo() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        assertEquals("CoPath", order.getSourceSystem());
+        assertEquals("UC", order.getLabDepartment());
+        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
+        assertEquals("CM", order.getOrderStatus());
+        assertEquals("I", order.getResultStatus());
+
+        assertTrue(order.getSpecimenType().isUnknown());
     }
 
     @Test
