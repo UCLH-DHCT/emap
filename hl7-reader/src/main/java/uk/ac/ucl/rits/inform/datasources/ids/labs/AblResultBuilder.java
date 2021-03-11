@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 
 import java.time.Instant;
 import java.util.List;
@@ -18,7 +19,6 @@ import java.util.List;
 public class AblResultBuilder extends LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(AblResultBuilder.class);
     private static final String NORMAL_FLAG = "N";
-    private static final String NUMERIC_TYPE = "NM";
     private final String codingSystem;
 
     /**
@@ -49,7 +49,7 @@ public class AblResultBuilder extends LabResultBuilder {
     @Override
     void setCustomOverrides() {
         getMessage().setTestItemCodingSystem(codingSystem);
-        getMessage().setValueType(AblResultBuilder.NUMERIC_TYPE);
+        getMessage().setMimeType(ValueType.NUMERIC);
     }
 
     /**
@@ -58,10 +58,10 @@ public class AblResultBuilder extends LabResultBuilder {
      */
     @Override
     protected void setValue() {
-        setStringValue(getObx());
+        setStringValueAndMimeType(getObx());
         try {
             if (getMessage().getStringValue().isSave()) {
-                setNumericValueAndResultOperator(getMessage().getStringValue().get());
+                setNumericValueAndResultOperatorAndMimeType(getMessage().getStringValue().get());
             }
         } catch (NumberFormatException e) {
             logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", getMessage().getStringValue());

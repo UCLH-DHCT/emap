@@ -7,10 +7,13 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
-import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -170,6 +173,52 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/winpath/isolate_inc_2.txt");
         List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/isolate_inc_2.yaml", "0000000042");
         assertListOfMessagesEqual(expectedOrders, messagesFromHl7Message);
+    }
+
+    @Test
+    public void testWinPathIncrementalOrders() throws Exception {
+        String hl7PathTemplate = "LabOrders/winpath/incremental_orders/%s.txt";
+        String interchangePathTemplate = "winpath/incremental_orders/%s.yaml";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+
+        List<EmapOperationMessage> builtMessages = new ArrayList<>();
+        List<LabOrderMsg> expectedOrders = new ArrayList<>();
+        // build up order messages
+        String[] orderFiles = {"01_orm_o01_nw", "02_orm_o01_sc_mg", "03_orm_o01_sn_telh", "04_orr_o02_telh"};
+        for (String orderFile : orderFiles) {
+            builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, orderFile)));
+            expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(
+                    interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
+        }
+        // add in final result
+        builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "05_oru_r01")));
+        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "05_oru_r01"), "0000000042"));
+
+        builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertListOfMessagesEqual(expectedOrders, builtMessages);
+    }
+
+    @Test
+    public void testWinPathCancelOrders() throws Exception {
+        String hl7PathTemplate = "LabOrders/winpath/cancel_orders/%s.txt";
+        String interchangePathTemplate = "winpath/cancel_orders/%s.yaml";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+
+        List<EmapOperationMessage> builtMessages = new ArrayList<>();
+        List<LabOrderMsg> expectedOrders = new ArrayList<>();
+        // build up order messages
+        String[] orderFiles = {"01_orm_o01_nw_fbc_mg", "02_orm_o01_ca_fbc", "03_orm_o01_sn_fbcc", "04_orr_o02_cr_fbc", "05_orr_o02_na_fbcc"};
+        for (String orderFile : orderFiles) {
+            builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, orderFile)));
+            expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(
+                    interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
+        }
+        // add in final result
+        builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "06_oru_r01_fbcc")));
+        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "06_oru_r01_fbcc"), "0000000042"));
+
+        builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertListOfMessagesEqual(expectedOrders, builtMessages);
     }
 
     @Test

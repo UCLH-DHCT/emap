@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
@@ -32,7 +33,7 @@ class TestBioConnectOruR01 {
     @Test
     void testIdentifiers() throws Exception {
         LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
-        assertNull(msg.getEpicCareOrderNumber());
+        assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("9876543", msg.getLabSpecimenNumber());
         assertTrue(msg.getVisitNumber().isEmpty());
@@ -82,7 +83,7 @@ class TestBioConnectOruR01 {
     void testNumericValueParsed() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "glucose", "Glu");
         assertEquals(InterchangeValue.buildFromHl7(7.6), result.getNumericValue());
-        assertEquals("NM", result.getValueType());
+        assertEquals(ValueType.NUMERIC, result.getMimeType());
         assertEquals("=", result.getResultOperator());
     }
 

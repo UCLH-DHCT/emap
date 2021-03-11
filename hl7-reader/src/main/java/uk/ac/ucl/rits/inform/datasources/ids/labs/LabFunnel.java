@@ -92,7 +92,7 @@ public class LabFunnel {
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {
             case WIN_PATH:
-                throw new Hl7MessageIgnoredException("WinPath ORR^O02 not implemented yet");
+                return WinPathLabBuilder.build(idsUnid, msg, codingSystem);
             case CO_PATH:
                 throw new Hl7MessageIgnoredException("CoPath ORR^O02 not implemented yet");
             default:
