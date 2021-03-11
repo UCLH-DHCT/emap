@@ -32,6 +32,7 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private InterchangeValue<String> epicCareOrderNumber = InterchangeValue.unknown();
     private String labSpecimenNumber;
     private InterchangeValue<String> specimenType = InterchangeValue.unknown();
+    private InterchangeValue<String> collectionMethod = InterchangeValue.unknown();
     private InterchangeValue<String> sampleSite = InterchangeValue.unknown();
 
     /**
