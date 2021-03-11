@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TestCoPathOrders {
     @Autowired
     private LabReader labReader;
+    public static final String CODING_SYSTEM = OrderCodingSystem.CO_PATH.name();
     private static final String FILE_TEMPLATE = "LabOrders/co_path/%s.txt";
     private String epicOrder = "12121212";
     private String labOrder = "UH20-4444";
@@ -73,7 +74,7 @@ class TestCoPathOrders {
         assertEquals(InterchangeValue.buildFromHl7("PLF"), order.getSpecimenType());
         assertEquals("Path,Cyt", order.getLabDepartment());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
-        assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertFalse(order.getQuestions().isEmpty());
         Pair<String, String> questionAndAnswer = order.getQuestions().get(0);
         assertEquals("Clinical Details:", questionAndAnswer.getLeft());
@@ -105,8 +106,42 @@ class TestCoPathOrders {
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
-        assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertEquals("CM", order.getOrderStatus());
+        assertEquals("I", order.getResultStatus());
+        assertTrue(order.getCollectionMethod().isSave());
+
+        assertTrue(order.getSpecimenType().isUnknown());
+    }
+
+
+    @Test
+    void testOrmO01SNTimes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
+        assertEquals(collectionTime, order.getCollectionDateTime());
+        assertNotNull(order.getStatusChangeTime());
+        assertEquals(order.getStatusChangeTime(), order.getOrderDateTime().get());
+
+        assertTrue(order.getRequestedDateTime().isUnknown());
+        assertTrue(order.getSampleReceivedTime().isUnknown());
+    }
+
+    @Test
+    void testOrmO01SNLabNumbers() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
+        assertEquals(labOrder, order.getLabSpecimenNumber());
+
+        assertTrue(order.getEpicCareOrderNumber().isUnknown());
+    }
+
+    @Test
+    void testOrmO01SNOrderInfo() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
+        assertEquals("CoPath", order.getSourceSystem());
+        assertEquals("UC", order.getLabDepartment());
+        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
+        assertEquals("IP", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
 
         assertTrue(order.getSpecimenType().isUnknown());
