@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_ORDER;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORR_O02_ORDER;
@@ -18,6 +19,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +52,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
     private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR", "OC"));
     private static final String[] ALLOWED_OC_IDS = {"RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"};
     private static final Logger logger = LoggerFactory.getLogger(CoPathLabBuilder.class);
+    private static final String QUESTION_SEPARATOR = "->";
+    private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
 
 
     /**
@@ -67,9 +72,26 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         super(ALLOWED_OC_IDS);
         setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
+        setQuestions(notes);
         populateObrFields(obr);
         populateOrderInformation(orc, obr);
         setEpicOrderNumberFromORC();
+    }
+
+    private void setQuestions(Iterable<NTE> notes) {
+        for (NTE note : notes) {
+            StringBuilder questionAndAnswer = new StringBuilder();
+            for (FT ft : note.getNte3_Comment()) {
+                    questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+                 }
+            String[] parts = QUESTION_PATTERN.split(questionAndAnswer.toString().strip());
+            if (parts.length > 1) {
+                String question = parts[0];
+                // allow for separator to be in the answer
+                String answer = String.join(QUESTION_SEPARATOR, Arrays.copyOfRange(parts, 1, (parts.length)));
+                getMsg().getQuestions().add(new ImmutablePair<>(question, answer));
+            }
+        }
     }
 
     private void setEpicOrderNumberFromORC() {
@@ -83,16 +105,20 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      * which we should already know about from a preceding ORM message.
      * @param subMessageSourceId unique Id from the IDS
      * @param obs                the result group from HAPI (ORU_R01_ORDER_OBSERVATION)
+     * @param questionAnswers    notes which form questions and answers
      * @param patientHl7         patient hl7 info
      * @param codingSystem       order coding system
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
-    private CoPathLabBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, PatientInfoHl7 patientHl7, OrderCodingSystem codingSystem)
+    private CoPathLabBuilder(
+            String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs,
+            List<NTE> questionAnswers, PatientInfoHl7 patientHl7, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS);
         setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
+        setQuestions(questionAnswers);
         OBR obr = obs.getOBR();
         populateObrFields(obr);
         populateOrderInformation(obs.getORC(), obr);
@@ -201,9 +227,10 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         List<LabOrderMsg> orders = new ArrayList<>(orderObservations.size());
         int msgSuffix = 0;
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
+            List<NTE> notes = obs.getNTEAll();
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, obs, patientInfo, codingSystem);
+            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, obs, notes, patientInfo, codingSystem);
             labOrderBuilder.addMsgIfAllowedOcId(orders);
         }
         return orders;

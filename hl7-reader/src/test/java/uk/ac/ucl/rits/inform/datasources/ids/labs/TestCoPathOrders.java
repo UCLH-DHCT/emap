@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,7 +59,19 @@ class TestCoPathOrders {
         assertEquals("Path,Cyt", order.getLabDepartment());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
+        assertFalse(order.getQuestions().isEmpty());
+        Pair<String, String> questionAndAnswer = order.getQuestions().get(0);
+        assertEquals("Clinical Details:", questionAndAnswer.getLeft());
+        assertEquals("Previous lymphoma, new pleaural effusion, spinal ostemyelitis, trachstomy in situ", questionAndAnswer.getRight());
         assertTrue(order.getOrderStatus().isEmpty());
+    }
+
+    @Test
+    void testQuestionHasMultipleLinesAndSeparator() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
+        Pair<String, String> questionAndAnswer = order.getQuestions().get(1);
+        assertEquals("How many labels to print?", questionAndAnswer.getLeft());
+        assertEquals("2 \nthis will test \nmulti-line and -> separator", questionAndAnswer.getRight());
     }
 
     @Test

@@ -5,6 +5,6 @@ ZPV|1|||||||||||20130729004000
 ORC|NW|12121212^EPC||UH20-4444|||^^^2013072900100^^R||20130729001350|123123^DUCK^DONALD||ASKL^TWIST^BEN^^^^^^CONS^^^^CONS|AECU^UCH T00 AMBULATORY ECU^DEPID^10201^^^^^UCH T00 AMBULATORY ECU|||||DTPDS4HG1232^DTPDS4HG1232|||||||||||I
 OBR|1|12121212^EPC||UC^CYTOPATHOLOGY^CPEAP^^NON-GYN CYTOLOGY||20130729001000|20130729002000|||10039628^BIDWELL^GABRIELLA|Lab Collect||||PLF&Fluid - Pleural (Right) (Cyto)|ASKL^TWIST^BEN^^^^^^CONS^^^^CONS||||UC20-4444||||Path,Cyt|||^^^20130729001000^^R|||||||||20130729001000
 NTE|1||Clinical Details:->Previous lymphoma, new pleaural effusion, spinal ostemyelitis, trachstomy in situ
-NTE|2||How many labels to print?->2
+NTE|2||How many labels to print?->2 ~ this will test ~ multi-line and -> separator
 NTE|3||Is this patient on the cancer pathway (target patient)?->No
 NTE|4||Contact Details (Tel or Bleep)->077473689476
