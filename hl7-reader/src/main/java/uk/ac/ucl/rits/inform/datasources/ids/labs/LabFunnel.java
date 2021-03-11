@@ -37,7 +37,7 @@ public class LabFunnel {
             case WIN_PATH:
                 return WinPathLabBuilder.build(idsUnid, ormO01, codingSystem);
             case CO_PATH:
-                throw new Hl7MessageIgnoredException("Not parsing CoPath ORM^O01 messages");
+                return CoPathLabBuilder.build(idsUnid, ormO01, codingSystem);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORM^O01 not recognised");
         }
