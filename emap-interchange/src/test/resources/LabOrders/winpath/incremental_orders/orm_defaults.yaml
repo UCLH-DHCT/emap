@@ -1,0 +1,27 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+labSpecimenNumber: "13U444444"
+orderStatus: ""
+mrn: "40800000"
+visitNumber: "123412341234"
+collectionDateTime: "2013-07-28T07:27:00Z"
+testBatteryCodingSystem: "WIN_PATH"
+parentObservationIdentifier: ""
+parentSubId: ""
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "BLD"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "91393667"
+resultStatus: ""
+sourceMessageId: "0000000042_01"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-07-28T07:08:00Z"
+clinicalInformation:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "unwell"

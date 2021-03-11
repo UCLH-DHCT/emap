@@ -29,7 +29,11 @@ public enum ValueType {
     /**
      * PDF value.
      */
-    PDF("application/pdf");
+    PDF("application/pdf"),
+    /**
+     * Lab Isolate.
+     */
+    LAB_ISOLATE("link/lab_isolate");
 
     private final String mimeType;
 

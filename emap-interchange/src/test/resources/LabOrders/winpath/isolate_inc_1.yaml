@@ -1,15 +1,14 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
   labResultMsgs:
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "FT"
+      mimeType: "TEXT"
       testItemLocalCode: "TISC"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
         status: "SAVE"
         value: "TISSUE CULTURE REPORT"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "ST"
-      mimeType: "link/lab_isolate"
+      mimeType: "LAB_ISOLATE"
       testItemLocalCode: "ISOLATE"
       observationSubId: "1"
       abnormalFlag:
@@ -37,8 +36,7 @@
           status: "SAVE"
           value: "Heavy growth of"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "ST"
-      mimeType: "link/lab_isolate"
+      mimeType: "LAB_ISOLATE"
       testItemLocalCode: "ISOLATE"
       observationSubId: "2"
       abnormalFlag:
@@ -66,7 +64,7 @@
           status: "SAVE"
           value: "Light growth of"
     - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      valueType: "FT"
+      mimeType: "TEXT"
       testItemLocalCode: "FSTA"
       stringValue:
         "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"

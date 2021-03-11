@@ -27,7 +27,7 @@ import java.util.List;
 public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private List<LabResultMsg> labResultMsgs = new ArrayList<>();
     private String orderControlId;
-    private String epicCareOrderNumber;
+    private InterchangeValue<String> epicCareOrderNumber = InterchangeValue.unknown();
     private String labSpecimenNumber;
     private InterchangeValue<String> specimenType = InterchangeValue.unknown();
     private InterchangeValue<String> sampleSite = InterchangeValue.unknown();
@@ -63,7 +63,6 @@ public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private String labDepartment = "";
     private String orderStatus;
     private String resultStatus;
-    private String orderType;
     private String mrn;
 
     private String visitNumber;

@@ -1,4 +1,4 @@
 testItemCodingSystem: "ABL90 FLEX Plus"
 resultStatus: "FINAL"
-valueType: "NM"
+mimeType: "NUMERIC"
 resultOperator: "="

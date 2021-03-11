@@ -166,8 +166,9 @@ public class InterchangeMessageFactory {
         ObjectReader orderReader = mapper.readerForUpdating(order);
         String orderDefaultPath = resourcePathPrefix + "_order_defaults.yaml";
         order = orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+        String epicOrderNumber = order.getEpicCareOrderNumber().isSave() ? order.getEpicCareOrderNumber().get() : null;
+        updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), epicOrderNumber);
 
-        updateLabResults(order.getLabResultMsgs(), resourcePathPrefix, order.getStatusChangeTime(), order.getEpicCareOrderNumber());
     }
 
     /**
@@ -197,5 +198,20 @@ public class InterchangeMessageFactory {
         String isolateDefaultPath = resourcePathPrefix + "_isolate_defaults.yaml";
         isolateMsg = orderReader.readValue(getClass().getResourceAsStream(isolateDefaultPath));
         updateLabResults(isolateMsg.getSensitivities(), resourcePathPrefix);
+    }
+
+    public LabOrderMsg buildLabOrderOverridingDefaults(String defaultsFile, String overridingFile) {
+        String defaultsPath = String.format("/LabOrders/%s", defaultsFile);
+        String overridingPath = String.format("/LabOrders/%s", overridingFile);
+        LabOrderMsg order = new LabOrderMsg();
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
+            LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+            ObjectReader orderReader = mapper.readerForUpdating(defaults);
+            order = orderReader.readValue(getClass().getResourceAsStream(overridingPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return order;
     }
 }
