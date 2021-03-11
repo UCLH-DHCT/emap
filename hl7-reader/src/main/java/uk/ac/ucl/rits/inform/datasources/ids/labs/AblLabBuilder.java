@@ -8,6 +8,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -35,7 +36,8 @@ public final class AblLabBuilder extends LabOrderBuilder {
     private AblLabBuilder(String subMessageSourceId, ORU_R30 oruR30, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         super(new String[]{"No ORC"});
-        setSourceAndPatientIdentifiers(subMessageSourceId, oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
+        PatientInfoHl7 patientHl7 = new PatientInfoHl7(oruR30.getMSH(), oruR30.getPID(), oruR30.getVISIT().getPV1());
+        setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
         setBatteryCodingSystem(codingSystem);
 
         OBR obr = oruR30.getOBR();

@@ -117,13 +117,10 @@ abstract class LabOrderBuilder {
     /**
      * Set LabOrder message source information and patient/encounter identifiers.
      * @param subMessageSourceId unique Id from the IDS
-     * @param msh                the MSH segment
-     * @param pid                the PID segment
-     * @param pv1                the PV1 segment
+     * @param patientHl7         patient hl7 info
      * @throws HL7Exception if there is missing hl7 data
      */
-    void setSourceAndPatientIdentifiers(String subMessageSourceId, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
-        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
+    void setSourceAndPatientIdentifiers(String subMessageSourceId, PatientInfoHl7 patientHl7) throws HL7Exception {
         msg.setSourceMessageId(subMessageSourceId);
         String sourceApplication = patientHl7.getSendingApplication().isEmpty() ? "Not in Message" : patientHl7.getSendingApplication();
         msg.setSourceSystem(sourceApplication);

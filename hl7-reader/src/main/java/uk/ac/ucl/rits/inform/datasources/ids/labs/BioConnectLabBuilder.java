@@ -12,6 +12,7 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -39,7 +40,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
      */
     private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
-        super(new String[] {"NW"});
+        super(new String[]{"NW"});
         setBatteryCodingSystem(codingSystem);
 
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
@@ -49,8 +50,9 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
         PID pid = patientResults.getPATIENT().getPID();
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
         OBR obr = obs.getOBR();
+        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
 
-        setSourceAndPatientIdentifiers(idsUnid, msh, pid, pv1);
+        setSourceAndPatientIdentifiers(idsUnid, patientHl7);
         populateObrFields(obr);
         populateOrderInformation(obr);
         getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
