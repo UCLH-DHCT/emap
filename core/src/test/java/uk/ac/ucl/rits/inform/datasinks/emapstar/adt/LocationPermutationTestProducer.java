@@ -1,20 +1,16 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.adt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageLocationCancelledException;
+import uk.ac.ucl.rits.inform.OrderPermutationBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.time.Instant;
@@ -27,19 +23,14 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Component
-class OrderPermutationTestProducer {
+class LocationPermutationTestProducer extends OrderPermutationBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    final String defaultEncounter = "123412341234";
-    private TransactionTemplate transactionTemplate;
-    private final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
+    private static final String defaultEncounter = "123412341234";
     @Autowired
     private LocationVisitRepository locationVisitRepository;
     @Autowired
     private LocationVisitAuditRepository locationVisitAuditRepository;
-    @Autowired
-    protected InformDbOperations dbOps;
-    private String[] adtFilenames;
     private String[] locations;
     private String messagePath;
     private Instant initialAdmissionTime;
@@ -47,34 +38,25 @@ class OrderPermutationTestProducer {
     /**
      * @param transactionManager Spring transaction manager
      */
-    public OrderPermutationTestProducer(@Autowired PlatformTransactionManager transactionManager) {
-        transactionTemplate = new TransactionTemplate(transactionManager);
-    }
-
-    @Transactional
-    protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
-        msg.processMessage(dbOps);
+    LocationPermutationTestProducer(@Autowired PlatformTransactionManager transactionManager) {
+        super(transactionManager);
     }
 
 
-    public void setAdtFilenames(String[] adtFilenames) {
-        this.adtFilenames = adtFilenames;
-    }
-
-    public void setLocations(String[] locations) {
+    void setLocations(String[] locations) {
         this.locations = locations;
     }
 
-    public void setMessagePath(String messagePath) {
+    void setMessagePath(String messagePath) {
         this.messagePath = messagePath;
     }
 
-    public void setInitialAdmissionTime(Instant initialAdmissionTime) {
+    void setInitialAdmissionTime(Instant initialAdmissionTime) {
         this.initialAdmissionTime = initialAdmissionTime;
     }
 
     private <T extends AdtMessage> T getLocationAdtMessage(String filename) {
-        return messageFactory.getAdtMessage(String.format("%s/%s.yaml", messagePath, filename));
+        return getMessageFactory().getAdtMessage(String.format("%s/%s.yaml", messagePath, filename));
     }
 
     private void checkVisit(Instant admissionTime, Instant dischargeTime, String locationString, String messageInformation) {
@@ -88,7 +70,11 @@ class OrderPermutationTestProducer {
         assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
     }
 
-    private void checkAllVisits() {
+    /**
+     * Check each location lasts for a hour and is found in the order given.
+     */
+    @Override
+    public void checkFinalState() {
         int adtCheckCount = 0;
         for (String location : locations) {
             checkVisit(
@@ -104,29 +90,10 @@ class OrderPermutationTestProducer {
         assertEquals(locations.length, allVisits.size(), String.format("Visits: %s", allVisits));
     }
 
-    private void runTest(List<String> fileNames) throws EmapOperationMessageProcessingException {
-        for (String filename : fileNames) {
-            logger.info("Processing location message: {}", filename);
-            processSingleMessage(getLocationAdtMessage(filename));
-        }
-        checkAllVisits();
-    }
-
-    public void buildTestFromPermutation(List<String> messages) throws Exception {
-        Exception e = transactionTemplate.execute(status -> {
-            status.setRollbackOnly();
-            try {
-                runTest(messages);
-            } catch (MessageLocationCancelledException allowed) {
-                return null;
-            } catch (EmapOperationMessageProcessingException a) {
-                return a;
-            }
-            return null;
-        });
-        if (e != null) {
-            throw e;
-        }
+    @Override
+    protected void processFile(String fileName) throws EmapOperationMessageProcessingException {
+        logger.info("Processing location message: {}", fileName);
+        processSingleMessage(getLocationAdtMessage(fileName));
     }
 
 }

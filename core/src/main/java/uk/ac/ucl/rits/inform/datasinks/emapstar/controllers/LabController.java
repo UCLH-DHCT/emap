@@ -6,6 +6,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
@@ -13,7 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
-import uk.ac.ucl.rits.inform.informdb.labs.LabNumber;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -49,20 +50,26 @@ public class LabController {
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
      * @throws RequiredDataMissingException       if OrderDateTime missing from message
+     * @throws MessageCancelledException          Lab Order was previously cancelled
      */
     @Transactional
     public void processLabOrder(Mrn mrn, @Nullable HospitalVisit visit, LabOrderMsg msg, Instant storedFrom)
-            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
+            throws IncompatibleDatabaseStateException, RequiredDataMissingException, MessageCancelledException {
         if (msg.getStatusChangeTime() == null) {
             throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
         }
         Instant validFrom = msg.getStatusChangeTime();
-        LabBattery battery = labOrderController.getOrCreateLabBattery(msg, validFrom, storedFrom);
-        LabNumber labNumber = labOrderController.processLabNumberLabCollectionAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
+        LabBattery battery = labOrderController.getOrCreateLabBattery(
+                msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
+        if (msg.getEpicCareOrderNumber().isDelete()) {
+            labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, visit, msg, validFrom, storedFrom);
+            return;
+        }
+        LabOrder labOrder = labOrderController.processLabSampleAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, storedFrom, validFrom);
             getOrCreateLabBatteryElement(testDefinition, battery, storedFrom, validFrom);
-            labResultController.processResult(testDefinition, labNumber, result, validFrom, storedFrom);
+            labResultController.processResult(testDefinition, labOrder, result, validFrom, storedFrom);
         }
     }
 

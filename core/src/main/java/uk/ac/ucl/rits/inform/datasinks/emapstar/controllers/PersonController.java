@@ -91,7 +91,7 @@ public class PersonController {
     private void updateMrnToLiveIfMessageIsNotBefore(final Mrn survivingMrn, final Instant messageDateTime, final Instant storedFrom,
                                                      MrnToLive mrnToLive) {
         if (liveMrnIdIsDifferentAndMessageIsNotBefore(survivingMrn, messageDateTime, mrnToLive)) {
-            logger.info("Merging previous MRN {} into surviving MRN {}", mrnToLive.getMrnId(), survivingMrn);
+            logger.debug("Merging previous MRN {} into surviving MRN {}", mrnToLive.getMrnId(), survivingMrn);
             // log current state to audit table and then update current row
             MrnToLiveAudit audit = new MrnToLiveAudit(mrnToLive, messageDateTime, storedFrom);
             mrnToLiveAuditRepo.save(audit);

@@ -1,8 +1,9 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.adt;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;

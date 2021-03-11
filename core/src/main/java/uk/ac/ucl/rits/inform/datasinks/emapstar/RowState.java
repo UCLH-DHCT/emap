@@ -141,8 +141,6 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
             return false;
         }
         entityUpdated = true;
-        entity.setStoredFrom(storedFrom);
-        entity.setValidFrom(messageDateTime);
         setter.accept(newValue);
         return true;
     }
@@ -163,17 +161,21 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     }
 
     /**
-     * Save entity if it is created, or auditlog if the entity has been updated.
+     * Save entity if it is created, or auditlog if the entity has been updated, setting stored from and valid from if either conditions are true.
      * @param entityRepo entity repository
      * @param auditRepo  audit repository
      */
     public void saveEntityOrAuditLogIfRequired(CrudRepository<T, Long> entityRepo, CrudRepository<A, Long> auditRepo) {
         if (entityCreated) {
-            logger.info("New Entity saved: {}", entityRepo.save(entity));
+            entity.setStoredFrom(storedFrom);
+            entity.setValidFrom(messageDateTime);
+            logger.debug("New Entity saved: {}", entityRepo.save(entity));
         } else if (entityUpdated) {
+            entity.setStoredFrom(storedFrom);
+            entity.setValidFrom(messageDateTime);
             A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
             auditRepo.save(auditEntity);
-            logger.info("New AuditEntity being saved: {}", auditEntity);
+            logger.debug("New AuditEntity being saved: {}", auditEntity);
         }
     }
 }
