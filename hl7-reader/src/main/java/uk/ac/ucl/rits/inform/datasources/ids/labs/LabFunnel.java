@@ -94,7 +94,7 @@ public class LabFunnel {
             case WIN_PATH:
                 return WinPathLabBuilder.build(idsUnid, msg, codingSystem);
             case CO_PATH:
-                throw new Hl7MessageIgnoredException("CoPath ORR^O02 not implemented yet");
+                return CoPathLabBuilder.build(idsUnid, msg, codingSystem);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORR^O02 not recognised");
         }

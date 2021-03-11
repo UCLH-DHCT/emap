@@ -147,9 +147,37 @@ class TestCoPathOrders {
         assertTrue(order.getSpecimenType().isUnknown());
     }
 
+
     @Test
-    void testOrrR01MessagesThrowException() {
-        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "orr_o02"));
+    void testOrrO02NATimes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
+        assertEquals(collectionTime, order.getCollectionDateTime());
+        assertNotNull(order.getStatusChangeTime());
+        assertTrue(order.getRequestedDateTime().isSave());
+
+        assertTrue(order.getOrderDateTime().isUnknown());
+        assertTrue(order.getSampleReceivedTime().isUnknown());
+    }
+
+    @Test
+    void testOrrO02NALabNumbers() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
+        assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
+        assertEquals(labOrder, order.getLabSpecimenNumber());
+    }
+
+    @Test
+    void testOrrO02NAOrderInfo() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
+        assertEquals("Not in Message", order.getSourceSystem());
+        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
+        assertEquals("Path,Cyt", order.getLabDepartment());
+
+        assertTrue(order.getOrderStatus().isEmpty());
+        assertTrue(order.getResultStatus().isEmpty());
+        assertTrue(order.getVisitNumber().isEmpty());
+        assertTrue(order.getSpecimenType().isUnknown());
     }
 
 }
