@@ -53,7 +53,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * ORR R02: NA (response to SN), CR (response to CA)
      */
     private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR", "OC"));
-    private static final Collection<String> ALLOWED_OC_IDS = new HashSet<>(Arrays.asList("RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"));
+    private static final String[] ALLOWED_OC_IDS = {"RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"};
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
 
 
@@ -71,6 +71,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      */
     private WinPathLabBuilder(String subMessageSourceId, MSH msh, PID pid, PV1 pv1, OBR obr, ORC orc, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
+        super(ALLOWED_OC_IDS);
         setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         populateObrFields(obr);
@@ -127,6 +128,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      */
     private WinPathLabBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
+        super(ALLOWED_OC_IDS);
         setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         OBR obr = obs.getOBR();
@@ -174,13 +176,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             ORC orc = order.getORC();
             OBR obr = order.getORDER_DETAIL().getOBR();
-            LabOrderMsg labOrder;
-            labOrder = new WinPathLabBuilder(subMessageSourceId, msh, pid, pv1, obr, orc, codingSystem).getMsg();
-            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
-                interchangeOrders.add(labOrder);
-            } else {
-                logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
-            }
+            LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, msh, pid, pv1, obr, orc, codingSystem);
+            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -209,13 +206,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             ORC orc = order.getORC();
             OBR obr = order.getOBR();
-            LabOrderMsg labOrder;
-            labOrder = new WinPathLabBuilder(subMessageSourceId, msh, pid, emptyPV1, obr, orc, codingSystem).getMsg();
-            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
-                interchangeOrders.add(labOrder);
-            } else {
-                logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
-            }
+            LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, msh, pid, emptyPV1, obr, orc, codingSystem);
+            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -246,12 +238,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new WinPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1, codingSystem).getMsg();
-            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
-                orders.add(labOrder);
-            } else {
-                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
-            }
+            LabOrderBuilder labOrderBuilder =  new WinPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1, codingSystem);
+            labOrderBuilder.addMsgIfAllowedOcId(orders);
         }
         mergeSensitivitiesIntoIsolate(orders);
         return orders;

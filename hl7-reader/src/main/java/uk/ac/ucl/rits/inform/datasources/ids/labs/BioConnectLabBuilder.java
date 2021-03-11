@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,6 +39,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
      */
     private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
+        super(new String[] {"NW"});
         setBatteryCodingSystem(codingSystem);
 
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
@@ -51,6 +53,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
         setSourceAndPatientIdentifiers(idsUnid, msh, pid, pv1);
         populateObrFields(obr);
         populateOrderInformation(obr);
+        getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
 
         // although the request datetime is in the message, doesn't seem to make sense to set it
         getMsg().setRequestedDateTime(InterchangeValue.unknown());
@@ -82,9 +85,10 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
         if (patientResults.getORDER_OBSERVATIONReps() > 1) {
             throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one order");
         }
-
-        LabOrderMsg labOrder = new BioConnectLabBuilder(idsUnid, msh, patientResults, codingSystem).getMsg();
-        return singletonList(labOrder);
+        List<LabOrderMsg> orders = new ArrayList<>(1);
+        LabOrderBuilder labOrderBuilder = new BioConnectLabBuilder(idsUnid, msh, patientResults, codingSystem);
+        labOrderBuilder.addMsgIfAllowedOcId(orders);
+        return orders;
 
     }
 }

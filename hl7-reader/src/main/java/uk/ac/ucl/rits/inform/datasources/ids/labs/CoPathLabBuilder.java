@@ -24,20 +24,13 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
-import uk.ac.ucl.rits.inform.interchange.ValueType;
-import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +46,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      * ORR R02: NA (response to SN), CR (response to CA)
      */
     private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR", "OC"));
-    private static final Collection<String> ALLOWED_OC_IDS = new HashSet<>(Arrays.asList("RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"));
+    private static final String[] ALLOWED_OC_IDS = {"RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"};
     private static final Logger logger = LoggerFactory.getLogger(CoPathLabBuilder.class);
 
 
@@ -65,12 +58,14 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      * @param pv1                PV1 segment
      * @param obr                OBR segment
      * @param orc                ORC segment
+     * @param notes
      * @param codingSystem       coding system
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    private CoPathLabBuilder(String subMessageSourceId, MSH msh, PID pid, PV1 pv1, OBR obr, ORC orc, OrderCodingSystem codingSystem)
+    private CoPathLabBuilder(String subMessageSourceId, MSH msh, PID pid, PV1 pv1, OBR obr, ORC orc, List<NTE> notes, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
+        super(ALLOWED_OC_IDS);
         setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         populateObrFields(obr);
@@ -98,6 +93,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      */
     private CoPathLabBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, MSH msh, PID pid, PV1 pv1, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException {
+        super(ALLOWED_OC_IDS);
         setBatteryCodingSystem(codingSystem);
         setSourceAndPatientIdentifiers(subMessageSourceId, msh, pid, pv1);
         OBR obr = obs.getOBR();
@@ -143,13 +139,9 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             ORC orc = order.getORC();
             OBR obr = order.getORDER_DETAIL().getOBR();
-            LabOrderMsg labOrder;
-            labOrder = new CoPathLabBuilder(subMessageSourceId, msh, pid, pv1, obr, orc, codingSystem).getMsg();
-            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
-                interchangeOrders.add(labOrder);
-            } else {
-                logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
-            }
+            List<NTE> notes = order.getORDER_DETAIL().getNTEAll();
+            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, msh, pid, pv1, obr, orc, notes, codingSystem);
+            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -178,13 +170,9 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             ORC orc = order.getORC();
             OBR obr = order.getOBR();
-            LabOrderMsg labOrder;
-            labOrder = new CoPathLabBuilder(subMessageSourceId, msh, pid, emptyPV1, obr, orc, codingSystem).getMsg();
-            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
-                interchangeOrders.add(labOrder);
-            } else {
-                logger.trace("Ignoring order control ID ='{}'", labOrder.getOrderControlId());
-            }
+            List<NTE> notes = order.getNTEAll();
+            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, msh, pid, emptyPV1, obr, orc, notes, codingSystem);
+            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -215,12 +203,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderMsg labOrder = new CoPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1, codingSystem).getMsg();
-            if (ALLOWED_OC_IDS.contains(labOrder.getOrderControlId())) {
-                orders.add(labOrder);
-            } else {
-                logger.trace("Ignoring order control ID = '{}'", labOrder.getOrderControlId());
-            }
+            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, obs, msh, pid, pv1, codingSystem);
+            labOrderBuilder.addMsgIfAllowedOcId(orders);
         }
         return orders;
     }

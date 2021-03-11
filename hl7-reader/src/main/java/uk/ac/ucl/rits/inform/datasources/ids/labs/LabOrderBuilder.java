@@ -10,6 +10,8 @@ import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
@@ -18,16 +20,26 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
 abstract class LabOrderBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(LabOrderBuilder.class);
+
+    private final Collection<String> allowedOcIds;
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
 
     private final LabOrderMsg msg = new LabOrderMsg();
+
+    protected LabOrderBuilder(String[] allowedOcIds) {
+        this.allowedOcIds = new HashSet<>(Arrays.asList(allowedOcIds));
+    }
 
     /**
      * @return Lab Order Msg.
@@ -182,4 +194,12 @@ abstract class LabOrderBuilder {
         msg.setParentSubId(parent.getPrl2_ParentObservationSubIdentifier().getValueOrEmpty());
     }
 
+
+    protected void addMsgIfAllowedOcId(List<LabOrderMsg> orders) {
+        if (allowedOcIds.contains(msg.getOrderControlId())) {
+            orders.add(msg);
+        } else {
+            logger.warn("Ignoring order control ID = '{}'", msg.getOrderControlId());
+        }
+    }
 }
