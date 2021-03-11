@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.tuple.Pair;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -26,6 +27,7 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private List<LabResultMsg> labResultMsgs = new ArrayList<>();
+    private List<Pair<String, String>> questions = new ArrayList<>();
     private String orderControlId;
     private InterchangeValue<String> epicCareOrderNumber = InterchangeValue.unknown();
     private String labSpecimenNumber;
