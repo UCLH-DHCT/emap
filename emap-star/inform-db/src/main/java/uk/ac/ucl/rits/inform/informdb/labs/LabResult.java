@@ -26,7 +26,7 @@ import java.time.Instant;
 @SuppressWarnings("serial")
 @Entity
 @Data
-@Table(indexes = {@Index(name = "lr_lab_number_id", columnList = "labNumberId"),
+@Table(indexes = {@Index(name = "lr_lab_order_id", columnList = "labOrderId"),
         @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId")})
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -38,8 +38,8 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     private long labResultId;
 
     @ManyToOne
-    @JoinColumn(name = "labNumberId", nullable = false)
-    private LabNumber labNumberId;
+    @JoinColumn(name = "labOrderId", nullable = false)
+    private LabOrder labOrderId;
 
     @ManyToOne
     @JoinColumn(name = "labTestDefinitionId", nullable = false)
@@ -91,7 +91,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         super(other);
 
         this.labResultId = other.labResultId;
-        this.labNumberId = other.labNumberId;
+        this.labOrderId = other.labOrderId;
         this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedTime = other.resultLastModifiedTime;
         this.abnormalFlag = other.abnormalFlag;
@@ -103,8 +103,8 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.comment = other.comment;
     }
 
-    public LabResult(LabNumber labNumberId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
-        this.labNumberId = labNumberId;
+    public LabResult(LabOrder labOrderId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
+        this.labOrderId = labOrderId;
         this.labTestDefinitionId = labTestDefinitionId;
         this.resultLastModifiedTime = resultLastModifiedTime;
     }
