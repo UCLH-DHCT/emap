@@ -110,7 +110,7 @@ public abstract class LabResultBuilder {
         try {
             msg.setResultStatus(LabResultStatus.findByHl7Code(obx.getObx11_ObservationResultStatus().getValueOrEmpty()));
         } catch (IllegalArgumentException e) {
-            logger.warn("Could not parse the PatientClass", e);
+            logger.warn("Could not parse the ResultStatus", e);
         }
 
         setReferenceRange(obx);
