@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyExceptio
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
@@ -117,4 +118,15 @@ class TestCoPathResults {
         assertNull(result.getEpicCareOrderNumber());
         assertNull(result.getLabIsolate());
     }
+
+    /**
+     * CoPathPlus message has the internal lab number in place of the epic lab number - so no epic lab number should be added to message.
+     * @throws Exception
+     */
+    @Test
+    void testCoPathPlusDoesntAddEpicNumber() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus");
+        assertTrue(order.getEpicCareOrderNumber().isUnknown());
+    }
+
 }

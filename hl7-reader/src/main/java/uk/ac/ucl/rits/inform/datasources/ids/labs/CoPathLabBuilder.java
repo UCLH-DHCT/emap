@@ -98,7 +98,10 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
     }
 
     private void setEpicOrderNumberFromORC() {
-        getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(getEpicCareOrderNumberOrc()));
+        // COPATHPLUS ORU R01 has the internal lab number in all fields, so don't add the epic care order number when they are the same
+        if (!getEpicCareOrderNumberOrc().equals(getMsg().getLabSpecimenNumber())) {
+            getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(getEpicCareOrderNumberOrc()));
+        }
     }
 
 
