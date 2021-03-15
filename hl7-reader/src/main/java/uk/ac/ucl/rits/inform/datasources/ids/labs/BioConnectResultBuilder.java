@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
@@ -53,7 +54,7 @@ public class BioConnectResultBuilder extends LabResultBuilder {
      * @throws Hl7InconsistencyException if data cannot be parsed.
      */
     @Override
-    void setValue() throws Hl7InconsistencyException {
+    void setValue() throws Hl7InconsistencyException, HL7Exception {
         setSingleTextOrNumericValue();
     }
 }

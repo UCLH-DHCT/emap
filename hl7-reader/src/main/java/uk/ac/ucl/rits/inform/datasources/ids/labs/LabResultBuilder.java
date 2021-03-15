@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
@@ -21,11 +22,9 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.StringJoiner;
 
 /**
  * Base builder class for Lab Results.
@@ -68,10 +67,10 @@ public abstract class LabResultBuilder {
 
     /**
      * Construct Lab Result msg using set order of methods.
-     * @throws DataTypeException         if the result time can't be parsed by HAPI
+     * @throws HL7Exception              If hl7value can't be decoded
      * @throws Hl7InconsistencyException if custom value type is incompatible with parser
      */
-    void constructMsg() throws DataTypeException, Hl7InconsistencyException {
+    void constructMsg() throws HL7Exception, Hl7InconsistencyException {
         setTestIdentifiers();
         setValueAdjacentFields();
         setValue();
@@ -166,8 +165,9 @@ public abstract class LabResultBuilder {
      * Populate results based on the observation type.
      * <p>
      * For numeric values, string values are also populated for debugging.
+     * @throws HL7Exception If hl7value can't be decoded
      */
-    protected void setSingleTextOrNumericValue() {
+    protected void setSingleTextOrNumericValue() throws HL7Exception {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -194,15 +194,17 @@ public abstract class LabResultBuilder {
         }
     }
 
-    void setStringValueAndMimeType(OBX obx) {
+    void setStringValueAndMimeType(OBX obx) throws HL7Exception {
         msg.setMimeType(ValueType.TEXT);
         // Store the string value for numeric types to allow for debugging in case new result operator needs to be added
-        String stringValue = Arrays.stream(obx.getObx5_ObservationValue())
-                .map(Varies::getData)
-                .map(Type::toString)
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining("\n"));
-
+        StringJoiner joiner = new StringJoiner("\n");
+        for (Varies varies : obx.getObx5_ObservationValue()) {
+            String value = varies.getData().encode();
+            if (value != null) {
+                joiner.add(value);
+            }
+        }
+        String stringValue = joiner.toString();
         msg.setStringValue(InterchangeValue.buildFromHl7(stringValue));
     }
 
@@ -229,8 +231,9 @@ public abstract class LabResultBuilder {
      * Each parser should define how to parse their values.
      * Simplest case would just call {@link LabResultBuilder#setSingleTextOrNumericValue}
      * @throws Hl7InconsistencyException if data cannot be parsed.
+     * @throws HL7Exception              If hl7value can't be decoded
      */
-    abstract void setValue() throws Hl7InconsistencyException;
+    abstract void setValue() throws Hl7InconsistencyException, HL7Exception;
 
     /**
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.

@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
@@ -57,7 +58,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
      * @throws Hl7InconsistencyException if coded data that is not ISOLATE
      */
     @Override
-    protected void setValue() throws Hl7InconsistencyException {
+    protected void setValue() throws Hl7InconsistencyException, HL7Exception {
         setSingleTextOrNumericValue();
         OBX obx = getObx();
         String testCode = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
