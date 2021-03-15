@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -89,5 +90,11 @@ class TestCoPathResults {
         List<LabResultMsg> results = labReader.process(FILE_TEMPLATE, "oru_r01_empty_report").getLabResultMsgs();
         assertEquals(1, results.size());
         assertTrue(results.get(0).getStringValue().isSave());
+    }
+
+    @Test
+    void testResultDateTime() throws Exception {
+        LabResultMsg result = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
+        assertEquals(Instant.parse("2013-07-13T08:00:00Z"), result.getResultTime());
     }
 }

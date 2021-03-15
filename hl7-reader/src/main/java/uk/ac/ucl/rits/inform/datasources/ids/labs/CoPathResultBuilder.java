@@ -10,6 +10,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
@@ -55,7 +56,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
      */
     @Override
     void setResultTime() throws DataTypeException {
-        return;
+        getMessage().setResultTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
     }
 
     /**
