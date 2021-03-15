@@ -8,8 +8,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +21,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,7 +62,7 @@ class TestCoPathResults {
      * @throws Exception shouldn't happen
      */
     @Test
-    void testValueAsText()  throws Exception {
+    void testValueAsText() throws Exception {
         String reportText = "PATIENT NAME:\n...\nREPORTED:\n26/03/2019";
         List<LabResultMsg> results = labReader.process(FILE_TEMPLATE, "oru_r01_multi_obx_report").getLabResultMsgs();
         assertEquals(1, results.size());
@@ -96,5 +99,22 @@ class TestCoPathResults {
     void testResultDateTime() throws Exception {
         LabResultMsg result = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
         assertEquals(Instant.parse("2013-07-13T08:00:00Z"), result.getResultTime());
+    }
+
+    @Test
+    void testResultAdjacentFields() throws Exception {
+        LabResultMsg result = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
+        assertEquals(OrderCodingSystem.CO_PATH.name(), result.getTestItemCodingSystem());
+        assertEquals(LabResultStatus.FINAL, result.getResultStatus());
+        assertEquals("1", result.getObservationSubId());
+        // other fields should be defaults
+        assertTrue(result.getAbnormalFlag().isDelete());
+        assertTrue(result.getNotes().isUnknown());
+        assertTrue(result.getReferenceLow().isUnknown());
+        assertTrue(result.getReferenceHigh().isUnknown());
+        assertTrue(result.getUnits().isUnknown());
+        assertNull(result.getResultOperator());
+        assertNull(result.getEpicCareOrderNumber());
+        assertNull(result.getLabIsolate());
     }
 }

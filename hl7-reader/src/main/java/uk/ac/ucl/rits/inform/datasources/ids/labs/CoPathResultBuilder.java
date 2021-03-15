@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
     private final List<OBX> obxSegments;
     private static final Pattern REPORT_ENCODING = Pattern.compile("Content-Type: text/plain; charset=US-ASCII;.+Content-transfer-encoding: base64");
     private boolean ignored = false;
+    private static final String CO_PATH = OrderCodingSystem.CO_PATH.name();
 
     /**
      * @param obxSegments the OBX segments for this result type
@@ -64,7 +66,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
      */
     @Override
     void setCustomOverrides() throws Hl7InconsistencyException {
-        return;
+        getMessage().setTestItemCodingSystem(CO_PATH);
     }
 
     /**
