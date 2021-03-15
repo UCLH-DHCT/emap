@@ -89,7 +89,7 @@ public abstract class LabResultBuilder {
     /**
      * Any custom overriding methods to populate individual field data.
      */
-    abstract void setCustomOverrides();
+    abstract void setCustomOverrides() throws Hl7InconsistencyException;
 
 
     /**

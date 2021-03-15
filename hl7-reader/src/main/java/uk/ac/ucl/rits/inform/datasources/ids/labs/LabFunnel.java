@@ -78,7 +78,7 @@ public class LabFunnel {
             case WIN_PATH:
                 return WinPathLabBuilder.build(idsUnid, oruR01, codingSystem);
             case CO_PATH:
-                throw new Hl7MessageIgnoredException("CoPath lab results not implemented for now");
+                return CoPathLabBuilder.build(idsUnid, oruR01, codingSystem);
             case BANK_MANAGER:
                 throw new Hl7MessageIgnoredException("Bank Manager lab results not implemented for now");
             case BIO_CONNECT:
