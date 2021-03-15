@@ -7,6 +7,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 
 import java.util.List;
 
@@ -45,5 +46,14 @@ public class BioConnectResultBuilder extends LabResultBuilder {
 
         String localCode = getObx().getObx3_ObservationIdentifier().getCwe2_Text().getValueOrEmpty();
         getMessage().setTestItemLocalCode(localCode);
+    }
+
+    /**
+     * Parse single text or numeric data.
+     * @throws Hl7InconsistencyException if data cannot be parsed.
+     */
+    @Override
+    void setValue() throws Hl7InconsistencyException {
+        setSingleTextOrNumericValue();
     }
 }

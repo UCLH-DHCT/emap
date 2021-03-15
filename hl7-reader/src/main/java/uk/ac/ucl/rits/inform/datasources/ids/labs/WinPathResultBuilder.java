@@ -53,11 +53,13 @@ public class WinPathResultBuilder extends LabResultBuilder {
     }
 
     /**
-     * Set value of coded result (CE).
+     * Set value of text, numeric or coded result (CE).
      * @throws Hl7InconsistencyException if coded data that is not ISOLATE
      */
     @Override
-    protected void setDataFromCustomValue(OBX obx) throws Hl7InconsistencyException {
+    protected void setValue() throws Hl7InconsistencyException {
+        setSingleTextOrNumericValue();
+        OBX obx = getObx();
         String testCode = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
         Varies dataVaries = obx.getObx5_ObservationValue(0);
         Type data = dataVaries.getData();

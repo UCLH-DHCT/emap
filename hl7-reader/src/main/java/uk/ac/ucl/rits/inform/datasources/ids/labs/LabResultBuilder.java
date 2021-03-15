@@ -166,9 +166,8 @@ public abstract class LabResultBuilder {
      * Populate results based on the observation type.
      * <p>
      * For numeric values, string values are also populated for debugging.
-     * @throws Hl7InconsistencyException If custom data type is not compatible with parsing
      */
-    protected void setValue() throws Hl7InconsistencyException {
+    protected void setSingleTextOrNumericValue() {
         int repCount = obx.getObx5_ObservationValueReps();
 
         // The first rep is all that's needed for most data types
@@ -193,7 +192,6 @@ public abstract class LabResultBuilder {
                 }
             }
         }
-        setDataFromCustomValue(obx);
     }
 
     void setStringValueAndMimeType(OBX obx) {
@@ -228,13 +226,11 @@ public abstract class LabResultBuilder {
 
 
     /**
-     * Optionally set a value which is not a numeric or string type.
-     * @param obx      obx segment
-     * @throws Hl7InconsistencyException if custom data type is not compatible wth parsing
+     * Each parser should define how to parse their values.
+     * Simplest case would just call {@link LabResultBuilder#setSingleTextOrNumericValue}
+     * @throws Hl7InconsistencyException if data cannot be parsed.
      */
-    protected void setDataFromCustomValue(OBX obx) throws Hl7InconsistencyException {
-        return;
-    }
+    abstract void setValue() throws Hl7InconsistencyException;
 
     /**
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.

@@ -34,8 +34,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Build CoPath LabOrders.
@@ -82,8 +85,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         for (NTE note : notes) {
             StringBuilder questionAndAnswer = new StringBuilder();
             for (FT ft : note.getNte3_Comment()) {
-                    questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
-                 }
+                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+            }
             String[] parts = QUESTION_PATTERN.split(questionAndAnswer.toString().strip());
             if (parts.length > 1) {
                 String question = parts[0];
@@ -124,12 +127,13 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         populateOrderInformation(obs.getORC(), obr);
         setEpicOrderNumberFromORC();
 
+        Map<String, List<OBX>> obxByType = obs.getOBSERVATIONAll().stream()
+                .map(ORU_R01_OBSERVATION::getOBX)
+                .collect(groupingBy(obx -> obx.getObx2_ValueType().getValue()));
+
         List<CoPathResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
-        List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
-        for (ORU_R01_OBSERVATION ob : observationAll) {
-            OBX obx = ob.getOBX();
-            List<NTE> notes = ob.getNTEAll();
-            CoPathResultBuilder labResult = new CoPathResultBuilder(obx, obr, notes);
+        for (List<OBX> values : obxByType.values()) {
+            CoPathResultBuilder labResult = new CoPathResultBuilder(values, obr);
             labResult.constructMsg();
             tempResults.add(labResult);
         }
