@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 
 import java.util.ArrayList;
 import java.util.Base64;
@@ -74,16 +75,29 @@ public class CoPathResultBuilder extends LabResultBuilder {
     protected void setValue() throws Hl7InconsistencyException, HL7Exception {
         Type dataType = getObx().getObx5_ObservationValue(0).getData();
         String delimiter;
+        ValueType valueType;
         if (isTextValue(dataType)) {
             delimiter = "\n";
+            valueType = ValueType.TEXT;
         } else if (dataType instanceof ED) {
             delimiter = "";
+            valueType = ValueType.PDF;
         } else {
             throw new Hl7InconsistencyException(String.format("CoPath OBX type not recognised '%s'", dataType.getName()));
         }
 
+        setMimeTypeAndTestCode(valueType);
         String observationIdAndSubId = getObservationIdAndSubId(getObx());
         StringJoiner value = incrementallyBuildValue(observationIdAndSubId, delimiter);
+        setValueOrIgnored(dataType, value);
+    }
+
+    private void setMimeTypeAndTestCode(ValueType valueType) {
+        getMessage().setMimeType(valueType);
+        getMessage().setTestItemLocalCode(valueType.name());
+    }
+
+    private void setValueOrIgnored(Type dataType, StringJoiner value) throws Hl7InconsistencyException {
         if (isTextValue(dataType)) {
             getMessage().setStringValue(InterchangeValue.buildFromHl7(value.toString()));
         } else if (!"MIME".equals(value.toString())) {
