@@ -7,13 +7,17 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 
 /**
@@ -38,6 +42,32 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
             Assertions.assertEquals(expectedMessages.get(i), messagesFromHl7Message.get(i), failMessage);
         }
         Assertions.assertEquals(expectedMessages.size(), messagesFromHl7Message.size());
+    }
+
+    private void assertLabOrdersWithValueAsBytesEqual(List<LabOrderMsg> expectedMessages, List<? extends EmapOperationMessage> messagesFromHl7Message) {
+        // first check values as byte and strip them out
+        for (int orderIndex = 0; orderIndex < expectedMessages.size(); orderIndex++) {
+            if (expectedMessages.get(orderIndex).getLabResultMsgs().isEmpty()) {
+                continue;
+            }
+            LabOrderMsg expectedOrder = expectedMessages.get(orderIndex);
+            LabOrderMsg hl7Order = (LabOrderMsg) messagesFromHl7Message.get(orderIndex);
+            for (int resultIndex = 0; resultIndex < expectedOrder.getLabResultMsgs().size(); resultIndex++) {
+                LabResultMsg expectedResult = expectedOrder.getLabResultMsgs().get(resultIndex);
+                LabResultMsg hl7Result = hl7Order.getLabResultMsgs().get(resultIndex);
+                if (expectedResult.getByteValue().isUnknown()) {
+                    continue;
+                }
+                // check byte values
+                byte[] expectedBytes = expectedResult.getByteValue().get();
+                byte[] hl7Bytes = hl7Result.getByteValue().get();
+                assertArrayEquals(expectedBytes, hl7Bytes);
+                // remove byte values from rest of the check
+                expectedResult.setByteValue(InterchangeValue.unknown());
+                hl7Result.setByteValue(InterchangeValue.unknown());
+            }
+        }
+        assertListOfMessagesEqual(expectedMessages, messagesFromHl7Message);
     }
 
     @Test
@@ -219,6 +249,29 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
         assertListOfMessagesEqual(expectedOrders, builtMessages);
+    }
+
+    @Test
+    public void testCoPathIncrementalOrder() throws Exception {
+        String hl7PathTemplate = "LabOrders/co_path/incremental/%s.txt";
+        String interchangePathTemplate = "co_path/incremental/%s.yaml";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+
+        List<EmapOperationMessage> builtMessages = new ArrayList<>();
+        List<LabOrderMsg> expectedOrders = new ArrayList<>();
+        // build up order messages
+        String[] orderFiles = {"01_orm_o01_sn", "02_orm_o01_nw", "03_orr_o02_na"};
+        for (String orderFile : orderFiles) {
+            builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, orderFile)));
+            expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(
+                    interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
+        }
+        // add in final result
+        builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "04_oru_r01")));
+        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "04_oru_r01"), "0000000042"));
+
+        builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertLabOrdersWithValueAsBytesEqual(expectedOrders, builtMessages);
     }
 
     @Test

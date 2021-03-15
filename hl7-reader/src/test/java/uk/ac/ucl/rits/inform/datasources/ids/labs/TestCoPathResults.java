@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
