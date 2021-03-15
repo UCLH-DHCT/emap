@@ -29,6 +29,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
     private final OBR obr;
     private final List<OBX> obxSegments;
     private static final Pattern REPORT_ENCODING = Pattern.compile("Content-Type: text/plain; charset=US-ASCII;.+Content-transfer-encoding: base64");
+    private boolean ignored = false;
 
     /**
      * @param obxSegments the OBX segments for this result type
@@ -38,6 +39,13 @@ public class CoPathResultBuilder extends LabResultBuilder {
         super(obxSegments.get(0), new ArrayList<>(0), null);
         this.obxSegments = obxSegments;
         this.obr = obr;
+    }
+
+    /**
+     * @return true if result should be ignored.
+     */
+    boolean isIgnored() {
+        return ignored;
     }
 
     /**
@@ -78,8 +86,8 @@ public class CoPathResultBuilder extends LabResultBuilder {
         StringJoiner value = incrementallyBuildValue(observationIdAndSubId, delimiter);
         if (isTextValue(dataType)) {
             getMessage().setStringValue(InterchangeValue.buildFromHl7(value.toString()));
-        } else if (value.length() > 2) {
-            // already know that if it's not TX, it's ED data type
+        } else if (!"MIME".equals(value.toString())) {
+            // already know that if it's not text, it's ED data type
             Matcher matcher = REPORT_ENCODING.matcher(value.toString());
             if (!matcher.find()) {
                 throw new Hl7InconsistencyException("Encoding of report in unexpected format");
@@ -87,6 +95,8 @@ public class CoPathResultBuilder extends LabResultBuilder {
             String dataValues = matcher.replaceFirst("");
             byte[] byteValues = Base64.getDecoder().decode(dataValues);
             getMessage().setByteValue(InterchangeValue.buildFromHl7(byteValues));
+        } else {
+            ignored = true;
         }
     }
 
@@ -120,4 +130,5 @@ public class CoPathResultBuilder extends LabResultBuilder {
         return String.join("$",
                 obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty(), obx.getObx4_ObservationSubID().getValueOrEmpty());
     }
+
 }

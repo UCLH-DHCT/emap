@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test Lab results derived from Winpath
@@ -44,7 +46,7 @@ class TestCoPathResults {
     }
 
     @TestFactory
-    Stream<DynamicTest> testHl7Inconsistencies(){
+    Stream<DynamicTest> testHl7Inconsistencies() {
         return List.of(
                 "oru_r01_id_change", "oru_r01_sub_id_change", "oru_r01_multiple_value_reps", "oru_r01_unrecognised_data_type",
                 "oru_r01_report_coding_unexpected"
@@ -56,4 +58,14 @@ class TestCoPathResults {
                 );
     }
 
+    /**
+     * Message with string value and empty pdf report should only have single result message.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testEmptyPdfReport() throws Exception {
+        List<LabResultMsg> results = labReader.process(FILE_TEMPLATE, "oru_r01_empty_report").getLabResultMsgs();
+        assertEquals(1, results.size());
+        assertTrue(results.get(0).getStringValue().isSave());
+    }
 }

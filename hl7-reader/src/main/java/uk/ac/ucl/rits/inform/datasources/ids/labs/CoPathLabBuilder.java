@@ -28,6 +28,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,13 +132,15 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
                 .map(ORU_R01_OBSERVATION::getOBX)
                 .collect(groupingBy(obx -> obx.getObx2_ValueType().getValue()));
 
-        List<CoPathResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
+        List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (List<OBX> values : obxByType.values()) {
             CoPathResultBuilder labResult = new CoPathResultBuilder(values, obr);
             labResult.constructMsg();
-            tempResults.add(labResult);
+            if (!labResult.isIgnored()) {
+                results.add(labResult.getMessage());
+            }
         }
-        getMsg().setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
+        getMsg().setLabResultMsgs(results);
     }
 
 
