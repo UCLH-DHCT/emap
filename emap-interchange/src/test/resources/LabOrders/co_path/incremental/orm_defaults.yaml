@@ -1,0 +1,23 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+labSpecimenNumber: "UR20-4444"
+orderStatus: ""
+mrn: "40800000"
+visitNumber: "20S123234221"
+collectionDateTime: "2020-05-22T11:07:00Z"
+testBatteryCodingSystem: "CO_PATH"
+parentObservationIdentifier: ""
+parentSubId: ""
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "12121212"
+resultStatus: ""
+sourceMessageId: "0000000042_01"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-05-22T11:10:00Z"
+collectionMethod:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Stained slides x 6 ref 20S123234221 from Royal London Hospital"

@@ -1,0 +1,19 @@
+testBatteryLocalCode: "H"
+labDepartment: "H"
+orderStatus: "IP"
+resultStatus: "I"
+statusChangeTime: "2020-05-22T11:10:00Z"
+orderControlId: "SN"
+sourceSystem: "CoPath"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+orderDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-05-22T11:10:00Z"
