@@ -4,6 +4,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.ED;
+import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
@@ -27,7 +28,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
     private static final Logger logger = LoggerFactory.getLogger(CoPathResultBuilder.class);
     private final OBR obr;
     private final List<OBX> obxSegments;
-    private static final Pattern REPORT_ENCODING = Pattern.compile("Content-Type:.+US-ASCII.+Content-transfer-encoding: base64");
+    private static final Pattern REPORT_ENCODING = Pattern.compile("Content-Type: text/plain; charset=US-ASCII;.+Content-transfer-encoding: base64");
 
     /**
      * @param obxSegments the OBX segments for this result type
@@ -59,13 +60,13 @@ public class CoPathResultBuilder extends LabResultBuilder {
     /**
      * Set value as from a text report or pdf report.
      * @throws Hl7InconsistencyException if data type not TX or ED, multi-line values, subId changes, or pdf report not in base 64 US-ASCII encoding.
+     * @throws HL7Exception              If value can't be encoded from hl7
      */
     @Override
-    protected void setValue() throws Hl7InconsistencyException {
-        String subId = getObx().getObx4_ObservationSubID().getValueOrEmpty();
+    protected void setValue() throws Hl7InconsistencyException, HL7Exception {
         Type dataType = getObx().getObx5_ObservationValue(0).getData();
         String delimiter;
-        if (dataType instanceof TX) {
+        if (isTextValue(dataType)) {
             delimiter = "\n";
         } else if (dataType instanceof ED) {
             delimiter = "";
@@ -73,8 +74,9 @@ public class CoPathResultBuilder extends LabResultBuilder {
             throw new Hl7InconsistencyException(String.format("CoPath OBX type not recognised '%s'", dataType.getName()));
         }
 
-        StringJoiner value = incrementallyBuildValue(subId, delimiter);
-        if (dataType instanceof TX) {
+        String observationIdAndSubId = getObservationIdAndSubId(getObx());
+        StringJoiner value = incrementallyBuildValue(observationIdAndSubId, delimiter);
+        if (isTextValue(dataType)) {
             getMessage().setStringValue(InterchangeValue.buildFromHl7(value.toString()));
         } else if (value.length() > 2) {
             // already know that if it's not TX, it's ED data type
@@ -88,21 +90,34 @@ public class CoPathResultBuilder extends LabResultBuilder {
         }
     }
 
-    private StringJoiner incrementallyBuildValue(String subId, String delimiter) throws Hl7InconsistencyException {
+    private boolean isTextValue(Type dataType) {
+        return dataType instanceof TX || dataType instanceof ST;
+    }
+
+    /**
+     * @param observationIdAndSubId observation and subId joined together
+     * @param delimiter             delimiter between subId observations
+     * @return StringJoiner of all observation lines
+     * @throws Hl7InconsistencyException if observationId and subId change, or multi-line result
+     * @throws HL7Exception              If value can't be encoded from hl7
+     */
+    private StringJoiner incrementallyBuildValue(String observationIdAndSubId, String delimiter) throws Hl7InconsistencyException, HL7Exception {
         StringJoiner value = new StringJoiner(delimiter);
         for (OBX obx : obxSegments) {
-            if (!subId.equals(obx.getObx4_ObservationSubID().getValueOrEmpty())) {
-                throw new Hl7InconsistencyException("CoPath subid should not change within a type");
+            if (!observationIdAndSubId.equals(getObservationIdAndSubId(obx))) {
+                throw new Hl7InconsistencyException("CoPath observationId and subId should not change within a type");
             }
             if (obx.getObx5_ObservationValueReps() > 1) {
+                // If find this in real data, inspect and see if we need to join the observation values by "^"
                 throw new Hl7InconsistencyException("CoPath OBX not expected to have multiple-line results");
             }
-            try {
-                value.add(obx.getObx5_ObservationValue(0).getData().encode());
-            } catch (HL7Exception e) {
-                throw new Hl7InconsistencyException("Hl7 value could not be parsed", e);
-            }
+            value.add(obx.getObx5_ObservationValue(0).getData().encode());
         }
         return value;
+    }
+
+    private String getObservationIdAndSubId(OBX obx) {
+        return String.join("$",
+                obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty(), obx.getObx4_ObservationSubID().getValueOrEmpty());
     }
 }
