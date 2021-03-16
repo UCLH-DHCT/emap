@@ -3,30 +3,24 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ucl.rits.inform</groupId>
-  <artifactId>HL7Processor</artifactId>
+  <artifactId>EmapCore</artifactId>
   <packaging>jar</packaging>
-  <version>0.9.0</version>
-  <name>HL7Processor</name>
+  <version>2.0</version>
+  <name>EmapCore</name>
   <url>http://maven.apache.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <checkstyle.version>8.19</checkstyle.version>
-    <checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <checkstyle.version>8.32</checkstyle.version>
+    <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
     <apache.commons.csv.version>1.6</apache.commons.csv.version>
-    <inform-db.version>0.9.0</inform-db.version>
-    <emap-interchange.version>0.0.2</emap-interchange.version>
+    <inform-db.version>2.0</inform-db.version>
+    <emap-interchange.version>2.0</emap-interchange.version>
   </properties>
 
   <profiles>
-    <profile>
-      <id>hl7source</id>
-      <properties>
-        <spring.boot.mainclass>uk.ac.ucl.rits.inform.datasources.ids.AppHl7</spring.boot.mainclass>
-      </properties>
-    </profile>
     <profile>
       <id>emapstar</id>
       <properties>
@@ -38,11 +32,10 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.6.RELEASE</version>
+    <version>(2.3.3, 2.4)</version>
   </parent>
 
   <dependencies>
-
     <dependency>
       <groupId>uk.ac.ucl.rits.inform</groupId>
       <artifactId>inform-db</artifactId>
@@ -78,43 +71,14 @@
     </dependency>
 
     <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-base</artifactId>
-      <version>2.3</version>
-    </dependency>
-
-    <dependency>
-      <groupId>ca.uhn.hapi</groupId>
-      <artifactId>hapi-structures-v26</artifactId>
-      <version>2.3</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>4.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
-    </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-csv</artifactId>
-      <version>${apache.commons.csv.version}</version>
     </dependency>
 
 	<dependency>
@@ -122,12 +86,6 @@
 	    <artifactId>junit-jupiter-engine</artifactId>
 	    <scope>test</scope>
 	</dependency>
-
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.springframework.amqp</groupId>
@@ -152,7 +110,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>2.10.4</version>
       <scope>test</scope>
     </dependency>
 
@@ -163,11 +120,10 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
-    <finalName>HL7Processor</finalName>
+    <finalName>Emap-Core</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -186,6 +142,28 @@
             <version>3.1.9</version>
           </dependency>
         </dependencies>
+      </plugin>
+      <!-- plugin to download dependencies, mvn dependencies:go-offline doesn't exclude artifacts/groups correctly -->
+      <plugin>
+        <groupId>de.qaware.maven</groupId>
+        <artifactId>go-offline-maven-plugin</artifactId>
+        <version>1.2.8</version>
+        <configuration>
+          <dynamicDependencies>
+            <DynamicDependency>
+              <groupId>uk.ac.ucl.rits.inform</groupId>
+              <artifactId>inform-db</artifactId>
+              <version>${inform-db.version}</version>
+              <repositoryType>MAIN</repositoryType>
+            </DynamicDependency>
+            <DynamicDependency>
+              <groupId>uk.ac.ucl.rits.inform</groupId>
+              <artifactId>emap-interchange</artifactId>
+              <version>${emap-interchange.version}</version>
+              <repositoryType>MAIN</repositoryType>
+            </DynamicDependency>
+          </dynamicDependencies>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

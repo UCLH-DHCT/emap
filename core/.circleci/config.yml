@@ -1,14 +1,12 @@
-# Java Maven CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
-version: 2
+version: 2.1
+
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
-      
+      - image: circleci/openjdk:11-jdk
+        auth:
+          username: ${DOCKERHUB_USERNAME}
+          password: ${DOCKERHUB_PASSWORD}
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -19,24 +17,36 @@ jobs:
     environment:
       # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx3200m
-    
+
     steps:
       - checkout
 
       - run:
+          name: Inform-DB
           command: |
-              git clone git@github.com:inform-health-informatics/Inform-DB.git
-              cd Inform-DB
-              mvn install -Dmaven.test.skip=true
-              git clone git@github.com:inform-health-informatics/Emap-Interchange.git
-              cd Emap-Interchange
-              # run tests so that test classes can be used in current testing
-              mvn install
+            git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Inform-DB.git || git clone --branch develop git@github.com:inform-health-informatics/Inform-DB.git
+            cd Inform-DB
+            mvn install -Dmaven.test.skip=true
       - run:
+          name: Emap-Interchange
           command: |
-             mvn dependency:go-offline
+            git clone --branch ${CIRCLE_BRANCH} git@github.com:inform-health-informatics/Emap-Interchange.git || git clone --branch develop git@github.com:inform-health-informatics/Emap-Interchange.git
+            cd Emap-Interchange
+            # run tests so that test classes can be used in current testing
+            mvn install
+      - run:
+          name: Maven dependencies
+          command: |
+            mvn dependency:go-offline
+      - run:
+          name: Maven tests
+          command: |
+            TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+            TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
 
-      - run:
-          command: |
-             TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
-             TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+workflows:
+  build:
+    jobs:
+      - build:
+          context:
+            - dockerhub

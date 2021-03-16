@@ -1,9 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.Instant;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,32 +7,34 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.time.Instant;
 
 /**
  * What effect did each IDS message have on Inform-db?
- *
+ * <p>
  * Useful for debugging, seeing why a particular message didn't have the
  * intended effect, etc
- *
  * @author Jeremy Stein
  */
 @Entity
 @Table(name = "etl_per_message_logging",
-       indexes = { @Index(columnList = "sourceId", unique = false) })
+        indexes = {@Index(columnList = "sourceId", unique = false)})
 public class IdsEffectLogging {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Long id;
     private String sourceId;
     private Instant messageDatetime;
     private Instant processingStartTime;
     private Instant processingEndTime;
-    private double processMessageDurationSeconds;
-    @Column(columnDefinition = "text")
-    private String returnStatus;
-    private String mrn;
+    /**
+     * Time is takes to process the interchange message in nanoseconds.
+     */
+    private Long processMessageDuration;
+    private Boolean error;
     private String messageType;
-    private String eventReasonCode;
     @Column(columnDefinition = "text")
     private String message;
     @Column(columnDefinition = "text")
@@ -64,13 +62,6 @@ public class IdsEffectLogging {
     }
 
     /**
-     * @param mrn the MRN as stated in the IDS
-     */
-    public void setMrn(String mrn) {
-        this.mrn = mrn;
-    }
-
-    /**
      * @param message text description of what action was taken based on this message
      */
     public void setMessage(String message) {
@@ -92,18 +83,18 @@ public class IdsEffectLogging {
     }
 
     /**
-     * @param returnStatus the return code from the operation, which may indicate several types
-     * of success or several types of failure.
+     * Was an error encountered in the processing of the message.
+     * @param error true if an error was encountered
      */
-    public void setReturnStatus(String returnStatus) {
-        this.returnStatus = returnStatus;
+    public void setError(Boolean error) {
+        this.error = error;
     }
 
     /**
-     * @param processMessageDurationSeconds how long it took to process the message
+     * @param processDurationNanoSeconds how long it took to process the message
      */
-    public void setProcessMessageDuration(double processMessageDurationSeconds) {
-        this.processMessageDurationSeconds = processMessageDurationSeconds;
+    public void setProcessMessageDuration(Long processDurationNanoSeconds) {
+        this.processMessageDuration = processDurationNanoSeconds;
     }
 
     /**
@@ -115,21 +106,11 @@ public class IdsEffectLogging {
 
     /**
      * Convert stack trace from exception to text.
-     *
      * @param th throwable containing a stack trace
      */
     public void setStackTrace(Throwable th) {
         StringWriter st = new StringWriter();
         th.printStackTrace(new PrintWriter(st));
         setStackTrace(st.toString());
-    }
-
-    /**
-     * Unclear what we'll use this field for so log it somewhere convenient for now.
-     *
-     * @param eventReasonCode the hl7 event reason code
-     */
-    public void setEventReasonCode(String eventReasonCode) {
-        this.eventReasonCode = eventReasonCode;
     }
 }
