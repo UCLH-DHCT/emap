@@ -19,10 +19,12 @@ configure_time_window() {
     perl -pi.$(date --iso-8601=seconds) \
         -e 's/^(IDS_CFG_DEFAULT_START_DATETIME)=.*$/$1=$ENV{"window_start"}/;
             s/^(IDS_CFG_END_DATETIME)=.*$/$1=$ENV{"window_end"}/;
+            s/^(HOOVER_DATE_FROM)=.*$/$1=$ENV{"window_start"}/;
+            s/^(HOOVER_DATE_UNTIL)=.*$/$1=$ENV{"window_end"}/;
         ' \
         ../config/emap-hl7processor-config-envs \
         ../config/emap-core-config-envs \
-
+        ../config/hoover-envs
 }
 
 stop_it_and_tidy_up() {
@@ -55,6 +57,7 @@ run_pipeline() {
 
     # wait for each hl7 source to finish filling up the queue
     bash emap-live.sh up --exit-code-from hl7source hl7source > ${log_file_prefix}_hl7source.txt
+    bash emap-live.sh up --exit-code-from hoover hoover > ${log_file_prefix}_hoover.txt
     bash emap-live.sh ps
 }
 
@@ -73,7 +76,8 @@ wait_for_queue_to_empty() {
         non_empty_queues=$(docker exec $rabbitmq_container_id rabbitmqctl -q list_queues \
             | awk -v RS='\r\n' 'BEGIN {OFS="\t"} {if (($1=="hl7Queue" || $1=="databaseExtracts") && $2!="0") {print $1 $2}  }' )
         if [ -z "$non_empty_queues" ]; then
-            echo "Queues are empty, continuing"
+            echo "Queues are empty, continuing in 10 minutes"
+            sleep 600 # exits too keenly from databaseExtracts queue, adding in a wait period
             break
         elif expr \( $(date +%s) - $start_time \) \> $timeout_secs; then
             echo "Waiting for queue timed out"
