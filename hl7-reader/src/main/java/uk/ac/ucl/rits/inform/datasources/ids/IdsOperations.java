@@ -4,7 +4,9 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
@@ -26,10 +28,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.messaging.Publisher;
 import uk.ac.ucl.rits.inform.interchange.springconfig.EmapDataSource;
@@ -38,63 +41,70 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
 /**
  * Operations that can be performed on the IDS.
+ * @author Jeremy Stein & Stef Piatek
  */
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
 public class IdsOperations implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(IdsOperations.class);
+    private static final String ALLOWED_ADT_SENDER = "EPIC";
+
 
     private SessionFactory idsFactory;
+    private AdtMessageFactory adtMessageFactory;
+    private OrderAndResultService orderAndResultService;
+    private IdsProgressRepository idsProgressRepository;
     private boolean idsEmptyOnInit;
+    private Integer defaultStartUnid;
+    private Integer endUnid;
 
     /**
-     * @param idsCfgXml            injected param
-     * @param defaultStartDatetime the start date to use if no progress has been previously recorded in the DB
-     * @param endDatetime          the datetime to finish processing messages, regardless of previous progress
-     * @param environment          injected param
+     * @param idsCfgXml             injected param
+     * @param defaultStartDatetime  the start date to use if no progress has been previously recorded in the DB
+     * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
+     * @param environment           injected param
+     * @param adtMessageFactory     injected AdtMessageFactory
+     * @param orderAndResultService injected FlowsheetFactory
+     * @param idsProgressRepository injected IdsProgressRepository
      */
     public IdsOperations(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
             @Value("${ids.cfg.default-start-datetime}") Instant defaultStartDatetime,
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
-            @Autowired Environment environment) {
+            @Autowired Environment environment,
+            @Autowired AdtMessageFactory adtMessageFactory,
+            @Autowired OrderAndResultService orderAndResultService,
+            @Autowired IdsProgressRepository idsProgressRepository) {
         String envPrefix = "IDS";
         if (environment.acceptsProfiles("test")) {
             envPrefix = null;
         }
+        this.adtMessageFactory = adtMessageFactory;
+        this.orderAndResultService = orderAndResultService;
+        this.idsProgressRepository = idsProgressRepository;
         logger.info("IdsOperations() opening config file " + idsCfgXml);
         idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
         idsEmptyOnInit = getIdsIsEmpty();
         logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
-        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime);
-        this.endUnid = getFirstMessageUnidFromDate(endDatetime);
+        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime, 1);
+        this.endUnid = getFirstMessageUnidFromDate(endDatetime, defaultStartUnid);
 
         // Since progress is stored as the unid (the date info is purely for human convenience),
         // there is no way to translate a future date into a unid.
         // This feature is only intended for processing messages in the past, so that's OK.
-        logger.info(String.format(
-                "IDS message processing boundaries: Start date = %s, start unid = %d  -->  End date = %s, end unid = %d",
-                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid));
+        logger.info(
+                "IDS message processing boundaries: Start date = {}, start unid = {} -->  End date = {}, end unid = {}",
+                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid);
     }
 
-    private Integer defaultStartUnid;
-    private Integer endUnid;
-
-    @Autowired
-    private IdsProgressRepository idsProgressRepository;
 
     /**
      * We are writing to the HL7 queue.
@@ -127,10 +137,10 @@ public class IdsOperations implements AutoCloseable {
      * @return Is the IDS currently empty?
      */
     private boolean getIdsIsEmpty() {
-        try (Session idsSession = idsFactory.openSession();) {
+        try (Session idsSession = idsFactory.openSession()) {
             idsSession.setDefaultReadOnly(true);
             // check is empty
-            Query<IdsMaster> qexists = idsSession.createQuery("from IdsMaster", IdsMaster.class);
+            Query<IdsMaster> qexists = idsSession.createQuery("select i from IdsMaster i", IdsMaster.class);
             qexists.setMaxResults(1);
             boolean idsIsEmpty = qexists.list().isEmpty();
             return idsIsEmpty;
@@ -141,26 +151,28 @@ public class IdsOperations implements AutoCloseable {
      * Find the first message in the IDS that came in at or after a certain
      * timestamp.
      * @param fromDateTime the timestamp to start from, or null for no boundary
+     * @param fromUnid     starting unid for filtering
      * @return the unid of the first message to be persisted at or after that time,
      * or null if there are no such messages or no bound was requested (fromDateTime == null)
      */
-    private Integer getFirstMessageUnidFromDate(Instant fromDateTime) {
+    private Integer getFirstMessageUnidFromDate(Instant fromDateTime, Integer fromUnid) {
         if (fromDateTime == null) {
             // bypass this slow query if no bound was requested
             return null;
         }
-        try (Session idsSession = idsFactory.openSession();) {
-            idsSession.setDefaultReadOnly(true);
-            Query<IdsMaster> qexists = idsSession.createQuery(
-                    "from IdsMaster where persistdatetime >= :fromDatetime order by unid", IdsMaster.class);
-            qexists.setParameter("fromDatetime", fromDateTime);
-            qexists.setMaxResults(1);
-            List<IdsMaster> msgs = qexists.list();
-            if (msgs.isEmpty()) {
-                logger.warn(String.format("No IDS messages were found beyond the specified date %s, is it in the future?", fromDateTime));
+        logger.info("Querying IDS for first unid after {}, this can take a while", fromDateTime);
+        try (Session idsSession = idsFactory.openSession()) {
+            List<IdsMaster> msg = idsSession.createQuery(
+                    "select i from IdsMaster i where i.unid >= :fromUnid and i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
+                    .setParameter("fromDatetime", fromDateTime)
+                    .setParameter("fromUnid", fromUnid)
+                    .setMaxResults(1)
+                    .getResultList();
+            if (msg.isEmpty()) {
+                logger.warn("No IDS messages were found beyond the specified date {}, is it in the future?", fromDateTime);
                 return null;
             } else {
-                return msgs.get(0).getUnid();
+                return msg.get(0).getUnid();
             }
         }
     }
@@ -210,13 +222,13 @@ public class IdsOperations implements AutoCloseable {
      * @return the unique ID for the last IDS message we have successfully processed
      */
     @Transactional
-    private int getLatestProcessedId() {
+    int getLatestProcessedId() {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
 
         if (onlyRow == null) {
             onlyRow = new IdsProgress();
             // use default start time, if specified
-            logger.info(String.format("No progress found, initialising to unid = %d", this.defaultStartUnid));
+            logger.info("No progress found, initialising to unid = {}", this.defaultStartUnid);
             if (this.defaultStartUnid != null) {
                 // initialise progress as per config, otherwise it'll just stay at 0 (ie. the very beginning)
                 onlyRow.setLastProcessedIdsUnid(this.defaultStartUnid);
@@ -234,7 +246,7 @@ public class IdsOperations implements AutoCloseable {
      * @param processingEnd        the time this message was actually processed
      */
     @Transactional
-    private void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
+    void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
         onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
         onlyRow.setLastProcessedMessageDatetime(messageDatetime);
@@ -309,9 +321,7 @@ public class IdsOperations implements AutoCloseable {
                 count++;
                 Message msg = hl7iter.next();
                 String singleMessageText = msg.encode();
-                AdtMessageBuilder adtMessageBuilder = new AdtMessageBuilder(msg, String.format("%010d", count));
-                PatientInfoHl7 patientInfoHl7 = new PatientInfoHl7(adtMessageBuilder.getMsh(),
-                        adtMessageBuilder.getPid(), adtMessageBuilder.getPv1());
+                PatientInfoHl7 patientInfoHl7 = adtMessageFactory.getPatientInfo(msg);
 
                 this.writeToIds(singleMessageText, count, patientInfoHl7);
             }
@@ -334,7 +344,7 @@ public class IdsOperations implements AutoCloseable {
         try (Session idsSession = idsFactory.openSession();) {
             idsSession.setDefaultReadOnly(true);
             Query<IdsMaster> qnext =
-                    idsSession.createQuery("from IdsMaster where unid > :lastProcessedId order by unid", IdsMaster.class);
+                    idsSession.createQuery("SELECT i FROM IdsMaster i where i.unid > :lastProcessedId order by i.unid", IdsMaster.class);
             qnext.setParameter("lastProcessedId", lastProcessedId);
             qnext.setMaxResults(1);
             List<IdsMaster> nextMsgOrEmpty = qnext.list();
@@ -360,7 +370,7 @@ public class IdsOperations implements AutoCloseable {
         while (true) {
             idsMsg = getNextHL7IdsRecord(lastProcessedId);
             if (idsMsg == null) {
-                logger.info(String.format("No more messages in IDS, retrying in %d seconds", secondsSleep));
+                logger.debug("No more messages in IDS, retrying in {} seconds", secondsSleep);
                 try {
                     Thread.sleep(secondsSleep * 1000);
                 } catch (InterruptedException ie) {
@@ -386,23 +396,15 @@ public class IdsOperations implements AutoCloseable {
     @Transactional
     public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException, ReachedEndException {
         int lastProcessedId = getLatestProcessedId();
-        logger.info("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
+        logger.debug("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         if (this.endUnid != null && lastProcessedId >= this.endUnid) {
-            logger.info(String.format("lastProcessedId = %d  >=  endUnid = %d, exiting", lastProcessedId, this.endUnid));
+            logger.info("lastProcessedId = {} >= endUnid = {}, exiting", lastProcessedId, this.endUnid);
             throw new ReachedEndException();
         }
         IdsMaster idsMsg = getNextHL7IdsRecordBlocking(lastProcessedId);
 
         Instant messageDatetime = idsMsg.getMessagedatetime();
-        String sender = idsMsg.getSenderapplication();
-
-        final Set<String> allowedSenders = new HashSet<>(Arrays.asList("WinPath", "EPIC"));
-
         try {
-            if (!allowedSenders.contains(sender)) {
-                logger.warn(String.format("[" + idsMsg.getUnid() + "] Skipping message with senderapplication=\"%s\"", sender));
-                return;
-            }
             String hl7msg = idsMsg.getHl7message();
             // HL7 is supposed to use \r for line endings, but
             // the IDS uses \n
@@ -411,32 +413,28 @@ public class IdsOperations implements AutoCloseable {
             try {
                 msgFromIds = parser.parse(hl7msg);
             } catch (HL7Exception hl7e) {
-                StringWriter st = new StringWriter();
-                hl7e.printStackTrace(new PrintWriter(st));
-                logger.error("[" + idsMsg.getUnid() + "] HL7 parsing error:\n" + st.toString());
+                logger.error("[{}] HL7 parsing error", idsMsg.getUnid(), hl7e);
                 return;
             }
 
-            // One HL7 message can give rise to multiple interchange messages (pathology orders),
+            // One HL7 message can give rise to multiple interchange messages (lab orders),
             // but failure is only expressed on a per-HL7 message basis.
             try {
                 List<? extends EmapOperationMessage> messagesFromHl7Message = messageFromHl7Message(msgFromIds, idsMsg.getUnid());
                 int subMessageCount = 0;
                 for (EmapOperationMessage msg : messagesFromHl7Message) {
                     subMessageCount++;
-                    logger.info(String.format("[%d] sending message (%d/%d) to RabbitMQ ", idsMsg.getUnid(),
-                            subMessageCount, messagesFromHl7Message.size()));
+                    logger.trace("[{}] sending message ({}/{}) to RabbitMQ",
+                            idsMsg.getUnid(), subMessageCount, messagesFromHl7Message.size());
                     Semaphore semaphore = new Semaphore(0);
-                    publisher.submit(msg, msg.getSourceMessageId(), msg.getSourceMessageId() + "_1", () -> {
-                        logger.warn("callback for " + msg.getSourceMessageId());
+                    publisher.submit(msg, msg.getSourceMessageId(), String.format("%s_1", msg.getSourceMessageId()), () -> {
+                        logger.trace("callback for {}", msg.getSourceMessageId());
                         semaphore.release();
                     });
                     semaphore.acquire();
                 }
-            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
-                String errMsg =
-                        "[" + idsMsg.getUnid() + "] Skipping due to " + e.getStackTrace() + " (" + msgFromIds.getClass() + ")";
-                logger.error(errMsg);
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException | Hl7MessageIgnoredException e) {
+                logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {
             Instant processingEnd = Instant.now();
@@ -450,45 +448,84 @@ public class IdsOperations implements AutoCloseable {
      * @param msgFromIds the HL7 message
      * @param idsUnid    the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages, can be empty if no messages should result
-     * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if the HL7 message contradicts itself
+     * @throws HL7Exception               if HAPI does
+     * @throws Hl7InconsistencyException  if the HL7 message contradicts itself
+     * @throws Hl7MessageIgnoredException if the message is a calibration/testing reading
      */
-    public static List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
-            throws HL7Exception, Hl7InconsistencyException {
+    public List<? extends EmapOperationMessage> messageFromHl7Message(Message msgFromIds, int idsUnid)
+            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         MSH msh = (MSH) msgFromIds.get("MSH");
         String messageType = msh.getMessageType().getMessageCode().getValueOrEmpty();
         String triggerEvent = msh.getMessageType().getTriggerEvent().getValueOrEmpty();
-        String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
-        logger.info(String.format("%s^%s", messageType, triggerEvent));
+        String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
+        logger.debug("{}^{}", messageType, triggerEvent);
         String sourceId = String.format("%010d", idsUnid);
-        // Parse vitalsigns
-        if (sendingFacility.equals("Vitals")) {
-            if (messageType.equals("ORU") && triggerEvent.equals("R01")) {
-                VitalSignBuilder vitalSignBuilder = new VitalSignBuilder(sourceId, (ORU_R01) msgFromIds);
-                return vitalSignBuilder.getMessages();
+
+        List<EmapOperationMessage> messages = new ArrayList<>();
+
+        switch (messageType) {
+            case "ADT":
+                if (!ALLOWED_ADT_SENDER.equals(sendingApplication)) {
+                    logger.error("Skipping {}^{} message with sendingApplication {}", messageType, triggerEvent, sendingApplication);
+                    return messages;
+                }
+                buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
+                break;
+            case "ORM":
+                if ("O01".equals(triggerEvent)) {
+                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                    // get all orders in the message
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORM_O01) msgFromIds));
+                } else {
+                    logErrorConstructingFromType(messageType, triggerEvent);
+                }
+                break;
+            case "ORR":
+                if ("O02".equals(triggerEvent)) {
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORR_O02) msgFromIds));
+                } else {
+                    logErrorConstructingFromType(messageType, triggerEvent);
+                }
+                break;
+            case "ORU":
+                if ("R01".equals(triggerEvent)) {
+                    buildAndAddAdtMessage(msgFromIds, sourceId, false, messages);
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R01) msgFromIds));
+                } else if ("R30".equals(triggerEvent)) {
+                    messages.addAll(orderAndResultService.buildMessages(sourceId, (ORU_R30) msgFromIds));
+                } else {
+                    logErrorConstructingFromType(messageType, triggerEvent);
+                }
+                break;
+            default:
+                logErrorConstructingFromType(messageType, triggerEvent);
+
+        }
+        return messages;
+    }
+
+    private void logErrorConstructingFromType(String messageType, String triggerEvent) {
+        logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+    }
+
+    /**
+     * Build an ADT interchange message from HL7 message, if successful, add this to the list of messages.
+     * @param msgFromIds    HL7 message
+     * @param sourceId      message source ID
+     * @param fromAdtStream if from ADT stream, will throw HL7 exception
+     * @param messages      interchange messages build from the single HL7 message
+     * @throws HL7Exception if HAPI does
+     */
+    private void buildAndAddAdtMessage(final Message msgFromIds, final String sourceId, final boolean fromAdtStream,
+                                       List<EmapOperationMessage> messages) throws HL7Exception {
+        try {
+            messages.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
+        } catch (Hl7MessageNotImplementedException | HL7Exception e) {
+            if (fromAdtStream && e instanceof HL7Exception) {
+                throw (HL7Exception) e;
+            } else {
+                logger.debug("Hl7Exception from non-ADT message: {}", e.getMessage());
             }
         }
-        if (messageType.equals("ADT")) {
-            List<AdtMessage> adtMsg = new ArrayList<>();
-            try {
-                AdtMessageBuilder msgBuilder = new AdtMessageBuilder(msgFromIds, sourceId);
-                adtMsg.add(msgBuilder.getAdtMessage());
-            } catch (Hl7MessageNotImplementedException e) {
-                logger.warn("Ignoring message: " + e.toString());
-            }
-            return adtMsg;
-        } else if (messageType.equals("ORU")) {
-            if (triggerEvent.equals("R01")) {
-                // get all result batteries in the message
-                return PathologyOrderBuilder.buildPathologyOrdersFromResults(sourceId, (ORU_R01) msgFromIds);
-            }
-        } else if (messageType.equals("ORM")) {
-            if (triggerEvent.equals("O01")) {
-                // get all orders in the message
-                return PathologyOrderBuilder.buildPathologyOrders(sourceId, (ORM_O01) msgFromIds);
-            }
-        }
-        logger.error(String.format("Could not construct message from unknown type %s/%s", messageType, triggerEvent));
-        return new ArrayList<>();
     }
 }

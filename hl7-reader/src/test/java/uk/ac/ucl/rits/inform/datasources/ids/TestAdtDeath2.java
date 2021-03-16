@@ -1,14 +1,14 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
-import uk.ac.ucl.rits.inform.interchange.AdtMessage;
 
 /**
  * Test an A03 with a contradictory death indicator set ("N"|"" but with a time of death set).
@@ -29,7 +29,7 @@ public class TestAdtDeath2 extends TestHl7MessageStream {
      */
     @Test
     public void testTimeOfDeath()  {
-        assertEquals(Instant.parse("2013-02-11T08:34:56.00Z"), msg.getPatientDeathDateTime());
+        assertEquals(Instant.parse("2013-02-11T08:34:56.00Z"), msg.getPatientDeathDateTime().get());
     }
 
     /**
@@ -37,6 +37,6 @@ public class TestAdtDeath2 extends TestHl7MessageStream {
      */
     @Test
     public void testIsNotDead()  {
-        assertFalse(msg.getPatientDeathIndicator());
+        assertTrue(msg.getPatientIsAlive().get());
     }
 }

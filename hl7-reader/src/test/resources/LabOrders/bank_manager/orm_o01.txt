@@ -1,0 +1,7 @@
+MSH|^~\&|||DADD||201307290941||ORM^O01|201308010041|P|2.5
+PID|1||40800000^^^^medrec~||ORANG^BLOD||19890909|F
+PV1|1||||||||||||||||||123412341234
+ORC|SC||541234
+OBR|1||541234|BLOOD^Red Cells^^Products|||201307290941|||||||||CM7^DONALD^DR.C.J.||||||201307290941|||I
+NTE|||When: 29/07/2013 12:00~Where: CC Haemobank~Units: 1 pk|ORDER_DETAILS
+NTE|||REQUESTED FOR 29/07/2013 @ 0900  Suitable for remote issue at the stated location under the current group and screen sample. Check sample suitability using BloodTrack Enquiry.|BMCOMMENT

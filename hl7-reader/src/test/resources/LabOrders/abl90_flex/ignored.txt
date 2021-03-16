@@ -1,0 +1,9 @@
+MSH|^~\&|ABL90 FLEX Plus^ED Resus|ABL90 FLEX Plus^ED Resus|||20210122105245||ORU^R30|20210122105245806|P|2.5|||AL|AL
+PID|||BLOODGAS1^^^MRENTR^MEDREC~||0^0||20210101|F
+PV1|1|||||||||||||||||||||||||||||||||||||20210122105245908
+OBR|1||12345006210113012345|UNK|||20210122104912|||||||20210122104912|Proficiency Testing^^^^^^P||||||||||F
+OBX|1|ST|pH^M||7.153|||L|||F|||20210122104912||Anonymous
+NTE|1||Value below reference range
+OBX|2|ST|pCO2^M||8.28|kPa||H|||F|||20210122104912||Anonymous
+NTE|1||Value above reference range
+OBX|3|ST|pO2^M||2.03|kPa||L|||F|||20210122104912||Anonymous

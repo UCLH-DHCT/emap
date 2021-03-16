@@ -20,5 +20,9 @@
     <property name="hibernate.hbm2ddl.auto">
       update
     </property>
+    <property name="connection.provider_class">
+      org.hibernate.c3p0.internal.C3P0ConnectionProvider
+    </property>
+    <property name="hibernate.c3p0.timeout">30</property>
   </session-factory>
 </hibernate-configuration>
