@@ -11,8 +11,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  * @author Stef Piatek
  */
 public class MessagesConfirmCallback implements RabbitTemplate.ConfirmCallback {
-    private Releasable releasable;
-    private Logger logger = LoggerFactory.getLogger(MessagesConfirmCallback.class);
+    private final Releasable releasable;
+    private final Logger logger = LoggerFactory.getLogger(MessagesConfirmCallback.class);
 
     /**
      * @param releasable Implementation of releasable
@@ -27,7 +27,7 @@ public class MessagesConfirmCallback implements RabbitTemplate.ConfirmCallback {
         if (ack) {
             releasable.finishedSending(correlationData.getId());
         } else {
-            logger.debug(String.format("Message nack received cause: %s, %s", correlationData, cause));
+            logger.debug("Message nack received cause: {}, {}", correlationData, cause);
             releasable.failedSending(correlationData.getId());
         }
     }

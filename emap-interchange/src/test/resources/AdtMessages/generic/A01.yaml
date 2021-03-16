@@ -1,26 +1,48 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
-operationType: "ADMIT_PATIENT"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient"
 recordedDateTime: "2013-02-11T10:00:52Z"
-eventReasonCode: "ADT_EVENT"
 eventOccurredDateTime: "2013-02-11T10:00:52Z"
-operatorId: "IPUC"
-admissionDateTime: "2013-02-11T10:00:52Z"
-admitSource: "Usual"
-currentBed: "BY02-17"
-currentRoomCode: "T42E BY02"
-currentWardCode: "T42E"
-dischargeDisposition: ""
-dischargeLocation: ""
-fullLocationString: "T42E^T42E BY02^BY02-17"
-hospitalService: "Anaes"
+eventReasonCode: "ADT_EVENT"
+sourceSystem: "EPIC"
 mrn: "40800000"
-patientBirthDate: "1980-01-01T00:00:00Z"
-patientClass: "I"
-patientDeathIndicator: false
-patientFamilyName: "ORANGE"
-patientFullName: "null BLOOD null ORANGE"
-patientGivenName: "BLOOD"
-patientSex: "F"
+nhsNumber: "9999999999"
 visitNumber: "123412341234"
-
-
+admissionDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-02-11T10:00:52Z"
+modeOfArrival:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Ambulance"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value: "T42E^T42E BY02^BY02-17"
+  status: "SAVE"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value: "1980-01-01T00:00:00Z"
+  status: "SAVE"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value: "INPATIENT"
+  status: "SAVE"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value: true
+  status: "SAVE"
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value: "ORANGE"
+  status: "SAVE"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value:  "BLOOD"
+  status: "SAVE"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  value: "F"
+  status: "SAVE"
+ethnicGroup:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Refused to Give"

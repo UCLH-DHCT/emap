@@ -1,0 +1,181 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    # original result
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "NUMERIC"
+      testItemLocalCode: "RDWU"
+      resultOperator: "="
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 15.7
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "15.7"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "%"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 11.5
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 15
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "H"
+      resultStatus: "FINAL"
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000002"
+  labDepartment: "H1"
+  testBatteryLocalCode: "FBC"
+  statusChangeTime: "2019-07-16T23:04:00Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "DATP"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
+      epicCareOrderNumber: "94000001"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "PER"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000001"
+  labDepartment: "H1"
+  testBatteryLocalCode: "TELH"
+  statusChangeTime: "2019-07-16T23:01:00Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    # updated result
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "NUMERIC"
+      testItemLocalCode: "RDWU"
+      # value changed
+      resultOperator: "="
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 12.7
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "12.7"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "%"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 11.5
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 15
+      # abnormalFlag changed
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "DELETE"
+        value: null
+      resultStatus: "FINAL"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "NUMERIC"
+      testItemLocalCode: "WCC"
+      resultOperator: "="
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 10.04
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "10.04"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "x10^9/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 3.0
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 10
+      abnormalFlag:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "H"
+      resultStatus: "FINAL"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "NUMERIC"
+      testItemLocalCode: "RCC"
+      resultOperator: "="
+      numericValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 4.54
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "4.54"
+      units:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "x10^12/L"
+      referenceLow:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 4.4
+      referenceHigh:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: 5.8
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000002"
+  labDepartment: "H1"
+  testBatteryLocalCode: "FBC"
+  statusChangeTime: "2019-07-16T23:05:00Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "DATP"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
+      epicCareOrderNumber: "94000001"
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "PER"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "Cancelled - Previously known abnormal result."
+  epicCareOrderNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "94000001"
+  labDepartment: "H1"
+  testBatteryLocalCode: "TELH"
+  statusChangeTime: "2019-07-16T23:01:00Z"

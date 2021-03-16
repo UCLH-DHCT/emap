@@ -1,0 +1,27 @@
+orderControlId: "RE"
+labSpecimenNumber: "333333330"
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value:  "BLD"
+mrn: "11111111110"
+visitNumber: "7878787877"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-04-21T10:13:00Z"
+collectionDateTime: "2020-04-21T08:28:00Z"
+testBatteryCodingSystem: "WIN_PATH"
+sourceSystem: "WinPath"
+parentObservationIdentifier: ""
+parentSubId: ""
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "22222222"
+labDepartment: "CC"
+testBatteryLocalCode: "LBN"
+clinicalInformation:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Pre-treatment bloods"

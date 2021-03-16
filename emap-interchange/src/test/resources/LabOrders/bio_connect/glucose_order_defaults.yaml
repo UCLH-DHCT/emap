@@ -1,0 +1,21 @@
+testBatteryLocalCode: "Glucose"
+statusChangeTime: "2013-07-25T12:59:00Z"
+labSpecimenNumber: "9876543"
+resultStatus: "F"
+mrn: "40800000"
+visitNumber: ""
+orderDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-07-25T12:59:00Z"
+sampleReceivedTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-07-25T12:59:00Z"
+collectionDateTime: "2013-07-25T12:59:00Z"
+testBatteryCodingSystem: "BIO_CONNECT"
+sourceSystem: "BIO-CONNECT"
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "BLD"

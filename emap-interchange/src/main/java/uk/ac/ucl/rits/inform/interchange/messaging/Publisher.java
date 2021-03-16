@@ -30,25 +30,25 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class Publisher implements Runnable, Releasable {
-    private RabbitTemplate rabbitTemplate;
-    private Semaphore semaphore;
+    private final RabbitTemplate rabbitTemplate;
+    private final Semaphore semaphore;
     private final BlockingQueue<MessageBatch<? extends EmapOperationMessage>> blockingQueue;
-    private Map<String, EmapOperationMessage> waitingMap;
-    private Map<String, ImmutablePair<Integer, Runnable>> batchWaitingMap;
-    private ScheduledThreadPoolExecutor executorService;
+    private final Map<String, EmapOperationMessage> waitingMap;
+    private final Map<String, ImmutablePair<Integer, Runnable>> batchWaitingMap;
+    private final ScheduledThreadPoolExecutor executorService;
     private final int maxInTransit;
     private volatile boolean failedSend = false;
-    private int initialDelay;
+    private final int initialDelay;
     private int currentDelay;
     private int countMessagesAtCurrentDelay = 0;
-    private int delayMultiplier = 2;
+    private final int delayMultiplier = 2;
     private @Value("${rabbitmq.retry.delay.maximum:600}")
     int maximumDelay;
-    private Thread mainThread;
+    private final Thread mainThread;
     private volatile boolean isFinished;
 
 
-    private Logger logger = LoggerFactory.getLogger(Publisher.class);
+    private final Logger logger = LoggerFactory.getLogger(Publisher.class);
 
     @Autowired
     private EmapDataSource getEmapDataSource;
@@ -121,7 +121,7 @@ public class Publisher implements Runnable, Releasable {
         // If queue is full for longer than the scan for new messages, then the progress would not have been updated
         // so check ensure that we're not adding a duplicate batchId of one in progress or a waiting batch
         if (batchWaitingMap.containsKey(batchId) | blockingQueue.contains(submitBatch)) {
-            logger.warn(String.format("Queue with a batchId of %s already exists", batchId));
+            logger.error("Queue with a batchId of {} already exists", batchId);
             return;
         }
         try {
@@ -130,7 +130,7 @@ public class Publisher implements Runnable, Releasable {
             logger.error("Waiting to submit a batch was interrupted", e);
             throw e;
         }
-        logger.info(String.format("BatchId %s with %s messages was submitted to Publisher batches", batchId, batch.size()));
+        logger.trace("BatchId {} with {} messages was submitted to Publisher batches", batchId, batch.size());
     }
 
     /**
@@ -154,7 +154,7 @@ public class Publisher implements Runnable, Releasable {
      * @throws InterruptedException if thread is interrupted while waiting to acquire semaphore
      */
     private void publish(EmapOperationMessage message, String correlationId, String batchId) throws InterruptedException {
-        logger.debug("Sending message to RabbitMQ");
+        logger.trace("Sending message to RabbitMQ");
 
         CorrelationData correlationData = new CorrelationData(correlationId + ":" + batchId);
         try {
@@ -231,7 +231,7 @@ public class Publisher implements Runnable, Releasable {
                 batchWaitingMap.put(ids[1], new ImmutablePair<>(countOfWaitingMessages, batchState.getRight()));
             }
         }
-        logger.debug(String.format("Sent message with correlationId: %s", correlationId));
+        logger.debug("Sent message with correlationId: {}", correlationId);
 
     }
 
@@ -261,8 +261,8 @@ public class Publisher implements Runnable, Releasable {
             @Override
             public void run() {
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
-                logger.info(String.format("Failed message (correlationData %s) was resent after a delay of %s seconds",
-                        correlationData, currentDelay));
+                logger.info("Failed message (correlationData {}) was resent after a delay of {} seconds",
+                        correlationData, currentDelay);
             }
         }, currentDelay, TimeUnit.SECONDS);
 

@@ -1,23 +1,34 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
-operationType: "UPDATE_PATIENT_INFO"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo"
 recordedDateTime: "2013-02-11T10:00:52Z"
 eventReasonCode: "ADT_EVENT"
-operatorId: "IPUC"
-admissionDateTime: "2013-02-11T10:00:52Z"
-admitSource: "Usual"
-currentBed: "BY02-17"
-currentRoomCode: "T11E BY02"
-currentWardCode: "T11E"
-dischargeDisposition: ""
-dischargeLocation: ""
-fullLocationString: "T11E^T11E BY02^BY02-17"
-hospitalService: "Anaes"
+sourceSystem: "EPIC"
 mrn: "40800000"
-patientBirthDate: "1989-09-08T23:00:00Z"
-patientClass: "I"
-patientDeathIndicator: false
-patientFamilyName: "ORANG"
-patientFullName: "null BLOD null ORANG"
-patientGivenName: "BLOD"
-patientSex: "F"
 visitNumber: "123412341234"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "T11E^T11E BY02^BY02-17"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "1989-09-09T00:00:00Z"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "INPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "ORANG"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "BLOD"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "F"

@@ -1,14 +1,31 @@
-"@class": "uk.ac.ucl.rits.inform.interchange.AdtMessage"
-operationType: "MERGE_BY_ID"
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.MergePatient"
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "EPT_MERGE"
-operatorId: "U444444"
+previousMrn: "40800000"
+sourceSystem: "EPIC"
 mrn: "40800001"
-mergedPatientId: "40800000"
-patientBirthDate: "1999-09-08T23:00:00Z"
-patientDeathIndicator: false
-patientFamilyName: "TEST-CHU"
-patientFullName: "MR Opcancel null TEST-CHU"
-patientGivenName: "Opcancel"
-patientSex: "M"
-patientTitle: "MR"
+nhsNumber: "9999999999"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "1999-09-09T02:00:00Z"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "TEST-CHU"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Opcancel"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "M"
+patientTitle:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "MR"

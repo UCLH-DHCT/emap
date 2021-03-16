@@ -1,0 +1,31 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers"
+recordedDateTime: "2012-07-17T14:25:00Z"
+eventReasonCode: "PATIENT_CHANGE_ID"
+previousMrn: "40800000"
+sourceSystem: "EPIC"
+mrn: "40800001"
+nhsNumber: "9999999999"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "1999-09-09T02:00:00Z"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "TEST-CHU"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Opcancel"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "M"
+patientTitle:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "MR"

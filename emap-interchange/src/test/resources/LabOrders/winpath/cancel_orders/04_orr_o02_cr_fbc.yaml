@@ -1,0 +1,11 @@
+testBatteryLocalCode: "FBC"
+statusChangeTime: "2013-07-29T08:46:12Z"
+orderControlId: "CR"
+collectionDateTime: "2013-07-28T07:27:00Z"
+sourceSystem: "Not in Message"
+labDepartment: "Lab"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "DELETE"
+  value: "91393666"
+visitNumber: ""
