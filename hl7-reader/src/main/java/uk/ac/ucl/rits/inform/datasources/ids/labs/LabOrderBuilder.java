@@ -31,7 +31,7 @@ abstract class LabOrderBuilder {
     private final Collection<String> allowedOcIds;
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
-    private OrderCodingSystem codingSystem;
+    private final OrderCodingSystem codingSystem;
 
     private final LabOrderMsg msg = new LabOrderMsg();
 
@@ -49,6 +49,13 @@ abstract class LabOrderBuilder {
      */
     public LabOrderMsg getMsg() {
         return msg;
+    }
+
+    /**
+     * @return order coding system.
+     */
+    OrderCodingSystem getCodingSystem() {
+        return codingSystem;
     }
 
     /**

@@ -33,6 +33,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,15 +70,22 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    private CoPathLabBuilder(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc, List<NTE> notes)
+    private CoPathLabBuilder(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc, Iterable<NTE> notes)
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.CO_PATH);
+        setOrderInformation(subMessageSourceId, patientHl7, obr, orc, notes);
+    }
+
+    private void setOrderInformation(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc, Iterable<NTE> notes)
+            throws HL7Exception, Hl7InconsistencyException {
         setBatteryCodingSystem();
         setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
         setQuestions(notes);
         populateObrFields(obr);
         populateOrderInformation(orc, obr);
         setEpicOrderNumberFromORC();
+        // battery can change throughout messages, but only one specimen number per request so using the coding system name as a dummy battery
+        getMsg().setTestBatteryLocalCode(getCodingSystem().name());
     }
 
     private void setQuestions(Iterable<NTE> notes) {
@@ -120,13 +128,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             List<NTE> questionAnswers, PatientInfoHl7 patientHl7)
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.CO_PATH);
-        setBatteryCodingSystem();
-        setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
-        setQuestions(questionAnswers);
         OBR obr = obs.getOBR();
-        populateObrFields(obr);
-        populateOrderInformation(obs.getORC(), obr);
-        setEpicOrderNumberFromORC();
+        setOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC(), Collections.emptyList());
 
         Map<String, List<OBX>> obxByType = obs.getOBSERVATIONAll().stream()
                 .map(ORU_R01_OBSERVATION::getOBX)
@@ -146,8 +149,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build order from ORM O01.
-     * @param idsUnid      unique Id from the IDS
-     * @param ormO01       message
+     * @param idsUnid unique Id from the IDS
+     * @param ormO01  message
      * @return interchange messages
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contains errors
@@ -178,8 +181,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build lab order messages from ORR O02.
-     * @param idsUnid      unique Id from the IDS
-     * @param msg          hl7 message
+     * @param idsUnid unique Id from the IDS
+     * @param msg     hl7 message
      * @return interchange messages
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contains errors
@@ -208,8 +211,8 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build order with results from ORU R01.
-     * @param idsUnid      unique Id from the IDS
-     * @param oruR01       hl7 message
+     * @param idsUnid unique Id from the IDS
+     * @param oruR01  hl7 message
      * @return interchange messages
      * @throws HL7Exception               if HAPI does
      * @throws Hl7InconsistencyException  if the HL7 message contains errors

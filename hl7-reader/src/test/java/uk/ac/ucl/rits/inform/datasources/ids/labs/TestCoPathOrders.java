@@ -31,7 +31,6 @@ class TestCoPathOrders {
     private static final String FILE_TEMPLATE = "LabOrders/co_path/%s.txt";
     private String epicOrder = "12121212";
     private String labOrder = "UH20-4444";
-    private String batteryCode = "UC";
     private Instant collectionTime = Instant.parse("2013-07-28T23:20:00Z");
 
     @Test
@@ -73,7 +72,7 @@ class TestCoPathOrders {
         assertEquals("Not in Message", order.getSourceSystem());
         assertEquals(InterchangeValue.buildFromHl7("PLF"), order.getSpecimenType());
         assertEquals("Path,Cyt", order.getLabDepartment());
-        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertFalse(order.getQuestions().isEmpty());
         Pair<String, String> questionAndAnswer = order.getQuestions().get(0);
@@ -105,7 +104,7 @@ class TestCoPathOrders {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
-        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertEquals("CM", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
@@ -139,7 +138,7 @@ class TestCoPathOrders {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
-        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertEquals("IP", order.getOrderStatus());
         assertEquals("I", order.getResultStatus());
@@ -170,7 +169,7 @@ class TestCoPathOrders {
     void testOrrO02NAOrderInfo() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
         assertEquals("Not in Message", order.getSourceSystem());
-        assertEquals(batteryCode, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
         assertEquals("Path,Cyt", order.getLabDepartment());
 
