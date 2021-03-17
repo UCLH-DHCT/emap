@@ -14,10 +14,12 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
@@ -295,6 +297,23 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
         builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
         assertListOfMessagesEqual(expectedOrders, builtMessages);
+    }
+
+    @Test
+    void testCoPathQuestions() throws Exception {
+        String hl7PathTemplate = "LabOrders/co_path/%s.txt";
+        String interchangePathTemplate = "co_path/%s.yaml";
+        String orderFile = "orm_o01_questions";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+        String interchangePath = String.format(interchangePathTemplate,orderFile);
+
+        EmapOperationMessage builtMessage = processSingleMessage(String.format(hl7PathTemplate, orderFile))
+                .stream()
+                .filter(msg -> !(msg instanceof ImpliedAdtMessage))
+                .findFirst().orElseThrow();
+        LabOrderMsg expectedMessage = interchangeFactory.buildLabOrderOverridingDefaults(interchangeDefaults, interchangePath);
+
+        assertEquals(builtMessage, expectedMessage);
     }
 
     @Test
