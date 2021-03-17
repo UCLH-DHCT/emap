@@ -31,11 +31,17 @@ abstract class LabOrderBuilder {
     private final Collection<String> allowedOcIds;
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
+    private OrderCodingSystem codingSystem;
 
     private final LabOrderMsg msg = new LabOrderMsg();
 
-    protected LabOrderBuilder(String[] allowedOcIds) {
+    /**
+     * @param allowedOcIds Allowed order control Ids
+     * @param codingSystem Coding system to use
+     */
+    protected LabOrderBuilder(String[] allowedOcIds, OrderCodingSystem codingSystem) {
         this.allowedOcIds = new HashSet<>(Arrays.asList(allowedOcIds));
+        this.codingSystem = codingSystem;
     }
 
     /**
@@ -105,7 +111,7 @@ abstract class LabOrderBuilder {
     }
 
 
-    void setBatteryCodingSystem(OrderCodingSystem codingSystem) {
+    void setBatteryCodingSystem() {
         msg.setTestBatteryCodingSystem(codingSystem.name());
     }
 

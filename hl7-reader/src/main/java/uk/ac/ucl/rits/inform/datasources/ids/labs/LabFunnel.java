@@ -17,7 +17,7 @@ import java.util.List;
  * Determines which Lab Order builder subclass and builder method should be called.
  * @author Stef Piatek
  */
-public class LabFunnel {
+public final class LabFunnel {
     private LabFunnel() {
     }
 
@@ -35,9 +35,9 @@ public class LabFunnel {
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {
             case WIN_PATH:
-                return WinPathLabBuilder.build(idsUnid, ormO01, codingSystem);
+                return WinPathLabBuilder.build(idsUnid, ormO01);
             case CO_PATH:
-                return CoPathLabBuilder.build(idsUnid, ormO01, codingSystem);
+                return CoPathLabBuilder.build(idsUnid, ormO01);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORM^O01 not recognised");
         }
@@ -56,7 +56,7 @@ public class LabFunnel {
     public static Collection<LabOrderMsg> buildMessages(String idsUnid, ORU_R30 oruR30, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7MessageIgnoredException, Hl7InconsistencyException {
         if (codingSystem == OrderCodingSystem.ABL90_FLEX_PLUS) {
-            return AblLabBuilder.build(idsUnid, oruR30, codingSystem);
+            return AblLabBuilder.build(idsUnid, oruR30);
         }
         throw new Hl7MessageIgnoredException("Coding system for ORU^R30 not recognised");
     }
@@ -76,13 +76,13 @@ public class LabFunnel {
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {
             case WIN_PATH:
-                return WinPathLabBuilder.build(idsUnid, oruR01, codingSystem);
+                return WinPathLabBuilder.build(idsUnid, oruR01);
             case CO_PATH:
-                return CoPathLabBuilder.build(idsUnid, oruR01, codingSystem);
+                return CoPathLabBuilder.build(idsUnid, oruR01);
             case BANK_MANAGER:
                 throw new Hl7MessageIgnoredException("Bank Manager lab results not implemented for now");
             case BIO_CONNECT:
-                return BioConnectLabBuilder.build(idsUnid, oruR01, codingSystem);
+                return BioConnectLabBuilder.build(idsUnid, oruR01);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORU^R01 not recognised");
         }
@@ -92,9 +92,9 @@ public class LabFunnel {
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {
             case WIN_PATH:
-                return WinPathLabBuilder.build(idsUnid, msg, codingSystem);
+                return WinPathLabBuilder.build(idsUnid, msg);
             case CO_PATH:
-                return CoPathLabBuilder.build(idsUnid, msg, codingSystem);
+                return CoPathLabBuilder.build(idsUnid, msg);
             default:
                 throw new Hl7MessageIgnoredException("Coding system for ORR^O02 not recognised");
         }

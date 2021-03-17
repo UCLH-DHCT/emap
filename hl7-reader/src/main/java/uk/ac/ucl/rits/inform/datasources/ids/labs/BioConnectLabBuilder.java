@@ -34,14 +34,13 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
      * @param idsUnid        unique Id from the IDS
      * @param msh            MSG segment
      * @param patientResults patient results from HL7 message
-     * @param codingSystem   coding system
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if hl7 message is malformed
      */
-    private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults, OrderCodingSystem codingSystem)
+    private BioConnectLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults)
             throws HL7Exception, Hl7InconsistencyException {
-        super(new String[]{"NW"});
-        setBatteryCodingSystem(codingSystem);
+        super(new String[]{"NW"}, OrderCodingSystem.BIO_CONNECT);
+        setBatteryCodingSystem();
 
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
         if (obs.getOBSERVATIONReps() > 1) {
@@ -75,12 +74,11 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
      * Build Lab Order from BIO-CONNECT point of care device.
      * @param idsUnid      unique Id from the IDS
      * @param oruR01       the HL7 message
-     * @param codingSystem coding system to be used
      * @return a list of LabOrder messages built from the results message
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if hl7 message is malformed
      */
-    public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01, OrderCodingSystem codingSystem)
+    public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
         MSH msh = (MSH) oruR01.get("MSH");
@@ -88,7 +86,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
             throw new Hl7InconsistencyException("BIO-CONNECT messages should only have one order");
         }
         List<LabOrderMsg> orders = new ArrayList<>(1);
-        LabOrderBuilder labOrderBuilder = new BioConnectLabBuilder(idsUnid, msh, patientResults, codingSystem);
+        LabOrderBuilder labOrderBuilder = new BioConnectLabBuilder(idsUnid, msh, patientResults);
         labOrderBuilder.addMsgIfAllowedOcId(orders);
         return orders;
 
