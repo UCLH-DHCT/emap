@@ -69,7 +69,10 @@ public class QuestionController {
                         }
                 );
         LabOrderQuestion labOrderQuestion = questionState.getEntity();
-        questionState.assignIfDifferent(answer, labOrderQuestion.getAnswer(), labOrderQuestion::setAnswer);
+
+        if (questionState.isEntityCreated() || validFrom.isAfter(labOrderQuestion.getValidFrom())) {
+            questionState.assignIfDifferent(answer, labOrderQuestion.getAnswer(), labOrderQuestion::setAnswer);
+        }
         questionState.saveEntityOrAuditLogIfRequired(labOrderQuestionRepo, labOrderQuestionAuditRepo);
     }
 

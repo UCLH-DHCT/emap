@@ -17,4 +17,11 @@ public interface LabOrderQuestionRepository extends CrudRepository<LabOrderQuest
     Optional<LabOrderQuestion> findByLabOrderIdAndQuestionId(LabOrder labOrder, Question question);
 
     List<LabOrderQuestion> findAllByLabOrderIdAndValidFromIsBefore(LabOrder labOrder, Instant deleteTime);
+
+    /**
+     * For testing.
+     * @param question question string
+     * @return possible lab order question
+     */
+    Optional<LabOrderQuestion> findByQuestionIdQuestion(String question);
 }
