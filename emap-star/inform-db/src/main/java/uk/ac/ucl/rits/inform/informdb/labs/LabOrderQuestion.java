@@ -46,9 +46,11 @@ public class LabOrderQuestion extends TemporalCore<LabOrderQuestion, LabOrderQue
 
     public LabOrderQuestion() {}
 
-    public LabOrderQuestion(LabOrder labOrderId, Question questionId) {
+    public LabOrderQuestion(LabOrder labOrderId, Question questionId, Instant validFrom, Instant storedFrom) {
         this.labOrderId = labOrderId;
         this.questionId = questionId;
+        setStoredFrom(storedFrom);
+        setValidFrom(validFrom);
     }
 
     public LabOrderQuestion(LabOrderQuestion other) {
@@ -57,6 +59,7 @@ public class LabOrderQuestion extends TemporalCore<LabOrderQuestion, LabOrderQue
         this.questionId = other.questionId;
         this.answer = other.answer;
     }
+
 
     @Override
     public LabOrderQuestion copy() {
