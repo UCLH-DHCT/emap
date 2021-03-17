@@ -19,7 +19,7 @@ import ca.uhn.hl7v2.model.v26.segment.OBX;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
@@ -99,15 +99,22 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
                 String question = parts[0];
                 // allow for separator to be in the answer
                 String answer = String.join(QUESTION_SEPARATOR, Arrays.copyOfRange(parts, 1, (parts.length)));
-                getMsg().getQuestions().add(new ImmutablePair<>(question, answer));
+                getMsg().getQuestions().add(new MutablePair<>(question, answer));
             }
         }
     }
 
     private void setEpicOrderNumberFromORC() {
+        String orcNumber = getEpicCareOrderNumberOrc();
         // COPATHPLUS ORU R01 has the internal lab number in all fields, so don't add the epic care order number when they are the same
-        if (!getEpicCareOrderNumberOrc().equals(getMsg().getLabSpecimenNumber())) {
-            getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(getEpicCareOrderNumberOrc()));
+        if (orcNumber.equals(getMsg().getLabSpecimenNumber())) {
+            return;
+        }
+
+        if (CANCEL_OC_IDS.contains(getMsg().getOrderControlId())) {
+            getMsg().setEpicCareOrderNumber(InterchangeValue.deleteFromValue(orcNumber));
+        } else {
+            getMsg().setEpicCareOrderNumber(InterchangeValue.buildFromHl7(orcNumber));
         }
     }
 

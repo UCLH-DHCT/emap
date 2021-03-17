@@ -275,6 +275,29 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testCoPathCancelOrders() throws Exception {
+        String hl7PathTemplate = "LabOrders/co_path/cancel/%s.txt";
+        String interchangePathTemplate = "co_path/cancel/%s.yaml";
+        String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
+
+        List<EmapOperationMessage> builtMessages = new ArrayList<>();
+        List<LabOrderMsg> expectedOrders = new ArrayList<>();
+        // build up order messages
+        String[] orderFiles = {"01_orm_o01_nw", "02_orm_o01_ca", "03_orr_o02_cr", "04_orm_o01_sc"};
+        for (String orderFile : orderFiles) {
+            builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, orderFile)));
+            expectedOrders.add(interchangeFactory.buildLabOrderOverridingDefaults(
+                    interchangeDefaults, String.format(interchangePathTemplate, orderFile)));
+        }
+        // add in final result
+        builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "05_oru_r01")));
+        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "05_oru_r01"), "0000000042"));
+
+        builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
+        assertListOfMessagesEqual(expectedOrders, builtMessages);
+    }
+
+    @Test
     public void testPOCLabABL() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("LabOrders/abl90_flex/venous.txt");
         List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("abl90_flex/venous.yaml", "0000000042");
