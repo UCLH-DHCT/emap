@@ -65,6 +65,11 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
      * E.g. Right kidney
      */
     private String sampleSite;
+    /**
+     * Method of collection
+     * E.g. Bone marrow trephine biopsy
+     */
+    private String collectionMethod;
 
     public LabSample() {}
 
