@@ -26,6 +26,9 @@ public class Question  implements Serializable {
     @Column(columnDefinition = "text")
     private String question;
 
+    public Question() {
+    }
+
     public Question(String question) {
         this.question = question;
     }
