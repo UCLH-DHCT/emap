@@ -1,7 +1,7 @@
 labSpecimenNumber: "UR20-4444"
 orderStatus: "CM"
 orderControlId: "RE"
-testBatteryLocalCode: "H"
+testBatteryLocalCode: "CO_PATH"
 sourceSystem: "CoPath"
 mrn: "40800000"
 visitNumber: ""
