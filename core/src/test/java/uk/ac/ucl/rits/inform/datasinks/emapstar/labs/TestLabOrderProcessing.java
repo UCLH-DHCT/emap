@@ -228,11 +228,13 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         // set relevant values
         String sampleType = "Tissue";
         String sampleSite = "Right Kidney";
+        String collectionMethod = "Huge needle";
         Instant collectTime = Instant.parse("2013-07-24T15:41:00Z");
 
         LabOrderMsg msg = singleResult;
         msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
         msg.setSampleSite(InterchangeValue.buildFromHl7(sampleSite));
+        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethod));
         msg.setCollectionDateTime(collectTime);
         msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(collectTime));
         //process message
@@ -242,6 +244,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         assertEquals(defaultMrn, labSample.getMrnId().getMrn());
         assertEquals(sampleType, labSample.getSpecimenType());
         assertEquals(sampleSite, labSample.getSampleSite());
+        assertEquals(collectionMethod, labSample.getCollectionMethod());
         assertEquals(collectTime, labSample.getSampleCollectionTime());
         assertEquals(collectTime, labSample.getReceiptAtLab());
     }

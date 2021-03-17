@@ -140,6 +140,7 @@ public class LabOrderController {
             }
             state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
             state.assignInterchangeValue(msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
+            state.assignInterchangeValue(msg.getCollectionMethod(), labSample.getCollectionMethod(), labSample::setCollectionMethod);
         }
 
         state.saveEntityOrAuditLogIfRequired(labSampleRepo, labSampleAuditRepo);
