@@ -179,4 +179,48 @@ class TestCoPathOrders {
         assertTrue(order.getSpecimenType().isUnknown());
     }
 
+
+
+    /**
+     * Cancel order request should have the epic lab number as a delete and the battery code information to be able to delete.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOrmO01CaDeletes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_ca");
+        InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
+        assertTrue(epicOrderInterchangeValue.isDelete());
+        assertEquals(epicOrder, epicOrderInterchangeValue.get());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
+    }
+
+    /**
+     * Cancel order request should have the epic lab number as a delete and the battery code information to be able to delete.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOrmO01OcDeletes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_oc");
+        InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
+        assertTrue(epicOrderInterchangeValue.isDelete());
+        assertEquals(epicOrder, epicOrderInterchangeValue.get());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
+    }
+
+
+    /**
+     * Cancel order request should have the epic lab number as a delete and the battery code information to be able to delete.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOrrO02CrDeletes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_cr");
+        InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
+        assertTrue(epicOrderInterchangeValue.isDelete());
+        assertEquals(epicOrder, epicOrderInterchangeValue.get());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
+    }
 }
