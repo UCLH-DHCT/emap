@@ -2,10 +2,6 @@ statusChangeTime: "2020-05-22T11:10:00Z"
 orderControlId: "NA"
 sourceSystem: "Not in Message"
 labDepartment: "Path,Cyt"
-epicCareOrderNumber:
-  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-  status: "SAVE"
-  value: "12121212"
 visitNumber: ""
 specimenType:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
