@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepo
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
@@ -55,6 +56,8 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     LabIsolateRepository labIsolateRepository;
     @Autowired
     LabSensitivityRepository labSensitivityRepository;
+    @Autowired
+    LabOrderQuestionRepository labOrderQuestionRepository;
 
     private List<String> duplicateAt(String[] strings, int duplicateIndex) {
         List<String> output = new ArrayList<>(List.of(strings));
@@ -185,9 +188,6 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals("12121212", labOrder.getInternalLabNumber()); // from 01 SN
         assertEquals("20S123234221", labOrder.getHospitalVisitId().getEncounter()); // from 01 SN
         assertEquals(Instant.parse("2020-05-22T11:10:00Z"), labOrder.getRequestDatetime()); // 03 NA
-
-        List<LabOrderQuestion> questions = new ArrayList<>(); //TODO
-//        assertEquals(3, questions.size());
     }
 
     @TestFactory
@@ -228,6 +228,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals("12121212", remainingOrder.getInternalLabNumber()); // from 04 SC onwards
         assertEquals("123234221", remainingOrder.getHospitalVisitId().getEncounter()); // from 03 SN
         assertEquals(Instant.parse("2020-11-09T15:03:00Z"), remainingOrder.getRequestDatetime()); // from 01 NW
+        assertEquals(3, labOrderQuestionRepository.count());
     }
 
 

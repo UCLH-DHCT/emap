@@ -42,17 +42,19 @@ public class LabOrderController {
     private final LabSampleAuditRepository labSampleAuditRepo;
     private final LabOrderRepository labOrderRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
+    private final QuestionController questionController;
 
 
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
-            LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo
-    ) {
+            LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo,
+            QuestionController questionController) {
         this.labBatteryRepo = labBatteryRepo;
         this.labSampleRepo = labSampleRepo;
         this.labSampleAuditRepo = labSampleAuditRepo;
         this.labOrderRepo = labOrderRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
+        this.questionController = questionController;
     }
 
 
@@ -74,7 +76,7 @@ public class LabOrderController {
     }
 
     /**
-     * Process lab number and lab labSample information, returning the lab number.
+     * Process lab number and lab labSample information, (including questions) returning the lab number.
      * @param mrn        MRN entity
      * @param visit      hospital visit entity
      * @param battery    Lab battery entity
@@ -87,11 +89,13 @@ public class LabOrderController {
      * @throws RequiredDataMissingException       Message doesn't have order date time or epic lab order number
      */
     @Transactional
-    public LabOrder processLabSampleAndLabOrder(
+    public LabOrder processSampleAndOrderInformation(
             Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
     ) throws IncompatibleDatabaseStateException, MessageCancelledException, RequiredDataMissingException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
+        LabOrder labOrder = updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
+        msg.getQuestions().forEach(questionPair -> questionController.processLabOrderQuestion(questionPair, labOrder, validFrom, storedFrom));
+        return labOrder;
     }
 
     /**
@@ -193,7 +197,7 @@ public class LabOrderController {
 
         if (orderState.isEntityCreated()
                 && labOrderAuditRepo.previouslyDeleted(
-                        battery.getLabBatteryId(), labSample.getLabSampleId(), msg.getOrderDateTime(), msg.getEpicCareOrderNumber())) {
+                battery.getLabBatteryId(), labSample.getLabSampleId(), msg.getOrderDateTime(), msg.getEpicCareOrderNumber())) {
             throw new MessageCancelledException("Message previously cancelled");
         }
 
@@ -252,6 +256,7 @@ public class LabOrderController {
                 logger.warn("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
                 return;
             }
+            questionController.deleteAllLabQuestions(labOrder, validFrom, storedFrom);
         } else {
             // build a lab order to create an audit row without saving the original lab order
             RowState<LabOrder, LabOrderAudit> orderState = createLabOrder(battery, labSample, validFrom, storedFrom);
