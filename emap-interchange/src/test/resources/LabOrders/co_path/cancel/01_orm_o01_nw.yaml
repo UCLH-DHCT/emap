@@ -1,0 +1,19 @@
+labDepartment: "Path,Cyt"
+statusChangeTime: "2020-11-09T15:04:45Z"
+orderControlId: "NW"
+sourceSystem: "Not in Message"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-11-09T15:03:00Z"
+orderDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-11-09T15:04:45Z"
+questions:
+  - left: "How many labels to print?"
+    right: "2"
+  - left: "Clinical Details:"
+    right: "aml relapse"
+  - left: "Is this the patient's first biopsy on the cancer pathway?"
+    right: "No"

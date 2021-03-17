@@ -1,0 +1,26 @@
+statusChangeTime: "2020-11-17T15:44:00Z"
+orderControlId: "SC"
+sourceSystem: "CoPath"
+labDepartment: "H"
+orderStatus: "CM"
+resultStatus: "I"
+collectionMethod:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "Bone marrow trephine biopsy//24604"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "12121212"
+sampleReceivedTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2020-11-11T12:53:00Z"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
