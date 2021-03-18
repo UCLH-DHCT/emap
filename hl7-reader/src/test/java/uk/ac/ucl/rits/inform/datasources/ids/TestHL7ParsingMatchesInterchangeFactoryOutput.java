@@ -247,7 +247,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         }
         // add in final result
         builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "06_oru_r01_fbcc")));
-        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "06_oru_r01_fbcc"), "0000000042"));
+        expectedOrders.add(interchangeFactory.getLabOrder(String.format(interchangePathTemplate, "06_oru_r01_fbcc")));
 
         builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
         assertListOfMessagesEqual(expectedOrders, builtMessages);
@@ -270,7 +270,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         }
         // add in final result
         builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "04_oru_r01")));
-        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "04_oru_r01"), "0000000042"));
+        expectedOrders.add(interchangeFactory.getLabOrder(String.format(interchangePathTemplate, "04_oru_r01")));
 
         builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
         assertLabOrdersWithValueAsBytesEqual(expectedOrders, builtMessages);
@@ -293,7 +293,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         }
         // add in final result
         builtMessages.addAll(processSingleMessage(String.format(hl7PathTemplate, "05_oru_r01")));
-        expectedOrders.addAll(interchangeFactory.getLabOrders(String.format(interchangePathTemplate, "05_oru_r01"), "0000000042"));
+        expectedOrders.add(interchangeFactory.getLabOrder(String.format(interchangePathTemplate, "05_oru_r01")));
 
         builtMessages = builtMessages.stream().filter(msg -> !(msg instanceof ImpliedAdtMessage)).collect(Collectors.toList());
         assertListOfMessagesEqual(expectedOrders, builtMessages);
