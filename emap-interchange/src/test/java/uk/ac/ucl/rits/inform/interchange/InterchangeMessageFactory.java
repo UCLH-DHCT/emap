@@ -75,8 +75,9 @@ public class InterchangeMessageFactory {
     }
 
     /**
-     * @param filePath
-     * @return
+     * Get lab order from single oru_r01 yaml file.
+     * @param filePath filepath from lab orders
+     * @return Lab order message
      */
     public LabOrderMsg getLabOrder(final String filePath) {
         String resourcePath = String.format("/LabOrders/%s", filePath);
