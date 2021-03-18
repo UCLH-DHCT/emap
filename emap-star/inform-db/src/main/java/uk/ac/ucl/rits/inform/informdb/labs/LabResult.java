@@ -62,6 +62,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @Column(columnDefinition = "text")
     private String valueAsText;
     private Double valueAsReal;
+    @Column(columnDefinition = "bytea")
     private byte[] valueAsBytes;
 
     /**
