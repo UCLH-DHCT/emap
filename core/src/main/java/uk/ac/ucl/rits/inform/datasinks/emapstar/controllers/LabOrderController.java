@@ -132,7 +132,9 @@ public class LabOrderController {
                 .orElseGet(() -> createLabSample(mrnId, msg.getLabSpecimenNumber(), validFrom, storedFrom));
 
         LabSample labSample = state.getEntity();
-
+        if (labSample.getSpecimenType() == null){
+            state.assignInterchangeValue(msg.getSpecimenType(), null, labSample::setSpecimenType);
+        }
         assignIfCurrentlyNullOrNewerAndDifferent(
                 state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
         // Allow for change of sample labSample time, but don't expect this to happen
@@ -229,7 +231,9 @@ public class LabOrderController {
     }
 
     private boolean epicNumberIsSaveAndDifferent(LabOrderMsg msg, LabOrder order) {
-        return msg.getEpicCareOrderNumber().isSave() && !msg.getEpicCareOrderNumber().get().equals(order.getInternalLabNumber());
+        return msg.getEpicCareOrderNumber().isSave()
+                && order.getInternalLabNumber() != null
+                && !msg.getEpicCareOrderNumber().get().equals(order.getInternalLabNumber());
     }
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(

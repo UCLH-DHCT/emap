@@ -201,7 +201,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         List<Iterable<List<String>>> duplicatedNames = new ArrayList<>();
         for (int i = 0; i < orderFiles.length; i++) {
             List<String> filesWithOneDuplicate = duplicateAt(orderFiles, i);
-            duplicatedNames.add(new ShuffleIterator<>(List.of(orderFiles)));
+            duplicatedNames.add(new ShuffleIterator<>(filesWithOneDuplicate));
         }
 
         return duplicatedNames.stream()
@@ -218,11 +218,19 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals(Instant.parse("2020-11-11T12:53:00Z"), labSample.getReceiptAtLab()); // 04 ORM SC
 
         LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("CO_PATH", labSample).orElseThrow();
-        assertNull(labOrder.getOrderDatetime()); // from 01 NW but cancelled, never added in this stream
+        if (labOrder.getOrderDatetime() != null) {
+            // from 01 NW but cancelled, never added in this stream
+            // direct in order it'll be null, otherwise should have 01 NW value
+            assertEquals(Instant.parse("2020-11-09T15:04:45Z"), labOrder.getOrderDatetime());
+        }
         assertEquals("CoPath", labOrder.getSourceSystem()); // from 04 SC onwards
         assertEquals("12121212", labOrder.getInternalLabNumber()); // from 04 SC onwards
         assertEquals("123234221", labOrder.getHospitalVisitId().getEncounter()); // from 03 SN
-        assertNull(labOrder.getRequestDatetime()); // from 01 NW but cancelled, never added in this stream
+        if (labOrder.getRequestDatetime() != null) {
+            // from 01 NW but cancelled, never added in this stream
+            // direct in order it'll be null, otherwise should have 01 NW value
+            assertEquals(Instant.parse("2020-11-09T15:03:00Z"), labOrder.getRequestDatetime());
+        }
         assertEquals(3, labSampleQuestionRepository.count());
     }
 
