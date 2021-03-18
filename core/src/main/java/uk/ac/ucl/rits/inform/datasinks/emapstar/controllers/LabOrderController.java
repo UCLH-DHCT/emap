@@ -64,7 +64,9 @@ public class LabOrderController {
         String coPathName = OrderCodingSystem.CO_PATH.name();
         Instant now = Instant.now();
         LabBattery coPathBattery = getOrCreateLabBattery(coPathName, coPathName, now, now);
-        coPathBattery.setBatteryName("CoPath does not use test batteries, all orders are filed under this battery code");
+        coPathBattery.setBatteryName(new StringBuilder(2)
+                .append("CoPath does not use test batteries, all orders are filed under this battery code. ")
+                .append("The lab test definition lab department can be used to distinguish types of requested tests").toString());
         labBatteryRepo.save(coPathBattery);
     }
 
