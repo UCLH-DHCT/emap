@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -113,6 +114,19 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         assignIfDifferent(dateTime, currentValue, setPatientClass);
     }
 
+    /**
+     * Assign new byte array value if different.
+     * Adds in arrays equal check before assigning if different.
+     * @param newValue     new value
+     * @param currentValue current value
+     * @param setter       setter lambda
+     */
+    public void assignInterchangeValue(InterchangeValue<byte[]> newValue, byte[] currentValue, Consumer<byte[]> setter) {
+        if (newValue.isUnknown() || Arrays.equals(newValue.get(), currentValue)) {
+            return;
+        }
+        assignIfDifferent(newValue.get(), currentValue, setter);
+    }
 
     /**
      * If new value is different assign from InterchangeValue to a setter taking the same type.
