@@ -74,6 +74,22 @@ public class InterchangeMessageFactory {
         return labOrderMsgs;
     }
 
+    /**
+     * @param filePath
+     * @return
+     */
+    public LabOrderMsg getLabOrder(final String filePath) {
+        String resourcePath = String.format("/LabOrders/%s", filePath);
+        LabOrderMsg orderMsg = null;
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+            orderMsg = mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return orderMsg;
+    }
+
     public List<PatientInfection> getPatientInfections(final String fileName) {
         List<PatientInfection> patientInfections = new ArrayList<>();
 

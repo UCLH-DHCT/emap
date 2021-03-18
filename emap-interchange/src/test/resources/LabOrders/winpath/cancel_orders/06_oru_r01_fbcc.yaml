@@ -1,41 +1,68 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
-  labResultMsgs:
-    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
-      mimeType: "NUMERIC"
-      testItemLocalCode: "WCC"
-      resultOperator: "="
-      numericValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: 16.98
-      stringValue:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "16.98"
-      units:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "x10^9/L"
-      referenceLow:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: 3.0
-      referenceHigh:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: 10.0
-      abnormalFlag:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "H"
-      notes:
-        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-        status: "SAVE"
-        value: "WBC adjusted for NRBC."
-  epicCareOrderNumber:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "12121212"
-  testBatteryLocalCode: "FBCC"
-  statusChangeTime: "2013-07-29T03:50:00Z"
-
+"@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+labResultMsgs:
+  - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+    mimeType: "NUMERIC"
+    testItemLocalCode: "WCC"
+    resultOperator: "="
+    numericValue:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: 16.98
+    stringValue:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: "16.98"
+    units:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: "x10^9/L"
+    referenceLow:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: 3.0
+    referenceHigh:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: 10.0
+    abnormalFlag:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: "H"
+    notes:
+      "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+      status: "SAVE"
+      value: "WBC adjusted for NRBC."
+    epicCareOrderNumber: "12121212"
+    resultTime: "2013-07-29T03:50:00Z"
+    testItemCodingSystem: "Winpath"
+    resultStatus: "FINAL"
+epicCareOrderNumber:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "12121212"
+statusChangeTime: "2013-07-29T03:50:00Z"
+testBatteryLocalCode: "FBCC"
+labSpecimenNumber: "13U444444"
+orderStatus: "CM"
+orderControlId: "RE"
+sourceSystem: "WinPath"
+mrn: "40800000"
+visitNumber: "123412341234"
+collectionDateTime: "2013-07-28T07:27:00Z"
+testBatteryCodingSystem: "WIN_PATH"
+parentObservationIdentifier: ""
+parentSubId: ""
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "BLD"
+resultStatus: "F"
+clinicalInformation:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "unwell"
+labDepartment: "CC"
+requestedDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "2013-07-29T03:24:00Z"
