@@ -93,9 +93,8 @@ public class LabOrderController {
             Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
     ) throws IncompatibleDatabaseStateException, MessageCancelledException, RequiredDataMissingException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        LabOrder labOrder = updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
-        msg.getQuestions().forEach(questionPair -> questionController.processLabOrderQuestion(questionPair, labOrder, validFrom, storedFrom));
-        return labOrder;
+        msg.getQuestions().forEach(questionPair -> questionController.processLabOrderQuestion(questionPair, labSample, validFrom, storedFrom));
+        return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 
     /**
@@ -160,16 +159,6 @@ public class LabOrderController {
         return new RowState<>(labSample, validFrom, storedFrom, true);
     }
 
-    private void assignIfCurrentlyNullOrThrowIfDifferent(
-            RowState<?, ?> state, InterchangeValue<String> msgValue, String currentValue, Consumer<String> setter
-    ) throws IncompatibleDatabaseStateException {
-        if (currentValue == null) {
-            state.assignInterchangeValue(msgValue, currentValue, setter);
-        } else if (msgValue.isSave() && !msgValue.get().equals(currentValue)) {
-            throw new IncompatibleDatabaseStateException(String.format("Current value %s different from message %s", currentValue, msgValue.get()));
-        }
-    }
-
     /**
      * Create new lab order or update existing one.
      * As temporal data can come from different sources, update each one if it is currently null, or the message is newer and has a different value.
@@ -227,7 +216,6 @@ public class LabOrderController {
                 orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, order.getValidFrom());
         assignIfCurrentlyNullOrNewerAndDifferent(
                 orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, order.getValidFrom());
-        assignIfCurrentlyNullOrThrowIfDifferent(orderState, msg.getEpicCareOrderNumber(), order.getInternalLabNumber(), order::setInternalLabNumber);
 
         // only update if newer
         if (orderState.isEntityCreated() || validFrom.isAfter(order.getValidFrom())) {
@@ -264,7 +252,6 @@ public class LabOrderController {
                 logger.warn("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
                 return;
             }
-            questionController.deleteAllLabQuestions(labOrder, validFrom, storedFrom);
         } else {
             // build a lab order to create an audit row without saving the original lab order
             RowState<LabOrder, LabOrderAudit> orderState = createLabOrder(battery, labSample, validFrom, storedFrom);

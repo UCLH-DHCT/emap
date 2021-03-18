@@ -5,9 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderQuestionRepository;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrderQuestion;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
@@ -19,15 +19,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class TestQuestionProcessing extends MessageProcessingBase {
     private LabOrderMsg labOrderMsg;
     private final String coPathTemplate = "co_path/%s.yaml";
-    private final String coPathOrderNumber = "10004000";
+    private final String coPathSampleNumber = "UH20-4444";
     private final Instant messageTime = Instant.parse("2020-11-09T15:04:45Z");
 
     @Autowired
     QuestionRepository questionRepository;
     @Autowired
-    LabOrderQuestionRepository labOrderQuestionRepository;
+    LabSampleQuestionRepository labSampleQuestionRepository;
     @Autowired
-    LabOrderQuestionAuditRepository labOrderQuestionAuditRepository;
+    LabSampleQuestionAuditRepository labSampleQuestionAuditRepository;
 
 
     @BeforeEach
@@ -46,8 +46,8 @@ class TestQuestionProcessing extends MessageProcessingBase {
     void testQuestionsAdded() throws Exception {
         processSingleMessage(labOrderMsg);
         assertEquals(3, questionRepository.count());
-        assertEquals(3, labOrderQuestionRepository.count());
-        assertEquals(0, labOrderQuestionAuditRepository.count());
+        assertEquals(3, labSampleQuestionRepository.count());
+        assertEquals(0, labSampleQuestionAuditRepository.count());
     }
 
     /**
@@ -58,8 +58,8 @@ class TestQuestionProcessing extends MessageProcessingBase {
     @Test
     void testLabOrderQuestionsAdded() throws Exception {
         processSingleMessage(labOrderMsg);
-        assertEquals(3, labOrderQuestionRepository.count());
-        assertEquals(0, labOrderQuestionAuditRepository.count());
+        assertEquals(3, labSampleQuestionRepository.count());
+        assertEquals(0, labSampleQuestionAuditRepository.count());
     }
 
     @Test
@@ -77,10 +77,10 @@ class TestQuestionProcessing extends MessageProcessingBase {
         questionAndAnswer.setValue(newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
-        assertEquals(3, labOrderQuestionRepository.count());
-        assertEquals(1, labOrderQuestionAuditRepository.count());
-        LabOrderQuestion labOrderQuestion = labOrderQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertEquals(newClinicalAnswer, labOrderQuestion.getAnswer());
+        assertEquals(3, labSampleQuestionRepository.count());
+        assertEquals(1, labSampleQuestionAuditRepository.count());
+        LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
+        assertEquals(newClinicalAnswer, labSampleQuestion.getAnswer());
     }
 
     @Test
@@ -98,20 +98,20 @@ class TestQuestionProcessing extends MessageProcessingBase {
         questionAndAnswer.setValue(newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
-        LabOrderQuestion labOrderQuestion = labOrderQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertNotEquals(newClinicalAnswer, labOrderQuestion.getAnswer());
+        LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
+        assertNotEquals(newClinicalAnswer, labSampleQuestion.getAnswer());
     }
 
     /**
      * Delete lab order given message, but lab questions don't already exist.
-     * Should not create any lab orders.
+     * Should still create lab orders
      * @throws Exception shouldn't happen
      */
     @Test
     void testLabQuestionDeleteDoesntExist() throws Exception {
-        labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathOrderNumber));
+        labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathSampleNumber));
         processSingleMessage(labOrderMsg);
-        assertEquals(0, labOrderQuestionRepository.count());
+        assertEquals(0, labSampleQuestionRepository.count());
     }
 
     /**
@@ -120,33 +120,15 @@ class TestQuestionProcessing extends MessageProcessingBase {
      * @throws Exception shouldn't happen
      */
     @Test
-    void testDeleteLabQuestion() throws Exception {
+    void testLabQuestionsNotDeleted() throws Exception {
         // process original message
         processSingleMessage(labOrderMsg);
         // process later message with delete order
-        labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathOrderNumber));
+        labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathSampleNumber));
         labOrderMsg.setStatusChangeTime(messageTime.plusSeconds(60));
         processSingleMessage(labOrderMsg);
 
-        assertEquals(0, labOrderQuestionRepository.count());
-        assertEquals(3, labOrderQuestionAuditRepository.count());
+        assertEquals(3, labSampleQuestionRepository.count());
     }
 
-    /**
-     * Create order with 3 questions,
-     * then send same order with earlier time and delete order - should not delete the questions.
-     * @throws Exception shouldn't happen
-     */
-    @Test
-    void testDeleteLabQuestionIsOlderThanDb() throws Exception {
-        // process original message
-        processSingleMessage(labOrderMsg);
-        // process earlier message with delete order
-        labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathOrderNumber));
-        labOrderMsg.setStatusChangeTime(messageTime.minusSeconds(60));
-        processSingleMessage(labOrderMsg);
-
-        assertEquals(3, labOrderQuestionRepository.count());
-        assertEquals(0, labOrderQuestionAuditRepository.count());
-    }
 }

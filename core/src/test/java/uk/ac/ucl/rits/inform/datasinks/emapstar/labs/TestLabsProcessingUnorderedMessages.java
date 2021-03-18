@@ -9,7 +9,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepo
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderQuestionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
@@ -56,7 +56,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     @Autowired
     LabSensitivityRepository labSensitivityRepository;
     @Autowired
-    LabOrderQuestionRepository labOrderQuestionRepository;
+    LabSampleQuestionRepository labSampleQuestionRepository;
 
     private List<String> duplicateAt(String[] strings, int duplicateIndex) {
         List<String> output = new ArrayList<>(List.of(strings));
@@ -223,7 +223,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertEquals("12121212", labOrder.getInternalLabNumber()); // from 04 SC onwards
         assertEquals("123234221", labOrder.getHospitalVisitId().getEncounter()); // from 03 SN
         assertNull(labOrder.getRequestDatetime()); // from 01 NW but cancelled, never added in this stream
-        assertEquals(3, labOrderQuestionRepository.count());
+        assertEquals(3, labSampleQuestionRepository.count());
     }
 
 

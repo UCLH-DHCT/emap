@@ -4,12 +4,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderQuestionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
 import uk.ac.ucl.rits.inform.informdb.Question;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrderQuestion;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrderQuestionAudit;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestionAudit;
 
 import java.time.Instant;
 
@@ -20,60 +20,45 @@ import java.time.Instant;
 @Component
 public class QuestionController {
     private final QuestionRepository questionRepo;
-    private final LabOrderQuestionRepository labOrderQuestionRepo;
-    private final LabOrderQuestionAuditRepository labOrderQuestionAuditRepo;
+    private final LabSampleQuestionRepository labSampleQuestionRepo;
+    private final LabSampleQuestionAuditRepository labSampleQuestionAuditRepo;
 
     public QuestionController(
             QuestionRepository questionRepo,
-            LabOrderQuestionRepository labOrderQuestionRepo, LabOrderQuestionAuditRepository labOrderQuestionAuditRepo) {
+            LabSampleQuestionRepository labSampleQuestionRepo, LabSampleQuestionAuditRepository labSampleQuestionAuditRepo) {
         this.questionRepo = questionRepo;
-        this.labOrderQuestionRepo = labOrderQuestionRepo;
-        this.labOrderQuestionAuditRepo = labOrderQuestionAuditRepo;
-    }
-
-    /**
-     * Delete all lab questions before deletion time.
-     * @param labOrder     lab order
-     * @param deletionTime deletion time
-     * @param storedFrom   time that star started processing the message
-     */
-    void deleteAllLabQuestions(LabOrder labOrder, Instant deletionTime, Instant storedFrom) {
-        labOrderQuestionRepo.findAllByLabOrderIdAndValidFromIsBefore(labOrder, deletionTime)
-                .forEach(question -> {
-                    LabOrderQuestionAudit audit = question.createAuditEntity(deletionTime, storedFrom);
-                    labOrderQuestionAuditRepo.save(audit);
-                    labOrderQuestionRepo.delete(question);
-                });
+        this.labSampleQuestionRepo = labSampleQuestionRepo;
+        this.labSampleQuestionAuditRepo = labSampleQuestionAuditRepo;
     }
 
     /**
      * Update or create lab order question from pair.
      * @param questionAndAnswer Pair in form {question, answer}
-     * @param labOrder          lab order entity
+     * @param labSample         Lab sample entity
      * @param validFrom         most recent change to results
      * @param storedFrom        time that star started processing the message
      */
-    void processLabOrderQuestion(Pair<String, String> questionAndAnswer, LabOrder labOrder, Instant validFrom, Instant storedFrom) {
+    void processLabOrderQuestion(Pair<String, String> questionAndAnswer, LabSample labSample, Instant validFrom, Instant storedFrom) {
         Question question = getOrCreateQuestion(questionAndAnswer.getLeft());
-        updateOrCreateLabOrderQuestion(labOrder, question, questionAndAnswer.getRight(), validFrom, storedFrom);
+        updateOrCreateLabOrderQuestion(labSample, question, questionAndAnswer.getRight(), validFrom, storedFrom);
     }
 
     private void updateOrCreateLabOrderQuestion(
-            LabOrder labOrder, Question question, String answer, Instant validFrom, Instant storedFrom) {
-        RowState<LabOrderQuestion, LabOrderQuestionAudit> questionState = labOrderQuestionRepo
-                .findByLabOrderIdAndQuestionId(labOrder, question)
+            LabSample labSample, Question question, String answer, Instant validFrom, Instant storedFrom) {
+        RowState<LabSampleQuestion, LabSampleQuestionAudit> questionState = labSampleQuestionRepo
+                .findByLabSampleIdAndQuestionId(labSample, question)
                 .map(q -> new RowState<>(q, validFrom, storedFrom, false))
                 .orElseGet(() -> {
-                            LabOrderQuestion q = new LabOrderQuestion(labOrder, question, validFrom, storedFrom);
+                            LabSampleQuestion q = new LabSampleQuestion(labSample, question, validFrom, storedFrom);
                             return new RowState<>(q, validFrom, storedFrom, true);
                         }
                 );
-        LabOrderQuestion labOrderQuestion = questionState.getEntity();
+        LabSampleQuestion labSampleQuestion = questionState.getEntity();
 
-        if (questionState.isEntityCreated() || validFrom.isAfter(labOrderQuestion.getValidFrom())) {
-            questionState.assignIfDifferent(answer, labOrderQuestion.getAnswer(), labOrderQuestion::setAnswer);
+        if (questionState.isEntityCreated() || validFrom.isAfter(labSampleQuestion.getValidFrom())) {
+            questionState.assignIfDifferent(answer, labSampleQuestion.getAnswer(), labSampleQuestion::setAnswer);
         }
-        questionState.saveEntityOrAuditLogIfRequired(labOrderQuestionRepo, labOrderQuestionAuditRepo);
+        questionState.saveEntityOrAuditLogIfRequired(labSampleQuestionRepo, labSampleQuestionAuditRepo);
     }
 
     private Question getOrCreateQuestion(String question) {
