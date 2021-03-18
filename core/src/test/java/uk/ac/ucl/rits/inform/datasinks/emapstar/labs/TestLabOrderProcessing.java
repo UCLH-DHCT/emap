@@ -264,14 +264,6 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Ensure that unchangeable fields should throw exception if changed
-     */
-    @Test
-    void testLabCollectionThrowsExceptionWhenSampleSiteChanged() {
-        assertThrows(IncompatibleDatabaseStateException.class, () -> processWithChangedSampleInformation("initial", false));
-    }
-
-    /**
      * Ensure that unknown unchangeable fields are updated
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
@@ -499,7 +491,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         cancelMsg.setLabResultMsgs(List.of());
         cancelMsg.setEpicCareOrderNumber(InterchangeValue.delete());
 
-        assertThrows(DataIntegrityViolationException.class, () -> processSingleMessage(cancelMsg));
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(cancelMsg));
     }
 
 }

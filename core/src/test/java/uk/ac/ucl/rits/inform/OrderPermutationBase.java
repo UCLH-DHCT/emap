@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -57,7 +56,7 @@ public abstract class OrderPermutationBase {
             status.setRollbackOnly();
             try {
                 runTest(fileNames);
-            } catch (MessageCancelledException | DataIntegrityViolationException allowed) {
+            } catch (MessageCancelledException allowed) {
                 return null;
             } catch (EmapOperationMessageProcessingException a) {
                 return a;
