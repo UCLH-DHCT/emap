@@ -88,7 +88,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
 
     private void checkFirstMessageLabEntityCount() {
         assertEquals(4, labTestDefinitionRepository.count(), "labTestDefinitions should have been created");
-        assertEquals(4, labBatteryElementRepository.count(), "lab battery elements type should have been created");
+        assertEquals(5, labBatteryElementRepository.count(), "lab battery elements type should have been created");
         assertEquals(4, labResultRepository.count(), "lab results should have been created");
     }
 

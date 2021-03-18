@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
@@ -22,21 +21,26 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepo
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLabOrderProcessing extends MessageProcessingBase {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -78,7 +82,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     }
 
     private void checkFirstMessageLabEntityCount() {
-        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(1, labOrderRepository.count(), "lab order should have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }
@@ -428,7 +432,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         processSingleMessage(cancelMsg);
 
-        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(0, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }
@@ -450,7 +454,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         processSingleMessage(cancelMsg);
 
-        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(0, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labOrderAuditRepository.count(), "lab audit order should have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
@@ -473,7 +477,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
 
         processSingleMessage(cancelMsg);
 
-        assertEquals(1, labBatteryRepository.count(), "lab battery should have been created");
+        assertEquals(2, labBatteryRepository.count(), "lab battery should have been created");
         assertEquals(1, labOrderRepository.count(), "lab order should not have been created");
         assertEquals(1, labSampleRepository.count(), "lab collection should have been created");
     }
@@ -493,6 +497,14 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         cancelMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(singleResult.getEpicCareOrderNumber().get()));
 
         assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(cancelMsg));
+    }
+
+    @Test
+    void testCoPathLabBatteryAddedAtStart() {
+        String coPath = OrderCodingSystem.CO_PATH.name();
+        Optional<LabBattery> coPathBattery = labBatteryRepository.findByBatteryCodeAndLabProvider(coPath, coPath);
+        assertTrue(coPathBattery.isPresent());
+        assertFalse(coPathBattery.get().getBatteryName().isEmpty());
     }
 
 }

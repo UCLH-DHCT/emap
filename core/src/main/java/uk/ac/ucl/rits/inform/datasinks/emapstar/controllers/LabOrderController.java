@@ -17,13 +17,16 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
+import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrderAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSampleAudit;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -56,6 +59,15 @@ public class LabOrderController {
         this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
+        createCoPathBattery();
+    }
+
+    private void createCoPathBattery() {
+        String coPathName = OrderCodingSystem.CO_PATH.name();
+        Instant now = Instant.now();
+        LabBattery coPathBattery = getOrCreateLabBattery(coPathName, coPathName, now, now);
+        coPathBattery.setBatteryName("CoPath does not use test batteries, all orders are filed under this battery code");
+        labBatteryRepo.save(coPathBattery);
     }
 
 
