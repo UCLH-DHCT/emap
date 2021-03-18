@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledExcep
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabOrderRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -40,18 +41,20 @@ public class LabOrderController {
     private final LabSampleRepository labSampleRepo;
     private final LabSampleAuditRepository labSampleAuditRepo;
     private final LabOrderRepository labOrderRepo;
+    private final LabResultRepository labResultRepo;
     private final LabOrderAuditRepository labOrderAuditRepo;
     private final QuestionController questionController;
 
 
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
-            LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabOrderAuditRepository labOrderAuditRepo,
-            QuestionController questionController) {
+            LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabResultRepository labResultRepo,
+            LabOrderAuditRepository labOrderAuditRepo, QuestionController questionController) {
         this.labBatteryRepo = labBatteryRepo;
         this.labSampleRepo = labSampleRepo;
         this.labSampleAuditRepo = labSampleAuditRepo;
         this.labOrderRepo = labOrderRepo;
+        this.labResultRepo = labResultRepo;
         this.labOrderAuditRepo = labOrderAuditRepo;
         this.questionController = questionController;
     }
@@ -108,11 +111,7 @@ public class LabOrderController {
             Mrn mrn, LabBattery battery, HospitalVisit visit, LabOrderMsg msg, Instant validFrom, Instant storedFrom
     ) throws IncompatibleDatabaseStateException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        try {
-            deleteLabOrderIfExistsAndNewer(visit, battery, labSample, msg, validFrom, storedFrom);
-        } catch (DataIntegrityViolationException e) {
-            throw new IncompatibleDatabaseStateException("Delete message for order that already has results, not deleting");
-        }
+        deleteLabOrderIfExistsAndNewer(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 
     /**
@@ -134,7 +133,7 @@ public class LabOrderController {
         assignIfCurrentlyNullOrNewerAndDifferent(
                 state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType, validFrom, labSample.getValidFrom());
         assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSpecimenType, validFrom, labSample.getValidFrom());
+                state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite, validFrom, labSample.getValidFrom());
         assignIfCurrentlyNullOrNewerAndDifferent(
                 state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
         // Allow for change of sample labSample time, but don't expect this to happen
@@ -143,9 +142,7 @@ public class LabOrderController {
                 logger.warn("Not expecting Sample Collection time to change");
             }
             state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
-            state.assignInterchangeValue(msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
             state.assignInterchangeValue(msg.getCollectionMethod(), labSample.getCollectionMethod(), labSample::setCollectionMethod);
-            state.assignInterchangeValue(msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
         }
 
         state.saveEntityOrAuditLogIfRequired(labSampleRepo, labSampleAuditRepo);
@@ -255,18 +252,17 @@ public class LabOrderController {
      * @param msg        order message
      * @param validFrom  most recent change to results
      * @param storedFrom time that star encountered the message
-     * @throws DataIntegrityViolationException if order already has results
+     * @throws IncompatibleDatabaseStateException if order already has results and a delete is attempted
      */
     private void deleteLabOrderIfExistsAndNewer(
             HospitalVisit visit, LabBattery battery, LabSample labSample, LabOrderMsg msg, Instant validFrom, Instant storedFrom)
-            throws DataIntegrityViolationException {
+            throws IncompatibleDatabaseStateException {
         Optional<LabOrder> possibleLabOrder = labOrderRepo.findByLabBatteryIdAndLabSampleIdAndValidFromBefore(battery, labSample, validFrom);
         LabOrder labOrder;
         if (possibleLabOrder.isPresent()) {
             labOrder = possibleLabOrder.get();
-            if (labOrder.getValidFrom().isAfter(validFrom)) {
-                logger.warn("Cancel message validFrom is not after the lab order's valid from, not deleting the lab order");
-                return;
+            if (labResultRepo.existsByLabOrderId(labOrder)) {
+                throw new IncompatibleDatabaseStateException("Delete message for order that already has results, not deleting");
             }
         } else {
             // build a lab order to create an audit row without saving the original lab order

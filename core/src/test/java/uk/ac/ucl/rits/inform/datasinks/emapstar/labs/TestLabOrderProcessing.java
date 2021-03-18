@@ -489,7 +489,8 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         LabOrderMsg cancelMsg = singleResult;
         // no results and delete epic care order number
         cancelMsg.setLabResultMsgs(List.of());
-        cancelMsg.setEpicCareOrderNumber(InterchangeValue.delete());
+        cancelMsg.setStatusChangeTime(singleResult.getStatusChangeTime().plusSeconds(60));
+        cancelMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(singleResult.getEpicCareOrderNumber().get()));
 
         assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(cancelMsg));
     }
