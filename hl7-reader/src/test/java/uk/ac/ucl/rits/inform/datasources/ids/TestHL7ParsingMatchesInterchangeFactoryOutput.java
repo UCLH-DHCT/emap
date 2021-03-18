@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -305,7 +304,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         String interchangePathTemplate = "co_path/%s.yaml";
         String orderFile = "orm_o01_questions";
         String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
-        String interchangePath = String.format(interchangePathTemplate,orderFile);
+        String interchangePath = String.format(interchangePathTemplate, orderFile);
 
         EmapOperationMessage builtMessage = processSingleMessage(String.format(hl7PathTemplate, orderFile))
                 .stream()
@@ -314,6 +313,21 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         LabOrderMsg expectedMessage = interchangeFactory.buildLabOrderOverridingDefaults(interchangeDefaults, interchangePath);
 
         assertEquals(builtMessage, expectedMessage);
+    }
+
+    @Test
+    void testCoPathByteValue() throws Exception {
+        String hl7PathTemplate = "LabOrders/co_path/%s.txt";
+        String interchangePathTemplate = "co_path/%s.yaml";
+        String orderFile = "oru_r01_byte_value";
+
+        LabOrderMsg builtMessage = (LabOrderMsg) processSingleMessage(String.format(hl7PathTemplate, orderFile))
+                .stream()
+                .filter(msg -> (msg instanceof LabOrderMsg))
+                .findFirst().orElseThrow();
+        LabOrderMsg expectedMessage = interchangeFactory.getLabOrder(String.format(interchangePathTemplate, orderFile));
+
+        assertLabOrdersWithValueAsBytesEqual(List.of(builtMessage), List.of(expectedMessage));
     }
 
     @Test
