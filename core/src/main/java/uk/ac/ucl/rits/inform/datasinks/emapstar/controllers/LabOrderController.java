@@ -131,9 +131,10 @@ public class LabOrderController {
                 .orElseGet(() -> createLabSample(mrnId, msg.getLabSpecimenNumber(), validFrom, storedFrom));
 
         LabSample labSample = state.getEntity();
-        if (labSample.getSpecimenType() == null) {
-            state.assignInterchangeValue(msg.getSpecimenType(), null, labSample::setSpecimenType);
-        }
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType, validFrom, labSample.getValidFrom());
+        assignIfCurrentlyNullOrNewerAndDifferent(
+                state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSpecimenType, validFrom, labSample.getValidFrom());
         assignIfCurrentlyNullOrNewerAndDifferent(
                 state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
         // Allow for change of sample labSample time, but don't expect this to happen
@@ -231,6 +232,15 @@ public class LabOrderController {
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(
             RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter,
+            Instant messageValidFrom, Instant entityValidFrom
+    ) {
+        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
+            state.assignInterchangeValue(msgValue, currentValue, setter);
+        }
+    }
+
+    private void assignIfCurrentlyNullOrNewerAndDifferent(
+            RowState<?, ?> state, InterchangeValue<String> msgValue, String currentValue, Consumer<String> setter,
             Instant messageValidFrom, Instant entityValidFrom
     ) {
         if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
