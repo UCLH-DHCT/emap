@@ -136,7 +136,6 @@ public class LabOrderController {
 
         assignIfCurrentlyNullOrNewerAndDifferent(
                 state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
-        assignIfCurrentlyNullOrThrowIfDifferent(state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
         // Allow for change of sample labSample time, but don't expect this to happen
         if (state.isEntityCreated() || validFrom.isAfter(labSample.getValidFrom())) {
             if (collectionTimeExistsAndWillChange(msg, labSample)) {
@@ -145,6 +144,7 @@ public class LabOrderController {
             state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
             state.assignInterchangeValue(msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType);
             state.assignInterchangeValue(msg.getCollectionMethod(), labSample.getCollectionMethod(), labSample::setCollectionMethod);
+            state.assignInterchangeValue(msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite);
         }
 
         state.saveEntityOrAuditLogIfRequired(labSampleRepo, labSampleAuditRepo);
@@ -233,7 +233,15 @@ public class LabOrderController {
         if (orderState.isEntityCreated() || validFrom.isAfter(order.getValidFrom())) {
             orderState.assignInterchangeValue(msg.getClinicalInformation(), order.getClinicalInformation(), order::setClinicalInformation);
             orderState.assignIfDifferent(msg.getSourceSystem(), order.getSourceSystem(), order::setSourceSystem);
+            if (epicNumberIsSaveAndDifferent(msg, order)) {
+                logger.warn("Epic lab order number has changed from {} to {}", order.getInternalLabNumber(), msg.getEpicCareOrderNumber().get());
+            }
+            orderState.assignInterchangeValue(msg.getEpicCareOrderNumber(), order.getInternalLabNumber(), order::setInternalLabNumber);
         }
+    }
+
+    private boolean epicNumberIsSaveAndDifferent(LabOrderMsg msg, LabOrder order) {
+        return msg.getEpicCareOrderNumber().isSave() && !msg.getEpicCareOrderNumber().get().equals(order.getInternalLabNumber());
     }
 
     private void assignIfCurrentlyNullOrNewerAndDifferent(

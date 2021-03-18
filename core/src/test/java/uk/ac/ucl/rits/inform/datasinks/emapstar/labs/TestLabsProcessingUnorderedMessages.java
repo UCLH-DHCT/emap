@@ -17,7 +17,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSensitivityRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
-import uk.ac.ucl.rits.inform.informdb.labs.LabOrderQuestion;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 
 import java.time.Instant;
@@ -143,12 +142,12 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         assertTrue(cancelledOrder.isEmpty());
 
 
-        LabOrder remainingOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBCC", labSample).orElseThrow();
-        assertEquals(Instant.parse("2013-07-28T08:41:00Z"), remainingOrder.getOrderDatetime()); // from 03 SN
-        assertEquals("WinPath", remainingOrder.getSourceSystem()); // from 03 SN onwards
-        assertEquals("12121212", remainingOrder.getInternalLabNumber()); // from 04 ORR o02
-        assertNotNull(remainingOrder.getHospitalVisitId()); // from 03 SN
-        assertEquals(Instant.parse("2013-07-29T03:24:00Z"), remainingOrder.getRequestDatetime()); // Updated by 06 ORU R01
+        LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBCC", labSample).orElseThrow();
+        assertEquals(Instant.parse("2013-07-28T08:41:00Z"), labOrder.getOrderDatetime()); // from 03 SN
+        assertEquals("WinPath", labOrder.getSourceSystem()); // from 03 SN onwards
+        assertEquals("12121212", labOrder.getInternalLabNumber()); // from 04 ORR o02
+        assertNotNull(labOrder.getHospitalVisitId()); // from 03 SN
+        assertEquals(Instant.parse("2013-07-29T03:24:00Z"), labOrder.getRequestDatetime()); // Updated by 06 ORU R01
     }
 
 
@@ -202,7 +201,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
         List<Iterable<List<String>>> duplicatedNames = new ArrayList<>();
         for (int i = 0; i < orderFiles.length; i++) {
             List<String> filesWithOneDuplicate = duplicateAt(orderFiles, i);
-            duplicatedNames.add(new ShuffleIterator<>(filesWithOneDuplicate));
+            duplicatedNames.add(new ShuffleIterator<>(List.of(orderFiles)));
         }
 
         return duplicatedNames.stream()
@@ -213,24 +212,19 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     }
 
     private void checkCoPathCancelOrders() {
-        LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
-        assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
-        assertNull(labSample.getReceiptAtLab()); // not in messages
+        LabSample labSample = labSampleRepository.findByExternalLabNumber("UH20-4444").orElseThrow();
+        assertEquals("BM", labSample.getSpecimenType()); // from 01 NW
+        assertEquals(Instant.parse("2020-11-09T15:05:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
+        assertEquals(Instant.parse("2020-11-11T12:53:00Z"), labSample.getReceiptAtLab()); // 04 ORM SC
 
-        Optional<LabOrder> cancelledOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBC", labSample);
-        assertTrue(cancelledOrder.isEmpty());
-
-
-        LabOrder remainingOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBCC", labSample).orElseThrow();
-        assertEquals(Instant.parse("2020-11-09T15:05:00Z"), remainingOrder.getOrderDatetime()); // from 01 NW
-        assertEquals("CoPath", remainingOrder.getSourceSystem()); // from 04 SC onwards
-        assertEquals("12121212", remainingOrder.getInternalLabNumber()); // from 04 SC onwards
-        assertEquals("123234221", remainingOrder.getHospitalVisitId().getEncounter()); // from 03 SN
-        assertEquals(Instant.parse("2020-11-09T15:03:00Z"), remainingOrder.getRequestDatetime()); // from 01 NW
+        LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("CO_PATH", labSample).orElseThrow();
+        assertNull(labOrder.getOrderDatetime()); // from 01 NW but cancelled, never added in this stream
+        assertEquals("CoPath", labOrder.getSourceSystem()); // from 04 SC onwards
+        assertEquals("12121212", labOrder.getInternalLabNumber()); // from 04 SC onwards
+        assertEquals("123234221", labOrder.getHospitalVisitId().getEncounter()); // from 03 SN
+        assertNull(labOrder.getRequestDatetime()); // from 01 NW but cancelled, never added in this stream
         assertEquals(3, labOrderQuestionRepository.count());
     }
-
 
 
 }
