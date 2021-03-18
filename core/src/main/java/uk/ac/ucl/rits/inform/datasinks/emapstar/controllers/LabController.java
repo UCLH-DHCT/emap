@@ -49,7 +49,7 @@ public class LabController {
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
-     * @throws RequiredDataMissingException       if OrderDateTime missing from message
+     * @throws RequiredDataMissingException       if OrderDateTime missing from message or mime type is unrecognised
      * @throws MessageCancelledException          Lab Order was previously cancelled
      */
     @Transactional
