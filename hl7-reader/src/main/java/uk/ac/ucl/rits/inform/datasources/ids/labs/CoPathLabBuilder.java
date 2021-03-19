@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
                 String question = parts[0];
                 // allow for separator to be in the answer
                 String answer = String.join(QUESTION_SEPARATOR, Arrays.copyOfRange(parts, 1, (parts.length)));
-                getMsg().getQuestions().add(new MutablePair<>(question, answer));
+                getMsg().getQuestions().put(question, answer);
             }
         }
     }

@@ -1,11 +1,9 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -36,9 +34,8 @@ class TestCoPathOrders {
     @Test
     void testQuestionHasMultipleLinesAndSeparator() throws Exception {
         LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
-        Pair<String, String> questionAndAnswer = order.getQuestions().get(1);
-        assertEquals("How many labels to print?", questionAndAnswer.getLeft());
-        assertEquals("2 \nthis will test \nmulti-line and -> separator", questionAndAnswer.getRight());
+        String answer = order.getQuestions().get("How many labels to print?");
+        assertEquals("2 \nthis will test \nmulti-line and -> separator", answer);
     }
 
     @Test
@@ -75,9 +72,8 @@ class TestCoPathOrders {
         assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
         assertFalse(order.getQuestions().isEmpty());
-        Pair<String, String> questionAndAnswer = order.getQuestions().get(0);
-        assertEquals("Clinical Details:", questionAndAnswer.getLeft());
-        assertEquals("Previous lymphoma, new pleaural effusion, spinal ostemyelitis, trachstomy in situ", questionAndAnswer.getRight());
+        String answer = order.getQuestions().get("Clinical Details:");
+        assertEquals("Previous lymphoma, new pleaural effusion, spinal ostemyelitis, trachstomy in situ", answer);
         assertTrue(order.getOrderStatus().isEmpty());
     }
 
