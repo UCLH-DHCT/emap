@@ -13,7 +13,9 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The top level of the lab tree, the order. Only the interchange format
@@ -27,7 +29,7 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabOrderMsg extends EmapOperationMessage implements Serializable {
     private List<LabResultMsg> labResultMsgs = new ArrayList<>();
-    private List<MutablePair<String, String>> questions = new ArrayList<>();
+    private Map<String, String> questions = new HashMap<>();
     private String orderControlId;
     private InterchangeValue<String> epicCareOrderNumber = InterchangeValue.unknown();
     private String labSpecimenNumber;
