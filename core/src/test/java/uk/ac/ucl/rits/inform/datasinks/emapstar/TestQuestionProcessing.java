@@ -70,11 +70,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.setStatusChangeTime(messageTime.plusSeconds(60));
         String clinicalQuestion = "Clinical Details:";
         String newClinicalAnswer = "very sleepy";
-        Pair<String, String> questionAndAnswer = labOrderMsg.getQuestions()
-                .stream()
-                .filter(p -> clinicalQuestion.equals(p.left))
-                .findFirst().orElseThrow();
-        questionAndAnswer.setValue(newClinicalAnswer);
+        labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
         assertEquals(3, labSampleQuestionRepository.count());
@@ -91,11 +87,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.setStatusChangeTime(messageTime.minusSeconds(60));
         String clinicalQuestion = "Clinical Details:";
         String newClinicalAnswer = "very sleepy";
-        Pair<String, String> questionAndAnswer = labOrderMsg.getQuestions()
-                .stream()
-                .filter(p -> clinicalQuestion.equals(p.left))
-                .findFirst().orElseThrow();
-        questionAndAnswer.setValue(newClinicalAnswer);
+        labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
         LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();

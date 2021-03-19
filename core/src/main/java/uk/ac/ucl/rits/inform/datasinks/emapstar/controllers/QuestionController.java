@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
@@ -12,6 +11,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestionAudit;
 
 import java.time.Instant;
+import java.util.Map;
 
 /**
  * Interacts with repositories for questions and answers.
@@ -33,14 +33,16 @@ public class QuestionController {
 
     /**
      * Update or create lab order question from pair.
-     * @param questionAndAnswer Pair in form {question, answer}
-     * @param labSample         Lab sample entity
-     * @param validFrom         most recent change to results
-     * @param storedFrom        time that star started processing the message
+     * @param questionsAndAnswers Map in form {question, answer}
+     * @param labSample           Lab sample entity
+     * @param validFrom           most recent change to results
+     * @param storedFrom          time that star started processing the message
      */
-    void processLabOrderQuestion(Pair<String, String> questionAndAnswer, LabSample labSample, Instant validFrom, Instant storedFrom) {
-        Question question = getOrCreateQuestion(questionAndAnswer.getLeft());
-        updateOrCreateLabOrderQuestion(labSample, question, questionAndAnswer.getRight(), validFrom, storedFrom);
+    void processLabOrderQuestions(Map<String, String> questionsAndAnswers, LabSample labSample, Instant validFrom, Instant storedFrom) {
+        for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
+            Question question = getOrCreateQuestion(questionAndAnswer.getKey());
+            updateOrCreateLabOrderQuestion(labSample, question, questionAndAnswer.getValue(), validFrom, storedFrom);
+        }
     }
 
     private void updateOrCreateLabOrderQuestion(
