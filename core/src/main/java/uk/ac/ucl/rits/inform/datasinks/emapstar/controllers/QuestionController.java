@@ -32,7 +32,7 @@ public class QuestionController {
     }
 
     /**
-     * Update or create lab order question from pair.
+     * Update or create lab order questions.
      * @param questionsAndAnswers Map in form {question, answer}
      * @param labSample           Lab sample entity
      * @param validFrom           most recent change to results
