@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_ORDER;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORR_O02_ORDER;
@@ -30,6 +31,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +39,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +58,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     private static final Collection<String> CANCEL_OC_IDS = Set.of("CA", "CR", "OC");
     private static final String[] ALLOWED_OC_IDS = {"RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"};
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
-
+    private static final String QUESTION_SEPARATOR = ":";
+    private static final Pattern QUESTION_PATTERN = Pattern.compile("[:\\?]-");
 
     /**
      * Build a lab order structure from a lab order (no results).
@@ -63,13 +67,31 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * @param patientHl7         patient hl7 info
      * @param obr                OBR segment
      * @param orc                ORC segment
+     * @param notes
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if something about the HL7 message doesn't make sense
      */
-    private WinPathLabBuilder(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc)
+    private WinPathLabBuilder(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc, List<NTE> notes)
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.WIN_PATH);
         setCommonOrderInformation(subMessageSourceId, patientHl7, obr, orc);
+        setQuestions(notes);
+    }
+
+    private void setQuestions(Iterable<NTE> notes) {
+        for (NTE note : notes) {
+            StringBuilder questionAndAnswer = new StringBuilder();
+            for (FT ft : note.getNte3_Comment()) {
+                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+            }
+            String[] parts = QUESTION_PATTERN.split(questionAndAnswer.toString().strip());
+            if (parts.length > 1) {
+                String question = parts[0];
+                // allow for separator to be in the answer
+                String answer = String.join(QUESTION_SEPARATOR, Arrays.copyOfRange(parts, 1, (parts.length)));
+                getMsg().getQuestions().put(question, answer);
+            }
+        }
     }
 
     /**
@@ -170,7 +192,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             ORC orc = order.getORC();
             OBR obr = order.getORDER_DETAIL().getOBR();
-            LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, patientInfo, obr, orc);
+            List<NTE> notes = order.getORDER_DETAIL().getNTEAll();
+            LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, patientInfo, obr, orc, notes);
             labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
         }
         return interchangeOrders;
@@ -201,7 +224,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             ORC orc = order.getORC();
             OBR obr = order.getOBR();
-            LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, patientInfo, obr, orc);
+            List<NTE> notes = order.getNTEAll();
+            LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, patientInfo, obr, orc, notes);
             labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
         }
         return interchangeOrders;
