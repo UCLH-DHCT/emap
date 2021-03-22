@@ -504,7 +504,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
         String coPath = OrderCodingSystem.CO_PATH.name();
         Optional<LabBattery> coPathBattery = labBatteryRepository.findByBatteryCodeAndLabProvider(coPath, coPath);
         assertTrue(coPathBattery.isPresent());
-        assertFalse(coPathBattery.get().getBatteryName().isEmpty());
+        assertFalse(coPathBattery.get().getDescription().isEmpty());
     }
 
 }
