@@ -33,9 +33,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -52,7 +52,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      * ORU R01: RE (results)
      * ORR R02: NA (response to SN), CR (response to CA)
      */
-    private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR", "OC"));
+    private static final Collection<String> CANCEL_OC_IDS = Set.of("CA", "CR", "OC");
     private static final String[] ALLOWED_OC_IDS = {"RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"};
     private static final Logger logger = LoggerFactory.getLogger(CoPathLabBuilder.class);
     private static final String QUESTION_SEPARATOR = "->";

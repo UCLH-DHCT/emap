@@ -30,14 +30,13 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +52,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * ORU R01: RE (results)
      * ORR R02: NA (response to SN), CR (response to CA)
      */
-    private static final Collection<String> CANCEL_OC_IDS = new HashSet<>(Arrays.asList("CA", "CR", "OC"));
+    private static final Collection<String> CANCEL_OC_IDS = Set.of("CA", "CR", "OC");
     private static final String[] ALLOWED_OC_IDS = {"RE", "NW", "SC", "SN", "NA", "CA", "CR", "OC"};
     private static final Logger logger = LoggerFactory.getLogger(WinPathLabBuilder.class);
 
@@ -148,8 +147,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build order from ORM O01.
-     * @param idsUnid      unique Id from the IDS
-     * @param ormO01       message
+     * @param idsUnid unique Id from the IDS
+     * @param ormO01  message
      * @return interchange messages
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contains errors
@@ -179,8 +178,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build lab order messages from ORR O02.
-     * @param idsUnid      unique Id from the IDS
-     * @param msg          hl7 message
+     * @param idsUnid unique Id from the IDS
+     * @param msg     hl7 message
      * @return interchange messages
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if the HL7 message contains errors
@@ -210,8 +209,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
 
     /**
      * Build order with results from ORU R01.
-     * @param idsUnid      unique Id from the IDS
-     * @param oruR01       hl7 message
+     * @param idsUnid unique Id from the IDS
+     * @param oruR01  hl7 message
      * @return interchange messages
      * @throws HL7Exception               if HAPI does
      * @throws Hl7InconsistencyException  if the HL7 message contains errors

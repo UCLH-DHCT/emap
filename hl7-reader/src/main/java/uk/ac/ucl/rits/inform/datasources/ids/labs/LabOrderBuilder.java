@@ -17,10 +17,9 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
@@ -39,8 +38,8 @@ abstract class LabOrderBuilder {
      * @param allowedOcIds Allowed order control Ids
      * @param codingSystem Coding system to use
      */
-    protected LabOrderBuilder(String[] allowedOcIds, OrderCodingSystem codingSystem) {
-        this.allowedOcIds = new HashSet<>(Arrays.asList(allowedOcIds));
+    LabOrderBuilder(String[] allowedOcIds, OrderCodingSystem codingSystem) {
+        this.allowedOcIds = Set.of(allowedOcIds);
         this.codingSystem = codingSystem;
     }
 

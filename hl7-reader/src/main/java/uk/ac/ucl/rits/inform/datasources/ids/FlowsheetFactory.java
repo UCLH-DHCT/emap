@@ -31,10 +31,9 @@ import uk.ac.ucl.rits.inform.interchange.ValueType;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Build one or more flowsheets from HL7 message.
@@ -43,7 +42,7 @@ import java.util.List;
 @Component
 public class FlowsheetFactory {
     private static final Logger logger = LoggerFactory.getLogger(FlowsheetFactory.class);
-    private static final Collection<String> ALLOWED_STATUSES = new HashSet<>(Arrays.asList("C", "F", "D"));
+    private static final Collection<String> ALLOWED_STATUSES = Set.of("C", "F", "D");
 
     /**
      * Builds Flowsheet messages from an ORU R01 message.
