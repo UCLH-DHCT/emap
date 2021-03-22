@@ -75,23 +75,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.WIN_PATH);
         setCommonOrderInformation(subMessageSourceId, patientHl7, obr, orc);
-        setQuestions(notes);
-    }
-
-    private void setQuestions(Iterable<NTE> notes) {
-        for (NTE note : notes) {
-            StringBuilder questionAndAnswer = new StringBuilder();
-            for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
-            }
-            String[] parts = QUESTION_PATTERN.split(questionAndAnswer.toString().strip());
-            if (parts.length > 1) {
-                String question = parts[0];
-                // allow for separator to be in the answer
-                String answer = String.join(QUESTION_SEPARATOR, Arrays.copyOfRange(parts, 1, (parts.length)));
-                getMsg().getQuestions().put(question, answer);
-            }
-        }
+        setQuestions(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
     }
 
     /**

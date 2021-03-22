@@ -79,28 +79,12 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             throws HL7Exception, Hl7InconsistencyException {
         setBatteryCodingSystem();
         setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
-        setQuestions(notes);
+        setQuestions(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
         populateObrFields(obr);
         populateOrderInformation(orc, obr);
         setEpicOrderNumberFromORC();
         // battery can change throughout messages, but only one specimen number per request so using the coding system name as a dummy battery
         getMsg().setTestBatteryLocalCode(getCodingSystem().name());
-    }
-
-    private void setQuestions(Iterable<NTE> notes) {
-        for (NTE note : notes) {
-            StringBuilder questionAndAnswer = new StringBuilder();
-            for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
-            }
-            String[] parts = QUESTION_PATTERN.split(questionAndAnswer.toString().strip());
-            if (parts.length > 1) {
-                String question = parts[0];
-                // allow for separator to be in the answer
-                String answer = String.join(QUESTION_SEPARATOR, Arrays.copyOfRange(parts, 1, (parts.length)));
-                getMsg().getQuestions().put(question, answer);
-            }
-        }
     }
 
     private void setEpicOrderNumberFromORC() {
