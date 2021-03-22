@@ -32,6 +32,7 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
 
     private String batteryCode;
     private String batteryName;
+    private String description;
 
     /**
      * What system this code belongs to. Examples could be WinPath, or Epic.
@@ -52,6 +53,7 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
         super(other);
         this.batteryCode = other.batteryCode;
         this.batteryName = other.batteryName;
+        this.description = other.description;
         this.labProvider = other.labProvider;
     }
 
