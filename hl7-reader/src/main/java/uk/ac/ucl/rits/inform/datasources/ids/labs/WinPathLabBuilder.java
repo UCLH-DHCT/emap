@@ -69,13 +69,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     private WinPathLabBuilder(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc)
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.WIN_PATH);
-        setBatteryCodingSystem();
-        setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
-        populateObrFields(obr);
-        populateOrderInformation(orc, obr);
-        validateAndSetEpicOrderNumber();
+        setCommonOrderInformation(subMessageSourceId, patientHl7, obr, orc);
     }
-
 
     /**
      * Construct order details from a WinPath results (ORU) message. Most/all of the details of the order are contained in the
@@ -123,12 +118,8 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     private WinPathLabBuilder(String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, PatientInfoHl7 patientHl7)
             throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.WIN_PATH);
-        setBatteryCodingSystem();
-        setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
         OBR obr = obs.getOBR();
-        populateObrFields(obr);
-        populateOrderInformation(obs.getORC(), obr);
-        validateAndSetEpicOrderNumber();
+        setCommonOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC());
 
         List<WinPathResultBuilder> tempResults = new ArrayList<>(obs.getOBSERVATIONAll().size());
         List<ORU_R01_OBSERVATION> observationAll = obs.getOBSERVATIONAll();
@@ -142,6 +133,15 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         // merge isolate results
         mergeOrFilterResults(tempResults);
         getMsg().setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
+    }
+
+    private void setCommonOrderInformation(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc)
+            throws HL7Exception, Hl7InconsistencyException {
+        setBatteryCodingSystem();
+        setSourceAndPatientIdentifiers(subMessageSourceId, patientHl7);
+        populateObrFields(obr);
+        populateOrderInformation(orc, obr);
+        validateAndSetEpicOrderNumber();
     }
 
 
