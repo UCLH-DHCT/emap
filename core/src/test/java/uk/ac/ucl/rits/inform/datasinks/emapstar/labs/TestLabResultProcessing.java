@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -528,5 +529,60 @@ class TestLabResultProcessing extends MessageProcessingBase {
         assertEquals(firstResultTime, notUpdatedSensitivityFromNotUpdatedIsolate.getReportingDatetime());
         assertEquals(firstResultTime, notUpdatedSensitivityFromUpdatedIsolate.getReportingDatetime());
         // phew
+    }
+
+    @Test
+    void testValueAsByteProcessed() throws EmapOperationMessageProcessingException {
+        LabOrderMsg order = messageFactory.getLabOrder("co_path/oru_r01_byte_value.yaml");
+        processSingleMessage(order);
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(ValueType.PDF.name()).orElseThrow();
+        assertNotNull(result.getValueAsBytes());
+        assertEquals(ValueType.PDF.toString(), result.getMimeType());
+    }
+
+    @Test
+    void testValueAsByteUpdatedWhenNewer() throws EmapOperationMessageProcessingException {
+        // process original
+        LabOrderMsg order = messageFactory.getLabOrder("co_path/oru_r01_byte_value.yaml");
+        processSingleMessage(order);
+        // set new value with later time and process
+        byte[] newValue = "I am a replacement".getBytes();
+        LabResultMsg resultMsg = order.getLabResultMsgs().get(0);
+        resultMsg.setByteValue(InterchangeValue.buildFromHl7(newValue));
+        resultMsg.setResultTime(resultMsg.getResultTime().plusSeconds(1));
+        processSingleMessage(order);
+
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(ValueType.PDF.name()).orElseThrow();
+        assertArrayEquals(newValue, result.getValueAsBytes());
+    }
+
+    @Test
+    void testValueAsByteNotUpdatedWhenOlder() throws EmapOperationMessageProcessingException {
+        // process original
+        LabOrderMsg order = messageFactory.getLabOrder("co_path/oru_r01_byte_value.yaml");
+        processSingleMessage(order);
+        // set new value with later time and process
+        LabResultMsg resultMsg = order.getLabResultMsgs().get(0);
+        byte[] originalValue = resultMsg.getByteValue().get();
+        byte[] newValue = "I am a replacement".getBytes();
+        resultMsg.setByteValue(InterchangeValue.buildFromHl7(newValue));
+        resultMsg.setResultTime(resultMsg.getResultTime().minusSeconds(1));
+        processSingleMessage(order);
+
+        LabResult result = labResultRepository.findByLabTestDefinitionIdTestLabCode(ValueType.PDF.name()).orElseThrow();
+        assertArrayEquals(originalValue, result.getValueAsBytes());
+    }
+
+    @Test
+    void testValueAsByteNotUpdatedWhenSame() throws EmapOperationMessageProcessingException {
+        // process original
+        LabOrderMsg order = messageFactory.getLabOrder("co_path/oru_r01_byte_value.yaml");
+        processSingleMessage(order);
+        // set new value with later time and process
+        LabResultMsg resultMsg = order.getLabResultMsgs().get(0);
+        resultMsg.setResultTime(resultMsg.getResultTime().plusSeconds(1));
+        processSingleMessage(order);
+
+        assertEquals(0, labResultAuditRepository.count(), "Result should not have been updated");
     }
 }

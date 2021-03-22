@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabResultAuditRepository;
@@ -19,7 +20,6 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabResultAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivity;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSensitivityAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
-import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
@@ -54,7 +54,8 @@ class LabResultController {
     }
 
     @Transactional
-    public void processResult(LabTestDefinition testDefinition, LabOrder labOrder, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom) {
+    public void processResult(LabTestDefinition testDefinition, LabOrder labOrder, LabResultMsg resultMsg, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         RowState<LabResult, LabResultAudit> labResultState = updateOrCreateLabResult(labOrder, testDefinition, resultMsg, validFrom, storedFrom);
         // If lab isolate, update or create them
         LabIsolateMsg isolateMsg = resultMsg.getLabIsolate();
@@ -79,9 +80,11 @@ class LabResultController {
      * @param validFrom      most recent change to results
      * @param storedFrom     time that star encountered the message
      * @return lab result wrapped in row state
+     * @throws RequiredDataMissingException If mime type not recognised
      */
     private RowState<LabResult, LabResultAudit> updateOrCreateLabResult(
-            LabOrder labOrder, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom) {
+            LabOrder labOrder, LabTestDefinition testDefinition, LabResultMsg result, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         RowState<LabResult, LabResultAudit> resultState;
         resultState = labResultRepo
                 .findByLabOrderIdAndLabTestDefinitionId(labOrder, testDefinition)
@@ -105,7 +108,7 @@ class LabResultController {
         return new RowState<>(labResult, validFrom, storedFrom, true);
     }
 
-    private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) {
+    private void updateLabResult(RowState<LabResult, LabResultAudit> resultState, LabResultMsg resultMsg) throws RequiredDataMissingException {
         LabResult labResult = resultState.getEntity();
         resultState.assignInterchangeValue(resultMsg.getUnits(), labResult.getUnits(), labResult::setUnits);
         resultState.assignInterchangeValue(resultMsg.getReferenceLow(), labResult.getRangeLow(), labResult::setRangeLow);
@@ -114,11 +117,22 @@ class LabResultController {
         resultState.assignInterchangeValue(resultMsg.getNotes(), labResult.getComment(), labResult::setComment);
         resultState.assignIfDifferent(resultMsg.getResultStatus(), labResult.getResultStatus(), labResult::setResultStatus);
         resultState.assignIfDifferent(resultMsg.getMimeType().toString(), labResult.getMimeType(), labResult::setMimeType);
-        if (ValueType.NUMERIC == resultMsg.getMimeType()) {
-            resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
-            resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
-        } else if (ValueType.TEXT == resultMsg.getMimeType()) {
-            resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
+
+        switch (resultMsg.getMimeType()) {
+            case NUMERIC:
+                resultState.assignInterchangeValue(resultMsg.getNumericValue(), labResult.getValueAsReal(), labResult::setValueAsReal);
+                resultState.assignIfDifferent(resultMsg.getResultOperator(), labResult.getResultOperator(), labResult::setResultOperator);
+                break;
+            case TEXT:
+                resultState.assignInterchangeValue(resultMsg.getStringValue(), labResult.getValueAsText(), labResult::setValueAsText);
+                break;
+            case PDF:
+                resultState.assignInterchangeValue(resultMsg.getByteValue(), labResult.getValueAsBytes(), labResult::setValueAsBytes);
+                break;
+            case LAB_ISOLATE:
+                break;
+            default:
+                throw new RequiredDataMissingException("Lab Result value type unrecognised");
         }
 
         if (resultState.isEntityUpdated()) {

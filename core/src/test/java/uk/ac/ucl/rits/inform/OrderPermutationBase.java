@@ -5,6 +5,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -56,7 +57,7 @@ public abstract class OrderPermutationBase {
             status.setRollbackOnly();
             try {
                 runTest(fileNames);
-            } catch (MessageCancelledException allowed) {
+            } catch (MessageCancelledException | IncompatibleDatabaseStateException allowed) {
                 return null;
             } catch (EmapOperationMessageProcessingException a) {
                 return a;

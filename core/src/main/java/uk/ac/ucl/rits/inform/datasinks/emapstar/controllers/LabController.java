@@ -49,7 +49,7 @@ public class LabController {
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
-     * @throws RequiredDataMissingException       if OrderDateTime missing from message
+     * @throws RequiredDataMissingException       if OrderDateTime missing from message or mime type is unrecognised
      * @throws MessageCancelledException          Lab Order was previously cancelled
      */
     @Transactional
@@ -65,7 +65,8 @@ public class LabController {
             labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, visit, msg, validFrom, storedFrom);
             return;
         }
-        LabOrder labOrder = labOrderController.processLabSampleAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
+
+        LabOrder labOrder = labOrderController.processSampleAndOrderInformation(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, storedFrom, validFrom);
             getOrCreateLabBatteryElement(testDefinition, battery, storedFrom, validFrom);

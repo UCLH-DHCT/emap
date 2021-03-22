@@ -15,6 +15,8 @@ import java.util.Optional;
 public interface LabResultRepository extends CrudRepository<LabResult, Long> {
     Optional<LabResult> findByLabOrderIdAndLabTestDefinitionId(LabOrder labOrder, LabTestDefinition labTestDefinition);
 
+    boolean existsByLabOrderId(LabOrder labOrder);
+
     /**
      * For testing.
      * @param labTestCode test code
@@ -28,4 +30,5 @@ public interface LabResultRepository extends CrudRepository<LabResult, Long> {
      * @return List of all lab results
      */
     List<LabResult> findAllByLabOrderIdInternalLabNumber(String labNumber);
+
 }
