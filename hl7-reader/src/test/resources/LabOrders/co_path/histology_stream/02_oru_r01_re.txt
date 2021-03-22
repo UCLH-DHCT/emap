@@ -1,9 +1,12 @@
-MSH|^~\&|CoPath|UCH|EPIC|UCH|20130710120600||ORU^R01|3600001328533|P|2.3
-PID|1||40800000^^^MRENTR^MEDREC~||ORANGE^BLOOD^^^^^D||19690730|M|||^^^^^ENGLAND^L||||||||6484920753
-PV1|1||T1US|||||||||||||||OP|12312321|||||||||||||||||||||||||201307031152|201307031258
-ORC|RE|12121212|UH20-4444^CoPathPlus||CM||||201307040900|^Someone^Else||SM5^DUCK^DONALD
-OBR|1|12121212|UH20-4444^CoPathPlus|H^Histopathology|||201307031212|||||||201307031548|^^Biopsy - Tru-cut (Histo)|SM5^DUCK^DONALD||||||201307101206||H^Histopathology|F|||||||p145^CHILDERHOUSE^A|p145^CHILDERHOUSE^A
-OBX|1|TX|UH20-4444&rpt^^99DHT||Hello, I am a report||||||F
+MSH|^~\&|CoPath|UCH|EPIC|UCH|20190711153500||ORU^R01|12322|P|2.3
+PID|1||40800000^^^MRENTR^MEDREC||ORANG^BLOD^^^^^D||19890909|F|||^^^^^ENGLAND^
+PV1|1||TPL^UCHPATLNGE POOL01|||||||||||||||IP|123234221|||||||||||||||||||||||||201307061326|201307071306
+ORC|RE|12121212|UH20-4444^CoPathPlus||CM||||201907051018|^Duck^Donald||SRS^BIG^BIRD
+OBR|1|12121212|UH20-4444^CoPathPlus|H^Histopathology|||201907041109|||||||201907051014|^^Breast Axillary Clearance, right axillary node&Breast mastectomy, right breast&Breast tissue, right anterior margin, fat cavity side|SRS^BIG^BIRD||||||201907111534||H^Histopathology|F|||||||^Mario^Luigi|^Mario^Luigi
+OBX|1|TX|UH20-4444&rpt^^99DHT||PATIENT NAME:||||||F
+OBX|2|TX|UH20-4444&rpt^^99DHT||...many more...||||||F
+OBX|3|TX|UH20-4444&rpt^^99DHT||REPORTED:||||||F
+OBX|4|TX|UH20-4444&rpt^^99DHT||11/07/2019||||||F
 OBX|2|ED||1|Content-Type: text/plain; charset=US-ASCII; name=C:\MIME\qld28373.pdf
 OBX|3|ED||1|Content-transfer-encoding: base64
 OBX|4|ED||1
