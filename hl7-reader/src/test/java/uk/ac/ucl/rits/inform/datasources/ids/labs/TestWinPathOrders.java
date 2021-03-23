@@ -201,7 +201,7 @@ class TestWinPathOrders {
      */
     @Test
     void testOrmO01Notes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_questions");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_questions");
         assertEquals(3, order.getQuestions().size());
         // separated by ?-
         assertEquals("Surveillance",  order.getQuestions().get("Why is this test being performed"));
