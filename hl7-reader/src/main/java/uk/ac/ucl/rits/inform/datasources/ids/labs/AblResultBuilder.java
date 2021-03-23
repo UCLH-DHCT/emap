@@ -45,12 +45,11 @@ public class AblResultBuilder extends LabResultBuilder {
     }
 
     /**
-     * Set custom coding system and numeric type.
+     * Set custom coding system.
      */
     @Override
     void setCustomOverrides() {
         getMessage().setTestItemCodingSystem(codingSystem);
-        getMessage().setMimeType(ValueType.NUMERIC);
     }
 
     /**
@@ -58,11 +57,12 @@ public class AblResultBuilder extends LabResultBuilder {
      * String values are also populated for debugging.
      */
     @Override
-    protected void setValue() throws HL7Exception {
+    protected void setValueAndMimeType() throws HL7Exception {
         setStringValueAndMimeType(getObx());
+        getMessage().setMimeType(ValueType.NUMERIC);
         try {
             if (getMessage().getStringValue().isSave()) {
-                setNumericValueAndResultOperatorAndMimeType(getMessage().getStringValue().get());
+                setNumericValueAndResultOperator(getMessage().getStringValue().get());
             }
         } catch (NumberFormatException e) {
             logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", getMessage().getStringValue());

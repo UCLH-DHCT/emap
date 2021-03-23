@@ -75,7 +75,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
      * @throws HL7Exception              If value can't be encoded from hl7
      */
     @Override
-    protected void setValue() throws Hl7InconsistencyException, HL7Exception {
+    protected void setValueAndMimeType() throws Hl7InconsistencyException, HL7Exception {
         Type dataType = getObx().getObx5_ObservationValue(0).getData();
         String delimiter;
         ValueType valueType;

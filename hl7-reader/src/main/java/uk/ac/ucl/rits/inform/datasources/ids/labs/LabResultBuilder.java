@@ -73,7 +73,7 @@ public abstract class LabResultBuilder {
     void constructMsg() throws HL7Exception, Hl7InconsistencyException {
         setTestIdentifiers();
         setValueAdjacentFields();
-        setValue();
+        setValueAndMimeType();
         setResultTime();
         setComments();
         setCustomOverrides();
@@ -182,9 +182,10 @@ public abstract class LabResultBuilder {
                 if (repCount > 1) {
                     logger.warn("LabResult is Numerical (NM) result but repcount = {}", repCount);
                 }
+                msg.setMimeType(ValueType.NUMERIC);
                 try {
                     if (msg.getStringValue().isSave()) {
-                        setNumericValueAndResultOperatorAndMimeType(msg.getStringValue().get());
+                        setNumericValueAndResultOperator(msg.getStringValue().get());
                     }
                 } catch (NumberFormatException e) {
                     logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", msg.getStringValue());
@@ -212,8 +213,7 @@ public abstract class LabResultBuilder {
      * Set numeric value and result operator (if required).
      * @param inputValue string value
      */
-    void setNumericValueAndResultOperatorAndMimeType(String inputValue) {
-        msg.setMimeType(ValueType.NUMERIC);
+    void setNumericValueAndResultOperator(String inputValue) {
         String value = inputValue;
         String resultOperator = "=";
         if (!value.isEmpty() && (value.charAt(0) == '>' || value.charAt(0) == '<')) {
@@ -233,7 +233,7 @@ public abstract class LabResultBuilder {
      * @throws Hl7InconsistencyException if data cannot be parsed.
      * @throws HL7Exception              If hl7value can't be decoded
      */
-    abstract void setValue() throws Hl7InconsistencyException, HL7Exception;
+    abstract void setValueAndMimeType() throws Hl7InconsistencyException, HL7Exception;
 
     /**
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.
