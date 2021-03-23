@@ -32,7 +32,7 @@ class TestBioConnectOruR01 {
 
     @Test
     void testIdentifiers() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "glucose");
         assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("9876543", msg.getLabSpecimenNumber());
@@ -41,13 +41,13 @@ class TestBioConnectOruR01 {
 
     @Test
     void testSourceSystem() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "glucose");
         assertEquals("BIO-CONNECT", msg.getSourceSystem());
     }
 
     @Test
     void testOrderTimes() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "glucose");
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getSampleReceivedTime());
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getOrderDateTime());
         assertTrue(msg.getRequestedDateTime().isUnknown());
@@ -60,13 +60,13 @@ class TestBioConnectOruR01 {
      */
     @Test
     void testBatteryCodes() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "glucose");
         assertEquals("Glucose", msg.getTestBatteryLocalCode());
     }
 
     @Test
     void testBatteryCodingSystem() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "glucose");
         assertEquals(OrderCodingSystem.BIO_CONNECT.name(), msg.getTestBatteryCodingSystem());
     }
 
@@ -130,7 +130,7 @@ class TestBioConnectOruR01 {
 
     @Test
     void testCollectionSpecimenType() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "glucose");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "glucose");
         assertEquals(InterchangeValue.buildFromHl7("BLD"), msg.getSpecimenType());
     }
 

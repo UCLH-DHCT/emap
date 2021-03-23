@@ -27,22 +27,26 @@ public class LabReader extends TestHl7MessageStream {
      * @param fileTemplate template for filepath with relative path from resources root for hl7 message.
      * @param fileName filename to add to template
      * @return LabOrderMsg
-     * @throws Hl7MessageIgnoredException if thrown during processing
-     * @throws Hl7InconsistencyException  if hl7 message malformed
+     * @throws Exception if thrown during processing
      */
-    LabOrderMsg process(String fileTemplate, String fileName) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
+    LabOrderMsg getFirstOrder(String fileTemplate, String fileName) throws Exception {
+        return getAllOrders(fileTemplate, fileName).get(0);
+    }
+
+    List<LabOrderMsg> getAllOrders(String fileTemplate, String fileName) throws Exception {
         List<? extends EmapOperationMessage> msgs = null;
         try {
             msgs = processSingleMessage(String.format(fileTemplate, fileName));
-        } catch (Hl7MessageIgnoredException | Hl7InconsistencyException e) {
-            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
 
         assert msgs != null;
         // filter out any implied ADT messages
-        return (LabOrderMsg) msgs.stream().filter(msg -> (msg instanceof LabOrderMsg)).findFirst().orElseThrow();
+        return msgs.stream()
+                .filter(msg -> (msg instanceof LabOrderMsg))
+                .map(o -> (LabOrderMsg) o)
+                .collect(Collectors.toList());
     }
 
     Map<String, LabResultMsg> getResultsByItemCode(List<LabResultMsg> labResultMsgs) {
@@ -56,11 +60,10 @@ public class LabReader extends TestHl7MessageStream {
      * @param fileName filename to add to template
      * @param testLocalCode local test code for result to get
      * @return lab result message
-     * @throws Hl7MessageIgnoredException shouldn't happen
-     * @throws Hl7InconsistencyException shouldn't happen
+     * @throws Exception shouldn't happen
      */
-    LabResultMsg getResult(String fileTemplate, String fileName, String testLocalCode) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
-        LabOrderMsg msg = process(fileTemplate, fileName);
+    LabResultMsg getResult(String fileTemplate, String fileName, String testLocalCode) throws Exception {
+        LabOrderMsg msg = getFirstOrder(fileTemplate, fileName);
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
         Map<String, LabResultMsg> resultsByItemCode = getResultsByItemCode(labResultMsgs);
         return resultsByItemCode.get(testLocalCode);
