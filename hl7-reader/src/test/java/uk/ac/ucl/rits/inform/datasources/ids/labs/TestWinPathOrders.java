@@ -194,4 +194,18 @@ class TestWinPathOrders {
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
     }
+
+    /**
+     * Order notes should be parsed for questions.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOrmO01Notes() throws Exception {
+        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_questions");
+        assertEquals(3, order.getQuestions().size());
+        // separated by ?-
+        assertEquals("Surveillance",  order.getQuestions().get("Why is this test being performed"));
+        // separated by :-
+        assertEquals("?stroke",  order.getQuestions().get("Clinical Details"));
+    }
 }

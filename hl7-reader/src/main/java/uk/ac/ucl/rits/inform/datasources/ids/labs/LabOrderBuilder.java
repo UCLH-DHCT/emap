@@ -3,8 +3,10 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
+import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
 import org.slf4j.Logger;
@@ -17,9 +19,11 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
@@ -211,6 +215,28 @@ abstract class LabOrderBuilder {
             orders.add(msg);
         } else {
             logger.warn("Ignoring order control ID = '{}'", msg.getOrderControlId());
+        }
+    }
+
+    /**
+     * Set questions from notes.
+     * @param notes notes for an order.
+     * @param questionSeparator to join the answer if it contains the question pattern
+     * @param questionPattern pattern between the question and answer
+     */
+    protected void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
+        for (NTE note : notes) {
+            StringBuilder questionAndAnswer = new StringBuilder();
+            for (FT ft : note.getNte3_Comment()) {
+                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+            }
+            String[] parts = questionPattern.split(questionAndAnswer.toString().strip());
+            if (parts.length > 1) {
+                String question = parts[0];
+                // allow for separator to be in the answer
+                String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
+                getMsg().getQuestions().put(question, answer);
+            }
         }
     }
 }
