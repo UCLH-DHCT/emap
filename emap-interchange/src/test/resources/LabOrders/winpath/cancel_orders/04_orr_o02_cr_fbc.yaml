@@ -9,3 +9,5 @@ epicCareOrderNumber:
   status: "DELETE"
   value: "91393666"
 visitNumber: ""
+questions:
+  "Clinical Details": "unwell"
