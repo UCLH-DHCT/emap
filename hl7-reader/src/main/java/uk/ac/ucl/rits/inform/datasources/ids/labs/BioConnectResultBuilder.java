@@ -54,7 +54,7 @@ public class BioConnectResultBuilder extends LabResultBuilder {
      * @throws Hl7InconsistencyException if data cannot be parsed.
      */
     @Override
-    void setValue() throws Hl7InconsistencyException, HL7Exception {
+    void setValueAndMimeType() throws Hl7InconsistencyException, HL7Exception {
         setSingleTextOrNumericValue();
     }
 }

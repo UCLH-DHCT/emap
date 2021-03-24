@@ -58,7 +58,7 @@ public class WinPathResultBuilder extends LabResultBuilder {
      * @throws Hl7InconsistencyException if coded data that is not ISOLATE
      */
     @Override
-    protected void setValue() throws Hl7InconsistencyException, HL7Exception {
+    protected void setValueAndMimeType() throws Hl7InconsistencyException, HL7Exception {
         setSingleTextOrNumericValue();
         OBX obx = getObx();
         String testCode = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
