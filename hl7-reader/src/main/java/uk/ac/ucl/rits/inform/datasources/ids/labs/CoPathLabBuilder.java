@@ -106,15 +106,12 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
      * which we should already know about from a preceding ORM message.
      * @param subMessageSourceId unique Id from the IDS
      * @param obs                the result group from HAPI (ORU_R01_ORDER_OBSERVATION)
-     * @param questionAnswers    notes which form questions and answers
      * @param patientHl7         patient hl7 info
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if, according to my understanding, the HL7 message contains errors
      */
     private CoPathLabBuilder(
-            String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs,
-            List<NTE> questionAnswers, PatientInfoHl7 patientHl7)
-            throws HL7Exception, Hl7InconsistencyException {
+            String subMessageSourceId, ORU_R01_ORDER_OBSERVATION obs, PatientInfoHl7 patientHl7) throws HL7Exception, Hl7InconsistencyException {
         super(ALLOWED_OC_IDS, OrderCodingSystem.CO_PATH);
         OBR obr = obs.getOBR();
         setOrderInformation(subMessageSourceId, patientHl7, obr, obs.getORC(), Collections.emptyList());
@@ -221,10 +218,9 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         List<LabOrderMsg> orders = new ArrayList<>(orderObservations.size());
         int msgSuffix = 0;
         for (ORU_R01_ORDER_OBSERVATION obs : orderObservations) {
-            List<NTE> notes = obs.getNTEAll();
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
-            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, obs, notes, patientInfo);
+            LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, obs, patientInfo);
             labOrderBuilder.addMsgIfAllowedOcId(orders);
         }
         return orders;

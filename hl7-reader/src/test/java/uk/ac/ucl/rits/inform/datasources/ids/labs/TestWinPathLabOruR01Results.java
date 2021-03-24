@@ -191,6 +191,16 @@ class TestWinPathLabOruR01Results {
         assertEquals(InterchangeValue.buildFromHl7("H"), result.getAbnormalFlag());
     }
 
+    /**
+     * Empty value for numeric should be unknown but still have mime type set.
+     */
+    @Test
+    void testEmptyNumericValue() throws Exception {
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "EMPTY");
+        assertTrue(result.getNumericValue().isUnknown());
+        assertEquals(ValueType.NUMERIC, result.getMimeType());
+    }
+
     @Test
     void testAbnormalFlagAbsent() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "ALP");
