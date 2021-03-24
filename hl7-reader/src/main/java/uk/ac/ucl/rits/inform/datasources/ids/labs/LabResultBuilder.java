@@ -2,14 +2,10 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
-import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.IS;
-import ca.uhn.hl7v2.model.v26.datatype.NM;
-import ca.uhn.hl7v2.model.v26.datatype.ST;
-import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
@@ -23,7 +19,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -174,7 +169,7 @@ public abstract class LabResultBuilder {
         int repCount = obx.getObx5_ObservationValueReps();
 
         String dataType = obx.getObx2_ValueType().getValueOrEmpty();
-        if (DEFAULT_STRING_NUMERIC_TYPES.contains(dataType))  {
+        if (DEFAULT_STRING_NUMERIC_TYPES.contains(dataType)) {
             setStringValueAndMimeType(obx);
             if ("NM".equals(dataType)) {
                 if (repCount > 1) {
