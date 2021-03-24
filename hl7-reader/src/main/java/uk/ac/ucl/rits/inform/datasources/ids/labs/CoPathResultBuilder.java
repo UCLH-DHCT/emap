@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.ValueType;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +35,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
     private static final Pattern REPORT_ENCODING = Pattern.compile("Content-Type: text/plain; charset=US-ASCII;.+Content-transfer-encoding: base64");
     private boolean ignored = false;
     private static final String CO_PATH = OrderCodingSystem.CO_PATH.name();
+    private static final Set<String> TEXT_TYPE = Set.of("TX", "ST");
 
     /**
      * @param obxSegments the OBX segments for this result type
@@ -76,17 +78,17 @@ public class CoPathResultBuilder extends LabResultBuilder {
      */
     @Override
     protected void setValueAndMimeType() throws Hl7InconsistencyException, HL7Exception {
-        Type dataType = getObx().getObx5_ObservationValue(0).getData();
+        String dataType = getObx().getObx2_ValueType().getValueOrEmpty();
         String delimiter;
         ValueType valueType;
         if (isTextValue(dataType)) {
             delimiter = "\n";
             valueType = ValueType.TEXT;
-        } else if (dataType instanceof ED) {
+        } else if ("ED".equals(dataType)) {
             delimiter = "";
             valueType = ValueType.PDF;
         } else {
-            throw new Hl7InconsistencyException(String.format("CoPath OBX type not recognised '%s'", dataType.getName()));
+            throw new Hl7InconsistencyException(String.format("CoPath OBX type not recognised '%s'", dataType));
         }
 
         setMimeTypeAndTestCode(valueType);
@@ -100,7 +102,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
         getMessage().setTestItemLocalCode(valueType.name());
     }
 
-    private void setValueOrIgnored(Type dataType, StringJoiner value) throws Hl7InconsistencyException {
+    private void setValueOrIgnored(String dataType, StringJoiner value) throws Hl7InconsistencyException {
         if (isTextValue(dataType)) {
             getMessage().setStringValue(InterchangeValue.buildFromHl7(value.toString()));
         } else if (!"MIME".equals(value.toString())) {
@@ -117,8 +119,8 @@ public class CoPathResultBuilder extends LabResultBuilder {
         }
     }
 
-    private boolean isTextValue(Type dataType) {
-        return dataType instanceof TX || dataType instanceof ST;
+    private boolean isTextValue(String dataType) {
+        return TEXT_TYPE.contains(dataType);
     }
 
     /**

@@ -23,7 +23,9 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -39,6 +41,7 @@ public abstract class LabResultBuilder {
     private final OBX obx;
     private final List<NTE> notes;
     private final String normalFlag;
+    private static final Set<String> DEFAULT_STRING_NUMERIC_TYPES = Set.of("ST", "FT", "TX", "NM");
 
     /**
      * @param obx        OBX segment
@@ -170,15 +173,10 @@ public abstract class LabResultBuilder {
     protected void setSingleTextOrNumericValue() throws HL7Exception {
         int repCount = obx.getObx5_ObservationValueReps();
 
-        // The first rep is all that's needed for most data types
-        Varies dataVaries = obx.getObx5_ObservationValue(0);
-        Type data = dataVaries.getData();
-        if (data instanceof ST
-                || data instanceof FT
-                || data instanceof TX
-                || data instanceof NM) {
+        String dataType = obx.getObx2_ValueType().getValueOrEmpty();
+        if (DEFAULT_STRING_NUMERIC_TYPES.contains(dataType))  {
             setStringValueAndMimeType(obx);
-            if (data instanceof NM) {
+            if ("NM".equals(dataType)) {
                 if (repCount > 1) {
                     logger.warn("LabResult is Numerical (NM) result but repcount = {}", repCount);
                 }
