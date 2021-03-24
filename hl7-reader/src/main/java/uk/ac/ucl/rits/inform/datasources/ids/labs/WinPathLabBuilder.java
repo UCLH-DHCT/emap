@@ -261,15 +261,16 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             if (orderToReparent.getParentSubId().isEmpty()) {
                 continue;
             }
-            // Parent order is always first in HL7 from WinPath (single case in IDS which looks like a malformed message)
-            LabOrderMsg possibleOrder = orders.get(0);
             try {
-                LabResultMsg foundParentResult = possibleOrder.getLabResultMsgs().stream()
+                LabOrderMsg parentOrder = orders.stream()
+                        .filter(parent -> hasChildOf(orderToReparent, parent))
+                        .findFirst().orElseThrow();
+                LabResultMsg parentResult = parentOrder.getLabResultMsgs().stream()
                         .filter(par -> isChildOf(orderToReparent, par))
                         .findFirst().orElseThrow();
                 // add the order to the list of sensitivities and delete from the original list
-                logger.debug("Reparenting sensitivity {} onto {}", orderToReparent, foundParentResult);
-                LabIsolateMsg parentIsolate = foundParentResult.getLabIsolate();
+                logger.debug("Reparenting sensitivity {} onto {}", orderToReparent, parentResult);
+                LabIsolateMsg parentIsolate = parentResult.getLabIsolate();
                 parentIsolate.setSensitivities(orderToReparent.getLabResultMsgs());
                 parentIsolate.setClinicalInformation(orderToReparent.getClinicalInformation());
                 iter.remove();
@@ -331,10 +332,17 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         }
     }
 
+    private static boolean hasChildOf(LabOrderMsg possibleChild, LabOrderMsg possibleParent) {
+        for (LabResultMsg parentResult : possibleParent.getLabResultMsgs()) {
+            if (isChildOf(possibleChild, parentResult)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
-     * HL7-specific way of determining parentage. The workings of this shouldn't be
-     * exposed to the interchange format (ie. LabOrder).
+     * Determining parentage of an order to a sensitivity result.
      * @param possibleChild  the order to test whether possibleParent is a parent of it
      * @param possibleParent the result to test whether possibleChild is a child of it
      * @return whether possibleChild is a child (ie. a sensitivity order/result) of possibleParent

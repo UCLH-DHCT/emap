@@ -17,7 +17,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -50,7 +49,7 @@ class TestCoPathResults {
             expectedBytes = inputStream.readAllBytes();
         }
 
-        LabResultMsg result = labReader.process(FILE_TEMPLATE, "oru_r01_copath")
+        LabResultMsg result = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_copath")
                 .getLabResultMsgs().stream()
                 .filter(r -> r.getByteValue().isSave())
                 .findFirst().orElseThrow();
@@ -66,7 +65,7 @@ class TestCoPathResults {
     @Test
     void testValueAsText() throws Exception {
         String reportText = "PATIENT NAME:\n...\nREPORTED:\n26/03/2019";
-        List<LabResultMsg> results = labReader.process(FILE_TEMPLATE, "oru_r01_multi_obx_report").getLabResultMsgs();
+        List<LabResultMsg> results = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_multi_obx_report").getLabResultMsgs();
         assertEquals(1, results.size());
         assertEquals(InterchangeValue.buildFromHl7(reportText), results.get(0).getStringValue());
         assertEquals(ValueType.TEXT, results.get(0).getMimeType());
@@ -82,7 +81,7 @@ class TestCoPathResults {
                 .stream()
                 .map(filename -> DynamicTest.dynamicTest(
                         filename,
-                        () -> assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, filename)))
+                        () -> assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, filename)))
                 );
     }
 
@@ -92,20 +91,20 @@ class TestCoPathResults {
      */
     @Test
     void testEmptyPdfReport() throws Exception {
-        List<LabResultMsg> results = labReader.process(FILE_TEMPLATE, "oru_r01_empty_report").getLabResultMsgs();
+        List<LabResultMsg> results = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_empty_report").getLabResultMsgs();
         assertEquals(1, results.size());
         assertTrue(results.get(0).getStringValue().isSave());
     }
 
     @Test
     void testResultDateTime() throws Exception {
-        LabResultMsg result = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
+        LabResultMsg result = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
         assertEquals(Instant.parse("2013-07-13T08:00:00Z"), result.getResultTime());
     }
 
     @Test
     void testResultAdjacentFields() throws Exception {
-        LabResultMsg result = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
+        LabResultMsg result = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_copathplus").getLabResultMsgs().get(0);
         assertEquals(OrderCodingSystem.CO_PATH.name(), result.getTestItemCodingSystem());
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
         assertEquals("1", result.getObservationSubId());
@@ -126,7 +125,7 @@ class TestCoPathResults {
      */
     @Test
     void testCoPathPlusDoesntAddEpicNumber() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "oru_r01_copathplus");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_copathplus");
         assertTrue(order.getEpicCareOrderNumber().isUnknown());
     }
 

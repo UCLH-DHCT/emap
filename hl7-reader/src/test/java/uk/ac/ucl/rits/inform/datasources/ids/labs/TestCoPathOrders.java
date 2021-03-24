@@ -33,21 +33,21 @@ class TestCoPathOrders {
 
     @Test
     void testQuestionHasMultipleLinesAndSeparator() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_nw");
         String answer = order.getQuestions().get("How many labels to print?");
         assertEquals("2 \nthis will test \nmulti-line and -> separator", answer);
     }
 
     @Test
     void testSampleCollectionMethod() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals(InterchangeValue.buildFromHl7("FNA (CYTOlogy Use) - ri"), order.getCollectionMethod());
     }
 
 
     @Test
     void testOrmO01NWTimes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_nw");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
         assertEquals(order.getStatusChangeTime(), order.getOrderDateTime().get());
@@ -58,14 +58,14 @@ class TestCoPathOrders {
 
     @Test
     void testOrmO01NWLabNumbers() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_nw");
         assertEquals(labOrder, order.getLabSpecimenNumber());
         assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
     }
 
     @Test
     void testOrmO01NWOrderInfo() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_nw");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_nw");
         assertEquals("Not in Message", order.getSourceSystem());
         assertEquals(InterchangeValue.buildFromHl7("PLF"), order.getSpecimenType());
         assertEquals("Path,Cyt", order.getLabDepartment());
@@ -79,7 +79,7 @@ class TestCoPathOrders {
 
     @Test
     void testOrmO01SCTimes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
         assertTrue(order.getSampleReceivedTime().isSave());
@@ -90,14 +90,14 @@ class TestCoPathOrders {
 
     @Test
     void testOrmO01SCLabNumbers() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 
     @Test
     void testOrmO01SCOrderInfo() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sc");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sc");
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
         assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
@@ -112,7 +112,7 @@ class TestCoPathOrders {
 
     @Test
     void testOrmO01SNTimes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
         assertEquals(order.getStatusChangeTime(), order.getOrderDateTime().get());
@@ -123,7 +123,7 @@ class TestCoPathOrders {
 
     @Test
     void testOrmO01SNLabNumbers() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals(labOrder, order.getLabSpecimenNumber());
 
         assertTrue(order.getEpicCareOrderNumber().isUnknown());
@@ -131,7 +131,7 @@ class TestCoPathOrders {
 
     @Test
     void testOrmO01SNOrderInfo() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_sn");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_sn");
         assertEquals("CoPath", order.getSourceSystem());
         assertEquals("UC", order.getLabDepartment());
         assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
@@ -145,7 +145,7 @@ class TestCoPathOrders {
 
     @Test
     void testOrrO02NATimes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orr_o02_na");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
         assertTrue(order.getRequestedDateTime().isSave());
@@ -156,14 +156,14 @@ class TestCoPathOrders {
 
     @Test
     void testOrrO02NALabNumbers() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orr_o02_na");
         assertEquals(InterchangeValue.buildFromHl7(epicOrder), order.getEpicCareOrderNumber());
         assertEquals(labOrder, order.getLabSpecimenNumber());
     }
 
     @Test
     void testOrrO02NAOrderInfo() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_na");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orr_o02_na");
         assertEquals("Not in Message", order.getSourceSystem());
         assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.CO_PATH.name(), order.getTestBatteryCodingSystem());
@@ -183,7 +183,7 @@ class TestCoPathOrders {
      */
     @Test
     void testOrmO01CaDeletes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_ca");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_ca");
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
         assertEquals(epicOrder, epicOrderInterchangeValue.get());
@@ -197,7 +197,7 @@ class TestCoPathOrders {
      */
     @Test
     void testOrmO01OcDeletes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orm_o01_oc");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_oc");
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
         assertEquals(epicOrder, epicOrderInterchangeValue.get());
@@ -212,7 +212,7 @@ class TestCoPathOrders {
      */
     @Test
     void testOrrO02CrDeletes() throws Exception {
-        LabOrderMsg order = labReader.process(FILE_TEMPLATE, "orr_o02_cr");
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orr_o02_cr");
         InterchangeValue<String> epicOrderInterchangeValue = order.getEpicCareOrderNumber();
         assertTrue(epicOrderInterchangeValue.isDelete());
         assertEquals(epicOrder, epicOrderInterchangeValue.get());
