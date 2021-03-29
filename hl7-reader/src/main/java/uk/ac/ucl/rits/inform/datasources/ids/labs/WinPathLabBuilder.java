@@ -145,7 +145,9 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         // WinPath messages can have the 9 digit specimen number, or specimen number with an extra digit to denote type.
         String specimenWithPossibleExtra = labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen;
-        getMsg().setLabSpecimenNumber(specimenWithPossibleExtra.substring(0, 9));
+        if (!specimenWithPossibleExtra.isEmpty()) {
+            getMsg().setLabSpecimenNumber(specimenWithPossibleExtra.substring(0, 9));
+        }
     }
 
     private void setCommonOrderInformation(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc)
