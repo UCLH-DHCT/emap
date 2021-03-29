@@ -73,6 +73,13 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         setOrderInformation(subMessageSourceId, patientHl7, obr, orc, notes);
     }
 
+    @Override
+    protected void setLabSpecimenNumber(ORC orc) {
+        String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        getMsg().setLabSpecimenNumber(labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen);
+    }
+
     private void setOrderInformation(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc, Iterable<NTE> notes)
             throws HL7Exception, Hl7InconsistencyException {
         setBatteryCodingSystem();
