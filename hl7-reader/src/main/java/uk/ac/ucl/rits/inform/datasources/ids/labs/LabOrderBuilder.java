@@ -85,9 +85,7 @@ abstract class LabOrderBuilder {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        msg.setLabSpecimenNumber(labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen);
+        setLabSpecimenNumber(orc);
         setSpecimenTypeAndCollectionMethod(obr);
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
 
@@ -119,6 +117,13 @@ abstract class LabOrderBuilder {
                 break;
         }
     }
+
+    /**
+     * Set the specimen number from the ORC segment.
+     * Each lab result that uses this appears to need a separate implementation of this.
+     * @param orc ORC segment
+     */
+    protected abstract void setLabSpecimenNumber(ORC orc);
 
 
     void setBatteryCodingSystem() {

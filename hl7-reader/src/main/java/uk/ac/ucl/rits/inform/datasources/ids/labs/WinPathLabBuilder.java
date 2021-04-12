@@ -139,6 +139,17 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
         getMsg().setLabResultMsgs(tempResults.stream().map(LabResultBuilder::getMessage).collect(Collectors.toList()));
     }
 
+    @Override
+    protected void setLabSpecimenNumber(ORC orc) {
+        String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
+        // WinPath messages can have the 9 digit specimen number, or specimen number with an extra digit to denote type.
+        String specimenWithPossibleExtra = labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen;
+        if (!specimenWithPossibleExtra.isEmpty()) {
+            getMsg().setLabSpecimenNumber(specimenWithPossibleExtra.substring(0, 9));
+        }
+    }
+
     private void setCommonOrderInformation(String subMessageSourceId, PatientInfoHl7 patientHl7, OBR obr, ORC orc)
             throws HL7Exception, Hl7InconsistencyException {
         setBatteryCodingSystem();

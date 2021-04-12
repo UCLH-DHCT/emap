@@ -6,6 +6,7 @@ import ca.uhn.hl7v2.model.v26.message.ORU_R30;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
+import ca.uhn.hl7v2.model.v26.segment.ORC;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
@@ -58,10 +59,15 @@ public final class AblLabBuilder extends LabOrderBuilder {
         getMsg().setLabResultMsgs(results);
     }
 
+    @Override
+    protected void setLabSpecimenNumber(ORC orc) {
+        return; // not used
+    }
+
     /**
      * Build order with results.
-     * @param idsUnid      unique Id from the IDS
-     * @param oruR30       hl7 message
+     * @param idsUnid unique Id from the IDS
+     * @param oruR30  hl7 message
      * @return interchange messages
      * @throws HL7Exception               if HAPI does
      * @throws Hl7InconsistencyException  if the HL7 message contains errors
