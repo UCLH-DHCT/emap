@@ -3,4 +3,5 @@ PID|1||40800000^^^^medrec~||ORANGE^blood||19740408|F
 PV1|1||||||||||||||||||1013420255
 ORC|SC||541234
 OBR|1||19B44444|GPS^Group & Screen^^Profiles|||201307290618|||||||201307290925||CM7^DONALD^DR.C.J.||||19B44444||20130729092522|||I
-
+NTE|||Clinical Note1~over 2 lines|BMCOMMENT
+NTE|||Clinical Note2|BMCOMMENT

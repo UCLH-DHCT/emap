@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
@@ -14,6 +15,7 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -38,7 +40,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
      */
     private BankManagerLabBuilder(String idsUnid, MSH msh, ORU_R01_PATIENT_RESULT patientResults)
             throws HL7Exception, Hl7InconsistencyException {
-        super(new String[]{"SC", "RE"}, OrderCodingSystem.BANK_MANAGER);
+        super(new String[]{"SC", "RE", "OC"}, OrderCodingSystem.BANK_MANAGER);
         setBatteryCodingSystem();
 
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
@@ -56,6 +58,8 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         populateOrderInformation(obs.getORC(), obr);
         getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
         getMsg().setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        getMsg().setLabDepartment(getCodingSystem().name());
+        setClinicalInformationFromNotes(obs.getNTEAll());
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (ORU_R01_OBSERVATION ob : obs.getOBSERVATIONAll()) {
@@ -66,6 +70,16 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         }
 
         getMsg().setLabResultMsgs(results);
+    }
+
+    private void setClinicalInformationFromNotes(List<NTE> notes) {
+        StringBuilder questionAndAnswer = new StringBuilder();
+        for (NTE note : notes) {
+            for (FT ft : note.getNte3_Comment()) {
+                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+            }
+        }
+        getMsg().setClinicalInformation(InterchangeValue.buildFromHl7(questionAndAnswer.toString().strip()));
     }
 
 

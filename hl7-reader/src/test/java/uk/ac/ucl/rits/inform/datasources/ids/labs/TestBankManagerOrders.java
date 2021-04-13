@@ -39,9 +39,9 @@ class TestBankManagerOrders extends TestHl7MessageStream {
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
         assertEquals(order.getStatusChangeTime(), order.getOrderDateTime().get());
-        // think about times
-//        assertTrue(order.getRequestedDateTime().isSave());
-//        assertTrue(order.getSampleReceivedTime().isUnknown());
+        // TODO: check times
+        assertTrue(order.getRequestedDateTime().isUnknown());
+        assertTrue(order.getSampleReceivedTime().isUnknown());
     }
 
     @Test
@@ -55,12 +55,30 @@ class TestBankManagerOrders extends TestHl7MessageStream {
     void testOrderInfo() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
         assertEquals("Not in Message", order.getSourceSystem());
-        assertTrue(order.getSpecimenType().isUnknown());
-        assertEquals("", order.getLabDepartment());
         assertEquals("GPS", order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM.name(), order.getTestBatteryCodingSystem());
         assertTrue(order.getQuestions().isEmpty());
+        assertEquals("I", order.getResultStatus());
+        assertEquals(CODING_SYSTEM.name(), order.getLabDepartment());
         assertEquals("", order.getOrderStatus());
+        assertTrue(order.getSpecimenType().isUnknown());
+    }
+
+    @Test
+    void testIdentifiers() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
+        assertEquals("40800000", order.getMrn());
+        assertEquals("1013420255", order.getVisitNumber());
+    }
+
+    /**
+     * BMCOMMENT notes should joined and used as clinical information.
+     * @throws Exception
+     */
+    @Test
+    void testClinicalInformation() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_bmcomment");
+        assertEquals(InterchangeValue.buildFromHl7("Clinical Note1\nover 2 lines\nClinical Note2"), order.getClinicalInformation());
     }
 
 }
