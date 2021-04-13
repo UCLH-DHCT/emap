@@ -10,10 +10,12 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @ActiveProfiles("test")
 @SpringBootTest
-class TestBankManagerOrders extends TestHl7MessageStream {
+class TestBankManagerParsing extends TestHl7MessageStream {
     @Autowired
     private static final String FILE_TEMPLATE = "LabOrders/bank_manager/%s.txt";
 
@@ -38,10 +40,10 @@ class TestBankManagerOrders extends TestHl7MessageStream {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
-        assertEquals(order.getStatusChangeTime(), order.getOrderDateTime().get());
-        // TODO: check times
+        assertEquals(order.getStatusChangeTime().truncatedTo(ChronoUnit.MINUTES), order.getOrderDateTime().get());
+        assertEquals(order.getStatusChangeTime().truncatedTo(ChronoUnit.MINUTES), order.getSampleReceivedTime().get());
+        // TODO: check times within bank manager
         assertTrue(order.getRequestedDateTime().isUnknown());
-        assertTrue(order.getSampleReceivedTime().isUnknown());
     }
 
     @Test
@@ -60,7 +62,7 @@ class TestBankManagerOrders extends TestHl7MessageStream {
         assertTrue(order.getQuestions().isEmpty());
         assertEquals("I", order.getResultStatus());
         assertEquals(CODING_SYSTEM.name(), order.getLabDepartment());
-        assertEquals("", order.getOrderStatus());
+        assertNull(order.getOrderStatus());
         assertTrue(order.getSpecimenType().isUnknown());
     }
 
@@ -73,12 +75,22 @@ class TestBankManagerOrders extends TestHl7MessageStream {
 
     /**
      * BMCOMMENT notes should joined and used as clinical information.
-     * @throws Exception
+     * @throws Exception shouldn't happen
      */
     @Test
     void testClinicalInformation() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_bmcomment");
         assertEquals(InterchangeValue.buildFromHl7("Clinical Note1\nover 2 lines\nClinical Note2"), order.getClinicalInformation());
+    }
+
+    @Test
+    void testResultTimes() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_result");
+        assertEquals(collectionTime, order.getCollectionDateTime());
+        assertNotNull(order.getStatusChangeTime());
+        assertTrue(order.getOrderDateTime().isUnknown());
+        assertTrue(order.getRequestedDateTime().isUnknown());
+        assertTrue(order.getSampleReceivedTime().isUnknown());
     }
 
 }

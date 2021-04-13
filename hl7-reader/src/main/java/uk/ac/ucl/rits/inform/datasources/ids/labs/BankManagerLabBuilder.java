@@ -20,9 +20,12 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
 /**
  * Build Bank Manager LabOrders.
@@ -44,9 +47,6 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         setBatteryCodingSystem();
 
         ORU_R01_ORDER_OBSERVATION obs = patientResults.getORDER_OBSERVATION();
-        if (obs.getOBSERVATIONReps() > 1) {
-            throw new Hl7InconsistencyException("Bank Manager messages should only have one OBX result segment");
-        }
         PID pid = patientResults.getPATIENT().getPID();
         PV1 pv1 = patientResults.getPATIENT().getVISIT().getPV1();
         OBR obr = obs.getOBR();
@@ -55,7 +55,8 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         setSourceAndPatientIdentifiers(idsUnid, patientHl7);
         populateObrFields(obr);
         populateOrderInformation(obr);
-        populateOrderInformation(obs.getORC(), obr);
+        Instant statusChange = interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
+        getMsg().setStatusChangeTime(statusChange);
         getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
         getMsg().setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
         getMsg().setLabDepartment(getCodingSystem().name());
