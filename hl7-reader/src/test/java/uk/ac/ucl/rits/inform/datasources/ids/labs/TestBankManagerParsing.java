@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,7 +8,10 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.TestHl7MessageStream;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -91,6 +95,20 @@ class TestBankManagerParsing extends TestHl7MessageStream {
         assertTrue(order.getOrderDateTime().isUnknown());
         assertTrue(order.getRequestedDateTime().isUnknown());
         assertTrue(order.getSampleReceivedTime().isUnknown());
+    }
+
+    @Test
+    void testSingleStringResult() throws Exception{
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_r01_result", "GPS1");
+        assertEquals(InterchangeValue.buildFromHl7("O NEG"), result.getStringValue());
+    }
+
+    @Test
+    void testStringResultAdjacent() throws Exception{
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_r01_result", "GPS1");
+        assertEquals(LabResultStatus.FINAL, result.getResultStatus());
+        assertEquals(ValueType.TEXT, result.getMimeType());
+        assertEquals(OrderCodingSystem.BANK_MANAGER.name(), result.getTestItemCodingSystem());
     }
 
 }

@@ -66,7 +66,8 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         for (ORU_R01_OBSERVATION ob : obs.getOBSERVATIONAll()) {
             OBX obx = ob.getOBX();
             List<NTE> notes = ob.getNTEAll();
-            BankManagerResultBuilder labResult = new BankManagerResultBuilder(obr, obx, notes);
+            BankManagerResultBuilder labResult = new BankManagerResultBuilder(obx, notes);
+            labResult.constructMsg();
             results.add(labResult.getMessage());
         }
 
