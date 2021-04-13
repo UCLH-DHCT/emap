@@ -8,6 +8,7 @@ import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
+import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
@@ -69,6 +70,10 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
         getMsg().setLabResultMsgs(singletonList(labResult.getMessage()));
     }
 
+    @Override
+    protected void setLabSpecimenNumber(ORC orc) {
+        return; // not used
+    }
 
     /**
      * Build Lab Order from BIO-CONNECT point of care device.
