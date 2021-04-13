@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
@@ -32,6 +33,7 @@ import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
  * @author Stef Piatek
  */
 public final class BankManagerLabBuilder extends LabOrderBuilder {
+    private static final String CANCEL_OC_ID = "OC";
 
     /**
      * Construct parsed from Bank Manager ORU R01 message.
@@ -55,12 +57,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         setSourceAndPatientIdentifiers(idsUnid, patientHl7);
         populateObrFields(obr);
         populateOrderInformation(obr);
-        Instant statusChange = interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
-        getMsg().setStatusChangeTime(statusChange);
-        getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
-        getMsg().setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
-        getMsg().setLabDepartment(getCodingSystem().name());
-        setClinicalInformationFromNotes(obs.getNTEAll());
+        setCustomOrderInformation(obs, obr);
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (ORU_R01_OBSERVATION ob : obs.getOBSERVATIONAll()) {
@@ -73,17 +70,6 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
 
         getMsg().setLabResultMsgs(results);
     }
-
-    private void setClinicalInformationFromNotes(List<NTE> notes) {
-        StringBuilder questionAndAnswer = new StringBuilder();
-        for (NTE note : notes) {
-            for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
-            }
-        }
-        getMsg().setClinicalInformation(InterchangeValue.buildFromHl7(questionAndAnswer.toString().strip()));
-    }
-
 
     /**
      * Build Lab Order from Bank Manager.
@@ -114,5 +100,27 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
     @Override
     protected void setLabSpecimenNumber(ORC orc) {
        return; // not used
+    }
+
+    private void setCustomOrderInformation(ORU_R01_ORDER_OBSERVATION obs, OBR obr) throws HL7Exception {
+        Instant statusChange = interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime());
+        getMsg().setStatusChangeTime(statusChange);
+        getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
+        getMsg().setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
+        getMsg().setLabDepartment(getCodingSystem().name());
+        setClinicalInformationFromNotes(obs.getNTEAll());
+        if (CANCEL_OC_ID.equals(getMsg().getOrderControlId())) {
+            getMsg().setEpicCareOrderNumber(InterchangeValue.delete());
+        }
+    }
+
+    private void setClinicalInformationFromNotes(List<NTE> notes) {
+        StringJoiner questionAndAnswer = new StringJoiner("\n");
+        for (NTE note : notes) {
+            for (FT ft : note.getNte3_Comment()) {
+                questionAndAnswer.add(ft.getValueOrEmpty());
+            }
+        }
+        getMsg().setClinicalInformation(InterchangeValue.buildFromHl7(questionAndAnswer.toString()));
     }
 }

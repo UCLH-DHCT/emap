@@ -117,4 +117,10 @@ class TestBankManagerParsing extends TestHl7MessageStream {
         assertEquals(InterchangeValue.buildFromHl7("Anti-D") ,result.getNotes());
     }
 
+    @Test
+    void testCancelOrder() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_cancel");
+        assertTrue(order.getEpicCareOrderNumber().isDelete());
+    }
+
 }
