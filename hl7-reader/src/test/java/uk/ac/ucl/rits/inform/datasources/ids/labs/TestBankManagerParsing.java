@@ -111,4 +111,10 @@ class TestBankManagerParsing extends TestHl7MessageStream {
         assertEquals(OrderCodingSystem.BANK_MANAGER.name(), result.getTestItemCodingSystem());
     }
 
+    @Test
+    void testResultComments() throws Exception {
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_r01_result_comment", "GPS2");
+        assertEquals(InterchangeValue.buildFromHl7("Anti-D") ,result.getNotes());
+    }
+
 }
