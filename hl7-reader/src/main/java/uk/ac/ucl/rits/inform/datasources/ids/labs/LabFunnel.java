@@ -80,7 +80,7 @@ public final class LabFunnel {
             case CO_PATH:
                 return CoPathLabBuilder.build(idsUnid, oruR01);
             case BANK_MANAGER:
-                throw new Hl7MessageIgnoredException("Bank Manager lab results not implemented for now");
+                return BankManagerLabBuilder.build(idsUnid, oruR01);
             case BIO_CONNECT:
                 return BioConnectLabBuilder.build(idsUnid, oruR01);
             default:

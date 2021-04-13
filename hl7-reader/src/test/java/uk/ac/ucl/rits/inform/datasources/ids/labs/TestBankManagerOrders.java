@@ -5,13 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.TestHl7MessageStream;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
-import java.util.List;
+import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test LabOrders derived from Bank Manager
@@ -23,21 +26,41 @@ class TestBankManagerOrders extends TestHl7MessageStream {
     @Autowired
     private static final String FILE_TEMPLATE = "LabOrders/bank_manager/%s.txt";
 
-    void process(String fileTemplate, String fileName) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
-        List<? extends EmapOperationMessage> msgs = null;
-        try {
-            msgs = processSingleMessage(String.format(fileTemplate, fileName));
-        } catch (Hl7MessageIgnoredException | Hl7InconsistencyException e) {
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // add more to once have an interchange format
+    @Autowired
+    private LabReader labReader;
+
+    private static final OrderCodingSystem CODING_SYSTEM = OrderCodingSystem.BANK_MANAGER;
+    private String labOrder = "19B44444";
+    private Instant collectionTime = Instant.parse("2013-07-29T05:18:00Z");
+
+    @Test
+    void testOrderTimes() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
+        assertEquals(collectionTime, order.getCollectionDateTime());
+        assertNotNull(order.getStatusChangeTime());
+        assertEquals(order.getStatusChangeTime(), order.getOrderDateTime().get());
+        // think about times
+//        assertTrue(order.getRequestedDateTime().isSave());
+//        assertTrue(order.getSampleReceivedTime().isUnknown());
     }
 
     @Test
-    void testOrmO01MessagesThrowException() {
-        assertThrows(Hl7MessageIgnoredException.class, () -> process(FILE_TEMPLATE, "orm_o01"));
+    void testLabNumbers() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
+        assertEquals(labOrder, order.getLabSpecimenNumber());
+        assertTrue(order.getEpicCareOrderNumber().isUnknown());
+    }
+
+    @Test
+    void testOrderInfo() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
+        assertEquals("Not in Message", order.getSourceSystem());
+        assertTrue(order.getSpecimenType().isUnknown());
+        assertEquals("", order.getLabDepartment());
+        assertEquals("GPS", order.getTestBatteryLocalCode());
+        assertEquals(CODING_SYSTEM.name(), order.getTestBatteryCodingSystem());
+        assertTrue(order.getQuestions().isEmpty());
+        assertEquals("", order.getOrderStatus());
     }
 
 }
