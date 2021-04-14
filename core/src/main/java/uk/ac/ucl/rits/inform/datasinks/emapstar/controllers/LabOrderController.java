@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +80,7 @@ public class LabOrderController {
      * @return lab battery
      */
     @Transactional
+    @Cacheable(value = "labBattery", key = "{ #batteryCode, #codingSystem }")
     public LabBattery getOrCreateLabBattery(String batteryCode, String codingSystem, Instant validFrom, Instant storedFrom) {
         return labBatteryRepo.findByBatteryCodeAndLabProvider(batteryCode, codingSystem)
                 .orElseGet(() -> {
