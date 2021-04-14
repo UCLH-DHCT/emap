@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.handler.annotation.Header;
@@ -33,6 +34,7 @@ import java.time.Instant;
 @SpringBootApplication(scanBasePackages = {
         "uk.ac.ucl.rits.inform.datasinks",
         "uk.ac.ucl.rits.inform.informdb"})
+@EnableCaching
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
