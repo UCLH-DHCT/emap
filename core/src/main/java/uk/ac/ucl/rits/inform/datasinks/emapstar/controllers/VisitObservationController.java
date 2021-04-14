@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
@@ -55,7 +56,7 @@ public class VisitObservationController {
             throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
 
-        VisitObservationType observationType = getOrCreateObservationType(msg);
+        VisitObservationType observationType = getOrCreateObservationType(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication());
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
         if (messageShouldBeUpdated(msg, flowsheetState)) {
             updateVisitObservation(msg, flowsheetState);
@@ -65,22 +66,26 @@ public class VisitObservationController {
 
     /**
      * Get existing observation type or create and save minimal observation type.
-     * @param msg flowsheet
-     * @return VisitObservationType
+     * @param flowsheetId       flowsheet Id
+     * @param sourceSystem      source system
+     * @param sourceApplication source application     * @return VisitObservationType
      */
-    private VisitObservationType getOrCreateObservationType(Flowsheet msg) {
+    @Cacheable("visitObservationType")
+    public VisitObservationType getOrCreateObservationType(String flowsheetId, String sourceSystem, String sourceApplication) {
         return visitObservationTypeRepo
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication())
-                .orElseGet(() -> createAndSaveNewType(msg));
+                .findByIdInApplicationAndSourceSystemAndSourceApplication(flowsheetId, sourceSystem, sourceApplication)
+                .orElseGet(() -> createAndSaveNewType(flowsheetId, sourceSystem, sourceApplication));
     }
 
     /**
      * Create and save a minimal visit observation type.
-     * @param msg flowsheet
+     * @param flowsheetId       flowsheet Id
+     * @param sourceSystem      source system
+     * @param sourceApplication source application
      * @return saved minimal VisitObservationType
      */
-    private VisitObservationType createAndSaveNewType(Flowsheet msg) {
-        VisitObservationType type = new VisitObservationType(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication());
+    private VisitObservationType createAndSaveNewType(String flowsheetId, String sourceSystem, String sourceApplication) {
+        VisitObservationType type = new VisitObservationType(flowsheetId, sourceSystem, sourceApplication);
         logger.debug(String.format("Created new %s", type));
         return visitObservationTypeRepo.save(type);
     }
