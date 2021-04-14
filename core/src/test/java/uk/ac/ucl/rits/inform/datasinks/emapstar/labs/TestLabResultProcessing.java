@@ -139,7 +139,7 @@ class TestLabResultProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Incremental load should change result from fist message
+     * Incremental load should change result from first message
      */
     @Test
     void testIncrementalLoad() throws EmapOperationMessageProcessingException {
