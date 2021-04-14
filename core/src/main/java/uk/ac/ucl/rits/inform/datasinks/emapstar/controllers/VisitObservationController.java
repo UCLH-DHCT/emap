@@ -69,6 +69,7 @@ public class VisitObservationController {
      * @param flowsheetId       flowsheet Id
      * @param sourceSystem      source system
      * @param sourceApplication source application     * @return VisitObservationType
+     * @return visit observation type
      */
     @Cacheable("visitObservationType")
     public VisitObservationType getOrCreateObservationType(String flowsheetId, String sourceSystem, String sourceApplication) {
