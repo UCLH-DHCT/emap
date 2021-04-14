@@ -79,7 +79,7 @@ public class LabController {
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             LabTestDefinition testDefinition = self.getOrCreateLabTestDefinition(
                     msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode(), storedFrom, validFrom);
-            getOrCreateLabBatteryElement(testDefinition, battery, storedFrom, validFrom);
+            self.createLabBatteryElementIfNotExists(testDefinition, battery, storedFrom, validFrom);
             labResultController.processResult(testDefinition, labOrder, result, validFrom, storedFrom);
         }
     }
@@ -107,7 +107,14 @@ public class LabController {
                 });
     }
 
-    private void getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
+    /**
+     * @param testDefinition test definition entity
+     * @param battery        lab battery entity
+     * @param validFrom      most recent change to results
+     * @param storedFrom     time that star started processing the message
+     */
+    @Cacheable(value = "labBatteryElement", key = "{ #testDefinition.labTestDefinitionId , #battery.labBatteryId }")
+    public void createLabBatteryElementIfNotExists(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
         labBatteryElementRepo
                 .findByLabBatteryIdAndLabTestDefinitionId(battery, testDefinition)
                 .orElseGet(() -> {
