@@ -11,6 +11,16 @@ set +a
 FAKE_CLABOODLE=""
 while (( "$#" )); do
     case "$1" in
+        --help)
+            echo "Usage:"
+            echo "  bash emap-live.sh --help"
+            echo "      shows usage"
+            echo "  bash emap-live.sh [--fake-claboodle] DOCKER_COMPOSE_SUBCOMMAND_AND_OPTIONS"
+            echo "      finds your config and relevant docker-compose files according to options, then passes through to docker-compose"
+            echo "Options to emap script:"
+            echo "    --fake-claboodle    (hoover)     include services for fake clarity and caboodle servers and a fake UDS for testing the hoover"
+            exit 0
+            ;;
         --fake-claboodle)
             FAKE_CLABOODLE=1
             shift
