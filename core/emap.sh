@@ -8,21 +8,21 @@ set +a
 >&2 echo "Emap in a box config file: $EMAP_CONFIG_FILE"
 
 # parse direct options to this script (before the docker-compose subcommand)
-FAKE_CLABOODLE=""
+FAKE_EPIC=""
 while (( "$#" )); do
     case "$1" in
         --help)
             echo "Usage:"
             echo "  bash emap-live.sh --help"
             echo "      shows usage"
-            echo "  bash emap-live.sh [--fake-claboodle] DOCKER_COMPOSE_SUBCOMMAND_AND_OPTIONS"
+            echo "  bash emap-live.sh [--fake-epic] DOCKER_COMPOSE_SUBCOMMAND_AND_OPTIONS"
             echo "      finds your config and relevant docker-compose files according to options, then passes through to docker-compose"
             echo "Options to emap script:"
-            echo "    --fake-claboodle    (hoover)     include services for fake clarity and caboodle servers and a fake UDS for testing the hoover"
+            echo "    --fake-epic    (hoover)     include services for fake clarity and caboodle servers and a fake UDS for testing the hoover"
             exit 0
             ;;
-        --fake-claboodle)
-            FAKE_CLABOODLE=1
+        --fake-epic)
+            FAKE_EPIC=1
             shift
             ;;
         -*|--*=) # unrecognised flags
@@ -37,10 +37,10 @@ while (( "$#" )); do
 done
 
 
-if [ -n "$FAKE_CLABOODLE" ]; then
-    CLABOODLE_ARG="-f "$(dirname "$SCRIPT_DIR")"/hoover/docker-compose.fake_services.yml"
+if [ -n "$FAKE_EPIC" ]; then
+    FAKE_EPIC_ARG="-f "$(dirname "$SCRIPT_DIR")"/hoover/docker-compose.fake_services.yml"
 else
-    CLABOODLE_ARG=""
+    FAKE_EPIC_ARG=""
 fi
 
 
@@ -61,7 +61,7 @@ docker-compose \
     $DBFILLER_ARG \
     -f "$(dirname "$SCRIPT_DIR")"/emap-hl7-processor/docker-compose.yml \
     -f "$(dirname "$SCRIPT_DIR")"/hoover/docker-compose.yml \
-    $CLABOODLE_ARG \
+    $FAKE_EPIC_ARG \
     -p $EMAP_PROJECT_NAME \
     "$@"
 
