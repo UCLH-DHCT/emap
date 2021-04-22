@@ -91,16 +91,12 @@ public class InterchangeMessageFactory {
         return orderMsg;
     }
 
-    public List<PatientInfection> getPatientInfections(final String fileName) {
+    public List<PatientInfection> getPatientInfections(final String fileName) throws IOException {
         List<PatientInfection> patientInfections = new ArrayList<>();
 
         String resourcePath = "/PatientInfection/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            patientInfections = mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        patientInfections = mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
         return patientInfections;
     }
 
@@ -124,27 +120,23 @@ public class InterchangeMessageFactory {
      * @param sourceMessagePrefix message prefix
      * @return List of Flowsheets
      */
-    public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) {
+    public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) throws IOException {
         List<Flowsheet> flowsheets = new ArrayList<>();
 
         String resourcePath = "/Flowsheets/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            flowsheets = mapper.readValue(inputStream, new TypeReference<List<Flowsheet>>() {});
-            int count = 1;
-            for (Flowsheet flowsheet : flowsheets) {
-                String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
-                flowsheet.setSourceMessageId(sourceMessageId);
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        flowsheets = mapper.readValue(inputStream, new TypeReference<List<Flowsheet>>() {});
+        int count = 1;
+        for (Flowsheet flowsheet : flowsheets) {
+            String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
+            flowsheet.setSourceMessageId(sourceMessageId);
 
-                // update order with yaml data
-                ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
-                String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
-                orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+            // update order with yaml data
+            ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
+            String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
+            orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
-                count++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            count++;
         }
         return flowsheets;
     }
