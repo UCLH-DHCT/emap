@@ -9,8 +9,10 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * @author Jeremy Stein
+ * A message to tell Star that the flowsheet described is available on the
+ * source system.
  *
+ * @author Jeremy Stein
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
