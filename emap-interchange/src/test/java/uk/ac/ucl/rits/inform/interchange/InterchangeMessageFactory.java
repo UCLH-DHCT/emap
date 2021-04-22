@@ -105,6 +105,20 @@ public class InterchangeMessageFactory {
     }
 
     /**
+     * Build flowsheet metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange messages
+     * @throws IOException if reading failed
+     */
+    public List<FlowsheetMetadata> getFlowsheetMetadata(final String fileName) throws IOException {
+        List<FlowsheetMetadata> flowsheetMetadata = new ArrayList<>();
+        String resourcePath = "/FlowsheetMetadata/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<List<FlowsheetMetadata>>() {});
+        return flowsheetMetadata;
+    }
+
+    /**
      * Builds Flowsheets from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
      * @param fileName            yaml filename in test resources/Flowsheets, default values from '{file_stem}_defaults.yaml'
      * @param sourceMessagePrefix message prefix
