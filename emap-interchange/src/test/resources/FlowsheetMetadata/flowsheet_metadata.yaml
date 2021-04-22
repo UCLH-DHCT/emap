@@ -9,10 +9,10 @@
   description:        "Pulse oximetry"
   isBloodLoss:            0
   isCalculated:       0
-  _creationInstant:       "2019-01-24T01:14:15.650Z"
-  _lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
-  _isInferred:            0
-  _isDeleted:         0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
   flowsheetId: "1090000038"
@@ -25,10 +25,10 @@
   description:        "*Unknown"
   isBloodLoss:            0
   isCalculated:       0
-  _creationInstant:       "2019-01-24T01:14:15.650Z"
-  _lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
-  _isInferred:            0
-  _isDeleted:         0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
   flowsheetId: "1010010003"
@@ -41,10 +41,10 @@
   description:        "*Unknown"
   isBloodLoss:            0
   isCalculated:       0
-  _creationInstant:       "2019-01-24T01:14:15.650Z"
-  _lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
-  _isInferred:            0
-  _isDeleted:         0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
   flowsheetId: "1020100368"
@@ -57,8 +57,8 @@
   description:        "*Unknown"
   isBloodLoss:            0
   isCalculated:       0
-  _creationInstant:       "2019-01-24T01:14:15.650Z"
-  _lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
-  _isInferred:            0
-  _isDeleted:         0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
   sourceSystem: "caboodle"
