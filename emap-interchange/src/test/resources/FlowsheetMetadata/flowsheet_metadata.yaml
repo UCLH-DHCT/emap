@@ -1,0 +1,64 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+  flowsheetId: "10"
+  name:               "PULSE OXIMETRY"
+  displayName:        "SpO2"
+  abbreviation:           ""
+  valueType:          "Numeric Type"
+  rowType:            "Data"
+  unit:               "%"
+  description:        "Pulse oximetry"
+  isBloodLoss:            0
+  isCalculated:       0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+  flowsheetId: "1090000038"
+  name:               "R HPSC IDG SW PRESENT"
+  displayName:        "Social Work Team Member"
+  abbreviation:           ""
+  valueType:          "String Type"
+  rowType:            "Data"
+  unit:               ""
+  description:        "*Unknown"
+  isBloodLoss:            0
+  isCalculated:       0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+  flowsheetId: "1010010003"
+  name:               "R ED INTERPRETER ARRIVED"
+  displayName:        "Arrival Time"
+  abbreviation:           ""
+  valueType:          "Time"
+  rowType:            "Data"
+  unit:               ""
+  description:        "*Unknown"
+  isBloodLoss:            0
+  isCalculated:       0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
+  sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+  flowsheetId: "1020100368"
+  name:               "R OB NEWBORN HEARING SCREEN DATE"
+  displayName:        "Date of Test"
+  abbreviation:           ""
+  valueType:          "Date"
+  rowType:            "Data"
+  unit:               ""
+  description:        "*Unknown"
+  isBloodLoss:            0
+  isCalculated:       0
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  isInferred:            0
+  isDeleted:         0
+  sourceSystem: "caboodle"
