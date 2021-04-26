@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
+import java.io.IOException;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,7 +31,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
 
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         labOrderMsg = messageFactory.buildLabOrderOverridingDefaults(
                 String.format(coPathTemplate, "orm_defaults"), String.format(coPathTemplate, "orm_o01_questions")
         );
