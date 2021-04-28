@@ -357,4 +357,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/flowsheet_oru_r01.yaml");
         Assertions.assertEquals(expectedAdt, messageFromHl7);
     }
+
+    @Test
+    public void testPatientInfection() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt").get(0);
+        AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/patient_infection_a05.yaml");
+        Assertions.assertEquals(expectedAdt, messageFromHl7);
+    }
 }
