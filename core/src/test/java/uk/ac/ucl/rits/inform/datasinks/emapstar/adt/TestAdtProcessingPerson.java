@@ -56,7 +56,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      * no existing mrns, so new mrn, mrn_to_live core_demographics rows should be created.
      */
     @Test
-    void testCreateNewPatient() throws EmapOperationMessageProcessingException {
+    void testCreateNewPatient() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         dbOps.processMessage(msg);
         List<Mrn> mrns = getAllMrns();
@@ -75,7 +75,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      * Should create previous and current MRN, and the core demographics for the current MRN.
      */
     @Test
-    void testMoveVisitInformationCreatesMrnsIfTheyDontExist() throws EmapOperationMessageProcessingException {
+    void testMoveVisitInformationCreatesMrnsIfTheyDontExist() throws Exception {
         MoveVisitInformation msg = messageFactory.getAdtMessage("generic/A45.yaml");
         dbOps.processMessage(msg);
         List<Mrn> mrns = getAllMrns();
@@ -89,10 +89,10 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     /**
      * no MRNs exist in database, so a new MRN should be created with the correct final MRN.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testChangePatientIdentifiersCreatesNewMrn() throws EmapOperationMessageProcessingException {
+    void testChangePatientIdentifiersCreatesNewMrn() throws Exception {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
 
         //process message
@@ -110,7 +110,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testMrnExists() throws EmapOperationMessageProcessingException {
+    void testMrnExists() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         int startingMrnCount = getAllMrns().size();
         // process message
@@ -134,7 +134,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testOldAdtMessage() throws EmapOperationMessageProcessingException {
+    void testOldAdtMessage() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setEventOccurredDateTime(Instant.parse("2010-01-01T01:01:01Z"));
 
@@ -162,7 +162,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testMrnExistsAndIsntLive() throws EmapOperationMessageProcessingException {
+    void testMrnExistsAndIsntLive() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg = setDataForHospitalVisitId4002(msg);
 
@@ -192,7 +192,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testMergeKnownRetiringNewSurviving() throws EmapOperationMessageProcessingException {
+    void testMergeKnownRetiringNewSurviving() throws Exception {
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setRecordedDateTime(msg.getRecordedDateTime().plus(1, ChronoUnit.HOURS));
 
@@ -212,7 +212,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testMergeNewRetiringAlreadyMergedSurviving() throws EmapOperationMessageProcessingException {
+    void testMergeNewRetiringAlreadyMergedSurviving() throws Exception {
         String retiringMrnString = "60600005";
         MergePatient msg = messageFactory.getAdtMessage("generic/A40.yaml");
         msg.setPreviousMrn(retiringMrnString);
@@ -238,7 +238,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testMergeByNhsNumber() throws EmapOperationMessageProcessingException {
+    void testMergeByNhsNumber() throws Exception {
         String survivingMrnString = "30700000";
         String retiringMrnString = "60600000";
         String retiringNhsNumber = "222222222";
@@ -267,7 +267,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testCoreDemographicsAuditLog() throws EmapOperationMessageProcessingException {
+    void testCoreDemographicsAuditLog() throws Exception {
         // first message as MrnExists
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
@@ -301,7 +301,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     @Test
     @Sql(value = "/populate_db.sql")
-    void testCoreDemographicsAuditWithDuplicateDemographics() throws EmapOperationMessageProcessingException {
+    void testCoreDemographicsAuditWithDuplicateDemographics() throws Exception {
         // first message as MrnExists
         AdmitPatient msg1 = messageFactory.getAdtMessage("generic/A01.yaml");
         AdmitPatient msg2 = messageFactory.getAdtMessage("generic/A01.yaml");
@@ -324,7 +324,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testMrnToLiveAuditLog() throws EmapOperationMessageProcessingException {
+    void testMrnToLiveAuditLog() throws Exception {
         // exists and has two entities mapped
         String retiringMrnString = "30700000";
         String messageSurvivingMrn = "44444444";
@@ -347,11 +347,11 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     /**
      * Delete person information should delete the core demographics and log a row in the audit table.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
+    void testDeletePersonInformation() throws Exception {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         // process message
         dbOps.processMessage(msg);
@@ -367,11 +367,11 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     /**
      * Message is older than database, so no deletes should take place.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testOldDeleteMessageHasNoEffect() throws EmapOperationMessageProcessingException {
+    void testOldDeleteMessageHasNoEffect() throws Exception {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         msg.setEventOccurredDateTime(Instant.parse("2000-01-01T00:00:00Z"));
         // process message
@@ -388,11 +388,11 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     /**
      * Change patient identifiers, new identifier doesn't already exist so the mrn should be changed.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testChangePatientIdentifiers() throws EmapOperationMessageProcessingException {
+    void testChangePatientIdentifiers() throws Exception {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
 
         // save state before processing to be sure that it works
@@ -415,18 +415,18 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     /**
      * Change patient identifiers, final MRN already exists, so should throw an exception.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    void testChangePatientIdentifiersWithExistingFinalMrn() throws EmapOperationMessageProcessingException {
+    void testChangePatientIdentifiersWithExistingFinalMrn() throws Exception {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
         msg.setMrn(newMrnString);
 
         assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
     }
 
-    private void createAndProcess(String nhsNumber, String Mrn, Integer minuteAdded) throws EmapOperationMessageProcessingException {
+    private void createAndProcess(String nhsNumber, String Mrn, Integer minuteAdded) throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
 
         msg.setNhsNumber(nhsNumber);
@@ -438,10 +438,10 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
 
     /**
      * Test that combinations of identifiers for the same patient are processed without error.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testNhsNumberUpdates() throws EmapOperationMessageProcessingException {
+    void testNhsNumberUpdates() throws Exception {
         // first mrn
         createAndProcess(null, "mrn", 0);
         createAndProcess("nhs", "mrn", 2);

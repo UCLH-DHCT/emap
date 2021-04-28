@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,7 +42,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
 
     @BeforeEach
-    void setup() {
+    void setup() throws IOException {
         messages = messageFactory.getFlowsheets("hl7.yaml", "0000040");
     }
 

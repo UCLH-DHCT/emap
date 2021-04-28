@@ -29,6 +29,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -75,7 +76,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     private final Instant now = Instant.now();
     private final Instant past = Instant.parse("2001-01-01T00:00:00Z");
 
-    public TestLabOrderProcessing() {
+    public TestLabOrderProcessing() throws IOException {
         List<LabOrderMsg> messages = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
         fourResults = messages.get(0);
         singleResult = messages.get(1);
@@ -342,7 +343,7 @@ class TestLabOrderProcessing extends MessageProcessingBase {
     }
 
     @Test
-    void testIncrementalOrdersThenResult() throws EmapOperationMessageProcessingException {
+    void testIncrementalOrdersThenResult() throws Exception {
         String interchangePathTemplate = "winpath/incremental_orders/%s.yaml";
         String interchangeDefaults = String.format(interchangePathTemplate, "orm_defaults");
 
