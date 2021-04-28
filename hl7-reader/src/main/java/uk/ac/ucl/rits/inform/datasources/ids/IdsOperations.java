@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ADT_A05;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
@@ -13,18 +14,14 @@ import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
@@ -59,50 +56,44 @@ public class IdsOperations implements AutoCloseable {
 
 
     private SessionFactory idsFactory;
-    private AdtMessageFactory adtMessageFactory;
-    private OrderAndResultService orderAndResultService;
-    private IdsProgressRepository idsProgressRepository;
-    private boolean idsEmptyOnInit;
-    private Integer defaultStartUnid;
-    private Integer endUnid;
+    private final AdtMessageFactory adtMessageFactory;
+    private final OrderAndResultService orderAndResultService;
+    private final PatientStatusService patientStatusService;
+    private final IdsProgressRepository idsProgressRepository;
+    private final boolean idsEmptyOnInit;
+    private final Integer defaultStartUnid;
+    private final Integer endUnid;
 
     /**
-     * @param idsCfgXml             injected param
-     * @param defaultStartDatetime  the start date to use if no progress has been previously recorded in the DB
-     * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
-     * @param environment           injected param
-     * @param adtMessageFactory     injected AdtMessageFactory
-     * @param orderAndResultService injected FlowsheetFactory
-     * @param idsProgressRepository injected IdsProgressRepository
+     * @param idsConfiguration      configuration of interaction with IDS
+     * @param adtMessageFactory     builds ADT messages
+     * @param orderAndResultService orchestrates processing of messages for orders and results
+     * @param patientStatusService  orchestrates processing of messages with patient status
+     * @param idsProgressRepository interaction with ids progress table (stored in the star database)
      */
     public IdsOperations(
-            @Value("${ids.cfg.xml.file}") String idsCfgXml,
-            @Value("${ids.cfg.default-start-datetime}") Instant defaultStartDatetime,
-            @Value("${ids.cfg.end-datetime}") Instant endDatetime,
-            @Autowired Environment environment,
-            @Autowired AdtMessageFactory adtMessageFactory,
-            @Autowired OrderAndResultService orderAndResultService,
-            @Autowired IdsProgressRepository idsProgressRepository) {
-        String envPrefix = "IDS";
-        if (environment.acceptsProfiles("test")) {
-            envPrefix = null;
-        }
+            IdsConfiguration idsConfiguration,
+            AdtMessageFactory adtMessageFactory,
+            OrderAndResultService orderAndResultService,
+            PatientStatusService patientStatusService,
+            IdsProgressRepository idsProgressRepository) {
+        this.patientStatusService = patientStatusService;
         this.adtMessageFactory = adtMessageFactory;
         this.orderAndResultService = orderAndResultService;
         this.idsProgressRepository = idsProgressRepository;
-        logger.info("IdsOperations() opening config file " + idsCfgXml);
-        idsFactory = makeSessionFactory(idsCfgXml, envPrefix);
+        idsFactory = idsConfiguration.getSessionFactory();
         idsEmptyOnInit = getIdsIsEmpty();
-        logger.info("IdsOperations() idsEmptyOnInit = " + idsEmptyOnInit);
-        this.defaultStartUnid = getFirstMessageUnidFromDate(defaultStartDatetime, 1);
-        this.endUnid = getFirstMessageUnidFromDate(endDatetime, defaultStartUnid);
+        logger.info("IdsOperations() idsEmptyOnInit = {}", idsEmptyOnInit);
+        defaultStartUnid = getFirstMessageUnidFromDate(idsConfiguration.getStartDateTime(), 1);
+        endUnid = getFirstMessageUnidFromDate(idsConfiguration.getEndDatetime(), defaultStartUnid);
 
         // Since progress is stored as the unid (the date info is purely for human convenience),
         // there is no way to translate a future date into a unid.
         // This feature is only intended for processing messages in the past, so that's OK.
         logger.info(
                 "IDS message processing boundaries: Start date = {}, start unid = {} -->  End date = {}, end unid = {}",
-                defaultStartDatetime, this.defaultStartUnid, endDatetime, this.endUnid);
+                idsConfiguration.getStartDateTime(), defaultStartUnid, idsConfiguration.getEndDatetime(), endUnid
+        );
     }
 
 
@@ -177,46 +168,6 @@ public class IdsOperations implements AutoCloseable {
         }
     }
 
-    /**
-     * Create a session factory from the given config file, overwriting configurable
-     * values from the environment, if specified.
-     * @param configFile the hibernate xml config file
-     * @param envPrefix  the prefix for environment variable names, or null if no
-     *                   variables should be read from the environment
-     * @return the SessionFactory thus created
-     */
-    private static SessionFactory makeSessionFactory(String configFile, String envPrefix) {
-        Configuration cfg = new Configuration().configure(configFile);
-        cfg.addAnnotatedClass(IdsMaster.class);
-
-        if (envPrefix != null) {
-            // take the username and password out of the environment
-            // so the config file can safely go into source control
-            String envVarUrl = envPrefix + "_JDBC_URL";
-            String envVarUsername = envPrefix + "_USERNAME";
-            String envVarPassword = envPrefix + "_PASSWORD";
-            String envVarSchema = envPrefix + "_SCHEMA";
-
-            String url = System.getenv(envVarUrl);
-            String uname = System.getenv(envVarUsername);
-            String pword = System.getenv(envVarPassword);
-            String schema = System.getenv(envVarSchema);
-            if (url != null) {
-                cfg.setProperty("hibernate.connection.url", url);
-            }
-            if (uname != null) {
-                cfg.setProperty("hibernate.connection.username", uname);
-            }
-            if (pword != null) {
-                cfg.setProperty("hibernate.connection.password", pword);
-            }
-            if (schema != null) {
-                cfg.setProperty("hibernate.default_schema", schema);
-            }
-        }
-
-        return cfg.buildSessionFactory();
-    }
 
     /**
      * @return the unique ID for the last IDS message we have successfully processed
@@ -470,6 +421,9 @@ public class IdsOperations implements AutoCloseable {
                     return messages;
                 }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
+                if ("A05".equals(triggerEvent)) {
+                    messages.addAll(patientStatusService.buildMessages(sourceId, (ADT_A05) msgFromIds));
+                }
                 break;
             case "ORM":
                 if ("O01".equals(triggerEvent)) {
