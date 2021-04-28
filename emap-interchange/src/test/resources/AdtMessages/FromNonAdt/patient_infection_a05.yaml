@@ -1,0 +1,36 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage"
+recordedDateTime: "2013-02-11T10:00:00Z"
+eventOccurredDateTime: "2013-02-11T10:00:52Z"
+sourceSystem: "EPIC"
+mrn: "40800000"
+nhsNumber: "9999999999"
+visitNumber: "123412341234"
+eventReasonCode: "APPT_NEW"
+fullLocationString:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "T42E^T42E BY02^BY02-17"
+patientBirthDate:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "1980-01-01T00:00:00Z"
+patientClass:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "OUTPATIENT"
+patientIsAlive:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: true
+patientFamilyName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "ORANGE"
+patientGivenName:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "BLOOD"
+patientSex:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "F"
