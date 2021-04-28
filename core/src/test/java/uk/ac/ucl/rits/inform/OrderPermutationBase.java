@@ -40,7 +40,7 @@ public abstract class OrderPermutationBase {
      * @throws EmapOperationMessageProcessingException if error in processing message
      * @throws MessageCancelledException               if visit has been previouslty cancelled
      */
-    protected abstract void processFile(String fileName) throws EmapOperationMessageProcessingException, MessageCancelledException;
+    protected abstract void processFile(String fileName) throws EmapOperationMessageProcessingException, MessageCancelledException, Exception;
 
     /**
      * Assertions at the end of each permutation test case to ensure that it has run successfully.
@@ -59,7 +59,7 @@ public abstract class OrderPermutationBase {
                 runTest(fileNames);
             } catch (MessageCancelledException | IncompatibleDatabaseStateException allowed) {
                 return null;
-            } catch (EmapOperationMessageProcessingException a) {
+            } catch (Exception a) {
                 return a;
             }
             return null;
@@ -69,7 +69,7 @@ public abstract class OrderPermutationBase {
         }
     }
 
-    private void runTest(Iterable<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException {
+    private void runTest(Iterable<String> fileNames) throws Exception {
         // processing orders and results using different methods
         for (String filename : fileNames) {
             processFile(filename);

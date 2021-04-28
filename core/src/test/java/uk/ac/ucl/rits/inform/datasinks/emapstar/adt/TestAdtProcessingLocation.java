@@ -24,6 +24,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -52,10 +53,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * No locations or location-visit in database.
      * Should create a new location and location-visit, but no audit location visit
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testCreateNewLocationVisit() throws EmapOperationMessageProcessingException {
+    void testCreateNewLocationVisit() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         dbOps.processMessage(msg);
 
@@ -67,10 +68,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * No locations or location-visit in database.
      * Two admits for the same time and location should only create a single entry
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testDuplicateAdmit() throws EmapOperationMessageProcessingException {
+    void testDuplicateAdmit() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
 
         dbOps.processMessage(msg);
@@ -85,11 +86,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Visit and location visit already exist in the database, new location given.
      * Should discharge the original location visit, audit log the original state and create a new location.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testMoveCurrentVisitLocation() throws EmapOperationMessageProcessingException {
+    void testMoveCurrentVisitLocation() throws Exception {
         TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
         dbOps.processMessage(msg);
 
@@ -111,11 +112,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Visit and location visit already exist in the database.
      * DischargePatient message: discharge the original location visit, audit log the original state.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testDischargeMessage() throws EmapOperationMessageProcessingException {
+    void testDischargeMessage() throws Exception {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
         msg.setFullLocationString(InterchangeValue.buildFromHl7(originalLocation));
         dbOps.processMessage(msg);
@@ -134,11 +135,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Visit and location visit already exist in the database.
      * Duplicate discharge should have no effect
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testDuplicateDischargeMessage() throws EmapOperationMessageProcessingException {
+    void testDuplicateDischargeMessage() throws Exception {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
         msg.setFullLocationString(InterchangeValue.buildFromHl7(originalLocation));
         // first discharge
@@ -160,11 +161,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Visit and location visit already exist in the database, old message given.
      * Should do nothing to location
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOldMessageDoesNotMoveLocation() throws EmapOperationMessageProcessingException {
+    void testOldMessageDoesNotMoveLocation() throws Exception {
         TransferPatient msg = messageFactory.getAdtMessage("generic/A02.yaml");
         msg.setEventOccurredDateTime(past);
         dbOps.processMessage(msg);
@@ -179,11 +180,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     }
 
     /**
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
+    void testDeletePersonInformation() throws Exception {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         // process message
         dbOps.processMessage(msg);
@@ -199,11 +200,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
     /**
      * Message is older than database, so no deletes should take place.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOldDeleteMessageHasNoEffect() throws EmapOperationMessageProcessingException {
+    void testOldDeleteMessageHasNoEffect() throws Exception {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         msg.setEventOccurredDateTime(Instant.parse("2000-01-01T00:00:00Z"));
         // process message
@@ -220,10 +221,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * No locations or location-visit in database.
      * Cancel admit patient should not add a new location visit.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testCancelAdmitDoesntExist() throws EmapOperationMessageProcessingException {
+    void testCancelAdmitDoesntExist() throws Exception {
         CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
         dbOps.processMessage(msg);
 
@@ -233,11 +234,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Location visit exists in the database
      * Cancel admit should remove the existing location visit
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testCancelAdmit() throws EmapOperationMessageProcessingException {
+    void testCancelAdmit() throws Exception {
         CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
         dbOps.processMessage(msg);
 
@@ -249,11 +250,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * In validation, a lot of single admissions that are then cancelled but with no cancellation times in message
      * If only one location exists for a visit, and we don't have a cancellation time, cancel the the single location
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testMalformedCancelAdmitWithSingleLocation() throws EmapOperationMessageProcessingException {
+    void testMalformedCancelAdmitWithSingleLocation() throws Exception {
         CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
         msg.setCancelledDateTime(null);
         setDataForHospitalVisitId4002(msg);
@@ -271,7 +272,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testCancelAdmitMalformedWithMultipleLocations() {
+    void testCancelAdmitMalformedWithMultipleLocations() throws IOException {
         CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
         msg.setCancelledDateTime(null);
         setDataForHospitalVisitId4002(msg);
@@ -284,7 +285,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testCancelAdmitMalformedWithSingleMismatchedLocation() {
+    void testCancelAdmitMalformedWithSingleMismatchedLocation() throws IOException {
         CancelAdmitPatient msg = messageFactory.getAdtMessage("generic/A11.yaml");
         msg.setCancelledDateTime(null);
         msg.setFullLocationString(InterchangeValue.buildFromHl7("I^don't^exist"));
@@ -295,10 +296,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * No locations or location-visit in database.
      * Cancel transfer patient should not create the correct location
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testCancelTransferDoesntExist() throws EmapOperationMessageProcessingException {
+    void testCancelTransferDoesntExist() throws Exception {
         CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
         dbOps.processMessage(msg);
 
@@ -308,11 +309,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * location-visit exists in database.
      * Cancel transfer patient should delete the current open visit location and undischarge the previous location.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testCancelTransfer() throws EmapOperationMessageProcessingException {
+    void testCancelTransfer() throws Exception {
         CancelTransferPatient msg = messageFactory.getAdtMessage("generic/A12.yaml");
         msg.setCancelledLocation(originalLocation);
         String correctLocation = "T11E^T11E BY02^BY02-25";
@@ -331,10 +332,10 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * No locations or location-visit in database.
      * Cancel discharge should do nothing
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    void testCancelDischargeDoesntExist() throws EmapOperationMessageProcessingException {
+    void testCancelDischargeDoesntExist() throws Exception {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         dbOps.processMessage(msg);
 
@@ -344,11 +345,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Encounter has discharged location visit
      * Cancel discharge message should remove the discharged date time from the original visit
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testCancelDischarge() throws EmapOperationMessageProcessingException {
+    void testCancelDischarge() throws Exception {
         CancelDischargePatient msg = messageFactory.getAdtMessage("generic/A13.yaml");
         String correctLocation = "T06C^T06C SR41^SR41-41";
         msg.setFullLocationString(InterchangeValue.buildFromHl7(correctLocation));
@@ -363,11 +364,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
     /**
      * Can get an A08 before and after a cancel discharge.
      * The newly opened visit from the A08 should be removed, and the discharged visit should be reopened instead
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testUpdateInfoBeforeAndAfterCancelDischarge() throws EmapOperationMessageProcessingException {
+    void testUpdateInfoBeforeAndAfterCancelDischarge() throws Exception {
         String correctLocation = "T06C^T06C SR41^SR41-41";
         Instant messageDateTime = Instant.parse("2020-01-01T05:00:00Z");
 
@@ -400,7 +401,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testSwapLocations() throws EmapOperationMessageProcessingException {
+    void testSwapLocations() throws Exception {
         SwapLocations msg = messageFactory.getAdtMessage("generic/A17.yaml");
         String locationA = "T11E^T11E BY02^BY02-17";
         String visitNumberA = "123412341234";

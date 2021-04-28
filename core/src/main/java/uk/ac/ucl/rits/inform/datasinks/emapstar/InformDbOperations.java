@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
@@ -135,5 +136,15 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     public void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
         throw new MessageIgnoredException("Not implemented yet");
     }
+
+    /**
+     * @param msg the FlowsheetMetadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    public void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException {
+        throw new MessageIgnoredException("Not implemented yet");
+    }
+
 
 }

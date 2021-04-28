@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -55,7 +56,7 @@ class LocationPermutationTestProducer extends OrderPermutationBase {
         this.initialAdmissionTime = initialAdmissionTime;
     }
 
-    private <T extends AdtMessage> T getLocationAdtMessage(String filename) {
+    private <T extends AdtMessage> T getLocationAdtMessage(String filename) throws IOException {
         return getMessageFactory().getAdtMessage(String.format("%s/%s.yaml", messagePath, filename));
     }
 
@@ -91,7 +92,7 @@ class LocationPermutationTestProducer extends OrderPermutationBase {
     }
 
     @Override
-    protected void processFile(String fileName) throws EmapOperationMessageProcessingException {
+    protected void processFile(String fileName) throws Exception {
         logger.info("Processing location message: {}", fileName);
         processSingleMessage(getLocationAdtMessage(fileName));
     }
