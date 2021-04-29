@@ -4,11 +4,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Objects;
 
 /**
  * Interchange format of a PatientInterchange message.
@@ -35,9 +33,9 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     /**
      * Status of infection.
      */
-    private InterchangeValue<String> status= InterchangeValue.unknown();
+    private InterchangeValue<String> status = InterchangeValue.unknown();
 
-    private InterchangeValue<String> comment= InterchangeValue.unknown();
+    private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
      * Infection added at...
@@ -47,12 +45,12 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     /**
      * Infection resolved at...
      */
-    private InterchangeValue<Instant> infectionResolved= InterchangeValue.unknown();
+    private InterchangeValue<Instant> infectionResolved = InterchangeValue.unknown();
 
     /**
      * Onset of infection known at...
      */
-    private InterchangeValue<Instant> infectionOnset= InterchangeValue.unknown();
+    private InterchangeValue<Instant> infectionOnset = InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
