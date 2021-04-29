@@ -1,6 +1,9 @@
 package uk.ac.ucl.rits.inform.interchange;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
@@ -11,6 +14,9 @@ import java.util.Objects;
  * Interchange format of a PatientInterchange message.
  * @author Stef Piatek
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientInfection extends EmapOperationMessage implements Serializable {
     private String mrn;
@@ -24,15 +30,14 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
      * Line number for infection.
      * Allows for multiple infections per patient to be tracked separately
      */
-    private Long line;
+    private InterchangeValue<Long> line = InterchangeValue.unknown();
 
     /**
      * Status of infection.
      */
-    private String status;
+    private InterchangeValue<String> status= InterchangeValue.unknown();
 
-    @Nullable
-    private String comment;
+    private InterchangeValue<String> comment= InterchangeValue.unknown();
 
     /**
      * Infection added at...
@@ -42,126 +47,12 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     /**
      * Infection resolved at...
      */
-    @Nullable
-    private Instant infectionResolved;
+    private InterchangeValue<Instant> infectionResolved= InterchangeValue.unknown();
 
     /**
      * Onset of infection known at...
      */
-    @Nullable
-    private Instant infectionOnset;
-
-    /**
-     * @return mrn
-     */
-    public String getMrn() {
-        return mrn;
-    }
-
-    /**
-     * @param mrn mrn
-     */
-    public void setMrn(String mrn) {
-        this.mrn = mrn;
-    }
-
-    /**
-     * @return {@link PatientInfection#infection}
-     */
-    public String getInfection() {
-        return infection;
-    }
-
-    /**
-     * @param infection {@link PatientInfection#infection}
-     */
-    public void setInfection(String infection) {
-        this.infection = infection;
-    }
-
-    /**
-     * @return {@link PatientInfection#line}
-     */
-    public Long getLine() {
-        return line;
-    }
-
-    /**
-     * @param line {@link PatientInfection#line}
-     */
-    public void setLine(Long line) {
-        this.line = line;
-    }
-
-    /**
-     * @return {@link PatientInfection#status}
-     */
-    public String getStatus() {
-        return status;
-    }
-
-    /**
-     * @param status {@link PatientInfection#status}
-     */
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    /**
-     * @return comment
-     */
-    public String getComment() {
-        return comment;
-    }
-
-    /**
-     * @param comment comment
-     */
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    /**
-     * @return {@link PatientInfection#infectionAdded}
-     */
-    public Instant getInfectionAdded() {
-        return infectionAdded;
-    }
-
-    /**
-     * @param infectionAdded {@link PatientInfection#infectionAdded}
-     */
-    public void setInfectionAdded(Instant infectionAdded) {
-        this.infectionAdded = infectionAdded;
-    }
-
-    /**
-     * @return {@link PatientInfection#infectionResolved}
-     */
-    public Instant getInfectionResolved() {
-        return infectionResolved;
-    }
-
-    /**
-     * @param infectionResolved {@link PatientInfection#infectionResolved}
-     */
-    public void setInfectionResolved(Instant infectionResolved) {
-        this.infectionResolved = infectionResolved;
-    }
-
-    /**
-     * @return {@link PatientInfection#infectionOnset}
-     */
-    public Instant getInfectionOnset() {
-        return infectionOnset;
-    }
-
-    /**
-     * @param infectionOnset {@link PatientInfection#infectionOnset}
-     */
-    public void setInfectionOnset(Instant infectionOnset) {
-        this.infectionOnset = infectionOnset;
-    }
+    private InterchangeValue<Instant> infectionOnset= InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
@@ -173,42 +64,4 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
         processor.processMessage(this);
     }
 
-    @Override
-    public String toString() {
-        return new StringBuilder().append("PatientInfection(")
-                .append("mrn='").append(mrn).append('\'')
-                .append(", infection='").append(infection).append('\'')
-                .append(", line=").append(line)
-                .append(", status='").append(status).append('\'')
-                .append(", comment='").append(comment).append('\'')
-                .append(", infectionAdded=").append(infectionAdded)
-                .append(", infectionResolved=").append(infectionResolved)
-                .append(", infectionOnset=").append(infectionOnset)
-                .append(", sourceSystem=").append(getSourceSystem())
-                .append(')').toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        PatientInfection that = (PatientInfection) o;
-        return Objects.equals(infection, that.infection)
-                && Objects.equals(mrn, that.mrn)
-                && Objects.equals(line, that.line)
-                && Objects.equals(status, that.status)
-                && Objects.equals(comment, that.comment)
-                && Objects.equals(infectionAdded, that.infectionAdded)
-                && Objects.equals(infectionResolved, that.infectionResolved)
-                && Objects.equals(infectionOnset, that.infectionOnset);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(mrn, infection, line, status, comment, infectionAdded, infectionResolved, infectionOnset);
-    }
 }
