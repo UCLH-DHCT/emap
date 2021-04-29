@@ -5,9 +5,15 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
 import ca.uhn.hl7v2.model.v26.datatype.DTM;
+import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.parser.CustomModelClassFactory;
+import ca.uhn.hl7v2.parser.EncodingCharacters;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
+import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
@@ -94,8 +100,8 @@ public class HL7Utils {
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
+        ModelClassFactory mcf = new CustomModelClassFactory("uk.ac.ucl.rits.inform.datasources.ids.customhl7");
+
         context.setModelClassFactory(mcf);
         return context;
     }
@@ -131,13 +137,11 @@ public class HL7Utils {
      * @throws HL7Exception if HAPI does
      */
     public static Message parseHl7String(String hl7Message) throws HL7Exception {
-        HapiContext context = new DefaultHapiContext();
+        HapiContext context = initializeHapiContext();
+        // do we want no context validation?
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
-        context.setModelClassFactory(mcf);
         PipeParser parser = context.getPipeParser();
 
         return parser.parse(hl7Message);
