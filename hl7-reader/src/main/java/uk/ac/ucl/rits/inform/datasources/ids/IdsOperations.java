@@ -23,11 +23,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7.custommodel.v26.message.AdtA05Epic;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.ReachedEndException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.message.ADT_A05;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.datasources.idstables.IdsMaster;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
@@ -422,7 +422,7 @@ public class IdsOperations implements AutoCloseable {
                 }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 if ("A05".equals(triggerEvent)) {
-                    messages.addAll(patientStatusService.buildMessages(sourceId, (AdtA05Epic) msgFromIds));
+                    messages.addAll(patientStatusService.buildMessages(sourceId, (ADT_A05) msgFromIds));
                 }
                 break;
             case "ORM":

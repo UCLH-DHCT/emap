@@ -1,11 +1,11 @@
-package uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.segment;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.segment;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractSegment;
 import ca.uhn.hl7v2.model.Group;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.field.Infection;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.field.Infection;
 
 /**
  * Patient infections segment from EPIC interface.
@@ -52,7 +52,7 @@ public class ZIF extends AbstractSegment {
     }
 
     public int getInfectionReps() {
-        return this.getReps(0);
+        return this.getReps(1);
     }
 
 
