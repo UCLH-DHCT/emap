@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -44,6 +45,27 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hooverMessages = messageFactory.getPatientInfections("2019-04.yaml");
         hl7Mumps = messageFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
         hooverMumps = hooverMessages.get(0);
+    }
+
+    private void assertHooverMumpsTimes(PatientState infection) {
+        assertEquals(Instant.parse("2019-03-21T15:22:01Z"), infection.getResolutionDateTime());
+        assertEquals(LocalDate.parse("2019-03-05"), infection.getOnsetDate());
+    }
+
+
+    private void processOlderDateTimeMessage() throws EmapOperationMessageProcessingException {
+        Instant olderResolvedTime = MUMPS_ADD_TIME.plusSeconds(60);
+        LocalDate olderOnsetDate = LocalDate.parse("2019-01-01");
+
+        PatientInfection olderMessage = new PatientInfection();
+        olderMessage.setInfectionAdded(hooverMumps.getInfectionAdded());
+        olderMessage.setSourceSystem(hooverMumps.getSourceSystem());
+        olderMessage.setMrn(MUMPS_MRN);
+        olderMessage.setInfection(MUMPS_INFECTION);
+        olderMessage.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
+        olderMessage.setInfectionResolved(InterchangeValue.buildFromHl7(olderResolvedTime));
+        olderMessage.setInfectionOnset(InterchangeValue.buildFromHl7(olderOnsetDate));
+        processSingleMessage(olderMessage);
     }
 
     /**
@@ -101,7 +123,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testPatientInfectionWithResolveTime () throws EmapOperationMessageProcessingException {
+    void testPatientInfectionWithResolveTime() throws EmapOperationMessageProcessingException {
         Instant resolveTime = MUMPS_ADD_TIME.plus(21, ChronoUnit.DAYS);
         hl7Mumps.setInfectionResolved(InterchangeValue.buildFromHl7(resolveTime));
         processSingleMessage(hl7Mumps);
@@ -112,5 +134,112 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         assertEquals(resolveTime, infection.getResolutionDateTime());
     }
 
+    /**
+     * Patient infection containing resolution datetime and onset date should be parsed.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testAllDates() throws EmapOperationMessageProcessingException {
+        processSingleMessage(hooverMumps);
+
+        PatientState infection = patientStateRepository
+                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+        assertHooverMumpsTimes(infection);
+        assertNull(infection.getComment());
+    }
+
+    /**
+     * Patient infection comment and status should be parsed.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testCommentAndStatus() throws EmapOperationMessageProcessingException {
+        String comment = "great comment";
+        hooverMumps.setComment(InterchangeValue.buildFromHl7(comment));
+        processSingleMessage(hooverMumps);
+
+        PatientState infection = patientStateRepository
+                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+
+        assertEquals(comment, infection.getComment());
+        assertEquals("Active", infection.getStatus());
+    }
+
+    /**
+     * hl7 message was updated before the hoover message, so should be updated
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testHl7UpdatedByLaterMessage() throws EmapOperationMessageProcessingException {
+        processSingleMessage(hl7Mumps);
+        processSingleMessage(hooverMumps);
+
+        PatientState infection = patientStateRepository
+                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+        assertHooverMumpsTimes(infection);
+    }
+
+
+    /**
+     * First message has a lot of unknown data.
+     * Second message is older than first message, but at processing, every field which is null in the database
+     * should have the new information added to it.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testNullInfectionDataAlwaysAdded() throws EmapOperationMessageProcessingException {
+        // original minimal message has comment, resolution datetime, onset date and comment as unknown
+        processSingleMessage(hl7Mumps);
+
+        // process message that is older than current database, but has information which was missing in first message
+        hooverMumps.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
+        String comment = "great comment";
+        hooverMumps.setComment(InterchangeValue.buildFromHl7(comment));
+        processSingleMessage(hooverMumps);
+
+        PatientState infection = patientStateRepository
+                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+        // extra data should be added
+        assertHooverMumpsTimes(infection);
+        assertEquals(comment, infection.getComment());
+    }
+
+    /**
+     * Database fields shouldn't update from an older message if they aren't null.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void olderMessageDoesntUpdateExistingData() throws EmapOperationMessageProcessingException {
+        // process original message with date information
+        processSingleMessage(hooverMumps);
+
+        // process message that is older than current database with different data
+        processOlderDateTimeMessage();
+
+        PatientState infection = patientStateRepository
+                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+
+        assertHooverMumpsTimes(infection);
+    }
+
+    @Test
+    void newerMessageUpdatesExistingDate() throws EmapOperationMessageProcessingException {
+        // process message that is older than current database with different data
+        processOlderDateTimeMessage();
+
+        // process newer message with different date information
+        processSingleMessage(hooverMumps);
+
+        PatientState infection = patientStateRepository
+                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+
+        assertHooverMumpsTimes(infection);
+    }
 
 }
