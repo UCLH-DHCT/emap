@@ -49,10 +49,10 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
-    private LocalDate resolutionDate;
-
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant onsetDate;
+    private Instant resolutionDateTime;
+
+    private LocalDate onsetDate;
 
     /**
      * temporary infection?
@@ -78,7 +78,7 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
             this.hospitalVisitId = other.hospitalVisitId;
         }
         this.addedDateTime = other.addedDateTime;
-        this.resolutionDate = other.resolutionDate;
+        this.resolutionDateTime = other.resolutionDateTime;
         this.onsetDate = other.onsetDate;
         this.classification = other.classification;
         this.status = other.status;
