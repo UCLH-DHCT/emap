@@ -23,7 +23,7 @@ public class PatientStatusService {
         MSH msh = msg.getMSH();
         PID pid = msg.getPID();
         PV1 pv1 = msg.getPV1();
-
+        PatientInfoHl7
         ArrayList<PatientInfection> infections = new ArrayList<>();
         int reps = msg.getZIF().getInfectionReps();
         for (int i = 0; i < reps; i++) {
