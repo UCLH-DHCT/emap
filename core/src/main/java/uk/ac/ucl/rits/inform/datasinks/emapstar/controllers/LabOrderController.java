@@ -141,12 +141,12 @@ public class LabOrderController {
                 .orElseGet(() -> createLabSample(mrnId, msg.getLabSpecimenNumber(), validFrom, storedFrom));
 
         LabSample labSample = state.getEntity();
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType, validFrom, labSample.getValidFrom());
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite, validFrom, labSample.getValidFrom());
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                state, msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
+        state.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getSpecimenType(), labSample.getSpecimenType(), labSample::setSpecimenType, validFrom, labSample.getValidFrom());
+        state.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite, validFrom, labSample.getValidFrom());
+        state.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
         // Allow for change of sample labSample time, but don't expect this to happen
         if (state.isEntityCreated() || validFrom.isAfter(labSample.getValidFrom())) {
             if (collectionTimeExistsAndWillChange(msg, labSample)) {
@@ -216,10 +216,10 @@ public class LabOrderController {
         }
 
 
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, order.getValidFrom());
-        assignIfCurrentlyNullOrNewerAndDifferent(
-                orderState, msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, order.getValidFrom());
+        orderState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getOrderDateTime(), order.getOrderDatetime(), order::setOrderDatetime, validFrom, order.getValidFrom());
+        orderState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getRequestedDateTime(), order.getRequestDatetime(), order::setRequestDatetime, validFrom, order.getValidFrom());
 
         // only update if newer
         if (orderState.isEntityCreated() || validFrom.isAfter(order.getValidFrom())) {
@@ -236,24 +236,6 @@ public class LabOrderController {
         return msg.getEpicCareOrderNumber().isSave()
                 && order.getInternalLabNumber() != null
                 && !msg.getEpicCareOrderNumber().get().equals(order.getInternalLabNumber());
-    }
-
-    private void assignIfCurrentlyNullOrNewerAndDifferent(
-            RowState<?, ?> state, InterchangeValue<Instant> msgValue, Instant currentValue, Consumer<Instant> setter,
-            Instant messageValidFrom, Instant entityValidFrom
-    ) {
-        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
-            state.assignInterchangeValue(msgValue, currentValue, setter);
-        }
-    }
-
-    private void assignIfCurrentlyNullOrNewerAndDifferent(
-            RowState<?, ?> state, InterchangeValue<String> msgValue, String currentValue, Consumer<String> setter,
-            Instant messageValidFrom, Instant entityValidFrom
-    ) {
-        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
-            state.assignInterchangeValue(msgValue, currentValue, setter);
-        }
     }
 
     /**
