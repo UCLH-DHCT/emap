@@ -1,9 +1,10 @@
-package uk.ac.ucl.rits.inform.datasources.ids.customhl7;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.message;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.message.ADT_A05;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.segment.ZIF;
 
 import java.util.Arrays;
 
@@ -33,14 +34,18 @@ public class AdtA05Epic extends ADT_A05 {
      */
     public AdtA05Epic(ModelClassFactory factory) throws HL7Exception {
         super(factory);
+        init();
+        log.debug("Built ADT A05 EPIC");
+    }
 
+    private void init() throws HL7Exception {
         // Add the ZIF segment at the right spot
         String[] segmentNames = getNames();
         int indexOfPid = Arrays.asList(segmentNames).indexOf("PV2");
         int index = indexOfPid + 1;
         Class<ZIF> type = ZIF.class;
 
-        // not required but can repeat
+        // segment not required, can repeat
         this.add(type, false, true, index);
     }
 

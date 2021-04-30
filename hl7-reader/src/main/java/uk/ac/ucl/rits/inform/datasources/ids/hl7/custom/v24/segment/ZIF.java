@@ -1,10 +1,11 @@
-package uk.ac.ucl.rits.inform.datasources.ids.customhl7;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.segment;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractSegment;
 import ca.uhn.hl7v2.model.Group;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.field.Infection;
 
 /**
  * Patient infections segment from EPIC interface.
@@ -29,7 +30,7 @@ public class ZIF extends AbstractSegment {
             // Add in infections
             add(Infection.class, true, MAX_REPS, MAX_LENGTH, new Object[]{getMessage()}, "infections");
         } catch (HL7Exception e) {
-            log.error("Unexpected error creating ZPI - this is probably a bug in the source code generator.", e);
+            log.error("Unexpected error creating ZIF - this is probably a bug in the source code generator.", e);
         }
     }
 

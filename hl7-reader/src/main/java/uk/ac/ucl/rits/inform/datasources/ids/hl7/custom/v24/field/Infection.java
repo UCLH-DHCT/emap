@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids.customhl7;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.field;
 
 import ca.uhn.hl7v2.model.AbstractComposite;
 import ca.uhn.hl7v2.model.DataTypeException;

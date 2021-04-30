@@ -7,12 +7,13 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
 import ca.uhn.hl7v2.model.v26.datatype.DTM;
-import ca.uhn.hl7v2.parser.CustomModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.parser.UnexpectedSegmentBehaviourEnum;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.CustomModelWithDefaultVersion;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -86,16 +87,16 @@ public class HL7Utils {
     }
 
     /**
-     * Initalise the HAPI parser.
+     * Initialise the HAPI parser.
      * @return the HapiContext
      */
     public static HapiContext initializeHapiContext() {
         HapiContext context = new DefaultHapiContext();
-
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        ModelClassFactory mcf = new CustomModelClassFactory("uk.ac.ucl.rits.inform.datasources.ids.customhl7");
+        ModelClassFactory mcf = new CustomModelWithDefaultVersion("uk.ac.ucl.rits.inform.datasources.ids.hl7.custommodel", "2.6");
+        context.getPipeParser().getParserConfiguration().setUnexpectedSegmentBehaviour(UnexpectedSegmentBehaviourEnum.ADD_INLINE);
 
         context.setModelClassFactory(mcf);
         return context;

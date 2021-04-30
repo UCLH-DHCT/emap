@@ -2,8 +2,8 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
 import org.springframework.stereotype.Component;
-import uk.ac.ucl.rits.inform.datasources.ids.customhl7.AdtA05Epic;
-import uk.ac.ucl.rits.inform.datasources.ids.customhl7.Infection;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.message.AdtA05Epic;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v24.field.Infection;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
