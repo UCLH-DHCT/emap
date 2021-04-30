@@ -12,7 +12,8 @@ public class Infection extends AbstractComposite {
     private Type[] data;
 
     /**
-     * Creates a new Infection type
+     * Creates a new Infection type.
+     * @param message hl7message
      */
     public Infection(Message message) {
         super(message);
@@ -30,6 +31,7 @@ public class Infection extends AbstractComposite {
 
     /**
      * Returns an array containing the data elements.
+     * @return all components
      */
     public Type[] getComponents() {
         return this.data;
@@ -38,6 +40,7 @@ public class Infection extends AbstractComposite {
     /**
      * Returns an individual data component.
      * @param number The component number (0-indexed)
+     * @return component at index
      * @throws DataTypeException if the given element number is out of range.
      */
     public Type getComponent(int number) throws DataTypeException {
@@ -53,8 +56,9 @@ public class Infection extends AbstractComposite {
     /**
      * Returns Infection Name (component 1).  This is a convenience method that saves you from
      * casting and handling an exception.
+     * @return infection name
      */
-    public ST getInfection1_Name() {
+    public ST getInfection1Name() {
         return getTyped(0, ST.class);
     }
 
@@ -62,8 +66,9 @@ public class Infection extends AbstractComposite {
     /**
      * Returns Added DateTime (component 2).  This is a convenience method that saves you from
      * casting and handling an exception.
+     * @return added date time
      */
-    public DT getInfection2_AddedDateTime() {
+    public DT getInfection2AddedDateTime() {
         return getTyped(1, DT.class);
     }
 
@@ -71,8 +76,9 @@ public class Infection extends AbstractComposite {
     /**
      * Returns Resolved DateTime (component 3).  This is a convenience method that saves you from
      * casting and handling an exception.
+     * @return resolved date time
      */
-    public DT getInfection3_ResolvedDateTime() {
+    public DT getInfection3ResolvedDateTime() {
         return getTyped(2, DT.class);
     }
 

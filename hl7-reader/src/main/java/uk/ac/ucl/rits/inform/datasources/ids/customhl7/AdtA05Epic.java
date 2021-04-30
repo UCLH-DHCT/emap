@@ -4,12 +4,13 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.message.ADT_A05;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
+
 import java.util.Arrays;
 
 /**
  * Example custom model class. This is a ADT^A05^EPIC, which is an ADT^A05 with an
  * extra ZIF segment after the PV2 segment
- *
+ * <p>
  * Since we're extending an existing HL7 message type, we just extend from the
  * model class representing that type
  */
@@ -24,9 +25,11 @@ public class AdtA05Epic extends ADT_A05 {
     }
 
     /**
-     * Constructor
-     *
+     * Constructor.
+     * <p>
      * We always have to have a constructor with this one argument
+     * @param factory model class factory
+     * @throws HL7Exception if HL7 parsing error
      */
     public AdtA05Epic(ModelClassFactory factory) throws HL7Exception {
         super(factory);
@@ -42,7 +45,8 @@ public class AdtA05Epic extends ADT_A05 {
     }
 
     /**
-     * Add an accessor for the ZIF segment
+     * Add an accessor for the ZIF segment.
+     * @return ZIF segment
      */
     public ZIF getZIF() {
         return getTyped("ZIF", ZIF.class);

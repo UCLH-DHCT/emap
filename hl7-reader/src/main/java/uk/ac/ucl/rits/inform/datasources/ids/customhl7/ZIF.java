@@ -4,11 +4,11 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractSegment;
 import ca.uhn.hl7v2.model.Group;
 import ca.uhn.hl7v2.model.Type;
-import ca.uhn.hl7v2.model.v26.datatype.XPN;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 
 /**
- * Patient infection segment from EPIC interface.
+ * Patient infections segment from EPIC interface.
+ * Can have multiple infections in a segment
  * Based on documentation:
  * https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/custommodel/v25/segment/ZPI.html
  */
@@ -27,7 +27,7 @@ public class ZIF extends AbstractSegment {
     private void init(ModelClassFactory factory) {
         try {
             // Add in infections
-            add(Infection.class, true, MAX_REPS, MAX_LENGTH, new Object[]{ getMessage() }, "infections");
+            add(Infection.class, true, MAX_REPS, MAX_LENGTH, new Object[]{getMessage()}, "infections");
         } catch (HL7Exception e) {
             log.error("Unexpected error creating ZPI - this is probably a bug in the source code generator.", e);
         }
@@ -42,7 +42,9 @@ public class ZIF extends AbstractSegment {
     }
 
     /**
-     * Create an accessor for each field
+     * Create an accessor for each field.
+     * @param rep index for field
+     * @return Infection
      */
     public Infection getInfection(int rep) {
         return getTypedField(1, rep);
