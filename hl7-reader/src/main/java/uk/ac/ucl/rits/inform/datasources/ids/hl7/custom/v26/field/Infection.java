@@ -4,7 +4,7 @@ import ca.uhn.hl7v2.model.AbstractComposite;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Type;
-import ca.uhn.hl7v2.model.v26.datatype.DT;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
 
 public class Infection extends AbstractComposite {
@@ -23,8 +23,8 @@ public class Infection extends AbstractComposite {
     private void init() {
         data = new Type[3];
         data[0] = new ST(getMessage());
-        data[1] = new DT(getMessage());
-        data[2] = new DT(getMessage());
+        data[1] = new DTM(getMessage());
+        data[2] = new DTM(getMessage());
 
     }
 
@@ -68,8 +68,8 @@ public class Infection extends AbstractComposite {
      * casting and handling an exception.
      * @return added date time
      */
-    public DT getInfection2AddedDateTime() {
-        return getTyped(1, DT.class);
+    public DTM getInfection2AddedDateTime() {
+        return getTyped(1, DTM.class);
     }
 
 
@@ -78,8 +78,8 @@ public class Infection extends AbstractComposite {
      * casting and handling an exception.
      * @return resolved date time
      */
-    public DT getInfection3ResolvedDateTime() {
-        return getTyped(2, DT.class);
+    public DTM getInfection3ResolvedDateTime() {
+        return getTyped(2, DTM.class);
     }
 
 }
