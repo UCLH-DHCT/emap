@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Interchange format of a PatientInterchange message.
@@ -23,6 +24,11 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
      * Infection name.
      */
     private String infection;
+
+    /**
+     * Time of the update or message carrying this information.
+     */
+    private Instant updatedDateTime;
 
     /**
      * Line number for infection.
@@ -50,7 +56,7 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     /**
      * Onset of infection known at...
      */
-    private InterchangeValue<Instant> infectionOnset = InterchangeValue.unknown();
+    private InterchangeValue<LocalDate> infectionOnset = InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
