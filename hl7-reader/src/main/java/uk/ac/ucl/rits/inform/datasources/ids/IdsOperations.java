@@ -433,7 +433,9 @@ public class IdsOperations implements AutoCloseable {
                     });
                     semaphore.acquire();
                 }
-            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException | Hl7MessageIgnoredException e) {
+            } catch (Hl7MessageIgnoredException ignoredException) {
+                logger.warn("Skipping unid {} (class {}) {}", idsMsg.getUnid(), msgFromIds.getClass(), ignoredException.getMessage());
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException  e) {
                 logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {
