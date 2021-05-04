@@ -140,12 +140,15 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     }
 
     @Override
-    protected void setLabSpecimenNumber(ORC orc) {
+    protected void setLabSpecimenNumber(ORC orc) throws Hl7InconsistencyException {
         String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
         // WinPath messages can have the 9 digit specimen number, or specimen number with an extra digit to denote type.
         String specimenWithPossibleExtra = labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen;
-        if (!specimenWithPossibleExtra.isEmpty()) {
+        if (specimenWithPossibleExtra.length() < 9) {
+            throw new Hl7InconsistencyException(
+                    String.format("WinPath specimen number should be 9 digits, instead was '%s'", specimenWithPossibleExtra));
+        } else {
             getMsg().setLabSpecimenNumber(specimenWithPossibleExtra.substring(0, 9));
         }
     }

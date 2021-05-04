@@ -80,8 +80,9 @@ abstract class LabOrderBuilder {
      * @param orc the ORC segment
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
+     * @throws Hl7InconsistencyException if HL7 doesn't meet expected structure
      */
-    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException {
+    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
@@ -123,7 +124,7 @@ abstract class LabOrderBuilder {
      * Each lab result that uses this appears to need a separate implementation of this.
      * @param orc ORC segment
      */
-    protected abstract void setLabSpecimenNumber(ORC orc);
+    protected abstract void setLabSpecimenNumber(ORC orc) throws Hl7InconsistencyException;
 
 
     void setBatteryCodingSystem() {
