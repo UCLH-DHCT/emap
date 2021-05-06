@@ -217,7 +217,7 @@ abstract class LabOrderBuilder {
 
 
     protected void addMsgIfAllowedOcId(List<LabOrderMsg> orders) {
-        if (allowedOcIds.contains(msg.getOrderControlId())) {
+        if (msg.getOrderControlId() != null && allowedOcIds.contains(msg.getOrderControlId())) {
             orders.add(msg);
         } else {
             logger.warn("Ignoring order control ID = '{}'", msg.getOrderControlId());
