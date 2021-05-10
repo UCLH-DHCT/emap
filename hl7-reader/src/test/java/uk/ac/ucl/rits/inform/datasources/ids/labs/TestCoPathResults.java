@@ -6,7 +6,6 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
@@ -24,7 +23,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -73,16 +71,46 @@ class TestCoPathResults {
         assertEquals(ValueType.TEXT.name(), results.get(0).getTestItemLocalCode());
     }
 
+    /**
+     * Results with message consonsistencies should be skipped.
+     * @return stream of dynamic tests
+     */
     @TestFactory
     Stream<DynamicTest> testHl7Inconsistencies() {
         return List.of(
-                "oru_r01_id_change", "oru_r01_sub_id_change", "oru_r01_multiple_value_reps", "oru_r01_unrecognised_data_type",
-                "oru_r01_report_coding_unexpected"
-        )
+                "oru_r01_id_change", "oru_r01_sub_id_change", "oru_r01_multiple_value_reps", "oru_r01_unrecognised_data_type")
                 .stream()
                 .map(filename -> DynamicTest.dynamicTest(
                         filename,
-                        () -> assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, filename)))
+                        () -> {
+                            LabOrderMsg orders = labReader.getFirstOrder(FILE_TEMPLATE, filename);
+                            if (filename.equals("oru_r01_sub_id_change")) {
+                                assertEquals(1, orders.getLabResultMsgs().size());
+                            } else {
+                                assertTrue(orders.getLabResultMsgs().isEmpty());
+                            }
+                        })
+                );
+    }
+
+
+    /**
+     * PDF report is not valid base64, corrupted data should not be added so no results with value as bytes.
+     * @throws Exception shouldn't happen
+     */
+    @TestFactory
+    Stream<DynamicTest> testCorruptBytesReport() {
+        return List.of("oru_r01_report_coding_unexpected", "oru_r01_corrupt_bytes")
+                .stream()
+                .map(filename -> DynamicTest.dynamicTest(
+                        filename,
+                        () -> {
+                            Optional<LabResultMsg> result = labReader.getFirstOrder(FILE_TEMPLATE, filename)
+                                    .getLabResultMsgs().stream()
+                                    .filter(r -> r.getByteValue().isSave())
+                                    .findFirst();
+                            assertTrue(result.isEmpty());
+                        })
                 );
     }
 
@@ -130,18 +158,5 @@ class TestCoPathResults {
         assertTrue(order.getEpicCareOrderNumber().isUnknown());
     }
 
-
-    /**
-     * PDF report is not valid base64, corrupted data should not be added so no results with value as bytes.
-     * @throws Exception shouldn't happen
-     */
-    @Test
-    void testCorruptBytesReport() throws Exception {
-        Optional<LabResultMsg> result = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_corrupt_bytes")
-                .getLabResultMsgs().stream()
-                .filter(r -> r.getByteValue().isSave())
-                .findFirst();
-        assertTrue(result.isEmpty());
-    }
 
 }
