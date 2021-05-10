@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -121,12 +122,26 @@ class TestCoPathResults {
 
     /**
      * CoPathPlus message has the internal lab number in place of the epic lab number - so no epic lab number should be added to message.
-     * @throws Exception
+     * @throws Exception shouldn't happen
      */
     @Test
     void testCoPathPlusDoesntAddEpicNumber() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_copathplus");
         assertTrue(order.getEpicCareOrderNumber().isUnknown());
+    }
+
+
+    /**
+     * PDF report is not valid base64, corrupted data should not be added so no results with value as bytes.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testCorruptBytesReport() throws Exception {
+        Optional<LabResultMsg> result = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_corrupt_bytes")
+                .getLabResultMsgs().stream()
+                .filter(r -> r.getByteValue().isSave())
+                .findFirst();
+        assertTrue(result.isEmpty());
     }
 
 }

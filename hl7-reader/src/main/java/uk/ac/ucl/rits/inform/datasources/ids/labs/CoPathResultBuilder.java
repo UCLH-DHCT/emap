@@ -63,7 +63,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
      * Any custom overriding methods to populate individual field data.
      */
     @Override
-    void setCustomOverrides() throws Hl7InconsistencyException {
+    void setCustomOverrides() {
         getMessage().setTestItemCodingSystem(CO_PATH);
     }
 
