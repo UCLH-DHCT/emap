@@ -216,11 +216,11 @@ abstract class LabOrderBuilder {
     }
 
 
-    protected void addMsgIfAllowedOcId(List<LabOrderMsg> orders) {
+    protected void addMsgIfAllowedOcId(String idsUnid, List<LabOrderMsg> orders) {
         if (msg.getOrderControlId() != null && allowedOcIds.contains(msg.getOrderControlId())) {
             orders.add(msg);
         } else {
-            logger.warn("Ignoring order control ID = '{}'", msg.getOrderControlId());
+            logger.warn("Ignoring unid {} because order control ID not allowed '{}'", idsUnid, msg.getOrderControlId());
         }
     }
 

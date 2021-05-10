@@ -87,7 +87,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         }
         List<LabOrderMsg> orders = new ArrayList<>(1);
         LabOrderBuilder labOrderBuilder = new BankManagerLabBuilder(idsUnid, msh, patientResults);
-        labOrderBuilder.addMsgIfAllowedOcId(orders);
+        labOrderBuilder.addMsgIfAllowedOcId(idsUnid, orders);
         return orders;
 
     }

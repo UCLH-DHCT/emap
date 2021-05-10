@@ -190,7 +190,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             OBR obr = order.getORDER_DETAIL().getOBR();
             List<NTE> notes = order.getORDER_DETAIL().getNTEAll();
             LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, patientInfo, obr, orc, notes);
-            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
+            labOrderBuilder.addMsgIfAllowedOcId(idsUnid, interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -222,7 +222,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             OBR obr = order.getOBR();
             List<NTE> notes = order.getNTEAll();
             LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, patientInfo, obr, orc, notes);
-            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
+            labOrderBuilder.addMsgIfAllowedOcId(idsUnid, interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -255,7 +255,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderBuilder labOrderBuilder = new WinPathLabBuilder(subMessageSourceId, obs, patientInfo);
-            labOrderBuilder.addMsgIfAllowedOcId(orders);
+            labOrderBuilder.addMsgIfAllowedOcId(idsUnid, orders);
         }
         mergeSensitivitiesIntoIsolate(orders);
         return orders;

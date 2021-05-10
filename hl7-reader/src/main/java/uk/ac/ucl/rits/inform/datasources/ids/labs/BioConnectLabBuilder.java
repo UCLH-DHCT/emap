@@ -92,7 +92,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
         }
         List<LabOrderMsg> orders = new ArrayList<>(1);
         LabOrderBuilder labOrderBuilder = new BioConnectLabBuilder(idsUnid, msh, patientResults);
-        labOrderBuilder.addMsgIfAllowedOcId(orders);
+        labOrderBuilder.addMsgIfAllowedOcId(idsUnid, orders);
         return orders;
 
     }
