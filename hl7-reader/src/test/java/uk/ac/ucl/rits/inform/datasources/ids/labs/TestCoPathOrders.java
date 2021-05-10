@@ -219,4 +219,14 @@ class TestCoPathOrders {
         assertEquals(CODING_SYSTEM, order.getTestBatteryLocalCode());
         assertEquals(CODING_SYSTEM, order.getTestBatteryCodingSystem());
     }
+
+    /**
+     * Ensure multiple collection methods from HL7 are parsed as comma separated list.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testMultipleCollectionMethods() throws Exception {
+        LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_multi_collection");
+        assertEquals(InterchangeValue.buildFromHl7("First CM, Second CM, Third CM"), order.getCollectionMethod());
+    }
 }

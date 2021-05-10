@@ -2,10 +2,13 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.ExtraComponents;
+import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
+import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
@@ -23,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -133,8 +137,23 @@ abstract class LabOrderBuilder {
     private void setSpecimenTypeAndCollectionMethod(OBR obr) {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
         msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
-        String collectionMethod = obr.getObr15_SpecimenSource().getSps3_SpecimenCollectionMethod().getValueOrEmpty();
-        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethod));
+        setCollectionMethods(obr.getObr15_SpecimenSource().getSps3_SpecimenCollectionMethod());
+    }
+
+    /**
+     * Set collection method, adding comma separated extra components if they exist.
+     * @param collectionField collection method field
+     */
+    private void setCollectionMethods(TX collectionField) {
+        StringJoiner collectionMethods = new StringJoiner(", ");
+        collectionMethods.add(collectionField.getValueOrEmpty());
+
+        ExtraComponents extraComponents = collectionField.getExtraComponents();
+        for (int i = 0; i < collectionField.getExtraComponents().numComponents(); i++) {
+            Type extraComponent = extraComponents.getComponent(i).getData();
+            collectionMethods.add(extraComponent.toString());
+        }
+        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethods.toString()));
     }
 
     /**
@@ -225,9 +244,9 @@ abstract class LabOrderBuilder {
 
     /**
      * Set questions from notes.
-     * @param notes notes for an order.
+     * @param notes             notes for an order.
      * @param questionSeparator to join the answer if it contains the question pattern
-     * @param questionPattern pattern between the question and answer
+     * @param questionPattern   pattern between the question and answer
      */
     protected void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
         for (NTE note : notes) {
