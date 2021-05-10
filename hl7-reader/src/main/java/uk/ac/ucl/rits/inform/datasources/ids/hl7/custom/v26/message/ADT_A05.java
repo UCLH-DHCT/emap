@@ -14,7 +14,7 @@ import java.util.Arrays;
  * The message type (e.g. ADT^A05) is converted to the class name that is used (e.g. ADT_A05) so we have to use the same class name.
  * The hl7 version used is the ModelClassFactory's default version so we're using 2.6 (instead of 2.4 in the message)
  */
-@SuppressWarnings("serial")
+@SuppressWarnings("checkstyle:TypeName")
 public class ADT_A05 extends ca.uhn.hl7v2.model.v26.message.ADT_A05 {
 
     /**
