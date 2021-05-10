@@ -172,8 +172,18 @@ class TestWinPathLabOruR01Results {
      * Range is 0-2-7.2. Unparsable so should not set a range
      */
     @Test
-    void testRangeUnparsable() throws Exception {
+    void testMultipleDashesUnparsable() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "UNPARSABLE_RANGE");
+        assertTrue(result.getReferenceHigh().isUnknown());
+        assertTrue(result.getReferenceLow().isUnknown());
+    }
+
+    /**
+     * Range is >2-7.2. Unparsable so should not set a range
+     */
+    @Test
+    void testRangeGreaterAndHigh() throws Exception {
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "GREATER_AND_HIGH");
         assertTrue(result.getReferenceHigh().isUnknown());
         assertTrue(result.getReferenceLow().isUnknown());
     }
