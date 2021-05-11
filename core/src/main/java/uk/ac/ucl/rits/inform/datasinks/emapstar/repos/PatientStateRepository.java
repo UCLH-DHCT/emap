@@ -24,7 +24,6 @@ public interface PatientStateRepository extends CrudRepository<PatientState, Lon
             Mrn mrn, PatientStateType patientStateType, Instant addedDateTime
     );
 
-
     /**
      * For testing, shortcut without requiring entities to be passed.
      * @param mrn           mrn sting

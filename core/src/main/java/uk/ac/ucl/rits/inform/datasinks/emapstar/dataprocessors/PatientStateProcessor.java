@@ -15,8 +15,6 @@ import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
-import java.time.LocalDate;
-
 
 /**
  * Handle processing of patient state messages.
@@ -27,35 +25,39 @@ public class PatientStateProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PatientStateController patientStateController;
     private final PersonController personController;
-    private final VisitController visitController;
 
     /**
+     * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
      * @param patientStateController     patient state controller
      * @param personController           person controller
-     * @param visitController            visit controller
      */
     public PatientStateProcessor(
             PatientStateController patientStateController, PersonController personController,
             VisitController visitController) {
         this.patientStateController = patientStateController;
         this.personController = personController;
-        this.visitController = visitController;
     }
 
     /**
-     * Process flowsheet message.
+     * Process patient infection message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final PatientInfection msg, @Nullable HospitalVisit visit, final Instant storedFrom)
+    public void processMessage(final PatientInfection msg, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         String mrnStr = msg.getMrn();
-        Instant observationTime = msg.getUpdatedDateTime();
+        Instant msgUpdatedTime = msg.getUpdatedDateTime();
 
-        Mrn mrn = personController.getOrCreateMrn(mrnStr, null, msg.getSourceSystem(), observationTime, storedFrom);
-//        HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
-//                msg., mrn, msg.getSourceSystem(), observationTime, storedFrom);
+        // retrieve patient to whom message refers to; if MRN not registered, create new patient
+
+        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
+                msgUpdatedTime, storedFrom);
+
+
+//        patientStateController.processMessage(msg, storedFrom);
     }
+
+
 }

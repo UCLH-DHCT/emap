@@ -25,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Autowired
-    HospitalVisitRepository hospitalVisitRepository;
-    @Autowired
     PatientStateRepository patientStateRepository;
     @Autowired
     PatientStateTypeRepository patientStateTypeRepository;
