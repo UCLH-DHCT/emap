@@ -31,10 +31,10 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     private Instant updatedDateTime;
 
     /**
-     * Line number for infection.
-     * Allows for multiple infections per patient to be tracked separately
+     * Unique Id for infection in EPIC.
+     * If we can't get this added to the live HL7 interface when we should remove it.
      */
-    private InterchangeValue<Long> line = InterchangeValue.unknown();
+    private InterchangeValue<Long> epicInfectionId = InterchangeValue.unknown();
 
     /**
      * Status of infection.

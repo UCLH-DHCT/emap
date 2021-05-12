@@ -3,10 +3,10 @@
   updatedDateTime: "2019-03-21T15:22:01Z"
   mrn: "8DcEwvqa8Q3"
   infection: "Mumps"
-  line:
+  epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: 3
+    value: 2
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -29,10 +29,10 @@
   updatedDateTime: "2019-04-05T02:05:49Z"
   mrn: "suI83US"
   infection: "Varicella"
-  line:
+  epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: 2
+    value: 3
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -55,10 +55,10 @@
   updatedDateTime: "2020-01-31T08:16:44Z"
   mrn: "Bq6PQt5xSa"
   infection: "MRSA"
-  line:
+  epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: 2
+    value: 4
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -81,10 +81,10 @@
   updatedDateTime: "2019-11-14T09:19:11Z"
   mrn: "YdZitaf1OeQI"
   infection: "?COVID-19"
-  line:
+  epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: 3
+    value: 5
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
