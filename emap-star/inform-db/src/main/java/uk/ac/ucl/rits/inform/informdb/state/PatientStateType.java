@@ -44,6 +44,15 @@ public class PatientStateType extends TemporalCore<PatientStateType, PatientStat
     private String standardisedCode;
     private String standardisedVocabulary;
 
+    /**
+     * Minimal information constructor.
+     * @param name Name of the patient state type
+     * @param dataType Type of patient state type; either patient infection or problem list
+     */
+    public PatientStateType(String name, String dataType) {
+        this.name = name;
+        this.dataType = dataType;
+    }
 
     /**
      * Build a new PatientStateType from an existing one.
