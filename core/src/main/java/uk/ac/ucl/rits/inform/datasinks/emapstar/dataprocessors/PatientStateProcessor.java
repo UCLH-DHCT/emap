@@ -2,16 +2,12 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientStateController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
@@ -32,8 +28,7 @@ public class PatientStateProcessor {
      * @param personController           person controller
      */
     public PatientStateProcessor(
-            PatientStateController patientStateController, PersonController personController,
-            VisitController visitController) {
+            PatientStateController patientStateController, PersonController personController) {
         this.patientStateController = patientStateController;
         this.personController = personController;
     }
@@ -51,12 +46,10 @@ public class PatientStateProcessor {
         Instant msgUpdatedTime = msg.getUpdatedDateTime();
 
         // retrieve patient to whom message refers to; if MRN not registered, create new patient
-
         Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
                 msgUpdatedTime, storedFrom);
 
-
-//        patientStateController.processMessage(msg, storedFrom);
+        patientStateController.processMessage(msg, mrn, storedFrom);
     }
 
 

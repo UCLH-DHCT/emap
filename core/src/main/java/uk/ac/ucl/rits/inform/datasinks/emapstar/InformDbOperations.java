@@ -136,6 +136,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         patientStateProcessor.processMessage(msg, storedFrom);

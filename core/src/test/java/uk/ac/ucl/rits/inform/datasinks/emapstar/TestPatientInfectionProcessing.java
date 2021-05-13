@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -23,6 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+/**
+ * Test cases to ensure that processing of patient infection messages is working correctly.
+ *
+ * @author Stef Piatek
+ * @author Anika Cawthorn
+ */
 public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Autowired
     PatientStateRepository patientStateRepository;
@@ -91,7 +96,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testPatientInfectionTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(hl7Mumps);
 
-        PatientStateType type = patientStateTypeRepository.findByDataTypeAndName(PATIENT_INFECTION, MUMPS_INFECTION).orElseThrow();
+        PatientStateType type = patientStateTypeRepository.findByDataTypeAndName(PATIENT_INFECTION,
+                MUMPS_INFECTION).orElseThrow();
 
         assertEquals(HL7_UPDATE_TIME, type.getValidFrom());
         assertNotNull(type.getValidFrom());
