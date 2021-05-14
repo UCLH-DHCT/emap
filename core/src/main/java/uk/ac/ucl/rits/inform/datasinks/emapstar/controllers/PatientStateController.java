@@ -46,28 +46,29 @@ public class PatientStateController {
     /**
      * Get existing patient state type or create and save minimal patient state type.
      * @param msg patient infection
+     * @param storedFrom
      * @return PatientStateType
      */
-    private PatientStateType getOrCreatePatientStateType(PatientInfection msg) {
-        System.out.println("HERE HERE HERE");
+    private PatientStateType getOrCreatePatientStateType(PatientInfection msg, Instant storedFrom) {
         return patientStateTypeRepo
                 .findByDataTypeAndName("PATIENT_INFECTION", msg.getInfection())
-                .orElseGet(() -> createAndSaveNewType(msg));
+                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
     /**
      * Create and save a minimal patient state type from patient infection message.
-     * @param msg patient infection
+     * @param msg           patient infection
+     * @param storedFrom    valid from in database
      * @return saved minimal PatientStateType
      */
-    private PatientStateType createAndSaveNewType(PatientInfection msg) {
-        System.out.println("HERE HERE HERE");
-        PatientStateType patientStateType = new PatientStateType(msg.getInfection(), "PATIENT_INFECTION");
-        logger.debug(String.format("Created new %s", patientStateType));
-        patientStateTypeRepo.save(patientStateType);
+    private PatientStateType createAndSaveNewType(PatientInfection msg, Instant storedFrom) {
+        PatientStateType patientStateType = new PatientStateType(msg.getInfection(), "PATIENT_INFECTION",
+                msg.getUpdatedDateTime(), storedFrom);
 
-        // return patientStateTypeRepo.save(type);
-        return null;
+        logger.debug(String.format("Created new %s", patientStateType));
+
+        patientStateTypeRepo.save(patientStateType);
+        return patientStateTypeRepo.save(patientStateType);
     }
 
     /**
@@ -80,7 +81,7 @@ public class PatientStateController {
     @Transactional
     public void processMessage(final PatientInfection msg, Mrn mrn, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        PatientStateType patientStateType = getOrCreatePatientStateType(msg);
+        PatientStateType patientStateType = getOrCreatePatientStateType(msg, storedFrom);
 
         RowState<PatientState, PatientStateAudit> patientState = getOrCreatePatientState(msg, mrn, patientStateType,
                 storedFrom);
@@ -118,7 +119,7 @@ public class PatientStateController {
     private RowState<PatientState, PatientStateAudit> createMinimalPatientState(
             PatientInfection msg, Mrn mrn, PatientStateType patientStateType, Instant storedFrom) {
 
-        PatientState patientState = new PatientState(patientStateType, mrn, msg.getInfectionAdded(), storedFrom);
+        PatientState patientState = new PatientState(patientStateType, mrn, msg.getInfectionAdded());
         return new RowState<>(patientState, msg.getUpdatedDateTime(), storedFrom, true);
     }
 
