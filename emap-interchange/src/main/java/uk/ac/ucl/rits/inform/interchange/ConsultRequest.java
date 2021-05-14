@@ -53,7 +53,7 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     /**
      * Has the request for a consult been cancelled.
      */
-    private boolean isCancelled = false;
+    private boolean cancelled = false;
 
     /**
      * Has the request been closed because of discharing the patient.
