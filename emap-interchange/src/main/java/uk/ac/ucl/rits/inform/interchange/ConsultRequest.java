@@ -47,6 +47,11 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     private boolean isCancelled = false;
 
     /**
+     * Has the request been closed because of discharing the patient.
+     */
+    private boolean closedDueToDischarge = false;
+
+    /**
      * Questions and answers for consult questions.
      */
     private Map<String, String> questions = new HashMap<>();
