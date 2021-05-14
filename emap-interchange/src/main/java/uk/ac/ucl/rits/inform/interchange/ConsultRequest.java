@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Requests for specialist consultations for a patient.
+ * Requests for specialist consultation for a patient.
  * @author Stef Piatek
  */
 @Data
