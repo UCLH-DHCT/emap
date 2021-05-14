@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -161,8 +162,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testMinimalConsult() throws Exception {
-        ConsultRequest expected = interchangeFactory.getConsult("minimal.yaml");
-        assertNotNull(expected);
+        ConsultRequest expected = interchangeFactory.getConsult("notes.yaml");
+        assertTrue(expected.getNotes().isSave());
     }
 
     @Test
