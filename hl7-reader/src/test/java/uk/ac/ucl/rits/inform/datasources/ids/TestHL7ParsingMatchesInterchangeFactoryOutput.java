@@ -162,8 +162,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testMinimalConsult() throws Exception {
-        ConsultRequest expected = interchangeFactory.getConsult("notes.yaml");
-        assertTrue(expected.getNotes().isSave());
+        ConsultRequest expected = interchangeFactory.getConsult("cancelled.yaml");
+        assertTrue(expected.isCancelled());
     }
 
     @Test
