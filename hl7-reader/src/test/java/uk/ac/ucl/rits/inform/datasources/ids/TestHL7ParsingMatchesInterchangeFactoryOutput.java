@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 /**
@@ -155,6 +157,12 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("DoubleA01WithA13/A13");
         testAdtMessage("DoubleA01WithA13/FirstA01");
         testAdtMessage("DoubleA01WithA13/SecondA01");
+    }
+
+    @Test
+    void testMinimalConsult() throws Exception {
+        ConsultRequest expected = interchangeFactory.getConsult("minimal.yaml");
+        assertNotNull(expected);
     }
 
     @Test
