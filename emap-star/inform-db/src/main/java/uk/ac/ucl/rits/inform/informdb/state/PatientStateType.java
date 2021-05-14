@@ -46,12 +46,16 @@ public class PatientStateType extends TemporalCore<PatientStateType, PatientStat
 
     /**
      * Minimal information constructor.
-     * @param name Name of the patient state type
-     * @param dataType Type of patient state type; either patient infection or problem list
+     * @param name       Name of the patient state type
+     * @param dataType   Type of patient state type; either patient infection or problem list
+     * @param validFrom  Timestamp from which information valid from
+     * @param storedFrom Timestamp from which information stored from
      */
-    public PatientStateType(String name, String dataType) {
+    public PatientStateType(String name, String dataType, Instant validFrom, Instant storedFrom) {
         this.name = name;
         this.dataType = dataType;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     /**

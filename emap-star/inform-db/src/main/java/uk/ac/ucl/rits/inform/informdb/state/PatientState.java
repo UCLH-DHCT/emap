@@ -75,12 +75,10 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
      * @param mrn                   patient ID
      * @param addedDateTime         when patient state has been added
      */
-    public PatientState(PatientStateType patientStateTypeId, Mrn mrn,  Instant addedDateTime,
-                        Instant storedFrom) {
+    public PatientState(PatientStateType patientStateTypeId, Mrn mrn,  Instant addedDateTime) {
         this.patientStateTypeId = patientStateTypeId;
         this.mrnId = mrn;
         this.addedDateTime = addedDateTime;
-        setStoredFrom(storedFrom);
     }
 
     /**
