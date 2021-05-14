@@ -42,6 +42,15 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     private Instant requestedDateTime;
 
     /**
+     * Questions and answers for consult questions.
+     */
+    private Map<String, String> questions = new HashMap<>();
+    /**
+     * Notes or further information about the reason for the request.
+     */
+    private InterchangeValue<String> notes = InterchangeValue.unknown();
+
+    /**
      * Has the request for a consult been cancelled.
      */
     private boolean isCancelled = false;
@@ -51,14 +60,6 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
      */
     private boolean closedDueToDischarge = false;
 
-    /**
-     * Questions and answers for consult questions.
-     */
-    private Map<String, String> questions = new HashMap<>();
-    /**
-     * Notes or further information about the reason for the request.
-     */
-    private InterchangeValue<String> notes = InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
