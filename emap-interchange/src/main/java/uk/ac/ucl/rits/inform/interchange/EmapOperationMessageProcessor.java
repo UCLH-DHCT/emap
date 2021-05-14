@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
  * Define the message types that an Emap processor
  * must process.
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
 public interface EmapOperationMessageProcessor {
     /**
@@ -73,4 +74,10 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the ConsultRequest message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException;
 }
