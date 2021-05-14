@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateTypeRepository;
@@ -86,7 +87,7 @@ public class PatientStateController {
         RowState<PatientState, PatientStateAudit> patientState = getOrCreatePatientState(msg, mrn, patientStateType,
                 storedFrom);
         if (messageShouldBeUpdated(msg, patientState)) {
-            // updateVisitObservation(msg, patientState);
+            updatePatientState(msg, patientState);
             patientState.saveEntityOrAuditLogIfRequired(patientStateRepo, patientStateAuditRepo);
         }
     }
@@ -131,32 +132,38 @@ public class PatientStateController {
      */
     private boolean messageShouldBeUpdated(PatientInfection msg, RowState<PatientState,
             PatientStateAudit> patientState) {
-        return patientState.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(patientState.getEntity().getValidFrom());
+
+        return patientState.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(
+                patientState.getEntity().getAddedDateTime()) || (msg.getUpdatedDateTime().isBefore(
+                patientState.getEntity().getAddedDateTime()) && holdsEmptyData(patientState.getEntity()));
     }
 
-//    /**
-//     * Update patient state from patient infection message.
-//     * @param msg               patient infection message
-//     * @param patientState      patient state referred to in message
-//     * @throws RequiredDataMissingException if data type is not recognised for message
-//     */
-//    private void updateVisitObservation(PatientInfection msg, RowState<PatientState, PatientStateAudit> patientState)
-//            throws RequiredDataMissingException {
-//        VisitObservation observation = observationState.getEntity();
-//        switch (msg.getValueType()) {
-//            case NUMERIC:
-//                observationState.assignInterchangeValue(msg.getNumericValue(), observation.getValueAsReal(), observation::setValueAsReal);
-//                break;
-//            case TEXT:
-//                observationState.assignInterchangeValue(msg.getStringValue(), observation.getValueAsText(), observation::setValueAsText);
-//                break;
-//            case DATE:
-//                observationState.assignInterchangeValue(msg.getDateValue(), observation.getValueAsDate(), observation::setValueAsDate);
-//                break;
-//            default:
-//                throw new RequiredDataMissingException(String.format("Flowsheet DataType '%s' not recognised", msg.getValueType()));
-//        }
-//        observationState.assignInterchangeValue(msg.getUnit(), observation.getUnit(), observation::setUnit);
-//        observationState.assignInterchangeValue(msg.getComment(), observation.getComment(), observation::setComment);
-//    }
+    /**
+     * Checks whether some of the relevant attributes in patient state are empty.
+     * @param patientState patient state for which attributes are to be checked
+     * @return true if any of the important attributes are empty, otherwise false
+     */
+    private boolean holdsEmptyData(PatientState patientState){
+        return patientState.getComment() == null && patientState.getStatus() == null;
+    }
+
+    /**
+     * Update patient state from patient infection message.
+     * @param msg               patient infection message
+     * @param patientState      patient state referred to in message
+     * @throws RequiredDataMissingException if data type is not recognised for message
+     */
+    private void updatePatientState(PatientInfection msg, RowState<PatientState, PatientStateAudit> patientState)
+            throws RequiredDataMissingException {
+
+        System.out.println("HEREH HEREHR EHRERE");
+
+        PatientState pState = patientState.getEntity();
+        patientState.assignInterchangeValue(msg.getComment(), pState.getComment(), pState::setComment);
+        patientState.assignInterchangeValue(msg.getStatus(), pState.getStatus(), pState::setStatus);
+        patientState.assignInterchangeValue(msg.getInfectionResolved(), pState.getResolutionDateTime(),
+                pState::setResolutionDateTime);
+        patientState.assignInterchangeValue(msg.getInfectionOnset(), pState.getOnsetDate(), pState::setOnsetDate);
+
+    }
 }
