@@ -98,6 +98,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public void processMessage(MoveVisitInformation msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.moveVisitInformation(msg, storedFrom);
@@ -107,6 +108,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param msg the ChangePatientIdentifiers message to process
      */
     @Override
+    @Transactional
     public void processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.changePatientIdentifiers(msg, storedFrom);
@@ -116,6 +118,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param msg the SwapLocations message to process
      */
     @Override
+    @Transactional
     public void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.swapLocations(msg, storedFrom);
@@ -142,6 +145,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException {
         throw new MessageIgnoredException("Not implemented yet");
     }
