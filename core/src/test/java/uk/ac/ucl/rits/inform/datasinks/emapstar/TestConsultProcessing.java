@@ -18,13 +18,13 @@ public class TestConsultProcessing extends MessageProcessingBase {
     /**
      * Given that no consult types exist in the database
      * When a consult message is processed
-     * A new minimal consult type (only populating the code and source system, leaving the name column empty for hoovering) should be created
+     * A new minimal consult type (only populating the code and source system, leaving the name column empty for metadata hoovering) should be created
      */
 
     /**
      * Given that no consults exist in the database
      * When a consult message is processed
-     * A new consult should be created (in addition to PK and FKs want to store internalConsultId, requestedDateTime, storedFrom, validFrom)
+     * A new consult should be created (in addition to PK and FKs should store internalConsultId, requestedDateTime, storedFrom, validFrom)
      */
 
     /**
@@ -42,13 +42,13 @@ public class TestConsultProcessing extends MessageProcessingBase {
     /**
      * Given that the minimal consult has already been processed
      * When a later consult message with cancel=true with the same epicConsultId and consultationType is processed
-     * Then the cancelled column of the consult is set to true and the storedFrom and validFrom fields update
+     * Then consult should have a cancelled state or similar set to true and the storedFrom and validFrom fields update
      */
 
     /**
      * Given that the minimal consult has already been processed
      * When a later consult message with closedDueToDischarge=true with the same epicConsultId and consultationType is processed
-     * The closedAtDischarge column of the consult it set to true and the storedFrom and validFrom fields update
+     * The consult should have a closedOnDischarge state or similar set to true and the storedFrom and validFrom fields update
      */
 
     /**
