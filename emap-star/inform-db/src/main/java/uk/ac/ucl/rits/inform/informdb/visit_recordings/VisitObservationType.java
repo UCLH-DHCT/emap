@@ -59,7 +59,17 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * Readable name for the hospital application observation type.
      */
-    private String nameInApplication;
+    private String name;
+
+    /**
+     * Name displayed to users.
+     */
+    private String displayName;
+
+    /**
+     * Description of the data type.
+     */
+    private String description;
 
     /**
      * Mapping code for the observation from the standardised vocabulary system.
@@ -98,7 +108,9 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         sourceSystem = other.sourceSystem;
         sourceApplication = other.sourceApplication;
         idInApplication = other.idInApplication;
-        nameInApplication = other.nameInApplication;
+        name = other.name;
+        displayName = other.displayName;
+        description = other.description;
         standardisedCode = other.standardisedCode;
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
