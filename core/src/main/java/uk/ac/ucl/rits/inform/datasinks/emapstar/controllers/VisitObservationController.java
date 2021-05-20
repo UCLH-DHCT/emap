@@ -15,8 +15,9 @@ import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationAudit;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationTypeAudit;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
-import uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.ObservationType;
 
 import java.time.Instant;
 
@@ -47,6 +48,19 @@ public class VisitObservationController {
         this.visitObservationTypeAuditRepo = visitObservationTypeAuditRepo;
     }
 
+    @Transactional
+    public void processMetadata(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
+        if (msg.getId() == null) {
+            throw new RequiredDataMissingException("Flowsheet id not set");
+        }
+        RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(msg, storedFrom);
+        VisitObservationType observationType = typeState.getEntity();
+        if (typeState.isEntityCreated() || msg.getLastUpdatedInstant().isAfter(observationType.getValidFrom())) {
+//            typeState.assignIfDifferent()
+        }
+        typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+    }
+
     /**
      * Create, update or delete a flowsheet.
      * Will also create a new VisitObservationType if it doesn't already exist.
@@ -73,13 +87,15 @@ public class VisitObservationController {
 
     /**
      * Get existing observation type or create and save minimal observation type.
-     * @param msg flowsheet
+
+     * @param storedFrom        time that emap-core started processing the message
      * @return VisitObservationType
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(Flowsheet msg, Instant storedFrom) {
+    private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
+            ObservationType msg, Instant storedFrom) {
         return visitObservationTypeRepo
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication())
-                .map(vot -> new RowState<>(vot, msg.getUpdatedTime(), storedFrom, false))
+                .findByIdInApplicationAndSourceSystemAndSourceApplication(msg.getId(), msg.getSourceSystem(), msg.getSourceApplication())
+                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
                 .orElseGet(() -> createNewType(msg, storedFrom));
     }
 
@@ -88,9 +104,9 @@ public class VisitObservationController {
      * @param msg flowsheet
      * @return saved minimal VisitObservationType
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(Flowsheet msg, Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication());
-        return new RowState<>(type, msg.getUpdatedTime(), storedFrom, true);
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(ObservationType msg, Instant storedFrom) {
+        VisitObservationType type = new VisitObservationType(msg.getId(), msg.getSourceSystem(), msg.getSourceApplication());
+        return new RowState<>(type, msg.getLastUpdatedInstant(), storedFrom, true);
     }
 
     /**
@@ -105,7 +121,7 @@ public class VisitObservationController {
             Flowsheet msg, HospitalVisit visit, VisitObservationType observationType, Instant storedFrom) {
         return visitObservationRepo
                 .findByHospitalVisitIdAndVisitObservationTypeIdAndObservationDatetime(visit, observationType, msg.getObservationTime())
-                .map(obs -> new RowState<>(obs, msg.getUpdatedTime(), storedFrom, false))
+                .map(obs -> new RowState<>(obs, msg.getLastUpdatedInstant(), storedFrom, false))
                 .orElseGet(() -> createMinimalFlowsheetState(msg, visit, observationType, storedFrom));
     }
 
@@ -119,8 +135,8 @@ public class VisitObservationController {
      */
     private RowState<VisitObservation, VisitObservationAudit> createMinimalFlowsheetState(
             Flowsheet msg, HospitalVisit visit, VisitObservationType observationType, Instant storedFrom) {
-        VisitObservation obs = new VisitObservation(visit, observationType, msg.getObservationTime(), msg.getUpdatedTime(), storedFrom);
-        return new RowState<>(obs, msg.getUpdatedTime(), storedFrom, true);
+        VisitObservation obs = new VisitObservation(visit, observationType, msg.getObservationTime(), msg.getLastUpdatedInstant(), storedFrom);
+        return new RowState<>(obs, msg.getLastUpdatedInstant(), storedFrom, true);
     }
 
     /**
@@ -130,7 +146,7 @@ public class VisitObservationController {
      * @return true if message should be updated
      */
     private boolean messageShouldBeUpdated(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
-        return observationState.isEntityCreated() || !msg.getUpdatedTime().isBefore(observationState.getEntity().getValidFrom());
+        return observationState.isEntityCreated() || !msg.getLastUpdatedInstant().isBefore(observationState.getEntity().getValidFrom());
     }
 
     /**

@@ -12,10 +12,10 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -147,8 +147,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Not implemented yet");
-    }
+        Instant storedFrom = Instant.now();
+        flowsheetProcessor.processMessage(msg, storedFrom);    }
 
 
 }
