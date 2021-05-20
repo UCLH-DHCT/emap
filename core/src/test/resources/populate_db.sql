@@ -59,14 +59,14 @@ INSERT INTO public.location_visit (
      null, 4003, 5002);
 
 INSERT INTO public.visit_observation_type (
-    visit_observation_type_id, primary_data_type, source_application, id_in_application, name_in_application,
+    visit_observation_type_id, primary_data_type, source_application, id_in_application, name,
     source_system, stored_from, valid_from)
-    VALUES (7001, null, 'EPIC', '5', 'blood pressure', 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (7002, null, 'caboodle', '5', 'blood pressure', 'caboodle', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (7003, null, 'EPIC', '8', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (7004, null, 'EPIC', '10', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (7005, null, 'EPIC', '6466', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (7006, null, 'EPIC', '28315', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00');
+    VALUES (7001, null, 'EPIC', '5', 'blood pressure', 'flowsheet', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (7002, null, 'caboodle', '5', 'blood pressure', 'flowsheet', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (7003, null, 'EPIC', '8', null, 'flowsheet', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (7004, null, 'EPIC', '10', null, 'flowsheet', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (7005, null, 'EPIC', '6466', null, 'flowsheet', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (7006, null, 'EPIC', '28315', null, 'flowsheet', '2012-09-17 14:00:00', '2020-01-22 14:04:00');
 
 INSERT INTO public.visit_observation (
     visit_observation_id, hospital_visit_id, stored_from, valid_from, comment, observation_datetime,

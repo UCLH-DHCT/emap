@@ -16,8 +16,8 @@ import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationAudit;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -44,8 +44,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private String stringDeleteId = "28315";
     private String numericDeleteId = "8";
     private String flowsheetDateId = "40445";
-    private final String HL7_SYSTEM = "EPIC";
-    private final String FLOWSHEET_APPLICATION = "EPIC";
+    private final String HL7_APPLICATION = "EPIC";
+    private final String FLOWSHEET_SYSTEM = "flowsheet";
 
 
     @BeforeEach
@@ -64,7 +64,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
-        assertEquals("EPIC", mrns.get(0).getSourceSystem());
+        assertEquals(FLOWSHEET_SYSTEM, mrns.get(0).getSourceSystem());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
@@ -93,7 +93,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(updateId, HL7_SYSTEM, FLOWSHEET_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceApplication(updateId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
 
         // value is updated
         VisitObservation updatedObservation = visitObservationRepository
@@ -153,7 +153,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(stringDeleteId, HL7_SYSTEM, FLOWSHEET_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceApplication(stringDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
@@ -187,7 +187,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(numericDeleteId, HL7_SYSTEM, FLOWSHEET_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceApplication(numericDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository

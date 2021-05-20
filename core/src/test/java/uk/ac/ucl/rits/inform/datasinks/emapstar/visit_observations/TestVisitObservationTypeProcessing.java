@@ -14,17 +14,19 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestVisitObservationMetadataProcessing extends MessageProcessingBase {
-    List<FlowsheetMetadata> messages;
+public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
+    List<FlowsheetMetadata> flowsheetMetadata;
 
     @Autowired
     VisitObservationTypeRepository visitObservationTypeRepository;
     @Autowired
     VisitObservationTypeAuditRepository visitObservationTypeAuditRepository;
+    private static final String CABOODLE_APPLICATION = "caboodle";
+    private static final String FLOWSHEET = "flowsheet";
 
     @BeforeEach
     void setup() throws IOException {
-        messages = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml");
+        flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml");
     }
 
 
@@ -36,7 +38,7 @@ public class TestVisitObservationMetadataProcessing extends MessageProcessingBas
      */
     @Test
     void testEntityCreated() throws EmapOperationMessageProcessingException {
-        processSingleMessage(messages.get(0));
+        processSingleMessage(flowsheetMetadata.get(0));
         assertEquals(1, visitObservationTypeRepository.count());
     }
 }
