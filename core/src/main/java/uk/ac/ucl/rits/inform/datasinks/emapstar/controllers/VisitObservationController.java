@@ -6,14 +6,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationAudit;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationTypeAudit;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata;
 
 import java.time.Instant;
 
@@ -27,18 +30,21 @@ public class VisitObservationController {
     private final VisitObservationRepository visitObservationRepo;
     private final VisitObservationAuditRepository visitObservationAuditRepo;
     private final VisitObservationTypeRepository visitObservationTypeRepo;
+    private final VisitObservationTypeAuditRepository visitObservationTypeAuditRepo;
 
     /**
-     * @param visitObservationRepo      autowired VisitObservationRepository
-     * @param visitObservationAuditRepo autowired VisitObservationAuditRepository
-     * @param visitObservationTypeRepo  autowired VisitObservationTypeRepository
+     * @param visitObservationRepo          autowired
+     * @param visitObservationAuditRepo     autowired
+     * @param visitObservationTypeRepo      autowired
+     * @param visitObservationTypeAuditRepo autowired
      */
     public VisitObservationController(
             VisitObservationRepository visitObservationRepo, VisitObservationAuditRepository visitObservationAuditRepo,
-            VisitObservationTypeRepository visitObservationTypeRepo) {
+            VisitObservationTypeRepository visitObservationTypeRepo, VisitObservationTypeAuditRepository visitObservationTypeAuditRepo) {
         this.visitObservationRepo = visitObservationRepo;
         this.visitObservationAuditRepo = visitObservationAuditRepo;
         this.visitObservationTypeRepo = visitObservationTypeRepo;
+        this.visitObservationTypeAuditRepo = visitObservationTypeAuditRepo;
     }
 
     /**
@@ -55,8 +61,10 @@ public class VisitObservationController {
             throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
 
-        VisitObservationType observationType = getOrCreateObservationType(msg);
-        RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
+        RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(msg, storedFrom);
+        typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+
+        RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, typeState.getEntity(), storedFrom);
         if (messageShouldBeUpdated(msg, flowsheetState)) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
@@ -68,10 +76,11 @@ public class VisitObservationController {
      * @param msg flowsheet
      * @return VisitObservationType
      */
-    private VisitObservationType getOrCreateObservationType(Flowsheet msg) {
+    private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(Flowsheet msg, Instant storedFrom) {
         return visitObservationTypeRepo
                 .findByIdInApplicationAndSourceSystemAndSourceApplication(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication())
-                .orElseGet(() -> createAndSaveNewType(msg));
+                .map(vot -> new RowState<>(vot, msg.getUpdatedTime(), storedFrom, false))
+                .orElseGet(() -> createNewType(msg, storedFrom));
     }
 
     /**
@@ -79,10 +88,9 @@ public class VisitObservationController {
      * @param msg flowsheet
      * @return saved minimal VisitObservationType
      */
-    private VisitObservationType createAndSaveNewType(Flowsheet msg) {
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(Flowsheet msg, Instant storedFrom) {
         VisitObservationType type = new VisitObservationType(msg.getFlowsheetId(), msg.getSourceSystem(), msg.getSourceApplication());
-        logger.debug(String.format("Created new %s", type));
-        return visitObservationTypeRepo.save(type);
+        return new RowState<>(type, msg.getUpdatedTime(), storedFrom, true);
     }
 
     /**
