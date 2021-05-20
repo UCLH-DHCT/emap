@@ -1,30 +1,42 @@
 package uk.ac.ucl.rits.inform.informdb.visit_recordings;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import java.time.Instant;
 
 /**
  * VisitObservationType describes the meaning behind a specific observations. In
  * EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
  * into standardised vocabularies to make their meanings clear.
- * @author Roma Klapaukh & Stef Piatek
+ * @author Roma Klapaukh
+ * @author Stef Piatek
  */
+@Entity
 @Data
 @SuppressWarnings("serial")
-@Entity
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @NoArgsConstructor
-public class VisitObservationType {
+@AuditTable
+public class VisitObservationType extends TemporalCore<VisitObservationType, VisitObservationTypeAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long visitObservationType;
+    private long visitObservationTypeId;
 
     /**
      * The hospital system that emap received the data from.
@@ -74,5 +86,36 @@ public class VisitObservationType {
         this.idInApplication = idInApplication;
         this.sourceSystem = sourceSystem;
         this.sourceApplication = sourceApplication;
+    }
+
+    /**
+     * Build new entity from existing one.
+     * @param other existing entity
+     */
+    public VisitObservationType(VisitObservationType other) {
+        super(other);
+        visitObservationTypeId = other.visitObservationTypeId;
+        sourceSystem = other.sourceSystem;
+        sourceApplication = other.sourceApplication;
+        idInApplication = other.idInApplication;
+        nameInApplication = other.nameInApplication;
+        standardisedCode = other.standardisedCode;
+        standardisedVocabulary = other.standardisedVocabulary;
+        primaryDataType = other.primaryDataType;
+    }
+
+    @Override
+    public VisitObservationType copy() {
+        return new VisitObservationType(this);
+    }
+
+    /**
+     * @param validUntil  the event time that invalidated the current state
+     * @param storedUntil the time that star started processing the message that invalidated the current state
+     * @return A new audit entity with the current state of the object.
+     */
+    @Override
+    public VisitObservationTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new VisitObservationTypeAudit(this, validUntil, storedUntil);
     }
 }
