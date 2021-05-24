@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.interchange.visit_observations;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -99,6 +100,7 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
      * @return Id of observation in application.
      */
     @Override
+    @JsonIgnore
     public String getId() {
         return flowsheetId;
     }
@@ -107,6 +109,7 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
      * @return Most recent update to the observation type or observation
      */
     @Override
+    @JsonIgnore
     public Instant getLastUpdatedInstant() {
         return updatedTime;
     }
