@@ -92,6 +92,7 @@ public class VisitObservationController {
 
     /**
      * Get existing observation type or create and save minimal observation type.
+     * @param msg        Message for an observation
      * @param storedFrom time that emap-core started processing the message
      * @return VisitObservationType
      */
@@ -105,7 +106,8 @@ public class VisitObservationController {
 
     /**
      * Create and save a minimal visit observation type.
-     * @param msg flowsheet
+     * @param msg        message for an observation
+     * @param storedFrom time that emap-core started processing the message
      * @return saved minimal VisitObservationType
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(ObservationType msg, Instant storedFrom) {
