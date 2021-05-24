@@ -9,20 +9,20 @@ public interface ObservationType {
     /**
      * @return Id of observation in application.
      */
-    public String getId();
+    String getId();
 
     /**
      * @return Type of observation (e.g. flowsheet)
      */
-    public String getSourceObservationType();
+    String getSourceObservationType();
 
     /**
      * @return System that provided the information (e.g. HL7, caboodle, clarity)
      */
-    public String getSourceSystem();
+    String getSourceSystem();
 
     /**
      * @return Most recent update to the observation type or observation
      */
-    public Instant getLastUpdatedInstant();
+    Instant getLastUpdatedInstant();
 }
