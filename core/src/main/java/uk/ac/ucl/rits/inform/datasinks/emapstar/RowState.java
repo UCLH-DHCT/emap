@@ -76,6 +76,16 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         this.entityUpdated = entityUpdated;
     }
 
+
+    /**
+     * True if entity has been created, or the message updated time is >= entity validFrom.
+     * @param lastUpdatedInstant time that the message was updated
+     * @return true if message should be updated
+     */
+    public boolean messageShouldBeUpdated(Instant lastUpdatedInstant) {
+        return entityCreated || !lastUpdatedInstant.isBefore(entity.getValidFrom());
+    }
+
     /**
      * If new value is different assign from InterchangeValue of PatientClass to a setter taking a string.
      * @param newValue        new value
