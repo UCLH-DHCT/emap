@@ -198,7 +198,6 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testNullInfectionDataAlwaysAdded() throws EmapOperationMessageProcessingException {
         // original minimal message has comment, resolution datetime, onset date and comment as unknown
         processSingleMessage(hl7Mumps);
-        System.out.println("test");
 
         // process message that is older than current database, but has information which was missing in first message
         hooverMumps.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
@@ -209,7 +208,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         PatientState infection = patientStateRepository
                 .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
-        System.out.println(infection);
+
         // extra data should be added
         assertHooverMumpsTimes(infection);
         assertEquals(comment, infection.getComment());
