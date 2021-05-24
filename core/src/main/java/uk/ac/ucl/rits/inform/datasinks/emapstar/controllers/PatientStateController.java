@@ -46,8 +46,8 @@ public class PatientStateController {
 
     /**
      * Get existing patient state type or create and save minimal patient state type.
-     * @param msg patient infection
-     * @param storedFrom
+     * @param msg        patient infection
+     * @param storedFrom when patient infection information is stored from
      * @return PatientStateType
      */
     private PatientStateType getOrCreatePatientStateType(PatientInfection msg, Instant storedFrom) {
@@ -66,7 +66,7 @@ public class PatientStateController {
         PatientStateType patientStateType = new PatientStateType(msg.getInfection(), "PATIENT_INFECTION",
                 msg.getUpdatedDateTime(), storedFrom);
 
-        logger.debug("Created new {}", patientStateType));
+        logger.debug("Created new {}", patientStateType);
 
         patientStateTypeRepo.save(patientStateType);
         return patientStateTypeRepo.save(patientStateType);
@@ -155,8 +155,6 @@ public class PatientStateController {
      */
     private void updatePatientState(PatientInfection msg, RowState<PatientState, PatientStateAudit> patientState)
             throws RequiredDataMissingException {
-
-
         PatientState pState = patientState.getEntity();
         patientState.assignInterchangeValue(msg.getComment(), pState.getComment(), pState::setComment);
         patientState.assignInterchangeValue(msg.getStatus(), pState.getStatus(), pState::setStatus);

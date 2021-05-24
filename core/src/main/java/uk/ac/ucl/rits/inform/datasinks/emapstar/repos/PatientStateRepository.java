@@ -25,6 +25,17 @@ public interface PatientStateRepository extends CrudRepository<PatientState, Lon
     );
 
     /**
+     * Get patient state, should be unique.
+     * @param mrn              MRN entity
+     * @param stateName        name of the state
+     * @param addedDateTime    added date time
+     * @return possible patient state
+     */
+    Optional<PatientState> findByMrnIdAndPatientStateTypeIdNameAndAddedDateTime(
+            Mrn mrn, String stateName, Instant addedDateTime
+    );
+
+    /**
      * For testing, shortcut without requiring entities to be passed.
      * @param mrn           mrn sting
      * @param stateName     name of the state
