@@ -94,15 +94,14 @@ public class PatientStateController {
 
         // one for each of the entities that could be null?
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getComment(),
-                patientState.getEntity().getComment(), patientState.getEntity()::setComment, storedFrom,
-                patientState.getEntity().getStoredFrom());
+                patientState.getEntity().getComment(), patientState.getEntity()::setComment,
+                msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionResolved(),
-                patientState.getEntity().getResolutionDateTime(), patientState.getEntity()::setResolutionDateTime, storedFrom,
-                patientState.getEntity().getStoredFrom());
+                patientState.getEntity().getResolutionDateTime(), patientState.getEntity()::setResolutionDateTime,
+                msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionOnset(),
-                patientState.getEntity().getOnsetDate(), patientState.getEntity()::setOnsetDate, storedFrom,
-                patientState.getEntity().getStoredFrom());
-
+                patientState.getEntity().getOnsetDate(), patientState.getEntity()::setOnsetDate,
+                msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
 
         if (messageShouldBeUpdated(msg, patientState)) {
             updatePatientState(msg, patientState);
@@ -152,7 +151,7 @@ public class PatientStateController {
             PatientStateAudit> patientState) {
 
         return patientState.isEntityCreated() ||
-                !msg.getUpdatedDateTime().isBefore(patientState.getEntity().getAddedDateTime());
+                !msg.getUpdatedDateTime().isBefore(patientState.getEntity().getPatientStateTypeId().getValidFrom());
     }
 
     /**
@@ -168,10 +167,8 @@ public class PatientStateController {
      * Update patient state from patient infection message.
      * @param msg               patient infection message
      * @param patientState      patient state referred to in message
-     * @throws RequiredDataMissingException if data type is not recognised for message
      */
-    private void updatePatientState(PatientInfection msg, RowState<PatientState, PatientStateAudit> patientState)
-            throws RequiredDataMissingException {
+    private void updatePatientState(PatientInfection msg, RowState<PatientState, PatientStateAudit> patientState) {
         PatientState pState = patientState.getEntity();
         patientState.assignInterchangeValue(msg.getComment(), pState.getComment(), pState::setComment);
         patientState.assignInterchangeValue(msg.getStatus(), pState.getStatus(), pState::setStatus);
