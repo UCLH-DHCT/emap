@@ -30,6 +30,10 @@ public class PatientStateController {
     private final PatientStateTypeRepository patientStateTypeRepo;
     private final PatientStateAuditRepository patientStateAuditRepo;
 
+    private enum PatientStateDataType {
+        PATIENT_INFECTION
+    }
+
     /**
      * Setting repositories holding information on patient states.
      * @param patientStateRepo      autowired PatientStateRepository
@@ -52,7 +56,7 @@ public class PatientStateController {
      */
     private PatientStateType getOrCreatePatientStateType(PatientInfection msg, Instant storedFrom) {
         return patientStateTypeRepo
-                .findByDataTypeAndName("PATIENT_INFECTION", msg.getInfection())
+                .findByDataTypeAndName(PatientStateDataType.PATIENT_INFECTION.toString(), msg.getInfection())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
@@ -63,7 +67,8 @@ public class PatientStateController {
      * @return saved minimal PatientStateType
      */
     private PatientStateType createAndSaveNewType(PatientInfection msg, Instant storedFrom) {
-        PatientStateType patientStateType = new PatientStateType(msg.getInfection(), "PATIENT_INFECTION",
+        PatientStateType patientStateType = new PatientStateType(msg.getInfection(),
+                PatientStateDataType.PATIENT_INFECTION.toString(),
                 msg.getUpdatedDateTime(), storedFrom);
 
         logger.debug("Created new {}", patientStateType);
