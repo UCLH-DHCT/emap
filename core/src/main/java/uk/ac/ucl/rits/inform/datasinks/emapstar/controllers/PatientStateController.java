@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateTypeRepository;
@@ -149,9 +148,7 @@ public class PatientStateController {
      */
     private boolean messageShouldBeUpdated(PatientInfection msg, RowState<PatientState,
             PatientStateAudit> patientState) {
-
-        return patientState.isEntityCreated() ||
-                !msg.getUpdatedDateTime().isBefore(patientState.getEntity().getPatientStateTypeId().getValidFrom());
+        return patientState.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(patientState.getEntity().getPatientStateTypeId().getValidFrom());
     }
 
     /**
@@ -159,7 +156,7 @@ public class PatientStateController {
      * @param patientState patient state for which attributes are to be checked
      * @return true if any of the important attributes are empty, otherwise false
      */
-    private boolean holdsEmptyData(PatientState patientState){
+    private boolean holdsEmptyData(PatientState patientState) {
         return patientState.getComment() == null && patientState.getStatus() == null;
     }
 
