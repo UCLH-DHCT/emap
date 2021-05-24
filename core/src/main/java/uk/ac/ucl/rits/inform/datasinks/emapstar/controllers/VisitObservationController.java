@@ -56,7 +56,7 @@ public class VisitObservationController {
         RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(msg, storedFrom);
         VisitObservationType observationType = typeState.getEntity();
         // Update metadata with usable information
-        if (typeState.isEntityCreated() || msg.getLastUpdatedInstant().isAfter(observationType.getValidFrom())) {
+        if (typeState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             typeState.assignIfDifferent(msg.getName(), observationType.getName(), observationType::setName);
             typeState.assignIfDifferent(msg.getDisplayName(), observationType.getDisplayName(), observationType::setDisplayName);
             typeState.assignIfDifferent(msg.getDescription(), observationType.getDescription(), observationType::setDescription);
@@ -84,7 +84,7 @@ public class VisitObservationController {
         typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
 
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, typeState.getEntity(), storedFrom);
-        if (messageShouldBeUpdated(msg, flowsheetState)) {
+        if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
         }
@@ -92,8 +92,7 @@ public class VisitObservationController {
 
     /**
      * Get existing observation type or create and save minimal observation type.
-
-     * @param storedFrom        time that emap-core started processing the message
+     * @param storedFrom time that emap-core started processing the message
      * @return VisitObservationType
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
@@ -142,16 +141,6 @@ public class VisitObservationController {
             Flowsheet msg, HospitalVisit visit, VisitObservationType observationType, Instant storedFrom) {
         VisitObservation obs = new VisitObservation(visit, observationType, msg.getObservationTime(), msg.getLastUpdatedInstant(), storedFrom);
         return new RowState<>(obs, msg.getLastUpdatedInstant(), storedFrom, true);
-    }
-
-    /**
-     * Update message if observation has been created, or the message updated time is >= entity validFrom.
-     * @param msg              flowsheet
-     * @param observationState observation entity wrapped in RowState
-     * @return true if message should be updated
-     */
-    private boolean messageShouldBeUpdated(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState) {
-        return observationState.isEntityCreated() || !msg.getLastUpdatedInstant().isBefore(observationState.getEntity().getValidFrom());
     }
 
     /**
