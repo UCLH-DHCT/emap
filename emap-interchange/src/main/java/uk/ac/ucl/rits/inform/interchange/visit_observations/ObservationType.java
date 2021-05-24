@@ -12,12 +12,12 @@ public interface ObservationType {
     public String getId();
 
     /**
-     * @return Application that provided the information (e.g. HL7, caboodle, clarity)
+     * @return Type of observation (e.g. flowsheet)
      */
-    public String getSourceApplication();
+    public String getSourceObservationType();
 
     /**
-     * @return System is providing the observation type (e.g. flowsheet)
+     * @return System that provided the information (e.g. HL7, caboodle, clarity)
      */
     public String getSourceSystem();
 
