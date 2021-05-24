@@ -36,7 +36,7 @@ public class FlowsheetMetadata extends EmapOperationMessage implements  Observat
     private Instant lastUpdatedInstant;
     private Boolean isInferred;
     private Boolean isDeleted;
-    private String sourceApplication = "flowsheet";
+    private String sourceObservationType = "flowsheet";
 
     public FlowsheetMetadata() {
     }

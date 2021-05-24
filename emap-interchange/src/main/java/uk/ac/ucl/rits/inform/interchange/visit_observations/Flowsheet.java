@@ -23,6 +23,7 @@ import java.time.LocalTime;
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class Flowsheet extends EmapOperationMessage implements ObservationType {
+    private String sourceObservationType = "flowsheet";
     private String mrn = "";
 
     private String visitNumber = "";
