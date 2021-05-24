@@ -66,7 +66,7 @@ public class PatientStateController {
         PatientStateType patientStateType = new PatientStateType(msg.getInfection(), "PATIENT_INFECTION",
                 msg.getUpdatedDateTime(), storedFrom);
 
-        logger.debug(String.format("Created new %s", patientStateType));
+        logger.debug("Created new {}", patientStateType));
 
         patientStateTypeRepo.save(patientStateType);
         return patientStateTypeRepo.save(patientStateType);
