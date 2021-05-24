@@ -63,7 +63,7 @@ public class CoPathResultBuilder extends LabResultBuilder {
      * Any custom overriding methods to populate individual field data.
      */
     @Override
-    void setCustomOverrides() throws Hl7InconsistencyException {
+    void setCustomOverrides() {
         getMessage().setTestItemCodingSystem(CO_PATH);
     }
 
@@ -108,8 +108,12 @@ public class CoPathResultBuilder extends LabResultBuilder {
                 throw new Hl7InconsistencyException("Encoding of report in unexpected format");
             }
             String dataValues = matcher.replaceFirst("");
-            byte[] byteValues = Base64.getDecoder().decode(dataValues);
-            getMessage().setByteValue(InterchangeValue.buildFromHl7(byteValues));
+            try {
+                byte[] byteValues = Base64.getDecoder().decode(dataValues);
+                getMessage().setByteValue(InterchangeValue.buildFromHl7(byteValues));
+            } catch (IllegalArgumentException e) {
+                throw new Hl7InconsistencyException("Could not parse CoPath report data as base 64");
+            }
         } else {
             ignored = true;
         }

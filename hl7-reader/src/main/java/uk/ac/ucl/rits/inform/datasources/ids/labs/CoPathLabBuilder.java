@@ -130,9 +130,13 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
         for (List<OBX> values : obxByType.values()) {
             CoPathResultBuilder labResult = new CoPathResultBuilder(values, obr);
-            labResult.constructMsg();
-            if (!labResult.isIgnored()) {
-                results.add(labResult.getMessage());
+            try {
+                labResult.constructMsg();
+                if (!labResult.isIgnored()) {
+                    results.add(labResult.getMessage());
+                }
+            } catch (Hl7InconsistencyException e) {
+                logger.error("CoPath HL7 inconsistency for message {}", subMessageSourceId, e);
             }
         }
         getMsg().setLabResultMsgs(results);
@@ -166,7 +170,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             OBR obr = order.getORDER_DETAIL().getOBR();
             List<NTE> notes = order.getORDER_DETAIL().getNTEAll();
             LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, patientInfo, obr, orc, notes);
-            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
+            labOrderBuilder.addMsgIfAllowedOcId(idsUnid, interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -196,7 +200,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             OBR obr = order.getOBR();
             List<NTE> notes = order.getNTEAll();
             LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, patientInfo, obr, orc, notes);
-            labOrderBuilder.addMsgIfAllowedOcId(interchangeOrders);
+            labOrderBuilder.addMsgIfAllowedOcId(idsUnid, interchangeOrders);
         }
         return interchangeOrders;
     }
@@ -228,7 +232,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
             msgSuffix++;
             String subMessageSourceId = String.format("%s_%02d", idsUnid, msgSuffix);
             LabOrderBuilder labOrderBuilder = new CoPathLabBuilder(subMessageSourceId, obs, patientInfo);
-            labOrderBuilder.addMsgIfAllowedOcId(orders);
+            labOrderBuilder.addMsgIfAllowedOcId(idsUnid, orders);
         }
         return orders;
     }
