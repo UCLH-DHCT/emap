@@ -44,8 +44,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private String stringDeleteId = "28315";
     private String numericDeleteId = "8";
     private String flowsheetDateId = "40445";
-    private final String HL7_APPLICATION = "EPIC";
-    private final String FLOWSHEET_SYSTEM = "flowsheet";
+    private final String HL7_SOURCE = "EPIC";
+    private final String FLOWSHEET = "flowsheet";
 
 
     @BeforeEach
@@ -64,7 +64,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
-        assertEquals(FLOWSHEET_SYSTEM, mrns.get(0).getSourceSystem());
+        assertEquals(HL7_SOURCE, mrns.get(0).getSourceSystem());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
@@ -93,7 +93,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(updateId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(updateId, HL7_SOURCE, FLOWSHEET).orElseThrow();
 
         // value is updated
         VisitObservation updatedObservation = visitObservationRepository
@@ -153,7 +153,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(stringDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(stringDeleteId, HL7_SOURCE, FLOWSHEET).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
@@ -187,7 +187,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(numericDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(numericDeleteId, HL7_SOURCE, FLOWSHEET).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
