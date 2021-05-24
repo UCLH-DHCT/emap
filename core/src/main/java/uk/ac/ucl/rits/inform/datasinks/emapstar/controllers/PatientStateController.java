@@ -91,6 +91,19 @@ public class PatientStateController {
 
         RowState<PatientState, PatientStateAudit> patientState = getOrCreatePatientState(msg, mrn, patientStateType,
                 storedFrom);
+
+        // one for each of the entities that could be null?
+        patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getComment(),
+                patientState.getEntity().getComment(), patientState.getEntity()::setComment, storedFrom,
+                patientState.getEntity().getStoredFrom());
+        patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionResolved(),
+                patientState.getEntity().getResolutionDateTime(), patientState.getEntity()::setResolutionDateTime, storedFrom,
+                patientState.getEntity().getStoredFrom());
+        patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionOnset(),
+                patientState.getEntity().getOnsetDate(), patientState.getEntity()::setOnsetDate, storedFrom,
+                patientState.getEntity().getStoredFrom());
+
+
         if (messageShouldBeUpdated(msg, patientState)) {
             updatePatientState(msg, patientState);
             patientState.saveEntityOrAuditLogIfRequired(patientStateRepo, patientStateAuditRepo);
@@ -138,9 +151,8 @@ public class PatientStateController {
     private boolean messageShouldBeUpdated(PatientInfection msg, RowState<PatientState,
             PatientStateAudit> patientState) {
 
-        return patientState.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(
-                patientState.getEntity().getAddedDateTime()) || (msg.getUpdatedDateTime().isBefore(
-                patientState.getEntity().getAddedDateTime()) && holdsEmptyData(patientState.getEntity()));
+        return patientState.isEntityCreated() ||
+                !msg.getUpdatedDateTime().isBefore(patientState.getEntity().getAddedDateTime());
     }
 
     /**
