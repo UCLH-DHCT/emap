@@ -55,9 +55,14 @@ public class VisitObservationController {
         }
         RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(msg, storedFrom);
         VisitObservationType observationType = typeState.getEntity();
+        // Update metadata with usable information
         if (typeState.isEntityCreated() || msg.getLastUpdatedInstant().isAfter(observationType.getValidFrom())) {
-//            typeState.assignIfDifferent()
+            typeState.assignIfDifferent(msg.getName(), observationType.getName(), observationType::setName);
+            typeState.assignIfDifferent(msg.getDisplayName(), observationType.getDisplayName(), observationType::setDisplayName);
+            typeState.assignIfDifferent(msg.getDescription(), observationType.getDescription(), observationType::setDescription);
+            typeState.assignIfDifferent(msg.getValueType(), observationType.getPrimaryDataType(), observationType::setPrimaryDataType);
         }
+
         typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
     }
 
@@ -94,7 +99,7 @@ public class VisitObservationController {
     private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
             ObservationType msg, Instant storedFrom) {
         return visitObservationTypeRepo
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(msg.getId(), msg.getSourceSystem(), msg.getSourceApplication())
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType())
                 .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
                 .orElseGet(() -> createNewType(msg, storedFrom));
     }
@@ -105,7 +110,7 @@ public class VisitObservationController {
      * @return saved minimal VisitObservationType
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(ObservationType msg, Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(msg.getId(), msg.getSourceSystem(), msg.getSourceApplication());
+        VisitObservationType type = new VisitObservationType(msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType());
         return new RowState<>(type, msg.getLastUpdatedInstant(), storedFrom, true);
     }
 

@@ -93,7 +93,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(updateId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(updateId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
 
         // value is updated
         VisitObservation updatedObservation = visitObservationRepository
@@ -153,7 +153,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(stringDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(stringDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
@@ -187,7 +187,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceApplication(numericDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(numericDeleteId, FLOWSHEET_SYSTEM, HL7_APPLICATION).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
