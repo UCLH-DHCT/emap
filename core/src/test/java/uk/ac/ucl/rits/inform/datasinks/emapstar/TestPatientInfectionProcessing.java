@@ -223,15 +223,12 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // process original message with date information
         processSingleMessage(hooverMumps);
 
-        System.out.println(hooverMumps);
-
         // process message that is older than current database with different data
         processOlderDateTimeMessage();
 
         PatientState infection = patientStateRepository
                 .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
-        System.out.println(infection);
 
         assertHooverMumpsTimes(infection);
     }
