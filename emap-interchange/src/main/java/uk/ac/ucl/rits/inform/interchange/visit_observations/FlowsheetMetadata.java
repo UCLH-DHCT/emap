@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.interchange.visit_observations;
 
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
@@ -50,6 +51,7 @@ public class FlowsheetMetadata extends EmapOperationMessage implements  Observat
      * @return Id of observation in application.
      */
     @Override
+    @JsonIgnore
     public String getId() {
         return flowsheetRowEpicId;
     }
