@@ -156,7 +156,6 @@ public class PatientStateController {
     private void updatePatientState(PatientInfection msg, RowState<PatientState, PatientStateAudit> patientState)
             throws RequiredDataMissingException {
 
-        System.out.println("HEREH HEREHR EHRERE");
 
         PatientState pState = patientState.getEntity();
         patientState.assignInterchangeValue(msg.getComment(), pState.getComment(), pState::setComment);
