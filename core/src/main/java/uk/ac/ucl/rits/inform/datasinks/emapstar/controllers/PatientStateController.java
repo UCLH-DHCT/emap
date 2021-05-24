@@ -103,7 +103,7 @@ public class PatientStateController {
     private RowState<PatientState, PatientStateAudit> getOrCreatePatientState(
             PatientInfection msg, Mrn mrn, PatientStateType patientStateType, Instant storedFrom) {
         return patientStateRepo
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(msg.getMrn(), msg.getInfection(),
+                .findByMrnIdAndPatientStateTypeIdNameAndAddedDateTime(mrn, msg.getInfection(),
                         msg.getInfectionAdded())
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalPatientState(msg, mrn, patientStateType, storedFrom));
