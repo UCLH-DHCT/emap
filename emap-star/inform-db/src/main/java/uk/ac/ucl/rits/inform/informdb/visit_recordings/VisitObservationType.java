@@ -39,16 +39,16 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private long visitObservationTypeId;
 
     /**
-     * The hospital system that emap received the data from.
+     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
      */
     @Column(nullable = false)
     private String sourceSystem;
 
     /**
-     * The application that generated the data, this can be the same as the source system.
+     * The data type in the source system.
      */
     @Column(nullable = false)
-    private String sourceApplication;
+    private String sourceObservationType;
 
     /**
      * The code used by the hospital application to identify the observation type.
@@ -88,14 +88,14 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
 
     /**
      * Minimal information constructor.
-     * @param idInApplication   Id from the application
-     * @param sourceSystem      source system
-     * @param sourceApplication source application
+     * @param idInApplication       Id from the application
+     * @param sourceSystem          source system
+     * @param sourceObservationType data type in the source system (e.g. flowsheet)
      */
-    public VisitObservationType(String idInApplication, String sourceSystem, String sourceApplication) {
+    public VisitObservationType(String idInApplication, String sourceSystem, String sourceObservationType) {
         this.idInApplication = idInApplication;
         this.sourceSystem = sourceSystem;
-        this.sourceApplication = sourceApplication;
+        this.sourceObservationType = sourceObservationType;
     }
 
     /**
@@ -106,7 +106,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         super(other);
         visitObservationTypeId = other.visitObservationTypeId;
         sourceSystem = other.sourceSystem;
-        sourceApplication = other.sourceApplication;
+        sourceObservationType = other.sourceObservationType;
         idInApplication = other.idInApplication;
         name = other.name;
         displayName = other.displayName;
