@@ -233,6 +233,10 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         assertHooverMumpsTimes(infection);
     }
 
+    /**
+     * Tests whether newer message overwrites information of older in the relevant date fields.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     void newerMessageUpdatesExistingDate() throws EmapOperationMessageProcessingException {
         // process message that is older than current database with different data
@@ -248,6 +252,10 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         assertHooverMumpsTimes(infection);
     }
 
+    /**
+     * Checks whether older message updates comment, but not date fields.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
     @Test
     void olderMessageDoesntUpdateComment () throws EmapOperationMessageProcessingException {
         Instant resolveTime = MUMPS_ADD_TIME.plus(21, ChronoUnit.DAYS);
