@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -37,6 +38,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private FlowsheetProcessor flowsheetProcessor;
     @Autowired
     private LabProcessor labProcessor;
+    @Autowired
+    private PatientStateProcessor patientStateProcessor;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -133,8 +136,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Not implemented yet");
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
     }
 
     /**
