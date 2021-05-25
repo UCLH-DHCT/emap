@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.state.PatientState;
 import uk.ac.ucl.rits.inform.informdb.state.PatientStateAudit;
 import uk.ac.ucl.rits.inform.informdb.state.PatientStateType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
@@ -91,21 +92,21 @@ public class PatientStateController {
         RowState<PatientState, PatientStateAudit> patientState = getOrCreatePatientState(msg, mrn, patientStateType,
                 storedFrom);
 
-        // one for each of the entities that could be null?
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getComment(),
                 patientState.getEntity().getComment(), patientState.getEntity()::setComment,
                 msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionResolved(),
                 patientState.getEntity().getResolutionDateTime(), patientState.getEntity()::setResolutionDateTime,
-                msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
+                msg.getUpdatedDateTime(), storedFrom);
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionOnset(),
                 patientState.getEntity().getOnsetDate(), patientState.getEntity()::setOnsetDate,
                 msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
 
         if (messageShouldBeUpdated(msg, patientState)) {
             updatePatientState(msg, patientState);
-            patientState.saveEntityOrAuditLogIfRequired(patientStateRepo, patientStateAuditRepo);
         }
+
+        patientState.saveEntityOrAuditLogIfRequired(patientStateRepo, patientStateAuditRepo);
     }
 
     /**
@@ -172,6 +173,5 @@ public class PatientStateController {
         patientState.assignInterchangeValue(msg.getInfectionResolved(), pState.getResolutionDateTime(),
                 pState::setResolutionDateTime);
         patientState.assignInterchangeValue(msg.getInfectionOnset(), pState.getOnsetDate(), pState::setOnsetDate);
-
     }
 }
