@@ -56,12 +56,16 @@ public class VisitObservationController {
         RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(msg, storedFrom);
         VisitObservationType observationType = typeState.getEntity();
         // Update metadata with usable information
-        if (typeState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
-            typeState.assignIfDifferent(msg.getName(), observationType.getName(), observationType::setName);
-            typeState.assignIfDifferent(msg.getDisplayName(), observationType.getDisplayName(), observationType::setDisplayName);
-            typeState.assignIfDifferent(msg.getDescription(), observationType.getDescription(), observationType::setDescription);
-            typeState.assignIfDifferent(msg.getValueType(), observationType.getPrimaryDataType(), observationType::setPrimaryDataType);
-        }
+        Instant messageValidFrom = msg.getLastUpdatedInstant();
+        Instant entityValidFrom = observationType.getValidFrom();
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getName(), observationType.getName(), observationType::setName, messageValidFrom, entityValidFrom);
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getDisplayName(), observationType.getDisplayName(), observationType::setDisplayName, messageValidFrom, entityValidFrom);
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getDescription(), observationType.getDescription(), observationType::setDescription, messageValidFrom, entityValidFrom);
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getValueType(), observationType.getPrimaryDataType(), observationType::setPrimaryDataType, messageValidFrom, entityValidFrom);
 
         typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
     }

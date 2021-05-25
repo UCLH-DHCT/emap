@@ -220,4 +220,21 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
             assignInterchangeValue(msgValue, currentValue, setter);
         }
     }
+
+    /**
+     * Convenience method to allow assignment of fields which should always be added to if currently null in database.
+     * If a value exists, then should only update the value if the message is newer.
+     * @param msgValue         value from message
+     * @param currentValue     current value
+     * @param setter           setter lambda
+     * @param messageValidFrom updateTime of the message
+     * @param entityValidFrom  validFrom from the database entity
+     * @param <R>              type of the value in the hibernate entity
+     */
+    public <R> void assignIfCurrentlyNullOrNewerAndDifferent(
+            R msgValue, R currentValue, Consumer<R> setter, Instant messageValidFrom, Instant entityValidFrom) {
+        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
+            assignIfDifferent(msgValue, currentValue, setter);
+        }
+    }
 }
