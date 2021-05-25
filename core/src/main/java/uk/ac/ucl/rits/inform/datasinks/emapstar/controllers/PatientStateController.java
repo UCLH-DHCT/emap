@@ -93,13 +93,13 @@ public class PatientStateController {
 
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getComment(),
                 patientState.getEntity().getComment(), patientState.getEntity()::setComment,
-                msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
+                msg.getUpdatedDateTime(), storedFrom);
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionResolved(),
                 patientState.getEntity().getResolutionDateTime(), patientState.getEntity()::setResolutionDateTime,
                 msg.getUpdatedDateTime(), storedFrom);
         patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionOnset(),
                 patientState.getEntity().getOnsetDate(), patientState.getEntity()::setOnsetDate,
-                msg.getUpdatedDateTime(), patientState.getEntity().getStoredFrom());
+                msg.getUpdatedDateTime(), storedFrom);
 
         if (messageShouldBeUpdated(msg, patientState)) {
             updatePatientState(msg, patientState);
