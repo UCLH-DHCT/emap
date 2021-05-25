@@ -13,10 +13,8 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
@@ -28,7 +26,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     private static final String CABOODLE_APPLICATION = "caboodle";
     private static final String FLOWSHEET = "flowsheet";
     private static final String FLOWSHEET_ID = "5";
-    private static final Instant OLDER_TIME = Instant.parse("1991-01-01T00:00:00Z");
+    private static final Instant EARLIER_TIME = Instant.parse("1991-01-01T00:00:00Z");
     private static final Instant LATER_TIME = Instant.parse("2021-01-01T00:00:00Z");
 
 
@@ -86,15 +84,15 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     /**
      * Given flowsheet visit observation type already exists
      * When an older metadata message is processed
-     * Non-minimal fields should not be changed
+     * Non-minimal fields should be updated
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOldMessageDoesntUpdate() throws EmapOperationMessageProcessingException {
+    void testOldMessageUpdates() throws EmapOperationMessageProcessingException {
         // Set existing data to be a flowsheet which exists already
         FlowsheetMetadata metadata = flowsheetMetadata;
-        metadata.setLastUpdatedInstant(OLDER_TIME);
+        metadata.setLastUpdatedInstant(EARLIER_TIME);
         metadata.setFlowsheetRowEpicId(FLOWSHEET_ID);
         processSingleMessage(metadata);
 
@@ -103,10 +101,9 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 .findByIdInApplicationAndSourceSystemAndSourceObservationType(FLOWSHEET_ID, CABOODLE_APPLICATION, FLOWSHEET)
                 .orElseThrow();
 
+        // shouldn't update as already has data in, and message is older
         assertEquals("blood pressure", type.getName());
-        assertNull(type.getDisplayName());
-        assertNull(type.getDescription());
-        assertNull(type.getPrimaryDataType());
+        // should update because was null when older message is processed
+        assertEquals("Social Work Team Member", type.getDisplayName());
     }
-
 }
