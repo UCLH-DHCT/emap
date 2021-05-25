@@ -13,7 +13,6 @@ import uk.ac.ucl.rits.inform.informdb.state.PatientState;
 import uk.ac.ucl.rits.inform.informdb.state.PatientStateAudit;
 import uk.ac.ucl.rits.inform.informdb.state.PatientStateType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
