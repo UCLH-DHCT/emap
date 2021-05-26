@@ -7,11 +7,12 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
 import ca.uhn.hl7v2.model.v26.datatype.DTM;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.CustomModelWithDefaultVersion;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -85,17 +86,16 @@ public class HL7Utils {
     }
 
     /**
-     * Initalise the HAPI parser.
+     * Initialise the HAPI parser.
      * @return the HapiContext
      */
     public static HapiContext initializeHapiContext() {
         HapiContext context = new DefaultHapiContext();
-
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
+        ModelClassFactory mcf = new CustomModelWithDefaultVersion("uk.ac.ucl.rits.inform.datasources.ids.hl7.custom", "2.6");
+
         context.setModelClassFactory(mcf);
         return context;
     }
@@ -131,13 +131,11 @@ public class HL7Utils {
      * @throws HL7Exception if HAPI does
      */
     public static Message parseHl7String(String hl7Message) throws HL7Exception {
-        HapiContext context = new DefaultHapiContext();
+        HapiContext context = initializeHapiContext();
+        // do we want no context validation?
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
-        context.setModelClassFactory(mcf);
         PipeParser parser = context.getPipeParser();
 
         return parser.parse(hl7Message);
