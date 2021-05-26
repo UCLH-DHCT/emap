@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
@@ -99,24 +100,30 @@ public class VisitObservationController {
      * @param msg        Message for an observation
      * @param storedFrom time that emap-core started processing the message
      * @return VisitObservationType
+     * @param flowsheetId       flowsheet Id
+     * @param sourceSystem      source system
+     * @param sourceApplication source application
+     * @return visit observation type
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
-            ObservationType msg, Instant storedFrom) {
+    @Cacheable("visitObservationType")
+    public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
+            String flowsheetId, String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
         return visitObservationTypeRepo
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType())
-                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                .orElseGet(() -> createNewType(msg, storedFrom));
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(flowsheetId, sourceSystem, observationType)
+                .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
+                .orElseGet(() -> createNewType(flowsheetId, sourceSystem, observationType, storedFrom));
     }
 
     /**
-     * Create and save a minimal visit observation type.
+     * Create a minimal visit observation type.
      * @param msg        message for an observation
      * @param storedFrom time that emap-core started processing the message
      * @return saved minimal VisitObservationType
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(ObservationType msg, Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType());
-        return new RowState<>(type, msg.getLastUpdatedInstant(), storedFrom, true);
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(
+            String flowsheetId, String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
+        VisitObservationType type = new VisitObservationType(flowsheetId, sourceSystem, observationType);
+        return new RowState<>(type, validFrom, storedFrom, true);
     }
 
     /**
