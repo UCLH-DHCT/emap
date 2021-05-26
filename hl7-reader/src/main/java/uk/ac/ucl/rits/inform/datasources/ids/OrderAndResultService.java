@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Decides what type of order or result and sends messages to the correct class and method.
@@ -45,13 +46,21 @@ public class OrderAndResultService {
      */
     Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ORM_O01 msg)
             throws Hl7InconsistencyException, HL7Exception, Hl7MessageIgnoredException {
+        MSH msh = msg.getMSH();
+        String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
+        String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
         OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
-        OrderCodingSystem codingSystem = determineCodingSystem(obr);
-        if (OrderCodingSystem.BLOOD_PRODUCTS == codingSystem) {
-            throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
-        }
 
-        return LabFunnel.buildMessages(sourceId, msg, codingSystem);
+        OrderCodingSystem codingSystem = determineCodingSystem(obr, sendingApplication, sendingFacility);
+        switch (codingSystem) {
+            case BLOOD_PRODUCTS:
+                throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
+            case CONSULT_ORDER:
+                System.out.println("here");
+                return Collections.emptyList();
+            default:
+                return LabFunnel.buildMessages(sourceId, msg, codingSystem);
+        }
     }
 
     /**
@@ -91,16 +100,16 @@ public class OrderAndResultService {
         String sendingApplication = msh.getMsh3_SendingApplication().getHd1_NamespaceID().getValueOrEmpty();
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
 
-        if ("Vitals".equals(sendingFacility)) {
-            return flowsheetFactory.getMessages(sourceId, msg);
-        }
-
         OBR obr = msg.getPATIENT_RESULT().getORDER_OBSERVATION().getOBR();
-        OrderCodingSystem codingSystem = determineCodingSystem(obr, sendingApplication);
-        if (OrderCodingSystem.BLOOD_PRODUCTS == codingSystem) {
-            throw new Hl7MessageIgnoredException("Bank Manager blood products not implemented for now");
+        OrderCodingSystem codingSystem = determineCodingSystem(obr, sendingApplication, sendingFacility);
+        switch (codingSystem) {
+            case BLOOD_PRODUCTS:
+                throw new Hl7MessageIgnoredException("Bank Manager blood products not implemented for now");
+            case FLOWSHEET:
+                return flowsheetFactory.getMessages(sourceId, msg);
+            default:
+                return LabFunnel.buildMessages(sourceId, msg, codingSystem);
         }
-        return LabFunnel.buildMessages(sourceId, msg, codingSystem);
     }
 
     /**
@@ -123,9 +132,12 @@ public class OrderAndResultService {
     }
 
     private OrderCodingSystem determineCodingSystem(OBR obr) throws Hl7MessageIgnoredException {
-        return determineCodingSystem(obr, "");
+        return determineCodingSystem(obr, "", "");
     }
 
+    private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication) throws Hl7MessageIgnoredException {
+        return determineCodingSystem(obr, sendingApplication, "");
+    }
 
     /**
      * Determine the coding system for a result type.
@@ -137,7 +149,7 @@ public class OrderAndResultService {
      * @return order coding system
      * @throws Hl7MessageIgnoredException if coding system cannot be parsed
      */
-    private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication) throws Hl7MessageIgnoredException {
+    private OrderCodingSystem determineCodingSystem(OBR obr, String sendingApplication, String sendingFacility) throws Hl7MessageIgnoredException {
         String fillerNamespace = obr.getObr3_FillerOrderNumber().getEi2_NamespaceID().getValueOrEmpty();
         String codingSystem = obr.getObr4_UniversalServiceIdentifier().getCwe3_NameOfCodingSystem().getValueOrEmpty();
         String alternativeIdentifier = obr.getObr4_UniversalServiceIdentifier().getCwe4_AlternateIdentifier().getValueOrEmpty();
@@ -154,6 +166,10 @@ public class OrderAndResultService {
             return OrderCodingSystem.BIO_CONNECT;
         } else if ("ABL90 FLEX Plus".equals(sendingApplication)) {
             return OrderCodingSystem.ABL90_FLEX_PLUS;
+        } else if ("Vitals".equals(sendingFacility)) {
+            return OrderCodingSystem.FLOWSHEET;
+        } else if ("Consult Orders".equals(sendingFacility)) {
+            return OrderCodingSystem.CONSULT_ORDER;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }
