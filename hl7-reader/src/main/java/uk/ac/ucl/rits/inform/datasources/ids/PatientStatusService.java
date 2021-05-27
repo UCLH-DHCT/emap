@@ -45,7 +45,7 @@ public class PatientStatusService {
         patientInfection.setSourceMessageId(sourceId);
         patientInfection.setSourceSystem(patientInfo.getSendingApplication());
         patientInfection.setMrn(patientInfo.getMrn());
-        patientInfection.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
+        patientInfection.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
         // patient infection information
         patientInfection.setInfection(infectionSegment.getInfection1Name().getValueOrEmpty());
         patientInfection.setInfectionAdded(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
