@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
@@ -151,5 +152,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         throw new MessageIgnoredException("Not implemented yet");
     }
 
+    @Override
+    @Transactional
+    public void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException {
+        throw new MessageIgnoredException("not implemented yet");
+    }
 
 }
