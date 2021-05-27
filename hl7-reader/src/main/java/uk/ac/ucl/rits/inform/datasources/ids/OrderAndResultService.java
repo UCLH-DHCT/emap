@@ -27,15 +27,18 @@ import java.util.Collections;
 @Component
 public class OrderAndResultService {
     private FlowsheetFactory flowsheetFactory;
+    private ConsultFactory consultFactory;
 
-    public OrderAndResultService(FlowsheetFactory flowsheetFactory) {
+    public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory) {
         this.flowsheetFactory = flowsheetFactory;
+        this.consultFactory = consultFactory;
     }
 
     /**
      * Build messages from hl7 message.
      * <p>
      * blood product ORM O01 -> Blood product
+     * Consult Orders ORM O01 -> Consult Order
      * all other ORM O01 -> LabOrder
      * @param sourceId unique Id from the IDS
      * @param msg      hl7 message
@@ -56,8 +59,7 @@ public class OrderAndResultService {
             case BLOOD_PRODUCTS:
                 throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
             case CONSULT_ORDER:
-                System.out.println("here");
-                return Collections.emptyList();
+                return consultFactory.makeConsult();
             default:
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);
         }
