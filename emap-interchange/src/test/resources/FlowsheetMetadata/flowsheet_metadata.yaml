@@ -1,4 +1,4 @@
-- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+- "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetRowEpicId: "1090000038"
   name:               "R HPSC IDG SW PRESENT"
   displayName:        "Social Work Team Member"
@@ -14,7 +14,7 @@
   isInferred:            0
   isDeleted:         0
   sourceSystem: "caboodle"
-- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+- "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetRowEpicId: "1010010003"
   name:               "R ED INTERPRETER ARRIVED"
   displayName:        "Arrival Time"
@@ -30,7 +30,7 @@
   isInferred:            0
   isDeleted:         0
   sourceSystem: "caboodle"
-- "@class": "uk.ac.ucl.rits.inform.interchange.FlowsheetMetadata"
+- "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetRowEpicId: "1020100368"
   name:               "R OB NEWBORN HEARING SCREEN DATE"
   displayName:        "Date of Test"
