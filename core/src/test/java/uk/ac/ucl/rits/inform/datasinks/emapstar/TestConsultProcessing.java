@@ -1,12 +1,18 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-public class TestConsultProcessing extends MessageProcessingBase {
+import org.junit.jupiter.api.Test;
+
+public class TestConsultProcessing { // extends MessageProcessingBase {
 
     /**
      * Given that no MRNS or hospital visits exist in the database
      * When a consult message is processed
      * Then minimal MRN and hospital visit should be created
      */
+    @Test
+    void testMinimalMrnAndHospitalVisitCreated() {
+        System.out.println("hello world");
+    }
 
     /**
      * Given that MRNs and hospital visits exist in the database
