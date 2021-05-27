@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasources.ids.hl7parser;
+package uk.ac.ucl.rits.inform.datasources.ids.hl7.parser;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
