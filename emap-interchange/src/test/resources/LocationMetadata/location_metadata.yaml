@@ -1,0 +1,16 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
+  hl7String:                        "MEDSURG^MED/SURG^Med/Surg"
+  epicDepartmentName:               "EMH MED SURG"
+  epicDepartmentMpiFromDate:        null
+  epicDepartmentMpiToDate:          null
+  departmentRecordStatusId:         6
+  epicRoomId:                       273
+  roomRecordState:                  null
+  roomName:                         "Med/Surg"
+  roomAssociatedPoolBedName:        "Med/Surg"
+  roomPoolBedIsInCensus:            false
+  epicBedId:                        914
+  bedRecordState:                   null
+  bedIsInCensus:                    false
+  isPoolBed:                        null
+  sourceSystem:                     "clarity"
