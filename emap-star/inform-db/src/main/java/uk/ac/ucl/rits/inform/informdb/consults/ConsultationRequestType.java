@@ -23,10 +23,10 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AuditTable
-public class ConsultRequestType extends TemporalCore<ConsultRequestType, ConsultRequestTypeAudit> {
+public class ConsultationRequestType extends TemporalCore<ConsultationRequestType, ConsultationRequestTypeAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long consultRequestTypeId;
+    private long consultationRequestTypeId;
     @Column(nullable = false)
     private String name;
     /**
@@ -36,7 +36,7 @@ public class ConsultRequestType extends TemporalCore<ConsultRequestType, Consult
      * @param validFrom     From which point in time the ConsultRequestType is valid
      * @param storedFrom    Time point at which ConsultRequestType was stored first
      */
-    public ConsultRequestType(String name, Instant validFrom, Instant storedFrom) {
+    public ConsultationRequestType(String name, Instant validFrom, Instant storedFrom) {
         this.name = name;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
@@ -45,18 +45,18 @@ public class ConsultRequestType extends TemporalCore<ConsultRequestType, Consult
      * Build a new ConsultRequestType from an existing one.
      * @param other existing ConsultRequestType
      */
-    public ConsultRequestType(ConsultRequestType other) {
+    public ConsultationRequestType(ConsultationRequestType other) {
         super(other);
         this.name = other.name;
     }
 
     @Override
-    public ConsultRequestType copy() {
-        return new ConsultRequestType(this);
+    public ConsultationRequestType copy() {
+        return new ConsultationRequestType(this);
     }
 
     @Override
-    public ConsultRequestTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new ConsultRequestTypeAudit(this, validUntil, storedUntil);
+    public ConsultationRequestTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new ConsultationRequestTypeAudit(this, validUntil, storedUntil);
     }
 }
