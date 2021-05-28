@@ -12,8 +12,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-
-
 import java.time.Instant;
 
 /**
@@ -29,37 +27,26 @@ public class ConsultRequestType extends TemporalCore<ConsultRequestType, Consult
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultRequestTypeId;
-
-    @Column(nullable = false)
-    private String dataType;
-
-    /**
-     * disease or infection type.
-     */
     @Column(nullable = false)
     private String name;
-
     /**
-     * Mininame constructor to create ConsultRequestType and add name and type.
-     * @param name
-     * @param dataType
-     * @param validFrom
-     * @param storedFrom
+     * Minimal constructor to create ConsultRequestType and add name for it. As there's only one field for now, it's
+     * also the only constructor required for now.
+     * @param name          Consultancy type as provided in ConsultRequest message
+     * @param validFrom     From which point in time the ConsultRequestType is valid
+     * @param storedFrom    Time point at which ConsultRequestType was stored first
      */
-    public ConsultRequestType(String name, String dataType, Instant validFrom, Instant storedFrom) {
+    public ConsultRequestType(String name, Instant validFrom, Instant storedFrom) {
         this.name = name;
-        this.dataType = dataType;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
-
     /**
-     * Build a new ConsultReqyestType from an existing one.
+     * Build a new ConsultRequestType from an existing one.
      * @param other existing ConsultRequestType
      */
     public ConsultRequestType(ConsultRequestType other) {
         super(other);
-        this.dataType = other.dataType;
         this.name = other.name;
     }
 
