@@ -52,10 +52,8 @@ public class NotesParser {
 
     private void buildComments() {
         StringJoiner notesBuilder = new StringJoiner("\n");
-        for (NTE nt : notes) {
-            for (FT ft : nt.getNte3_Comment()) {
-                notesBuilder.add(ft.getValueOrEmpty().strip());
-            }
+        for (NTE note : notes) {
+            addSubCommentsFromNote(notesBuilder, note);
         }
         comments = notesBuilder.toString().strip();
     }
@@ -63,17 +61,21 @@ public class NotesParser {
 
     private void buildQuestionsAndComments() {
         for (NTE note : notes) {
-            StringJoiner questionAndAnswer = new StringJoiner("\n");
-            for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.add(ft.getValueOrEmpty().strip());
-            }
-            String[] parts = questionPattern.split(questionAndAnswer.toString().strip());
+            StringJoiner commentJoiner = new StringJoiner("\n");
+            addSubCommentsFromNote(commentJoiner, note);
+            String[] parts = questionPattern.split(commentJoiner.toString().strip());
             if (parts.length > 1) {
                 String question = parts[0];
                 // allow for separator to be in the answer
                 String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
                 questions.put(question, answer);
             }
+        }
+    }
+
+    private void addSubCommentsFromNote(StringJoiner commentJoiner, NTE note) {
+        for (FT ft : note.getNte3_Comment()) {
+            commentJoiner.add(ft.getValueOrEmpty().strip());
         }
     }
 }
