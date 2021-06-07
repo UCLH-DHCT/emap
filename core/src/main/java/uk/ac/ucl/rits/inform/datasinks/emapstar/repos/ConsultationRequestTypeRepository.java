@@ -10,11 +10,9 @@ public interface ConsultationRequestTypeRepository extends CrudRepository<Consul
      * @param consultationRequestType    type of consultation request, i.e. consultation code as used by EPIC.
      * @return possible consultation request
      */
-    Optional<ConsultationRequestType> findByConsultationTypeId(ConsultationRequestType consultationRequestType);
-
-    /**
-     * @param consultationRequestType    type of consultation request, i.e. consultation code as used by EPIC.
-     * @return possible consultation request
-     */
-    Optional<ConsultationRequestType> findByConsultationTypeId(String consultationRequestType);
+    Optional<ConsultationRequestType> findByStandardisedCode(String consultationRequestType);
 }
+
+
+
+
