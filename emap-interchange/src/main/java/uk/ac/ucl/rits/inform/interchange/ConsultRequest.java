@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.interchange;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -15,6 +16,7 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class ConsultRequest extends EmapOperationMessage implements Serializable {
     /**
@@ -59,6 +61,13 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
      * Has the request been closed because of discharing the patient.
      */
     private boolean closedDueToDischarge = false;
+
+    public ConsultRequest(String sourceId, String sourceSystem, String mrn, String visitNumber) {
+        setSourceMessageId(sourceId);
+        setSourceSystem(sourceSystem);
+        this.mrn = mrn;
+        this.visitNumber = visitNumber;
+    }
 
 
     /**
