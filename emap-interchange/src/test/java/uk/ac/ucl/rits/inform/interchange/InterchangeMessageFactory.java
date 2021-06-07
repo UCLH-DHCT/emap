@@ -9,6 +9,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.io.InputStream;
