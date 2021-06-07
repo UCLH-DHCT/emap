@@ -6,16 +6,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestType;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 import java.io.IOException;
 import java.time.Instant;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+/**
+ * Test cases to assert correct functionality of consultation request handling in EMAP Core.
+ * @author Stef Piatek
+ * @author Anika Cawthorn
+ */
 public class TestConsultProcessing extends MessageProcessingBase {
+    @Autowired
+    MrnRepository mrnRepository;
     @Autowired
     ConsultationRequestRepository consultRequestRepo;
     @Autowired
     ConsultationRequestTypeRepository consultRequestTypeRepo;
+    @Autowired
+    HospitalVisitRepository hospitalVisitRepository;
 
     private ConsultRequest minimalConsult;
     private ConsultRequest cancelledConsult;
@@ -23,7 +41,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private ConsultRequest notesConsult;
     private static String FRAILTY_MRN = "40800000";
     private static Instant FRAILTY_ADD_TIME = Instant.parse("2019-03-07T11:31:05Z");
-    private static String FRAILTY_CONSULTATION_TYPE = "CON225";
+    private static String FRAILTY_CONSULTATION_TYPE = "CON255";
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -39,8 +57,10 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * Then minimal MRN and hospital visit should be created
      */
     @Test
-    void testMinimalMrnAndHospitalVisitCreated() {
-        System.out.println(minimalConsult);
+    void testMinimalMrnAndHospitalVisitCreated() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalConsult);
+
+        // mrnRepository.
     }
 
     /**
@@ -48,15 +68,27 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * When a consult message is processed with existing mrn and visit number
      * Then minimal MRN and hospital visit should not be created
      */
-    void testMinimalMrnAndHospitalVisitNotCreated(){
+    @Test
+    void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException{
         System.out.println("test minimal Mrn and hospital visit not created");
+        processSingleMessage(minimalConsult);
     }
 
     /**
      * Given that no consult types exist in the database
      * When a consult message is processed
-     * A new minimal consult type (only populating the code and source system, leaving the name column empty for metadata hoovering) should be created
+     * A new minimal consult type (only populating the code and source system, leaving the name column empty for
+     * metadata hoovering) should be created
      */
+    @Test
+    void testMinimalConsultTypeCreated() throws EmapOperationMessageProcessingException{
+        processSingleMessage(minimalConsult);
+        ConsultationRequestType crType = consultRequestTypeRepo.findByStandardisedCode(
+                FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertEquals(FRAILTY_ADD_TIME, crType.getValidFrom());
+        assertNull(crType.getName());
+    }
 
     /**
      * Given that no consults exist in the database

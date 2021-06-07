@@ -7,7 +7,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import java.util.Optional;
-import java.time.Instant;
+// import java.time.Instant;
 
 /**
  * Consultation request repository.
@@ -19,10 +19,9 @@ public interface ConsultationRequestRepository extends CrudRepository<Consultati
      * @param mrn                       Patient identifier
      * @param visit                     Hospital visit
      * @param consultationRequestType   Consultancy type
-     * @param requestedDateTime         Date when consultant was requested
      * @return ConsultationRequest that relates to identifiers
      */
-    Optional<ConsultationRequest> findByMrnAndHospitalVisitAndConsultationRequestTypeNameAndRequestedDateTime(
-            Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType, Instant requestedDateTime
+    Optional<ConsultationRequest> findByMrnIdAndHospitalVisitIdAndConsultationRequestTypeId(
+            Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType
     );
 }

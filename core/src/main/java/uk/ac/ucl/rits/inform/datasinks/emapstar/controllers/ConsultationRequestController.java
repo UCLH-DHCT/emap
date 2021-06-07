@@ -53,7 +53,7 @@ public class ConsultationRequestController {
      */
     private ConsultationRequestType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
         return consultationRequestTypeRepo
-                .findByConsultationTypeId(msg.getConsultationType())
+                .findByStandardisedCode(msg.getConsultationType())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
@@ -82,8 +82,7 @@ public class ConsultationRequestController {
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
             ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType, Instant storedFrom) {
         return consultationRequestRepo
-                .findByMrnAndHospitalVisitAndConsultationRequestTypeNameAndRequestedDateTime(mrn, visit,
-                        consultationRequestType, msg.getRequestedDateTime())
+                .findByMrnIdAndHospitalVisitIdAndConsultationRequestTypeId(mrn, visit, consultationRequestType)
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalConsultationRequest(msg, mrn, visit, consultationRequestType, storedFrom));
     }
