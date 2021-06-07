@@ -40,7 +40,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
      */
     @Test
     void testMinimalMrnAndHospitalVisitCreated() {
-
+        System.out.println(minimalConsult);
     }
 
     /**
