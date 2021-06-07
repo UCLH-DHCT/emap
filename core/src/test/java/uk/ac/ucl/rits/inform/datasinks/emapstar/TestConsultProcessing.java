@@ -10,11 +10,14 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,7 +43,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private ConsultRequest closedAtDischargeConsult;
     private ConsultRequest notesConsult;
     private static String FRAILTY_MRN = "40800000";
-    private static Instant FRAILTY_ADD_TIME = Instant.parse("2019-03-07T11:31:05Z");
+    private static Instant FRAILTY_ADD_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
 
     @BeforeEach
@@ -60,7 +63,14 @@ public class TestConsultProcessing extends MessageProcessingBase {
     void testMinimalMrnAndHospitalVisitCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
 
-        // mrnRepository.
+        List<Mrn> mrns = getAllMrns();
+        assertEquals(1, mrns.size());
+        assertEquals(FRAILTY_MRN, mrns.get(0).getMrn());
+        MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
+        assertNotNull(mrnToLive);
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+
     }
 
     /**
@@ -70,8 +80,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
      */
     @Test
     void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException{
-        System.out.println("test minimal Mrn and hospital visit not created");
-        processSingleMessage(minimalConsult);
+        // processSingleMessage(minimalConsult);
     }
 
     /**
