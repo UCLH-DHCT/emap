@@ -54,7 +54,8 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     /**
      * Minimal information constructor.
      */
-    public ConsultationRequest(ConsultationRequestType consultationRequestTypeId, Mrn mrn, HospitalVisit hospitalVisitId) {
+    public ConsultationRequest(ConsultationRequestType consultationRequestTypeId, Mrn mrn,
+                               HospitalVisit hospitalVisitId) {
         this.consultationRequestTypeId = consultationRequestTypeId;
         this.mrnId = mrn;
         this.hospitalVisitId = hospitalVisitId;
