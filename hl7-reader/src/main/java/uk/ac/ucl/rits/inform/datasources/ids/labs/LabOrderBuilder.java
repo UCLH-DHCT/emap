@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.NotesParser;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
@@ -249,19 +250,8 @@ abstract class LabOrderBuilder {
      * @param questionSeparator to join the answer if it contains the question pattern
      * @param questionPattern   pattern between the question and answer
      */
-    protected void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
-        for (NTE note : notes) {
-            StringBuilder questionAndAnswer = new StringBuilder();
-            for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
-            }
-            String[] parts = questionPattern.split(questionAndAnswer.toString().strip());
-            if (parts.length > 1) {
-                String question = parts[0];
-                // allow for separator to be in the answer
-                String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
-                getMsg().getQuestions().put(question, answer);
-            }
-        }
+    void setQuestions(Collection<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
+        NotesParser parser = new NotesParser(notes, questionSeparator, questionPattern);
+        msg.setQuestions(parser.getQuestions());
     }
 }
