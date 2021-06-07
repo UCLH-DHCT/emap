@@ -250,7 +250,7 @@ abstract class LabOrderBuilder {
      * @param questionSeparator to join the answer if it contains the question pattern
      * @param questionPattern   pattern between the question and answer
      */
-    void setQuestions(Collection<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
+    void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
         NotesParser parser = new NotesParser(notes, questionSeparator, questionPattern);
         msg.setQuestions(parser.getQuestions());
     }

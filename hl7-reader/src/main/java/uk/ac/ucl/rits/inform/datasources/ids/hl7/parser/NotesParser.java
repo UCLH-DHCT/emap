@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  */
 public class NotesParser {
 
-    private Collection<NTE> notes;
+    private final Iterable<NTE> notes;
     private String questionSeparator;
     private Pattern questionPattern;
     /**
@@ -36,15 +36,16 @@ public class NotesParser {
      * @param questionSeparator question separator as string
      * @param questionPattern   question separator regex
      */
-    public NotesParser(Collection<NTE> notes, String questionSeparator, Pattern questionPattern) {
+    public NotesParser(Iterable<NTE> notes, String questionSeparator, Pattern questionPattern) {
         this.notes = notes;
         this.questionSeparator = questionSeparator;
         this.questionPattern = questionPattern;
-        questions = new HashMap<>(notes.size());
+        int numberOfNotes = ((Collection<NTE>) notes).size();
+        questions = new HashMap<>(numberOfNotes);
         buildQuestionsAndComments();
     }
 
-    public NotesParser(Collection<NTE> notes) {
+    public NotesParser(Iterable<NTE> notes) {
         this.notes = notes;
         buildComments();
     }
@@ -53,18 +54,18 @@ public class NotesParser {
         StringJoiner notesBuilder = new StringJoiner("\n");
         for (NTE nt : notes) {
             for (FT ft : nt.getNte3_Comment()) {
-                notesBuilder.add(ft.getValueOrEmpty().trim());
+                notesBuilder.add(ft.getValueOrEmpty().strip());
             }
         }
-        comments = notesBuilder.toString().trim();
+        comments = notesBuilder.toString().strip();
     }
 
 
     private void buildQuestionsAndComments() {
         for (NTE note : notes) {
-            StringBuilder questionAndAnswer = new StringBuilder();
+            StringJoiner questionAndAnswer = new StringJoiner("\n");
             for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+                questionAndAnswer.add(ft.getValueOrEmpty().strip());
             }
             String[] parts = questionPattern.split(questionAndAnswer.toString().strip());
             if (parts.length > 1) {

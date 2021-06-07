@@ -115,7 +115,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         }
     }
 
-    private void setClinicalInformationFromNotes(List<NTE> notes) {
+    private void setClinicalInformationFromNotes(Iterable<NTE> notes) {
         NotesParser parser = new NotesParser(notes);
         getMsg().setClinicalInformation(InterchangeValue.buildFromHl7(parser.getComments()));
     }
