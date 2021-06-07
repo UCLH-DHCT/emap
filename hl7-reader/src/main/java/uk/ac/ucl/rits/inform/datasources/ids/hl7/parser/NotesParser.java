@@ -60,7 +60,7 @@ public class NotesParser {
 
 
     private void buildQuestionsAndComments() {
-        boolean noPreviousQuestions = true;
+        String previousQuestion = null;
         StringJoiner commentJoiner = new StringJoiner("\n");
 
         for (NTE note : notes) {
@@ -69,24 +69,33 @@ public class NotesParser {
             String noteComments = questionJoiner.toString().strip();
 
             boolean currentIsNotAQuestion = !questionPattern.matcher(noteComments).find();
-            if (noPreviousQuestions && currentIsNotAQuestion) {
+            if (previousQuestion == null && currentIsNotAQuestion) {
                 commentJoiner.add(noteComments);
             } else {
-                noPreviousQuestions = false;
-                addQuestionAndAnswer(noteComments);
+                previousQuestion = addQuestionAndAnswerReturningQuestion(noteComments, previousQuestion);
             }
             comments = commentJoiner.toString().strip();
         }
     }
 
-    private void addQuestionAndAnswer(String joinedComments) {
+    private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) {
         String[] parts = questionPattern.split(joinedComments);
-        if (parts.length > 1) {
-            String question = parts[0];
+        if (parts.length == 1) {
+            concatenateAnswerAndSaveToQuestions(previousQuestion, joinedComments);
+        } else {
+            previousQuestion = parts[0];
             // allow for separator to be in the answer
             String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
-            questions.put(question, answer);
+            concatenateAnswerAndSaveToQuestions(previousQuestion, answer);
         }
+        return previousQuestion;
+    }
+
+    private void concatenateAnswerAndSaveToQuestions(String question, String answer) {
+        if (questions.containsKey(question)) {
+            answer = String.format("%s\n%s", questions.get(question), answer);
+        }
+        questions.put(question, answer);
     }
 
     private void addSubCommentsFromNote(StringJoiner commentJoiner, NTE note) {

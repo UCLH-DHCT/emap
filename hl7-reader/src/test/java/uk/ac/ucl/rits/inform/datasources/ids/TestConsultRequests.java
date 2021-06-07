@@ -75,12 +75,36 @@ class TestConsultRequests extends TestHl7MessageStream {
         assertEquals("frail, delirium, ? cognitive decline", questions.get("Reason for Consult?"));
     }
 
+    /**
+     * Any notes before a question should be joined to be a comment.
+     * @throws Exception shouldn't happen
+     */
     @Test
     void testNotesAndQuestionsAreParsed() throws Exception {
         ConsultRequest consult = getPatientConsult("notes");
         InterchangeValue<String> expectedNotes = InterchangeValue.buildFromHl7("Admitted with delirium vs cognitive decline\nLives alone");
         assertEquals(expectedNotes, consult.getNotes());
         assertEquals(3, consult.getQuestions().size());
+    }
+
+    /**
+     * The same question can be responded to many times, should join all of these together.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testDuplicateQuestionHasJoinedAnswers() throws Exception {
+        ConsultRequest consult = getPatientConsult("duplicate_question");
+        Map<String, String> questions = consult.getQuestions();
+        assertEquals(2, questions.size());
+        assertEquals("Baby > 24 hours age\nMaternal procedure for removal of placenta\nMilk supply issues", questions.get("Reason for Consult:"));
+    }
+
+    @Test
+    void testMultiLineAnswerIsJoined() throws Exception {
+        ConsultRequest consult = getPatientConsult("multiline_answer");
+        Map<String, String> questions = consult.getQuestions();
+        assertEquals(3, questions.size());
+        assertEquals("No\n*** attempted 3x", questions.get("Did you contact the team?"));
     }
 
 
