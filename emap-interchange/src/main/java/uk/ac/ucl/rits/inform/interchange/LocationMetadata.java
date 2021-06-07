@@ -19,19 +19,19 @@ import lombok.ToString;
 public class LocationMetadata extends EmapOperationMessage {
     private String hl7String;
 
-    private String EpicDepartmentName;
-    private Instant EpicDepartmentMpiFromDate;
-    private Instant EpicDepartmentMpiToDate;
-    private Long DepartmentRecordStatusId;
-    private Long EpicRoomId;
-    private String RoomRecordState;
-    private String RoomName;
-    private String RoomAssociatedPoolBedName;
-    private Boolean RoomPoolBedIsInCensus;
-    private Long EpicBedId;
-    private String BedRecordState;
-    private Boolean BedIsInCensus;
-    private Boolean IsPoolBed;
+    private String epicDepartmentName;
+    private Instant epicDepartmentMpiFromDate;
+    private Instant epicDepartmentMpiToDate;
+    private Long departmentRecordStatusId;
+    private Long epicRoomId;
+    private String roomRecordState;
+    private String roomName;
+    private String roomAssociatedPoolBedName;
+    private Boolean roomPoolBedIsInCensus;
+    private Long epicBedId;
+    private String bedRecordState;
+    private Boolean bedIsInCensus;
+    private Boolean isPoolBed;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
