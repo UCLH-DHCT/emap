@@ -35,7 +35,7 @@ class TestCoPathOrders {
     void testQuestionHasMultipleLinesAndSeparator() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_nw");
         String answer = order.getQuestions().get("How many labels to print?");
-        assertEquals("2 \nthis will test \nmulti-line and -> separator", answer);
+        assertEquals("2\nthis will test\nmulti-line and -> separator", answer);
     }
 
     @Test
