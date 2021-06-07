@@ -170,6 +170,14 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    void testNotesConsult() throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("ConsultRequest/notes.txt");
+        ConsultRequest expected = interchangeFactory.getConsult("notes.yaml");
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(expected, messagesFromHl7Message.get(0));
+    }
+
+    @Test
     public void testLabIncrementalLoad() throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processLabHl7AndFilterToLabOrderMsgs("LabOrders/winpath/Incremental.txt");
         List<LabOrderMsg> expectedOrders = interchangeFactory.getLabOrders("winpath/incremental.yaml", "0000000042");
