@@ -7,15 +7,12 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.Instant;
@@ -71,11 +68,11 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
 
     /**
      * Minimal information constructor.
-     * @param patientStateTypeId    ID for patient state type
-     * @param mrn                   patient ID
-     * @param addedDateTime         when patient state has been added
+     * @param patientStateTypeId ID for patient state type
+     * @param mrn                patient ID
+     * @param addedDateTime      when patient state has been added
      */
-    public PatientState(PatientStateType patientStateTypeId, Mrn mrn,  Instant addedDateTime) {
+    public PatientState(PatientStateType patientStateTypeId, Mrn mrn, Instant addedDateTime) {
         this.patientStateTypeId = patientStateTypeId;
         this.mrnId = mrn;
         this.addedDateTime = addedDateTime;
