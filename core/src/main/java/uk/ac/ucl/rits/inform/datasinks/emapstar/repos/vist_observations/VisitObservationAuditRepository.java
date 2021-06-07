@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationAudit;
@@ -13,9 +13,9 @@ public interface VisitObservationAuditRepository extends CrudRepository<VisitObs
 
     /**
      * For testing.
-     * @param visitId         hospital visit id
-     * @param idInApplication id in application
+     * @param visitId           hospital visit id
+     * @param observationTypeId id of the visit observation type
      * @return optional visit observation audit
      */
-    Optional<VisitObservationAudit> findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(Long visitId, String idInApplication);
+    Optional<VisitObservationAudit> findByHospitalVisitIdAndVisitObservationTypeId(Long visitId, Long observationTypeId);
 }
