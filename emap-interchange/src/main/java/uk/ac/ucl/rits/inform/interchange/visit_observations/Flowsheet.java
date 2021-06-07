@@ -1,9 +1,15 @@
-package uk.ac.ucl.rits.inform.interchange;
+package uk.ac.ucl.rits.inform.interchange.visit_observations;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.ValueType;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,7 +23,8 @@ import java.time.LocalTime;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class Flowsheet extends EmapOperationMessage {
+public class Flowsheet extends EmapOperationMessage implements ObservationType {
+    private String sourceObservationType = "flowsheet";
     private String mrn = "";
 
     private String visitNumber = "";
@@ -87,5 +94,23 @@ public class Flowsheet extends EmapOperationMessage {
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
+    }
+
+    /**
+     * @return Id of observation in application.
+     */
+    @Override
+    @JsonIgnore
+    public String getId() {
+        return flowsheetId;
+    }
+
+    /**
+     * @return Most recent update to the observation type or observation
+     */
+    @Override
+    @JsonIgnore
+    public Instant getLastUpdatedInstant() {
+        return updatedTime;
     }
 }
