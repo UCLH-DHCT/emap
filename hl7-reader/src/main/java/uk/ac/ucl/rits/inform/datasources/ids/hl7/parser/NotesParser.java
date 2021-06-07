@@ -4,11 +4,11 @@ import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 /**
@@ -16,13 +16,19 @@ import java.util.regex.Pattern;
  */
 public class NotesParser {
 
-    private final Collection<NTE> notes;
-    private final String questionSeparator;
-    private final Pattern questionPattern;
+    private Collection<NTE> notes;
+    private String questionSeparator;
+    private Pattern questionPattern;
+    /**
+     * Questions and answers.
+     */
     @Getter
     private Map<String, String> questions;
+    /**
+     * Comments, lines are joined by newline character, each line is trimmed of whitespace.
+     */
     @Getter
-    private Collection<String> comments;
+    private String comments;
 
     /**
      * Parse notes, populating questions and comments if there are any before the questions.
@@ -35,8 +41,22 @@ public class NotesParser {
         this.questionSeparator = questionSeparator;
         this.questionPattern = questionPattern;
         questions = new HashMap<>(notes.size());
-        comments = new ArrayList<>(notes.size());
         buildQuestionsAndComments();
+    }
+
+    public NotesParser(Collection<NTE> notes) {
+        this.notes = notes;
+        buildComments();
+    }
+
+    private void buildComments() {
+        StringJoiner notesBuilder = new StringJoiner("\n");
+        for (NTE nt : notes) {
+            for (FT ft : nt.getNte3_Comment()) {
+                notesBuilder.add(ft.getValueOrEmpty().trim());
+            }
+        }
+        comments = notesBuilder.toString().trim();
     }
 
 

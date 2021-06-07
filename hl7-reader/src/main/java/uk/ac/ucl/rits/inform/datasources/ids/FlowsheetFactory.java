@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.NotesParser;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
@@ -217,19 +218,8 @@ public class FlowsheetFactory {
      * @return String of trimmed comment lines, joined by newlines
      */
     private String getComments(List<NTE> notes) {
-        StringBuilder commentBuilder = new StringBuilder();
-        // multiple NTE segments
-        for (NTE note : notes) {
-            FT[] allComments = note.getNte3_Comment();
-            // Multiple lines in field
-            for (FT comment : allComments) {
-                if (commentBuilder.length() > 1) {
-                    commentBuilder.append("\n");
-                }
-                commentBuilder.append(comment.getValueOrEmpty().trim());
-            }
-        }
-        return commentBuilder.toString().trim();
+        NotesParser parser = new NotesParser(notes);
+        return parser.getComments();
     }
 
     /**
