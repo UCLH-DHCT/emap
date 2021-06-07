@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -60,6 +61,18 @@ class TestConsultRequests extends TestHl7MessageStream {
         assertEquals(CONSULT_TYPE, consult.getConsultationType());
         assertEquals(VISIT_NUMBER, consult.getVisitNumber());
         assertEquals(CONSULT_ID, consult.getEpicConsultId());
+    }
+
+    /**
+     * Ensure that simple questions are parsed correctly.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testSimpleQuestionsParsed() throws Exception {
+        ConsultRequest consult = getPatientConsult("minimal");
+        Map<String, String> questions = consult.getQuestions();
+        assertEquals(3, questions.size());
+        assertEquals("frail, delirium, ? cognitive decline", questions.get("Reason for Consult?"));
     }
 
 
