@@ -44,9 +44,10 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
 
     /** optional fields */
 //    private boolean cancelledDueToDischarge;
-//    private String notes;
-//    private Instant statusChangeTime;
-//    private Instant requestedDateTime;
+    private String notes;
+    private Instant statusChangeTime;
+    private Instant requestedDateTime;
+
 //    private HashMap<String, String> questions;
 //    private boolean cancelled;
 
