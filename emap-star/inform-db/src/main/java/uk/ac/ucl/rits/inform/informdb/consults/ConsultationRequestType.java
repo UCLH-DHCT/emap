@@ -28,16 +28,17 @@ public class ConsultationRequestType extends TemporalCore<ConsultationRequestTyp
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationRequestTypeId;
     @Column(nullable = false)
+    private String standardisedCode;
     private String name;
     /**
      * Minimal constructor to create ConsultRequestType and add name for it. As there's only one field for now, it's
      * also the only constructor required for now.
-     * @param name          Consultancy type as provided in ConsultRequest message
-     * @param validFrom     From which point in time the ConsultRequestType is valid
-     * @param storedFrom    Time point at which ConsultRequestType was stored first
+     * @param standardisedCode  Consultancy type as provided in ConsultRequest message
+     * @param validFrom         From which point in time the ConsultRequestType is valid
+     * @param storedFrom        Time point at which ConsultRequestType was stored first
      */
-    public ConsultationRequestType(String name, Instant validFrom, Instant storedFrom) {
-        this.name = name;
+    public ConsultationRequestType(String standardisedCode, Instant validFrom, Instant storedFrom) {
+        this.standardisedCode = standardisedCode;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
@@ -47,6 +48,7 @@ public class ConsultationRequestType extends TemporalCore<ConsultationRequestTyp
      */
     public ConsultationRequestType(ConsultationRequestType other) {
         super(other);
+        this.standardisedCode = other.standardisedCode;
         this.name = other.name;
     }
 
