@@ -109,8 +109,11 @@ public abstract class LabResultBuilder {
         } catch (IllegalArgumentException e) {
             logger.warn("Could not parse the ResultStatus", e);
         }
-
-        setReferenceRange(obx);
+        try {
+            setReferenceRange(obx);
+        } catch (NumberFormatException e) {
+            logger.error("Could not parse reference range", e);
+        }
         setAbnormalFlag(obx);
     }
 

@@ -2,7 +2,9 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+
 /**
+ * Track the progress of parsing of messages from the IDS.
  */
 public interface IdsProgressRepository extends CrudRepository<IdsProgress, Integer> {
     /**

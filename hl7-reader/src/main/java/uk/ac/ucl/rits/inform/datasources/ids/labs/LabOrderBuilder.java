@@ -2,10 +2,13 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.ExtraComponents;
+import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
+import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
@@ -13,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -23,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -80,8 +84,9 @@ abstract class LabOrderBuilder {
      * @param orc the ORC segment
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
+     * @throws Hl7InconsistencyException if HL7 doesn't meet expected structure
      */
-    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException {
+    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
@@ -123,7 +128,7 @@ abstract class LabOrderBuilder {
      * Each lab result that uses this appears to need a separate implementation of this.
      * @param orc ORC segment
      */
-    protected abstract void setLabSpecimenNumber(ORC orc);
+    protected abstract void setLabSpecimenNumber(ORC orc) throws Hl7InconsistencyException;
 
 
     void setBatteryCodingSystem() {
@@ -133,8 +138,23 @@ abstract class LabOrderBuilder {
     private void setSpecimenTypeAndCollectionMethod(OBR obr) {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
         msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
-        String collectionMethod = obr.getObr15_SpecimenSource().getSps3_SpecimenCollectionMethod().getValueOrEmpty();
-        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethod));
+        setCollectionMethods(obr.getObr15_SpecimenSource().getSps3_SpecimenCollectionMethod());
+    }
+
+    /**
+     * Set collection method, adding comma separated extra components if they exist.
+     * @param collectionField collection method field
+     */
+    private void setCollectionMethods(TX collectionField) {
+        StringJoiner collectionMethods = new StringJoiner(", ");
+        collectionMethods.add(collectionField.getValueOrEmpty());
+
+        ExtraComponents extraComponents = collectionField.getExtraComponents();
+        for (int i = 0; i < collectionField.getExtraComponents().numComponents(); i++) {
+            Type extraComponent = extraComponents.getComponent(i).getData();
+            collectionMethods.add(extraComponent.toString());
+        }
+        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethods.toString()));
     }
 
     /**
@@ -215,19 +235,19 @@ abstract class LabOrderBuilder {
     }
 
 
-    protected void addMsgIfAllowedOcId(List<LabOrderMsg> orders) {
-        if (allowedOcIds.contains(msg.getOrderControlId())) {
+    protected void addMsgIfAllowedOcId(String idsUnid, List<LabOrderMsg> orders) {
+        if (msg.getOrderControlId() != null && allowedOcIds.contains(msg.getOrderControlId())) {
             orders.add(msg);
         } else {
-            logger.warn("Ignoring order control ID = '{}'", msg.getOrderControlId());
+            logger.warn("Ignoring unid {} because order control ID not allowed '{}'", idsUnid, msg.getOrderControlId());
         }
     }
 
     /**
      * Set questions from notes.
-     * @param notes notes for an order.
+     * @param notes             notes for an order.
      * @param questionSeparator to join the answer if it contains the question pattern
-     * @param questionPattern pattern between the question and answer
+     * @param questionPattern   pattern between the question and answer
      */
     protected void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
         for (NTE note : notes) {

@@ -6,13 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -365,5 +366,22 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         EmapOperationMessage messageFromHl7 = processSingleMessage("VitalSigns/MixedHL7Message.txt").get(0);
         AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/flowsheet_oru_r01.yaml");
         Assertions.assertEquals(expectedAdt, messageFromHl7);
+    }
+
+    @Test
+    public void testPatientInfectionCreatesAdt() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt").get(0);
+        AdtMessage expectedAdt = interchangeFactory.getAdtMessage("FromNonAdt/patient_infection_a05.yaml");
+        Assertions.assertEquals(expectedAdt, messageFromHl7);
+    }
+
+    @Test
+    public void testPatientInfection() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt")
+                .stream()
+                .filter(msg -> msg instanceof PatientInfection)
+                .findFirst().orElseThrow();
+        PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
+        Assertions.assertEquals(expected, messageFromHl7);
     }
 }

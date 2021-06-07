@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -121,6 +122,16 @@ class TestBankManagerParsing extends TestHl7MessageStream {
     void testCancelOrder() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_cancel");
         assertTrue(order.getEpicCareOrderNumber().isDelete());
+    }
+
+    /**
+     * HL7 message with no ORC ID should be skipped, so no order messages should be created.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOrderWithNoOrcId() throws Exception {
+        List<LabOrderMsg> order = labReader.getAllOrders(FILE_TEMPLATE, "oru_r01_no_orc");
+        assertTrue(order.isEmpty());
     }
 
 }

@@ -13,7 +13,7 @@ services:
       - ../config/emap-hl7processor-config-envs
     logging:
       driver: "json-file"
-    restart: on-failure
+    restart: "no"
     depends_on:
       # uses glowroot-central from Emap-Core, will need to run from Emap-Core/emap-live.sh
       - glowroot-central

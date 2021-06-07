@@ -14,7 +14,7 @@ import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -87,7 +87,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
         }
         List<LabOrderMsg> orders = new ArrayList<>(1);
         LabOrderBuilder labOrderBuilder = new BankManagerLabBuilder(idsUnid, msh, patientResults);
-        labOrderBuilder.addMsgIfAllowedOcId(orders);
+        labOrderBuilder.addMsgIfAllowedOcId(idsUnid, orders);
         return orders;
 
     }

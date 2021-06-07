@@ -19,9 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.EthnicGroup;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PV1Wrap;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.EthnicGroup;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PV1Wrap;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
@@ -204,18 +204,20 @@ public class AdtMessageFactory {
                 registerPatient.setPresentationDateTime(InterchangeValue.buildFromHl7(pv1Wrap.getAdmissionDateTime()));
                 msg = registerPatient;
                 break;
-            // We are receiving A05 and A14, A38 messages but not doing any scheduling yet
-            case "A05":
-            case "A14":
-            case "A38":
-                throw new Hl7MessageNotImplementedException(String.format("Scheduling ADT trigger event not implemented: %s", triggerEvent));
             case "A08":
             case "A28":
             case "A31":
                 msg = new UpdatePatientInfo();
                 break;
+            // We are receiving A05 and A14, A38 messages but are not implementing scheduling
+            case "A14":
+            case "A38":
+                throw new Hl7MessageNotImplementedException(String.format("Scheduling ADT trigger event not implemented: %s", triggerEvent));
             case "R01": // build implied adt from non-ADT HL7 messages
             case "O01":
+            case "A05":
+                // to implement patient infections, only parsing as a update patient info from message
+                // will need to parse the scheduling information when implemented
                 msg = new ImpliedAdtMessage();
                 break;
             case "A11":
