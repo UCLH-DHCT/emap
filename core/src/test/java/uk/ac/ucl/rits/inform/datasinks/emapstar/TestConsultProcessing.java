@@ -80,7 +80,14 @@ public class TestConsultProcessing extends MessageProcessingBase {
      */
     @Test
     void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException{
-        // processSingleMessage(minimalConsult);
+        processSingleMessage(minimalConsult);
+        processSingleMessage(minimalConsult);
+
+        List mrns = getAllMrns();
+        assertEquals(1, mrns.size());
+
+        List visits = getAllEntities(hospitalVisitRepository);
+        assertEquals(1, visits.size());
     }
 
     /**
@@ -90,7 +97,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * metadata hoovering) should be created
      */
     @Test
-    void testMinimalConsultTypeCreated() throws EmapOperationMessageProcessingException{
+    void testMinimalConsultTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
         ConsultationRequestType crType = consultRequestTypeRepo.findByStandardisedCode(
                 FRAILTY_CONSULTATION_TYPE).orElseThrow();
@@ -104,6 +111,11 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * When a consult message is processed
      * A new consult should be created (in addition to PK and FKs should store internalConsultId, requestedDateTime, storedFrom, validFrom)
      */
+    @Test
+    void testCreateNewConsult() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalConsult);
+
+    }
 
     /**
      * Given that no questions and consult questions exist in the database
