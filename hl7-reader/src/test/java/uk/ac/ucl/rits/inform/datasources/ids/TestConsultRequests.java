@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test EPIC Patient Consult Requests parsing
@@ -99,12 +101,30 @@ class TestConsultRequests extends TestHl7MessageStream {
         assertEquals("Baby > 24 hours age\nMaternal procedure for removal of placenta\nMilk supply issues", questions.get("Reason for Consult:"));
     }
 
+    /**
+     * Once questions are encountered, a NTE without a question part should be joined to the previous question.
+     * e.g.
+     *
+     * NTE|2||Did you contact the team?->No
+     * NTE|3||*** attempted 3x
+     *
+     * should become Did you contact the team?->No\n*** attempted 3x
+     * @throws Exception shouldn't happen
+     */
     @Test
     void testMultiLineAnswerIsJoined() throws Exception {
         ConsultRequest consult = getPatientConsult("multiline_answer");
         Map<String, String> questions = consult.getQuestions();
         assertEquals(3, questions.size());
         assertEquals("No\n*** attempted 3x", questions.get("Did you contact the team?"));
+    }
+
+    /**
+     * There shouldn't be multiple consult requests in a single message.
+     */
+    @Test
+    void testMultipleRequestInMessageThrows() {
+        assertThrows(Hl7InconsistencyException.class, () -> getPatientConsult("multiple_requests"));
     }
 
 
