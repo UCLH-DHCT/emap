@@ -59,7 +59,7 @@ public class OrderAndResultService {
             case BLOOD_PRODUCTS:
                 throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
             case CONSULT_ORDER:
-                return consultFactory.makeConsult();
+                return Collections.singleton(consultFactory.makeConsult(sourceId, msg));
             default:
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);
         }

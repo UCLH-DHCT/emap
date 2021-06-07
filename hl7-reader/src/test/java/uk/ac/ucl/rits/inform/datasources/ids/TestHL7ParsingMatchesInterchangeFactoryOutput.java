@@ -163,8 +163,10 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testMinimalConsult() throws Exception {
-        ConsultRequest expected = interchangeFactory.getConsult("closed_at_discharge.yaml");
-        assertTrue(expected.isClosedDueToDischarge());
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("ConsultRequest/minimal.txt");
+        ConsultRequest expected = interchangeFactory.getConsult("minimal.yaml");
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(expected, messagesFromHl7Message.get(0));
     }
 
     @Test
