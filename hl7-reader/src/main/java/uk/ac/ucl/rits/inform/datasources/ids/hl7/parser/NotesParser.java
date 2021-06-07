@@ -60,16 +60,32 @@ public class NotesParser {
 
 
     private void buildQuestionsAndComments() {
+        boolean noPreviousQuestions = true;
+        StringJoiner commentJoiner = new StringJoiner("\n");
+
         for (NTE note : notes) {
-            StringJoiner commentJoiner = new StringJoiner("\n");
-            addSubCommentsFromNote(commentJoiner, note);
-            String[] parts = questionPattern.split(commentJoiner.toString().strip());
-            if (parts.length > 1) {
-                String question = parts[0];
-                // allow for separator to be in the answer
-                String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
-                questions.put(question, answer);
+            StringJoiner questionJoiner = new StringJoiner("\n");
+            addSubCommentsFromNote(questionJoiner, note);
+            String noteComments = questionJoiner.toString().strip();
+
+            boolean currentIsNotAQuestion = !questionPattern.matcher(noteComments).find();
+            if (noPreviousQuestions && currentIsNotAQuestion) {
+                commentJoiner.add(noteComments);
+            } else {
+                noPreviousQuestions = false;
+                addQuestionAndAnswer(noteComments);
             }
+            comments = commentJoiner.toString().strip();
+        }
+    }
+
+    private void addQuestionAndAnswer(String joinedComments) {
+        String[] parts = questionPattern.split(joinedComments);
+        if (parts.length > 1) {
+            String question = parts[0];
+            // allow for separator to be in the answer
+            String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
+            questions.put(question, answer);
         }
     }
 

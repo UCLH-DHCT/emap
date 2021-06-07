@@ -5,13 +5,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test EPIC Patient Consult Requests parsing
@@ -73,6 +73,14 @@ class TestConsultRequests extends TestHl7MessageStream {
         Map<String, String> questions = consult.getQuestions();
         assertEquals(3, questions.size());
         assertEquals("frail, delirium, ? cognitive decline", questions.get("Reason for Consult?"));
+    }
+
+    @Test
+    void testNotesAndQuestionsAreParsed() throws Exception {
+        ConsultRequest consult = getPatientConsult("notes");
+        InterchangeValue<String> expectedNotes = InterchangeValue.buildFromHl7("Admitted with delirium vs cognitive decline\nLives alone");
+        assertEquals(expectedNotes, consult.getNotes());
+        assertEquals(3, consult.getQuestions().size());
     }
 
 
