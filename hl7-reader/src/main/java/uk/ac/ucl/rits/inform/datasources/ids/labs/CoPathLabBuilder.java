@@ -154,12 +154,7 @@ public final class CoPathLabBuilder extends LabOrderBuilder {
     public static List<LabOrderMsg> build(String idsUnid, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException {
         List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
-        MSH msh = ormO01.getMSH();
-        ORM_O01_PATIENT patient = ormO01.getPATIENT();
-        PID pid = patient.getPID();
-        PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
-        PatientInfoHl7 patientInfo = new PatientInfoHl7(msh, pid, pv1);
-
+        PatientInfoHl7 patientInfo = new PatientInfoHl7(ormO01);
 
         List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());
         int msgSuffix = 0;

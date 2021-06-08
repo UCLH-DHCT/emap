@@ -20,6 +20,9 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Parses Consult Requests to interchange messages.
+ */
 @Component
 public class ConsultFactory {
     private static final String QUESTION_SEPARATOR = "->";
@@ -27,11 +30,18 @@ public class ConsultFactory {
     private static final String CANCELLATION_OCID = "OC";
     private static final String AUTOMATED_FROM_DISCHARGE = "DISCHAUTO";
 
-    public ConsultRequest makeConsult(String sourceId, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
+    /**
+     * @param sourceId source Id from sending application
+     * @param ormO01   ORM O01 message
+     * @return consult request
+     * @throws HL7Exception              if HAPI does
+     * @throws Hl7InconsistencyException if there isn't exactly one consult request in the message
+     */
+    ConsultRequest makeConsult(String sourceId, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
         if (ormO01.getORDERReps() != 1) {
             throw new Hl7InconsistencyException("Consult request should always have one request");
         }
-        PatientInfoHl7 patientInfo = buildPatientInfo(ormO01);
+        PatientInfoHl7 patientInfo = new PatientInfoHl7(ormO01);
         ConsultRequest consult = new ConsultRequest(
                 sourceId, patientInfo.getSendingApplication(), patientInfo.getMrn(), patientInfo.getVisitNumber());
 
@@ -40,15 +50,6 @@ public class ConsultFactory {
         addRequestInformation(consult, order);
         addQuestionsAndComments(consult, order.getORDER_DETAIL().getNTEAll());
         return consult;
-    }
-
-
-    private PatientInfoHl7 buildPatientInfo(ORM_O01 ormO01) {
-        MSH msh = ormO01.getMSH();
-        ORM_O01_PATIENT patient = ormO01.getPATIENT();
-        PID pid = patient.getPID();
-        PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
-        return new PatientInfoHl7(msh, pid, pv1);
     }
 
     private void addRequestInformation(ConsultRequest consult, ORM_O01_ORDER order) throws HL7Exception {
