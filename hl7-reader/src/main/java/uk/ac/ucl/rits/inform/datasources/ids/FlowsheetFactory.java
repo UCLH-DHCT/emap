@@ -6,7 +6,6 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;

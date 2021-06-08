@@ -148,6 +148,7 @@ public class OrderAndResultService {
      * WinPath and CoPath sometimes have information in MSH, but not always - need to determine from OBR.
      * @param obr                OBR segment
      * @param sendingApplication sender application
+     * @param sendingFacility    sending facility
      * @return order coding system
      * @throws Hl7MessageIgnoredException if coding system cannot be parsed
      */

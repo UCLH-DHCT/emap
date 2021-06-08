@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
@@ -25,7 +24,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.StringJoiner;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
@@ -100,7 +98,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
      */
     @Override
     protected void setLabSpecimenNumber(ORC orc) {
-       return; // not used
+        return; // not used
     }
 
     private void setCustomOrderInformation(ORU_R01_ORDER_OBSERVATION obs, OBR obr) throws HL7Exception {

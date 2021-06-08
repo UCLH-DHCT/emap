@@ -4,7 +4,6 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.IS;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
@@ -18,8 +17,6 @@ import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;

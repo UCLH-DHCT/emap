@@ -5,7 +5,6 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.ExtraComponents;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.datatype.TX;
@@ -23,7 +22,6 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -84,7 +82,7 @@ abstract class LabOrderBuilder {
      * Extract the fields found in the ORC segment (some context from OBR required), of which there is one of each per object.
      * @param orc the ORC segment
      * @param obr the OBR segment
-     * @throws DataTypeException if HAPI does
+     * @throws DataTypeException         if HAPI does
      * @throws Hl7InconsistencyException if HL7 doesn't meet expected structure
      */
     void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException, Hl7InconsistencyException {
