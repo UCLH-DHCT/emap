@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -161,12 +162,22 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("DoubleA01WithA13/SecondA01");
     }
 
-    @Test
-    void testMinimalConsult() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("ConsultRequest/minimal.txt");
-        ConsultRequest expected = interchangeFactory.getConsult("minimal.yaml");
+    void checkConsultMatchesInterchange(String fileName) throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
+                String.format("ConsultRequest/%s.txt", fileName));
+        ConsultRequest expected = interchangeFactory.getConsult(String.format("%s.yaml", fileName));
         assertEquals(1, messagesFromHl7Message.size());
         assertEquals(expected, messagesFromHl7Message.get(0));
+    }
+
+    @Test
+    void testMinimalConsult() throws Exception {
+        checkConsultMatchesInterchange("minimal");
+    }
+
+    @Test
+    void testCancelledConsult() throws Exception {
+        checkConsultMatchesInterchange("cancelled");
     }
 
     @Test
