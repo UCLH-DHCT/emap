@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test EPIC Patient Consult Requests parsing
@@ -25,6 +26,7 @@ class TestConsultRequests extends TestHl7MessageStream {
     private static final String FILE_TEMPLATE = "ConsultRequest/%s.txt";
     private static final String MRN = "40800000";
     private static final Instant CHANGE_TIME = Instant.parse("2013-02-12T12:00:00Z");
+    private static final Instant CANCEL_TIME = Instant.parse("2013-02-12T14:00:00Z");
     private static final Instant REQUEST_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static final String EPIC = "EPIC";
     private static final String CONSULT_TYPE = "CON255";
@@ -127,5 +129,13 @@ class TestConsultRequests extends TestHl7MessageStream {
         assertThrows(Hl7InconsistencyException.class, () -> getPatientConsult("multiple_requests"));
     }
 
+
+    @Test
+    void testCancelledOrder() throws Exception {
+        ConsultRequest consult = getPatientConsult("cancelled");
+        assertEquals(REQUEST_TIME, consult.getRequestedDateTime());
+        assertEquals(CANCEL_TIME, consult.getStatusChangeTime());
+        assertTrue(consult.isCancelled());
+    }
 
 }

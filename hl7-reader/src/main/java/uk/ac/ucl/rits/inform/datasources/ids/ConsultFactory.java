@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 public class ConsultFactory {
     private static final String QUESTION_SEPARATOR = "->";
     private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
+    private static final String CANCELLATION_OCID = "OC";
 
     public ConsultRequest makeConsult(String sourceId, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
         if (ormO01.getORDERReps() != 1) {
@@ -36,9 +37,10 @@ public class ConsultFactory {
         ORM_O01_ORDER order = ormO01.getORDER();
         addRequestInformation(consult, order);
         addQuestionsAndComments(consult, order.getORDER_DETAIL().getNTEAll());
-
+        addCancellation(consult, order);
         return consult;
     }
+
 
     private PatientInfoHl7 buildPatientInfo(ORM_O01 ormO01) {
         MSH msh = ormO01.getMSH();
@@ -63,5 +65,13 @@ public class ConsultFactory {
         consult.setNotes(InterchangeValue.buildFromHl7(parser.getComments()));
     }
 
+    private void addCancellation(ConsultRequest consult, ORM_O01_ORDER order) {
+        if (isOrderCancelled(order)) {
+            consult.setCancelled(true);
+        }
+    }
 
+    private boolean isOrderCancelled(ORM_O01_ORDER order) {
+        return CANCELLATION_OCID.equals(order.getORC().getOrc1_OrderControl().getValue());
+    }
 }
