@@ -66,7 +66,7 @@ public class IdsConfiguration {
         IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
         if (startFromProgressAndProgressAfterStartDate(serviceStartDatetime, startFromLastId, idsProgress)) {
             logger.info("Using the datetime of the last-processed row in the IDS as the start datetime");
-            startDateTime = idsProgress.getLastProcessingDatetime();
+            startDateTime = idsProgress.getLastProcessedMessageDatetime();
         } else {
             logger.info("Using the service start datetime as the start datetime");
             startDateTime = serviceStartDatetime;
