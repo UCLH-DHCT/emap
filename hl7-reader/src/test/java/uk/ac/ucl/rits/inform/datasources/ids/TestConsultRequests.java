@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,6 +28,7 @@ class TestConsultRequests extends TestHl7MessageStream {
     private static final String MRN = "40800000";
     private static final Instant CHANGE_TIME = Instant.parse("2013-02-12T12:00:00Z");
     private static final Instant CANCEL_TIME = Instant.parse("2013-02-12T14:00:00Z");
+    private static final Instant CLOSED_TIME = Instant.parse("2013-02-14T09:00:00Z");
     private static final Instant REQUEST_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static final String EPIC = "EPIC";
     private static final String CONSULT_TYPE = "CON255";
@@ -130,12 +132,33 @@ class TestConsultRequests extends TestHl7MessageStream {
     }
 
 
+    /**
+     * Request has been cancelled by a user.
+     * Datetime information should be set as usual, message should be cancelled and not closed at discharge
+     * @throws Exception shouldn't happen
+     */
     @Test
     void testCancelledOrder() throws Exception {
         ConsultRequest consult = getPatientConsult("cancelled");
         assertEquals(REQUEST_TIME, consult.getRequestedDateTime());
         assertEquals(CANCEL_TIME, consult.getStatusChangeTime());
         assertTrue(consult.isCancelled());
+        assertFalse(consult.isClosedDueToDischarge());
+    }
+
+    /**
+     * Request automatically closed by DISCHAUTO.
+     * Datetime information should be set as usual, message should be closed at discharge, not cancelled.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testClosedAtDischarge() throws Exception {
+        ConsultRequest consult = getPatientConsult("closed_at_discharge");
+        assertEquals(REQUEST_TIME, consult.getRequestedDateTime());
+        assertEquals(CLOSED_TIME, consult.getStatusChangeTime());
+        assertFalse(consult.isCancelled());
+        assertTrue(consult.isClosedDueToDischarge());
+
     }
 
 }

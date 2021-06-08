@@ -171,8 +171,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
-    void testMinimalConsult() throws Exception {
-        checkConsultMatchesInterchange("minimal");
+    void testClosedAtDischarge() throws Exception {
+        checkConsultMatchesInterchange("closed_at_discharge");
     }
 
     @Test
@@ -181,11 +181,13 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    void testMinimalConsult() throws Exception {
+        checkConsultMatchesInterchange("minimal");
+    }
+
+    @Test
     void testNotesConsult() throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt("ConsultRequest/notes.txt");
-        ConsultRequest expected = interchangeFactory.getConsult("notes.yaml");
-        assertEquals(1, messagesFromHl7Message.size());
-        assertEquals(expected, messagesFromHl7Message.get(0));
+        checkConsultMatchesInterchange("notes");
     }
 
     @Test
