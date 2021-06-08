@@ -2,14 +2,10 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_ORDER;
-import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
-import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
-import ca.uhn.hl7v2.model.v26.segment.PID;
-import ca.uhn.hl7v2.model.v26.segment.PV1;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.NotesParser;

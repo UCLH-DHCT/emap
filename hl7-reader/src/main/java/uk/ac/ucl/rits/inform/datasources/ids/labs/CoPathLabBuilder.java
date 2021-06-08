@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_ORDER;
-import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORR_O02_ORDER;
 import ca.uhn.hl7v2.model.v26.group.ORR_O02_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
