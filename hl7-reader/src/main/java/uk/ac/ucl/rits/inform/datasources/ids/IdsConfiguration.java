@@ -40,14 +40,7 @@ public class IdsConfiguration {
             Environment environment,
             IdsProgressRepository idsProgressRepository) {
         this.endDatetime = endDatetime;
-        IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
-        if (startFromProgressAndProgressAfterStartDate(serviceStartDatetime, startFromLastId, idsProgress)) {
-            logger.info("Using the datetime of the last-processed row in the IDS as the start datetime");
-            startDateTime = idsProgress.getLastProcessingDatetime();
-        } else {
-            logger.info("Using the service start datetime as the start datetime");
-            startDateTime = serviceStartDatetime;
-        }
+        setStartDate(serviceStartDatetime, startFromLastId, idsProgressRepository);
         sessionFactory = makeSessionFactory(idsCfgXml, environment);
     }
 
@@ -63,6 +56,22 @@ public class IdsConfiguration {
         return sessionFactory;
     }
 
+    /**
+     * Set start date from service start or previous progress if it exists and configured to do so.
+     * @param serviceStartDatetime  the start date to use if no progress has been previously recorded in the DB
+     * @param startFromLastId       start processing from the previous progress if it exists
+     * @param idsProgressRepository autowired
+     */
+    private void setStartDate(Instant serviceStartDatetime, boolean startFromLastId, IdsProgressRepository idsProgressRepository) {
+        IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
+        if (startFromProgressAndProgressAfterStartDate(serviceStartDatetime, startFromLastId, idsProgress)) {
+            logger.info("Using the datetime of the last-processed row in the IDS as the start datetime");
+            startDateTime = idsProgress.getLastProcessingDatetime();
+        } else {
+            logger.info("Using the service start datetime as the start datetime");
+            startDateTime = serviceStartDatetime;
+        }
+    }
 
     private boolean startFromProgressAndProgressAfterStartDate(Instant serviceStartDatetime, boolean startFromLastId, IdsProgress idsProgress) {
         return startFromLastId && idsProgress != null && idsProgress.getLastProcessedMessageDatetime().isAfter(serviceStartDatetime);
