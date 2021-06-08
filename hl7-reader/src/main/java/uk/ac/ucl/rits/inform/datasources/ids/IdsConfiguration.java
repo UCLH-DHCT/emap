@@ -4,7 +4,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -14,6 +13,7 @@ import java.time.Instant;
 
 /**
  * Allows access to the IDS configuration for building session factory and start and end date.
+ * @author Stef Piatek
  */
 @Component
 public class IdsConfiguration {
@@ -25,18 +25,29 @@ public class IdsConfiguration {
     private SessionFactory sessionFactory;
 
     /**
-     * @param idsCfgXml     IDS config filename to use
-     * @param startDateTime the start date to use if no progress has been previously recorded in the DB
-     * @param endDatetime   the datetime to finish processing messages, regardless of previous progress
-     * @param environment   injected param
+     * @param idsCfgXml             IDS config filename to use
+     * @param serviceStartDatetime  the start date to use if no progress has been previously recorded in the DB
+     * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
+     * @param startFromLastId       start processing from the previous progress if it exists
+     * @param environment           autowired
+     * @param idsProgressRepository autowired
      */
     public IdsConfiguration(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
-            @Value("${ids.cfg.default-start-datetime}") Instant startDateTime,
+            @Value("${ids.cfg.default-start-datetime}") Instant serviceStartDatetime,
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
-            @Autowired Environment environment) {
-        this.startDateTime = startDateTime;
+            @Value("${ids.cfg.start-from-last-id}") boolean startFromLastId,
+            Environment environment,
+            IdsProgressRepository idsProgressRepository) {
         this.endDatetime = endDatetime;
+        IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
+        if (startFromProgressAndProgressAfterStartDate(serviceStartDatetime, startFromLastId, idsProgress)) {
+            logger.info("Using the datetime of the last-processed row in the IDS as the start datetime");
+            startDateTime = idsProgress.getLastProcessingDatetime();
+        } else {
+            logger.info("Using the service start datetime as the start datetime");
+            startDateTime = serviceStartDatetime;
+        }
         sessionFactory = makeSessionFactory(idsCfgXml, environment);
     }
 
@@ -50,6 +61,11 @@ public class IdsConfiguration {
 
     SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+
+
+    private boolean startFromProgressAndProgressAfterStartDate(Instant serviceStartDatetime, boolean startFromLastId, IdsProgress idsProgress) {
+        return startFromLastId && idsProgress != null && idsProgress.getLastProcessedMessageDatetime().isAfter(serviceStartDatetime);
     }
 
     /**
