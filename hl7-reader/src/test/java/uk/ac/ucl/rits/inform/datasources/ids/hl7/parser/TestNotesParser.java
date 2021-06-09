@@ -107,4 +107,15 @@ class TestNotesParser {
         NotesParser parser = new NotesParser(notes);
         assertEquals("Comment\nspans\nmultiple lines", parser.getComments());
     }
+
+    /**
+     * NoteParser initialised for parsing comments, sub-notes should be concatenated to form a single comment
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testSubCommentsParsed() throws Exception {
+        List<NTE> notes = getNotesFromFirstOruR01Result("oru_r01_sub_comments");
+        NotesParser parser = new NotesParser(notes);
+        assertEquals("Clinical Note1\nover 2 lines\nClinical Note2", parser.getComments());
+    }
 }
