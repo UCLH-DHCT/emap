@@ -72,7 +72,7 @@ class TestCoPathResults {
     }
 
     /**
-     * Results with message consonsistencies should be skipped.
+     * Results with message inconsistencies should be skipped.
      * @return stream of dynamic tests
      */
     @TestFactory
