@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.regex.Pattern;
 
 /**
