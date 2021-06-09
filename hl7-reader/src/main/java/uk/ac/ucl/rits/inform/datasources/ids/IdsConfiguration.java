@@ -28,8 +28,8 @@ public class IdsConfiguration {
     /**
      * @param idsCfgXml             IDS config filename to use
      * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
-     * @param environment           autowired
-     * @param idsProgressRepository autowired
+     * @param environment           environment bean to determine if we're running under a test profile
+     * @param idsProgressRepository IDS progress repository
      */
     public IdsConfiguration(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
