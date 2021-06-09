@@ -94,36 +94,6 @@ class TestConsultRequests extends TestHl7MessageStream {
     }
 
     /**
-     * The same question can be responded to many times, should join all of these together.
-     * @throws Exception shouldn't happen
-     */
-    @Test
-    void testDuplicateQuestionHasJoinedAnswers() throws Exception {
-        ConsultRequest consult = getPatientConsult("duplicate_question");
-        Map<String, String> questions = consult.getQuestions();
-        assertEquals(2, questions.size());
-        assertEquals("Baby > 24 hours age\nMaternal procedure for removal of placenta\nMilk supply issues", questions.get("Reason for Consult:"));
-    }
-
-    /**
-     * Once questions are encountered, a NTE without a question part should be joined to the previous question.
-     * e.g.
-     *
-     * NTE|2||Did you contact the team?->No
-     * NTE|3||*** attempted 3x
-     *
-     * should become Did you contact the team?->No\n*** attempted 3x
-     * @throws Exception shouldn't happen
-     */
-    @Test
-    void testMultiLineAnswerIsJoined() throws Exception {
-        ConsultRequest consult = getPatientConsult("multiline_answer");
-        Map<String, String> questions = consult.getQuestions();
-        assertEquals(3, questions.size());
-        assertEquals("No\n*** attempted 3x", questions.get("Did you contact the team?"));
-    }
-
-    /**
      * There shouldn't be multiple consult requests in a single message.
      */
     @Test
