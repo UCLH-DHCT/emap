@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -57,7 +58,7 @@ public class ConsultFactory {
         consult.setConsultationType(obr.getObr44_ProcedureCode().encode());
     }
 
-    private void addQuestionsAndComments(ConsultRequest consult, List<NTE> notes) {
+    private void addQuestionsAndComments(ConsultRequest consult, Collection<NTE> notes) {
         NotesParser parser = new NotesParser(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
         consult.setQuestions(parser.getQuestions());
         consult.setNotes(InterchangeValue.buildFromHl7(parser.getComments()));

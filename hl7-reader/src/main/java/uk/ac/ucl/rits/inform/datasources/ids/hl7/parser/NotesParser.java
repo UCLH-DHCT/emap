@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
@@ -16,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class NotesParser {
 
-    private final Iterable<NTE> notes;
+    private final List<NTE> notes;
     private String questionSeparator;
     private Pattern questionPattern;
     /**
@@ -36,17 +37,17 @@ public class NotesParser {
      * @param questionSeparator question separator as string
      * @param questionPattern   question separator regex
      */
-    public NotesParser(Iterable<NTE> notes, String questionSeparator, Pattern questionPattern) {
-        this.notes = notes;
+    public NotesParser(Collection<NTE> notes, String questionSeparator, Pattern questionPattern) {
+        this.notes = List.copyOf(notes);
         this.questionSeparator = questionSeparator;
         this.questionPattern = questionPattern;
-        int numberOfNotes = ((Collection<NTE>) notes).size();
+        int numberOfNotes = notes.size();
         questions = new HashMap<>(numberOfNotes);
         buildQuestionsAndComments();
     }
 
-    public NotesParser(Iterable<NTE> notes) {
-        this.notes = notes;
+    public NotesParser(Collection<NTE> notes) {
+        this.notes = List.copyOf(notes);
         buildComments();
     }
 

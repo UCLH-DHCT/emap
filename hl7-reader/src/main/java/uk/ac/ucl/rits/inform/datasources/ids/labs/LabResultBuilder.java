@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -41,9 +42,9 @@ public abstract class LabResultBuilder {
      * @param notes      Notes for OBX
      * @param normalFlag optional flag to ignore as normal
      */
-    LabResultBuilder(OBX obx, List<NTE> notes, @Nullable String normalFlag) {
+    LabResultBuilder(OBX obx, Collection<NTE> notes, @Nullable String normalFlag) {
         this.obx = obx;
-        this.notes = notes;
+        this.notes = List.copyOf(notes);
         this.normalFlag = normalFlag;
     }
 

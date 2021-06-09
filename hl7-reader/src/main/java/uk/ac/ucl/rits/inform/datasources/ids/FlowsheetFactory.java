@@ -213,10 +213,10 @@ public class FlowsheetFactory {
 
     /**
      * Build comments from list of NTEs, trimmed and lines separated by newlines.
-     * @param notes List of NTE objects
+     * @param notes NTE objects
      * @return String of trimmed comment lines, joined by newlines
      */
-    private String getComments(Iterable<NTE> notes) {
+    private String getComments(Collection<NTE> notes) {
         NotesParser parser = new NotesParser(notes);
         return parser.getComments();
     }
