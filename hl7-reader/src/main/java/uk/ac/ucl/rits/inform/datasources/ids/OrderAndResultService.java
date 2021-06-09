@@ -61,6 +61,7 @@ public class OrderAndResultService {
             case CONSULT_ORDER:
                 return Collections.singleton(consultFactory.makeConsult(sourceId, msg));
             default:
+                // Lab Funnel will throw message ignored exception if not a parsed type (e.g. flowsheet)
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);
         }
     }
@@ -80,6 +81,7 @@ public class OrderAndResultService {
             throws Hl7MessageIgnoredException, Hl7InconsistencyException, HL7Exception {
         OBR obr = msg.getRESPONSE().getORDER().getOBR();
         OrderCodingSystem codingSystem = determineCodingSystem(obr);
+        // Lab Funnel will throw message ignored exception if not a parsed type
         return LabFunnel.buildMessages(sourceId, msg, codingSystem);
     }
 
@@ -110,6 +112,7 @@ public class OrderAndResultService {
             case FLOWSHEET:
                 return flowsheetFactory.getMessages(sourceId, msg);
             default:
+                // Lab Funnel will throw message ignored exception if not a parsed type
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);
         }
     }
