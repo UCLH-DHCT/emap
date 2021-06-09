@@ -80,16 +80,17 @@ public class NotesParser {
     }
 
     private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) {
+        String question = previousQuestion;
         String[] parts = questionPattern.split(joinedComments);
         if (parts.length == 1) {
-            concatenateAnswerAndSaveToQuestions(previousQuestion, joinedComments);
+            concatenateAnswerAndSaveToQuestions(question, joinedComments);
         } else {
-            previousQuestion = parts[0];
+            question = parts[0];
             // allow for separator to be in the answer
             String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
-            concatenateAnswerAndSaveToQuestions(previousQuestion, answer);
+            concatenateAnswerAndSaveToQuestions(question, answer);
         }
-        return previousQuestion;
+        return question;
     }
 
     private void concatenateAnswerAndSaveToQuestions(String question, String answer) {
