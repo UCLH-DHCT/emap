@@ -64,7 +64,7 @@ class TestNotesParser {
         Map<String, String> questions = parser.getQuestions();
 
         assertEquals(3, questions.size());
-        assertEquals("NTE|2||Did you contact the team?->No\n*** attempted 3x", questions.get("Did you contact the team?"));
+        assertEquals("No\n*** attempted 3x", questions.get("Did you contact the team?"));
     }
 
     /**
