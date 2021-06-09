@@ -19,58 +19,60 @@ import java.time.Instant;
 public class IdsConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(IdsConfiguration.class);
 
-
-    private Instant startDateTime;
+    private Instant serviceStartDatetime;
     private Instant endDatetime;
+    private boolean startFromLastId;
+    private IdsProgressRepository idsProgressRepository;
     private SessionFactory sessionFactory;
 
     /**
      * @param idsCfgXml             IDS config filename to use
-     * @param serviceStartDatetime  the start date to use if no progress has been previously recorded in the DB
      * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
-     * @param startFromLastId       start processing from the previous progress if it exists
      * @param environment           autowired
      * @param idsProgressRepository autowired
      */
     public IdsConfiguration(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
-            @Value("${ids.cfg.default-start-datetime}") Instant serviceStartDatetime,
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
-            @Value("${ids.cfg.start-from-last-id}") boolean startFromLastId,
             Environment environment,
             IdsProgressRepository idsProgressRepository) {
         this.endDatetime = endDatetime;
-        setStartDate(serviceStartDatetime, startFromLastId, idsProgressRepository);
+        this.idsProgressRepository = idsProgressRepository;
         sessionFactory = makeSessionFactory(idsCfgXml, environment);
     }
 
-    public Instant getStartDateTime() {
-        return startDateTime;
-    }
-
-    public Instant getEndDatetime() {
-        return endDatetime;
-    }
-
-    SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
-
     /**
-     * Set start date from service start or previous progress if it exists and configured to do so.
-     * @param serviceStartDatetime  the start date to use if no progress has been previously recorded in the DB
-     * @param startFromLastId       start processing from the previous progress if it exists
-     * @param idsProgressRepository autowired
+     * Get start date from service start or previous progress if it exists and configured to do so.
+     * @return start datetime
      */
-    private void setStartDate(Instant serviceStartDatetime, boolean startFromLastId, IdsProgressRepository idsProgressRepository) {
+    Instant getStartDateTime() {
         IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
         if (startFromProgressAndProgressAfterStartDate(serviceStartDatetime, startFromLastId, idsProgress)) {
             logger.info("Using the datetime of the last-processed row in the IDS as the start datetime");
-            startDateTime = idsProgress.getLastProcessedMessageDatetime();
+            return idsProgress.getLastProcessedMessageDatetime();
         } else {
             logger.info("Using the service start datetime as the start datetime");
-            startDateTime = serviceStartDatetime;
+            return serviceStartDatetime;
         }
+    }
+
+    Instant getEndDatetime() {
+        return endDatetime;
+    }
+
+    @Value("${ids.cfg.default-start-datetime}")
+    void setServiceStartDatetime(Instant serviceStartDatetime) {
+        this.serviceStartDatetime = serviceStartDatetime;
+    }
+
+    @Value("${ids.cfg.start-from-last-id}")
+    void setStartFromLastId(boolean startFromLastId) {
+        this.startFromLastId = startFromLastId;
+    }
+
+
+    SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 
     private boolean startFromProgressAndProgressAfterStartDate(Instant serviceStartDatetime, boolean startFromLastId, IdsProgress idsProgress) {
