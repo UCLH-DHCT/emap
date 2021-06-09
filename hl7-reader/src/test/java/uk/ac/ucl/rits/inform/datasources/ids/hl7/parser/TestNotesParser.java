@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasources.ids.hl7.parser;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
+import ca.uhn.hl7v2.model.v26.message.ORU_R01;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,12 @@ class TestNotesParser {
         String hl7 = HL7Utils.readHl7FromResource(String.format(PATH_TEMPLATE, resourceFileName));
         ORM_O01 hl7Msg = (ORM_O01) HL7Utils.parseHl7String(hl7);
         return hl7Msg.getORDER().getORDER_DETAIL().getNTEAll();
+    }
+
+    List<NTE> getNotesFromFirstOruR01Result(String resourceFileName) throws HL7Exception, IOException {
+        String hl7 = HL7Utils.readHl7FromResource(String.format(PATH_TEMPLATE, resourceFileName));
+        ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
+        return hl7Msg.getPATIENT_RESULT().getORDER_OBSERVATION().getNTEAll();
     }
 
     /**
@@ -77,5 +84,27 @@ class TestNotesParser {
 
         assertEquals(2, questions.size());
         assertEquals("Baby > 24 hours age\nMaternal procedure for removal of placenta\nMilk supply issues", questions.get("Reason for Consult:"));
+    }
+
+    /**
+     * When NoteParser is created for only parsing comments, should parse single note.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOnlyCommentsParsed() throws Exception {
+        List<NTE> notes = getNotesFromFirstOruR01Result("oru_r01_comment");
+        NotesParser parser = new NotesParser(notes);
+        assertEquals("Probable prophylactic anti-D known previously but not detected in this sample.", parser.getComments());
+    }
+
+    /**
+     * NoteParser initialised for parsing comments, notes should be concatenated to form a single comment
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOnlyMultiLineCommentsParsed() throws Exception {
+        List<NTE> notes = getNotesFromFirstOruR01Result("oru_r01_multiline_comment");
+        NotesParser parser = new NotesParser(notes);
+        assertEquals("Comment\nspans\nmultiple lines", parser.getComments());
     }
 }
