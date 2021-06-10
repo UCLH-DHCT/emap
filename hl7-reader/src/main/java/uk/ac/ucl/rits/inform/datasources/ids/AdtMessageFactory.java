@@ -42,6 +42,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
+import java.time.Instant;
+
 /**
  * Build an AdtMessage Emap interchange object from an HL7 message.
  * @author Jeremy Stein & Stef Piatek
@@ -110,7 +112,8 @@ public class AdtMessageFactory {
             msg.setEthnicGroup(InterchangeValue.buildFromHl7(ethnicity));
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
-            msg.setPatientBirthDate(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
+//            msg.setPatientBirthDate(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
+            msg.setPatientBirthDateTime(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDateTime()));
 
             // Despite what the HL7 spec hints at, this death information can occur
             // in any message, not just A03
