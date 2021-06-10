@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * An interchange message describing patient movements or info. Closely corresponds
@@ -29,7 +30,8 @@ public abstract class AdtMessage extends EmapOperationMessage {
     private InterchangeValue<String> ethnicGroup = InterchangeValue.unknown();
     private InterchangeValue<String> fullLocationString = InterchangeValue.unknown();
     private InterchangeValue<String> previousLocationString = InterchangeValue.unknown();
-    private InterchangeValue<Instant> patientBirthDate = InterchangeValue.unknown();
+    private InterchangeValue<LocalDate> patientBirthDate = InterchangeValue.unknown();
+    private InterchangeValue<Instant> patientBirthDateTime = InterchangeValue.unknown();
     private InterchangeValue<PatientClass> patientClass = InterchangeValue.unknown();
     private InterchangeValue<Instant> patientDeathDateTime = InterchangeValue.unknown();
     private InterchangeValue<Boolean> patientIsAlive = InterchangeValue.unknown();
