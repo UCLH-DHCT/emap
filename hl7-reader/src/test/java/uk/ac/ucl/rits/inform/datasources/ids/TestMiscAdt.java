@@ -74,7 +74,7 @@ public class TestMiscAdt extends TestHl7MessageStream {
     void testBSTBirthExplicitMidnight() throws Exception {
         AdtMessage msg = processSingleAdtMessage("Adt/birth_datetime_midnight_bst.txt");
         assertEquals(InterchangeValue.buildFromHl7(BST_BIRTH_DATE), msg.getPatientBirthDate());
-        assertEquals(InterchangeValue.buildFromHl7(getStartOfDay(BST_BIRTH_DATETIME).minus(1, ChronoUnit.HOURS)), msg.getPatientBirthDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(Instant.from(BST_BIRTH_DATE)), msg.getPatientBirthDateTime());
     }
 
 
