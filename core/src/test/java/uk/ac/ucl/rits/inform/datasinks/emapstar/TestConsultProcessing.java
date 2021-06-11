@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestReposit
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -43,7 +44,9 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private ConsultRequest closedAtDischargeConsult;
     private ConsultRequest notesConsult;
     private static String FRAILTY_MRN = "40800000";
-    private static Instant FRAILTY_ADD_TIME = Instant.parse("2013-02-12T11:55:00Z");
+    private static String FRAILTY_VISIT_ID = "123412341234";
+    private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
+    private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
 
     @BeforeEach
@@ -81,12 +84,16 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException{
         processSingleMessage(minimalConsult);
-        processSingleMessage(minimalConsult);
 
         List mrns = getAllMrns();
         assertEquals(1, mrns.size());
-
         List visits = getAllEntities(hospitalVisitRepository);
+        assertEquals(1, visits.size());
+
+        processSingleMessage(minimalConsult);
+        mrns = getAllMrns();
+        assertEquals(1, mrns.size());
+        visits = getAllEntities(hospitalVisitRepository);
         assertEquals(1, visits.size());
     }
 
@@ -102,7 +109,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         ConsultationRequestType crType = consultRequestTypeRepo.findByStandardisedCode(
                 FRAILTY_CONSULTATION_TYPE).orElseThrow();
 
-        assertEquals(FRAILTY_ADD_TIME, crType.getValidFrom());
+        assertEquals(FRAILTY_REQ_TIME, crType.getValidFrom());
         assertNull(crType.getName());
     }
 
@@ -115,6 +122,16 @@ public class TestConsultProcessing extends MessageProcessingBase {
     void testCreateNewConsult() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
 
+        ConsultationRequest cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertNull(cRequest.getComments());
+        assertNotNull(cRequest.getConsultationRequestId());
+        assertNotNull(cRequest.getValidFrom());
+        assertNotNull(cRequest.getStoredFrom());
+        assertEquals(FRAILTY_REQ_TIME, cRequest.getRequestedDateTime());
+        assertEquals(FRAILTY_STAT_CHANGE_TIME, cRequest.getStatusChangeTime());
     }
 
     /**
@@ -122,29 +139,62 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * When a consult message is processed with 3 questions
      * Then 3 questions should be created and linked to 3 consult questions for the answers to the questions
      */
+    @Test
+    void testCreateConsultWithQuestions() {
+
+    }
+
 
     /**
      * Given that no consults exist in the database
      * When a consult message is processed with notes
      * Then a new consult should be created with the notes being saved in the comments
      */
+    @Test
+    void testCreateConsultWithNotes() throws EmapOperationMessageProcessingException {
+        processSingleMessage(notesConsult);
+        ConsultationRequest cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertNotNull(cRequest.getComments());
+    }
 
     /**
      * Given that the minimal consult has already been processed
      * When a later consult message with cancel=true with the same epicConsultId and consultationType is processed
      * Then consult should have a cancelled state or similar set to true and the storedFrom and validFrom fields update
      */
+    @Test
+    void testLaterMessageCancelRequest() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalConsult);
+
+        processSingleMessage(cancelledConsult);
+    }
 
     /**
      * Given that the minimal consult has already been processed
      * When a later consult message with closedDueToDischarge=true with the same epicConsultId and consultationType is processed
      * The consult should have a closedOnDischarge state or similar set to true and the storedFrom and validFrom fields update
      */
+    @Test
+    void testLaterMessageClosedDueToDischarge() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalConsult);
+        ConsultationRequest cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        System.out.println(cRequest);
+        processSingleMessage(closedAtDischargeConsult);
+    }
 
     /**
      * Given that a minimal consult has already been processed
      * When an earlier consult message with different data is processed
      * The consult entity in question should not be updated
      */
+    @Test
+    void testLaterMessageNoUpdate() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalConsult);
+    }
 
 }

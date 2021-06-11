@@ -123,6 +123,8 @@ public class ConsultationRequestController {
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultRequest) {
         ConsultationRequest cRequest = consultRequest.getEntity();
+
+
     }
 
     /**
@@ -140,6 +142,20 @@ public class ConsultationRequestController {
 
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
                 msg, mrn, visit, consultationRequestType, storedFrom);
+
+        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getRequestedDateTime(),
+                consultationRequest.getEntity().getRequestedDateTime(),
+                consultationRequest.getEntity()::setRequestedDateTime,
+                msg.getRequestedDateTime(), storedFrom);
+        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getStatusChangeTime(),
+                consultationRequest.getEntity().getStatusChangeTime(),
+                consultationRequest.getEntity()::setStatusChangeTime,
+                msg.getStatusChangeTime(), storedFrom);
+        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getNotes(),
+                consultationRequest.getEntity().getComments(),
+                consultationRequest.getEntity()::setComments,
+                msg.getRequestedDateTime(), storedFrom);
 
         if (messageShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);

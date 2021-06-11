@@ -24,4 +24,15 @@ public interface ConsultationRequestRepository extends CrudRepository<Consultati
     Optional<ConsultationRequest> findByMrnIdAndHospitalVisitIdAndConsultationRequestTypeId(
             Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType
     );
+
+    /**
+     * Find consultation request by patient, hospital visit, consultation type and request date.
+     * @param mrn                       Patient identifier
+     * @param visit                     Hospital visit
+     * @param consultationRequestType   Consultancy type
+     * @return ConsultationRequest that relates to identifiers
+     */
+    Optional<ConsultationRequest> findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+            String mrn, String visit, String consultationRequestType
+    );
 }
