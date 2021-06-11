@@ -42,8 +42,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
-import java.time.Instant;
-
 /**
  * Build an AdtMessage Emap interchange object from an HL7 message.
  * @author Jeremy Stein & Stef Piatek
