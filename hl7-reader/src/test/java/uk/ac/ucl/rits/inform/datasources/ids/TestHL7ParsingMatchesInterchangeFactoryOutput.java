@@ -368,10 +368,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     public void testPatientInfection() throws Exception {
-        List<EmapOperationMessage> msgs = processSingleMessage("LabOrders/PatientData.txt")
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt")
                 .stream()
                 .filter(msg -> msg instanceof PatientInfection)
-                .collect(Collectors.toList());
+                .findFirst().orElseThrow();
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
+        Assertions.assertEquals(expected, messageFromHl7);
     }
 }
