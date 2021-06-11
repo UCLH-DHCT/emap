@@ -104,15 +104,13 @@ public class InterchangeMessageFactory {
     /**
      * Build location metadata expected data from specified file.
      * @param fileName the file from which to build the data
-     * @return the data as expected Interchange messages
+     * @return the data as expected Interchange message
      * @throws IOException if reading failed
      */
-    public List<LocationMetadata> getLocationMetadata(final String fileName) throws IOException {
-        List<LocationMetadata> locationMetadata = new ArrayList<>();
+    public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
         String resourcePath = "/LocationMetadata/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        locationMetadata = mapper.readValue(inputStream, new TypeReference<List<LocationMetadata>>() {});
-        return locationMetadata;
+        return mapper.readValue(inputStream, new TypeReference<LocationMetadata>() {});
     }
 
     /**
