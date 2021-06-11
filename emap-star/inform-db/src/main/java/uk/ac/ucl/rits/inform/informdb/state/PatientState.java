@@ -39,7 +39,7 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
     private PatientStateType patientStateTypeId;
 
     @ManyToOne
-    @JoinColumn(name = "mnrId", nullable = false)
+    @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
     @ManyToOne
