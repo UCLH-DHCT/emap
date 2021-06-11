@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,11 +25,13 @@ public class TestMiscAdt extends TestHl7MessageStream {
 
     private static final LocalDate BST_BIRTH_DATE = LocalDate.parse("1925-07-04");
     private static final LocalDate GMT_BIRTH_DATE = LocalDate.parse("1980-01-01");
-    private static final Duration PARSED_TIME = Duration.parse("PT03H44M01S");
+    private static final Instant BST_BIRTH_DATETIME = Instant.parse("1925-07-04T03:44:01Z");
+    private static final Instant GMT_BIRTH_DATETIME = Instant.parse("1980-01-01T03:44:01Z");
 
 
-    private Instant addTimeToDate(LocalDate date) {
-        return date.atStartOfDay(ZoneId.systemDefault()).toInstant().plus(PARSED_TIME);
+
+    private Instant getStartOfDay(Instant datetime) {
+        return datetime.truncatedTo(ChronoUnit.DAYS);
     }
 
     /**
@@ -62,9 +65,11 @@ public class TestMiscAdt extends TestHl7MessageStream {
     void testBSTBirthDate() throws Exception {
         AdtMessage msg = processSingleAdtMessage("Adt/birth_date_bst.txt");
         assertEquals(InterchangeValue.buildFromHl7(BST_BIRTH_DATE), msg.getPatientBirthDate());
-        assertEquals(InterchangeValue.buildFromHl7(addTimeToDate(BST_BIRTH_DATE)), msg.getPatientBirthDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(getStartOfDay(BST_BIRTH_DATETIME)), msg.getPatientBirthDateTime());
 
     }
+
+
 
     /**
      * When a birth datetime has time information, should be converted to UTC.
@@ -74,7 +79,7 @@ public class TestMiscAdt extends TestHl7MessageStream {
     void testBSTBirthDateTime() throws Exception {
         AdtMessage msg = processSingleAdtMessage("Adt/birth_datetime_bst.txt");
         assertEquals(InterchangeValue.buildFromHl7(BST_BIRTH_DATE), msg.getPatientBirthDate());
-        assertEquals(InterchangeValue.buildFromHl7(addTimeToDate(BST_BIRTH_DATE)), msg.getPatientBirthDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(BST_BIRTH_DATETIME), msg.getPatientBirthDateTime());
     }
 
     /**
@@ -85,7 +90,7 @@ public class TestMiscAdt extends TestHl7MessageStream {
     void testGMTBirthDate() throws Exception {
         AdtMessage msg = processSingleAdtMessage("Adt/birth_date_gmt.txt");
         assertEquals(InterchangeValue.buildFromHl7(GMT_BIRTH_DATE), msg.getPatientBirthDate());
-        assertEquals(InterchangeValue.buildFromHl7(addTimeToDate(GMT_BIRTH_DATE)), msg.getPatientBirthDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(getStartOfDay(GMT_BIRTH_DATETIME)), msg.getPatientBirthDateTime());
 
     }
 
@@ -95,9 +100,9 @@ public class TestMiscAdt extends TestHl7MessageStream {
      */
     @Test
     void testGMTBirthDateTime() throws Exception {
-        AdtMessage msg = processSingleAdtMessage("Adt/birth_date_gmt.txt");
+        AdtMessage msg = processSingleAdtMessage("Adt/birth_datetime_gmt.txt");
         assertEquals(InterchangeValue.buildFromHl7(GMT_BIRTH_DATE), msg.getPatientBirthDate());
-        assertEquals(InterchangeValue.buildFromHl7(addTimeToDate(GMT_BIRTH_DATE)), msg.getPatientBirthDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(GMT_BIRTH_DATETIME), msg.getPatientBirthDateTime());
     }
 
 }
