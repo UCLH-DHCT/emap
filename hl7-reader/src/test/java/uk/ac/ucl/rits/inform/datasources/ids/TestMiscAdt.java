@@ -7,10 +7,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,7 +25,6 @@ public class TestMiscAdt extends TestHl7MessageStream {
     private static final LocalDate GMT_BIRTH_DATE = LocalDate.parse("1980-01-01");
     private static final Instant BST_BIRTH_DATETIME = Instant.parse("1925-07-04T03:44:01Z");
     private static final Instant GMT_BIRTH_DATETIME = Instant.parse("1980-01-01T03:44:01Z");
-
 
 
     private Instant getStartOfDay(Instant datetime) {
@@ -69,6 +66,16 @@ public class TestMiscAdt extends TestHl7MessageStream {
 
     }
 
+    /**
+     * When a birth datetime is purely a explicitly midnight on a day, the date should remain the same and the instant should be converted.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testBSTBirthExplicitMidnight() throws Exception {
+        AdtMessage msg = processSingleAdtMessage("Adt/birth_datetime_midnight_bst.txt");
+        assertEquals(InterchangeValue.buildFromHl7(BST_BIRTH_DATE), msg.getPatientBirthDate());
+        assertEquals(InterchangeValue.buildFromHl7(getStartOfDay(BST_BIRTH_DATETIME).minus(1, ChronoUnit.HOURS)), msg.getPatientBirthDateTime());
+    }
 
 
     /**
