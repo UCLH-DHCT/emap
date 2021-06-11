@@ -111,6 +111,7 @@ public class AdtMessageFactory {
             msg.setMrn(patientInfoHl7.getMrn());
             msg.setNhsNumber(patientInfoHl7.getNHSNumber());
             msg.setPatientBirthDate(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDate()));
+            msg.setPatientBirthDateTime(InterchangeValue.buildFromHl7(patientInfoHl7.getPatientBirthDateTime()));
 
             // Despite what the HL7 spec hints at, this death information can occur
             // in any message, not just A03

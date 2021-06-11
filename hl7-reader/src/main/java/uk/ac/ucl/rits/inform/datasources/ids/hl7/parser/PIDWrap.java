@@ -7,6 +7,7 @@ import ca.uhn.hl7v2.model.v26.segment.PID;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Wrapper around the HAPI parser's PID segment object, to make it easier to use.
@@ -117,7 +118,7 @@ interface PIDWrap {
      * @return PID-7.1 birthdatetime, null if field is empty
      * @throws DataTypeException if HAPI does
      */
-    default Instant getPatientBirthDate() throws DataTypeException {
+    default Instant getPatientBirthDateTime() throws DataTypeException {
         DTM dateTime = getPID().getDateTimeOfBirth();
         if (dateTime.getValue() == null) {
             return null;
@@ -128,6 +129,14 @@ interface PIDWrap {
         }
         dateTime.setOffset(0);
         return dateTime.getValueAsDate().toInstant();
+    }
+
+    default LocalDate getPatientBirthDate() throws DataTypeException {
+        DTM date = getPID().getDateTimeOfBirth();
+        if (date.getValue() == null) {
+            return null;
+        }
+        return HL7Utils.interpretDate(date);
     }
 
     /**
