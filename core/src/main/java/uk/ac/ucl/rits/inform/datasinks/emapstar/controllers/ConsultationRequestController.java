@@ -100,6 +100,7 @@ public class ConsultationRequestController {
             ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType,
             Instant storedFrom) {
         ConsultationRequest consultationRequest = new ConsultationRequest(consultationRequestType, mrn, visit);
+        logger.debug("Created new {}", consultationRequest);
         return new RowState<>(consultationRequest, msg.getStatusChangeTime(), storedFrom, true);
     }
 
@@ -111,8 +112,8 @@ public class ConsultationRequestController {
      */
     private boolean messageShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultationRequest) {
-        return consultationRequest.isEntityCreated() || !msg.getRequestedDateTime().isBefore(
-                consultationRequest.getEntity().getValidFrom());
+        return (consultationRequest.isEntityCreated() || !msg.getRequestedDateTime().isBefore(
+                consultationRequest.getEntity().getValidFrom()));
     }
 
     /**
@@ -123,7 +124,6 @@ public class ConsultationRequestController {
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultRequest) {
         ConsultationRequest cRequest = consultRequest.getEntity();
-
 
     }
 
@@ -139,23 +139,23 @@ public class ConsultationRequestController {
     public void processMessage(final ConsultRequest msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         ConsultationRequestType consultationRequestType = getOrCreateConsultationRequestType(msg, storedFrom);
-
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
                 msg, mrn, visit, consultationRequestType, storedFrom);
+        ConsultationRequest cRequest = consultationRequest.getEntity();
 
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getRequestedDateTime(),
-                consultationRequest.getEntity().getRequestedDateTime(),
-                consultationRequest.getEntity()::setRequestedDateTime,
-                msg.getRequestedDateTime(), storedFrom);
+                cRequest.getRequestedDateTime(), cRequest::setRequestedDateTime, msg.getRequestedDateTime(), storedFrom);
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getStatusChangeTime(),
-                consultationRequest.getEntity().getStatusChangeTime(),
-                consultationRequest.getEntity()::setStatusChangeTime,
-                msg.getStatusChangeTime(), storedFrom);
-        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getNotes(),
-                consultationRequest.getEntity().getComments(),
-                consultationRequest.getEntity()::setComments,
+                cRequest.getStatusChangeTime(), cRequest::setStatusChangeTime, msg.getStatusChangeTime(), storedFrom);
+        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getNotes(),
+                cRequest.getComments(), cRequest::setComments, msg.getRequestedDateTime(), storedFrom);
+        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.isClosedDueToDischarge(),
+                cRequest.getClosedDueToDischarge(), cRequest::setClosedDueToDischarge, msg.getRequestedDateTime(), storedFrom);
+        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.isCancelled(), cRequest.getCancelled(), cRequest::setCancelled,
                 msg.getRequestedDateTime(), storedFrom);
+
+        consultationRequest.assignIfDifferent(msg.isCancelled(), cRequest.getCancelled(), cRequest::setCancelled);
+        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), cRequest.getClosedDueToDischarge(), cRequest::setClosedDueToDischarge);
 
         if (messageShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
