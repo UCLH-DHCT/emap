@@ -23,6 +23,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases to assert correct functionality of consultation request handling in EMAP Core.
@@ -73,7 +75,6 @@ public class TestConsultProcessing extends MessageProcessingBase {
         assertNotNull(mrnToLive);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-
     }
 
     /**
@@ -144,7 +145,6 @@ public class TestConsultProcessing extends MessageProcessingBase {
 
     }
 
-
     /**
      * Given that no consults exist in the database
      * When a consult message is processed with notes
@@ -168,8 +168,16 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageCancelRequest() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
+        ConsultationRequest cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        assertFalse(cRequest.getCancelled());
 
         processSingleMessage(cancelledConsult);
+        cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        assertTrue(cRequest.getCancelled());
     }
 
     /**
@@ -183,8 +191,13 @@ public class TestConsultProcessing extends MessageProcessingBase {
         ConsultationRequest cRequest = consultRequestRepo
                 .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
                         FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
-        System.out.println(cRequest);
+        assertFalse(cRequest.getClosedDueToDischarge());
+
         processSingleMessage(closedAtDischargeConsult);
+        cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        assertTrue(cRequest.getClosedDueToDischarge());
     }
 
     /**
@@ -195,6 +208,14 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageNoUpdate() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
+        ConsultationRequest cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertNull(cRequest.getComments());
+
+       // notesConsult.
+
     }
 
 }
