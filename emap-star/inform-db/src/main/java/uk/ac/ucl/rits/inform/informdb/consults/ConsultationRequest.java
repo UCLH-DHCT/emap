@@ -15,7 +15,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.Instant;
-import java.util.HashMap;
 
 /**
  * Holds information relevant to consultation requests for patients.
@@ -42,19 +41,19 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
-    /** optional fields */
-//    private boolean cancelledDueToDischarge;
+    /** Optional fields for consultation requests. */
+    private Boolean closedDueToDischarge = false;
     private String comments;
     private String consultId;
     private Instant statusChangeTime;
     private Instant requestedDateTime;
-
-//    private HashMap<String, String> questions;
-//    private boolean cancelled;
-
+    private Boolean cancelled = false;
 
     /**
      * Minimal information constructor.
+     * @param consultationRequestTypeId     ID for relevant consultation type
+     * @param mrn                           ID of patient consultation request relates to
+     * @param hospitalVisitId               ID for hospital visit of patient that consultation request relates to
      */
     public ConsultationRequest(ConsultationRequestType consultationRequestTypeId, Mrn mrn,
                                HospitalVisit hospitalVisitId) {
