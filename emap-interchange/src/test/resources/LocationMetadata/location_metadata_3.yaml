@@ -1,0 +1,17 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
+hl7String:                        "ACUN^E03ACUN BY12^BY12-C49"
+epicDepartmentName:               "something ACUN"
+epicDepartmentMpiFromDate:        null
+epicDepartmentMpiToDate:          null
+departmentRecordStatusId:         6
+epicRoomId:                       333
+roomRecordState:                  null
+roomName:                         "E03ACUN"
+roomAssociatedPoolBedName:        "ddd"
+roomPoolBedIsInCensus:            false
+epicBedId:                        916
+bedRecordState:                   null
+bedIsInCensus:                    true
+isPoolBed:                        null
+sourceSystem:                     "clarity"
+
