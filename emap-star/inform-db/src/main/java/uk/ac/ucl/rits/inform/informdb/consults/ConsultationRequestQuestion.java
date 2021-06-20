@@ -6,18 +6,14 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.Question;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestionAudit;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import java.time.Instant;
 
 /**
@@ -32,13 +28,14 @@ import java.time.Instant;
 @AuditTable
 //@Table(indexes = {@Index(name = "lsq_lab_sample_id", columnList = "labSampleId"),
 //        @Index(name = "lsq_question_id", columnList = "questionId")})
-public class ConsultationRequestQuestion extends TemporalCore<uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion, ConsultationRequestQuestionAudit> {
+public class ConsultationRequestQuestion extends
+        TemporalCore<uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion, ConsultationRequestQuestionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long labSampleQuestionId;
+    private long consultationRequestQuestionId;
 
     @ManyToOne
-    @JoinColumn(name = "labSampleId", nullable = false)
+    @JoinColumn(name = "consultationRequestId", nullable = false)
     private ConsultationRequest consultationRequestId;
 
     @ManyToOne
@@ -48,7 +45,7 @@ public class ConsultationRequestQuestion extends TemporalCore<uk.ac.ucl.rits.inf
     @Column(columnDefinition = "text")
     private String answer;
 
-    public ConsultationRequestQuestion () {}
+    public ConsultationRequestQuestion() {}
 
     public ConsultationRequestQuestion(ConsultationRequest consultationRequestId, Question questionId, Instant validFrom, Instant storedFrom) {
         this.consultationRequestId = consultationRequestId;
