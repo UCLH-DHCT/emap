@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
@@ -40,6 +41,8 @@ public class TestConsultProcessing extends MessageProcessingBase {
     ConsultationRequestTypeRepository consultRequestTypeRepo;
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
+    @Autowired
+    ConsultationRequestQuestionRepository consultationRequestQuestionRepository;
 
     private ConsultRequest minimalConsult;
     private ConsultRequest cancelledConsult;
@@ -141,8 +144,12 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * Then 3 questions should be created and linked to 3 consult questions for the answers to the questions
      */
     @Test
-    void testCreateConsultWithQuestions() {
-
+    void testCreateConsultWithQuestions() throws EmapOperationMessageProcessingException{
+        processSingleMessage(notesConsult);
+        ConsultationRequest cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        assertEquals(3, consultationRequestQuestionRepository.count());
     }
 
     /**

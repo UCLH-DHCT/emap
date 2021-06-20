@@ -30,6 +30,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
     private final String coPathTemplate = "co_path/%s.yaml";
     private final String coPathSampleNumber = "UH20-4444";
     private final Instant messageTime = Instant.parse("2020-11-09T15:04:45Z");
+    private final Instant messageTime_cRequest = Instant.parse("2013-02-12T12:00:00Z");
     private ConsultRequest consultReqMsg;
 
     @Autowired
@@ -144,8 +145,34 @@ class TestQuestionProcessing extends MessageProcessingBase {
      */
     @Test
     void testConsultationRequestQuestionsAdded() throws Exception {
-        processSingleMessage(labOrderMsg);
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(0, labSampleQuestionAuditRepository.count());
+        processSingleMessage(consultReqMsg);
+        assertEquals(3, consultationRequestQuestionRepo.count());
+        assertEquals(0, consultationRequestQuestionAuditRepo.count());
     }
+
+    /**
+     * Once consultation request question exists, update answer if newer message processed.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testConsultationRequestQuestionAnswerUpdatedIfNewer() throws Exception {
+        // process original message
+        String clinicalQuestion = "Did you contact the team?";
+        String newClinicalAnswer = "yes";
+
+        processSingleMessage(consultReqMsg);
+        ConsultationRequestQuestion consultationRequestQuestion = consultationRequestQuestionRepo.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
+
+        // process later message with updated answer
+        consultReqMsg.setRequestedDateTime(messageTime_cRequest.plusSeconds(60));
+        consultReqMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
+
+        processSingleMessage(consultReqMsg);
+
+        assertEquals(3, consultationRequestQuestionRepo.count());
+        assertEquals(1, consultationRequestQuestionAuditRepo.count());
+        consultationRequestQuestion = consultationRequestQuestionRepo.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
+        assertEquals(newClinicalAnswer, consultationRequestQuestion.getAnswer());
+    }
+
 }

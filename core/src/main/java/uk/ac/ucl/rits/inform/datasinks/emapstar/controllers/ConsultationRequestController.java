@@ -29,20 +29,24 @@ public class ConsultationRequestController {
     private final ConsultationRequestRepository consultationRequestRepo;
     private final ConsultationRequestTypeRepository consultationRequestTypeRepo;
     private final ConsultationRequestAuditRepository consultationRequestAuditRepo;
+    private final QuestionController questionController;
 
     /**
      * Setting repositories holding information on patient states.
      * @param consultationRequestRepo        Consultation request repo
      * @param consultationRequestTypeRepo    Consultation request type repo
      * @param consultationRequestAuditRepo   Consultation request audit type repo
+     * @param questionController             Question controller for questions in relation to consultation requests
      */
     public ConsultationRequestController(
             ConsultationRequestRepository consultationRequestRepo,
             ConsultationRequestTypeRepository consultationRequestTypeRepo,
-            ConsultationRequestAuditRepository consultationRequestAuditRepo) {
+            ConsultationRequestAuditRepository consultationRequestAuditRepo,
+            QuestionController questionController) {
         this.consultationRequestRepo = consultationRequestRepo;
         this.consultationRequestTypeRepo = consultationRequestTypeRepo;
         this.consultationRequestAuditRepo = consultationRequestAuditRepo;
+        this.questionController = questionController;
     }
 
     /**
@@ -118,13 +122,14 @@ public class ConsultationRequestController {
 
     /**
      * Update consultation request from consultation request message.
-     * @param msg               consultation request message
-     * @param consultRequest    consultation request referred to in message
+     * @param msg                   consultation request message
+     * @param consultationRequest   consultation request referred to in message
      */
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
-            ConsultationRequestAudit> consultRequest) {
-        ConsultationRequest cRequest = consultRequest.getEntity();
-
+            ConsultationRequestAudit> consultationRequest) {
+        ConsultationRequest cRequest = consultationRequest.getEntity();
+        consultationRequest.assignIfDifferent(msg.isCancelled(), cRequest.getCancelled(), cRequest::setCancelled);
+        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), cRequest.getClosedDueToDischarge(), cRequest::setClosedDueToDischarge);
     }
 
     /**
@@ -146,7 +151,7 @@ public class ConsultationRequestController {
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getRequestedDateTime(),
                 cRequest.getRequestedDateTime(), cRequest::setRequestedDateTime, msg.getRequestedDateTime(), storedFrom);
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getStatusChangeTime(),
-                cRequest.getStatusChangeTime(), cRequest::setStatusChangeTime, msg.getStatusChangeTime(), storedFrom);
+                cRequest.getStatusChangeTime(), cRequest::setStatusChangeTime, msg.getRequestedDateTime(), storedFrom);
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getNotes(),
                 cRequest.getComments(), cRequest::setComments, msg.getRequestedDateTime(), storedFrom);
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.isClosedDueToDischarge(),
@@ -154,13 +159,11 @@ public class ConsultationRequestController {
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.isCancelled(), cRequest.getCancelled(), cRequest::setCancelled,
                 msg.getRequestedDateTime(), storedFrom);
 
-        consultationRequest.assignIfDifferent(msg.isCancelled(), cRequest.getCancelled(), cRequest::setCancelled);
-        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), cRequest.getClosedDueToDischarge(), cRequest::setClosedDueToDischarge);
-
         if (messageShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
         }
 
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
+        questionController.processConsultationRequestQuestions(msg.getQuestions(), cRequest, msg.getRequestedDateTime(), storedFrom);
     }
 }
