@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -214,15 +215,22 @@ public class TestConsultProcessing extends MessageProcessingBase {
      */
     @Test
     void testLaterMessageNoUpdate() throws EmapOperationMessageProcessingException {
+        String great_note = "Great note";
+        minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note));
         processSingleMessage(minimalConsult);
         ConsultationRequest cRequest = consultRequestRepo
                 .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
                         FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        assertEquals(cRequest.getComments(), great_note);
 
-        assertNull(cRequest.getComments());
-
-       // notesConsult.
-
+        String great_note_2 = "bla bla bla";
+        minimalConsult.setRequestedDateTime(minimalConsult.getRequestedDateTime().plusSeconds(60));
+        minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note_2));
+        processSingleMessage(minimalConsult);
+        cRequest = consultRequestRepo
+                .findByMrnIdMrnAndHospitalVisitIdEncounterAndConsultationRequestTypeIdStandardisedCode(
+                        FRAILTY_MRN, FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        assertEquals(cRequest.getComments(), great_note);
     }
 
 }
