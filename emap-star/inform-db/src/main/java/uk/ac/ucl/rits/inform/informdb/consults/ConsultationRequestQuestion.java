@@ -42,6 +42,8 @@ public class ConsultationRequestQuestion extends
     @Column(columnDefinition = "text")
     private String answer;
 
+    public ConsultationRequestQuestion() {};
+
     public ConsultationRequestQuestion(ConsultationRequest consultationRequestId, Question questionId, Instant validFrom, Instant storedFrom) {
         this.consultationRequestId = consultationRequestId;
         this.questionId = questionId;
