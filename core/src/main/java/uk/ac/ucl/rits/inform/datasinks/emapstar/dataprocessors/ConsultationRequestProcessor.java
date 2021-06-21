@@ -60,10 +60,10 @@ public class ConsultationRequestProcessor {
         try {
             visit = visitController.getOrCreateMinimalHospitalVisit(
                     msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getStatusChangeTime(), storedFrom);
+
+            consultationRequestController.processMessage(msg, visit, storedFrom);
         } catch (RequiredDataMissingException e) {
             logger.debug("No visit for consultation request, skipping creating an encounter");
         }
-
-        consultationRequestController.processMessage(msg, mrn, visit, storedFrom);
     }
 }

@@ -18,7 +18,17 @@ public interface ConsultationRequestRepository extends CrudRepository<Consultati
      * @param consultationType   Consultancy type
      * @return ConsultationRequest that relates to identifiers
      */
-    Optional<ConsultationRequest> findByHospitalVisitIdAndConsultationRequestTypeId(
+    Optional<ConsultationRequest> findByHospitalVisitIdAndConsultationTypeId(
             HospitalVisit visit, ConsultationType consultationType
+    );
+
+    /**
+     * Find consultation request by hospital visit and consultation type.
+     * @param visit              Hospital visit
+     * @param consultationType   Consultancy type
+     * @return ConsultationRequest that relates to identifiers
+     */
+    Optional<ConsultationRequest> findByHospitalVisitIdAndConsultationTypeId(
+            String visit, String consultationType
     );
 }
