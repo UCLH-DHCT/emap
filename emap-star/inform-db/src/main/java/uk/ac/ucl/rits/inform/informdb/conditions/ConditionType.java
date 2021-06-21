@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.state;
+package uk.ac.ucl.rits.inform.informdb.conditions;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,7 +14,7 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * Type of state that a patient can have.
+ * Type of condition that a patient can have.
  * Types are defined by the dataType (problem list or infection) and the name (problem list-> diagnosis; infection -> infection name)
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -24,11 +24,11 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AuditTable
-public class PatientStateType extends TemporalCore<PatientStateType, PatientStateTypeAudit> {
+public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudit> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long patientStateTypeId;
+    private long conditionTypeId;
 
     /**
      * problem list or patient infection.
@@ -46,12 +46,12 @@ public class PatientStateType extends TemporalCore<PatientStateType, PatientStat
 
     /**
      * Minimal information constructor.
-     * @param name       Name of the patient state type
      * @param dataType   Type of patient state type; either patient infection or problem list
+     * @param name       Name of the patient state type
      * @param validFrom  Timestamp from which information valid from
      * @param storedFrom Timestamp from which information stored from
      */
-    public PatientStateType(String name, String dataType, Instant validFrom, Instant storedFrom) {
+    public ConditionType(String dataType, String name, Instant validFrom, Instant storedFrom) {
         this.name = name;
         this.dataType = dataType;
         setValidFrom(validFrom);
@@ -62,7 +62,7 @@ public class PatientStateType extends TemporalCore<PatientStateType, PatientStat
      * Build a new PatientStateType from an existing one.
      * @param other existing PatientStateType
      */
-    public PatientStateType(PatientStateType other) {
+    public ConditionType(ConditionType other) {
         super(other);
         this.dataType = other.dataType;
         this.name = other.name;
@@ -72,13 +72,13 @@ public class PatientStateType extends TemporalCore<PatientStateType, PatientStat
     }
 
     @Override
-    public PatientStateType copy() {
-        return new PatientStateType(this);
+    public ConditionType copy() {
+        return new ConditionType(this);
     }
 
     @Override
-    public PatientStateTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new PatientStateTypeAudit(this, validUntil, storedUntil);
+    public ConditionTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new ConditionTypeAudit(this, validUntil, storedUntil);
     }
 
 }

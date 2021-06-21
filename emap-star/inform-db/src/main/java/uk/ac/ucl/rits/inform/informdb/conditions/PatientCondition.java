@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.state;
+package uk.ac.ucl.rits.inform.informdb.conditions;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,7 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Represents patient states that start and can end.
+ * Represents patient conditions that start and can end.
  * Currently envisaged as storing infection control's patient infection information and problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -29,14 +29,14 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AuditTable
-public class PatientState extends TemporalCore<PatientState, PatientStateAudit> {
+public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long patientStateId;
+    private long patientConditionId;
 
     @ManyToOne
-    @JoinColumn(name = "patientStateTypeId", nullable = false)
-    private PatientStateType patientStateTypeId;
+    @JoinColumn(name = "conditionTypeId", nullable = false)
+    private ConditionType conditionTypeId;
 
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
@@ -68,12 +68,12 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
 
     /**
      * Minimal information constructor.
-     * @param patientStateTypeId ID for patient state type
+     * @param conditionTypeId ID for patient state type
      * @param mrn                patient ID
      * @param addedDateTime      when patient state has been added
      */
-    public PatientState(PatientStateType patientStateTypeId, Mrn mrn, Instant addedDateTime) {
-        this.patientStateTypeId = patientStateTypeId;
+    public PatientCondition(ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
+        this.conditionTypeId = conditionTypeId;
         this.mrnId = mrn;
         this.addedDateTime = addedDateTime;
     }
@@ -82,9 +82,9 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
      * Build a new PatientState from an existing one.
      * @param other existing PatientState
      */
-    public PatientState(PatientState other) {
+    public PatientCondition(PatientCondition other) {
         super(other);
-        this.patientStateTypeId = other.patientStateTypeId;
+        this.conditionTypeId = other.conditionTypeId;
         this.mrnId = other.mrnId;
         if (other.hospitalVisitId != null) {
             this.hospitalVisitId = other.hospitalVisitId;
@@ -99,13 +99,13 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
     }
 
     @Override
-    public PatientState copy() {
-        return new PatientState(this);
+    public PatientCondition copy() {
+        return new PatientCondition(this);
     }
 
     @Override
-    public PatientStateAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new PatientStateAudit(this, validUntil, storedUntil);
+    public PatientConditionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new PatientConditionAudit(this, validUntil, storedUntil);
     }
 }
 
