@@ -83,7 +83,11 @@
   sourceSystem: "hoover"
   sourceMessageId: "4"
   updatedDateTime: "2019-06-08T19:45:00Z"
-  mrn: "YdZitaf1OeQI"
+  mrn: "xo9dzpR0Zx7J"
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "100000013"
   infection: "?COVID-19"
   epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
