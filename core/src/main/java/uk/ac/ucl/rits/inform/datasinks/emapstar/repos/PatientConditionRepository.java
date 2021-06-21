@@ -2,26 +2,26 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.state.PatientState;
-import uk.ac.ucl.rits.inform.informdb.state.PatientStateType;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 
 import java.time.Instant;
 import java.util.Optional;
 
 /**
- * PatientState repository.
+ * PatientCondition repository.
  * @author Stef Piatek
  */
-public interface PatientStateRepository extends CrudRepository<PatientState, Long> {
+public interface PatientConditionRepository extends CrudRepository<PatientCondition, Long> {
     /**
      * Get patient state, should be unique.
      * @param mrn              MRN entity
-     * @param patientStateType type of state
+     * @param conditionType type of state
      * @param addedDateTime    added date time
      * @return possible patient state
      */
-    Optional<PatientState> findByMrnIdAndPatientStateTypeIdAndAddedDateTime(
-            Mrn mrn, PatientStateType patientStateType, Instant addedDateTime
+    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDateTime(
+            Mrn mrn, ConditionType conditionType, Instant addedDateTime
     );
 
     /**
@@ -31,7 +31,7 @@ public interface PatientStateRepository extends CrudRepository<PatientState, Lon
      * @param addedDateTime    added date time
      * @return possible patient state
      */
-    Optional<PatientState> findByMrnIdAndPatientStateTypeIdNameAndAddedDateTime(
+    Optional<PatientCondition> findByMrnIdAndConditionTypeIdNameAndAddedDateTime(
             Mrn mrn, String stateName, Instant addedDateTime
     );
 
@@ -42,7 +42,7 @@ public interface PatientStateRepository extends CrudRepository<PatientState, Lon
      * @param addedDateTime added date time
      * @return possible patient state
      */
-    Optional<PatientState> findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(
+    Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(
             String mrn, String stateName, Instant addedDateTime
     );
 }
