@@ -31,7 +31,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
 
     @ManyToOne
     @JoinColumn(name = "consultRequestTypeId", nullable = false)
-    private ConsultationRequestType consultationRequestTypeId;
+    private ConsultationType consultationTypeId;
 
     @ManyToOne
     @JoinColumn(name = "mnrId", nullable = false)
@@ -51,13 +51,13 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
 
     /**
      * Minimal information constructor.
-     * @param consultationRequestTypeId     ID for relevant consultation type
+     * @param consultationTypeId     ID for relevant consultation type
      * @param mrn                           ID of patient consultation request relates to
      * @param hospitalVisitId               ID for hospital visit of patient that consultation request relates to
      */
-    public ConsultationRequest(ConsultationRequestType consultationRequestTypeId, Mrn mrn,
+    public ConsultationRequest(ConsultationType consultationTypeId, Mrn mrn,
                                HospitalVisit hospitalVisitId) {
-        this.consultationRequestTypeId = consultationRequestTypeId;
+        this.consultationTypeId = consultationTypeId;
         this.mrnId = mrn;
         this.hospitalVisitId = hospitalVisitId;
     }
@@ -68,7 +68,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
      */
     public ConsultationRequest(ConsultationRequest other) {
         super(other);
-        this.consultationRequestTypeId = other.consultationRequestTypeId;
+        this.consultationTypeId = other.consultationTypeId;
         this.mrnId = other.mrnId;
         this.hospitalVisitId = other.hospitalVisitId;
     }

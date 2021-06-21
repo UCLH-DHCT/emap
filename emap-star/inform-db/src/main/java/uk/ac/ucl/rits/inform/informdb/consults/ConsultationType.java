@@ -23,7 +23,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AuditTable
-public class ConsultationRequestType extends TemporalCore<ConsultationRequestType, ConsultationRequestTypeAudit> {
+public class ConsultationType extends TemporalCore<ConsultationType, ConsultationRequestTypeAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationRequestTypeId;
@@ -37,7 +37,7 @@ public class ConsultationRequestType extends TemporalCore<ConsultationRequestTyp
      * @param validFrom         From which point in time the ConsultRequestType is valid
      * @param storedFrom        Time point at which ConsultRequestType was stored first
      */
-    public ConsultationRequestType(String standardisedCode, Instant validFrom, Instant storedFrom) {
+    public ConsultationType(String standardisedCode, Instant validFrom, Instant storedFrom) {
         this.standardisedCode = standardisedCode;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
@@ -46,15 +46,15 @@ public class ConsultationRequestType extends TemporalCore<ConsultationRequestTyp
      * Build a new ConsultRequestType from an existing one.
      * @param other existing ConsultRequestType
      */
-    public ConsultationRequestType(ConsultationRequestType other) {
+    public ConsultationType(ConsultationType other) {
         super(other);
         this.standardisedCode = other.standardisedCode;
         this.name = other.name;
     }
 
     @Override
-    public ConsultationRequestType copy() {
-        return new ConsultationRequestType(this);
+    public ConsultationType copy() {
+        return new ConsultationType(this);
     }
 
     @Override
