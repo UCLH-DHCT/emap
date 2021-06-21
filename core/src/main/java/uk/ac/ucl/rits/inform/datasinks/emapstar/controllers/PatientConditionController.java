@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
@@ -17,6 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
+import java.util.Optional;
 
 
 /**
@@ -58,7 +60,8 @@ public class PatientConditionController {
      * @return PatientStateType
      */
     @Cacheable(value = "conditionType", key = "{#dataType, #typeName}")
-    public ConditionType getOrCreatePatientStateType(PatientConditionType type, String typeName, Instant updatedDateTime, Instant storedFrom) {
+    public ConditionType getOrCreatePatientStateType(
+            PatientConditionType type, String typeName, Instant updatedDateTime, Instant storedFrom) {
         return conditionTypeRepo
                 .findByDataTypeAndName(type.toString(), typeName)
                 .orElseGet(() -> {
@@ -80,6 +83,10 @@ public class PatientConditionController {
             throws EmapOperationMessageProcessingException {
         ConditionType conditionType = getOrCreatePatientStateType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfection(), msg.getUpdatedDateTime(), storedFrom);
+        if ("hoover".equals(msg.getSourceSystem())) {
+            logger.debug("Deleting all {} infections before {}", conditionType.getName(), msg.getUpdatedDateTime());
+            patientConditionRepo.deleteAllByValidFromBeforeAndInternalIdIsNullAndConditionTypeId(msg.getUpdatedDateTime(), conditionType);
+        }
         // should delete all messages which are valid from previous message if the source is from hoover
         RowState<PatientCondition, PatientConditionAudit> patientState = getOrCreatePatientState(msg, mrn, conditionType,
                 storedFrom);
@@ -109,27 +116,46 @@ public class PatientConditionController {
      * @return observation entity wrapped in RowState
      */
     private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientState(
-            PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
-        return patientConditionRepo
-                .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType,
-                        msg.getInfectionAdded())
+            PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) throws RequiredDataMissingException {
+        Optional<PatientCondition> patientCondition;
+        final Long epicInfectionId;
+        switch (msg.getSourceSystem()) {
+            case "EPIC":
+                epicInfectionId = null;
+                patientCondition = patientConditionRepo
+                        .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType, msg.getInfectionAdded());
+                break;
+            case "hoover":
+                if (msg.getEpicInfectionId().isUnknown()) {
+                    throw new RequiredDataMissingException("No patientInfectionId from hoover");
+                }
+                epicInfectionId = msg.getEpicInfectionId().get();
+                patientCondition = patientConditionRepo.findByConditionTypeIdAndInternalId(conditionType, epicInfectionId);
+                break;
+            default:
+                throw new RequiredDataMissingException(String.format("'%s' is not a recognised source system", msg.getSourceSystem()));
+        }
+
+        return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientState(mrn, conditionType, msg.getInfectionAdded(), msg.getUpdatedDateTime(), storedFrom));
+                .orElseGet(() -> createMinimalPatientCondition(
+                        epicInfectionId, mrn, conditionType, msg.getInfectionAdded(), msg.getUpdatedDateTime(), storedFrom));
     }
 
     /**
      * Create minimal visit observation wrapped in RowState.
-     * @param mrn            patient identifier
-     * @param conditionType  condition type
-     * @param conditionAdded condition added at
-     * @param validFrom      hospital time that the data is true from
-     * @param storedFrom     time that emap-core started processing the message
+     * @param epicConditionId internal epic Id for condition
+     * @param mrn             patient identifier
+     * @param conditionType   condition type
+     * @param conditionAdded  condition added at
+     * @param validFrom       hospital time that the data is true from
+     * @param storedFrom      time that emap-core started processing the message
      * @return minimal patient state wrapped in RowState
      */
-    private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientState(
-            Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
+    private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
+            Long epicConditionId, Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
 
-        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionAdded);
+        PatientCondition patientCondition = new PatientCondition(epicConditionId, conditionType, mrn, conditionAdded);
         return new RowState<>(patientCondition, validFrom, storedFrom, true);
     }
 

@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -62,6 +63,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         PatientInfection olderMessage = new PatientInfection();
         olderMessage.setInfectionAdded(hooverMumps.getInfectionAdded());
+        olderMessage.setEpicInfectionId(InterchangeValue.buildFromHl7(1L));
         olderMessage.setSourceSystem(hooverMumps.getSourceSystem());
         olderMessage.setMrn(MUMPS_MRN);
         olderMessage.setInfection(MUMPS_INFECTION);
@@ -188,18 +190,19 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
 
     /**
-     * First message has a lot of unknown data.
-     * Second message is older than first message, but at processing, every field which is null in the database
+     * First message from hl7 (no epic infection id)
+     * Second message has the same data, but the incremental update date will mean it's after the current information
      * should have the new information added to it.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
-    void testNullInfectionDataAlwaysAdded() throws EmapOperationMessageProcessingException {
+    void testHl7InfectionDeletedAndNewInformationAdded() throws EmapOperationMessageProcessingException {
         // original minimal message has comment, resolution datetime, onset date and comment as unknown
         processSingleMessage(hl7Mumps);
+        PatientCondition hl7Infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
 
-        // process message that is older than current database, but has information which was missing in first message
-        hooverMumps.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
         String comment = "great comment";
         hooverMumps.setComment(InterchangeValue.buildFromHl7(comment));
         processSingleMessage(hooverMumps);
@@ -207,6 +210,9 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         PatientCondition infection = patientConditionRepository
                 .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
+
+        // id shouldn't be the same as the hl7 infection because that should be deleted
+        assertNotEquals(hl7Infection.getPatientConditionId(), infection.getPatientConditionId());
 
         // extra data should be added
         assertHooverMumpsTimes(infection);
