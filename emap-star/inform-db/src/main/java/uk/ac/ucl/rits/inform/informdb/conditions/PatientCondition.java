@@ -49,6 +49,9 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
+    @Column(nullable = false)
+    private String sourceSystem;
+
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resolutionDateTime;
 
@@ -84,18 +87,19 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      */
     public PatientCondition(PatientCondition other) {
         super(other);
-        this.conditionTypeId = other.conditionTypeId;
-        this.mrnId = other.mrnId;
+        conditionTypeId = other.conditionTypeId;
+        mrnId = other.mrnId;
         if (other.hospitalVisitId != null) {
-            this.hospitalVisitId = other.hospitalVisitId;
+            hospitalVisitId = other.hospitalVisitId;
         }
-        this.addedDateTime = other.addedDateTime;
-        this.resolutionDateTime = other.resolutionDateTime;
-        this.onsetDate = other.onsetDate;
-        this.classification = other.classification;
-        this.status = other.status;
-        this.priority = other.priority;
-        this.comment = other.comment;
+        addedDateTime = other.addedDateTime;
+        sourceSystem = other.sourceSystem;
+        resolutionDateTime = other.resolutionDateTime;
+        onsetDate = other.onsetDate;
+        classification = other.classification;
+        status = other.status;
+        priority = other.priority;
+        comment = other.comment;
     }
 
     @Override
