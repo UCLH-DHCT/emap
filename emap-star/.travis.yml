@@ -8,7 +8,7 @@ jdk:
 
 before_install:
     - echo `echo ${TRAVIS_JDK_VERSION} | grep -o "[0-9]\+"`
-    - mvn checkstyle:check
+    - mvn -X checkstyle:check
 
 install:
     - mvn install -Djava.version=`echo ${TRAVIS_JDK_VERSION} | grep -o "[0-9]\+"` -DskipTests=true -Dmaven.javadoc.skip=true -B -V
