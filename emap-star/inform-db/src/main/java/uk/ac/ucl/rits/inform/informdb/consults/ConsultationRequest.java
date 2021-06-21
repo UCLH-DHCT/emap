@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
