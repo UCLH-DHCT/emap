@@ -19,7 +19,7 @@ import java.time.LocalDate;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class PatientInfection extends EmapOperationMessage implements Serializable {
     private String mrn;
-    private String visitNumber;
+    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
     /**
      * Infection name.
