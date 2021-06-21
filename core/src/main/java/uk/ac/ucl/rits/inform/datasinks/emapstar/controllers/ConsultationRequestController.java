@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestReposit
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestType;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -55,23 +55,23 @@ public class ConsultationRequestController {
      * @param storedFrom when consultation request information is stored from
      * @return ConsultRequestType
      */
-    private ConsultationRequestType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
+    private ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
         return consultationRequestTypeRepo
                 .findByStandardisedCode(msg.getConsultationType())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
     /**
-     * Create and save a ConsultationRequestType from the information contained in the ConsultRequest message.
+     * Create and save a ConsultationType from the information contained in the ConsultRequest message.
      * @param msg           Consultation request message
      * @param storedFrom    valid from in database
-     * @return saved ConsultationRequestType
+     * @return saved ConsultationType
      */
-    private ConsultationRequestType createAndSaveNewType(ConsultRequest msg, Instant storedFrom) {
-        ConsultationRequestType consultationRequestType = new ConsultationRequestType(msg.getConsultationType(),
+    private ConsultationType createAndSaveNewType(ConsultRequest msg, Instant storedFrom) {
+        ConsultationType consultationType = new ConsultationType(msg.getConsultationType(),
                 msg.getRequestedDateTime(), storedFrom);
-        logger.debug("Created new {}", consultationRequestType);
-        return consultationRequestTypeRepo.save(consultationRequestType);
+        logger.debug("Created new {}", consultationType);
+        return consultationRequestTypeRepo.save(consultationType);
     }
 
     /**
@@ -79,16 +79,16 @@ public class ConsultationRequestController {
      * @param msg                       Consultation request message
      * @param mrn                       Patient identifier
      * @param visit                     Hospital visit of patient this consultation request refers to.
-     * @param consultationRequestType   Consultancy type as identified in message
+     * @param consultationType   Consultancy type as identified in message
      * @param storedFrom                time that emap-core started processing the message
      * @return ConsultationRequest entity wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
-            ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType, Instant storedFrom) {
+            ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
-                .findByMrnIdAndHospitalVisitIdAndConsultationRequestTypeId(mrn, visit, consultationRequestType)
+                .findByMrnIdAndHospitalVisitIdAndConsultationRequestTypeId(mrn, visit, consultationType)
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalConsultationRequest(msg, mrn, visit, consultationRequestType, storedFrom));
+                .orElseGet(() -> createMinimalConsultationRequest(msg, mrn, visit, consultationType, storedFrom));
     }
 
     /**
@@ -96,14 +96,14 @@ public class ConsultationRequestController {
      * @param msg                       Consultation request message
      * @param mrn                       patient identifier
      * @param visit                     Hospital visit of the patient consultation request occurred at
-     * @param consultationRequestType   Consultation request type referred to in message
+     * @param consultationType   Consultation request type referred to in message
      * @param storedFrom                time that emap-core started processing the message
      * @return minimal consultation request wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> createMinimalConsultationRequest(
-            ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationRequestType consultationRequestType,
+            ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationType consultationType,
             Instant storedFrom) {
-        ConsultationRequest consultationRequest = new ConsultationRequest(consultationRequestType, mrn, visit);
+        ConsultationRequest consultationRequest = new ConsultationRequest(consultationType, mrn, visit);
         logger.debug("Created new {}", consultationRequest);
         return new RowState<>(consultationRequest, msg.getStatusChangeTime(), storedFrom, true);
     }
@@ -143,9 +143,9 @@ public class ConsultationRequestController {
     @Transactional
     public void processMessage(final ConsultRequest msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        ConsultationRequestType consultationRequestType = getOrCreateConsultationRequestType(msg, storedFrom);
+        ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
-                msg, mrn, visit, consultationRequestType, storedFrom);
+                msg, mrn, visit, consultationType, storedFrom);
         ConsultationRequest cRequest = consultationRequest.getEntity();
 
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getRequestedDateTime(),
