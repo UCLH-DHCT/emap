@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,47 +31,49 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     private long consultationRequestId;
 
     @ManyToOne
-    @JoinColumn(name = "consultRequestTypeId", nullable = false)
+    @JoinColumn(name = "consultationTypeId", nullable = false)
     private ConsultationType consultationTypeId;
-
-    @ManyToOne
-    @JoinColumn(name = "mnrId", nullable = false)
-    private Mrn mrnId;
 
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
+    @Column(nullable = false)
+    private String consultId;
+
     /** Optional fields for consultation requests. */
     private Boolean closedDueToDischarge = false;
     private String comments;
-    private String consultId;
     private Instant statusChangeTime;
     private Instant requestedDateTime;
     private Boolean cancelled = false;
 
     /**
      * Minimal information constructor.
-     * @param consultationTypeId     ID for relevant consultation type
-     * @param mrn                           ID of patient consultation request relates to
-     * @param hospitalVisitId               ID for hospital visit of patient that consultation request relates to
+     * @param consultationTypeId    ID for relevant consultation type
+     * @param hospitalVisitId       ID for hospital visit of patient that consultation request relates to
+     * @param consultId             ID for consultation request
      */
-    public ConsultationRequest(ConsultationType consultationTypeId, Mrn mrn,
-                               HospitalVisit hospitalVisitId) {
+    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, String consultId) {
         this.consultationTypeId = consultationTypeId;
-        this.mrnId = mrn;
         this.hospitalVisitId = hospitalVisitId;
+        this.consultId = consultId;
     }
 
     /**
-     * Build a new ConsultRequest from an existing one.
-     * @param other existing ConsultRequest
+     * Build a new ConsultationRequest from an existing one.
+     * @param other existing ConsultationRequest
      */
     public ConsultationRequest(ConsultationRequest other) {
         super(other);
         this.consultationTypeId = other.consultationTypeId;
-        this.mrnId = other.mrnId;
         this.hospitalVisitId = other.hospitalVisitId;
+        this.consultId = other.consultId;
+        this.closedDueToDischarge = other.closedDueToDischarge;
+        this.comments = other.comments;
+        this.statusChangeTime = other.statusChangeTime;
+        this.requestedDateTime = other.requestedDateTime;
+        this.cancelled = other.cancelled;
     }
 
     @Override
