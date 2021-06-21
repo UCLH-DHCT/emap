@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestTypeRep
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestType;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
@@ -111,7 +111,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testMinimalConsultTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
-        ConsultationRequestType crType = consultRequestTypeRepo.findByStandardisedCode(
+        ConsultationType crType = consultRequestTypeRepo.findByStandardisedCode(
                 FRAILTY_CONSULTATION_TYPE).orElseThrow();
 
         assertEquals(FRAILTY_REQ_TIME, crType.getValidFrom());
