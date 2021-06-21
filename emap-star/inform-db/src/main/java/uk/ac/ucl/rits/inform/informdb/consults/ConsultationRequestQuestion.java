@@ -20,14 +20,11 @@ import java.time.Instant;
  * Questions and answers for consultation requests.
  * @author Anika Cawthorn
  */
-@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-//@Table(indexes = {@Index(name = "lsq_lab_sample_id", columnList = "labSampleId"),
-//        @Index(name = "lsq_question_id", columnList = "questionId")})
 public class ConsultationRequestQuestion extends
         TemporalCore<uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion, ConsultationRequestQuestionAudit> {
     @Id
@@ -44,8 +41,6 @@ public class ConsultationRequestQuestion extends
 
     @Column(columnDefinition = "text")
     private String answer;
-
-    public ConsultationRequestQuestion() {}
 
     public ConsultationRequestQuestion(ConsultationRequest consultationRequestId, Question questionId, Instant validFrom, Instant storedFrom) {
         this.consultationRequestId = consultationRequestId;
