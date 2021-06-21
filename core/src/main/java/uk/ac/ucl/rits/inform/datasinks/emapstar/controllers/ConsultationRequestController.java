@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
@@ -26,7 +26,7 @@ import java.time.Instant;
 public class ConsultationRequestController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
-    private final ConsultationRequestTypeRepository consultationRequestTypeRepo;
+    private final ConsultationTypeRepository consultationRequestTypeRepo;
     private final ConsultationRequestAuditRepository consultationRequestAuditRepo;
     private final QuestionController questionController;
 
@@ -39,7 +39,7 @@ public class ConsultationRequestController {
      */
     public ConsultationRequestController(
             ConsultationRequestRepository consultationRequestRepo,
-            ConsultationRequestTypeRepository consultationRequestTypeRepo,
+            ConsultationTypeRepository consultationRequestTypeRepo,
             ConsultationRequestAuditRepository consultationRequestAuditRepo,
             QuestionController questionController) {
         this.consultationRequestRepo = consultationRequestRepo;
@@ -84,7 +84,7 @@ public class ConsultationRequestController {
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
             ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
-                .findByHospitalVisitIdAndConsultationRequestTypeId(visit, consultationType)
+                .findByHospitalVisitIdAndConsultationTypeId(visit, consultationType)
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalConsultationRequest(msg, visit, consultationType, storedFrom));
     }
