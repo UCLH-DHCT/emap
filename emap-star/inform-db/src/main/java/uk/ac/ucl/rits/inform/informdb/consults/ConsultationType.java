@@ -23,7 +23,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AuditTable
-public class ConsultationType extends TemporalCore<ConsultationType, ConsultationRequestTypeAudit> {
+public class ConsultationType extends TemporalCore<ConsultationType, ConsultationTypeAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationTypeId;
@@ -58,7 +58,7 @@ public class ConsultationType extends TemporalCore<ConsultationType, Consultatio
     }
 
     @Override
-    public ConsultationRequestTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new ConsultationRequestTypeAudit(this, validUntil, storedUntil);
+    public ConsultationTypeAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new ConsultationTypeAudit(this, validUntil, storedUntil);
     }
 }
