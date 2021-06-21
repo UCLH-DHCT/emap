@@ -3,11 +3,11 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientStateTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.state.PatientState;
-import uk.ac.ucl.rits.inform.informdb.state.PatientStateType;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
@@ -30,9 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Autowired
-    PatientStateRepository patientStateRepository;
+    PatientConditionRepository patientConditionRepository;
     @Autowired
-    PatientStateTypeRepository patientStateTypeRepository;
+    ConditionTypeRepository conditionTypeRepository;
 
     private List<PatientInfection> hooverMessages;
     private PatientInfection hl7Mumps;
@@ -50,7 +50,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hooverMumps = hooverMessages.get(0);
     }
 
-    private void assertHooverMumpsTimes(PatientState infection) {
+    private void assertHooverMumpsTimes(PatientCondition infection) {
         assertEquals(Instant.parse("2019-03-21T15:22:01Z"), infection.getResolutionDateTime());
         assertEquals(LocalDate.parse("2019-03-05"), infection.getOnsetDate());
     }
@@ -88,7 +88,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Ensure that the type of state is created.
+     * Ensure that the type of condition is created.
      * Fairly minimal information can be added from a patient infection.
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
@@ -96,8 +96,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testPatientInfectionTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(hl7Mumps);
 
-        PatientStateType type = patientStateTypeRepository.findByDataTypeAndName(PATIENT_INFECTION,
-                MUMPS_INFECTION).orElseThrow();
+        ConditionType type = conditionTypeRepository.findByDataTypeAndName(PATIENT_INFECTION, MUMPS_INFECTION).orElseThrow();
 
         assertEquals(HL7_UPDATE_TIME, type.getValidFrom());
         assertNotNull(type.getValidFrom());
@@ -113,8 +112,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testMinimalPatientInfection() throws EmapOperationMessageProcessingException {
         processSingleMessage(hl7Mumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(HL7_UPDATE_TIME, infection.getValidFrom());
@@ -132,8 +131,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hl7Mumps.setInfectionResolved(InterchangeValue.buildFromHl7(resolveTime));
         processSingleMessage(hl7Mumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertEquals(resolveTime, infection.getResolutionDateTime());
     }
@@ -146,8 +145,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testAllDates() throws EmapOperationMessageProcessingException {
         processSingleMessage(hooverMumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -164,8 +163,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hooverMumps.setComment(InterchangeValue.buildFromHl7(comment));
         processSingleMessage(hooverMumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(comment, infection.getComment());
@@ -181,8 +180,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
         processSingleMessage(hooverMumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertHooverMumpsTimes(infection);
     }
@@ -205,8 +204,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hooverMumps.setComment(InterchangeValue.buildFromHl7(comment));
         processSingleMessage(hooverMumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         // extra data should be added
@@ -226,8 +225,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // process message that is older than current database with different data
         processOlderDateTimeMessage();
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -245,8 +244,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // process newer message with different date information
         processSingleMessage(hooverMumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -262,8 +261,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hl7Mumps.setInfectionResolved(InterchangeValue.buildFromHl7(resolveTime));
         processSingleMessage(hl7Mumps);
 
-        PatientState infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertNull(infection.getComment());
         assertEquals(resolveTime, infection.getResolutionDateTime());
@@ -274,8 +273,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hl7Mumps.setComment(InterchangeValue.buildFromHl7(comment));
         processSingleMessage(hl7Mumps);
 
-        infection = patientStateRepository
-                .findByMrnIdMrnAndPatientStateTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+        infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(comment, infection.getComment());
