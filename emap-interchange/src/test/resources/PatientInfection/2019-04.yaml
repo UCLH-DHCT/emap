@@ -1,7 +1,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "hoover"
   sourceMessageId: "1"
-  updatedDateTime: "2019-03-07T11:31:05Z"
+  updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
   infection: "Mumps"
   epicInfectionId:
@@ -28,7 +28,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "hoover"
   sourceMessageId: "2"
-  updatedDateTime: "2019-04-05T02:05:49Z"
+  updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
   infection: "Varicella"
   epicInfectionId:
@@ -55,7 +55,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "hoover"
   sourceMessageId: "3"
-  updatedDateTime: "2019-05-07T09:40:25Z"
+  updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "Bq6PQt5xSa"
   infection: "MRSA"
   epicInfectionId:
@@ -82,7 +82,7 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "hoover"
   sourceMessageId: "4"
-  updatedDateTime: "2019-06-08T19:45:00Z"
+  updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "xo9dzpR0Zx7J"
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
