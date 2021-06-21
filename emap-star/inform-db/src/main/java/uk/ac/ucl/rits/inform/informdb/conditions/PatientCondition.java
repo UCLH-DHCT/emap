@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb.conditions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @NoArgsConstructor
 @AuditTable
 public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
@@ -38,6 +40,8 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     @JoinColumn(name = "conditionTypeId", nullable = false)
     private ConditionType conditionTypeId;
 
+    private Long internalId;
+
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
@@ -48,9 +52,6 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
-
-    @Column(nullable = false)
-    private String sourceSystem;
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resolutionDateTime;
@@ -75,10 +76,11 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      * @param mrn                patient ID
      * @param addedDateTime      when patient state has been added
      */
-    public PatientCondition(ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
+    public PatientCondition(Long internalId, ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
         this.conditionTypeId = conditionTypeId;
         this.mrnId = mrn;
         this.addedDateTime = addedDateTime;
+        this.internalId = internalId;
     }
 
     /**
@@ -92,8 +94,8 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
         if (other.hospitalVisitId != null) {
             hospitalVisitId = other.hospitalVisitId;
         }
+        internalId = other.internalId;
         addedDateTime = other.addedDateTime;
-        sourceSystem = other.sourceSystem;
         resolutionDateTime = other.resolutionDateTime;
         onsetDate = other.onsetDate;
         classification = other.classification;
