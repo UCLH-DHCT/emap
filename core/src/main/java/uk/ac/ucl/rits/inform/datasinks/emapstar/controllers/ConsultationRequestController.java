@@ -13,7 +13,6 @@ import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 
@@ -77,33 +76,32 @@ public class ConsultationRequestController {
     /**
      * Get or create existing ConsultationRequest entity.
      * @param msg                       Consultation request message
-     * @param mrn                       Patient identifier
      * @param visit                     Hospital visit of patient this consultation request refers to.
      * @param consultationType   Consultancy type as identified in message
      * @param storedFrom                time that emap-core started processing the message
      * @return ConsultationRequest entity wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
-            ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
+            ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
-                .findByMrnIdAndHospitalVisitIdAndConsultationRequestTypeId(mrn, visit, consultationType)
+                .findByHospitalVisitIdAndConsultationRequestTypeId(visit, consultationType)
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalConsultationRequest(msg, mrn, visit, consultationType, storedFrom));
+                .orElseGet(() -> createMinimalConsultationRequest(msg, visit, consultationType, storedFrom));
     }
 
     /**
      * Create minimal consultation request wrapped in RowState.
      * @param msg                       Consultation request message
-     * @param mrn                       patient identifier
      * @param visit                     Hospital visit of the patient consultation request occurred at
      * @param consultationType   Consultation request type referred to in message
      * @param storedFrom                time that emap-core started processing the message
      * @return minimal consultation request wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> createMinimalConsultationRequest(
-            ConsultRequest msg, Mrn mrn, HospitalVisit visit, ConsultationType consultationType,
+            ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType,
             Instant storedFrom) {
-        ConsultationRequest consultationRequest = new ConsultationRequest(consultationType, mrn, visit);
+        ConsultationRequest consultationRequest = new ConsultationRequest(consultationType, visit,
+                msg.getSourceMessageId());
         logger.debug("Created new {}", consultationRequest);
         return new RowState<>(consultationRequest, msg.getStatusChangeTime(), storedFrom, true);
     }
@@ -135,17 +133,16 @@ public class ConsultationRequestController {
     /**
      * Process patient state message.
      * @param msg           message
-     * @param mrn           patient id
      * @param visit         hospital visit this consultation request related to.
      * @param storedFrom    valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final ConsultRequest msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
-                msg, mrn, visit, consultationType, storedFrom);
+                msg, visit, consultationType, storedFrom);
         ConsultationRequest cRequest = consultationRequest.getEntity();
 
         consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getRequestedDateTime(),
