@@ -4,13 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
@@ -20,16 +20,17 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases to ensure that processing of patient infection messages is working correctly.
- *
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
@@ -242,14 +243,37 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // id shouldn't be the same as the hl7 infection because that should be deleted
         assertNotEquals(hl7Infection.getPatientConditionId(), infection.getPatientConditionId());
 
-        // should have an audit log of the previous infection id
-        PatientConditionAudit audit = patientConditionAuditRepository.findByPatientConditionId(hl7Infection.getPatientConditionId()).orElseThrow();
-        assertEquals(MUMPS_ADD_TIME, audit.getAddedDateTime());
-
         // extra data should be added
         assertHooverMumpsTimes(infection);
         assertEquals(comment, infection.getComment());
         assertEquals(1, infection.getInternalId());
+    }
+
+    /**
+     * Given Hl7 message for a different infection has been processed
+     * When a later hoover message is parsed of another infection
+     * Then an audit log should be made for the hl7 message as it was deleted
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testUnrelatedHl7InfectionDeletedAndAudited() throws EmapOperationMessageProcessingException {
+        String anotherInfection = "COVID";
+        hl7Mumps.setInfection(anotherInfection);
+        processSingleMessage(hl7Mumps);
+        PatientCondition hl7Infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
+                .orElseThrow();
+
+        processSingleMessage(hooverMumps);
+
+        // should be deleted
+        Optional<PatientCondition> deletedInfection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME);
+        assertTrue(deletedInfection.isEmpty());
+
+        // should have an audit log of the previous infection id
+        PatientConditionAudit audit = patientConditionAuditRepository.findByPatientConditionId(hl7Infection.getPatientConditionId()).orElseThrow();
+        assertEquals(MUMPS_ADD_TIME, audit.getAddedDateTime());
     }
 
     /**
