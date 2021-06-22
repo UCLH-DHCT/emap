@@ -22,7 +22,9 @@ import java.util.Optional;
 
 
 /**
- * Interactions with patient conditions.
+ * Parses patient conditions from interchange messages.
+ * <p>
+ * Currently planned to deal with patient infections and problem lists but should parse any condition that can have a start and end.
  * @author Anika Cawthorn
  * @author Stef Piatek
  */
@@ -38,7 +40,6 @@ public class PatientConditionController {
     }
 
     /**
-     * Setting repositories holding information on patient conditions.
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
      * @param conditionTypeRepo         autowired ConditionTypeRepository
