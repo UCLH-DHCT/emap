@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test cases to ensure that processing of patient infection messages is working correctly.
@@ -174,6 +176,28 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     }
 
     /**
+     * The when a hoover row is processed, the internal id should be saved to the database.
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testInternalIdAddedFromHoover() throws EmapOperationMessageProcessingException {
+        processSingleMessage(hooverMumps);
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .orElseThrow();
+        assertEquals(1, infection.getInternalId());
+    }
+
+    /**
+     * A hoover infection with an unknown condition Id should throw an exception upon processing.
+     */
+    @Test
+    void testMissingInternalIdFromHooverThrows() {
+        hooverMumps.setEpicInfectionId(InterchangeValue.unknown());
+        assertThrows(RequiredDataMissingException.class, () -> processSingleMessage(hooverMumps));
+    }
+
+    /**
      * hl7 message was updated before the hoover message, so should be updated
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
@@ -217,6 +241,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // extra data should be added
         assertHooverMumpsTimes(infection);
         assertEquals(comment, infection.getComment());
+        assertEquals(1, infection.getInternalId());
     }
 
     /**
