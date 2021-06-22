@@ -50,7 +50,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
-    @Column(nullable = false, columnDefinition = "timestamp with time zone")
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
     @Column(columnDefinition = "timestamp with time zone")
