@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -84,11 +86,16 @@ public class PatientConditionController {
             throws EmapOperationMessageProcessingException {
         ConditionType conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfection(), msg.getUpdatedDateTime(), storedFrom);
+
+        // we can't trust the hl7 feed so when we find a hoover patient infection, delete the previous ones
         if ("hoover".equals(msg.getSourceSystem())) {
-            // we can't trust the hl7 feed so when we find a hoover patient infection, delete the previous ones
-            logger.debug("Deleting all {} infections before {}", conditionType.getName(), msg.getUpdatedDateTime());
-            patientConditionRepo.deleteAllByValidFromBeforeAndInternalIdIsNullAndConditionTypeId(msg.getUpdatedDateTime(), conditionType);
+            logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
+            List<ConditionType> hl7InfectionTypes = getAllInfectionTypesAndCacheResults();
+            auditAndDeletePatientConditionsUntil(hl7InfectionTypes, msg.getUpdatedDateTime(), storedFrom);
+        } else {
+            clearCacheOfInfectionTypes();
         }
+
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType, storedFrom);
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
@@ -96,6 +103,40 @@ public class PatientConditionController {
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+    }
+
+    /**
+     * Get all patient infection condition types or get form cache if it hasn't been cleared.
+     * @return all patient infection condition types
+     */
+    @Cacheable(value = "infectionTypes")
+    public List<ConditionType> getAllInfectionTypesAndCacheResults() {
+        return conditionTypeRepo.findAllByDataType(PatientConditionType.PATIENT_INFECTION.toString());
+    }
+
+    /**
+     * Audit and delete all patient conditions that are of the condition types and are valid until the delete until date.
+     * @param hl7InfectionTypes patient infection condition types to delete
+     * @param deleteUntil       instant to delete until
+     * @param storedFrom        time that star started processing the message
+     */
+    private void auditAndDeletePatientConditionsUntil(List<ConditionType> hl7InfectionTypes, Instant deleteUntil, Instant storedFrom) {
+        List<PatientCondition> hl7Infections = patientConditionRepo
+                .findAllByValidFromLessThanEqualAndInternalIdIsNullAndConditionTypeIdIn(deleteUntil, hl7InfectionTypes);
+        for (PatientCondition hl7Infection : hl7Infections) {
+            logger.debug("Deleting {}", hl7Infection);
+            PatientConditionAudit hl7InfectionAudit = hl7Infection.createAuditEntity(deleteUntil, storedFrom);
+            patientConditionAuditRepo.save(hl7InfectionAudit);
+            patientConditionRepo.delete(hl7Infection);
+        }
+    }
+
+    /**
+     * Clear cache of patient infection condition types.
+     */
+    @CacheEvict(value = "infectionTypes", allEntries = true)
+    public void clearCacheOfInfectionTypes() {
+        return;
     }
 
     /**

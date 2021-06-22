@@ -4,9 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -34,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Autowired
     PatientConditionRepository patientConditionRepository;
+    @Autowired
+    PatientConditionAuditRepository patientConditionAuditRepository;
     @Autowired
     ConditionTypeRepository conditionTypeRepository;
 
@@ -237,6 +241,10 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         // id shouldn't be the same as the hl7 infection because that should be deleted
         assertNotEquals(hl7Infection.getPatientConditionId(), infection.getPatientConditionId());
+
+        // should have an audit log of the previous infection id
+        PatientConditionAudit audit = patientConditionAuditRepository.findByPatientConditionId(hl7Infection.getPatientConditionId()).orElseThrow();
+        assertEquals(MUMPS_ADD_TIME, audit.getAddedDateTime());
 
         // extra data should be added
         assertHooverMumpsTimes(infection);
