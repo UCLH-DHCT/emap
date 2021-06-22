@@ -72,9 +72,10 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * Minimal information constructor.
+     * @param internalId      Id in epic for the patient condition
      * @param conditionTypeId ID for patient state type
-     * @param mrn                patient ID
-     * @param addedDateTime      when patient state has been added
+     * @param mrn             patient ID
+     * @param addedDateTime   when patient state has been added
      */
     public PatientCondition(Long internalId, ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
         this.conditionTypeId = conditionTypeId;
