@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -93,4 +94,10 @@ class TestPatientInfections extends TestHl7MessageStream {
         assertTrue(infections.isEmpty());
     }
 
+    @Test
+    void testNoInfectionAddedTime() throws Exception {
+        List<PatientInfection> infections = getAllInfections("mumps_no_add_time");
+        assertEquals(1, infections.size());
+        assertNull(infections.get(0).getInfectionAdded());
+    }
 }
