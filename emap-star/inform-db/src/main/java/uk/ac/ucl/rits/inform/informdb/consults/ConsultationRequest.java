@@ -38,7 +38,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     private HospitalVisit hospitalVisitId;
 
     @Column(nullable = false)
-    private String consultId;
+    private Long consultId;
 
     /** Optional fields for consultation requests. */
     private Boolean closedDueToDischarge = false;
@@ -53,7 +53,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
      * @param hospitalVisitId       ID for hospital visit of patient that consultation request relates to
      * @param consultId             ID for consultation request
      */
-    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, String consultId) {
+    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, Long consultId) {
         this.consultationTypeId = consultationTypeId;
         this.hospitalVisitId = hospitalVisitId;
         this.consultId = consultId;
