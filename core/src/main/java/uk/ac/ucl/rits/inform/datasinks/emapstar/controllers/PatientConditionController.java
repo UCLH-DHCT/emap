@@ -39,9 +39,9 @@ public class PatientConditionController {
 
     /**
      * Setting repositories holding information on patient conditions.
-     * @param patientConditionRepo      autowired PatientStateRepository
-     * @param patientConditionAuditRepo autowired PatientStateAuditRepository
-     * @param conditionTypeRepo         autowired PatientStateTypeRepository
+     * @param patientConditionRepo      autowired PatientConditionRepository
+     * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
+     * @param conditionTypeRepo         autowired ConditionTypeRepository
      */
     public PatientConditionController(
             PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo,
@@ -57,10 +57,10 @@ public class PatientConditionController {
      * @param typeName        name of the individual condition within the type
      * @param updatedDateTime when the condition information is valid from
      * @param storedFrom      when patient infection information is stored from
-     * @return PatientStateType
+     * @return ConditionType
      */
     @Cacheable(value = "conditionType", key = "{#dataType, #typeName}")
-    public ConditionType getOrCreatePatientStateType(
+    public ConditionType getOrCreateConditionType(
             PatientConditionType type, String typeName, Instant updatedDateTime, Instant storedFrom) {
         return conditionTypeRepo
                 .findByDataTypeAndName(type.toString(), typeName)
@@ -72,7 +72,7 @@ public class PatientConditionController {
     }
 
     /**
-     * Process patient state message.
+     * Process patient condition message.
      * @param msg        message
      * @param mrn        patient id
      * @param storedFrom valid from in database
@@ -81,41 +81,31 @@ public class PatientConditionController {
     @Transactional
     public void processMessage(final PatientInfection msg, Mrn mrn, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        ConditionType conditionType = getOrCreatePatientStateType(
+        ConditionType conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfection(), msg.getUpdatedDateTime(), storedFrom);
         if ("hoover".equals(msg.getSourceSystem())) {
+            // we can't trust the hl7 feed so when we find a hoover patient infection, delete the previous ones
             logger.debug("Deleting all {} infections before {}", conditionType.getName(), msg.getUpdatedDateTime());
             patientConditionRepo.deleteAllByValidFromBeforeAndInternalIdIsNullAndConditionTypeId(msg.getUpdatedDateTime(), conditionType);
         }
-        // should delete all messages which are valid from previous message if the source is from hoover
-        RowState<PatientCondition, PatientConditionAudit> patientState = getOrCreatePatientState(msg, mrn, conditionType,
-                storedFrom);
-        patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getComment(),
-                patientState.getEntity().getComment(), patientState.getEntity()::setComment,
-                msg.getUpdatedDateTime(), storedFrom);
-        patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionResolved(),
-                patientState.getEntity().getResolutionDateTime(), patientState.getEntity()::setResolutionDateTime,
-                msg.getUpdatedDateTime(), storedFrom);
-        patientState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getInfectionOnset(),
-                patientState.getEntity().getOnsetDate(), patientState.getEntity()::setOnsetDate,
-                msg.getUpdatedDateTime(), storedFrom);
+        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType, storedFrom);
 
-        if (messageShouldBeUpdated(msg, patientState)) {
-            updatePatientCondition(msg, patientState);
+        if (messageShouldBeUpdated(msg, patientCondition)) {
+            updatePatientCondition(msg, patientCondition);
         }
 
-        patientState.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
     }
 
     /**
-     * Get or create existing patient state entity.
+     * Get or create existing patient condition entity.
      * @param msg           patient infection message
      * @param mrn           patient identifier
-     * @param conditionType patient state type referred to in message
+     * @param conditionType condition type referred to in message
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientState(
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
             PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) throws RequiredDataMissingException {
         Optional<PatientCondition> patientCondition;
         final Long epicInfectionId;
@@ -143,14 +133,14 @@ public class PatientConditionController {
     }
 
     /**
-     * Create minimal visit observation wrapped in RowState.
+     * Create minimal patient condition wrapped in RowState.
      * @param epicConditionId internal epic Id for condition
      * @param mrn             patient identifier
      * @param conditionType   condition type
      * @param conditionAdded  condition added at
      * @param validFrom       hospital time that the data is true from
      * @param storedFrom      time that emap-core started processing the message
-     * @return minimal patient state wrapped in RowState
+     * @return minimal patient condition wrapped in RowState
      */
     private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
             Long epicConditionId, Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
@@ -165,21 +155,20 @@ public class PatientConditionController {
      * @param conditionDate row state of condition
      * @return true if message should be updated
      */
-    private boolean messageShouldBeUpdated(PatientInfection msg, RowState<PatientCondition,
-            PatientConditionAudit> conditionDate) {
+    private boolean messageShouldBeUpdated(PatientInfection msg, RowState<PatientCondition, PatientConditionAudit> conditionDate) {
         return conditionDate.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(conditionDate.getEntity().getConditionTypeId().getValidFrom());
     }
 
     /**
-     * Update patient state from patient infection message.
-     * @param msg          patient infection message
-     * @param patientState patient condition entity to update
+     * Update patient condition from patient infection message.
+     * @param msg            patient infection message
+     * @param conditionState patient condition entity to update
      */
-    private void updatePatientCondition(PatientInfection msg, RowState<PatientCondition, PatientConditionAudit> patientState) {
-        PatientCondition state = patientState.getEntity();
-        patientState.assignInterchangeValue(msg.getComment(), state.getComment(), state::setComment);
-        patientState.assignInterchangeValue(msg.getStatus(), state.getStatus(), state::setStatus);
-        patientState.assignInterchangeValue(msg.getInfectionResolved(), state.getResolutionDateTime(), state::setResolutionDateTime);
-        patientState.assignInterchangeValue(msg.getInfectionOnset(), state.getOnsetDate(), state::setOnsetDate);
+    private void updatePatientCondition(PatientInfection msg, RowState<PatientCondition, PatientConditionAudit> conditionState) {
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
+        conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
+        conditionState.assignInterchangeValue(msg.getInfectionResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
+        conditionState.assignInterchangeValue(msg.getInfectionOnset(), condition.getOnsetDate(), condition::setOnsetDate);
     }
 }
