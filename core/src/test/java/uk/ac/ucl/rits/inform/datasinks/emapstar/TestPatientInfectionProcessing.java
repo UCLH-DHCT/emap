@@ -313,4 +313,20 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         assertHooverMumpsTimes(infection);
     }
+
+    /**
+     * Given patient infection with no added datetime should be processed
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testInfectionWithNoAddedDateTimeIsParsed() throws EmapOperationMessageProcessingException {
+        hl7Mumps.setInfectionAdded(null);
+        processSingleMessage(hl7Mumps);
+
+        PatientCondition infection = patientConditionRepository
+                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, null)
+                .orElseThrow();
+
+        assertNull(infection.getAddedDateTime());
+    }
 }
