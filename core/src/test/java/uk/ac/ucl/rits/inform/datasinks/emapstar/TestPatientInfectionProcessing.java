@@ -256,34 +256,4 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         assertHooverMumpsTimes(infection);
     }
-
-    /**
-     * Checks whether older message updates comment, but not date fields.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
-     */
-    @Test
-    void olderMessageDoesntUpdateComment () throws EmapOperationMessageProcessingException {
-        Instant resolveTime = MUMPS_ADD_TIME.plus(21, ChronoUnit.DAYS);
-        hl7Mumps.setInfectionResolved(InterchangeValue.buildFromHl7(resolveTime));
-        processSingleMessage(hl7Mumps);
-
-        PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
-                .orElseThrow();
-        assertNull(infection.getComment());
-        assertEquals(resolveTime, infection.getResolutionDateTime());
-
-        String comment = "great comment";
-        hl7Mumps.setUpdatedDateTime(hl7Mumps.getUpdatedDateTime().minus(8, ChronoUnit.HOURS));
-        hl7Mumps.setInfectionResolved(InterchangeValue.buildFromHl7(resolveTime.minus(12, ChronoUnit.DAYS)));
-        hl7Mumps.setComment(InterchangeValue.buildFromHl7(comment));
-        processSingleMessage(hl7Mumps);
-
-        infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
-                .orElseThrow();
-
-        assertEquals(comment, infection.getComment());
-        assertEquals(resolveTime, infection.getResolutionDateTime());
-    }
 }
