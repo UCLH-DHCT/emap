@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface ConditionTypeRepository extends CrudRepository<ConditionType, Long> {
     /**
      * @param dataType Type of data (patient infection or problem list)
-     * @param name     name of state
-     * @return possible patient state type
+     * @param name     name of condition
+     * @return possible patient condition type
      */
     Optional<ConditionType> findByDataTypeAndName(String dataType, String name);
 }

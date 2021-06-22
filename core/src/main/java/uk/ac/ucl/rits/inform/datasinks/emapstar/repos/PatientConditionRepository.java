@@ -14,11 +14,11 @@ import java.util.Optional;
  */
 public interface PatientConditionRepository extends CrudRepository<PatientCondition, Long> {
     /**
-     * Get patient state, should be unique.
+     * Get patient condition, should be unique.
      * @param mrn           MRN entity
-     * @param conditionType type of state
+     * @param conditionType type of condition
      * @param addedDateTime added date time
-     * @return possible patient state
+     * @return possible patient condition
      */
     Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDateTime(
             Mrn mrn, ConditionType conditionType, Instant addedDateTime
@@ -35,12 +35,12 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
     /**
      * For testing, shortcut without requiring entities to be passed.
      * @param mrn           mrn sting
-     * @param stateName     name of the state
+     * @param conditionName     name of the condition
      * @param addedDateTime added date time
-     * @return possible patient state
+     * @return possible patient condition
      */
     Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(
-            String mrn, String stateName, Instant addedDateTime
+            String mrn, String conditionName, Instant addedDateTime
     );
 
     Optional<PatientCondition> findByConditionTypeIdAndInternalId(ConditionType conditionType, Long internalId);
