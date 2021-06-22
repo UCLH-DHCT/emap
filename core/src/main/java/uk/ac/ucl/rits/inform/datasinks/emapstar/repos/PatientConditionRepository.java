@@ -6,6 +6,7 @@ import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,15 +28,17 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
     /**
      * Delete all that is valid before an instant for types.
      * @param untilDateTime instant to delete all messages before
-     * @param conditionType      data type
+     * @param conditionType data types to delete
+     * @return List of patient conditions
      */
-    void deleteAllByValidFromBeforeAndInternalIdIsNullAndConditionTypeId(Instant untilDateTime, ConditionType conditionType);
+    List<PatientCondition> findAllByValidFromLessThanEqualAndInternalIdIsNullAndConditionTypeIdIn(
+            Instant untilDateTime, List<ConditionType> conditionType);
 
 
     /**
      * For testing, shortcut without requiring entities to be passed.
      * @param mrn           mrn sting
-     * @param conditionName     name of the condition
+     * @param conditionName name of the condition
      * @param addedDateTime added date time
      * @return possible patient condition
      */

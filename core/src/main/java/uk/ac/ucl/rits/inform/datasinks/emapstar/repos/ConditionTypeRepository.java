@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,4 +17,10 @@ public interface ConditionTypeRepository extends CrudRepository<ConditionType, L
      * @return possible patient condition type
      */
     Optional<ConditionType> findByDataTypeAndName(String dataType, String name);
+
+    /**
+     * @param dataType Type of data (patient infection or problem list)
+     * @return list of all patient condition types
+     */
+    List<ConditionType> findAllByDataType(String dataType);
 }
