@@ -106,13 +106,24 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testPatientInfectionTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(hl7Mumps);
 
-        ConditionType type = conditionTypeRepository.findByDataTypeAndName(PATIENT_INFECTION, MUMPS_INFECTION).orElseThrow();
+        ConditionType type = conditionTypeRepository.findByDataTypeAndInternalCode(PATIENT_INFECTION, MUMPS_INFECTION).orElseThrow();
 
         assertEquals(HL7_UPDATE_TIME, type.getValidFrom());
         assertNotNull(type.getValidFrom());
         assertNull(type.getStandardisedCode());
         assertNull(type.getStandardisedVocabulary());
+        assertNull(type.getName());
     }
+
+    @Test
+    void testPatientInfectionTypeNameUpdated() throws EmapOperationMessageProcessingException {
+        processSingleMessage(hl7Mumps);
+        processSingleMessage(hooverMumps);
+        ConditionType type = conditionTypeRepository.findByDataTypeAndInternalCode(PATIENT_INFECTION, MUMPS_INFECTION).orElseThrow();
+
+        assertEquals(MUMPS_INFECTION, type.getName());
+    }
+
 
     /**
      * Patient infection with only added time should create an entity that has no resolution time.
@@ -123,7 +134,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(HL7_UPDATE_TIME, infection.getValidFrom());
@@ -142,7 +153,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertEquals(resolveTime, infection.getResolutionDateTime());
     }
@@ -156,7 +167,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -174,7 +185,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(comment, infection.getComment());
@@ -189,7 +200,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testInternalIdAddedFromHoover() throws EmapOperationMessageProcessingException {
         processSingleMessage(hooverMumps);
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertEquals(1, infection.getInternalId());
     }
@@ -213,7 +224,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertHooverMumpsTimes(infection);
     }
@@ -230,7 +241,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // original minimal message has comment, resolution datetime, onset date and comment as unknown
         processSingleMessage(hl7Mumps);
         PatientCondition hl7Infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         String comment = "great comment";
@@ -238,7 +249,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         // id shouldn't be the same as the hl7 infection because that should be deleted
@@ -263,14 +274,14 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hl7Mumps.setInfectionName(InterchangeValue.buildFromHl7(anotherInfection));
         processSingleMessage(hl7Mumps);
         PatientCondition hl7Infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         processSingleMessage(hooverMumps);
 
         // should be deleted
         Optional<PatientCondition> deletedInfection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME);
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME);
         assertTrue(deletedInfection.isEmpty());
 
         // should have an audit log of the previous infection id
@@ -291,7 +302,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processOlderDateTimeMessage();
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -310,7 +321,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -326,7 +337,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, null)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, null)
                 .orElseThrow();
 
         assertNull(infection.getAddedDateTime());

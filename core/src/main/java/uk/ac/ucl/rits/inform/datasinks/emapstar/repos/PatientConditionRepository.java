@@ -38,12 +38,12 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
     /**
      * For testing, shortcut without requiring entities to be passed.
      * @param mrn           mrn sting
-     * @param conditionName name of the condition
+     * @param internalCode  EPIC code of the condition
      * @param addedDateTime added date time
      * @return possible patient condition
      */
-    Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(
-            String mrn, String conditionName, Instant addedDateTime
+    Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(
+            String mrn, String internalCode, Instant addedDateTime
     );
 
     Optional<PatientCondition> findByConditionTypeIdAndInternalId(ConditionType conditionType, Long internalId);
