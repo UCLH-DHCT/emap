@@ -37,9 +37,14 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private String dataType;
 
     /**
-     * disease or infection type.
+     * Code used within EPIC for condition.
      */
     @Column(nullable = false)
+    private String internalCode;
+
+    /**
+     * Human readable name for condition.
+     */
     private String name;
     private String standardisedCode;
     private String standardisedVocabulary;
@@ -47,12 +52,12 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     /**
      * Minimal information constructor.
      * @param dataType   Type of patient state type; either patient infection or problem list
-     * @param name       Name of the patient state type
+     * @param code       EPIC code of the patient state type
      * @param validFrom  Timestamp from which information valid from
      * @param storedFrom Timestamp from which information stored from
      */
-    public ConditionType(String dataType, String name, Instant validFrom, Instant storedFrom) {
-        this.name = name;
+    public ConditionType(String dataType, String code, Instant validFrom, Instant storedFrom) {
+        this.internalCode = code;
         this.dataType = dataType;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
@@ -65,6 +70,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     public ConditionType(ConditionType other) {
         super(other);
         this.dataType = other.dataType;
+        this.internalCode = other.internalCode;
         this.name = other.name;
         this.standardisedCode = other.standardisedCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
