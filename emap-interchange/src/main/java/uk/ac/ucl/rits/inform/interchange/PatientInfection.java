@@ -22,9 +22,14 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
     /**
-     * Infection name.
+     * Infection abbreviation.
      */
-    private String infection;
+    private String infectionCode;
+
+    /**
+     * Human readable infection name.
+     */
+    private InterchangeValue<String> infectionName = InterchangeValue.unknown();
 
     /**
      * Time of the update or message carrying this information.
