@@ -49,7 +49,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     private static Instant MUMPS_ADD_TIME = Instant.parse("2019-06-02T10:31:05Z");
     private static String MUMPS_INFECTION = "Mumps";
     private static String PATIENT_INFECTION = "PATIENT_INFECTION";
-    private static Instant HL7_UPDATE_TIME = Instant.parse("2019-03-07T11:32:00Z");
+    private static Instant HL7_UPDATE_TIME = Instant.parse("2019-06-07T11:32:00Z");
 
     @BeforeEach
     private void setUp() throws IOException {
