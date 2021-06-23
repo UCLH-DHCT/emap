@@ -66,7 +66,7 @@ public class PatientConditionController {
     public ConditionType getOrCreateConditionType(
             PatientConditionType type, String typeName, Instant updatedDateTime, Instant storedFrom) {
         return conditionTypeRepo
-                .findByDataTypeAndName(type.toString(), typeName)
+                .findByDataTypeAndInternalCode(type.toString(), typeName)
                 .orElseGet(() -> {
                     ConditionType conditionType = new ConditionType(type.toString(), typeName, updatedDateTime, storedFrom);
                     logger.debug("Created new {}", conditionType);
