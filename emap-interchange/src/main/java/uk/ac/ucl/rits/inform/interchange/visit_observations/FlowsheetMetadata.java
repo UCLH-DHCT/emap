@@ -26,17 +26,11 @@ public class FlowsheetMetadata extends EmapOperationMessage implements  Observat
     private String flowsheetId;
     private String name;
     private String displayName;
-    private String abbreviation;
     private String valueType;
-    private String rowType;
     private String unit;
     private String description;
-    private Boolean isBloodLoss;
-    private Boolean isCalculated;
     private Instant creationInstant;
     private Instant lastUpdatedInstant;
-    private Boolean isInferred;
-    private Boolean isDeleted;
     private String sourceObservationType = "flowsheet";
 
     public FlowsheetMetadata() {
