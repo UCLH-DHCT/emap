@@ -1,0 +1,54 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "hoover"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "8DcEwvqa8Q3"
+  infection: "Mumps"
+  epicInfectionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
+  infectionAdded: "2019-03-07T11:31:05Z"
+  infectionResolved:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-21T15:22:01Z"
+  infectionOnset:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-05"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "hoover"
+  sourceMessageId: "2"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "suI83US"
+  infection: "Varicella"
+  epicInfectionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 2
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Deleted"
+  infectionAdded: "2019-04-05T02:05:49Z"
+  infectionResolved:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+  infectionOnset:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-20"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Proin risus."
