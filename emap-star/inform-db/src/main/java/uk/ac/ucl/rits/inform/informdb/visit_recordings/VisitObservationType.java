@@ -119,6 +119,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         standardisedCode = other.standardisedCode;
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
+        creationTime = other.creationTime;
     }
 
     @Override
