@@ -57,21 +57,35 @@ public class PatientConditionController {
     /**
      * Get existing condition type or create and save minimal condition type.
      * @param type            Condition Type
-     * @param typeName        name of the individual condition within the type
+     * @param conditionCode   EPIC code for the condition within the type
      * @param updatedDateTime when the condition information is valid from
      * @param storedFrom      when patient infection information is stored from
      * @return ConditionType
      */
-    @Cacheable(value = "conditionType", key = "{#dataType, #typeName}")
+    @Cacheable(value = "conditionType", key = "{#type, #conditionCode}")
     public ConditionType getOrCreateConditionType(
-            PatientConditionType type, String typeName, Instant updatedDateTime, Instant storedFrom) {
+            PatientConditionType type, String conditionCode, Instant updatedDateTime, Instant storedFrom) {
         return conditionTypeRepo
-                .findByDataTypeAndInternalCode(type.toString(), typeName)
+                .findByDataTypeAndInternalCode(type.toString(), conditionCode)
                 .orElseGet(() -> {
-                    ConditionType conditionType = new ConditionType(type.toString(), typeName, updatedDateTime, storedFrom);
+                    ConditionType conditionType = new ConditionType(type.toString(), conditionCode, updatedDateTime, storedFrom);
                     logger.debug("Created new {}", conditionType);
                     return conditionTypeRepo.save(conditionType);
                 });
+    }
+
+    /**
+     * Persist condition type with new name and remove this entry from the cache.
+     * @param typeToUpdate  condition type entity to updated
+     * @param type          type of condition, used as the key for the cache
+     * @param conditionCode used as the key for the cache
+     * @param name          updated name to add
+     */
+    @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
+    public void updateNameAndClearFromCache(ConditionType typeToUpdate, String name, PatientConditionType type, String conditionCode) {
+        logger.trace("Adding name '{}' to {}", name, typeToUpdate);
+        typeToUpdate.setName(name);
+        conditionTypeRepo.save(typeToUpdate);
     }
 
     /**
@@ -87,14 +101,8 @@ public class PatientConditionController {
         ConditionType conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
 
-        // we can't trust the hl7 feed so when we find a hoover patient infection, delete the previous ones
-        if ("hoover".equals(msg.getSourceSystem())) {
-            logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
-            List<ConditionType> hl7InfectionTypes = getAllInfectionTypesAndCacheResults();
-            auditAndDeletePatientConditionsUntil(hl7InfectionTypes, msg.getUpdatedDateTime(), storedFrom);
-        } else {
-            clearCacheOfInfectionTypes();
-        }
+        updateConditionTypeNameIfDifferent(msg, conditionType);
+        deletePreviousInfectionTypesOrClearCache(msg, storedFrom);
 
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType, storedFrom);
 
@@ -103,6 +111,38 @@ public class PatientConditionController {
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+    }
+
+    /**
+     * HL7 only has infection code, so update these if there is a known name and it's different.
+     * Don't need to check for messages being newer because messages from hoover are ordered.
+     * @param msg           patient infection message
+     * @param conditionType condition type to update
+     */
+    private void updateConditionTypeNameIfDifferent(PatientInfection msg, ConditionType conditionType) {
+        if (msg.getInfectionName().isUnknown()) {
+            return;
+        }
+        String infectionName = msg.getInfectionName().get();
+        if (!infectionName.equals(conditionType.getName())) {
+            updateNameAndClearFromCache(conditionType, infectionName, PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode());
+        }
+    }
+
+    /**
+     * We can't trust patient infections from HL7 as no ID, so delete these if the infection ID is known.
+     * If processing HL7 then clear the cache of infection types so that new types will be updated if added from hl7.
+     * @param msg         patient infection message
+     * @param deleteUntil time to delete messages up until (inclusive)
+     */
+    private void deletePreviousInfectionTypesOrClearCache(PatientInfection msg, Instant deleteUntil) {
+        if (msg.getEpicInfectionId().isSave()) {
+            logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
+            List<ConditionType> hl7InfectionTypes = getAllInfectionTypesAndCacheResults();
+            auditAndDeletePatientConditionsUntil(hl7InfectionTypes, msg.getUpdatedDateTime(), deleteUntil);
+        } else {
+            clearCacheOfInfectionTypes();
+        }
     }
 
     /**
