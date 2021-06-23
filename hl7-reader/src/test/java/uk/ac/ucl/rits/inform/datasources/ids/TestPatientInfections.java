@@ -25,8 +25,8 @@ class TestPatientInfections extends TestHl7MessageStream {
     private static final String FILE_TEMPLATE = "PatientInfection/%s.txt";
     private static final String MRN = "8DcEwvqa8Q3";
     private static final String MUMPS_INFECTION = "Mumps";
-    private static final Instant MUMPS_ADD = Instant.parse("2019-03-07T11:31:05Z");
-    private static final Instant MUMPS_UPDATE = Instant.parse("2019-03-07T11:32:00Z");
+    private static final Instant MUMPS_ADD = Instant.parse("2019-06-02T10:31:05Z");
+    private static final Instant MUMPS_UPDATE = Instant.parse("2019-06-07T11:32:00Z");
     private static final String EPIC = "EPIC";
 
 
