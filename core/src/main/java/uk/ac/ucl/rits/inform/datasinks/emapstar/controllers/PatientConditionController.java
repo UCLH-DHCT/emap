@@ -85,7 +85,7 @@ public class PatientConditionController {
     public void processMessage(final PatientInfection msg, Mrn mrn, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         ConditionType conditionType = getOrCreateConditionType(
-                PatientConditionType.PATIENT_INFECTION, msg.getInfection(), msg.getUpdatedDateTime(), storedFrom);
+                PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
 
         // we can't trust the hl7 feed so when we find a hoover patient infection, delete the previous ones
         if ("hoover".equals(msg.getSourceSystem())) {

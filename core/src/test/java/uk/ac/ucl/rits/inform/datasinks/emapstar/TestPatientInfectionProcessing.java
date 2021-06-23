@@ -46,20 +46,20 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     private PatientInfection hl7Mumps;
     private PatientInfection hooverMumps;
     private static String MUMPS_MRN = "8DcEwvqa8Q3";
-    private static Instant MUMPS_ADD_TIME = Instant.parse("2019-03-07T11:31:05Z");
+    private static Instant MUMPS_ADD_TIME = Instant.parse("2019-06-02T10:31:05Z");
     private static String MUMPS_INFECTION = "Mumps";
     private static String PATIENT_INFECTION = "PATIENT_INFECTION";
     private static Instant HL7_UPDATE_TIME = Instant.parse("2019-03-07T11:32:00Z");
 
     @BeforeEach
     private void setUp() throws IOException {
-        hooverMessages = messageFactory.getPatientInfections("2019-04.yaml");
+        hooverMessages = messageFactory.getPatientInfections("updated_only.yaml");
         hl7Mumps = messageFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
         hooverMumps = hooverMessages.get(0);
     }
 
     private void assertHooverMumpsTimes(PatientCondition infection) {
-        assertEquals(Instant.parse("2019-03-21T15:22:01Z"), infection.getResolutionDateTime());
+        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), infection.getResolutionDateTime());
         assertEquals(LocalDate.parse("2019-03-05"), infection.getOnsetDate());
     }
 
@@ -73,7 +73,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         olderMessage.setEpicInfectionId(InterchangeValue.buildFromHl7(1L));
         olderMessage.setSourceSystem(hooverMumps.getSourceSystem());
         olderMessage.setMrn(MUMPS_MRN);
-        olderMessage.setInfection(MUMPS_INFECTION);
+        olderMessage.setInfectionCode(MUMPS_INFECTION);
+        olderMessage.setInfectionName(InterchangeValue.buildFromHl7(MUMPS_INFECTION));
         olderMessage.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
         olderMessage.setInfectionResolved(InterchangeValue.buildFromHl7(olderResolvedTime));
         olderMessage.setInfectionOnset(InterchangeValue.buildFromHl7(olderOnsetDate));
@@ -92,7 +93,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         List<Mrn> mrns = getAllMrns();
 
-        assertEquals(4, mrns.size());
+        assertEquals(2, mrns.size());
         assertEquals("hoover", mrns.get(0).getSourceSystem());
     }
 
@@ -258,7 +259,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Test
     void testUnrelatedHl7InfectionDeletedAndAudited() throws EmapOperationMessageProcessingException {
         String anotherInfection = "COVID";
-        hl7Mumps.setInfection(anotherInfection);
+        hl7Mumps.setInfectionCode(anotherInfection);
+        hl7Mumps.setInfectionName(InterchangeValue.buildFromHl7(anotherInfection));
         processSingleMessage(hl7Mumps);
         PatientCondition hl7Infection = patientConditionRepository
                 .findByMrnIdMrnAndConditionTypeIdNameAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
