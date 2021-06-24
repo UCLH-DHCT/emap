@@ -19,7 +19,8 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import java.time.Instant;
 
 /**
- * Functionality to create consultation requests for patients.
+ * Functionality to create consultation requests for patients. A consultation request is initiated when specialist
+ * advice on a patient's condition is requested through the treating physician.
  * @author Anika Cawthorn
  */
 @Component
@@ -108,7 +109,8 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Update message if consultation request has been created, or the message updated time is >= entity validFrom.
+     * Decides whether or not message data held in the user data storage (accessed by researchers) needs to be updated
+     * with the data held in the message that is processed.
      * @param msg                   Consultation request message
      * @param consultationRequest   Consultation request
      * @return true if message should be updated
@@ -123,6 +125,7 @@ public class ConsultationRequestController {
      * Update consultation request from consultation request message.
      * @param msg                   consultation request message
      * @param consultationRequest   consultation request referred to in message
+     * @param storedFrom            When consultation request is stored from in star database
      */
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultationRequest, Instant storedFrom) {
