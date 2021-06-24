@@ -26,7 +26,7 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @AuditTable
 public class ConsultationRequestQuestion extends
-        TemporalCore<uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion, ConsultationRequestQuestionAudit> {
+        TemporalCore<ConsultationRequestQuestion, ConsultationRequestQuestionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationRequestQuestionId;
@@ -51,7 +51,7 @@ public class ConsultationRequestQuestion extends
         setValidFrom(validFrom);
     }
 
-    public ConsultationRequestQuestion(uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion other) {
+    public ConsultationRequestQuestion(ConsultationRequestQuestion other) {
         super(other);
         this.consultationRequestId = other.consultationRequestId;
         this.questionId = other.questionId;
@@ -59,8 +59,8 @@ public class ConsultationRequestQuestion extends
     }
 
     @Override
-    public uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion copy() {
-        return new uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion(this);
+    public ConsultationRequestQuestion copy() {
+        return new ConsultationRequestQuestion(this);
     }
 
     @Override
