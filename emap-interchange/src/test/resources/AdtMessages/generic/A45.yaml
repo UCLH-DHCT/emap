@@ -13,6 +13,11 @@ fullLocationString:
   status: "SAVE"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  # Explicitly set as midnight in BST so should be kept as the same date
+  value: "2000-06-02"
+  status: "SAVE"
+patientBirthDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   # Explicitly set as midnight in BST so should go back an hour.
   value: "2000-06-01T23:00:00Z"
   status: "SAVE"
