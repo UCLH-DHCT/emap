@@ -55,6 +55,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
+    private static String FRAILTY_NOTE = "";
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -160,6 +161,8 @@ public class TestConsultProcessing extends MessageProcessingBase {
         processSingleMessage(notesConsult);
         ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertNotNull(cRequest.getComments());
+        System.out.println(cRequest.getComments());
+        // assertEquals(FRAILTY_NOTE, cRequest.getComments());
     }
 
     /**
