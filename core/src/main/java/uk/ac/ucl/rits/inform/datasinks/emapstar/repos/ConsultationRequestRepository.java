@@ -13,7 +13,7 @@ public interface ConsultationRequestRepository extends CrudRepository<Consultati
     /**
      * Find consultation request by unique identifier.
      * @param consultId   Consultancy type
-     * @return ConsultationRequest that relates to identifier
+     * @return possible ConsultationRequest
      */
     Optional<ConsultationRequest> findByConsultId(Long consultId);
 }
