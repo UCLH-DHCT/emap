@@ -39,7 +39,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Autowired
     ConsultationRequestRepository consultRequestRepo;
     @Autowired
-    ConsultationTypeRepository consultRequestTypeRepo;
+    ConsultationTypeRepository consultTypeRepo;
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
     @Autowired
@@ -51,6 +51,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private ConsultRequest notesConsult;
     private static String FRAILTY_MRN = "40800000";
     private static String FRAILTY_VISIT_ID = "123412341234";
+    private static Long FRAILTY_CONSULT_ID = Long.valueOf(1234521112);
     private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
@@ -111,7 +112,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testMinimalConsultTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
-        ConsultationType crType = consultRequestTypeRepo.findByStandardisedCode(
+        ConsultationType crType = consultTypeRepo.findByStandardisedCode(
                 FRAILTY_CONSULTATION_TYPE).orElseThrow();
 
         assertEquals(FRAILTY_REQ_TIME, crType.getValidFrom());
@@ -127,8 +128,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     void testCreateNewConsult() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
 
-        ConsultationRequest cRequest = consultRequestRepo.findByHospitalVisitIdAndConsultationTypeId(
-                        FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
 
         assertNull(cRequest.getComments());
         assertNotNull(cRequest.getConsultationRequestId());
@@ -146,9 +146,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testCreateConsultWithQuestions() throws EmapOperationMessageProcessingException{
         processSingleMessage(notesConsult);
-        ConsultationRequest cRequest = consultRequestRepo
-                .findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                        FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(3, consultationRequestQuestionRepository.count());
     }
 
@@ -160,9 +158,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testCreateConsultWithNotes() throws EmapOperationMessageProcessingException {
         processSingleMessage(notesConsult);
-        ConsultationRequest cRequest = consultRequestRepo
-                .findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                        FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertNotNull(cRequest.getComments());
     }
 
@@ -174,14 +170,11 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageCancelRequest() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo
-                .findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                        FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getCancelled());
 
         processSingleMessage(cancelledConsult);
-        cRequest = consultRequestRepo.findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                        FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertTrue(cRequest.getCancelled());
     }
 
@@ -193,14 +186,11 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageClosedDueToDischarge() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByHospitalVisitIdAndConsultationTypeId(
-                        FRAILTY_VISIT_ID, FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getClosedDueToDischarge());
 
         processSingleMessage(closedAtDischargeConsult);
-        cRequest = consultRequestRepo
-                .findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                        FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertTrue(cRequest.getClosedDueToDischarge());
     }
 
@@ -214,17 +204,14 @@ public class TestConsultProcessing extends MessageProcessingBase {
         String great_note = "Great note";
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note));
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo
-                .findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                        FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
 
         String great_note_2 = "bla bla bla";
         minimalConsult.setRequestedDateTime(minimalConsult.getRequestedDateTime().plusSeconds(60));
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note_2));
         processSingleMessage(minimalConsult);
-        cRequest = consultRequestRepo.findByHospitalVisitIdAndConsultationTypeId(FRAILTY_VISIT_ID,
-                FRAILTY_CONSULTATION_TYPE).orElseThrow();
+        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
     }
 }

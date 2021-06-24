@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.ConsultationRequestController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
