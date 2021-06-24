@@ -127,7 +127,8 @@ public class QuestionController {
         questionState.saveEntityOrAuditLogIfRequired(consultationRequestQuestionRepo, consultationRequestQuestionAuditRepo);
     }
 
-    private Question getOrCreateQuestion(String question) {
+    @Cacheable(value = "question")
+    public Question getOrCreateQuestion(String question) {
         return questionRepo.findByQuestion(question)
                 .orElseGet(() -> questionRepo.save(new Question(question)));
     }
