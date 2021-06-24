@@ -56,14 +56,8 @@ public class ConsultationRequestProcessor {
         // retrieve patient to whom message refers to; if MRN not registered, create new patient
         Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
                 msgStatusChangeTime, storedFrom);
-        HospitalVisit visit = null;
-        try {
-            visit = visitController.getOrCreateMinimalHospitalVisit(
+        HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                     msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getStatusChangeTime(), storedFrom);
-
-            consultationRequestController.processMessage(msg, visit, storedFrom);
-        } catch (RequiredDataMissingException e) {
-            logger.debug("No visit for consultation request, skipping creating an encounter");
-        }
+        consultationRequestController.processMessage(msg, visit, storedFrom);
     }
 }
