@@ -8,11 +8,10 @@ import java.util.Optional;
 public interface ConsultationTypeRepository extends CrudRepository<ConsultationType, Long> {
     /**
      * @param consultationType    type of consultation request, i.e. consultation code as used by EPIC.
-     * @return possible consultation request
+     * @return possible consultation type
      */
     Optional<ConsultationType> findByStandardisedCode(String consultationType);
 }
-
 
 
 
