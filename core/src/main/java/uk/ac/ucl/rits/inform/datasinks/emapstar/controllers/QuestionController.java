@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionAuditRepository;
@@ -23,6 +25,7 @@ import java.util.Map;
  * @author Stef Piatek
  */
 @Component
+@EnableCaching
 public class QuestionController {
     private final QuestionRepository questionRepo;
     private final LabSampleQuestionRepository labSampleQuestionRepo;

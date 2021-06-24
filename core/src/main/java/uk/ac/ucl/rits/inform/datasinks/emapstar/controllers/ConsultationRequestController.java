@@ -2,6 +2,8 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import java.time.Instant;
  * @author Anika Cawthorn
  */
 @Component
+@EnableCaching
 public class ConsultationRequestController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
@@ -56,6 +59,7 @@ public class ConsultationRequestController {
      * @param storedFrom when consultation request information is stored from
      * @return ConsultRequestType
      */
+    @Cacheable(value = "msg.ConsultationType")
     private ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
         return consultationTypeRepo
                 .findByStandardisedCode(msg.getConsultationType())
@@ -125,25 +129,16 @@ public class ConsultationRequestController {
      * Update consultation request from consultation request message.
      * @param msg                   consultation request message
      * @param consultationRequest   consultation request referred to in message
-     * @param storedFrom            When consultation request is stored from in star database
      */
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
-            ConsultationRequestAudit> consultationRequest, Instant storedFrom) {
+            ConsultationRequestAudit> consultationRequest) {
         ConsultationRequest request = consultationRequest.getEntity();
 
-        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getRequestedDateTime(),
-                request.getRequestedDateTime(), request::setRequestedDateTime, msg.getRequestedDateTime(), storedFrom);
-        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getStatusChangeTime(),
-                request.getStatusChangeTime(), request::setStatusChangeTime, msg.getRequestedDateTime(), storedFrom);
-        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.getNotes(),
-                request.getComments(), request::setComments, msg.getRequestedDateTime(), storedFrom);
-        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.isClosedDueToDischarge(),
-                request.getClosedDueToDischarge(), request::setClosedDueToDischarge, msg.getRequestedDateTime(), storedFrom);
-        consultationRequest.assignIfCurrentlyNullOrNewerAndDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled,
-                msg.getRequestedDateTime(), storedFrom);
-
-        consultationRequest.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
-        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(), request::setClosedDueToDischarge);
+        consultationRequest.assignIfDifferent(msg.getRequestedDateTime(), request.getRequestedDateTime(),
+                request::setRequestedDateTime);
+        consultationRequest.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(),
+                request::setStatusChangeTime);
+        consultationRequest.assignIfDifferent(msg.getNotes().toString(), request.getComments(), request::setComments);
     }
 
     /**
@@ -161,8 +156,12 @@ public class ConsultationRequestController {
                 msg, visit, consultationType, storedFrom);
         ConsultationRequest request = consultationRequest.getEntity();
 
+        consultationRequest.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
+        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(),
+                request::setClosedDueToDischarge);
+
         if (messageShouldBeUpdated(msg, consultationRequest)) {
-            updateConsultRequest(msg, consultationRequest, storedFrom);
+            updateConsultRequest(msg, consultationRequest);
         }
 
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
