@@ -19,7 +19,7 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import java.time.Instant;
 
 /**
- * Functionality to create consultation requests for patients.
+ * Functionality to create or update consultation requests for patients.
  * @author Anika Cawthorn
  */
 @Component
