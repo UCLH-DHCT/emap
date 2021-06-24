@@ -53,6 +53,33 @@ public class ConsultationRequestController {
     }
 
     /**
+     * Process consultation request message.
+     * @param msg           Consultation request message
+     * @param visit         Hospital visit this consultation request relates to.
+     * @param storedFrom    valid from in database
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    @Transactional
+    public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException {
+        ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
+        RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
+                msg, visit, consultationType, storedFrom);
+        ConsultationRequest request = consultationRequest.getEntity();
+
+        consultationRequest.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
+        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(),
+                request::setClosedDueToDischarge);
+
+        if (messageShouldBeUpdated(msg, consultationRequest)) {
+            updateConsultRequest(msg, consultationRequest);
+        }
+
+        consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
+        questionController.processConsultationRequestQuestions(msg.getQuestions(), request, msg.getRequestedDateTime(), storedFrom);
+    }
+
+    /**
      * Check whether consultation type exists already. If it does, add it to consultation request; if not, create a new
      * consultation type from the information provided in the message.
      * @param msg        consultation request message
@@ -62,8 +89,7 @@ public class ConsultationRequestController {
     @Cacheable(value = "msg.ConsultationType")
     private ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
         return consultationTypeRepo
-                .findByStandardisedCode(msg.getConsultationType())
-                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
+                .findByCode(msg.getConsultationType()).orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
     /**
@@ -128,43 +154,16 @@ public class ConsultationRequestController {
     /**
      * Update consultation request from consultation request message.
      * @param msg                   consultation request message
-     * @param consultationRequest   consultation request referred to in message
+     * @param requestState          consultation request referred to in message
      */
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
-            ConsultationRequestAudit> consultationRequest) {
-        ConsultationRequest request = consultationRequest.getEntity();
+            ConsultationRequestAudit> requestState) {
+        ConsultationRequest request = requestState.getEntity();
 
-        consultationRequest.assignIfDifferent(msg.getRequestedDateTime(), request.getRequestedDateTime(),
+        requestState.assignIfDifferent(msg.getRequestedDateTime(), request.getRequestedDateTime(),
                 request::setRequestedDateTime);
-        consultationRequest.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(),
+        requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(),
                 request::setStatusChangeTime);
-        consultationRequest.assignIfDifferent(msg.getNotes().toString(), request.getComments(), request::setComments);
-    }
-
-    /**
-     * Process consultation request message.
-     * @param msg           Consultation request message
-     * @param visit         Hospital visit this consultation request relates to.
-     * @param storedFrom    valid from in database
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    @Transactional
-    public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
-        ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
-        RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
-                msg, visit, consultationType, storedFrom);
-        ConsultationRequest request = consultationRequest.getEntity();
-
-        consultationRequest.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
-        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(),
-                request::setClosedDueToDischarge);
-
-        if (messageShouldBeUpdated(msg, consultationRequest)) {
-            updateConsultRequest(msg, consultationRequest);
-        }
-
-        consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
-        questionController.processConsultationRequestQuestions(msg.getQuestions(), request, msg.getRequestedDateTime(), storedFrom);
+        requestState.assignInterchangeValue(msg.getNotes(), request.getComments(), request::setComments);
     }
 }
