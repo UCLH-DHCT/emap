@@ -27,10 +27,10 @@ public class ConsultationRequestProcessor {
     private final VisitController visitController;
 
     /**
-     * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
+     * Set controllers needed to process consultation requests.
      * @param consultationRequestController   consultation request controller
-     * @param personController           person controller so that consultation request can be linked to patient
-     * @param visitController            visit controller so that consultation request can be linked to hospital visit
+     * @param personController                person controller to link consultation request to patient
+     * @param visitController                 visit controller to link consultation request to hospital visit
      */
     public ConsultationRequestProcessor(
             ConsultationRequestController consultationRequestController, PersonController personController,
@@ -41,7 +41,7 @@ public class ConsultationRequestProcessor {
     }
 
     /**
-     * Process patient infection message.
+     * Process consultation request message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.

@@ -83,7 +83,8 @@ public class QuestionController {
     }
 
     /**
-     * Processing consultation request questions.
+     * Recording or updating questions and potentially answers to these questions, posed in relation to a consultation
+     * request.
      * @param questionsAndAnswers Map in form {question, answer}
      * @param consultationRequest Consultation request entity
      * @param validFrom           most recent change to results
