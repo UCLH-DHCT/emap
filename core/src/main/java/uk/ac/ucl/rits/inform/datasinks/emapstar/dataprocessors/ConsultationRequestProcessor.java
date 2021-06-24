@@ -54,7 +54,7 @@ public class ConsultationRequestProcessor {
         Instant msgStatusChangeTime = msg.getStatusChangeTime();
 
         // retrieve patient to whom message refers to; if MRN not registered, create new patient
-        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
+        Mrn mrn = personController.getOrCreateOnMrnOnly(msg.getMrn(), null, msg.getSourceSystem(),
                 msgStatusChangeTime, storedFrom);
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                     msg.getVisitNumber(), mrn, msg.getSourceSystem(), msg.getStatusChangeTime(), storedFrom);
