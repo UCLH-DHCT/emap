@@ -3,14 +3,14 @@ hl7String:                        "MEDSURG^MED/SURG^Med/Surg"
 epicDepartmentName:               "EMH MED SURG"
 epicDepartmentMpiFromDate:        null
 epicDepartmentMpiToDate:          null
-departmentRecordStatusId:         6
+departmentRecordStatus:           "Active"
 epicRoomId:                       273
-roomRecordState:                  null
+roomRecordState:                  "Active"
 roomName:                         "Med/Surg"
 roomAssociatedPoolBedName:        "Med/Surg"
 roomPoolBedIsInCensus:            false
 epicBedId:                        914
-bedRecordState:                   null
+bedRecordState:                   "Active"
 bedIsInCensus:                    false
 isPoolBed:                        null
 sourceSystem:                     "clarity"
