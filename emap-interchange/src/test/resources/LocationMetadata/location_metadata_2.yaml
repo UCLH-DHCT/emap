@@ -3,14 +3,14 @@ hl7String:                        "ACUN^E03ACUN BY12^BY12-C49"
 epicDepartmentName:               "something ACUN"
 epicDepartmentMpiFromDate:        null
 epicDepartmentMpiToDate:          null
-departmentRecordStatusId:         6
+departmentRecordStatus:           "Active"
 epicRoomId:                       333
-roomRecordState:                  null
+roomRecordState:                  "Active"
 roomName:                         "E03ACUN"
 roomAssociatedPoolBedName:        "ddd"
 roomPoolBedIsInCensus:            false
 epicBedId:                        916
-bedRecordState:                   null
+bedRecordState:                   "Active"
 bedIsInCensus:                    false
 isPoolBed:                        null
 sourceSystem:                     "clarity"
