@@ -41,7 +41,7 @@ jobs:
       - run:
           name: Maven tests
           command: |
-            TZ="Europe/London" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+            # only running on non-local system time to make sure that we are timezone-independent
             TZ="America/Chicago" mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
 
 workflows:
