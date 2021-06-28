@@ -7,7 +7,7 @@ departmentRecordStatus:           "Active"
 epicRoomId:                       333
 roomRecordState:                  "Active"
 roomName:                         "E03ACUN"
-roomAssociatedPoolBedName:        "ddd"
+roomAssociatedPoolBedName:        null
 roomPoolBedIsInCensus:            false
 epicBedId:                        916
 bedRecordState:                   "Active"

@@ -37,6 +37,11 @@ public class LocationMetadata extends EmapOperationMessage {
      */
     private String roomRecordState;
     private String roomName;
+
+    /**
+     * CLARITY_ROM.BED_POOL_BED_NAME
+     * The name for the pool beds of the room record.
+     */
     private String roomAssociatedPoolBedName;
 
     /**
