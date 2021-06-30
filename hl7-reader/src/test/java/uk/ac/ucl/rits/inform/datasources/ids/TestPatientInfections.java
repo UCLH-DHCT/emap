@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -24,8 +25,8 @@ class TestPatientInfections extends TestHl7MessageStream {
     private static final String FILE_TEMPLATE = "PatientInfection/%s.txt";
     private static final String MRN = "8DcEwvqa8Q3";
     private static final String MUMPS_INFECTION = "Mumps";
-    private static final Instant MUMPS_ADD = Instant.parse("2019-03-07T11:31:05Z");
-    private static final Instant MUMPS_UPDATE = Instant.parse("2019-03-07T11:32:00Z");
+    private static final Instant MUMPS_ADD = Instant.parse("2019-06-02T10:31:05Z");
+    private static final Instant MUMPS_UPDATE = Instant.parse("2019-06-07T11:32:00Z");
     private static final String EPIC = "EPIC";
 
 
@@ -57,7 +58,7 @@ class TestPatientInfections extends TestHl7MessageStream {
         PatientInfection mumps = infections.get(0);
         assertEquals(MRN, mumps.getMrn());
         assertEquals(EPIC, mumps.getSourceSystem());
-        assertEquals(MUMPS_INFECTION, mumps.getInfection());
+        assertEquals(MUMPS_INFECTION, mumps.getInfectionCode());
         assertEquals(MUMPS_ADD, mumps.getInfectionAdded());
         assertEquals(MUMPS_UPDATE, mumps.getUpdatedDateTime());
     }
@@ -93,4 +94,10 @@ class TestPatientInfections extends TestHl7MessageStream {
         assertTrue(infections.isEmpty());
     }
 
+    @Test
+    void testNoInfectionAddedTime() throws Exception {
+        List<PatientInfection> infections = getAllInfections("mumps_no_add_time");
+        assertEquals(1, infections.size());
+        assertNull(infections.get(0).getInfectionAdded());
+    }
 }

@@ -47,7 +47,7 @@ public class PatientStatusService {
         patientInfection.setMrn(patientInfo.getMrn());
         patientInfection.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
         // patient infection information
-        patientInfection.setInfection(infectionSegment.getInfection1Name().getValueOrEmpty());
+        patientInfection.setInfectionCode(infectionSegment.getInfection1Name().getValueOrEmpty());
         patientInfection.setInfectionAdded(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
         Instant infectionResolved = HL7Utils.interpretLocalTime(infectionSegment.getInfection3ResolvedDateTime());
         patientInfection.setInfectionResolved(InterchangeValue.buildFromHl7(infectionResolved));
