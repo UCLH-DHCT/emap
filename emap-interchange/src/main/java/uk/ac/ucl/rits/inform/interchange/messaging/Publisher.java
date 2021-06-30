@@ -231,7 +231,7 @@ public class Publisher implements Runnable, Releasable {
                 batchWaitingMap.put(ids[1], new ImmutablePair<>(countOfWaitingMessages, batchState.getRight()));
             }
         }
-        logger.debug("Sent message with correlationId: {}", correlationId);
+        logger.trace("Sent message with correlationId: {}", correlationId);
 
     }
 
