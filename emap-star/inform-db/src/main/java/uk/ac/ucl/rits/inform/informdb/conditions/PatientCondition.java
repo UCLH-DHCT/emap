@@ -1,8 +1,9 @@
-package uk.ac.ucl.rits.inform.informdb.state;
+package uk.ac.ucl.rits.inform.informdb.conditions;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -19,7 +20,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Represents patient states that start and can end.
+ * Represents patient conditions that start and can end.
  * Currently envisaged as storing infection control's patient infection information and problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -27,26 +28,29 @@ import java.time.LocalDate;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @NoArgsConstructor
 @AuditTable
-public class PatientState extends TemporalCore<PatientState, PatientStateAudit> {
+public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long patientStateId;
+    private long patientConditionId;
 
     @ManyToOne
-    @JoinColumn(name = "patientStateTypeId", nullable = false)
-    private PatientStateType patientStateTypeId;
+    @JoinColumn(name = "conditionTypeId", nullable = false)
+    private ConditionType conditionTypeId;
+
+    private Long internalId;
 
     @ManyToOne
-    @JoinColumn(name = "mnrId", nullable = false)
+    @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
-    @Column(nullable = false, columnDefinition = "timestamp with time zone")
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
     @Column(columnDefinition = "timestamp with time zone")
@@ -68,44 +72,47 @@ public class PatientState extends TemporalCore<PatientState, PatientStateAudit> 
 
     /**
      * Minimal information constructor.
-     * @param patientStateTypeId ID for patient state type
-     * @param mrn                patient ID
-     * @param addedDateTime      when patient state has been added
+     * @param internalId      Id in epic for the patient condition
+     * @param conditionTypeId ID for patient state type
+     * @param mrn             patient ID
+     * @param addedDateTime   when patient state has been added
      */
-    public PatientState(PatientStateType patientStateTypeId, Mrn mrn, Instant addedDateTime) {
-        this.patientStateTypeId = patientStateTypeId;
+    public PatientCondition(Long internalId, ConditionType conditionTypeId, Mrn mrn, Instant addedDateTime) {
+        this.conditionTypeId = conditionTypeId;
         this.mrnId = mrn;
         this.addedDateTime = addedDateTime;
+        this.internalId = internalId;
     }
 
     /**
      * Build a new PatientState from an existing one.
      * @param other existing PatientState
      */
-    public PatientState(PatientState other) {
+    public PatientCondition(PatientCondition other) {
         super(other);
-        this.patientStateTypeId = other.patientStateTypeId;
-        this.mrnId = other.mrnId;
+        conditionTypeId = other.conditionTypeId;
+        mrnId = other.mrnId;
         if (other.hospitalVisitId != null) {
-            this.hospitalVisitId = other.hospitalVisitId;
+            hospitalVisitId = other.hospitalVisitId;
         }
-        this.addedDateTime = other.addedDateTime;
-        this.resolutionDateTime = other.resolutionDateTime;
-        this.onsetDate = other.onsetDate;
-        this.classification = other.classification;
-        this.status = other.status;
-        this.priority = other.priority;
-        this.comment = other.comment;
+        internalId = other.internalId;
+        addedDateTime = other.addedDateTime;
+        resolutionDateTime = other.resolutionDateTime;
+        onsetDate = other.onsetDate;
+        classification = other.classification;
+        status = other.status;
+        priority = other.priority;
+        comment = other.comment;
     }
 
     @Override
-    public PatientState copy() {
-        return new PatientState(this);
+    public PatientCondition copy() {
+        return new PatientCondition(this);
     }
 
     @Override
-    public PatientStateAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new PatientStateAudit(this, validUntil, storedUntil);
+    public PatientConditionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new PatientConditionAudit(this, validUntil, storedUntil);
     }
 }
 
