@@ -12,9 +12,11 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
@@ -156,7 +158,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Not implemented yet");
+        Instant storedFrom = Instant.now();
+        flowsheetProcessor.processMessage(msg, storedFrom);
     }
 
     @Override
@@ -165,5 +168,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant storedFrom = Instant.now();
         consultationRequestProcessor.processMessage(msg, storedFrom);
     }
+
+    @Override
+    @Transactional
+    public void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException {
+        throw new MessageIgnoredException("Location Metadata processing not implemented");
+    }
+
 
 }
