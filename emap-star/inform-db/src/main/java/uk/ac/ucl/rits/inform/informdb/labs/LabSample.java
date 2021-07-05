@@ -69,6 +69,7 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
      * Method of collection
      * E.g. Bone marrow trephine biopsy
      */
+    @Column(columnDefinition = "text")
     private String collectionMethod;
 
     public LabSample() {}

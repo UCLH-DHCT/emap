@@ -87,6 +87,11 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String primaryDataType;
 
     /**
+     * Datetime that the data type was created in the source system.
+     */
+    private Instant creationTime;
+
+    /**
      * Minimal information constructor.
      * @param idInApplication       Id from the application
      * @param sourceSystem          source system
@@ -114,6 +119,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         standardisedCode = other.standardisedCode;
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
+        creationTime = other.creationTime;
     }
 
     @Override
