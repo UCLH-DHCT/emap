@@ -26,7 +26,6 @@ import java.time.Instant;
  * @author Anika Cawthorn
  */
 @Component
-@EnableCaching
 public class ConsultationRequestController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
@@ -57,11 +56,9 @@ public class ConsultationRequestController {
      * @param msg           Consultation request message
      * @param visit         Hospital visit this consultation request relates to.
      * @param storedFrom    valid from in database
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
+    public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom) {
         ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
                 msg, visit, consultationType, storedFrom);
@@ -95,7 +92,7 @@ public class ConsultationRequestController {
     /**
      * Create and save a ConsultationType from the information contained in the ConsultRequest message.
      * @param msg           Consultation request message
-     * @param storedFrom    valid from in database
+     * @param storedFrom    Time that emap-core started processing the message
      * @return saved ConsultationType
      */
     private ConsultationType createAndSaveNewType(ConsultRequest msg, Instant storedFrom) {
@@ -107,10 +104,10 @@ public class ConsultationRequestController {
 
     /**
      * Get or create existing ConsultationRequest entity.
-     * @param msg                       Consultation request message
-     * @param visit                     Hospital visit of patient this consultation request refers to.
+     * @param msg                Consultation request message
+     * @param visit              Hospital visit of patient this consultation request refers to.
      * @param consultationType   Consultancy type as identified in message
-     * @param storedFrom                time that emap-core started processing the message
+     * @param storedFrom         Time that emap-core started processing the message
      * @return ConsultationRequest entity wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
@@ -123,10 +120,10 @@ public class ConsultationRequestController {
 
     /**
      * Create minimal consultation request wrapped in RowState.
-     * @param msg                       Consultation request message
-     * @param visit                     Hospital visit of the patient consultation request occurred at
+     * @param msg                Consultation request message
+     * @param visit              Hospital visit of the patient consultation request occurred at
      * @param consultationType   Consultation request type referred to in message
-     * @param storedFrom                time that emap-core started processing the message
+     * @param storedFrom         Time that emap-core started processing the message
      * @return minimal consultation request wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> createMinimalConsultationRequest(
