@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientStateController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientConditionController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -19,17 +19,17 @@ import java.time.Instant;
 @Component
 public class PatientStateProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final PatientStateController patientStateController;
+    private final PatientConditionController patientConditionController;
     private final PersonController personController;
 
     /**
      * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
-     * @param patientStateController     patient state controller
+     * @param patientConditionController     patient state controller
      * @param personController           person controller
      */
     public PatientStateProcessor(
-            PatientStateController patientStateController, PersonController personController) {
-        this.patientStateController = patientStateController;
+            PatientConditionController patientConditionController, PersonController personController) {
+        this.patientConditionController = patientConditionController;
         this.personController = personController;
     }
 
@@ -49,7 +49,7 @@ public class PatientStateProcessor {
         Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
                 msgUpdatedTime, storedFrom);
 
-        patientStateController.processMessage(msg, mrn, storedFrom);
+        patientConditionController.processMessage(msg, mrn, storedFrom);
     }
 
 
