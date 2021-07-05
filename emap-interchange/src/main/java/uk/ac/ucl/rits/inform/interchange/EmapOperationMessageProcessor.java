@@ -78,6 +78,12 @@ public interface EmapOperationMessageProcessor {
     void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException;
 
     /**
+     * @param msg the LocationMetadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException;
+
+    /**
      * @param msg the ConsultRequest message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
