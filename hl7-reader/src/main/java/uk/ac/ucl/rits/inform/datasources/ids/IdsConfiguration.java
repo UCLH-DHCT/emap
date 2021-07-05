@@ -4,7 +4,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -14,42 +13,70 @@ import java.time.Instant;
 
 /**
  * Allows access to the IDS configuration for building session factory and start and end date.
+ * @author Stef Piatek
  */
 @Component
 public class IdsConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(IdsConfiguration.class);
 
-
-    private Instant startDateTime;
+    private Instant serviceStartDatetime;
     private Instant endDatetime;
+    private boolean startFromLastId;
+    private IdsProgressRepository idsProgressRepository;
     private SessionFactory sessionFactory;
 
     /**
-     * @param idsCfgXml     IDS config filename to use
-     * @param startDateTime the start date to use if no progress has been previously recorded in the DB
-     * @param endDatetime   the datetime to finish processing messages, regardless of previous progress
-     * @param environment   injected param
+     * @param idsCfgXml             IDS config filename to use
+     * @param endDatetime           the datetime to finish processing messages, regardless of previous progress
+     * @param environment           environment bean to determine if we're running under a test profile
+     * @param idsProgressRepository IDS progress repository
      */
     public IdsConfiguration(
             @Value("${ids.cfg.xml.file}") String idsCfgXml,
-            @Value("${ids.cfg.default-start-datetime}") Instant startDateTime,
             @Value("${ids.cfg.end-datetime}") Instant endDatetime,
-            @Autowired Environment environment) {
-        this.startDateTime = startDateTime;
+            Environment environment,
+            IdsProgressRepository idsProgressRepository) {
         this.endDatetime = endDatetime;
+        this.idsProgressRepository = idsProgressRepository;
         sessionFactory = makeSessionFactory(idsCfgXml, environment);
     }
 
-    public Instant getStartDateTime() {
-        return startDateTime;
+    /**
+     * Get start date from service start or previous progress if it exists and configured to do so.
+     * @return start datetime
+     */
+    Instant getStartDateTime() {
+        IdsProgress idsProgress = idsProgressRepository.findOnlyRow();
+        if (startFromProgressAndProgressAfterStartDate(serviceStartDatetime, startFromLastId, idsProgress)) {
+            logger.info("Using the datetime of the last-processed row in the IDS as the start datetime");
+            return idsProgress.getLastProcessedMessageDatetime();
+        } else {
+            logger.info("Using the service start datetime as the start datetime");
+            return serviceStartDatetime;
+        }
     }
 
-    public Instant getEndDatetime() {
+    Instant getEndDatetime() {
         return endDatetime;
     }
 
+    @Value("${ids.cfg.default-start-datetime}")
+    void setServiceStartDatetime(Instant serviceStartDatetime) {
+        this.serviceStartDatetime = serviceStartDatetime;
+    }
+
+    @Value("${ids.cfg.start-from-last-id}")
+    void setStartFromLastId(boolean startFromLastId) {
+        this.startFromLastId = startFromLastId;
+    }
+
+
     SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+
+    private boolean startFromProgressAndProgressAfterStartDate(Instant serviceStartDatetime, boolean startFromLastId, IdsProgress idsProgress) {
+        return startFromLastId && idsProgress != null && idsProgress.getLastProcessedMessageDatetime().isAfter(serviceStartDatetime);
     }
 
     /**
