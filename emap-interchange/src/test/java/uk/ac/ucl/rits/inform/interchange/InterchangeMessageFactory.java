@@ -113,6 +113,18 @@ public class InterchangeMessageFactory {
     }
 
     /**
+     * Build location metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange message
+     * @throws IOException if reading failed
+     */
+    public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
+        String resourcePath = "/LocationMetadata/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<LocationMetadata>() {});
+    }
+
+    /**
      * Builds Flowsheets from yaml file given, overriding default values from '{file_stem}_defaults.yaml'
      * @param fileName            yaml filename in test resources/Flowsheets, default values from '{file_stem}_defaults.yaml'
      * @param sourceMessagePrefix message prefix

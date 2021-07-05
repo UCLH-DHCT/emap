@@ -1,9 +1,63 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "hoover"
+  sourceMessageId: "3"
+  updatedDateTime: "2019-05-07T09:40:25Z"
+  mrn: "Bq6PQt5xSa"
+  infectionCode: "MRSA"
+  infectionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "MRSA"
+  epicInfectionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 3
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Resolved"
+  infectionAdded: null
+  infectionResolved:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-05-07T09:40:25Z"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "hoover"
+  sourceMessageId: "4"
+  updatedDateTime: "2019-05-14T08:19:11Z"
+  mrn: "xo9dzpR0Zx7J"
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "100000013"
+  infectionCode: "?COVID-19"
+  infectionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "?COVID-19"
+  epicInfectionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 4
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
+  infectionAdded: "2019-05-14T08:19:11Z"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "hoover"
   sourceMessageId: "1"
-  updatedDateTime: "2019-03-07T11:31:05Z"
+  updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
-  infection: "Mumps"
+  infectionCode: "Mumps"
+  infectionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Mumps"
   epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -12,11 +66,11 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Active"
-  infectionAdded: "2019-03-07T11:31:05Z"
+  infectionAdded: "2019-06-02T10:31:05Z"
   infectionResolved:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "2019-03-21T15:22:01Z"
+    value: "2019-06-08T14:22:01Z"
   infectionOnset:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -28,9 +82,13 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "hoover"
   sourceMessageId: "2"
-  updatedDateTime: "2019-04-05T02:05:49Z"
+  updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
-  infection: "Varicella"
+  infectionCode: "Varicella"
+  infectionName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Varicella"
   epicInfectionId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -39,7 +97,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Deleted"
-  infectionAdded: "2019-04-05T02:05:49Z"
+  infectionAdded: "2019-06-08T02:05:49Z"
   infectionResolved:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "IGNORE"
@@ -52,53 +110,3 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Proin risus."
-- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
-  sourceMessageId: "3"
-  updatedDateTime: "2019-05-07T09:40:25Z"
-  mrn: "Bq6PQt5xSa"
-  infection: "MRSA"
-  epicInfectionId:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: 3
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Resolved"
-  infectionAdded: "2019-05-07T09:40:25Z"
-  infectionResolved:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2020-01-31T08:16:44Z"
-  infectionOnset:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-06-02"
-  comment:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "IGNORE"
-    value: null
-- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
-  sourceMessageId: "4"
-  updatedDateTime: "2019-06-08T19:45:00Z"
-  mrn: "YdZitaf1OeQI"
-  infection: "?COVID-19"
-  epicInfectionId:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: 4
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Active"
-  infectionAdded: "2019-06-08T19:45:00Z"
-  infectionResolved:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2019-11-14T09:19:11Z"
-  infectionOnset:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2020-06-18"
