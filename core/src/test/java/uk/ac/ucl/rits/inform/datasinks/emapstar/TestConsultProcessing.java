@@ -202,7 +202,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * The consult entity in question should not be updated
      */
     @Test
-    void testLaterMessageNoUpdate() throws EmapOperationMessageProcessingException {
+    void testEarlierMessageNoCommentUpdate() throws EmapOperationMessageProcessingException {
         String great_note = "Great note";
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note));
         processSingleMessage(minimalConsult);
@@ -210,10 +210,30 @@ public class TestConsultProcessing extends MessageProcessingBase {
         assertEquals(cRequest.getComments(), great_note);
 
         String great_note_2 = "bla bla bla";
-        minimalConsult.setRequestedDateTime(minimalConsult.getRequestedDateTime().plusSeconds(60));
+        minimalConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note_2));
         processSingleMessage(minimalConsult);
         cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
     }
+
+    /**
+     * Given that a minimal consult has already been processed
+     * When an earlier consult message with cancellation flag active is sent
+     * The consult entity in question should not be updated
+     */
+    @Test
+    void testEarlierMessageNoCancelUpdate() throws EmapOperationMessageProcessingException {
+        String great_note = "Great note";
+        minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note));
+        processSingleMessage(minimalConsult);
+        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        assertEquals(cRequest.getComments(), great_note);
+
+        cancelledConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
+        processSingleMessage(cancelledConsult);
+        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        assertFalse(cRequest.getCancelled());
+    }
+
 }

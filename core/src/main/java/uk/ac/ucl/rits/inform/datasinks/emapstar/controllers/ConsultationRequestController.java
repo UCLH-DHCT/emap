@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +14,6 @@ import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 
 import java.time.Instant;
@@ -64,10 +62,6 @@ public class ConsultationRequestController {
                 msg, visit, consultationType, storedFrom);
         ConsultationRequest request = consultationRequest.getEntity();
 
-        consultationRequest.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
-        consultationRequest.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(),
-                request::setClosedDueToDischarge);
-
         if (messageShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
         }
@@ -83,10 +77,11 @@ public class ConsultationRequestController {
      * @param storedFrom when consultation request information is stored from
      * @return ConsultRequestType
      */
-    @Cacheable(value = "msg.ConsultationType")
+    @Cacheable(value = "ConsultationTypeCache", key = "ConsultationType")
     private ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
         return consultationTypeRepo
-                .findByCode(msg.getConsultationType()).orElseGet(() -> createAndSaveNewType(msg, storedFrom));
+                .findByCode(msg.getConsultationType())
+                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
     /**
@@ -144,7 +139,7 @@ public class ConsultationRequestController {
      */
     private boolean messageShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultationRequest) {
-        return (consultationRequest.isEntityCreated() || !msg.getRequestedDateTime().isBefore(
+        return (consultationRequest.isEntityCreated() || !msg.getStatusChangeTime().isBefore(
                 consultationRequest.getEntity().getValidFrom()));
     }
 
@@ -162,5 +157,8 @@ public class ConsultationRequestController {
         requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(),
                 request::setStatusChangeTime);
         requestState.assignInterchangeValue(msg.getNotes(), request.getComments(), request::setComments);
+        requestState.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
+        requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(),
+                request::setClosedDueToDischarge);
     }
 }
