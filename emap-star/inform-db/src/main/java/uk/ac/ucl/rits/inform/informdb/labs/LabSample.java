@@ -89,6 +89,8 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
         this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
         this.specimenType = other.specimenType;
+        this.sampleSite = other.sampleSite;
+        this.collectionMethod = other.collectionMethod;
     }
 
     @Override

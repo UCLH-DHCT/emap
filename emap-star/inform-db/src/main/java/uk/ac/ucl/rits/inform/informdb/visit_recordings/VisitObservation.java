@@ -93,6 +93,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
      */
     public VisitObservation(VisitObservation other) {
         super(other);
+        this.visitObservationId = other.visitObservationId;
         this.visitObservationTypeId = other.visitObservationTypeId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.valueAsText = other.valueAsText;

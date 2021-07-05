@@ -90,6 +90,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
      */
     public PatientCondition(PatientCondition other) {
         super(other);
+        patientConditionId = other.patientConditionId;
         conditionTypeId = other.conditionTypeId;
         mrnId = other.mrnId;
         if (other.hospitalVisitId != null) {

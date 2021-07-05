@@ -57,6 +57,7 @@ public class LabSampleQuestion extends TemporalCore<LabSampleQuestion, LabSample
 
     public LabSampleQuestion(LabSampleQuestion other) {
         super(other);
+        this.labSampleQuestionId = other.labSampleQuestionId;
         this.labSampleId = other.labSampleId;
         this.questionId = other.questionId;
         this.answer = other.answer;
