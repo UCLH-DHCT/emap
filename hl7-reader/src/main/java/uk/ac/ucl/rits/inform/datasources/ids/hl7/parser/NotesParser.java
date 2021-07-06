@@ -84,7 +84,7 @@ public class NotesParser {
     private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) throws Hl7InconsistencyException {
         String question = previousQuestion;
         String[] parts = questionPattern.split(joinedComments);
-        if (parts.length == 1) {
+        if (!questionPattern.matcher(joinedComments).find()) {
             concatenateAnswerAndSaveToQuestions(question, joinedComments);
         } else {
             question = parts[0];
@@ -100,7 +100,7 @@ public class NotesParser {
 
     private void concatenateAnswerAndSaveToQuestions(String question, String answer) {
         if (questions.containsKey(question)) {
-            answer = String.format("%s\n%s", questions.get(question), answer);
+            answer = String.format("%s\n%s", questions.get(question), answer).trim();
         }
         questions.put(question, answer);
     }
