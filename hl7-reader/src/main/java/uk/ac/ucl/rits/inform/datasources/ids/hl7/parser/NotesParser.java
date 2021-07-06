@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids.hl7.parser;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import lombok.Getter;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,8 +37,9 @@ public class NotesParser {
      * @param notes             notes to be parsed
      * @param questionSeparator question separator as string
      * @param questionPattern   question separator regex
+     * @throws Hl7InconsistencyException if answer with no question encountered
      */
-    public NotesParser(Collection<NTE> notes, String questionSeparator, Pattern questionPattern) {
+    public NotesParser(Collection<NTE> notes, String questionSeparator, Pattern questionPattern) throws Hl7InconsistencyException {
         this.notes = List.copyOf(notes);
         this.questionSeparator = questionSeparator;
         this.questionPattern = questionPattern;
@@ -60,7 +62,7 @@ public class NotesParser {
     }
 
 
-    private void buildQuestionsAndComments() {
+    private void buildQuestionsAndComments() throws Hl7InconsistencyException {
         String previousQuestion = null;
         StringJoiner commentJoiner = new StringJoiner("\n");
 
@@ -79,7 +81,7 @@ public class NotesParser {
         }
     }
 
-    private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) {
+    private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) throws Hl7InconsistencyException {
         String question = previousQuestion;
         String[] parts = questionPattern.split(joinedComments);
         if (parts.length == 1) {
@@ -89,6 +91,9 @@ public class NotesParser {
             // allow for separator to be in the answer
             String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
             concatenateAnswerAndSaveToQuestions(question, answer);
+        }
+        if (question == null || question.isEmpty()) {
+            throw new Hl7InconsistencyException("Null question encountered");
         }
         return question;
     }
