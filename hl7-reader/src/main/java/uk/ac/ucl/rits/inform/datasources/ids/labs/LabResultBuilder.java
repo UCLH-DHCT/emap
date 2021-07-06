@@ -4,7 +4,6 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.IS;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
@@ -12,12 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.NotesParser;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -43,9 +42,9 @@ public abstract class LabResultBuilder {
      * @param notes      Notes for OBX
      * @param normalFlag optional flag to ignore as normal
      */
-    LabResultBuilder(OBX obx, List<NTE> notes, @Nullable String normalFlag) {
+    LabResultBuilder(OBX obx, Collection<NTE> notes, @Nullable String normalFlag) {
         this.obx = obx;
-        this.notes = notes;
+        this.notes = List.copyOf(notes);
         this.normalFlag = normalFlag;
     }
 
@@ -236,12 +235,7 @@ public abstract class LabResultBuilder {
      * Ignores NTE-1 for now.
      */
     private void setComments() {
-        Collection<String> allNotes = new ArrayList<>(notes.size());
-        for (NTE nt : notes) {
-            for (FT ft : nt.getNte3_Comment()) {
-                allNotes.add(ft.getValueOrEmpty());
-            }
-        }
-        msg.setNotes(InterchangeValue.buildFromHl7(String.join("\n", allNotes)));
+        NotesParser parser = new NotesParser(notes);
+        msg.setNotes(InterchangeValue.buildFromHl7(parser.getComments()));
     }
 }

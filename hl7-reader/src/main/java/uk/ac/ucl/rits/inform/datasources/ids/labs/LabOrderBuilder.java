@@ -5,7 +5,6 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.ExtraComponents;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.datatype.TX;
@@ -16,13 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.NotesParser;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +82,7 @@ abstract class LabOrderBuilder {
      * Extract the fields found in the ORC segment (some context from OBR required), of which there is one of each per object.
      * @param orc the ORC segment
      * @param obr the OBR segment
-     * @throws DataTypeException if HAPI does
+     * @throws DataTypeException         if HAPI does
      * @throws Hl7InconsistencyException if HL7 doesn't meet expected structure
      */
     void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException, Hl7InconsistencyException {
@@ -249,19 +248,8 @@ abstract class LabOrderBuilder {
      * @param questionSeparator to join the answer if it contains the question pattern
      * @param questionPattern   pattern between the question and answer
      */
-    protected void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
-        for (NTE note : notes) {
-            StringBuilder questionAndAnswer = new StringBuilder();
-            for (FT ft : note.getNte3_Comment()) {
-                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
-            }
-            String[] parts = questionPattern.split(questionAndAnswer.toString().strip());
-            if (parts.length > 1) {
-                String question = parts[0];
-                // allow for separator to be in the answer
-                String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
-                getMsg().getQuestions().put(question, answer);
-            }
-        }
+    void setQuestions(Collection<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
+        NotesParser parser = new NotesParser(notes, questionSeparator, questionPattern);
+        msg.setQuestions(parser.getQuestions());
     }
 }

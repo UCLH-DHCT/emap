@@ -79,13 +79,13 @@ class TestBankManagerParsing extends TestHl7MessageStream {
     }
 
     /**
-     * BMCOMMENT notes should joined and used as clinical information.
+     * BMCOMMENT notes should be parsed
      * @throws Exception shouldn't happen
      */
     @Test
     void testClinicalInformation() throws Exception {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_bmcomment");
-        assertEquals(InterchangeValue.buildFromHl7("Clinical Note1\nover 2 lines\nClinical Note2"), order.getClinicalInformation());
+        assertEquals(InterchangeValue.buildFromHl7("Clinical Note"), order.getClinicalInformation());
     }
 
     @Test

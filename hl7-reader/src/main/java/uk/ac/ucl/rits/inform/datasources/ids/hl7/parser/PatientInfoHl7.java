@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids.hl7.parser;
 
+import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
+import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
@@ -36,6 +38,18 @@ public class PatientInfoHl7 implements PV1Wrap, PV2Wrap, PIDWrap, MSHWrap {
     @Override
     public PV2 getPV2() {
         return pv2;
+    }
+
+    /**
+     * Build parsed object for ORM_O01 messages.
+     * @param ormO01 ORM O01 message
+     */
+    public PatientInfoHl7(ORM_O01 ormO01) {
+        ORM_O01_PATIENT patient = ormO01.getPATIENT();
+        msh = ormO01.getMSH();
+        pv1 = patient.getPATIENT_VISIT().getPV1();
+        pid = patient.getPID();
+        pv2 = null;
     }
 
     /**

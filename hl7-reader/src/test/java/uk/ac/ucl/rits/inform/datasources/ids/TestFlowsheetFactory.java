@@ -75,12 +75,6 @@ class TestFlowsheetFactory {
     }
 
     @Test
-    void testMultipleComments() {
-        String result = flowsheets.get(3).getComment().get();
-        assertEquals("comment 1a\ncomment 1b\ncomment 2", result);
-    }
-
-    @Test
     void testResultStatusFtoValue() {
         // result status is 'F' so value should be saved
         String result = firstFlowsheet.getStringValue().get();
