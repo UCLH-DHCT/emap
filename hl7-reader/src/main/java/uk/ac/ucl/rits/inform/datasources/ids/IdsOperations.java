@@ -170,10 +170,10 @@ public class IdsOperations implements AutoCloseable {
 
 
     /**
-     * @return the unique ID for the last IDS message we have successfully processed
+     * @return the progress for the last IDS message we have successfully processed
      */
     @Transactional
-    int getLatestProcessedId() {
+    IdsProgress getLatestProcessedId() {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
 
         if (onlyRow == null) {
@@ -186,23 +186,7 @@ public class IdsOperations implements AutoCloseable {
             }
             onlyRow = idsProgressRepository.save(onlyRow);
         }
-        return onlyRow.getLastProcessedIdsUnid();
-    }
-
-    /**
-     * Record that we have processed all messages up to the specified message.
-     * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
-     *                             processed
-     * @param messageDatetime      the timestamp of this message
-     * @param processingEnd        the time this message was actually processed
-     */
-    @Transactional
-    void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
-        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
-        onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
-        onlyRow.setLastProcessedMessageDatetime(messageDatetime);
-        onlyRow.setLastProcessingDatetime(processingEnd);
-        onlyRow = idsProgressRepository.save(onlyRow);
+        return onlyRow;
     }
 
 
@@ -346,7 +330,8 @@ public class IdsOperations implements AutoCloseable {
      */
     @Transactional
     public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException, ReachedEndException {
-        int lastProcessedId = getLatestProcessedId();
+        IdsProgress progress = getLatestProcessedId();
+        int lastProcessedId = progress.getLastProcessedIdsUnid();
         logger.debug("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         if (this.endUnid != null && lastProcessedId >= this.endUnid) {
             logger.info("lastProcessedId = {} >= endUnid = {}, exiting", lastProcessedId, this.endUnid);
@@ -391,7 +376,7 @@ public class IdsOperations implements AutoCloseable {
             }
         } finally {
             Instant processingEnd = Instant.now();
-            setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
+            progress.updateAndSave(idsMsg.getUnid(), messageDatetime, processingEnd, idsProgressRepository);
         }
     }
 
