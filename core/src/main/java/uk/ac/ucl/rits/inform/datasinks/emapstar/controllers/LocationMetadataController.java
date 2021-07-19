@@ -12,7 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
 
 /**
- * Adds or updates location metadata (department, room, bed, etc.).
+ * Adds or updates location metadata (department, room, bed pool, bed, and their history or states).
  * @author Stef Piatek
  */
 @Component
