@@ -1,7 +1,9 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentRepository;
@@ -10,6 +12,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,6 +34,11 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private BedStateRepository bedStateRepo;
 
     private static final String ACUN_LOCATION_HL7_STRING = "ACUN^E03ACUN BY12^BY12-C49";
+    private LocationMetadata acunCensusBed;
+
+    TestLocationMetadataProcessing() throws IOException {
+        acunCensusBed = messageFactory.getLocationMetadata("acun_census_bed.yaml");
+    }
 
     // LOCATION
     /**
@@ -39,8 +48,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      */
     @Test
     void testLocationCreated() throws Exception {
-        LocationMetadata msg = messageFactory.getLocationMetadata("acun_census_bed.yaml");
-        processSingleMessage(msg);
+        processSingleMessage(acunCensusBed);
         locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
         assertEquals(1, locationRepo.count());
     }
@@ -50,6 +58,16 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when a location metadata message is processed with the same string
      * no new locations should be created
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testLocationNotDuplicated() throws Exception {
+        Long preProcessingCount = locationRepo.count();
+
+        processSingleMessage(acunCensusBed);
+
+        locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
+        assertEquals(preProcessingCount, locationRepo.count());
+    }
 
     // DEPARTMENT
     /**
