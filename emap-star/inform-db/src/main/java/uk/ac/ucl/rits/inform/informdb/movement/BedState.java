@@ -28,14 +28,13 @@ public class BedState implements Serializable {
     private Bed bedId;
 
     @Column(nullable = false)
-    private String internalId;
-
-    @Column(nullable = false)
     private String csn;
 
     private Boolean isInCensus;
 
-    private String state;
+    private String status;
+
+    private Long poolBedCount;
 
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant validFrom;
@@ -49,6 +48,4 @@ public class BedState implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
-    public BedState() {
-    }
 }

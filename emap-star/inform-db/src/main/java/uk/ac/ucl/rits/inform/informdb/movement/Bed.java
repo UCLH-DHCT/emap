@@ -29,12 +29,5 @@ public class Bed implements Serializable {
     @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;
 
-    @ManyToOne
-    @JoinColumn(name = "bedPoolId")
-    private BedPool bedPoolId;
-
-    private String name;
-
-    public Bed() {
-    }
+    private String hl7String;
 }

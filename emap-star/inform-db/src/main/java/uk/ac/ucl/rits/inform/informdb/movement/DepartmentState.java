@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 import lombok.Data;
 import lombok.ToString;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.time.Instant;
 
 
 @SuppressWarnings("serial")
@@ -18,17 +20,26 @@ import java.io.Serializable;
 @Data
 @ToString(callSuper = true)
 @Table
-public class Department implements Serializable {
+public class DepartmentState implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long departmentId;
+    private Long departmentStateId;
 
     @ManyToOne
     @JoinColumn(name = "locationId", nullable = false)
-    private Location locationId;
+    private Department departmentId;
 
-    private String hl7String;
-    private String name;
-    private String speciality;
-    private String state;
+    private String status;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant validFrom;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant validUntil;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant storedFrom;
+
+    @Column(columnDefinition = "timestamp with time zone")
+    private Instant storedUntil;
 }

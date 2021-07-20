@@ -28,12 +28,9 @@ public class RoomState implements Serializable {
     private Room roomId;
 
     @Column(nullable = false)
-    private String internalId;
-
-    @Column(nullable = false)
     private String csn;
 
-    private String state;
+    private String status;
 
     private Boolean isReady;
 
@@ -48,7 +45,4 @@ public class RoomState implements Serializable {
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
-
-    public RoomState() {
-    }
 }

@@ -29,8 +29,6 @@ public class Room implements Serializable {
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
+    private String hl7String;
     private String name;
-
-    public Room() {
-    }
 }
