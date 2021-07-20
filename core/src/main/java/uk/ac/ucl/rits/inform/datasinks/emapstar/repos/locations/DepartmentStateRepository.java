@@ -7,5 +7,5 @@ import uk.ac.ucl.rits.inform.informdb.movement.DepartmentAudit;
  * DepartmentAudit repository.
  * @author Stef Piatek
  */
-public interface DepartmentAuditRepository extends CrudRepository<DepartmentAudit, Long> {
+public interface DepartmentStateRepository extends CrudRepository<DepartmentAudit, Long> {
 }
