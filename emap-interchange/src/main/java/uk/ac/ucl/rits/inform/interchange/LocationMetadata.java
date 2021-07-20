@@ -54,7 +54,7 @@ public class LocationMetadata extends EmapOperationMessage {
      */
     private String bedRecordState;
     /**
-     * Pool beds are transient beds.
+     * Pool beds are transient beds, usually waiting areas.
      */
     private Boolean isPoolBed;
     /**
