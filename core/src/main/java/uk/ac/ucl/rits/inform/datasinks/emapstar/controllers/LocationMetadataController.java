@@ -58,7 +58,7 @@ public class LocationMetadataController {
 
     private Location getOrCreateLocation(String hl7String) {
         return locationRepo.findByLocationStringEquals(hl7String)
-                .orElseGet(() -> new Location(hl7String));
+                .orElseGet(() -> locationRepo.save(new Location(hl7String)));
     }
 
     /**
