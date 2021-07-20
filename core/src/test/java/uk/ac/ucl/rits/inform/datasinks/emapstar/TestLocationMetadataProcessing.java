@@ -1,6 +1,35 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-public class TestLocationMetadataProcessing extends MessageProcessingBase {
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentStateRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
+import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class TestLocationMetadataProcessing extends MessageProcessingBase {
+    @Autowired
+    private LocationRepository locationRepo;
+    @Autowired
+    private DepartmentRepository departmentRepo;
+    @Autowired
+    private DepartmentStateRepository departmentStateRepo;
+    @Autowired
+    private RoomRepository roomRepo;
+    @Autowired
+    private RoomStateRepository roomStateRepo;
+    @Autowired
+    private BedRepository bedRepo;
+    @Autowired
+    private BedStateRepository bedStateRepo;
+
+    private static final String ACUN_LOCATION_HL7_STRING = "ACUN^E03ACUN BY12^BY12-C49";
 
     // LOCATION
     /**
@@ -8,9 +37,16 @@ public class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when a location metadata message is processed
      * then a new location should be created
      */
+    @Test
+    void testLocationCreated() throws Exception {
+        LocationMetadata msg = messageFactory.getLocationMetadata("acun_census_bed.yaml");
+        processSingleMessage(msg);
+        locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
+        assertEquals(1, locationRepo.count());
+    }
 
     /**
-     * Given location alreay exists in database
+     * Given location already exists in database
      * when a location metadata message is processed with the same string
      * no new locations should be created
      */
@@ -108,7 +144,6 @@ public class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when two location metadata messages for the same CSN are processed with different bed facilities
      * then two new bed facilities should be created
      */
-
 
 
 }
