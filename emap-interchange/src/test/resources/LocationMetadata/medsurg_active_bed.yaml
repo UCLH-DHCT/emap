@@ -1,16 +1,24 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
-hl7String:                        "MEDSURG^MED/SURG^Med/Surg"
-epicDepartmentName:               "EMH MED SURG"
-epicDepartmentMpiFromDate:        null
-epicDepartmentMpiToDate:          null
-departmentRecordStatus:           "Active"
-epicRoomId:                       273
-roomRecordState:                  "Active"
-roomName:                         "Med/Surg"
-roomAssociatedPoolBedName:        "Med/Surg"
-roomPoolBedIsInCensus:            false
-epicBedId:                        914
-bedRecordState:                   "Active"
-bedIsInCensus:                    false
-isPoolBed:                        null
-sourceSystem:                     "clarity"
+hl7String: "MEDSURG^MED/SURG^Med/Surg"
+sourceSystem: "clarity"
+# department
+departmentHl7: "MEDSURG"
+departmentName: "EMH MED SURG"
+departmentSpeciality: null
+departmentRecordStatus: "Deleted and Hidden"
+# room
+roomCsn: 274
+roomContactDate: "2010-02-04T00:00:00Z"
+isRoomReady: true
+roomHl7: "Med/Surg"
+roomRecordState: "Deleted and Hidden"
+roomName: "MED/SURG"
+# bed
+bedCsn: 11
+bedHl7: "Med/Surg"
+bedContactDate: "2011-05-02T00:00:00Z"
+bedRecordState: "Active"
+isBunkBed: false
+bedIsInCensus: false
+isPoolBed: true
+bedFacility: null

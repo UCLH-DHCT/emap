@@ -1,17 +1,24 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
-hl7String:                        "ACUN^E03ACUN BY12^BY12-Cxyz"
-epicDepartmentName:               "EGA E03 ACU NURSERY"
-epicDepartmentMpiFromDate:        null
-epicDepartmentMpiToDate:          null
-departmentRecordStatus:           "Active"
-epicRoomId:                       333
-roomRecordState:                  "Active"
-roomName:                         "E03ACUN"
-roomAssociatedPoolBedName:        null
-roomPoolBedIsInCensus:            false
-epicBedId:                        920
-bedRecordState:                   "Inactive"
-bedIsInCensus:                    true
-isPoolBed:                        null
-sourceSystem:                     "clarity"
-
+hl7String: "ACUN^E03ACUN BY12^BY12-C49"
+sourceSystem: "clarity"
+# department
+departmentHl7: "ACUN"
+departmentName: "EGA E03 ACU NURSERY"
+departmentSpeciality: "Maternity - Well Baby"
+departmentRecordStatus: "Active"
+# room
+roomCsn: 1158
+roomContactDate: "2016-02-09T00:00:00Z"
+isRoomReady: true
+roomHl7: "BY12"
+roomRecordState: "Active"
+roomName: "E03ACUN BY12"
+# bed
+bedCsn: 73801
+bedHl7: "BY12-C49"
+bedContactDate: "2016-05-09T00:00:00Z"
+bedRecordState: "Inactive"
+isBunkBed: false
+bedIsInCensus: true
+isPoolBed: false
+bedFacility: "Cot"
