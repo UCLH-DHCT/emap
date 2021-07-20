@@ -43,7 +43,8 @@ INSERT INTO public.location (location_id, location_string) VALUES
         (5001, 'T42E^T42E BY03^BY03-17'),
         (5002, 'T11E^T11E BY02^BY02-17'),
         (5003, 'T06C^T06C SR41^SR41-41'),
-        (5004, 'T11E^T11E BY02^BY02-25');
+        (5004, 'T11E^T11E BY02^BY02-25'),
+        (5005, 'ACUN^E03ACUN BY12^BY12-C49');
 
 
 INSERT INTO public.location_visit (
