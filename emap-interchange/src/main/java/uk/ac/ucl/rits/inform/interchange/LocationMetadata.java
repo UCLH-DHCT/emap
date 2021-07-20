@@ -56,11 +56,11 @@ public class LocationMetadata extends EmapOperationMessage {
     /**
      * Pool beds are transient beds.
      */
-    private String isPoolBed;
+    private Boolean isPoolBed;
     /**
      * Duplicate beds will be created in EPIC if moving someone to a bunk bed that is already filled.
      */
-    private String isBunkBed;
+    private Boolean isBunkBed;
     /**
      * CLARITY_BED.CENSUS_INCLUSN_YN Indicates whether the bed record should be
      * included in bed census reports.
@@ -81,7 +81,7 @@ public class LocationMetadata extends EmapOperationMessage {
      * do need to track that the non-census location has a person there and so is in
      * use.)
      */
-    private String bedIsInCensus;
+    private Boolean bedIsInCensus;
     private String bedFacility;
 
     @Override
