@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -23,6 +25,18 @@ public class Location implements  Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationId;
     private String locationString;
+
+    @ManyToOne
+    @JoinColumn(name = "departmentId")
+    private Department departmentId;
+
+    @ManyToOne
+    @JoinColumn(name = "roomId")
+    private Room roomId;
+
+    @ManyToOne
+    @JoinColumn(name = "bedId")
+    private Bed bedId;
 
     public Location() {
     }

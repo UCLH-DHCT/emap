@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.Column;
@@ -20,6 +21,7 @@ import java.time.Instant;
 @Data
 @ToString(callSuper = true)
 @Table
+@NoArgsConstructor
 public class DepartmentState implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,4 +44,10 @@ public class DepartmentState implements Serializable {
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
+
+    public DepartmentState(Department department, Instant validFrom, Instant storedFrom){
+        departmentId = department;
+        this.validFrom = validFrom;
+        this.storedFrom = storedFrom;
+    }
 }
