@@ -78,15 +78,23 @@ public class LocationMetadataController {
 
     /**
      * Create department if it doesn't exist and update state.
+     * <p>
+     * Status is the only thing that can change for a department state and we're not expecting them to start with a valid from.
+     * This means that the best we can do is order them in the order that we receive them and if the state has changed, make this the active state.
      * @param msg        message to be processed
      * @param storedFrom time that emap core started processing the message
      * @return department entity
+     * @throws IncompatibleDatabaseStateException if the department name or speciality changes
      */
-    private Department updateOrCreateDepartmentAndState(LocationMetadata msg, Instant storedFrom) {
+    private Department updateOrCreateDepartmentAndState(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Department dep = departmentRepo
                 .findByHl7String(msg.getDepartmentHl7())
                 .orElseGet(() -> departmentRepo.save(
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
+
+        if (!msg.getDepartmentName().equals(dep.getName()) || !msg.getDepartmentSpeciality().equals(dep.getSpeciality())) {
+            throw new IncompatibleDatabaseStateException("Department can't change it's name or speciality");
+        }
 
         DepartmentState currentState = new DepartmentState(dep, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo
