@@ -24,11 +24,11 @@ public class BedState implements Serializable {
     private Long bedStateId;
 
     @ManyToOne
-    @JoinColumn(name = "locationId", nullable = false)
+    @JoinColumn(name = "bedId", nullable = false)
     private Bed bedId;
 
     @Column(nullable = false)
-    private String csn;
+    private Long csn;
 
     private Boolean isInCensus;
 

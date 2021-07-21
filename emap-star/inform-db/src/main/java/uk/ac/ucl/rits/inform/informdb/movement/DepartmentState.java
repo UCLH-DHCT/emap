@@ -26,7 +26,7 @@ public class DepartmentState implements Serializable {
     private Long departmentStateId;
 
     @ManyToOne
-    @JoinColumn(name = "locationId", nullable = false)
+    @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
     private String status;

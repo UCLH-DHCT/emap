@@ -30,5 +30,4 @@ public class Department implements Serializable {
     private String hl7String;
     private String name;
     private String speciality;
-    private String state;
 }

@@ -28,7 +28,7 @@ public class RoomState implements Serializable {
     private Room roomId;
 
     @Column(nullable = false)
-    private String csn;
+    private Long csn;
 
     private String status;
 
