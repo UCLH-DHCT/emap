@@ -20,7 +20,6 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 @Entity
 @Data
-@ToString(callSuper = true)
 @Table
 @NoArgsConstructor
 public class Department implements Serializable {
