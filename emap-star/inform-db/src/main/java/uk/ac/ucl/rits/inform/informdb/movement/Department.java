@@ -6,6 +6,7 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,6 +28,7 @@ public class Department implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentId;
 
+    @Column(nullable = false, unique = true)
     private String hl7String;
     private String name;
     private String speciality;

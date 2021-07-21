@@ -27,7 +27,7 @@ public class BedState implements Serializable {
     @JoinColumn(name = "bedId", nullable = false)
     private Bed bedId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long csn;
 
     private Boolean isInCensus;

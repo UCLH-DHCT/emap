@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,6 +28,7 @@ public class Room implements Serializable {
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
+    @Column(nullable = false)
     private String hl7String;
     private String name;
 

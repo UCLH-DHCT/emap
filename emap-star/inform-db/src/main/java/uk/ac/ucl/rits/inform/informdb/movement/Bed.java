@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -29,5 +30,6 @@ public class Bed implements Serializable {
     @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;
 
+    @Column(nullable = false)
     private String hl7String;
 }
