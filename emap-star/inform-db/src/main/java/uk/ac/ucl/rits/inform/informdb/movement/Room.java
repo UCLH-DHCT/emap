@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,14 +17,11 @@ import java.io.Serializable;
 @Entity
 @Table
 @Data
+@NoArgsConstructor
 public class Room implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomId;
-
-    @ManyToOne
-    @JoinColumn(name = "locationId", nullable = false)
-    private Location locationId;
 
     @ManyToOne
     @JoinColumn(name = "departmentId", nullable = false)
@@ -31,4 +29,10 @@ public class Room implements Serializable {
 
     private String hl7String;
     private String name;
+
+    public Room(String hl7String, String name, Department departmentId) {
+        this.hl7String = hl7String;
+        this.name = name;
+        this.departmentId = departmentId;
+    }
 }
