@@ -24,7 +24,7 @@ public class RoomState implements Serializable {
     private Long roomStateId;
 
     @ManyToOne
-    @JoinColumn(name = "locationId", nullable = false)
+    @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;
 
     @Column(nullable = false, unique = true)
