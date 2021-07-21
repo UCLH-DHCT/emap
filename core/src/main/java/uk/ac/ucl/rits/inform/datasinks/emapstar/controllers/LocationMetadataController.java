@@ -123,12 +123,23 @@ public class LocationMetadataController {
     /**
      * Create Room if it doesn't exist and update state.
      * @param department       department entity that the room is associated with
-     * @param locationMetadata message to be processed
+     * @param msg message to be processed
      * @param storedFrom       time that emap core started processing the message
      * @return room
+     * @throws IncompatibleDatabaseStateException if room name changes
      */
-    private Room updateOrCreateRoomAndState(Department department, LocationMetadata locationMetadata, Instant storedFrom) {
-        return null;
+    private Room updateOrCreateRoomAndState(Department department, LocationMetadata msg, Instant storedFrom)
+            throws IncompatibleDatabaseStateException {
+        Room room = roomRepo
+                .findByHl7String(msg.getRoomHl7())
+                .orElseGet(() -> roomRepo.save(
+                        new Room(msg.getRoomHl7(), msg.getRoomName(), department)));
+
+        if (!msg.getRoomName().equals(room.getName())) {
+            throw new IncompatibleDatabaseStateException("Room can't change it's name");
+        }
+
+        return room;
     }
 
     /**

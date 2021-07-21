@@ -169,7 +169,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Different parameters (starting conditions) for requiredFields test
+     * Set fields which should never change to new value.
      */
     static Stream<Consumer<LocationMetadata>> departmentFieldsWithChangedData() {
         String newData = "NEW";
@@ -235,6 +235,30 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when a location metadata message with matching hl7 string (different CSN and earlier time) is processed
      * then the previous temporal until data should be updated, processed message temporal until data should be set to the next message from times.
      */
+
+    /**
+     * Set fields which should never change to new value.
+     */
+    static Stream<Consumer<LocationMetadata>> roomFieldsWithChangedData() {
+        String newData = "NEW";
+        return Stream.of(
+                metadata -> metadata.setRoomHl7(newData),
+                metadata -> metadata.setRoomName(newData)
+        );
+    }
+
+    /**
+     * Given that location exists with a linked department.
+     * When a message with the same full hl7 string has a different department data (excluding status and updatedDate)
+     * An exception should be thrown
+     */
+    @ParameterizedTest
+    @MethodSource("roomFieldsWithChangedData")
+    @Sql("/populate_db.sql")
+    void testRoomCantChange(Consumer<LocationMetadata> metadataConsumer) {
+        metadataConsumer.accept(acunCensusBed);
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+    }
 
     // BED
 
