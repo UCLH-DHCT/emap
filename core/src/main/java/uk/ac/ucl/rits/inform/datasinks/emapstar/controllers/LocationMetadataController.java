@@ -140,6 +140,7 @@ public class LocationMetadataController {
             throw new IncompatibleDatabaseStateException("Room can't change it's name");
         }
 
+        //TODO: update states
 
         return room;
     }
@@ -154,8 +155,9 @@ public class LocationMetadataController {
      */
     private Bed updateOrCreateBedAndState(Room room, LocationMetadata msg, Instant storedFrom) {
         Bed bed = bedRepo
-                .findByHl7String(msg.getRoomHl7())
+                .findByHl7String(msg.getBedHl7())
                 .orElseGet(() -> bedRepo.save(new Bed(msg.getBedHl7(), room)));
+        //TODO: update states
 
         return bed;
     }

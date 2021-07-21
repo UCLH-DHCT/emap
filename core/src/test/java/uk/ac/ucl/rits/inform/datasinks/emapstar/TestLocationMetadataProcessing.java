@@ -252,8 +252,8 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Given that location exists with a linked department.
-     * When a message with the same full hl7 string has a different department data (excluding status and updatedDate)
+     * Given that location exists with a linked room.
+     * When a message with the same full hl7 string has a different room data (excluding status and updatedDate)
      * An exception should be thrown
      */
     @ParameterizedTest
@@ -312,11 +312,25 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * then the previous temporal until data should be updated, processed message temporal until data should be set to the next message from times.
      */
 
+
+    /**
+     * Given that location exists with a linked bed.
+     * When a message with the same full hl7 string has a different bed hl7 string
+     * An exception should be thrown
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testLocationBedCantChange() {
+        acunCensusBed.setBedHl7("NEW");
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+    }
+
     /**
      * Given pool bed exist in database
      * when two location metadata messages for existing pool beds at a different contact time are processed
      * a new pool bed should be created and the pool count should be 2
      */
+
 
 
     // ROOM FACILITY

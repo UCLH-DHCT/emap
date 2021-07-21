@@ -51,12 +51,24 @@ INSERT INTO public.department_state
 INSERT INTO public.room(room_id, hl7string, name, department_id) VALUES
 (13001, 'E03ACUN BY12', 'BY12', 11001);
 
+INSERT INTO public.room_state
+    (room_state_id, csn, is_ready, status, stored_from, stored_until, valid_from, valid_until, room_id) VALUES
+(14001, 1158, true, 'Active', '2012-09-17 14:00:00', null, '2016-02-09 00:00:00', null,  13001);
+
+INSERT INTO public.bed (bed_id, hl7string, room_id) VALUES
+(15001, 'BY12-C49', 13001);
+
+INSERT INTO public.bed_state
+    (bed_state_id, csn, is_in_census, pool_bed_count, status,
+     stored_from, stored_until, valid_from, valid_until, bed_id) VALUES
+(16001, 4417, true, 0, 'Active', '2012-09-17 14:00:00', null, '2016-02-09 00:00:00', null, 15001);
+
 INSERT INTO public.location (location_id, location_string, department_id, room_id, bed_id) VALUES
 (105001, 'T42E^T42E BY03^BY03-17', null, null, null),
 (105002, 'T11E^T11E BY02^BY02-17', null, null, null),
 (105003, 'T06C^T06C SR41^SR41-41', null, null, null),
 (105004, 'T11E^T11E BY02^BY02-25', null, null, null),
-(105005, 'ACUN^E03ACUN BY12^BY12-C49', 11001, 13001, null);
+(105005, 'ACUN^E03ACUN BY12^BY12-C49', 11001, 13001, 15001);
 
 
 INSERT INTO public.location_visit (
