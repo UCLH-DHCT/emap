@@ -38,13 +38,22 @@ INSERT INTO public.hospital_visit (
         (4003, '2010-06-17 13:25:00', '2010-02-16 10:00:52', null, null, null, null,
          null, '0999999999', null, null, 'WinPath', 1004);
 
+-- locations
 
-INSERT INTO public.location (location_id, location_string) VALUES
-        (5001, 'T42E^T42E BY03^BY03-17'),
-        (5002, 'T11E^T11E BY02^BY02-17'),
-        (5003, 'T06C^T06C SR41^SR41-41'),
-        (5004, 'T11E^T11E BY02^BY02-25'),
-        (5005, 'ACUN^E03ACUN BY12^BY12-C49');
+INSERT INTO public.department (department_id, hl7string, name, speciality) VALUES
+(9001, 'ACUN', 'EGA E03 ACU NURSERY', 'Maternity - Well Baby');
+
+
+INSERT INTO public.department_state
+(department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id) VALUES
+(10001, 'Active', '2012-09-17 14:00:00', null, null, null, 9001);
+
+INSERT INTO public.location (location_id, location_string, department_id, room_id, bed_id) VALUES
+        (5001, 'T42E^T42E BY03^BY03-17', null, null, null),
+        (5002, 'T11E^T11E BY02^BY02-17', null, null, null),
+        (5003, 'T06C^T06C SR41^SR41-41', null, null, null),
+        (5004, 'T11E^T11E BY02^BY02-25', null, null, null),
+        (5005, 'ACUN^E03ACUN BY12^BY12-C49', 9001, null, null);
 
 
 INSERT INTO public.location_visit (
@@ -80,11 +89,3 @@ INSERT INTO public.visit_observation (
             null, null, 'you should delete me', 7006);
 
 
-INSERT INTO public.department (department_id, hl7string, name, speciality, location_id) VALUES
-    (9001, 'ACUN', 'EGA E03 ACU NURSERY', 'Maternity - Well Baby', 5005);
-
-
-
-INSERT INTO public.department_state
-    (department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id) VALUES
-    (10001, 'Active', '2012-09-17 14:00:00', null, null, null, 9001);
