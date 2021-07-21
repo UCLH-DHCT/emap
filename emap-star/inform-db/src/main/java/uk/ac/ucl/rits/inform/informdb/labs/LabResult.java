@@ -27,7 +27,8 @@ import java.time.Instant;
 @Entity
 @Data
 @Table(indexes = {@Index(name = "lr_lab_order_id", columnList = "labOrderId"),
-        @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId")})
+        @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId"),
+        @Index(name = "lr_result_last_modified_time", columnList = "resultLastModifiedTime")})
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
@@ -62,6 +63,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @Column(columnDefinition = "text")
     private String valueAsText;
     private Double valueAsReal;
+    @Column(columnDefinition = "bytea")
     private byte[] valueAsBytes;
 
     /**

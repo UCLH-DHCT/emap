@@ -3,15 +3,16 @@ package uk.ac.ucl.rits.inform.informdb.labs;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.Question;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
-import uk.ac.ucl.rits.inform.informdb.Question;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -27,15 +28,16 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-@Table()
-public class LabOrderQuestion extends TemporalCore<LabOrderQuestion, LabOrderQuestionAudit> {
+@Table(indexes = {@Index(name = "lsq_lab_sample_id", columnList = "labSampleId"),
+        @Index(name = "lsq_question_id", columnList = "questionId")})
+public class LabSampleQuestion extends TemporalCore<LabSampleQuestion, LabSampleQuestionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long labOrderQuestionId;
+    private long labSampleQuestionId;
 
     @ManyToOne
-    @JoinColumn(name = "labOrderId", nullable = false)
-    private LabOrder labOrderId;
+    @JoinColumn(name = "labSampleId", nullable = false)
+    private LabSample labSampleId;
 
     @ManyToOne
     @JoinColumn(name = "questionId", nullable = false)
@@ -44,27 +46,30 @@ public class LabOrderQuestion extends TemporalCore<LabOrderQuestion, LabOrderQue
     @Column(columnDefinition = "text")
     private String answer;
 
-    public LabOrderQuestion() {}
+    public LabSampleQuestion() {}
 
-    public LabOrderQuestion(LabOrder labOrderId, Question questionId) {
-        this.labOrderId = labOrderId;
+    public LabSampleQuestion(LabSample labSampleId, Question questionId, Instant validFrom, Instant storedFrom) {
+        this.labSampleId = labSampleId;
         this.questionId = questionId;
+        setStoredFrom(storedFrom);
+        setValidFrom(validFrom);
     }
 
-    public LabOrderQuestion(LabOrderQuestion other) {
+    public LabSampleQuestion(LabSampleQuestion other) {
         super(other);
-        this.labOrderId = other.labOrderId;
+        this.labSampleId = other.labSampleId;
         this.questionId = other.questionId;
         this.answer = other.answer;
     }
 
+
     @Override
-    public LabOrderQuestion copy() {
-        return new LabOrderQuestion(this);
+    public LabSampleQuestion copy() {
+        return new LabSampleQuestion(this);
     }
 
     @Override
-    public LabOrderQuestionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new LabOrderQuestionAudit(this, validUntil, storedUntil);
+    public LabSampleQuestionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LabSampleQuestionAudit(this, validUntil, storedUntil);
     }
 }
