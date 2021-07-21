@@ -78,3 +78,13 @@ INSERT INTO public.visit_observation (
             null, 50.0, null, 7003),
            (8003, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
             null, null, 'you should delete me', 7006);
+
+
+INSERT INTO public.department (department_id, hl7string, name, speciality, location_id) VALUES
+    (9001, 'ACUN', 'EGA E03 ACU NURSERY', 'Maternity - Well Baby', 5005);
+
+
+
+INSERT INTO public.department_state
+    (department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id) VALUES
+    (10001, 'Active', '2012-09-17 14:00:00', null, null, null, 9001);
