@@ -45,8 +45,9 @@ public class DepartmentState implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
-    public DepartmentState(Department department, Instant validFrom, Instant storedFrom){
+    public DepartmentState(Department department, String status, Instant validFrom, Instant storedFrom){
         departmentId = department;
+        this.status = status;
         this.validFrom = validFrom;
         this.storedFrom = storedFrom;
     }
