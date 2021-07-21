@@ -7,6 +7,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 /**
  * Define the message types that an Emap processor
@@ -67,4 +69,16 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the FlowsheetMetadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the LocationMetadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException;
 }

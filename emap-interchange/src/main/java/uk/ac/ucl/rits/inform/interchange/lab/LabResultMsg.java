@@ -29,6 +29,7 @@ public class LabResultMsg implements Serializable {
     private String observationSubId = "";
     private InterchangeValue<Double> numericValue = InterchangeValue.unknown();
     private InterchangeValue<String> stringValue = InterchangeValue.unknown();
+    private InterchangeValue<byte[]> byteValue = InterchangeValue.unknown();
     private InterchangeValue<String> units = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceLow = InterchangeValue.unknown();
     private InterchangeValue<Double> referenceHigh = InterchangeValue.unknown();

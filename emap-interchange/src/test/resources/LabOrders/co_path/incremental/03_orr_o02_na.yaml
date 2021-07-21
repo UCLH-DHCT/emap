@@ -1,0 +1,13 @@
+statusChangeTime: "2020-05-22T11:10:00Z"
+orderControlId: "NA"
+sourceSystem: "Not in Message"
+labDepartment: "Path,Cyt"
+visitNumber: ""
+specimenType:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null
+collectionMethod:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "IGNORE"
+  value: null

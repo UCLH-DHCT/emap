@@ -25,6 +25,10 @@ previousLocationString:
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
+  value: "2001-01-01"
+patientBirthDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
   value: "2001-01-01T00:00:00Z"
 patientClass:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"

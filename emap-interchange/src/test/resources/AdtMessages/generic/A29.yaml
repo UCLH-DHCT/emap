@@ -8,6 +8,10 @@ nhsNumber: "9999999999"
 visitNumber: ""
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "1980-01-01"
+patientBirthDateTime:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   value: "1980-01-01T00:00:00Z"
   status: "SAVE"
 patientClass:
