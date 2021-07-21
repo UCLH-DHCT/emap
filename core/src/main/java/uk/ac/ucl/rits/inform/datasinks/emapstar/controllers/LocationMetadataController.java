@@ -122,9 +122,11 @@ public class LocationMetadataController {
 
     /**
      * Create Room if it doesn't exist and update state.
-     * @param department       department entity that the room is associated with
-     * @param msg message to be processed
-     * @param storedFrom       time that emap core started processing the message
+     * <p>
+     * Rooms can have a history
+     * @param department department entity that the room is associated with
+     * @param msg        message to be processed
+     * @param storedFrom time that emap core started processing the message
      * @return room
      * @throws IncompatibleDatabaseStateException if room name changes
      */
@@ -132,12 +134,12 @@ public class LocationMetadataController {
             throws IncompatibleDatabaseStateException {
         Room room = roomRepo
                 .findByHl7String(msg.getRoomHl7())
-                .orElseGet(() -> roomRepo.save(
-                        new Room(msg.getRoomHl7(), msg.getRoomName(), department)));
+                .orElseGet(() -> roomRepo.save(new Room(msg.getRoomHl7(), msg.getRoomName(), department)));
 
         if (!msg.getRoomName().equals(room.getName())) {
             throw new IncompatibleDatabaseStateException("Room can't change it's name");
         }
+
 
         return room;
     }
@@ -145,13 +147,17 @@ public class LocationMetadataController {
     /**
      * Create Bed if it doesn't exist and update state.
      * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
-     * @param room             room entity that the bed is associated with
-     * @param locationMetadata message to be processed
-     * @param storedFrom       time that emap core started processing the message
+     * @param room       room entity that the bed is associated with
+     * @param msg        message to be processed
+     * @param storedFrom time that emap core started processing the message
      * @return bed
      */
-    private Bed updateOrCreateBedAndState(Room room, LocationMetadata locationMetadata, Instant storedFrom) {
-        return null;
+    private Bed updateOrCreateBedAndState(Room room, LocationMetadata msg, Instant storedFrom) {
+        Bed bed = bedRepo
+                .findByHl7String(msg.getRoomHl7())
+                .orElseGet(() -> bedRepo.save(new Bed(msg.getBedHl7(), room)));
+
+        return bed;
     }
 
     private void addLocationForeignkeys(Location location, Department department, Room room, Bed bed) throws IncompatibleDatabaseStateException {

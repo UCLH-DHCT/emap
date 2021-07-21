@@ -13,6 +13,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentStateR
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
+import uk.ac.ucl.rits.inform.informdb.movement.Bed;
+import uk.ac.ucl.rits.inform.informdb.movement.BedState;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
@@ -26,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -115,7 +118,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
         assertEquals("Maternity - Well Baby", dep.getSpeciality());
 
-        DepartmentState depState = departmentStateRepo.findAllByDepartmentIdAndStatus(dep, ACTIVE).orElseThrow();
+        DepartmentState depState = departmentStateRepo.findByDepartmentIdAndStatus(dep, ACTIVE).orElseThrow();
         assertNotNull(depState.getStoredFrom());
         assertNull(depState.getValidUntil());
         assertNull(depState.getValidFrom());
@@ -125,7 +128,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
 
     /**
      * Given department exists in database
-     * when a location metadata message with the same department CSN (and same data) is processed
+     * when a location metadata message with the same department (with same data) is processed
      * then there should be no changes to the department tables
      */
     @Test
@@ -156,12 +159,12 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Location location = getAcunLocation();
 
         // previous state is invalidated
-        DepartmentState previousState = departmentStateRepo.findAllByDepartmentIdAndStatus(location.getDepartmentId(), ACTIVE).orElseThrow();
+        DepartmentState previousState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), ACTIVE).orElseThrow();
         assertEquals(LATER_TIME, previousState.getValidUntil());
         assertNotNull(previousState.getStoredUntil());
 
         // current state is active
-        DepartmentState currentState = departmentStateRepo.findAllByDepartmentIdAndStatus(location.getDepartmentId(), newStatus).orElseThrow();
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), newStatus).orElseThrow();
         assertNotNull(currentState.getStoredFrom());
         assertNull(currentState.getStoredUntil());
         assertEquals(LATER_TIME, currentState.getValidFrom());
@@ -208,6 +211,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Room room = location.getRoomId();
         assertEquals("BY12", room.getName());
         assertEquals(ACUN_ROOM_HL7_STRING, room.getHl7String());
+        assertEquals(location.getDepartmentId(), room.getDepartmentId());
 
         RoomState roomState = roomStateRepo.findByCsn(1158L).orElseThrow();
         assertEquals(ACTIVE, roomState.getStatus());
@@ -267,6 +271,22 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when a location metadata message with bed is processed
      * then a new bed and bed state should be created
      */
+    @Test
+    void testBedCreated() throws Exception {
+        processSingleMessage(acunCensusBed);
+
+        Location location = getAcunLocation();
+        Bed bed = location.getBedId();
+
+        assertEquals(ACUN_BED_HL7_STRING, bed.getHl7String());
+        assertEquals(location.getRoomId(), bed.getRoomId());
+
+        BedState state = bedStateRepo.findByCsn(4417L).orElseThrow();
+        assertEquals(ACTIVE, state.getStatus());
+        assertFalse(state.getIsBunk());
+        assertTrue(state.getIsInCensus());
+        assertEquals(0, state.getPoolBedCount());
+    }
 
     /**
      * Given no beds exist in database
