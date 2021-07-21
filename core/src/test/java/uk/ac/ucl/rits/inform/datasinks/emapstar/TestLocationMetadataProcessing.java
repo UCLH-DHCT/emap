@@ -17,10 +17,12 @@ import uk.ac.ucl.rits.inform.informdb.movement.RoomState;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.io.IOException;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Autowired
@@ -43,6 +45,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final String ACUN_BED_HL7_STRING = "BY12-C49";
     private static final String ACUN_LOCATION_HL7_STRING = String.join("^", ACUN_DEPT_HL7_STRING, ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
     private static final String ACTIVE = "Active";
+    private static final Instant CONTACT_TIME = Instant.parse("2016-02-09T00:00:00Z");
 
     private LocationMetadata acunCensusBed;
 
@@ -139,6 +142,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      */
 
     // ROOM
+
     /**
      * Given no rooms exist in database
      * when a location metadata message with room is processed
@@ -148,10 +152,36 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     void testRoomCreated() throws Exception {
         processSingleMessage(acunCensusBed);
         Room room = roomRepo.findByHl7String(ACUN_ROOM_HL7_STRING).orElseThrow();
+        assertEquals("BY12", room.getName());
 
         RoomState roomState = roomStateRepo.findByCsn(1158L).orElseThrow();
-
+        assertEquals(ACTIVE, roomState.getStatus());
+        assertTrue(roomState.getIsReady());
+        assertEquals(CONTACT_TIME, roomState.getValidFrom());
+        assertNull(roomState.getValidUntil());
+        assertNotNull(roomState.getStoredFrom());
+        assertNull(roomState.getStoredUntil());
     }
+
+    /**
+     * Given room exists in database
+     * when a location metadata message with matching hl7 string (different CSN and later time) is processed
+     * then a new active state should be created, invalidating the previous state
+     */
+
+    /**
+     * Given room exists in database
+     * when a location metadata message with matching hl7 string (different CSN and same time) is processed
+     * then a new active state should be created, invalidating the previous state
+     */
+
+    /**
+     * Given room exists in database
+     * when a location metadata message with matching hl7 string (different CSN and earlier time) is processed
+     * then the previous temporal until data should be updated, processed message temporal until data should be set to the next message from times.
+     */
+
+    // BED
 
     /**
      * Given no beds exist in database
