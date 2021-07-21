@@ -1,0 +1,6 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
+  sourceSystem: "EPIC"
+  updatedDateTime: "2019-06-07T11:32:00Z"
+  mrn: "8DcEwvqa8Q3"
+  infectionCode: "Mumps"
+  infectionAdded: "2019-06-02T10:31:05Z"

@@ -1,0 +1,11 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg"
+  labResultMsgs:
+    - "@class": "uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg"
+      mimeType: "TEXT"
+      testItemLocalCode: "TEXT"
+      resultStatus: "FINAL"
+      stringValue:
+        "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+        status: "SAVE"
+        value: "PATIENT NAME:\n...\nreport end\n"
+  statusChangeTime: "2020-11-17T15:44:00Z"

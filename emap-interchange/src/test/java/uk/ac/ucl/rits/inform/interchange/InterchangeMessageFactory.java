@@ -9,6 +9,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,17 +35,13 @@ public class InterchangeMessageFactory {
      * Builds an ADT message from yaml file.
      * @param fileName filename within test resources/AdtMessages
      * @return ADT message
+     * @throws IOException if files don't exist
      */
-    public <T extends AdtMessage> T getAdtMessage(final String fileName) {
-        T adtMessage = null;
+    public <T extends AdtMessage> T getAdtMessage(final String fileName) throws IOException {
         String resourcePath = "/AdtMessages/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            adtMessage = mapper.readValue(inputStream, new TypeReference<AdtMessage>() {});
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return adtMessage;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+
+        return mapper.readValue(inputStream, new TypeReference<AdtMessage>() {});
     }
 
 
@@ -54,37 +52,65 @@ public class InterchangeMessageFactory {
      *                            sensitivity defaults are '{file_stem}_sens_order_defaults.yaml' and '{file_stem}_sens_order_defaults.yaml'
      * @param sourceMessagePrefix message prefix
      * @return List of lab orders deserialised from the files
+     * @throws IOException if files don't exist
      */
-    public List<LabOrderMsg> getLabOrders(final String fileName, final String sourceMessagePrefix) {
-        List<LabOrderMsg> labOrderMsgs = new ArrayList<>();
+    public List<LabOrderMsg> getLabOrders(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/LabOrders/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            labOrderMsgs = mapper.readValue(inputStream, new TypeReference<List<LabOrderMsg>>() {});
-            int count = 1;
-            for (LabOrderMsg order : labOrderMsgs) {
-                String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
-                updateLabOrderAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
-                updateLabIsolates(order, resourcePath.replace(".yaml", "_micro"));
-                count++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        List<LabOrderMsg> labOrderMsgs = mapper.readValue(inputStream, new TypeReference<List<LabOrderMsg>>() {});
+        int count = 1;
+        for (LabOrderMsg order : labOrderMsgs) {
+            String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
+            updateLabOrderAndResults(order, sourceMessageId, resourcePath.replace(".yaml", ""));
+            updateLabIsolates(order, resourcePath.replace(".yaml", "_micro"));
+            count++;
         }
+
         return labOrderMsgs;
     }
 
-    public List<PatientInfection> getPatientInfections(final String fileName) {
-        List<PatientInfection> patientInfections = new ArrayList<>();
+    /**
+     * Get lab order from single oru_r01 yaml file.
+     * @param filePath filepath from lab orders
+     * @return Lab order message
+     * @throws IOException if files don't exist
+     */
+    public LabOrderMsg getLabOrder(final String filePath) throws IOException {
+        String resourcePath = String.format("/LabOrders/%s", filePath);
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+    }
 
+    public List<PatientInfection> getPatientInfections(final String fileName) throws IOException {
         String resourcePath = "/PatientInfection/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            patientInfections = mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return patientInfections;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
+    }
+
+    /**
+     * Build flowsheet metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange messages
+     * @throws IOException if reading failed
+     */
+    public List<FlowsheetMetadata> getFlowsheetMetadata(final String fileName) throws IOException {
+        List<FlowsheetMetadata> flowsheetMetadata = new ArrayList<>();
+        String resourcePath = "/FlowsheetMetadata/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<List<FlowsheetMetadata>>() {});
+        return flowsheetMetadata;
+    }
+
+    /**
+     * Build location metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange message
+     * @throws IOException if reading failed
+     */
+    public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
+        String resourcePath = "/LocationMetadata/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<LocationMetadata>() {});
     }
 
     /**
@@ -92,28 +118,23 @@ public class InterchangeMessageFactory {
      * @param fileName            yaml filename in test resources/Flowsheets, default values from '{file_stem}_defaults.yaml'
      * @param sourceMessagePrefix message prefix
      * @return List of Flowsheets
+     * @throws IOException if files don't exist
      */
-    public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) {
-        List<Flowsheet> flowsheets = new ArrayList<>();
-
+    public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/Flowsheets/" + fileName;
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-            flowsheets = mapper.readValue(inputStream, new TypeReference<List<Flowsheet>>() {});
-            int count = 1;
-            for (Flowsheet flowsheet : flowsheets) {
-                String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
-                flowsheet.setSourceMessageId(sourceMessageId);
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        List<Flowsheet> flowsheets = mapper.readValue(inputStream, new TypeReference<List<Flowsheet>>() {});
+        int count = 1;
+        for (Flowsheet flowsheet : flowsheets) {
+            String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
+            flowsheet.setSourceMessageId(sourceMessageId);
 
-                // update order with yaml data
-                ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
-                String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
-                orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
+            // update order with yaml data
+            ObjectReader orderReader = mapper.readerForUpdating(flowsheet);
+            String orderDefaultPath = resourcePath.replace(".yaml", "_defaults.yaml");
+            orderReader.readValue(getClass().getResourceAsStream(orderDefaultPath));
 
-                count++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            count++;
         }
         return flowsheets;
     }
@@ -200,18 +221,13 @@ public class InterchangeMessageFactory {
         updateLabResults(isolateMsg.getSensitivities(), resourcePathPrefix);
     }
 
-    public LabOrderMsg buildLabOrderOverridingDefaults(String defaultsFile, String overridingFile) {
+    public LabOrderMsg buildLabOrderOverridingDefaults(String defaultsFile, String overridingFile) throws IOException {
         String defaultsPath = String.format("/LabOrders/%s", defaultsFile);
         String overridingPath = String.format("/LabOrders/%s", overridingFile);
-        LabOrderMsg order = new LabOrderMsg();
-        try {
-            InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
-            LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
-            ObjectReader orderReader = mapper.readerForUpdating(defaults);
-            order = orderReader.readValue(getClass().getResourceAsStream(overridingPath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return order;
+        InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
+        LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+        ObjectReader orderReader = mapper.readerForUpdating(defaults);
+
+        return orderReader.readValue(getClass().getResourceAsStream(overridingPath));
     }
 }
