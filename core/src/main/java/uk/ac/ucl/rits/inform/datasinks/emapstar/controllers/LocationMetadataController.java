@@ -96,6 +96,12 @@ public class LocationMetadataController {
             throw new IncompatibleDatabaseStateException("Department can't change it's name or speciality");
         }
 
+        createCurrentStateAndUpdatePreviousIfRequired(msg, dep, storedFrom);
+
+        return dep;
+    }
+
+    private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department dep, Instant storedFrom) {
         DepartmentState currentState = new DepartmentState(dep, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo
                 .findFirstByDepartmentIdOrderByStoredFromDesc(dep);
@@ -112,8 +118,6 @@ public class LocationMetadataController {
             // no previous states exist so just save
             departmentStateRepo.save(currentState);
         }
-
-        return dep;
     }
 
     /**
