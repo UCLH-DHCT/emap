@@ -10,9 +10,9 @@ departmentRecordStatus: "Active"
 roomCsn: 1158
 roomContactDate: "2016-02-09T00:00:00Z"
 isRoomReady: true
-roomHl7: "BY12"
+roomHl7: "E03ACUN BY12"
 roomRecordState: "Active"
-roomName: "E03ACUN BY12"
+roomName: "BY12"
 # bed
 bedCsn: 73802
 bedHl7: "BY12-C49"

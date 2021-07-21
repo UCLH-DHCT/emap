@@ -10,9 +10,9 @@ departmentRecordStatus: "Deleted and Hidden"
 roomCsn: 274
 roomContactDate: "2010-02-04T00:00:00Z"
 isRoomReady: true
-roomHl7: "Med/Surg"
+roomHl7: "MED/SURG"
 roomRecordState: "Deleted and Hidden"
-roomName: "MED/SURG"
+roomName: "Med/Surg"
 # bed
 bedCsn: 11
 bedHl7: "Med/Surg"
