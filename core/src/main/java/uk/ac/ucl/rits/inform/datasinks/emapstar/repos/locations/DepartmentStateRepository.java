@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -11,6 +12,8 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface DepartmentStateRepository extends CrudRepository<DepartmentState, Long> {
+    List<DepartmentState> findAllByDepartmentId(Department dep);
+
     /**
      * For testing.
      * @param department department entity
@@ -18,4 +21,5 @@ public interface DepartmentStateRepository extends CrudRepository<DepartmentStat
      * @return potential department state
      */
     Optional<DepartmentState> findAllByDepartmentIdAndStatus(Department department, String status);
+
 }
