@@ -25,6 +25,10 @@ public class LocationMetadata extends EmapOperationMessage {
      * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_DEP
      */
     private String departmentRecordStatus;
+    /**
+     * Most likely null but track in case we do have it.
+     */
+    private Instant departmentUpdateDate;
 
     /**
      * Unique ID for the contact, can have multiple from the same hl7 representation.
