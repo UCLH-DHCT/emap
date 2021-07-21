@@ -32,6 +32,8 @@ public class BedState implements Serializable {
 
     private Boolean isInCensus;
 
+    private Boolean isBunk;
+
     private String status;
 
     private Long poolBedCount;
