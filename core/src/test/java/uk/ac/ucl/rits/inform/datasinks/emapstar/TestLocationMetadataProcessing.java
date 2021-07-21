@@ -1,8 +1,11 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentRepository;
@@ -19,10 +22,13 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLocationMetadataProcessing extends MessageProcessingBase {
@@ -162,6 +168,30 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertNull(currentState.getValidUntil());
     }
 
+    /**
+     * Different parameters (starting conditions) for requiredFields test
+     */
+    static Stream<Consumer<LocationMetadata>> departmentFieldsWithChangedData() {
+        String newData = "NEW";
+        return Stream.of(
+                metadata -> metadata.setDepartmentHl7(newData),
+                metadata -> metadata.setDepartmentSpeciality(newData),
+                metadata -> metadata.setDepartmentName(newData)
+        );
+    }
+
+    /**
+     * Given that location exists with a linked department.
+     * When a message with the same full hl7 string has a different department data (excluding status and updatedDate)
+     * An exception should be thrown
+     */
+    @ParameterizedTest
+    @MethodSource("departmentFieldsWithChangedData")
+    @Sql("/populate_db.sql")
+    void testDepartmentCantChange(Consumer<LocationMetadata> metadataConsumer) {
+        metadataConsumer.accept(acunCensusBed);
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+    }
 
     // ROOM
 
