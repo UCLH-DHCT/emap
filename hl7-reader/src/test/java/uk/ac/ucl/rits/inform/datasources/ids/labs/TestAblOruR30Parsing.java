@@ -35,7 +35,7 @@ class TestAblOruR30Parsing {
 
     @Test
     void testIdentifiers() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "unit");
         assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("12345006210113012345", msg.getLabSpecimenNumber());
@@ -44,13 +44,13 @@ class TestAblOruR30Parsing {
 
     @Test
     void testSourceSystem() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "unit");
         assertEquals("ABL90 FLEX Plus", msg.getSourceSystem());
     }
 
     @Test
     void testOrderTimes() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "unit");
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getSampleReceivedTime());
         assertEquals(InterchangeValue.buildFromHl7(resultTime), msg.getOrderDateTime());
         assertTrue(msg.getRequestedDateTime().isUnknown());
@@ -63,13 +63,13 @@ class TestAblOruR30Parsing {
      */
     @Test
     void testBatteryCodes() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "unit");
         assertEquals("VBG", msg.getTestBatteryLocalCode());
     }
 
     @Test
     void testBatteryCodingSystem() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "unit");
         assertEquals(OrderCodingSystem.ABL90_FLEX_PLUS.name(), msg.getTestBatteryCodingSystem());
     }
 
@@ -132,18 +132,18 @@ class TestAblOruR30Parsing {
 
     @Test
     void testCollectionSpecimenType() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "unit");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "unit");
         assertEquals(InterchangeValue.buildFromHl7("Venous"), msg.getSpecimenType());
     }
 
     @Test
     void testProficiencyTestingSamplesSkipped() {
-        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "ignored"));
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "ignored"));
     }
 
     @Test
     void testCollectionTimeRequired() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "no_collection_time"));
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "no_collection_time"));
     }
 
     @Test

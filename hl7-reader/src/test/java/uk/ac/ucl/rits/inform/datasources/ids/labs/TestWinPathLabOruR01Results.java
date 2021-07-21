@@ -37,7 +37,7 @@ class TestWinPathLabOruR01Results {
 
     @Test
     void testSpecimenType() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "oru_ro1_text");
         assertEquals(InterchangeValue.buildFromHl7("CTNS"), msg.getSpecimenType());
     }
 
@@ -46,7 +46,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testTestCodes() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "oru_ro1_text");
         assertEquals("NCOV", msg.getTestBatteryLocalCode());
     }
 
@@ -73,7 +73,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testStringResultOnlyParsed() throws Exception {
-        LabOrderMsg msg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        LabOrderMsg msg = labReader.getFirstOrder(FILE_TEMPLATE, "oru_ro1_text");
         List<LabResultMsg> labResultMsgs = msg.getLabResultMsgs();
         Map<String, LabResultMsg> resultsByItemCode = labReader.getResultsByItemCode(labResultMsgs);
         LabResultMsg ncvs = resultsByItemCode.get("NCVS");
@@ -172,8 +172,18 @@ class TestWinPathLabOruR01Results {
      * Range is 0-2-7.2. Unparsable so should not set a range
      */
     @Test
-    void testRangeUnparsable() throws Exception {
+    void testMultipleDashesUnparsable() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "UNPARSABLE_RANGE");
+        assertTrue(result.getReferenceHigh().isUnknown());
+        assertTrue(result.getReferenceLow().isUnknown());
+    }
+
+    /**
+     * Range is >2-7.2. Unparsable so should not set a range
+     */
+    @Test
+    void testRangeGreaterAndHigh() throws Exception {
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "GREATER_AND_HIGH");
         assertTrue(result.getReferenceHigh().isUnknown());
         assertTrue(result.getReferenceLow().isUnknown());
     }
@@ -191,6 +201,16 @@ class TestWinPathLabOruR01Results {
         assertEquals(InterchangeValue.buildFromHl7("H"), result.getAbnormalFlag());
     }
 
+    /**
+     * Empty value for numeric should be unknown but still have mime type set.
+     */
+    @Test
+    void testEmptyNumericValue() throws Exception {
+        LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "EMPTY");
+        assertTrue(result.getNumericValue().isUnknown());
+        assertEquals(ValueType.NUMERIC, result.getMimeType());
+    }
+
     @Test
     void testAbnormalFlagAbsent() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_ro1_numeric", "ALP");
@@ -199,9 +219,22 @@ class TestWinPathLabOruR01Results {
 
     @Test
     void testClinicalInformation() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "oru_ro1_text");
+        LabOrderMsg orderMsg = labReader.getFirstOrder(FILE_TEMPLATE, "oru_ro1_text");
         String expected = "Can you confirm this order has been discussed with and approved by a Virologist-";
         assertEquals(InterchangeValue.buildFromHl7(expected), orderMsg.getClinicalInformation());
+    }
+
+    /**
+     * Multiple isolate orders (e.g. bacterial and fungal) with sensitivity results should be parsed correctly.
+     */
+    @Test
+    void testSensitivityWithMultipleIsolateOrders() throws Exception {
+        List<LabOrderMsg> orders = labReader.getAllOrders(FILE_TEMPLATE, "isolate_multiple_orders");
+        List<LabResultMsg> isolateResults = orders.stream()
+                .flatMap(o -> o.getLabResultMsgs().stream())
+                .filter(r -> r.getLabIsolate() != null)
+                .collect(Collectors.toList());
+        assertEquals(2, isolateResults.size());
     }
 
     /**
@@ -209,7 +242,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testMismatchEpicId() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "mistmatch_epic_order_id"));
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "mistmatch_epic_order_id"));
     }
 
     /**
@@ -217,7 +250,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testPatientRepeatsThrows() {
-        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.process(FILE_TEMPLATE, "patient_repeats"));
+        assertThrows(Hl7MessageIgnoredException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "patient_repeats"));
     }
 
     /**
@@ -225,23 +258,16 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testSubIdNotIsolate() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "subid_no_isolate"));
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "subid_no_isolate"));
     }
 
-    /**
-     * WinPath should always have the first order as the isolate, throw if not.
-     */
-    @Test
-    void testSensitivityWhereFirstOrderIsNotIsolate() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "malformed_sensitivity"));
-    }
 
     /**
      * Sensitivity with no epic id should throw an exception as it can't be matched as a child.
      */
     @Test
     void testIsolateWhereSensitivityHasNoEpicId() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "isolate_child_no_epic_id"));
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "isolate_child_no_epic_id"));
     }
 
     /**
@@ -260,7 +286,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testNonIsolateCoded() {
-        assertThrows(Hl7InconsistencyException.class, () -> labReader.process(FILE_TEMPLATE, "non_isolate_ce"));
+        assertThrows(Hl7InconsistencyException.class, () -> labReader.getFirstOrder(FILE_TEMPLATE, "non_isolate_ce"));
     }
 
     /**
@@ -270,7 +296,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testNoGrowthCodeIsStripped() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_no_growth");
+        LabOrderMsg orderMsg = labReader.getFirstOrder(FILE_TEMPLATE, "isolate_no_growth");
         List<LabResultMsg> result = orderMsg.getLabResultMsgs()
                 .stream()
                 .filter(rs -> "1".equals(rs.getObservationSubId()))
@@ -280,8 +306,8 @@ class TestWinPathLabOruR01Results {
         assertEquals("NG5", ng5);
     }
 
-    private LabIsolateMsg getFirstLabIsolate(String file) throws Hl7MessageIgnoredException, Hl7InconsistencyException {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, file);
+    private LabIsolateMsg getFirstLabIsolate(String file) throws Exception {
+        LabOrderMsg orderMsg = labReader.getFirstOrder(FILE_TEMPLATE, file);
         return orderMsg.getLabResultMsgs().stream()
                 .filter(res -> res.getLabIsolate() != null)
                 .findFirst()
@@ -295,7 +321,7 @@ class TestWinPathLabOruR01Results {
      */
     @Test
     void testIsolateResult() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_quantity");
+        LabOrderMsg orderMsg = labReader.getFirstOrder(FILE_TEMPLATE, "isolate_quantity");
 
         LabResultMsg isolateResultMsg = orderMsg.getLabResultMsgs().stream()
                 .filter(res -> res.getLabIsolate() != null)
@@ -338,7 +364,7 @@ class TestWinPathLabOruR01Results {
 
     @Test
     void testClinicalInformationIsAddedToSensitivity() throws Exception {
-        LabOrderMsg orderMsg = labReader.process(FILE_TEMPLATE, "isolate_clinical_notes");
+        LabOrderMsg orderMsg = labReader.getFirstOrder(FILE_TEMPLATE, "isolate_clinical_notes");
         List<LabResultMsg> result = orderMsg.getLabResultMsgs()
                 .stream()
                 .filter(rs -> "1".equals(rs.getObservationSubId()))

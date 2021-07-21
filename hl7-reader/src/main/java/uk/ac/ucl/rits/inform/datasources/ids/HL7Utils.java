@@ -7,11 +7,12 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
 import ca.uhn.hl7v2.model.v26.datatype.DTM;
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.CustomModelWithDefaultVersion;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -30,18 +31,21 @@ import java.util.TimeZone;
 
 /**
  * Utilities for interpreting HL7 messages.
+ * @author Jeremy Stein
+ * @author Stef Piatek
  */
-public class HL7Utils {
+public final class HL7Utils {
+
+    private static final String LONDON_TIMEZONE = "Europe/London";
+
     /**
      * Can't instantiate a util class.
      */
     private HL7Utils() {}
 
     /**
-     * HL7 messages may or may not specify a timezone, according to the spec. In
-     * practice our messages don't, and our current assumption is that all times
-     * are local time, which means local for the hospital, NOT local time for
-     * the computer this code is running on.
+     * Our messages don't specify time zone, we are assuming all datetimes are in are local time.
+     * Here local means for the hospital, NOT local time for the computer this code is running on.
      * @param hl7DTM the hl7 DTM object as it comes from the message
      * @return an Instant representing this same point in time, or null if no time
      * is specified in the DTM
@@ -52,23 +56,9 @@ public class HL7Utils {
         if (valueAsCal == null) {
             return null;
         }
-        // BUG: If no timezone/offset is specified in the HL7 message,
-        // the Calendar object still comes out with a timezone of Europe/London,
-        // or presumably whatever the tz is on the computer this is running on.
-        // We need to be able to tell between no TZ specified and an explicit Europe/London.
-        // Is this somewhere in the HAPI config?
-        // Chances are no HL7 messages we ever see will specify it, though...
-        TimeZone before = valueAsCal.getTimeZone();
-        // The hospital will always be in London, however this code could
-        // theoretically run anywhere. In fact, CircleCI containers seem to be set on UTC.
-        // Therefore forcibly interpret as this timezone (this should be in config).
-        // There's the possibility that different equipment in the hospital will be in
-        // different timezones (or will be manually updated at different times), but we'll
-        // deal with that when we come to it.
-        valueAsCal.setTimeZone(TimeZone.getTimeZone("Europe/London"));
-        TimeZone after = valueAsCal.getTimeZone();
-        Instant result = valueAsCal.toInstant();
-        return result;
+        valueAsCal.setTimeZone(TimeZone.getTimeZone(LONDON_TIMEZONE));
+
+        return valueAsCal.toInstant();
     }
 
 
@@ -77,7 +67,7 @@ public class HL7Utils {
      * @param hl7Date HAPI DT date
      * @return Local date
      */
-    public static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
+    static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
         if (hl7Date == null) {
             return null;
         }
@@ -85,17 +75,28 @@ public class HL7Utils {
     }
 
     /**
-     * Initalise the HAPI parser.
+     * Process date value from HL7.
+     * @param hl7Date HAPI DT date
+     * @return Local date
+     */
+    public static LocalDate interpretDate(DTM hl7Date) throws DataTypeException {
+        if (hl7Date == null) {
+            return null;
+        }
+        return LocalDate.of(hl7Date.getYear(), hl7Date.getMonth(), hl7Date.getDay());
+    }
+
+    /**
+     * Initialise the HAPI parser.
      * @return the HapiContext
      */
     public static HapiContext initializeHapiContext() {
         HapiContext context = new DefaultHapiContext();
-
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
+        ModelClassFactory mcf = new CustomModelWithDefaultVersion("uk.ac.ucl.rits.inform.datasources.ids.hl7.custom", "2.6");
+
         context.setModelClassFactory(mcf);
         return context;
     }
@@ -131,13 +132,11 @@ public class HL7Utils {
      * @throws HL7Exception if HAPI does
      */
     public static Message parseHl7String(String hl7Message) throws HL7Exception {
-        HapiContext context = new DefaultHapiContext();
+        HapiContext context = initializeHapiContext();
+        // do we want no context validation?
         ValidationContext vc = ValidationContextFactory.noValidation();
         context.setValidationContext(vc);
 
-        // https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
-        CanonicalModelClassFactory mcf = new CanonicalModelClassFactory("2.6");
-        context.setModelClassFactory(mcf);
         PipeParser parser = context.getPipeParser();
 
         return parser.parse(hl7Message);

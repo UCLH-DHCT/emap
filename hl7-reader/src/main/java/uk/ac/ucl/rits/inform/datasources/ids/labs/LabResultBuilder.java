@@ -1,14 +1,11 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
-import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.IS;
-import ca.uhn.hl7v2.model.v26.datatype.NM;
-import ca.uhn.hl7v2.model.v26.datatype.ST;
-import ca.uhn.hl7v2.model.v26.datatype.TX;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBX;
 import org.slf4j.Logger;
@@ -21,11 +18,10 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  * Base builder class for Lab Results.
@@ -40,6 +36,7 @@ public abstract class LabResultBuilder {
     private final OBX obx;
     private final List<NTE> notes;
     private final String normalFlag;
+    private static final Set<String> DEFAULT_STRING_NUMERIC_TYPES = Set.of("ST", "FT", "TX", "NM");
 
     /**
      * @param obx        OBX segment
@@ -68,13 +65,13 @@ public abstract class LabResultBuilder {
 
     /**
      * Construct Lab Result msg using set order of methods.
-     * @throws DataTypeException         if the result time can't be parsed by HAPI
+     * @throws HL7Exception              If hl7value can't be decoded
      * @throws Hl7InconsistencyException if custom value type is incompatible with parser
      */
-    void constructMsg() throws DataTypeException, Hl7InconsistencyException {
+    void constructMsg() throws HL7Exception, Hl7InconsistencyException {
         setTestIdentifiers();
         setValueAdjacentFields();
-        setValue();
+        setValueAndMimeType();
         setResultTime();
         setComments();
         setCustomOverrides();
@@ -89,7 +86,7 @@ public abstract class LabResultBuilder {
     /**
      * Any custom overriding methods to populate individual field data.
      */
-    abstract void setCustomOverrides();
+    abstract void setCustomOverrides() throws Hl7InconsistencyException;
 
 
     /**
@@ -110,10 +107,13 @@ public abstract class LabResultBuilder {
         try {
             msg.setResultStatus(LabResultStatus.findByHl7Code(obx.getObx11_ObservationResultStatus().getValueOrEmpty()));
         } catch (IllegalArgumentException e) {
-            logger.warn("Could not parse the PatientClass", e);
+            logger.warn("Could not parse the ResultStatus", e);
         }
-
-        setReferenceRange(obx);
+        try {
+            setReferenceRange(obx);
+        } catch (NumberFormatException e) {
+            logger.error("Could not parse reference range", e);
+        }
         setAbnormalFlag(obx);
     }
 
@@ -166,26 +166,22 @@ public abstract class LabResultBuilder {
      * Populate results based on the observation type.
      * <p>
      * For numeric values, string values are also populated for debugging.
-     * @throws Hl7InconsistencyException If custom data type is not compatible with parsing
+     * @throws HL7Exception If hl7value can't be decoded
      */
-    protected void setValue() throws Hl7InconsistencyException {
+    protected void setSingleTextOrNumericValue() throws HL7Exception {
         int repCount = obx.getObx5_ObservationValueReps();
 
-        // The first rep is all that's needed for most data types
-        Varies dataVaries = obx.getObx5_ObservationValue(0);
-        Type data = dataVaries.getData();
-        if (data instanceof ST
-                || data instanceof FT
-                || data instanceof TX
-                || data instanceof NM) {
+        String dataType = obx.getObx2_ValueType().getValueOrEmpty();
+        if (DEFAULT_STRING_NUMERIC_TYPES.contains(dataType)) {
             setStringValueAndMimeType(obx);
-            if (data instanceof NM) {
+            if ("NM".equals(dataType)) {
                 if (repCount > 1) {
                     logger.warn("LabResult is Numerical (NM) result but repcount = {}", repCount);
                 }
+                msg.setMimeType(ValueType.NUMERIC);
                 try {
                     if (msg.getStringValue().isSave()) {
-                        setNumericValueAndResultOperatorAndMimeType(msg.getStringValue().get());
+                        setNumericValueAndResultOperator(msg.getStringValue().get());
                     }
                 } catch (NumberFormatException e) {
                     logger.warn("LabResult numeric result couldn't be parsed. Will delete existing value: {}", msg.getStringValue());
@@ -193,18 +189,19 @@ public abstract class LabResultBuilder {
                 }
             }
         }
-        setDataFromCustomValue(obx);
     }
 
-    void setStringValueAndMimeType(OBX obx) {
+    void setStringValueAndMimeType(OBX obx) throws HL7Exception {
         msg.setMimeType(ValueType.TEXT);
         // Store the string value for numeric types to allow for debugging in case new result operator needs to be added
-        String stringValue = Arrays.stream(obx.getObx5_ObservationValue())
-                .map(Varies::getData)
-                .map(Type::toString)
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining("\n"));
-
+        StringJoiner joiner = new StringJoiner("\n");
+        for (Varies varies : obx.getObx5_ObservationValue()) {
+            String value = varies.getData().encode();
+            if (value != null) {
+                joiner.add(value);
+            }
+        }
+        String stringValue = joiner.toString();
         msg.setStringValue(InterchangeValue.buildFromHl7(stringValue));
     }
 
@@ -212,8 +209,7 @@ public abstract class LabResultBuilder {
      * Set numeric value and result operator (if required).
      * @param inputValue string value
      */
-    void setNumericValueAndResultOperatorAndMimeType(String inputValue) {
-        msg.setMimeType(ValueType.NUMERIC);
+    void setNumericValueAndResultOperator(String inputValue) {
         String value = inputValue;
         String resultOperator = "=";
         if (!value.isEmpty() && (value.charAt(0) == '>' || value.charAt(0) == '<')) {
@@ -228,13 +224,12 @@ public abstract class LabResultBuilder {
 
 
     /**
-     * Optionally set a value which is not a numeric or string type.
-     * @param obx      obx segment
-     * @throws Hl7InconsistencyException if custom data type is not compatible wth parsing
+     * Each parser should define how to parse their values.
+     * Simplest case would just call {@link LabResultBuilder#setSingleTextOrNumericValue}
+     * @throws Hl7InconsistencyException if data cannot be parsed.
+     * @throws HL7Exception              If hl7value can't be decoded
      */
-    protected void setDataFromCustomValue(OBX obx) throws Hl7InconsistencyException {
-        return;
-    }
+    abstract void setValueAndMimeType() throws Hl7InconsistencyException, HL7Exception;
 
     /**
      * Gather all the NTE segments that relate to this OBX and save as concatenated value.

@@ -23,18 +23,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Build one or more flowsheets from HL7 message.
@@ -43,7 +42,7 @@ import java.util.List;
 @Component
 public class FlowsheetFactory {
     private static final Logger logger = LoggerFactory.getLogger(FlowsheetFactory.class);
-    private static final Collection<String> ALLOWED_STATUSES = new HashSet<>(Arrays.asList("C", "F", "D"));
+    private static final Collection<String> ALLOWED_STATUSES = Set.of("C", "F", "D");
 
     /**
      * Builds Flowsheet messages from an ORU R01 message.

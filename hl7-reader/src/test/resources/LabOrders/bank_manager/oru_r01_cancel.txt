@@ -1,0 +1,6 @@
+MSH|^~\&|||||20130729102522||ORU^R01|20130734092523|P|2.5
+PID|1||40800000^^^^medrec~||ORANGE^blood||19740408|F
+PV1|1||||||||||||||||||1013420255
+ORC|OC||541234||||||||||||OTH^No hospital number on sample. Sample not processed., Insufficient ID on the sample. NHS number or address required. Sample not processed., Rejected as no date and/or time legible written on sample. Sample not processed.
+OBR|1||19B44444|GPS^Group & Screen^^Profiles|||201307290618|||||||201307290925||CM7^DONALD^DR.C.J.||||19B44444||20130729102522|||X
+NTE|||No hospital number on sample. Sample not processed.~Insufficient ID on the sample. NHS number or address required. Sample not processed.~Rejected as no date and/or time legible written on sample. Sample not processed.|BMCOMMENT

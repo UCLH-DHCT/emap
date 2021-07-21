@@ -2,38 +2,67 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
+import ca.uhn.hl7v2.model.ExtraComponents;
+import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.PRL;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
-import ca.uhn.hl7v2.model.v26.segment.MSH;
+import ca.uhn.hl7v2.model.v26.datatype.TX;
+import ca.uhn.hl7v2.model.v26.segment.NTE;
 import ca.uhn.hl7v2.model.v26.segment.OBR;
 import ca.uhn.hl7v2.model.v26.segment.ORC;
-import ca.uhn.hl7v2.model.v26.segment.PID;
-import ca.uhn.hl7v2.model.v26.segment.PV1;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.hl7parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
 abstract class LabOrderBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(LabOrderBuilder.class);
+
+    private final Collection<String> allowedOcIds;
     private String epicCareOrderNumberOrc;
     private String epicCareOrderNumberObr;
+    private final OrderCodingSystem codingSystem;
 
     private final LabOrderMsg msg = new LabOrderMsg();
+
+    /**
+     * @param allowedOcIds Allowed order control Ids
+     * @param codingSystem Coding system to use
+     */
+    LabOrderBuilder(String[] allowedOcIds, OrderCodingSystem codingSystem) {
+        this.allowedOcIds = Set.of(allowedOcIds);
+        this.codingSystem = codingSystem;
+    }
 
     /**
      * @return Lab Order Msg.
      */
     public LabOrderMsg getMsg() {
         return msg;
+    }
+
+    /**
+     * @return order coding system.
+     */
+    OrderCodingSystem getCodingSystem() {
+        return codingSystem;
     }
 
     /**
@@ -55,15 +84,14 @@ abstract class LabOrderBuilder {
      * @param orc the ORC segment
      * @param obr the OBR segment
      * @throws DataTypeException if HAPI does
+     * @throws Hl7InconsistencyException if HL7 doesn't meet expected structure
      */
-    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException {
+    void populateOrderInformation(ORC orc, OBR obr) throws DataTypeException, Hl7InconsistencyException {
         // NA/NW/CA/CR/OC/XO
         msg.setOrderControlId(orc.getOrc1_OrderControl().getValue());
         epicCareOrderNumberOrc = orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        String labFillerSpecimen = orc.getOrc3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        String labPlacerSpecimen = orc.getOrc4_PlacerGroupNumber().getEi1_EntityIdentifier().getValueOrEmpty();
-        msg.setLabSpecimenNumber(labFillerSpecimen.isEmpty() ? labPlacerSpecimen : labFillerSpecimen);
-        setSpecimenType(obr);
+        setLabSpecimenNumber(orc);
+        setSpecimenTypeAndCollectionMethod(obr);
         msg.setOrderStatus(orc.getOrc5_OrderStatus().getValueOrEmpty());
 
 
@@ -86,32 +114,56 @@ abstract class LabOrderBuilder {
                     // ORC-9 = time sample entered onto WinPath
                     msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(orc9));
                 }
+                if (msg.getStatusChangeTime() == null) {
+                    msg.setStatusChangeTime(orc9);
+                }
                 break;
             default:
                 break;
         }
     }
 
+    /**
+     * Set the specimen number from the ORC segment.
+     * Each lab result that uses this appears to need a separate implementation of this.
+     * @param orc ORC segment
+     */
+    protected abstract void setLabSpecimenNumber(ORC orc) throws Hl7InconsistencyException;
 
-    void setBatteryCodingSystem(OrderCodingSystem codingSystem) {
+
+    void setBatteryCodingSystem() {
         msg.setTestBatteryCodingSystem(codingSystem.name());
     }
 
-    private void setSpecimenType(OBR obr) {
+    private void setSpecimenTypeAndCollectionMethod(OBR obr) {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
         msg.setSpecimenType(InterchangeValue.buildFromHl7(sampleType));
+        setCollectionMethods(obr.getObr15_SpecimenSource().getSps3_SpecimenCollectionMethod());
+    }
+
+    /**
+     * Set collection method, adding comma separated extra components if they exist.
+     * @param collectionField collection method field
+     */
+    private void setCollectionMethods(TX collectionField) {
+        StringJoiner collectionMethods = new StringJoiner(", ");
+        collectionMethods.add(collectionField.getValueOrEmpty());
+
+        ExtraComponents extraComponents = collectionField.getExtraComponents();
+        for (int i = 0; i < collectionField.getExtraComponents().numComponents(); i++) {
+            Type extraComponent = extraComponents.getComponent(i).getData();
+            collectionMethods.add(extraComponent.toString());
+        }
+        msg.setCollectionMethod(InterchangeValue.buildFromHl7(collectionMethods.toString()));
     }
 
     /**
      * Set LabOrder message source information and patient/encounter identifiers.
      * @param subMessageSourceId unique Id from the IDS
-     * @param msh                the MSH segment
-     * @param pid                the PID segment
-     * @param pv1                the PV1 segment
+     * @param patientHl7         patient hl7 info
      * @throws HL7Exception if there is missing hl7 data
      */
-    void setSourceAndPatientIdentifiers(String subMessageSourceId, MSH msh, PID pid, PV1 pv1) throws HL7Exception {
-        PatientInfoHl7 patientHl7 = new PatientInfoHl7(msh, pid, pv1);
+    void setSourceAndPatientIdentifiers(String subMessageSourceId, PatientInfoHl7 patientHl7) throws HL7Exception {
         msg.setSourceMessageId(subMessageSourceId);
         String sourceApplication = patientHl7.getSendingApplication().isEmpty() ? "Not in Message" : patientHl7.getSendingApplication();
         msg.setSourceSystem(sourceApplication);
@@ -152,12 +204,12 @@ abstract class LabOrderBuilder {
         msg.setLabDepartment(obr.getObr24_DiagnosticServSectID().getValueOrEmpty());
         String resultStatus = obr.getObr25_ResultStatus().getValueOrEmpty();
         msg.setResultStatus(resultStatus);
-        setSpecimenType(obr);
+        setSpecimenTypeAndCollectionMethod(obr);
 
         epicCareOrderNumberObr = obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty();
 
         // this is the "last updated" field for results as well as changing to order "in progress"
-        // Will be set from ORC if staus change time is not in message type
+        // Will be set from ORC if status change time is not in message type
         msg.setStatusChangeTime(HL7Utils.interpretLocalTime(obr.getObr22_ResultsRptStatusChngDateTime()));
 
         String reasonForStudy = List.of(obr.getObr31_ReasonForStudy()).stream()
@@ -182,4 +234,34 @@ abstract class LabOrderBuilder {
         msg.setParentSubId(parent.getPrl2_ParentObservationSubIdentifier().getValueOrEmpty());
     }
 
+
+    protected void addMsgIfAllowedOcId(String idsUnid, List<LabOrderMsg> orders) {
+        if (msg.getOrderControlId() != null && allowedOcIds.contains(msg.getOrderControlId())) {
+            orders.add(msg);
+        } else {
+            logger.warn("Ignoring unid {} because order control ID not allowed '{}'", idsUnid, msg.getOrderControlId());
+        }
+    }
+
+    /**
+     * Set questions from notes.
+     * @param notes             notes for an order.
+     * @param questionSeparator to join the answer if it contains the question pattern
+     * @param questionPattern   pattern between the question and answer
+     */
+    protected void setQuestions(Iterable<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
+        for (NTE note : notes) {
+            StringBuilder questionAndAnswer = new StringBuilder();
+            for (FT ft : note.getNte3_Comment()) {
+                questionAndAnswer.append(ft.getValueOrEmpty()).append("\n");
+            }
+            String[] parts = questionPattern.split(questionAndAnswer.toString().strip());
+            if (parts.length > 1) {
+                String question = parts[0];
+                // allow for separator to be in the answer
+                String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
+                getMsg().getQuestions().put(question, answer);
+            }
+        }
+    }
 }
