@@ -12,6 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
+import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.Room;
 import uk.ac.ucl.rits.inform.informdb.movement.RoomState;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
@@ -46,11 +47,19 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final String ACUN_LOCATION_HL7_STRING = String.join("^", ACUN_DEPT_HL7_STRING, ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
     private static final String ACTIVE = "Active";
     private static final Instant CONTACT_TIME = Instant.parse("2016-02-09T00:00:00Z");
+    private static final Instant LATER_TIME = CONTACT_TIME.plusSeconds(20);
 
     private LocationMetadata acunCensusBed;
 
     TestLocationMetadataProcessing() throws IOException {
         acunCensusBed = messageFactory.getLocationMetadata("acun_census_bed.yaml");
+    }
+
+    /**
+     * @return default location for acun used in tests.
+     */
+    private Location getAcunLocation() {
+        return locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
     }
 
     // LOCATION
@@ -63,7 +72,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Test
     void testLocationCreated() throws Exception {
         processSingleMessage(acunCensusBed);
-        locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
+        getAcunLocation();
         assertEquals(1, locationRepo.count());
     }
 
@@ -79,7 +88,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
 
         processSingleMessage(acunCensusBed);
 
-        locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
+        getAcunLocation();
         assertEquals(preProcessingCount, locationRepo.count());
     }
 
@@ -94,17 +103,19 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     void testDepartmentCreated() throws Exception {
         processSingleMessage(acunCensusBed);
 
-        Department dep = departmentRepo.findByHl7String(ACUN_DEPT_HL7_STRING).orElseThrow();
+        Location location = getAcunLocation();
+        Department dep = location.getDepartmentId();
+        assertEquals(ACUN_DEPT_HL7_STRING, dep.getHl7String());
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
         assertEquals("Maternity - Well Baby", dep.getSpeciality());
 
         DepartmentState depState = departmentStateRepo.findAllByDepartmentIdAndStatus(dep, ACTIVE).orElseThrow();
-        assertEquals("Active", depState.getStatus());
         assertNotNull(depState.getStoredFrom());
         assertNull(depState.getValidUntil());
         assertNull(depState.getValidFrom());
         assertNull(depState.getStoredUntil());
     }
+
 
     /**
      * Given department exists in database
@@ -128,18 +139,29 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when a location metadata message with matching hl7 string (different status and later time) is processed
      * then a new active state should be created, invalidating the previous state
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testDepartmentStateAdded() throws Exception {
+        String newStatus = "Inactive";
+        acunCensusBed.setDepartmentRecordStatus(newStatus);
+        acunCensusBed.setDepartmentUpdateDate(LATER_TIME);
+        processSingleMessage(acunCensusBed);
 
-    /**
-     * Given department exists in database
-     * when a location metadata message with matching hl7 string (different status and same time) is processed
-     * then a new active state should be created, invalidating the previous state
-     */
+        Location location = getAcunLocation();
 
-    /**
-     * Given department exists in database
-     * when a location metadata message with matching hl7 string (different status and earlier time) is processed
-     * then the previous temporal until data should be updated, processed message temporal until data should be set to the next message from times.
-     */
+        // previous state is invalidated
+        DepartmentState previousState = departmentStateRepo.findAllByDepartmentIdAndStatus(location.getDepartmentId(), ACTIVE).orElseThrow();
+        assertEquals(LATER_TIME, previousState.getValidUntil());
+        assertNotNull(previousState.getStoredUntil());
+
+        // current state is active
+        DepartmentState currentState = departmentStateRepo.findAllByDepartmentIdAndStatus(location.getDepartmentId(), newStatus).orElseThrow();
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
+        assertEquals(LATER_TIME, currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+    }
+
 
     // ROOM
 
@@ -151,8 +173,11 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Test
     void testRoomCreated() throws Exception {
         processSingleMessage(acunCensusBed);
-        Room room = roomRepo.findByHl7String(ACUN_ROOM_HL7_STRING).orElseThrow();
+
+        Location location = getAcunLocation();
+        Room room = location.getRoomId();
         assertEquals("BY12", room.getName());
+        assertEquals(ACUN_ROOM_HL7_STRING, room.getHl7String());
 
         RoomState roomState = roomStateRepo.findByCsn(1158L).orElseThrow();
         assertEquals(ACTIVE, roomState.getStatus());

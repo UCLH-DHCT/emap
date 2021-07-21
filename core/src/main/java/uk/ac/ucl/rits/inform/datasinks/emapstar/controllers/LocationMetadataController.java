@@ -21,6 +21,7 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Adds or updates location metadata (department, room, bed pool, bed, and their states).
@@ -55,18 +56,82 @@ public class LocationMetadataController {
     @Transactional
     public void processMessage(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Location location = getOrCreateLocation(msg.getHl7String());
-        Department department = updateOrCreateDepartmentAndState(location, msg, storedFrom);
+        Department department = updateOrCreateDepartmentAndState(msg, storedFrom);
 
         Room room = null;
         if (msg.getRoomCsn() != null) {
-            room = updateOrCreateRoomAndState(location, department, msg, storedFrom);
+            room = updateOrCreateRoomAndState(department, msg, storedFrom);
         }
         Bed bed = null;
         if (msg.getBedCsn() != null) {
-            bed = updateOrCreateBedAndState(location, room, msg, storedFrom);
+            bed = updateOrCreateBedAndState(room, msg, storedFrom);
         }
 
 
+        addLocationForeignkeys(location, department, room, bed);
+    }
+
+    private Location getOrCreateLocation(String hl7String) {
+        return locationRepo.findByLocationStringEquals(hl7String)
+                .orElseGet(() -> locationRepo.save(new Location(hl7String)));
+    }
+
+    /**
+     * Create department if it doesn't exist and update state.
+     * @param msg        message to be processed
+     * @param storedFrom time that emap core started processing the message
+     * @return department entity
+     */
+    private Department updateOrCreateDepartmentAndState(LocationMetadata msg, Instant storedFrom) {
+        Department dep = departmentRepo
+                .findByHl7String(msg.getDepartmentHl7())
+                .orElseGet(() -> departmentRepo.save(
+                        new Department(msg.getDepartmentHl7(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
+
+        DepartmentState currentState = new DepartmentState(dep, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
+        Optional<DepartmentState> possiblePreviousState = departmentStateRepo
+                .findFirstByDepartmentIdOrderByStoredFromDesc(dep);
+
+        if (possiblePreviousState.isPresent()) {
+            DepartmentState previousState = possiblePreviousState.get();
+            if (!previousState.getStatus().equals(msg.getDepartmentRecordStatus())) {
+                // previous state is different so update current state and save new state as well
+                previousState.setStoredUntil(currentState.getStoredFrom());
+                previousState.setValidUntil(currentState.getValidFrom());
+                departmentStateRepo.saveAll(List.of(previousState, currentState));
+            }
+        } else {
+            // no previous states exist so just save
+            departmentStateRepo.save(currentState);
+        }
+
+        return dep;
+    }
+
+    /**
+     * Create Room if it doesn't exist and update state.
+     * @param department       department entity that the room is associated with
+     * @param locationMetadata message to be processed
+     * @param storedFrom       time that emap core started processing the message
+     * @return room
+     */
+    private Room updateOrCreateRoomAndState(Department department, LocationMetadata locationMetadata, Instant storedFrom) {
+        return null;
+    }
+
+    /**
+     * Create Bed if it doesn't exist and update state.
+     * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
+     * @param room             room entity that the bed is associated with
+     * @param locationMetadata message to be processed
+     * @param storedFrom       time that emap core started processing the message
+     * @return bed
+     */
+    private Bed updateOrCreateBedAndState(Room room, LocationMetadata locationMetadata, Instant storedFrom) {
+        return null;
+    }
+
+    private void addLocationForeignkeys(Location location, Department department, Room room, Bed bed) throws IncompatibleDatabaseStateException {
         boolean changed = false;
         if (location.getDepartmentId() != department) {
             if (location.getDepartmentId() != null) {
@@ -94,55 +159,5 @@ public class LocationMetadataController {
         if (changed) {
             locationRepo.save(location);
         }
-    }
-
-    private Location getOrCreateLocation(String hl7String) {
-        return locationRepo.findByLocationStringEquals(hl7String)
-                .orElseGet(() -> locationRepo.save(new Location(hl7String)));
-    }
-
-    /**
-     * Create department if it doesn't exist and update state.
-     * @param location   location entity
-     * @param msg        message to be processed
-     * @param storedFrom time that emap core started processing the message
-     * @return department entity
-     */
-    private Department updateOrCreateDepartmentAndState(Location location, LocationMetadata msg, Instant storedFrom) {
-        Department dep = departmentRepo.findByHl7String(msg.getHl7String())
-                .orElseGet(() -> departmentRepo.save(
-                        new Department(msg.getHl7String(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
-
-        List<DepartmentState> states = departmentStateRepo.findAllByDepartmentId(dep);
-        if (states.isEmpty()) {
-            states.add(new DepartmentState(dep, msg.getRoomContactDate(), storedFrom));
-        }
-
-        return dep;
-    }
-
-    /**
-     * Create Room if it doesn't exist and update state.
-     * @param location         location entity
-     * @param department       department entity that the room is associated with
-     * @param locationMetadata message to be processed
-     * @param storedFrom       time that emap core started processing the message
-     * @return room
-     */
-    private Room updateOrCreateRoomAndState(Location location, Department department, LocationMetadata locationMetadata, Instant storedFrom) {
-        return null;
-    }
-
-    /**
-     * Create Bed if it doesn't exist and update state.
-     * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
-     * @param location         location entity
-     * @param room             room entity that the bed is associated with
-     * @param locationMetadata message to be processed
-     * @param storedFrom       time that emap core started processing the message
-     * @return bed
-     */
-    private Bed updateOrCreateBedAndState(Location location, Room room, LocationMetadata locationMetadata, Instant storedFrom) {
-        return null;
     }
 }
