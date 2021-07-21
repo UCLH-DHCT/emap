@@ -19,6 +19,6 @@ public interface DepartmentStateRepository extends CrudRepository<DepartmentStat
      * @param status     status
      * @return potential department state
      */
-    Optional<DepartmentState> findAllByDepartmentIdAndStatus(Department department, String status);
+    Optional<DepartmentState> findByDepartmentIdAndStatus(Department department, String status);
 
 }

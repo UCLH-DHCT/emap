@@ -10,5 +10,10 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface RoomStateRepository extends CrudRepository<RoomState, Long> {
-    Optional<RoomState> findByCsn(long Csn);
+    /**
+     * For testing.
+     * @param csn csn to find
+     * @return potential room state
+     */
+    Optional<RoomState> findByCsn(long csn);
 }
