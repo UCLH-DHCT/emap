@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Bed;
+import uk.ac.ucl.rits.inform.informdb.movement.BedState;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
@@ -20,6 +21,7 @@ import uk.ac.ucl.rits.inform.informdb.movement.Room;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,12 +70,16 @@ public class LocationMetadataController {
         }
 
 
-        addLocationForeignkeys(location, department, room, bed);
+        addLocationForeignKeys(location, department, room, bed);
     }
 
     private Location getOrCreateLocation(String hl7String) {
         return locationRepo.findByLocationStringEquals(hl7String)
                 .orElseGet(() -> locationRepo.save(new Location(hl7String)));
+    }
+
+    private boolean notNullAndDifferent(String msg, String dep) {
+        return dep != null && !dep.equals(msg);
     }
 
     /**
@@ -92,7 +98,7 @@ public class LocationMetadataController {
                 .orElseGet(() -> departmentRepo.save(
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
 
-        if (!msg.getDepartmentName().equals(dep.getName()) || !msg.getDepartmentSpeciality().equals(dep.getSpeciality())) {
+        if (notNullAndDifferent(dep.getName(), msg.getDepartmentName()) || notNullAndDifferent(msg.getDepartmentSpeciality(), dep.getSpeciality())) {
             throw new IncompatibleDatabaseStateException("Department can't change it's name or speciality");
         }
 
@@ -100,6 +106,7 @@ public class LocationMetadataController {
 
         return dep;
     }
+
 
     private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department dep, Instant storedFrom) {
         DepartmentState currentState = new DepartmentState(dep, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
@@ -136,7 +143,7 @@ public class LocationMetadataController {
                 .findByHl7String(msg.getRoomHl7())
                 .orElseGet(() -> roomRepo.save(new Room(msg.getRoomHl7(), msg.getRoomName(), department)));
 
-        if (!msg.getRoomName().equals(room.getName())) {
+        if (notNullAndDifferent(room.getName(), msg.getRoomName())) {
             throw new IncompatibleDatabaseStateException("Room can't change it's name");
         }
 
@@ -147,22 +154,84 @@ public class LocationMetadataController {
 
     /**
      * Create Bed if it doesn't exist and update state.
+     * <p>
+     * We should receive beds in order of their valid from, so if a bed doesn't exit (by CSN) then it should be
      * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
      * @param room       room entity that the bed is associated with
      * @param msg        message to be processed
      * @param storedFrom time that emap core started processing the message
      * @return bed
+     * @throws IncompatibleDatabaseStateException if a new state is encountered which is has an earlier valid from than the most recent state
      */
-    private Bed updateOrCreateBedAndState(Room room, LocationMetadata msg, Instant storedFrom) {
+    private Bed updateOrCreateBedAndState(Room room, LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Bed bed = bedRepo
                 .findByHl7String(msg.getBedHl7())
                 .orElseGet(() -> bedRepo.save(new Bed(msg.getBedHl7(), room)));
-        //TODO: update states
+
+        List<BedState> states = bedStateRepo.findAllByBedIdOrderByValidFromDesc(bed);
+
+        if (msg.getIsPoolBed()) {
+            Optional<BedState> existingPoolBed = findExistingPoolBedByValidFrom(msg.getBedContactDate(), states);
+            if (existingPoolBed.isPresent()) {
+                incrementPoolBedAndSave(existingPoolBed.get());
+                // pool already exists so exit early, if it doesn't exist then it will be saved below
+                return bed;
+            }
+        }
+
+        Optional<BedState> existingState = states.stream()
+                .filter(state -> state.getCsn().equals(msg.getBedCsn()))
+                .findFirst();
+        if (existingState.isPresent()) {
+            // CSN already exists so exit early
+            return bed;
+        }
+        createCurrentStateAndInvalidatePrevious(msg, storedFrom, bed, states);
 
         return bed;
     }
 
-    private void addLocationForeignkeys(Location location, Department department, Room room, Bed bed) throws IncompatibleDatabaseStateException {
+    private Optional<BedState> findExistingPoolBedByValidFrom(Instant bedContactDate, Collection<BedState> states) {
+        return states.stream()
+                .filter(state -> state.getPoolBedCount() != null && state.getValidFrom().equals(bedContactDate))
+                .findFirst();
+    }
+
+    private void incrementPoolBedAndSave(BedState existingPoolBed) {
+        existingPoolBed.incrementPoolBedCount();
+        bedStateRepo.save(existingPoolBed);
+    }
+
+    private void createCurrentStateAndInvalidatePrevious(
+            LocationMetadata msg, Instant storedFrom, Bed bed, Collection<BedState> states) throws IncompatibleDatabaseStateException {
+        BedState currentState = new BedState(
+                bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(), msg.getBedRecordState(), msg.getIsPoolBed(),
+                msg.getBedContactDate(), storedFrom
+        );
+
+        if (msg.getIsPoolBed()) {
+            incrementPoolBedAndSave(currentState);
+        }
+
+        if (states.isEmpty()) {
+            // no previous state so save current state and exit
+            bedStateRepo.save(currentState);
+            return;
+        }
+
+        BedState previousState = states.stream().findFirst().orElseThrow();
+
+        if (currentState.getValidFrom().isBefore(previousState.getValidFrom())) {
+            throw new IncompatibleDatabaseStateException("New bed state is valid before the most current bed state");
+        }
+
+        previousState.setValidUntil(currentState.getValidFrom());
+        previousState.setStoredUntil(currentState.getStoredFrom());
+
+        bedStateRepo.saveAll(List.of(previousState, currentState));
+    }
+
+    private void addLocationForeignKeys(Location location, Department department, Room room, Bed bed) throws IncompatibleDatabaseStateException {
         boolean changed = false;
         if (location.getDepartmentId() != department) {
             if (location.getDepartmentId() != null) {
