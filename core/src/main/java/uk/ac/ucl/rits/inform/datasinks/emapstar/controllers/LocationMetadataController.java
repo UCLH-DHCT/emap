@@ -157,6 +157,9 @@ public class LocationMetadataController {
      * <p>
      * We should receive beds in order of their valid from, so if a bed doesn't exit (by CSN) then it should be
      * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
+     * Because the CSN is only of the first encountered, an existing pool bed is found by those which have a pool bed count and the same
+     * contact time. This means that if the locations are processed from the beginning of epic time again then the pool bed count will
+     * be larger than the real value. This is fine because we shouldn't be removing the current progress from the locations hoover.
      * @param room       room entity that the bed is associated with
      * @param msg        message to be processed
      * @param storedFrom time that emap core started processing the message
