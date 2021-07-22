@@ -26,36 +26,25 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class Question  extends TemporalCore<Question, QuestionAudit> {
+public class Question extends TemporalCore<Question, QuestionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long questionId;
 
-    @Column(nullable = false)
-    private String parentTableType;
-
-    @Column(nullable = false) // that probably wants to be a join column
-    private long parentTableId;
-
     @Column(columnDefinition = "text", nullable = false)
     private String question;
-
-    @Column(columnDefinition = "text")
-    private String answer;
 
     public Question() {}
 
     /**
-     * Minimal question constructor that requires all the mandatory fields for a question.
-     * @param parentTableType   Data type this questions belongs to (e.g. lab sample or consultation request)
-     * @param parentTableId     Identifier for table where this particular question is referenced
-     * @param validFrom
-     * @param storedFrom        When EMAP started processing this data type
+     * Minimal question constructor that requires that requires the question as such and the timestamps for when EMAP
+     * started processing this data type and from which time point the question information is valid from.
+     * @param question      The actual question string linked to a data type
+     * @param validFrom     Timestamp from which information valid from
+     * @param storedFrom    When EMAP started processing this data type
      */
-    public Question(String question, String parentTableType, long parentTableId, Instant validFrom, Instant storedFrom) {
+    public Question(String question, Instant validFrom, Instant storedFrom) {
         this.question = question;
-        this.parentTableType = parentTableType;
-        this.parentTableId = parentTableId;
         setStoredFrom(storedFrom);
         setValidFrom(validFrom);
     }
@@ -64,9 +53,6 @@ public class Question  extends TemporalCore<Question, QuestionAudit> {
         super(other);
         this.questionId = other.questionId;
         this.question = other.question;
-        this.parentTableType = other.getParentTableType();
-        this.parentTableId = other.parentTableId;
-        this.answer = other.answer;
     }
 
     @Override
