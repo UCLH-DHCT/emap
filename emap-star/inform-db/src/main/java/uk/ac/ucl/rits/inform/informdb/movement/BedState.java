@@ -52,6 +52,7 @@ public class BedState implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
+    // TODO: annoyingly 8 parameters which is one too many for our checkstyle
     public BedState(Bed bedId, Long csn, Boolean isInCensus, Boolean isBunk, String status, Boolean isPool,
                     Instant validFrom, Instant storedFrom) {
         this.bedId = bedId;
