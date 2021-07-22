@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
@@ -55,6 +56,13 @@ public class LocationMetadataController {
         this.bedStateRepo = bedStateRepo;
     }
 
+    /**
+     * Process location metadata, saving and updating states for department, room and bed.
+     * Updates location ForeignKeys if they don't already exist.
+     * @param msg        message to process
+     * @param storedFrom time that emap core started processing the message
+     * @throws IncompatibleDatabaseStateException if static entities (department, room and bed) change from what the database knows about
+     */
     @Transactional
     public void processMessage(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Location location = getOrCreateLocation(msg.getHl7String());
@@ -108,10 +116,16 @@ public class LocationMetadataController {
     }
 
 
-    private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department dep, Instant storedFrom) {
-        DepartmentState currentState = new DepartmentState(dep, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
+    /**
+     * Create state from department and if it's different from an existing state, invalidate the existing state.
+     * @param msg        message to process
+     * @param department parent department entity
+     * @param storedFrom time that emap core started processing the message
+     */
+    private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
+        DepartmentState currentState = new DepartmentState(department, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo
-                .findFirstByDepartmentIdOrderByStoredFromDesc(dep);
+                .findFirstByDepartmentIdOrderByStoredFromDesc(department);
 
         // if a state already exists and is different from current then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
@@ -205,6 +219,14 @@ public class LocationMetadataController {
         bedStateRepo.save(existingPoolBed);
     }
 
+    /**
+     * Create new state from current message, invalidating the previous state and saving if required.
+     * @param msg        message to process
+     * @param storedFrom time that emap-core started processing the message
+     * @param bed        bed entity
+     * @param states     previous states sorted by descending valid from dates
+     * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
+     */
     private void createCurrentStateAndInvalidatePrevious(
             LocationMetadata msg, Instant storedFrom, Bed bed, Collection<BedState> states) throws IncompatibleDatabaseStateException {
         BedState currentState = new BedState(
@@ -234,7 +256,16 @@ public class LocationMetadataController {
         bedStateRepo.saveAll(List.of(previousState, currentState));
     }
 
-    private void addLocationForeignKeys(Location location, Department department, Room room, Bed bed) throws IncompatibleDatabaseStateException {
+    /**
+     * Add foreign keys to location if they are currently null and save.
+     * @param location   location entity
+     * @param department department entity
+     * @param room       nullable room entity
+     * @param bed        nullable bed entity
+     * @throws IncompatibleDatabaseStateException if an existing foreign key has changed
+     */
+    private void addLocationForeignKeys(Location location, Department department, @Nullable Room room, @Nullable Bed bed)
+            throws IncompatibleDatabaseStateException {
         boolean changed = false;
         if (location.getDepartmentId() != department) {
             if (location.getDepartmentId() != null) {
