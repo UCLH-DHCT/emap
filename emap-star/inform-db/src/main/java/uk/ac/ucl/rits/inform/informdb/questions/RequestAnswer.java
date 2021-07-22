@@ -1,14 +1,29 @@
 package uk.ac.ucl.rits.inform.informdb.questions;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.Instant;
 
+/**
+ * Questions generated from specific data types (e.g. lab samples or consultation requests) trigger answers that or
+ * held as RequestAnswers. RequestAnswers therefore not only hold the answer as such but also link the answer to the
+ * question and the entity (i.e. data type) that triggered the question.
+ * @author Anika Cawthorn
+*/
+@SuppressWarnings("serial")
+@Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @AuditTable
 public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudit> {
     @Id
@@ -21,7 +36,7 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     public RequestAnswer() {}
 
     /**
-     * Minimal question constructor that requires that requires the question as such and the timestamps for when EMAP
+     * Minimal request answer constructor that requires that the answer and the timestamps for when EMAP
      * started processing this data type and from which time point the question information is valid from.
      * @param answer        The actual question string linked to a data type
      * @param validFrom     Timestamp from which information valid from

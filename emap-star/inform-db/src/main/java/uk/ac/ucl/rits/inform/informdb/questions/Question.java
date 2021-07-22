@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.questions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.QuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
