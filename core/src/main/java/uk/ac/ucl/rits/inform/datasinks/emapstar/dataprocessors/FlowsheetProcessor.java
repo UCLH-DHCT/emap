@@ -10,7 +10,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitObservationCont
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.time.Instant;
 
@@ -51,5 +52,16 @@ public class FlowsheetProcessor {
         HospitalVisit visit = visitController.getOrCreateMinimalHospitalVisit(
                 msg.getVisitNumber(), mrn, msg.getSourceSystem(), observationTime, storedFrom);
         visitObservationController.processFlowsheet(msg, visit, storedFrom);
+    }
+
+    /**
+     * Process flowsheet metadata.
+     * @param msg        message
+     * @param storedFrom Time the message started to be processed by star
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    @Transactional
+    public void processMessage(final FlowsheetMetadata msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
+        visitObservationController.processMetadata(msg, storedFrom);
     }
 }

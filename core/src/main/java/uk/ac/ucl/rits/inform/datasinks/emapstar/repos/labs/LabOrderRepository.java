@@ -5,6 +5,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -13,6 +14,8 @@ import java.util.Optional;
  */
 public interface LabOrderRepository extends CrudRepository<LabOrder, Long> {
     Optional<LabOrder> findByLabBatteryIdAndLabSampleId(LabBattery battery, LabSample number);
+
+    Optional<LabOrder> findByLabBatteryIdAndLabSampleIdAndValidFromBefore(LabBattery battery, LabSample number, Instant validFrom);
 
     /**
      * for testing.

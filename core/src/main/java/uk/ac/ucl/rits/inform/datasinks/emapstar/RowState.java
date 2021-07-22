@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -75,6 +76,16 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         this.entityUpdated = entityUpdated;
     }
 
+
+    /**
+     * True if entity has been created, or the message updated time is >= entity validFrom.
+     * @param lastUpdatedInstant time that the message was updated
+     * @return true if message should be updated
+     */
+    public boolean messageShouldBeUpdated(Instant lastUpdatedInstant) {
+        return entityCreated || !lastUpdatedInstant.isBefore(entity.getValidFrom());
+    }
+
     /**
      * If new value is different assign from InterchangeValue of PatientClass to a setter taking a string.
      * @param newValue        new value
@@ -113,6 +124,19 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         assignIfDifferent(dateTime, currentValue, setPatientClass);
     }
 
+    /**
+     * Assign new byte array value if different.
+     * Adds in arrays equal check before assigning if different.
+     * @param newValue     new value
+     * @param currentValue current value
+     * @param setter       setter lambda
+     */
+    public void assignInterchangeValue(InterchangeValue<byte[]> newValue, byte[] currentValue, Consumer<byte[]> setter) {
+        if (newValue.isUnknown() || Arrays.equals(newValue.get(), currentValue)) {
+            return;
+        }
+        assignIfDifferent(newValue.get(), currentValue, setter);
+    }
 
     /**
      * If new value is different assign from InterchangeValue to a setter taking the same type.
@@ -176,6 +200,41 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
             A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
             auditRepo.save(auditEntity);
             logger.debug("New AuditEntity being saved: {}", auditEntity);
+        }
+    }
+
+    /**
+     * Convenience method to allow assignment of fields which should always be added to if currently null in database.
+     * If a value exists, then should only update the value if the message is newer.
+     * @param msgValue         interchange value from message
+     * @param currentValue     current value
+     * @param setter           setter lambda
+     * @param messageValidFrom updateTime of the message
+     * @param entityValidFrom  validFrom from the database entity
+     * @param <R>              type of the value in the hibernate entity
+     */
+    public <R> void assignIfCurrentlyNullOrNewerAndDifferent(
+            InterchangeValue<R> msgValue, R currentValue, Consumer<R> setter, Instant messageValidFrom, Instant entityValidFrom
+    ) {
+        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
+            assignInterchangeValue(msgValue, currentValue, setter);
+        }
+    }
+
+    /**
+     * Convenience method to allow assignment of fields which should always be added to if currently null in database.
+     * If a value exists, then should only update the value if the message is newer.
+     * @param msgValue         value from message
+     * @param currentValue     current value
+     * @param setter           setter lambda
+     * @param messageValidFrom updateTime of the message
+     * @param entityValidFrom  validFrom from the database entity
+     * @param <R>              type of the value in the hibernate entity
+     */
+    public <R> void assignIfCurrentlyNullOrNewerAndDifferent(
+            R msgValue, R currentValue, Consumer<R> setter, Instant messageValidFrom, Instant entityValidFrom) {
+        if (currentValue == null || messageValidFrom.isAfter(entityValidFrom)) {
+            assignIfDifferent(msgValue, currentValue, setter);
         }
     }
 }

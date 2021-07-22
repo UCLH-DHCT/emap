@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 
 /**
@@ -27,6 +29,13 @@ import java.time.Instant;
  */
 @Component
 public class LabController {
+    /**
+     * Self-autowire so that @Caching annotation call will be intercepted.
+     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
+     */
+    @Resource
+    private LabController self;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final LabOrderController labOrderController;
@@ -49,7 +58,7 @@ public class LabController {
      * @param msg        order message
      * @param storedFrom time that star started processing the message
      * @throws IncompatibleDatabaseStateException if specimen type doesn't match the database
-     * @throws RequiredDataMissingException       if OrderDateTime missing from message
+     * @throws RequiredDataMissingException       if OrderDateTime missing from message or mime type is unrecognised
      * @throws MessageCancelledException          Lab Order was previously cancelled
      */
     @Transactional
@@ -65,22 +74,32 @@ public class LabController {
             labOrderController.processLabSampleAndDeleteLabOrder(mrn, battery, visit, msg, validFrom, storedFrom);
             return;
         }
-        LabOrder labOrder = labOrderController.processLabSampleAndLabOrder(mrn, visit, battery, msg, validFrom, storedFrom);
+
+        LabOrder labOrder = labOrderController.processSampleAndOrderInformation(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
-            LabTestDefinition testDefinition = getOrCreateLabTestDefinition(result, msg, storedFrom, validFrom);
-            getOrCreateLabBatteryElement(testDefinition, battery, storedFrom, validFrom);
+            LabTestDefinition testDefinition = self.getOrCreateLabTestDefinition(
+                    msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode(), storedFrom, validFrom);
+            self.createLabBatteryElementIfNotExists(testDefinition, battery, storedFrom, validFrom);
             labResultController.processResult(testDefinition, labOrder, result, validFrom, storedFrom);
         }
     }
 
 
-    private LabTestDefinition getOrCreateLabTestDefinition(LabResultMsg result, LabOrderMsg msg, Instant validFrom, Instant storedFrom) {
+    /**
+     * @param testLabCode   local result item code
+     * @param labProvider   battery coding system
+     * @param labDepartment lab department
+     * @param validFrom     most recent change to results
+     * @param storedFrom    time that star started processing the message
+     * @return LabTestDefinition entity
+     */
+    @Cacheable(value = "labTestDefinition", key = "{ #labProvider , #labDepartment, #testLabCode }")
+    public LabTestDefinition getOrCreateLabTestDefinition(
+            String labProvider, String labDepartment, String testLabCode, Instant validFrom, Instant storedFrom) {
         return labTestDefinitionRepo
-                .findByLabProviderAndLabDepartmentAndTestLabCode(
-                        msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode())
+                .findByLabProviderAndLabDepartmentAndTestLabCode(labProvider, labDepartment, testLabCode)
                 .orElseGet(() -> {
-                    LabTestDefinition testDefinition = new LabTestDefinition(
-                            msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode());
+                    LabTestDefinition testDefinition = new LabTestDefinition(labProvider, labDepartment, testLabCode);
                     testDefinition.setValidFrom(validFrom);
                     testDefinition.setStoredFrom(storedFrom);
                     logger.trace("Creating new Lab Test Definition {}", testDefinition);
@@ -88,7 +107,14 @@ public class LabController {
                 });
     }
 
-    private void getOrCreateLabBatteryElement(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
+    /**
+     * @param testDefinition test definition entity
+     * @param battery        lab battery entity
+     * @param validFrom      most recent change to results
+     * @param storedFrom     time that star started processing the message
+     */
+    @Cacheable(value = "labBatteryElement", key = "{ #testDefinition.labTestDefinitionId , #battery.labBatteryId }")
+    public void createLabBatteryElementIfNotExists(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
         labBatteryElementRepo
                 .findByLabBatteryIdAndLabTestDefinitionId(battery, testDefinition)
                 .orElseGet(() -> {

@@ -5,6 +5,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.InformDbOperations;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -39,7 +40,7 @@ public abstract class OrderPermutationBase {
      * @throws EmapOperationMessageProcessingException if error in processing message
      * @throws MessageCancelledException               if visit has been previouslty cancelled
      */
-    protected abstract void processFile(String fileName) throws EmapOperationMessageProcessingException, MessageCancelledException;
+    protected abstract void processFile(String fileName) throws EmapOperationMessageProcessingException, MessageCancelledException, Exception;
 
     /**
      * Assertions at the end of each permutation test case to ensure that it has run successfully.
@@ -56,9 +57,9 @@ public abstract class OrderPermutationBase {
             status.setRollbackOnly();
             try {
                 runTest(fileNames);
-            } catch (MessageCancelledException allowed) {
+            } catch (MessageCancelledException | IncompatibleDatabaseStateException allowed) {
                 return null;
-            } catch (EmapOperationMessageProcessingException a) {
+            } catch (Exception a) {
                 return a;
             }
             return null;
@@ -68,7 +69,7 @@ public abstract class OrderPermutationBase {
         }
     }
 
-    private void runTest(Iterable<String> fileNames) throws EmapOperationMessageProcessingException, MessageCancelledException {
+    private void runTest(Iterable<String> fileNames) throws Exception {
         // processing orders and results using different methods
         for (String filename : fileNames) {
             processFile(filename);
