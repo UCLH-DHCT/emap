@@ -1,7 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
-import uk.ac.ucl.rits.inform.informdb.Question;
+import uk.ac.ucl.rits.inform.informdb.questions.Question;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion;
 
