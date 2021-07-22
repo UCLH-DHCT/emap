@@ -1,8 +1,10 @@
-package uk.ac.ucl.rits.inform.informdb;
+package uk.ac.ucl.rits.inform.informdb.questions;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.QuestionAudit;
+import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
@@ -50,7 +52,8 @@ public class Question  extends TemporalCore<Question, QuestionAudit> {
      * @param validFrom
      * @param storedFrom        When EMAP started processing this data type
      */
-    public Question(String parentTableType, long parentTableId, Instant validFrom, Instant storedFrom) {
+    public Question(String question, String parentTableType, long parentTableId, Instant validFrom, Instant storedFrom) {
+        this.question = question;
         this.parentTableType = parentTableType;
         this.parentTableId = parentTableId;
         setStoredFrom(storedFrom);
@@ -60,6 +63,7 @@ public class Question  extends TemporalCore<Question, QuestionAudit> {
     public Question(Question other) {
         super(other);
         this.questionId = other.questionId;
+        this.question = other.question;
         this.parentTableType = other.getParentTableType();
         this.parentTableId = other.parentTableId;
         this.answer = other.answer;
