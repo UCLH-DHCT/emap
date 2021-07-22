@@ -9,14 +9,23 @@ import java.util.Optional;
 /**
  * Lab Sample repository.
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 public interface LabSampleRepository extends CrudRepository<LabSample, Long> {
     Optional<LabSample> findByMrnIdAndExternalLabNumber(Mrn mrn, String externalLabNumber);
 
     /**
+     * For question processing testing.
+     * @param mrn
+     * @param externalLabNumber
+     * @return
+     */
+    Optional<LabSample> findByMrnIdAndExternalLabNumber(String mrn, String externalLabNumber);
+
+    /**
      * For testing.
-     * @param labNumber external lab number
+     * @param externalLabNumber external lab number
      * @return possible LabCollection
      */
-    Optional<LabSample> findByExternalLabNumber(String labNumber);
+    Optional<LabSample> findByExternalLabNumber(String externalLabNumber);
 }

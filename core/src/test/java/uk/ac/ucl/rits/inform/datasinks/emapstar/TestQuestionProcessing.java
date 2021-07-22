@@ -3,13 +3,13 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionRepository;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
+import uk.ac.ucl.rits.inform.informdb.questions.Question;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
@@ -34,15 +34,13 @@ class TestQuestionProcessing extends MessageProcessingBase {
     private ConsultRequest consultReqMsg;
 
     @Autowired
-    QuestionRepository questionRepository;
+    QuestionRepository questionRepo;
     @Autowired
-    LabSampleQuestionRepository labSampleQuestionRepository;
+    QuestionAuditRepository questionAuditRepo;
     @Autowired
-    LabSampleQuestionAuditRepository labSampleQuestionAuditRepository;
+    LabSampleRepository labSampleRepo;
     @Autowired
-    ConsultationRequestQuestionRepository consultationRequestQuestionRepo;
-    @Autowired
-    ConsultationRequestQuestionAuditRepository consultationRequestQuestionAuditRepo;
+    ConsultationRequestRepository consultationRequestRepo;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -60,21 +58,8 @@ class TestQuestionProcessing extends MessageProcessingBase {
     @Test
     void testQuestionsAdded() throws Exception {
         processSingleMessage(labOrderMsg);
-        assertEquals(3, questionRepository.count());
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(0, labSampleQuestionAuditRepository.count());
-    }
-
-    /**
-     * Nothing in database, and 3 questions in message.
-     * Should create 3 questions
-     * @throws Exception shouldn't happen
-     */
-    @Test
-    void testLabOrderQuestionsAdded() throws Exception {
-        processSingleMessage(labOrderMsg);
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(0, labSampleQuestionAuditRepository.count());
+        assertEquals(3, questionRepo.count());
+        assertEquals(0, questionAuditRepo.count());
     }
 
     @Test
@@ -87,11 +72,14 @@ class TestQuestionProcessing extends MessageProcessingBase {
         String newClinicalAnswer = "very sleepy";
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
         processSingleMessage(labOrderMsg);
+        LabSample sample = labSampleRepo.findByMrnIdAndExternalLabNumber(labOrderMsg.getMrn(),
+                labOrderMsg.getLabSpecimenNumber());
 
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(1, labSampleQuestionAuditRepository.count());
-        LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertEquals(newClinicalAnswer, labSampleQuestion.getAnswer());
+        assertEquals(3, questionRepo.count());
+        assertEquals(1, questionAuditRepo.count());
+        Question question = questionRepo.findByQuestionAndParentTableIdentifier(clinicalQuestion,
+                sample.getExternalLabNumber()).orElseThrow();
+        assertEquals(newClinicalAnswer, question.getAnswer());
     }
 
     @Test
@@ -105,8 +93,12 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
-        LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertNotEquals(newClinicalAnswer, labSampleQuestion.getAnswer());
+        LabSample sample = labSampleRepo.findByMrnIdAndExternalLabNumber(labOrderMsg.getMrn(),
+                labOrderMsg.getLabSpecimenNumber());
+
+        Question question= questionRepo.findByQuestionAndParentTableIdentifier(clinicalQuestion,
+                sample.getExternalLabNumber()).orElseThrow();
+        assertNotEquals(newClinicalAnswer, question.getAnswer());
     }
 
     /**
@@ -118,7 +110,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
     void testLabQuestionDeleteDoesntExist() throws Exception {
         labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathSampleNumber));
         processSingleMessage(labOrderMsg);
-        assertEquals(0, labSampleQuestionRepository.count());
+        assertEquals(0, questionRepo.count());
     }
 
     /**
@@ -135,7 +127,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.setStatusChangeTime(messageTime.plusSeconds(60));
         processSingleMessage(labOrderMsg);
 
-        assertEquals(3, labSampleQuestionRepository.count());
+        assertEquals(3, questionRepo.count());
     }
 
     /**
@@ -146,8 +138,8 @@ class TestQuestionProcessing extends MessageProcessingBase {
     @Test
     void testConsultationRequestQuestionsAdded() throws Exception {
         processSingleMessage(consultReqMsg);
-        assertEquals(3, consultationRequestQuestionRepo.count());
-        assertEquals(0, consultationRequestQuestionAuditRepo.count());
+        assertEquals(3, questionRepo.count());
+        assertEquals(0, questionAuditRepo.count());
     }
 
     /**
@@ -161,7 +153,8 @@ class TestQuestionProcessing extends MessageProcessingBase {
         String newClinicalAnswer = "yes";
 
         processSingleMessage(consultReqMsg);
-        ConsultationRequestQuestion consultationRequestQuestion = consultationRequestQuestionRepo.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
+        ConsultationRequest request =
+        Question question = questionRepo.findByQuestionAndParentTableIdentifier(clinicalQuestion).orElseThrow();
 
         // process later message with updated answer
         consultReqMsg.setRequestedDateTime(messageTime_cRequest.plusSeconds(60));
@@ -169,10 +162,10 @@ class TestQuestionProcessing extends MessageProcessingBase {
 
         processSingleMessage(consultReqMsg);
 
-        assertEquals(3, consultationRequestQuestionRepo.count());
-        assertEquals(1, consultationRequestQuestionAuditRepo.count());
-        consultationRequestQuestion = consultationRequestQuestionRepo.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertEquals(newClinicalAnswer, consultationRequestQuestion.getAnswer());
+        assertEquals(3, questionRepo.count());
+        assertEquals(1, questionAuditRepo.count());
+        question = questionRepo.findByQuestionAndParentTableIdentifier(clinicalQuestion).orElseThrow();
+        assertEquals(newClinicalAnswer, question.getAnswer());
     }
 
 }
