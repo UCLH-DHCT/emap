@@ -48,10 +48,10 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * No existing hospital visits, so should make a new visit. Admission date time should be set, but presentation time should not.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    public void testCreateNewAdmit() throws EmapOperationMessageProcessingException {
+    public void testCreateNewAdmit() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         dbOps.processMessage(msg);
 
@@ -67,10 +67,10 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * No existing hospital visits, so should make a new visit.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    public void testMoveVisitInformationCreatesVisitIfItDoesntExist() throws EmapOperationMessageProcessingException {
+    public void testMoveVisitInformationCreatesVisitIfItDoesntExist() throws Exception {
         MoveVisitInformation msg = messageFactory.getAdtMessage("generic/A45.yaml");
         dbOps.processMessage(msg);
 
@@ -84,10 +84,10 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * No existing hospital visits, so should make a new visit. Presentation time should be set, admission time should not.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    public void testCreateNewRegistration() throws EmapOperationMessageProcessingException {
+    public void testCreateNewRegistration() throws Exception {
         RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
         dbOps.processMessage(msg);
 
@@ -102,11 +102,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * hospital visit already exists for encounter, with a presentation time, but no admission time
      * Admission time should be added, but presentation time should not be added. Stored/valid from should be updated
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testAdmitWhenExistingPresentation() throws EmapOperationMessageProcessingException {
+    public void testAdmitWhenExistingPresentation() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         dbOps.processMessage(msg);
 
@@ -127,10 +127,10 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * Admit a patient and then cancel the admit.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
-    public void testAdmitThenCancelAdmit() throws EmapOperationMessageProcessingException {
+    public void testAdmitThenCancelAdmit() throws Exception {
         AdmitPatient addMsg = messageFactory.getAdtMessage("generic/A01.yaml");
         CancelAdmitPatient removeMsg = messageFactory.getAdtMessage("generic/A11.yaml");
         addMsg.setFullLocationString(removeMsg.getFullLocationString());
@@ -148,11 +148,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * Discharge from visit with minimal information from untrusted source.
      * Admission information should be added, along with discharge.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testDischargePatientWithNoKnownAdmission() throws EmapOperationMessageProcessingException {
+    public void testDischargePatientWithNoKnownAdmission() throws Exception {
         DischargePatient msg = messageFactory.getAdtMessage("generic/A03.yaml");
         String visitNumber = "0999999999";
         msg.setVisitNumber(visitNumber);
@@ -171,7 +171,7 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testDischargeThenCancelDischarge() throws EmapOperationMessageProcessingException {
+    public void testDischargeThenCancelDischarge() throws Exception {
         DischargePatient addMsg = messageFactory.getAdtMessage("generic/A03.yaml");
         CancelDischargePatient removeMsg = messageFactory.getAdtMessage("generic/A13.yaml");
         addMsg.setFullLocationString(removeMsg.getFullLocationString());
@@ -193,11 +193,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * Database has newer information than the message, but no admission time and the message source is trusted
      * Admit message should only update the admission time.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOlderAdmitMessageUpdatesAdmissionTimeOnly() throws EmapOperationMessageProcessingException {
+    void testOlderAdmitMessageUpdatesAdmissionTimeOnly() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
@@ -213,11 +213,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * Database has newer information than the message (including admission time) and the message source is trusted
      * Admit message should not update the admission time.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOlderAdmitMessageDoesntUpdateExistingAdmissionTime() throws EmapOperationMessageProcessingException {
+    void testOlderAdmitMessageDoesntUpdateExistingAdmissionTime() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
@@ -232,11 +232,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * Database has newer information than the message, but no presentation time and the message source is trusted
      * Register message should only update the presentation time.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOlderRegisterMessageUpdatesPresentationTimeOnly() throws EmapOperationMessageProcessingException {
+    void testOlderRegisterMessageUpdatesPresentationTimeOnly() throws Exception {
         RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
@@ -252,11 +252,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * Database has newer information than the message (including presentation time) and the message source is trusted
      * Register message should not update the presentation time.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOlderRegisterMessageDoesntUpdateExistingPresentationTime() throws EmapOperationMessageProcessingException {
+    void testOlderRegisterMessageDoesntUpdateExistingPresentationTime() throws Exception {
         RegisterPatient msg = messageFactory.getAdtMessage("generic/A04.yaml");
         msg.setRecordedDateTime(past);
         msg.setEventOccurredDateTime(null);
@@ -271,11 +271,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * Current visit if from untrusted source and new message is from an untrusted source,
      * visit should not be updated because we don't trust the update.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testUntrustedSourceMessageDoesNotUpdate() throws EmapOperationMessageProcessingException {
+    public void testUntrustedSourceMessageDoesNotUpdate() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String untrustedEncounter = "0999999999";
         msg.setVisitNumber(untrustedEncounter);
@@ -290,11 +290,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * database visit is from untrusted source, a message with old visit information from a trusted source should update the visit.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws EmapOperationMessageProcessingException {
+    void testOlderMessageUpdatesIfCurrentVisitIsFromUntrustedSource() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String untrustedEncounter = "0999999999";
         msg.setVisitNumber(untrustedEncounter);
@@ -311,11 +311,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * Database has information that is not from a trusted source, older message should still be processed.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testOlderAdtMessageUpdatesMinimalCase() throws EmapOperationMessageProcessingException {
+    public void testOlderAdtMessageUpdatesMinimalCase() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         String encounter = "0999999999";
         msg.setVisitNumber(encounter);
@@ -333,11 +333,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * Duplicate admit message should not create another audit table row.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testDuplicateAdmitMessage() throws EmapOperationMessageProcessingException {
+    public void testDuplicateAdmitMessage() throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
         dbOps.processMessage(msg);
         dbOps.processMessage(msg);
@@ -352,11 +352,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * All visits should be logged to audit table and deleted.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testDeletePersonInformation() throws EmapOperationMessageProcessingException {
+    public void testDeletePersonInformation() throws Exception {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         dbOps.processMessage(msg);
 
@@ -371,11 +371,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * Older message should to nothing.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testOlderMessageDeleteDoesNothing() throws EmapOperationMessageProcessingException {
+    public void testOlderMessageDeleteDoesNothing() throws Exception {
         DeletePersonInformation msg = messageFactory.getAdtMessage("generic/A29.yaml");
         msg.setEventOccurredDateTime(past);
         dbOps.processMessage(msg);
@@ -392,11 +392,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
     /**
      * MoveVisitInformation for existing MRNs and visits.
      * Should change the MRN and encounter string,
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testMoveVisitInformation() throws EmapOperationMessageProcessingException {
+    public void testMoveVisitInformation() throws Exception {
         MoveVisitInformation msg = messageFactory.getAdtMessage("generic/A45.yaml");
         dbOps.processMessage(msg);
 
@@ -411,11 +411,11 @@ public class TestAdtProcessingVisit extends MessageProcessingBase {
 
     /**
      * UpdatePatientInfo that doesn't have a visit number should still be parsed, but no visit information should change.
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
-    public void testUpdatePatientInfoWithNoEncounterStillCompletesProcessing() throws EmapOperationMessageProcessingException {
+    public void testUpdatePatientInfoWithNoEncounterStillCompletesProcessing() throws Exception {
         UpdatePatientInfo msg = messageFactory.getAdtMessage("generic/A08_v1.yaml");
         msg.setVisitNumber(null);
 

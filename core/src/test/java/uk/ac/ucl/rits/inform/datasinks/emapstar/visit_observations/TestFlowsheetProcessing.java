@@ -1,21 +1,25 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.visit_observations;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.VisitObservationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationAudit;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -32,16 +36,20 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     private VisitObservationRepository visitObservationRepository;
     @Autowired
     private VisitObservationAuditRepository visitObservationAuditRepository;
+    @Autowired
+    private VisitObservationTypeRepository visitObservationTypeRepository;
 
     private String updateId = "8";
     private String newComment = "patient was running really fast (on a hamster wheel)";
     private String stringDeleteId = "28315";
     private String numericDeleteId = "8";
     private String flowsheetDateId = "40445";
+    private final String HL7_SOURCE = "EPIC";
+    private final String FLOWSHEET = "flowsheet";
 
 
     @BeforeEach
-    void setup() {
+    void setup() throws IOException {
         messages = messageFactory.getFlowsheets("hl7.yaml", "0000040");
     }
 
@@ -56,7 +64,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
-        assertEquals("EPIC", mrns.get(0).getSourceSystem());
+        assertEquals(HL7_SOURCE, mrns.get(0).getSourceSystem());
 
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
@@ -84,6 +92,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         for (Flowsheet msg : messages) {
             processSingleMessage(msg);
         }
+        VisitObservationType obsType = visitObservationTypeRepository
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(updateId, HL7_SOURCE, FLOWSHEET).orElseThrow();
 
         // value is updated
         VisitObservation updatedObservation = visitObservationRepository
@@ -95,7 +105,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), updateId)
+                .findByHospitalVisitIdAndVisitObservationTypeId(visit.getHospitalVisitId(), obsType.getVisitObservationTypeId())
                 .orElseThrow();
         assertEquals(preUpdateObservation.getValueAsReal(), audit.getValueAsReal());
 
@@ -142,6 +152,9 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
 
+        VisitObservationType obsType = visitObservationTypeRepository
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(stringDeleteId, HL7_SOURCE, FLOWSHEET).orElseThrow();
+
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, stringDeleteId)
@@ -150,7 +163,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), stringDeleteId)
+                .findByHospitalVisitIdAndVisitObservationTypeId(visit.getHospitalVisitId(), obsType.getVisitObservationTypeId())
                 .orElseThrow();
         assertEquals(preDeleteObservation.getValueAsText(), audit.getValueAsText());
     }
@@ -173,6 +186,9 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         msg.setNumericValue(InterchangeValue.delete());
         processSingleMessage(msg);
 
+        VisitObservationType obsType = visitObservationTypeRepository
+                .findByIdInApplicationAndSourceSystemAndSourceObservationType(numericDeleteId, HL7_SOURCE, FLOWSHEET).orElseThrow();
+
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, numericDeleteId)
@@ -181,7 +197,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // audit log for the old value
         VisitObservationAudit audit = visitObservationAuditRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit.getHospitalVisitId(), numericDeleteId)
+                .findByHospitalVisitIdAndVisitObservationTypeId(visit.getHospitalVisitId(), obsType.getVisitObservationTypeId())
                 .orElseThrow();
         assertEquals(preDeleteObservation.getValueAsReal(), audit.getValueAsReal());
     }

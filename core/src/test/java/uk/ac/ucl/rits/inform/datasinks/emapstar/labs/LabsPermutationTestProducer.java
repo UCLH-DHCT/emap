@@ -6,10 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import uk.ac.ucl.rits.inform.OrderPermutationBase;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
+import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -37,13 +36,13 @@ class LabsPermutationTestProducer extends OrderPermutationBase {
         this.finalStateChecker = finalStateChecker;
     }
 
-    private List<LabOrderMsg> getLabOrders(String filename) {
+    private List<LabOrderMsg> getLabOrders(String filename) throws IOException {
         return getMessageFactory().getLabOrders(String.format("%s/%s.yaml", messagePath, filename), "message_prefix");
     }
 
 
     @Override
-    protected void processFile(String fileName) throws EmapOperationMessageProcessingException {
+    protected void processFile(String fileName) throws Exception {
         if (!fileName.toLowerCase().contains("oru_r01")) {
             logger.info("Parsing order file: {}", fileName);
             processSingleMessage(getMessageFactory().buildLabOrderOverridingDefaults(

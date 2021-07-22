@@ -9,18 +9,21 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
-import uk.ac.ucl.rits.inform.interchange.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
+import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.time.Instant;
 
@@ -36,6 +39,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private FlowsheetProcessor flowsheetProcessor;
     @Autowired
     private LabProcessor labProcessor;
+    @Autowired
+    private PatientStateProcessor patientStateProcessor;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -97,6 +102,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public void processMessage(MoveVisitInformation msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.moveVisitInformation(msg, storedFrom);
@@ -106,6 +112,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param msg the ChangePatientIdentifiers message to process
      */
     @Override
+    @Transactional
     public void processMessage(ChangePatientIdentifiers msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.changePatientIdentifiers(msg, storedFrom);
@@ -115,6 +122,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @param msg the SwapLocations message to process
      */
     @Override
+    @Transactional
     public void processMessage(SwapLocations msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         adtProcessor.swapLocations(msg, storedFrom);
@@ -132,8 +140,28 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     @Override
+    @Transactional
     public void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Not implemented yet");
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
     }
+
+    /**
+     * @param msg the FlowsheetMetadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(FlowsheetMetadata msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        flowsheetProcessor.processMessage(msg, storedFrom);
+    }
+
+    @Override
+    @Transactional
+    public void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException {
+        throw new MessageIgnoredException("Location Metadata processing not implemented");
+    }
+
 
 }

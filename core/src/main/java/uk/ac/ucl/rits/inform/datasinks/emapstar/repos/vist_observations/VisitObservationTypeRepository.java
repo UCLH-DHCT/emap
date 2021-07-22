@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
@@ -13,10 +13,11 @@ public interface VisitObservationTypeRepository extends CrudRepository<VisitObse
 
     /**
      * Query visit observation type by required fields.
-     * @param id                Id within the source application
-     * @param sourceSystem      source system
-     * @param sourceApplication source application
+     * @param id                    Id within the source application
+     * @param sourceSystem          source system
+     * @param sourceObservationType type of observation from the source system
      * @return optional visit observation type
      */
-    Optional<VisitObservationType> findByIdInApplicationAndSourceSystemAndSourceApplication(String id, String sourceSystem, String sourceApplication);
+    Optional<VisitObservationType> findByIdInApplicationAndSourceSystemAndSourceObservationType(
+            String id, String sourceSystem, String sourceObservationType);
 }
