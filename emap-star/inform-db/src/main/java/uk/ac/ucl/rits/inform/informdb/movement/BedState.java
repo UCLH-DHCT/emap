@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +19,7 @@ import java.time.Instant;
 @Entity
 @Table
 @Data
+@NoArgsConstructor
 public class BedState implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -50,4 +52,22 @@ public class BedState implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
+    public BedState(Bed bedId, Long csn, Boolean isInCensus, Boolean isBunk, String status, Boolean isPool,
+                    Instant validFrom, Instant storedFrom) {
+        this.bedId = bedId;
+        this.csn = csn;
+        this.isInCensus = isInCensus;
+        this.isBunk = isBunk;
+        this.status = status;
+        if (isPool) {
+            // will increment pool bed upon updating so initialise as 0 only if it's a pool bed
+            poolBedCount = 0L;
+        }
+        this.validFrom = validFrom;
+        this.storedFrom = storedFrom;
+    }
+
+    public void incrementPoolBedCount() {
+        poolBedCount += 1;
+    }
 }
