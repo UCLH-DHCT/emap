@@ -113,16 +113,16 @@ public class LocationMetadataController {
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo
                 .findFirstByDepartmentIdOrderByStoredFromDesc(dep);
 
+        // if a state already exists and is different from current then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
             DepartmentState previousState = possiblePreviousState.get();
             if (!previousState.getStatus().equals(msg.getDepartmentRecordStatus())) {
-                // previous state is different so update current state and save new state as well
                 previousState.setStoredUntil(currentState.getStoredFrom());
                 previousState.setValidUntil(currentState.getValidFrom());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
             }
         } else {
-            // no previous states exist so just save
+            // if no state state exists already then just save the state
             departmentStateRepo.save(currentState);
         }
     }
@@ -173,20 +173,20 @@ public class LocationMetadataController {
 
         List<BedState> states = bedStateRepo.findAllByBedIdOrderByValidFromDesc(bed);
 
+        // if we already know about the bed pool, increment it and don't do any further processing
         if (msg.getIsPoolBed()) {
             Optional<BedState> existingPoolBed = findExistingPoolBedByValidFrom(msg.getBedContactDate(), states);
             if (existingPoolBed.isPresent()) {
                 incrementPoolBedAndSave(existingPoolBed.get());
-                // pool already exists so exit early, if it doesn't exist then it will be saved below
                 return bed;
             }
         }
 
+        // if we already know about the bed CSN, don't do any further processing
         Optional<BedState> existingState = states.stream()
                 .filter(state -> state.getCsn().equals(msg.getBedCsn()))
                 .findFirst();
         if (existingState.isPresent()) {
-            // CSN already exists so exit early
             return bed;
         }
         createCurrentStateAndInvalidatePrevious(msg, storedFrom, bed, states);
@@ -216,14 +216,14 @@ public class LocationMetadataController {
             incrementPoolBedAndSave(currentState);
         }
 
+        // if the bed doesn't have any existing states we don't need to invalidate any previous states
         if (states.isEmpty()) {
-            // no previous state so save current state and exit
             bedStateRepo.save(currentState);
             return;
         }
 
+        // assuming the current message is after the most recent state, we should invalidate it and save the new state
         BedState previousState = states.stream().findFirst().orElseThrow();
-
         if (currentState.getValidFrom().isBefore(previousState.getValidFrom())) {
             throw new IncompatibleDatabaseStateException("New bed state is valid before the most current bed state");
         }
