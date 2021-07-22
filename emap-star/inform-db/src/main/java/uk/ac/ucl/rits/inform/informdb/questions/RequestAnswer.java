@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
@@ -19,7 +21,6 @@ import java.time.Instant;
  * question and the entity (i.e. data type) that triggered the question.
  * @author Anika Cawthorn
 */
-@SuppressWarnings("serial")
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -33,17 +34,28 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     @Column(columnDefinition = "text")
     private String answer;
 
+    @ManyToOne
+    @JoinColumn(name = "questionId", nullable = false)
+    private Question questionId;
+
+    @Column(nullable = false)
+    private long parentId;
+
     public RequestAnswer() {}
 
     /**
      * Minimal request answer constructor that requires that the answer and the timestamps for when EMAP
      * started processing this data type and from which time point the question information is valid from.
      * @param answer        The actual question string linked to a data type
+     * @param questionId    Question this answer relates to
+     * @param parentId      Entity (e.g. lab sample or consultation request) that triggered the
      * @param validFrom     Timestamp from which information valid from
      * @param storedFrom    When EMAP started processing this data type
      */
-    public RequestAnswer(String answer, Instant validFrom, Instant storedFrom) {
+    public RequestAnswer(String answer, Question questionId, long parentId, Instant validFrom, Instant storedFrom) {
         this.answer = answer;
+        this.questionId = questionId;
+        this.parentId = parentId;
         setStoredFrom(storedFrom);
         setValidFrom(validFrom);
     }
@@ -52,6 +64,8 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
         super(other);
         this.answerId = other.answerId;
         this.answer = other.answer;
+        this.questionId = other.questionId;
+        this.parentId = other.parentId;
     }
 
     @Override
