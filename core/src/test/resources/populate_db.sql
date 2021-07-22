@@ -41,34 +41,41 @@ INSERT INTO public.hospital_visit (
 -- locations
 
 INSERT INTO public.department (department_id, hl7string, name, speciality) VALUES
-(11001, 'ACUN', 'EGA E03 ACU NURSERY', 'Maternity - Well Baby');
+(11001, 'ACUN', 'EGA E03 ACU NURSERY', 'Maternity - Well Baby'),
+(11002, 'MEDSURG', 'EMH MED SURG', null);
 
 
 INSERT INTO public.department_state
 (department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id) VALUES
-(12001, 'Active', '2012-09-17 14:00:00', null, null, null, 11001);
+(12001, 'Active', '2012-09-17 14:00:00', null, null, null, 11001),
+(12202, 'Deleted and Hidden', '2012-09-17 14:00:00', null, null, null, 11002);
 
 INSERT INTO public.room(room_id, hl7string, name, department_id) VALUES
-(13001, 'E03ACUN BY12', 'BY12', 11001);
+(13001, 'E03ACUN BY12', 'BY12', 11001),
+(13002, 'MED/SURG', 'Med/Surg', 11002);
 
 INSERT INTO public.room_state
     (room_state_id, csn, is_ready, status, stored_from, stored_until, valid_from, valid_until, room_id) VALUES
-(14001, 1158, true, 'Active', '2012-09-17 14:00:00', null, '2016-02-09 00:00:00', null,  13001);
+(14001, 1158, true, 'Active', '2012-09-17 14:00:00', null, '2016-02-09 00:00:00', null,  13001),
+(14002, 274, true, 'Deleted and Hidden', '2012-09-17 14:00:00', null, '2010-02-04 00:00:00', null,  13002);
 
 INSERT INTO public.bed (bed_id, hl7string, room_id) VALUES
-(15001, 'BY12-C49', 13001);
+(15001, 'BY12-C49', 13001),
+(15002, 'Med/Surg', 13002);
 
 INSERT INTO public.bed_state
-    (bed_state_id, csn, is_in_census, pool_bed_count, status,
+    (bed_state_id, csn, is_in_census, pool_bed_count, status, is_bunk,
      stored_from, stored_until, valid_from, valid_until, bed_id) VALUES
-(16001, 4417, true, 0, 'Active', '2012-09-17 14:00:00', null, '2016-02-09 00:00:00', null, 15001);
+(16001, 4417, true, null, 'Active', false, '2012-09-17 14:00:00', null, '2016-02-09 00:00:00', null, 15001),
+(16002, 11, false, 1, 'Active', false, '2012-09-17 14:00:00', null, '2011-05-02 00:00:00', null, 15002);
 
 INSERT INTO public.location (location_id, location_string, department_id, room_id, bed_id) VALUES
 (105001, 'T42E^T42E BY03^BY03-17', null, null, null),
 (105002, 'T11E^T11E BY02^BY02-17', null, null, null),
 (105003, 'T06C^T06C SR41^SR41-41', null, null, null),
 (105004, 'T11E^T11E BY02^BY02-25', null, null, null),
-(105005, 'ACUN^E03ACUN BY12^BY12-C49', 11001, 13001, 15001);
+(105005, 'ACUN^E03ACUN BY12^BY12-C49', 11001, 13001, 15001),
+(105006, 'MEDSURG^MED/SURG^Med/Surg', 11002, 13002, 15002);
 
 
 INSERT INTO public.location_visit (
