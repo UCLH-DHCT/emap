@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
@@ -57,18 +58,25 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final String ACTIVE = "Active";
     private static final Instant CONTACT_TIME = Instant.parse("2016-02-09T00:00:00Z");
     private static final Instant LATER_TIME = CONTACT_TIME.plusSeconds(20);
+    private static final Instant EARLIER_TIME = CONTACT_TIME.minusSeconds(20);
+    private static final long ACUN_BED_CSN = 4417L;
+
+    private static final String MEDSURG_HL7_STRING = "MEDSURG^MED/SURG^Med/Surg";
+    private static final long MEDSURG_BED_CSN = 11L;
 
     private LocationMetadata acunCensusBed;
+    private LocationMetadata medSurgPoolBed;
 
     TestLocationMetadataProcessing() throws IOException {
         acunCensusBed = messageFactory.getLocationMetadata("acun_census_bed.yaml");
+        medSurgPoolBed = messageFactory.getLocationMetadata("medsurg_active_pool_bed.yaml");
     }
 
     /**
-     * @return default location for acun used in tests.
+     * @return get location from string
      */
-    private Location getAcunLocation() {
-        return locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).orElseThrow();
+    private Location getLocation(String locationString) {
+        return locationRepo.findByLocationStringEquals(locationString).orElseThrow();
     }
 
     // LOCATION
@@ -81,7 +89,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Test
     void testLocationCreated() throws Exception {
         processSingleMessage(acunCensusBed);
-        getAcunLocation();
+        getLocation(ACUN_LOCATION_HL7_STRING);
         assertEquals(1, locationRepo.count());
     }
 
@@ -97,7 +105,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
 
         processSingleMessage(acunCensusBed);
 
-        getAcunLocation();
+        getLocation(ACUN_LOCATION_HL7_STRING);
         assertEquals(preProcessingCount, locationRepo.count());
     }
 
@@ -112,7 +120,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     void testDepartmentCreated() throws Exception {
         processSingleMessage(acunCensusBed);
 
-        Location location = getAcunLocation();
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
         Department dep = location.getDepartmentId();
         assertEquals(ACUN_DEPT_HL7_STRING, dep.getHl7String());
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
@@ -156,7 +164,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         acunCensusBed.setDepartmentUpdateDate(LATER_TIME);
         processSingleMessage(acunCensusBed);
 
-        Location location = getAcunLocation();
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
 
         // previous state is invalidated
         DepartmentState previousState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), ACTIVE).orElseThrow();
@@ -207,7 +215,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     void testRoomCreated() throws Exception {
         processSingleMessage(acunCensusBed);
 
-        Location location = getAcunLocation();
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
         Room room = location.getRoomId();
         assertEquals("BY12", room.getName());
         assertEquals(ACUN_ROOM_HL7_STRING, room.getHl7String());
@@ -275,17 +283,17 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     void testBedCreated() throws Exception {
         processSingleMessage(acunCensusBed);
 
-        Location location = getAcunLocation();
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
         Bed bed = location.getBedId();
 
         assertEquals(ACUN_BED_HL7_STRING, bed.getHl7String());
         assertEquals(location.getRoomId(), bed.getRoomId());
 
-        BedState state = bedStateRepo.findByCsn(4417L).orElseThrow();
+        BedState state = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
         assertEquals(ACTIVE, state.getStatus());
         assertFalse(state.getIsBunk());
         assertTrue(state.getIsInCensus());
-        assertEquals(0, state.getPoolBedCount());
+        assertNull(state.getPoolBedCount());
     }
 
     /**
@@ -293,24 +301,73 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when two location metadata messages for pool beds are processed
      * a new pool bed should be created and the pool count should be 2
      */
+    @Test
+    void poolBedIncrements() throws Exception {
+        processSingleMessage(medSurgPoolBed);
+        medSurgPoolBed.setBedCsn(1L);
+        processSingleMessage(medSurgPoolBed);
+
+        BedState state = bedStateRepo.findByCsn(MEDSURG_BED_CSN).orElseThrow();
+        assertEquals(2, state.getPoolBedCount());
+    }
 
     /**
      * Given bed exists in database
      * when a location metadata message with matching hl7 string (different CSN and later time) is processed
      * then a new active state should be created, invalidating the previous state
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testNewStateWithLaterTimeUpdates() throws Exception {
+        acunCensusBed.setBedCsn(1L);
+        acunCensusBed.setBedContactDate(LATER_TIME);
+        processSingleMessage(acunCensusBed);
+
+        BedState previousState = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
+        assertEquals(LATER_TIME, previousState.getValidUntil());
+        assertNotNull(previousState.getStoredUntil());
+
+        BedState currentState = bedStateRepo.findByCsn(1L).orElseThrow();
+        assertEquals(LATER_TIME, currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
+    }
 
     /**
      * Given bed exists in database
      * when a location metadata message with matching hl7 string (different CSN and same time) is processed
      * then a new active state should be created, invalidating the previous state
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testNewStateWithSameTimeUpdates() throws Exception {
+        acunCensusBed.setBedCsn(1L);
+        processSingleMessage(acunCensusBed);
+
+        BedState previousState = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
+        assertEquals(CONTACT_TIME, previousState.getValidUntil());
+        assertNotNull(previousState.getStoredUntil());
+
+        BedState currentState = bedStateRepo.findByCsn(1L).orElseThrow();
+        assertEquals(CONTACT_TIME, currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
+    }
 
     /**
      * Given bed exists in database
-     * when a location metadata message with matching hl7 string (different CSN and earlier time) is processed
-     * then the previous temporal until data should be updated, processed message temporal until data should be set to the next message from times.
+     * when a location metadata message with matching hl7 string (different CSN and earlier time) is processed that doesn't exist in database
+     * then an exception should be thrown
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testNewStateWithEarlierTimeThrows() {
+        acunCensusBed.setBedCsn(1L);
+        acunCensusBed.setBedContactDate(EARLIER_TIME);
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+    }
 
 
     /**
@@ -322,7 +379,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testLocationBedCantChange() {
         acunCensusBed.setBedHl7("NEW");
-        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+        assertThrows(DataIntegrityViolationException.class, () -> processSingleMessage(acunCensusBed));
     }
 
     /**
@@ -330,7 +387,29 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when two location metadata messages for existing pool beds at a different contact time are processed
      * a new pool bed should be created and the pool count should be 2
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testLaterPoolBedProcessed() throws Exception {
+        // setup and process
+        medSurgPoolBed.setBedCsn(1L);
+        medSurgPoolBed.setBedContactDate(LATER_TIME);
+        processSingleMessage(medSurgPoolBed);
+        medSurgPoolBed.setBedCsn(2L);
+        processSingleMessage(medSurgPoolBed);
 
+        // check previous state
+        BedState previousPoolState = bedStateRepo.findByCsn(MEDSURG_BED_CSN).orElseThrow();
+        assertEquals(LATER_TIME, previousPoolState.getValidUntil());
+        assertNotNull(previousPoolState.getStoredUntil());
+
+        // check current state
+        BedState currentPoolState = bedStateRepo.findByCsn(1L).orElseThrow();
+        assertEquals(2, currentPoolState.getPoolBedCount());
+        assertEquals(LATER_TIME, currentPoolState.getValidFrom());
+        assertNull(currentPoolState.getValidUntil());
+        assertNotNull(currentPoolState.getStoredFrom());
+        assertNull(currentPoolState.getStoredUntil());
+    }
 
 
     // ROOM FACILITY
