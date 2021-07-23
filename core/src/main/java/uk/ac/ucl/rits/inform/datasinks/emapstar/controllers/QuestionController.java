@@ -1,5 +1,8 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
@@ -13,7 +16,6 @@ import uk.ac.ucl.rits.inform.informdb.questions.QuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswer;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswerAudit;
 
-
 import java.time.Instant;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import java.util.Map;
 @Component
 @EnableCaching
 public class QuestionController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final QuestionRepository questionRepo;
     private final QuestionAuditRepository questionAuditRepo;
     private final RequestAnswerRepository requestAnswerRepo;
@@ -58,9 +61,16 @@ public class QuestionController {
     void processQuestions(Map<String, String> questionsAndAnswers, long parentId, Instant validFrom,
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
-            Question question = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
-            RequestAnswer answer = getOrCreateRequestAnswer(question, questionAndAnswer.getValue(), parentId,
-                    validFrom, storedFrom);
+            RowState<Question, QuestionAudit> questionState = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
+            questionState.saveEntityOrAuditLogIfRequired(questionRepo, questionAuditRepo);
+
+            RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(questionState.getEntity(),
+                    questionAndAnswer.getValue(), parentId, validFrom, storedFrom);
+
+            if (requestAnswerShouldBeUpdated(validFrom, answerState)) {
+                updateRequestAnswer(questionAndAnswer.getValue(), answerState);
+            }
+            answerState.saveEntityOrAuditLogIfRequired(requestAnswerRepo, requestAnswerAuditRepo);
         }
     }
 
@@ -73,9 +83,25 @@ public class QuestionController {
      * @return a specific question as stored in the question repository
      */
     @Cacheable(value = "question")
-    public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
-        return questionRepo.findByQuestion(question)
-                .orElseGet(() -> questionRepo.save(new Question(question, validFrom, storedFrom)));
+    public RowState<Question, QuestionAudit> getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
+        return questionRepo
+                .findByQuestion(question)
+                .map(q -> new RowState<>(q, validFrom, storedFrom, false))
+                .orElseGet(() -> createQuestion(question, validFrom, storedFrom));
+    }
+
+    /**
+     * Creates new question from the information provided and wraps it with RowState.
+     * @param question      Question string.
+     * @param validFrom     When this question is valid from.
+     * @param storedFrom    When EMAP has started processing this entity.
+     * @return
+     */
+    public RowState<Question, QuestionAudit> createQuestion(String question, Instant validFrom,
+                                                                           Instant storedFrom) {
+        Question questionEntity = new Question(question, validFrom, storedFrom);
+        logger.debug("Created new {}", questionEntity);
+        return new RowState<>(questionEntity, validFrom, storedFrom, true);
     }
 
     /**
@@ -88,46 +114,52 @@ public class QuestionController {
      * @param storedFrom        Time when star started question processing.
      * @return an answer to a question linked to a specific entity.
      */
-    @Cacheable(value = "question")
-    public RequestAnswer getOrCreateRequestAnswer(Question question, String answer, long parentId, Instant validFrom,
-                                                  Instant storedFrom) {
-        return requestAnswerRepo.findByQuestionIdAndParentIdAndAnswer(question, parentId, answer)
-                .orElseGet(() -> requestAnswerRepo.save(new RequestAnswer(question, answer, parentId, validFrom,
-                        storedFrom)));
+    @Cacheable(value = "answer")
+    public RowState<RequestAnswer, RequestAnswerAudit> getOrCreateRequestAnswer(Question question,
+                                                                                String answer, long parentId,
+                                                                                Instant validFrom, Instant storedFrom) {
+        return requestAnswerRepo
+                .findByQuestionIdAndParentId(question, parentId)
+                .map(r -> new RowState<>(r, validFrom, storedFrom, false))
+                .orElseGet(() -> createRequestAnswer(question, answer, parentId, validFrom, storedFrom));
     }
 
     /**
-     * Update or create questions.
-     * @param question          Question in relation to lab sample.
-     * @param answer            Answer to the question raised through data type.
-     * @param parentId          Entity that triggered the creation of question-answer pair.
-     * @param validFrom         Time when question got changed most recently.
-     * @param storedFrom        Time when star started question processing.
+     * Create answer for question.
+     * @param question      Question answer belongs to.
+     * @param answer        Answer content.
+     * @param parentId      Entity that triggered creation of question and answer.
+     * @param validFrom     When information for entity is valid from.
+     * @param storedFrom    When EMAP started processing this entity type.
+     * @return
      */
-    private void updateOrCreateQuestion(Question question, String answer, long parentId, Instant validFrom,
-                                        Instant storedFrom) {
-        RowState<Question, QuestionAudit> questionState = questionRepo
-                .findByQuestion(question)
-                .map(q -> new RowState<>(q, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                            Question q = new Question(question.getQuestion(), validFrom, storedFrom);
-                            return new RowState<>(q, validFrom, storedFrom, true);
-                        }
-                );
-        Question questionEntity = questionState.getEntity();
+    public RowState<RequestAnswer, RequestAnswerAudit> createRequestAnswer(Question question, String answer,
+                                                                           long parentId, Instant validFrom,
+                                                                           Instant storedFrom) {
+        RequestAnswer requestAnswer = new RequestAnswer(question, answer, parentId, validFrom, storedFrom);
+        logger.debug("Created new {}", requestAnswer);
+        return new RowState<>(requestAnswer, validFrom, storedFrom, true);
+    }
 
-        RowState<RequestAnswer, RequestAnswerAudit> answerState = requestAnswerRepo
-                .findByQuestionIdAndParentIdAndAnswer(question, parentId, answer)
-                .map(a -> new RowState<>(a, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                            RequestAnswer a = new RequestAnswer(questionEntity, answer, parentId, validFrom, storedFrom);
-                            return new RowState<>(a, validFrom, storedFrom, true);
-                        }
-                );
-        RequestAnswer answerEntity = answerState.getEntity();
+    /**
+     * Decides whether or not the answer held for an existing question needs to be changed or not.
+     * @param validFrom     Time of message that triggered update check
+     * @param answerState   Answer for question that is being processed
+     * @return true if message should be updated
+     */
+    private boolean requestAnswerShouldBeUpdated(Instant validFrom, RowState<RequestAnswer,
+            RequestAnswerAudit> answerState) {
+        return (answerState.isEntityCreated() || !validFrom.isBefore(
+                answerState.getEntity().getValidFrom()));
+    }
 
-        questionState.saveEntityOrAuditLogIfRequired(questionRepo, questionAuditRepo);
-        answerState.saveEntityOrAuditLogIfRequired(requestAnswerRepo, requestAnswerAuditRepo);
+    /**
+     * Update answer for an existing question for a data type.
+     * @param answer        Newly supplied answer
+     * @param answerState   Answer as previously provided for question.
+     */
+    private void updateRequestAnswer(String answer, RowState<RequestAnswer, RequestAnswerAudit> answerState) {
+        answerState.assignIfDifferent(answer, answerState.getEntity().getAnswer(), answerState.getEntity()::setAnswer);
     }
 
 }
