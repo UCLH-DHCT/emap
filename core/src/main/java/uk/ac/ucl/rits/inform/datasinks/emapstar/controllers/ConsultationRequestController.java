@@ -67,9 +67,8 @@ public class ConsultationRequestController {
         }
 
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
-        questionController.processQuestions(msg.getQuestions(),
-                QuestionController.ParentTableType.CONSULTATION_REQUEST.toString(),
-                request.getConsultationRequestId(), msg.getRequestedDateTime(), storedFrom);
+        questionController.processQuestions(msg.getQuestions(), consultationRequest.getEntity().getConsultId(),
+                msg.getRequestedDateTime(), storedFrom);
     }
 
     /**
