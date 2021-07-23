@@ -104,7 +104,7 @@ public class LabOrderController {
             Mrn mrn, HospitalVisit visit, LabBattery battery, LabOrderMsg msg, Instant validFrom, Instant storedFrom
     ) throws MessageCancelledException {
         LabSample labSample = updateOrCreateSample(mrn, msg, validFrom, storedFrom);
-        questionController.processLabOrderQuestions(msg.getQuestions(), labSample, validFrom, storedFrom);
+        questionController.processQuestions(msg.getQuestions(), labSample.getLabSampleId(), validFrom, storedFrom);
         return updateOrCreateLabOrder(visit, battery, labSample, msg, validFrom, storedFrom);
     }
 
