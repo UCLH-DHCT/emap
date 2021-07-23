@@ -5,6 +5,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageStreamBaseCase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.concurrent.ShuffleIterator;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabIsolateRepository;
@@ -56,7 +57,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     @Autowired
     LabSensitivityRepository labSensitivityRepository;
     @Autowired
-    LabSampleQuestionRepository labSampleQuestionRepository;
+    QuestionRepository questionRepository;
 
     private List<String> duplicateAt(String[] strings, int duplicateIndex) {
         List<String> output = new ArrayList<>(List.of(strings));
@@ -231,7 +232,7 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
             // direct in order it'll be null, otherwise should have 01 NW value
             assertEquals(Instant.parse("2020-11-09T15:03:00Z"), labOrder.getRequestDatetime());
         }
-        assertEquals(3, labSampleQuestionRepository.count());
+        assertEquals(3, questionRepository.count());
     }
 
 
