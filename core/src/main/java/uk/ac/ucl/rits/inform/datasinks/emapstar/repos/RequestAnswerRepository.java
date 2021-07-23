@@ -15,8 +15,7 @@ public interface RequestAnswerRepository extends CrudRepository<RequestAnswer, L
      * Get answer to question for a specific entity.
      * @param question  Question for which answer is relevant.
      * @param parentId  Entity that triggered the creation of this question-answer pair.
-     * @param answer    Content of the answer to the question as triggered by entity question.
      * @return possible patient condition
      */
-    Optional<RequestAnswer> findByQuestionIdAndParentIdAndAnswer(Question question, long parentId, String answer);
+    Optional<RequestAnswer> findByQuestionIdAndParentId(Question question, long parentId);
 }
