@@ -95,7 +95,7 @@ public class QuestionController {
      * @param question      Question string.
      * @param validFrom     When this question is valid from.
      * @param storedFrom    When EMAP has started processing this entity.
-     * @return
+     * @return a generated question wrapped in RowState
      */
     public RowState<Question, QuestionAudit> createQuestion(String question, Instant validFrom,
                                                                            Instant storedFrom) {
@@ -131,7 +131,7 @@ public class QuestionController {
      * @param parentId      Entity that triggered creation of question and answer.
      * @param validFrom     When information for entity is valid from.
      * @param storedFrom    When EMAP started processing this entity type.
-     * @return
+     * @return a RequestAnswer wrapped in RowState
      */
     public RowState<RequestAnswer, RequestAnswerAudit> createRequestAnswer(Question question, String answer,
                                                                            long parentId, Instant validFrom,
