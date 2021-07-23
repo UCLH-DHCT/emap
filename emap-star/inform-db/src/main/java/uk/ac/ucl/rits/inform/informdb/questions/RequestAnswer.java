@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
