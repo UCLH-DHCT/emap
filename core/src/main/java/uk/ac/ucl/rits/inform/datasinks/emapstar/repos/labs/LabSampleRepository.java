@@ -18,7 +18,7 @@ public interface LabSampleRepository extends CrudRepository<LabSample, Long> {
      * For question processing testing.
      * @param mrn
      * @param externalLabNumber
-     * @return
+     * @return lab sample based on patient and external lab number.
      */
     Optional<LabSample> findByMrnIdAndExternalLabNumber(String mrn, String externalLabNumber);
 
