@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,13 +47,13 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     /**
      * Minimal request answer constructor that requires that the answer and the timestamps for when EMAP
      * started processing this data type and from which time point the question information is valid from.
-     * @param answer        The actual question string linked to a data type
      * @param questionId    Question this answer relates to
+     * @param answer        The actual question string linked to a data type
      * @param parentId      Entity (e.g. lab sample or consultation request) that triggered the
      * @param validFrom     Timestamp from which information valid from
      * @param storedFrom    When EMAP started processing this data type
      */
-    public RequestAnswer(String answer, Question questionId, long parentId, Instant validFrom, Instant storedFrom) {
+    public RequestAnswer(Question questionId, String answer, long parentId, Instant validFrom, Instant storedFrom) {
         this.answer = answer;
         this.questionId = questionId;
         this.parentId = parentId;
