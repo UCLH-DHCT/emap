@@ -39,6 +39,9 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     private Question questionId;
 
     @Column(nullable = false)
+    private String parentTable;
+
+    @Column(nullable = false)
     private long parentId;
 
     public RequestAnswer() {}
@@ -48,13 +51,17 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
      * started processing this data type and from which time point the question information is valid from.
      * @param questionId    Question this answer relates to
      * @param answer        The actual question string linked to a data type
+     * @param parentTable   Data type that triggered question-answer pair creation, e.g. lab sample or consultation
+     *                      request
      * @param parentId      Entity (e.g. lab sample or consultation request) that triggered the
      * @param validFrom     Timestamp from which information valid from
      * @param storedFrom    When EMAP started processing this data type
      */
-    public RequestAnswer(Question questionId, String answer, long parentId, Instant validFrom, Instant storedFrom) {
+    public RequestAnswer(Question questionId, String answer, String parentTable, long parentId, Instant validFrom,
+                         Instant storedFrom) {
         this.answer = answer;
         this.questionId = questionId;
+        this.parentTable = parentTable;
         this.parentId = parentId;
         setStoredFrom(storedFrom);
         setValidFrom(validFrom);
@@ -65,6 +72,7 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
         this.answerId = other.answerId;
         this.answer = other.answer;
         this.questionId = other.questionId;
+        this.parentTable = other.parentTable;
         this.parentId = other.parentId;
     }
 
