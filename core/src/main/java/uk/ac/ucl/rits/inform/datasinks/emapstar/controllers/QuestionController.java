@@ -19,6 +19,11 @@ import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswerAudit;
 import java.time.Instant;
 import java.util.Map;
 
+enum ParentTableType {
+    CONSULT_REQUEST,
+    LAB_SAMPLE
+}
+
 /**
  * Creates or updates information in relation to questions, which can be linked to several data types (parent table
  * information).
@@ -33,6 +38,9 @@ public class QuestionController {
     private final QuestionAuditRepository questionAuditRepo;
     private final RequestAnswerRepository requestAnswerRepo;
     private final RequestAnswerAuditRepository requestAnswerAuditRepo;
+
+
+
 
     /**
      * Initialising the repositories needed to store question information.
@@ -53,19 +61,20 @@ public class QuestionController {
     /**
      * Processing a set of questions and related answers (independent of data type they relate to).
      * @param questionsAndAnswers Map in form {question, answer}
+     * @param parentTable         Data type that triggered the creation of question-answer pair.
      * @param parentId            Identifier for parent entity that triggered the creation of a question, e.g. lab
      *                            sample or consultation request
      * @param validFrom           most recent change to results
      * @param storedFrom          time that star started processing the message
      */
-    void processQuestions(Map<String, String> questionsAndAnswers, long parentId, Instant validFrom,
+    void processQuestions(Map<String, String> questionsAndAnswers, String parentTable, long parentId, Instant validFrom,
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
             RowState<Question, QuestionAudit> questionState = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
             questionState.saveEntityOrAuditLogIfRequired(questionRepo, questionAuditRepo);
 
             RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(questionState.getEntity(),
-                    questionAndAnswer.getValue(), parentId, validFrom, storedFrom);
+                    questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
 
             if (requestAnswerShouldBeUpdated(validFrom, answerState)) {
                 updateRequestAnswer(questionAndAnswer.getValue(), answerState);
@@ -109,6 +118,7 @@ public class QuestionController {
      * need to change.
      * @param question          Question as such.
      * @param answer            Answer to the questions.
+     * @param parentTable       Data type that triggered the creation of question-answer pair.
      * @param parentId          Parent entity that triggered the creation of question and answer for it.
      * @param validFrom         Time when question got changed most recently.
      * @param storedFrom        Time when star started question processing.
@@ -116,27 +126,29 @@ public class QuestionController {
      */
     @Cacheable(value = "answer")
     public RowState<RequestAnswer, RequestAnswerAudit> getOrCreateRequestAnswer(Question question,
-                                                                                String answer, long parentId,
-                                                                                Instant validFrom, Instant storedFrom) {
+                                                                                String answer, String parentTable,
+                                                                                long parentId, Instant validFrom,
+                                                                                Instant storedFrom) {
         return requestAnswerRepo
                 .findByQuestionIdAndParentId(question, parentId)
                 .map(r -> new RowState<>(r, validFrom, storedFrom, false))
-                .orElseGet(() -> createRequestAnswer(question, answer, parentId, validFrom, storedFrom));
+                .orElseGet(() -> createRequestAnswer(question, answer, parentTable, parentId, validFrom, storedFrom));
     }
 
     /**
      * Create answer for question.
      * @param question      Question answer belongs to.
      * @param answer        Answer content.
+     * @param parentTable   Data type that triggered the creation of question-answer pair.
      * @param parentId      Entity that triggered creation of question and answer.
      * @param validFrom     When information for entity is valid from.
      * @param storedFrom    When EMAP started processing this entity type.
      * @return a RequestAnswer wrapped in RowState
      */
     public RowState<RequestAnswer, RequestAnswerAudit> createRequestAnswer(Question question, String answer,
-                                                                           long parentId, Instant validFrom,
-                                                                           Instant storedFrom) {
-        RequestAnswer requestAnswer = new RequestAnswer(question, answer, parentId, validFrom, storedFrom);
+                                                                           String parentTable, long parentId,
+                                                                           Instant validFrom, Instant storedFrom) {
+        RequestAnswer requestAnswer = new RequestAnswer(question, answer, parentTable, parentId, validFrom, storedFrom);
         logger.debug("Created new {}", requestAnswer);
         return new RowState<>(requestAnswer, validFrom, storedFrom, true);
     }
