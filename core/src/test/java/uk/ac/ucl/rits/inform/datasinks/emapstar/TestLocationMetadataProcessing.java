@@ -289,28 +289,29 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
     }
 
+
     /**
-     * Set fields which should never change to new value.
+     * Given that location exists with a linked room.
+     * When a message with the same full hl7 string has a different room name
+     * An exception should be thrown
      */
-    static Stream<Consumer<LocationMetadata>> roomFieldsWithChangedData() {
-        String newData = "NEW";
-        return Stream.of(
-                metadata -> metadata.setRoomHl7(newData),
-                metadata -> metadata.setRoomName(newData)
-        );
+    @Test
+    @Sql("/populate_db.sql")
+    void testRoomCantChangeName() {
+        acunCensusBed.setRoomName("new_name");
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
     }
 
     /**
      * Given that location exists with a linked room.
-     * When a message with the same full hl7 string has a different room data (excluding status and updatedDate)
+     * When a message with the same full hl7 string has a different room hl7 string
      * An exception should be thrown
      */
-    @ParameterizedTest
-    @MethodSource("roomFieldsWithChangedData")
+    @Test
     @Sql("/populate_db.sql")
-    void testRoomCantChange(Consumer<LocationMetadata> metadataConsumer) {
-        metadataConsumer.accept(acunCensusBed);
-        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+    void testRoomCantChangeHl7String() {
+        acunCensusBed.setRoomHl7("new_name");
+        assertThrows(DataIntegrityViolationException.class, () -> processSingleMessage(acunCensusBed));
     }
 
     // BED
