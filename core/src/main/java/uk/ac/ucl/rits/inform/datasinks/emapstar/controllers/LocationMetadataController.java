@@ -146,6 +146,7 @@ public class LocationMetadataController {
      * Create Room if it doesn't exist and update state.
      * <p>
      * We should receive rooms in order of their valid from, so if a room doesn't exist (by CSN) then it should be created.
+     * @param department department that the room belongs to
      * @param msg        message to be processed
      * @param storedFrom time that emap core started processing the message
      * @return room
