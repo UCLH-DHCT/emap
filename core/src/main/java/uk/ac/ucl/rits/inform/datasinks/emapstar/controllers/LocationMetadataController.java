@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentStateR
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
+import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.movement.Bed;
 import uk.ac.ucl.rits.inform.informdb.movement.BedState;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
@@ -245,7 +246,7 @@ public class LocationMetadataController {
         if (existingState.isPresent()) {
             return bed;
         }
-        createCurrentStateAndInvalidatePrevious(msg, storedFrom, bed, states);
+        createCurrentStateAndInvalidatePrevious(msg, bed, states, new TemporalFrom(msg.getBedContactDate(), storedFrom));
 
         return bed;
     }
@@ -263,18 +264,16 @@ public class LocationMetadataController {
 
     /**
      * Create new state from current message, invalidating the previous state and saving if required.
-     * @param msg        message to process
-     * @param storedFrom time that emap-core started processing the message
-     * @param bed        bed entity
-     * @param states     previous states sorted by descending valid from dates
+     * @param msg          message to process
+     * @param bed          bed entity
+     * @param states       previous states sorted by descending valid from dates
+     * @param temporalFrom valid and stored from
      * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
      */
     private void createCurrentStateAndInvalidatePrevious(
-            LocationMetadata msg, Instant storedFrom, Bed bed, Collection<BedState> states) throws IncompatibleDatabaseStateException {
+            LocationMetadata msg, Bed bed, Collection<BedState> states, TemporalFrom temporalFrom) throws IncompatibleDatabaseStateException {
         BedState currentState = new BedState(
-                bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(), msg.getBedRecordState(), msg.getIsPoolBed(),
-                msg.getBedContactDate(), storedFrom
-        );
+                bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(), msg.getBedRecordState(), msg.getIsPoolBed(), temporalFrom);
 
         if (msg.getIsPoolBed()) {
             incrementPoolBedAndSave(currentState);
