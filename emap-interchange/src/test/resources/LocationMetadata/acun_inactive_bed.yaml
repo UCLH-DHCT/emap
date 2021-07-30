@@ -14,7 +14,7 @@ roomHl7: "E03ACUN BY12"
 roomRecordState: "Active"
 roomName: "BY12"
 # bed
-bedCsn: 73801
+bedCsn: 73803
 bedHl7: "BY12-C49"
 bedContactDate: "2016-05-09T00:00:00Z"
 bedRecordState: "Inactive"
