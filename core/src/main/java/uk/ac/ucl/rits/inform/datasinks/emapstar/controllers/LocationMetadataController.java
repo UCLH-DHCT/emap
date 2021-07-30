@@ -291,8 +291,8 @@ public class LocationMetadataController {
             throw new IncompatibleDatabaseStateException("New bed state is valid before the most current bed state");
         }
 
-        previousState.setValidUntil(currentState.getValidFrom());
-        previousState.setStoredUntil(currentState.getStoredFrom());
+        previousState.setValidUntil(temporalFrom.getValid());
+        previousState.setStoredUntil(temporalFrom.getStored());
 
         bedStateRepo.saveAll(List.of(previousState, currentState));
     }
