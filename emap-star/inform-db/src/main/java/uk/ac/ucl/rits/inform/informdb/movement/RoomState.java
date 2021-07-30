@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +19,7 @@ import java.time.Instant;
 @Entity
 @Table
 @Data
+@NoArgsConstructor
 public class RoomState implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -45,4 +47,22 @@ public class RoomState implements Serializable {
 
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
+
+    /**
+     * Constructor for an active room state.
+     * @param roomId     room entity
+     * @param csn        room CSN
+     * @param status     current room status
+     * @param isReady    is the room ready
+     * @param validFrom  time that the room was first used as a contact
+     * @param storedFrom time that star started processing the message
+     */
+    public RoomState(Room roomId, Long csn, String status, Boolean isReady, Instant validFrom, Instant storedFrom) {
+        this.roomId = roomId;
+        this.csn = csn;
+        this.status = status;
+        this.isReady = isReady;
+        this.validFrom = validFrom;
+        this.storedFrom = storedFrom;
+    }
 }
