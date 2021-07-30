@@ -12,8 +12,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.Table;
 import java.time.Instant;
 
 /**
@@ -32,6 +34,7 @@ import java.time.Instant;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @NoArgsConstructor
 @AuditTable
+@Table(indexes = {@Index(name = "vot_id_in_application", columnList = "idInApplication")})
 public class VisitObservationType extends TemporalCore<VisitObservationType, VisitObservationTypeAudit> {
 
     @Id
