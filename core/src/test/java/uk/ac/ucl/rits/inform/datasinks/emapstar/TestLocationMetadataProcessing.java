@@ -59,6 +59,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final Instant CONTACT_TIME = Instant.parse("2016-02-09T00:00:00Z");
     private static final Instant LATER_TIME = CONTACT_TIME.plusSeconds(20);
     private static final Instant EARLIER_TIME = CONTACT_TIME.minusSeconds(20);
+    private static final long ACUN_ROOM_CSN = 1158;
     private static final long ACUN_BED_CSN = 4417L;
 
     private static final String MEDSURG_HL7_STRING = "MEDSURG^MED/SURG^Med/Surg";
@@ -235,18 +236,58 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      * when a location metadata message with matching hl7 string (different CSN and later time) is processed
      * then a new active state should be created, invalidating the previous state
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testNewRoomStateWithLaterTimeUpdates() throws Exception {
+        acunCensusBed.setRoomCsn(1L);
+        acunCensusBed.setRoomContactDate(LATER_TIME);
+        processSingleMessage(acunCensusBed);
+
+        RoomState previousState = roomStateRepo.findByCsn(ACUN_ROOM_CSN).orElseThrow();
+        assertEquals(LATER_TIME, previousState.getValidUntil());
+        assertNotNull(previousState.getStoredUntil());
+
+        RoomState currentState = roomStateRepo.findByCsn(1L).orElseThrow();
+        assertEquals(LATER_TIME, currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
+    }
 
     /**
      * Given room exists in database
      * when a location metadata message with matching hl7 string (different CSN and same time) is processed
      * then a new active state should be created, invalidating the previous state
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testNewRoomStateWithSameTimeUpdates() throws Exception {
+        acunCensusBed.setRoomCsn(1L);
+        processSingleMessage(acunCensusBed);
+
+        RoomState previousState = roomStateRepo.findByCsn(ACUN_ROOM_CSN).orElseThrow();
+        assertEquals(CONTACT_TIME, previousState.getValidUntil());
+        assertNotNull(previousState.getStoredUntil());
+
+        RoomState currentState = roomStateRepo.findByCsn(1L).orElseThrow();
+        assertEquals(CONTACT_TIME, currentState.getValidFrom());
+        assertNull(currentState.getValidUntil());
+        assertNotNull(currentState.getStoredFrom());
+        assertNull(currentState.getStoredUntil());
+    }
 
     /**
      * Given room exists in database
      * when a location metadata message with matching hl7 string (different CSN and earlier time) is processed
-     * then the previous temporal until data should be updated, processed message temporal until data should be set to the next message from times.
+     * an exception should be thrown
      */
+    @Test
+    @Sql("/populate_db.sql")
+    void testNewRoomStateWithEarlierTimeThrows() {
+        acunCensusBed.setRoomCsn(1L);
+        acunCensusBed.setRoomContactDate(EARLIER_TIME);
+        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+    }
 
     /**
      * Set fields which should never change to new value.
@@ -318,7 +359,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testNewStateWithLaterTimeUpdates() throws Exception {
+    void testNewBedStateWithLaterTimeUpdates() throws Exception {
         acunCensusBed.setBedCsn(1L);
         acunCensusBed.setBedContactDate(LATER_TIME);
         processSingleMessage(acunCensusBed);
@@ -341,7 +382,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testNewStateWithSameTimeUpdates() throws Exception {
+    void testNewBedStateWithSameTimeUpdates() throws Exception {
         acunCensusBed.setBedCsn(1L);
         processSingleMessage(acunCensusBed);
 
@@ -363,7 +404,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testNewStateWithEarlierTimeThrows() {
+    void testNewBedStateWithEarlierTimeThrows() {
         acunCensusBed.setBedCsn(1L);
         acunCensusBed.setBedContactDate(EARLIER_TIME);
         assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
