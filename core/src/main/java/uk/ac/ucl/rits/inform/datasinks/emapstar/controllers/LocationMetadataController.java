@@ -87,9 +87,6 @@ public class LocationMetadataController {
                 .orElseGet(() -> locationRepo.save(new Location(hl7String)));
     }
 
-    private boolean notNullAndDifferent(String msg, String dep) {
-        return dep != null && !dep.equals(msg);
-    }
 
     /**
      * Create department if it doesn't exist and update state.
@@ -116,6 +113,9 @@ public class LocationMetadataController {
         return dep;
     }
 
+    private boolean notNullAndDifferent(String msg, String dep) {
+        return dep != null && !dep.equals(msg);
+    }
 
     /**
      * Create state from department and if it's different from an existing state, invalidate the existing state.
@@ -178,7 +178,7 @@ public class LocationMetadataController {
      * Create new state from current message, invalidating the previous state and saving if required.
      * @param msg        message to process
      * @param storedFrom time that emap-core started processing the message
-     * @param room        room entity
+     * @param room       room entity
      * @param states     previous states sorted by descending valid from dates
      * @throws IncompatibleDatabaseStateException if a novel CSN is found with a contact date earlier than the latest state
      */
@@ -210,6 +210,7 @@ public class LocationMetadataController {
      * Create Bed if it doesn't exist and update state.
      * <p>
      * We should receive beds in order of their valid from, so if a bed doesn't exist (by CSN) then it should be created.
+     * <p>
      * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
      * Because the CSN is only of the first encountered, an existing pool bed is found by those which have a pool bed count and the same
      * contact time. This means that if the locations are processed from the beginning of epic time again then the pool bed count will
