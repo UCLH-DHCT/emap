@@ -19,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.Room;
+import uk.ac.ucl.rits.inform.informdb.movement.RoomState;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.time.Instant;
@@ -144,8 +145,7 @@ public class LocationMetadataController {
     /**
      * Create Room if it doesn't exist and update state.
      * <p>
-     * Rooms can have a history
-     * @param department department entity that the room is associated with
+     * We should receive rooms in order of their valid from, so if a room doesn't exist (by CSN) then it should be created.
      * @param msg        message to be processed
      * @param storedFrom time that emap core started processing the message
      * @return room
@@ -160,16 +160,56 @@ public class LocationMetadataController {
         if (notNullAndDifferent(room.getName(), msg.getRoomName())) {
             throw new IncompatibleDatabaseStateException("Room can't change it's name");
         }
+        List<RoomState> states = roomStateRepo.findAllByRoomIdOrderByValidFromDesc(room);
 
-        //TODO: update states
+        Optional<RoomState> existingState = states.stream()
+                .filter(state -> state.getCsn().equals(msg.getRoomCsn()))
+                .findFirst();
+
+        if (existingState.isPresent()) {
+            return room;
+        }
+        createCurrentStateAndInvalidatePrevious(msg, storedFrom, room, states);
 
         return room;
     }
 
     /**
+     * Create new state from current message, invalidating the previous state and saving if required.
+     * @param msg        message to process
+     * @param storedFrom time that emap-core started processing the message
+     * @param room        room entity
+     * @param states     previous states sorted by descending valid from dates
+     * @throws IncompatibleDatabaseStateException if a novel CSN is found with a contact date earlier than the latest state
+     */
+    private void createCurrentStateAndInvalidatePrevious(
+            LocationMetadata msg, Instant storedFrom, Room room, Collection<RoomState> states) throws IncompatibleDatabaseStateException {
+        RoomState currentState = new RoomState(
+                room, msg.getRoomCsn(), msg.getRoomRecordState(), msg.getIsRoomReady(), msg.getRoomContactDate(), storedFrom);
+
+
+        // if the room doesn't have any existing states we don't need to invalidate any previous states
+        if (states.isEmpty()) {
+            roomStateRepo.save(currentState);
+            return;
+        }
+
+        // assuming the current message is after the most recent state, we should invalidate it and save the new state
+        RoomState previousState = states.stream().findFirst().orElseThrow();
+        if (currentState.getValidFrom().isBefore(previousState.getValidFrom())) {
+            throw new IncompatibleDatabaseStateException("New room state is valid before the most current room state");
+        }
+
+        previousState.setValidUntil(currentState.getValidFrom());
+        previousState.setStoredUntil(currentState.getStoredFrom());
+
+        roomStateRepo.saveAll(List.of(previousState, currentState));
+    }
+
+    /**
      * Create Bed if it doesn't exist and update state.
      * <p>
-     * We should receive beds in order of their valid from, so if a bed doesn't exit (by CSN) then it should be
+     * We should receive beds in order of their valid from, so if a bed doesn't exist (by CSN) then it should be created.
      * For pool beds, we create a single bed and in the state entity, increment the number of pool beds found at the contact time.
      * Because the CSN is only of the first encountered, an existing pool bed is found by those which have a pool bed count and the same
      * contact time. This means that if the locations are processed from the beginning of epic time again then the pool bed count will
