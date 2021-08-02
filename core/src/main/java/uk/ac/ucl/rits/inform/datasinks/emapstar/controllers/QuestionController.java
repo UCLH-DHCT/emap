@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
@@ -62,6 +61,7 @@ public class QuestionController {
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
             Question question = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
+            questionRepo.save(question);
 
             RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(question,
                     questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
@@ -81,7 +81,7 @@ public class QuestionController {
      * @param storedFrom        Time when star started question processing.
      * @return a specific question as stored in the question repository
      */
-    @Cacheable(value = "question")
+    // @Cacheable(value = "question")
     public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
         return questionRepo
                 .findByQuestion(question)
