@@ -16,9 +16,11 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * Questions generated from specific data types (e.g. lab samples or consultation requests) trigger answers that or
- * held as RequestAnswers. RequestAnswers therefore not only hold the answer as such but also link the answer to the
- * question and the entity (i.e. data type) that triggered the question.
+ * Several data types, such as e.g. lab samples and consultation requests, hold questions. As these data types are
+ * progressed within the hospital, e.g. lab samples are analysed, these questions are likely to be answered. The
+ * answers to questions are held in EMAP as RequestAnswers and link to both the question that triggered the answer and
+ * the data type that the questions belong to.
+ *
  * @author Anika Cawthorn
 */
 @Entity
@@ -53,7 +55,8 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
      * @param answer        The actual question string linked to a data type
      * @param parentTable   Data type that triggered question-answer pair creation, e.g. lab sample or consultation
      *                      request
-     * @param parentId      Entity (e.g. lab sample or consultation request) that triggered the
+     * @param parentId      Entity (e.g. lab sample or consultation request) that triggered the question-answer pair
+     *                      to be created
      * @param validFrom     Timestamp from which information valid from
      * @param storedFrom    When EMAP started processing this data type
      */
@@ -69,7 +72,7 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
 
     public RequestAnswer(RequestAnswer other) {
         super(other);
-        this.answerId = other.answerId;
+        this.requestAnswerId = other.requestAnswerId;
         this.answer = other.answer;
         this.questionId = other.questionId;
         this.parentTable = other.parentTable;

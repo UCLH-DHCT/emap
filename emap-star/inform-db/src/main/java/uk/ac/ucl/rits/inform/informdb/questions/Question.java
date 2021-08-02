@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.questions;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
@@ -15,7 +16,8 @@ import java.time.Instant;
 
 /**
  * Questions that can be attached to several data types, such as lab samples or consultation requests. Independent of
- * which type of question, these are all held together in one table and reference back to the entity they relate to.
+ * which type of question, these are all held together in one table and reference back to the entity they relate to. It
+ * is to be noted here that questions at the moment are only cumulative and cannot be deleted.
  *
  * @author Stef Piatek
  * @author Anika Cawthorn
@@ -25,6 +27,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
+@NoArgsConstructor
 public class Question extends TemporalCore<Question, QuestionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,8 +35,6 @@ public class Question extends TemporalCore<Question, QuestionAudit> {
 
     @Column(columnDefinition = "text", nullable = false)
     private String question;
-
-    public Question() {}
 
     /**
      * Minimal question constructor that requires that requires the question as such and the timestamps for when EMAP
