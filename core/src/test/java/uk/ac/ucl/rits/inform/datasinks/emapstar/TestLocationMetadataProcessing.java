@@ -137,7 +137,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         DepartmentState depState = departmentStateRepo.findByDepartmentIdAndStatus(dep, ACTIVE).orElseThrow();
         assertNotNull(depState.getStoredFrom());
         assertNull(depState.getValidUntil());
-        assertNull(depState.getValidFrom());
+        assertNotNull(depState.getValidFrom());
         assertNull(depState.getStoredUntil());
     }
 
