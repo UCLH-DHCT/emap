@@ -1,10 +1,8 @@
 package uk.ac.ucl.rits.inform.informdb.questions;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
