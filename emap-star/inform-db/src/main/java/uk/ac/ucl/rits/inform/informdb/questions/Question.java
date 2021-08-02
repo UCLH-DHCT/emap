@@ -23,11 +23,10 @@ import java.time.Instant;
  */
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
 @NoArgsConstructor
-public class Question extends TemporalCore<Question, QuestionAudit> {
+public class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long questionId;
@@ -35,8 +34,14 @@ public class Question extends TemporalCore<Question, QuestionAudit> {
     @Column(columnDefinition = "text", nullable = false)
     private String question;
 
+    @Column(nullable = false)
+    private Instant storedFrom;
+
+    @Column(nullable = false)
+    private Instant validFrom;
+
     /**
-     * Minimal question constructor that requires that requires the question as such and the timestamps for when EMAP
+     * Minimal question constructor that requires the question as such and the timestamps for when EMAP
      * started processing this data type and from which time point the question information is valid from.
      * @param question      The actual question string linked to a data type
      * @param validFrom     Timestamp from which information valid from
@@ -44,23 +49,7 @@ public class Question extends TemporalCore<Question, QuestionAudit> {
      */
     public Question(String question, Instant validFrom, Instant storedFrom) {
         this.question = question;
-        setStoredFrom(storedFrom);
-        setValidFrom(validFrom);
-    }
-
-    public Question(Question other) {
-        super(other);
-        this.questionId = other.questionId;
-        this.question = other.question;
-    }
-
-    @Override
-    public Question copy() {
-        return new Question(this);
-    }
-
-    @Override
-    public QuestionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
-        return new QuestionAudit(this, validUntil, storedUntil);
+        this.storedFrom = storedFrom;
+        this.validFrom = validFrom;
     }
 }
