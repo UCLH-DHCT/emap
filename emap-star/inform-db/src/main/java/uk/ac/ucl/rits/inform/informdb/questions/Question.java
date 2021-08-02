@@ -3,7 +3,6 @@ package uk.ac.ucl.rits.inform.informdb.questions;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,7 +21,6 @@ import java.time.Instant;
 @Entity
 @Data
 @ToString(callSuper = true)
-@AuditTable
 @NoArgsConstructor
 public class Question {
     @Id
