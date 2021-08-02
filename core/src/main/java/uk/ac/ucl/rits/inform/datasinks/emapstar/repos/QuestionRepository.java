@@ -12,16 +12,9 @@ import java.util.Optional;
  */
 public interface QuestionRepository extends CrudRepository<Question, Long> {
     /**
-     * Find a specific question based on question object.
-     * @param question
-     * @return question as defined by question content
-     */
-    Optional<Question> findByQuestion(Question question);
-
-    /**
      * Find question based on its string content and the identifier in the parent table this question is related to,
      * e.g. a lab sample identifier. This method is for testing purposes only.
-     * @param question
+     * @param question  Question string to search for in the repository.
      * @return question as defined by question string
      */
     Optional<Question> findByQuestion(String question);
