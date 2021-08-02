@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
