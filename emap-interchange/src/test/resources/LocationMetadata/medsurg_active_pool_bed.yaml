@@ -6,6 +6,7 @@ departmentHl7: "MEDSURG"
 departmentName: "EMH MED SURG"
 departmentSpeciality: null
 departmentRecordStatus: "Deleted and Hidden"
+departmentUpdateDate: "2021-04-23T09:00:00Z"
 # room
 roomCsn: 274
 roomContactDate: "2010-02-04T00:00:00Z"
