@@ -9,6 +9,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
 import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 import uk.ac.ucl.rits.inform.informdb.movement.Bed;
+import uk.ac.ucl.rits.inform.informdb.movement.BedFacility;
 import uk.ac.ucl.rits.inform.informdb.movement.BedState;
 import uk.ac.ucl.rits.inform.informdb.movement.Room;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
@@ -57,6 +58,16 @@ public class BedController {
                 .findByHl7String(msg.getBedHl7())
                 .orElseGet(() -> bedRepo.save(new Bed(msg.getBedHl7(), room)));
 
+        BedState bedState = processBedState(bed, msg, storedFrom);
+
+        createBedFacilityIfNotExists(bedState, msg.getBedFacility());
+
+        return bed;
+    }
+
+    private BedState processBedState(Bed bed, LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
+
+
         List<BedState> states = bedStateRepo.findAllByBedIdOrderByValidFromDesc(bed);
 
         // if we already know about the bed pool, increment it and don't do any further processing
@@ -64,7 +75,7 @@ public class BedController {
             Optional<BedState> existingPoolBed = findExistingPoolBedByValidFrom(msg.getBedContactDate(), states);
             if (existingPoolBed.isPresent()) {
                 incrementPoolBedAndSave(existingPoolBed.get());
-                return bed;
+                return existingPoolBed.get();
             }
         }
 
@@ -73,11 +84,10 @@ public class BedController {
                 .filter(state -> state.getCsn().equals(msg.getBedCsn()))
                 .findFirst();
         if (existingState.isPresent()) {
-            return bed;
+            return existingState.get();
         }
-        createCurrentStateAndInvalidatePrevious(msg, bed, states, new TemporalFrom(msg.getBedContactDate(), storedFrom));
 
-        return bed;
+        return createCurrentStateAndInvalidatePrevious(msg, bed, states, new TemporalFrom(msg.getBedContactDate(), storedFrom));
     }
 
     private Optional<BedState> findExistingPoolBedByValidFrom(Instant bedContactDate, Collection<BedState> states) {
@@ -98,8 +108,9 @@ public class BedController {
      * @param states       previous states sorted by descending valid from dates
      * @param temporalFrom valid and stored from
      * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
+     * @return
      */
-    private void createCurrentStateAndInvalidatePrevious(
+    private BedState createCurrentStateAndInvalidatePrevious(
             LocationMetadata msg, Bed bed, Collection<BedState> states, TemporalFrom temporalFrom) throws IncompatibleDatabaseStateException {
         BedState currentState = new BedState(
                 bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(), msg.getBedRecordState(), msg.getIsPoolBed(), temporalFrom);
@@ -110,8 +121,7 @@ public class BedController {
 
         // if the bed doesn't have any existing states we don't need to invalidate any previous states
         if (states.isEmpty()) {
-            bedStateRepo.save(currentState);
-            return;
+            return bedStateRepo.save(currentState);
         }
 
         // assuming the current message is after the most recent state, we should invalidate it and save the new state
@@ -124,6 +134,12 @@ public class BedController {
         previousState.setStoredUntil(temporalFrom.getStored());
 
         bedStateRepo.saveAll(List.of(previousState, currentState));
+        return currentState;
+    }
+
+    private void createBedFacilityIfNotExists(BedState bedState, String bedFacility) {
+        bedFacilityRepo.findByBedStateIdAndType(bedState, bedFacility)
+                .orElseGet(() -> bedFacilityRepo.save(new BedFacility(bedState, bedFacility)));
     }
 
 }
