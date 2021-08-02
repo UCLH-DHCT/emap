@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
-import ch.qos.logback.classic.spi.IThrowableProxy;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +17,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,9 +43,8 @@ class TestBankManagerParsing extends TestHl7MessageStream {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_order");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
-        assertEquals(order.getStatusChangeTime().truncatedTo(ChronoUnit.MINUTES), order.getOrderDateTime().get());
-        assertEquals(order.getStatusChangeTime().truncatedTo(ChronoUnit.MINUTES), order.getSampleReceivedTime().get());
-        // TODO: check times within bank manager
+        assertEquals(InterchangeValue.buildFromHl7(collectionTime), order.getOrderDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(collectionTime), order.getSampleReceivedTime());
         assertTrue(order.getRequestedDateTime().isUnknown());
     }
 
@@ -93,19 +90,19 @@ class TestBankManagerParsing extends TestHl7MessageStream {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "oru_r01_result");
         assertEquals(collectionTime, order.getCollectionDateTime());
         assertNotNull(order.getStatusChangeTime());
-        assertTrue(order.getOrderDateTime().isUnknown());
+        assertEquals(InterchangeValue.buildFromHl7(collectionTime), order.getOrderDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(collectionTime), order.getSampleReceivedTime());
         assertTrue(order.getRequestedDateTime().isUnknown());
-        assertTrue(order.getSampleReceivedTime().isUnknown());
     }
 
     @Test
-    void testSingleStringResult() throws Exception{
+    void testSingleStringResult() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_r01_result", "GPS1");
         assertEquals(InterchangeValue.buildFromHl7("O NEG"), result.getStringValue());
     }
 
     @Test
-    void testStringResultAdjacent() throws Exception{
+    void testStringResultAdjacent() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_r01_result", "GPS1");
         assertEquals(LabResultStatus.FINAL, result.getResultStatus());
         assertEquals(ValueType.TEXT, result.getMimeType());
@@ -115,7 +112,7 @@ class TestBankManagerParsing extends TestHl7MessageStream {
     @Test
     void testResultComments() throws Exception {
         LabResultMsg result = labReader.getResult(FILE_TEMPLATE, "oru_r01_result_comment", "GPS2");
-        assertEquals(InterchangeValue.buildFromHl7("Anti-D") ,result.getNotes());
+        assertEquals(InterchangeValue.buildFromHl7("Anti-D"), result.getNotes());
     }
 
     @Test
