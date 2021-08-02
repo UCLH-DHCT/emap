@@ -15,7 +15,7 @@ import java.time.Instant;
 
 /**
  * Questions that can be attached to several data types, such as lab samples or consultation requests. Independent of
- * which type of question, these are all held together in one table and reference back to the entity they relate too.
+ * which type of question, these are all held together in one table and reference back to the entity they relate to.
  *
  * @author Stef Piatek
  * @author Anika Cawthorn
