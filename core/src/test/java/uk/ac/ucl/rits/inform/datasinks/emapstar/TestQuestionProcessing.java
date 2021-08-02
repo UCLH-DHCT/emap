@@ -7,11 +7,9 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestReposit
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
 import uk.ac.ucl.rits.inform.informdb.questions.Question;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswer;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -21,7 +19,6 @@ import java.io.IOException;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Testing functionality in relation to question and answers, e.g. for lab samples or consultation requests. Questions
@@ -41,8 +38,6 @@ class TestQuestionProcessing extends MessageProcessingBase {
 
     @Autowired
     QuestionRepository questionRepo;
-    @Autowired
-    QuestionAuditRepository questionAuditRepo;
     @Autowired
     RequestAnswerRepository requestAnswerRepo;
     @Autowired
@@ -71,7 +66,6 @@ class TestQuestionProcessing extends MessageProcessingBase {
     void testLabQuestionsAdded() throws Exception {
         processSingleMessage(labOrderMsg);
         assertEquals(3, questionRepo.count());
-        assertEquals(0, questionAuditRepo.count());
     }
 
     /**
@@ -84,7 +78,6 @@ class TestQuestionProcessing extends MessageProcessingBase {
     void testConsultRequestQuestionsAdded() throws Exception {
         processSingleMessage(consultReqMsg);
         assertEquals(3, questionRepo.count());
-        assertEquals(0, questionAuditRepo.count());
     }
 
     /**
@@ -171,7 +164,6 @@ class TestQuestionProcessing extends MessageProcessingBase {
         // process original message
         String clinicalQuestion = "Did you contact the team?";
         String newClinicalAnswer = "yes";
-
         processSingleMessage(consultReqMsg);
 
         // process later message with updated answer
@@ -188,7 +180,4 @@ class TestQuestionProcessing extends MessageProcessingBase {
         RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getConsultId()).orElseThrow();
         assertEquals(newClinicalAnswer, answer.getAnswer());
     }
-
-
-
 }
