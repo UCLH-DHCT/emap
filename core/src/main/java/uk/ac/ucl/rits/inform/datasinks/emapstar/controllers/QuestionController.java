@@ -7,12 +7,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerRepository;
 import uk.ac.ucl.rits.inform.informdb.questions.Question;
-import uk.ac.ucl.rits.inform.informdb.questions.QuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswer;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswerAudit;
 
@@ -35,22 +33,18 @@ enum ParentTableType {
 public class QuestionController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final QuestionRepository questionRepo;
-    private final QuestionAuditRepository questionAuditRepo;
     private final RequestAnswerRepository requestAnswerRepo;
     private final RequestAnswerAuditRepository requestAnswerAuditRepo;
 
     /**
      * Initialising the repositories needed to store question information.
      * @param questionRepo              Repository with questions
-     * @param questionAuditRepo         Repository for question auditing
      * @param requestAnswerRepo         Repository for answers to questions
      * @param requestAnswerAuditRepo    Repository for auditing answers to questions
      */
-    public QuestionController(QuestionRepository questionRepo, QuestionAuditRepository questionAuditRepo,
-                              RequestAnswerRepository requestAnswerRepo,
+    public QuestionController(QuestionRepository questionRepo, RequestAnswerRepository requestAnswerRepo,
                               RequestAnswerAuditRepository requestAnswerAuditRepo) {
         this.questionRepo = questionRepo;
-        this.questionAuditRepo = questionAuditRepo;
         this.requestAnswerRepo = requestAnswerRepo;
         this.requestAnswerAuditRepo = requestAnswerAuditRepo;
     }
@@ -67,10 +61,9 @@ public class QuestionController {
     void processQuestions(Map<String, String> questionsAndAnswers, String parentTable, long parentId, Instant validFrom,
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
-            RowState<Question, QuestionAudit> questionState = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
-            questionState.saveEntityOrAuditLogIfRequired(questionRepo, questionAuditRepo);
+            Question question = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
 
-            RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(questionState.getEntity(),
+            RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(question,
                     questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
 
             if (requestAnswerShouldBeUpdated(validFrom, answerState)) {
@@ -89,25 +82,24 @@ public class QuestionController {
      * @return a specific question as stored in the question repository
      */
     @Cacheable(value = "question")
-    public RowState<Question, QuestionAudit> getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
+    public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
         return questionRepo
                 .findByQuestion(question)
-                .map(q -> new RowState<>(q, validFrom, storedFrom, false))
                 .orElseGet(() -> createQuestion(question, validFrom, storedFrom));
     }
 
     /**
      * Creates new question from the information provided and wraps it with RowState.
-     * @param question      Question string.
-     * @param validFrom     When this question is valid from.
-     * @param storedFrom    When EMAP has started processing this entity.
+     * @param questionString      Content of the question as opposed to table row in Star.
+     * @param validFrom           When this question is valid from.
+     * @param storedFrom          When EMAP has started processing this entity.
      * @return a generated question wrapped in RowState
      */
-    public RowState<Question, QuestionAudit> createQuestion(String question, Instant validFrom,
+    public Question createQuestion(String questionString, Instant validFrom,
                                                                            Instant storedFrom) {
-        Question questionEntity = new Question(question, validFrom, storedFrom);
-        logger.debug("Created new {}", questionEntity);
-        return new RowState<>(questionEntity, validFrom, storedFrom, true);
+        Question question = new Question(questionString, validFrom, storedFrom);
+        logger.debug("Created new {}", question);
+        return question;
     }
 
     /**
