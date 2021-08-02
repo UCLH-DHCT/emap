@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedFacilityRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentRepository;
@@ -15,6 +16,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.RoomStateRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.Bed;
+import uk.ac.ucl.rits.inform.informdb.movement.BedFacility;
 import uk.ac.ucl.rits.inform.informdb.movement.BedState;
 import uk.ac.ucl.rits.inform.informdb.movement.Department;
 import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
@@ -25,9 +27,11 @@ import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -50,6 +54,8 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private BedRepository bedRepo;
     @Autowired
     private BedStateRepository bedStateRepo;
+    @Autowired
+    private BedFacilityRepository bedFacilityRepo;
 
     private static final String ACUN_DEPT_HL7_STRING = "ACUN";
     private static final String ACUN_ROOM_HL7_STRING = "E03ACUN BY12";
@@ -61,6 +67,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final Instant EARLIER_TIME = CONTACT_TIME.minusSeconds(20);
     private static final long ACUN_ROOM_CSN = 1158;
     private static final long ACUN_BED_CSN = 4417L;
+    private static final String ACUN_BED_FACILITY = "Cot";
 
     private static final String MEDSURG_HL7_STRING = "MEDSURG^MED/SURG^Med/Surg";
     private static final long MEDSURG_BED_CSN = 11L;
@@ -455,17 +462,37 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
 
 
     // ROOM FACILITY
+
     /**
      * Given no beds exist in database
      * when a location metadata message with bed facility is processed
      * then a new bed facility should be created
      */
+    @Test
+    void testRoomFacilityCreated() throws Exception {
+        processSingleMessage(acunCensusBed);
+        BedState bedState = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
+        assertDoesNotThrow(() -> bedFacilityRepo.findByBedStateIdAndType(bedState, ACUN_BED_FACILITY).orElseThrow());
+    }
 
     /**
      * Given no beds exist in database
      * when two location metadata messages for the same CSN are processed with different bed facilities
      * then two new bed facilities should be created
      */
+    @Test
+    void testTwoRoomFacilitiesForSameBed() throws Exception {
+        String newFacility = "Near Nurse Station";
+        processSingleMessage(acunCensusBed);
+        acunCensusBed.setBedFacility(newFacility);
+
+        BedState bedState = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
+        List<BedFacility> bedFacilities = bedFacilityRepo.findAllByBedStateIdOrderByType(bedState);
+        assertEquals(2, bedFacilities.size());
+
+        assertEquals(ACUN_BED_FACILITY, bedFacilities.get(0).getType());
+        assertEquals(newFacility, bedFacilities.get(1).getType());
+    }
 
 
 }
