@@ -20,7 +20,6 @@ import java.time.Instant;
  * progressed within the hospital, e.g. lab samples are analysed, these questions are likely to be answered. The
  * answers to questions are held in EMAP as RequestAnswers and link to both the question that triggered the answer and
  * the data type that the questions belong to.
- *
  * @author Anika Cawthorn
 */
 @Entity

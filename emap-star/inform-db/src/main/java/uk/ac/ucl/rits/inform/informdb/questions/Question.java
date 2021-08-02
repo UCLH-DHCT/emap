@@ -18,7 +18,6 @@ import java.time.Instant;
  * Questions that can be attached to several data types, such as lab samples or consultation requests. Independent of
  * which type of question, these are all held together in one table and reference back to the entity they relate to. It
  * is to be noted here that questions at the moment are only cumulative and cannot be deleted.
- *
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
