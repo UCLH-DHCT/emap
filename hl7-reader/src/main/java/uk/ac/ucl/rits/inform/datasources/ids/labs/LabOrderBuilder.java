@@ -171,15 +171,13 @@ abstract class LabOrderBuilder {
     }
 
     /**
-     * Populate order information from OBR segment (ABL 90 Flex).
-     * @param obr OBR
-     * @throws DataTypeException if HAPI does
+     * Populate order temporal information from single instant.
+     * @param time Single time to set all order temporal information from
      */
-    void populateOrderInformation(OBR obr) throws DataTypeException {
-        Instant sampleReceived = interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime());
-        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(sampleReceived));
-        msg.setOrderDateTime(InterchangeValue.buildFromHl7(sampleReceived));
-        msg.setStatusChangeTime(sampleReceived);
+    void setOrderTemporalInformation(Instant time) {
+        msg.setSampleReceivedTime(InterchangeValue.buildFromHl7(time));
+        msg.setOrderDateTime(InterchangeValue.buildFromHl7(time));
+        msg.setStatusChangeTime(time);
     }
 
     /**

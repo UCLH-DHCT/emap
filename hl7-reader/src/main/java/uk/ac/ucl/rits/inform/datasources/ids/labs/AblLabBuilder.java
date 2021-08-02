@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
+
 /**
  * Build ABL90 Flex Plus LabOrders.
  * @author Stef Piatek
@@ -41,10 +43,9 @@ public final class AblLabBuilder extends LabOrderBuilder {
         setBatteryCodingSystem();
 
         OBR obr = oruR30.getOBR();
-        // skip message if it is "Proficiency Testing"
-        populateSpecimenTypeOrIgnoreMessage(obr);
+        populateSpecimenTypeOrThrowIfTestingMessage(obr);
         populateObrFields(obr);
-        populateOrderInformation(obr);
+        setOrderTemporalInformation(interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime()));
         getMsg().setLabSpecimenNumber(obr.getObr3_FillerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty());
 
         List<ORU_R30_OBSERVATION> observations = oruR30.getOBSERVATIONAll();
@@ -87,7 +88,7 @@ public final class AblLabBuilder extends LabOrderBuilder {
      * @param obr OBR segment
      * @throws Hl7MessageIgnoredException if testing/calibration reading
      */
-    private void populateSpecimenTypeOrIgnoreMessage(OBR obr) throws Hl7MessageIgnoredException {
+    private void populateSpecimenTypeOrThrowIfTestingMessage(OBR obr) throws Hl7MessageIgnoredException {
         String sampleType = obr.getObr15_SpecimenSource().getSps1_SpecimenSourceNameOrCode().getCwe1_Identifier().getValueOrEmpty();
 
         if ("Proficiency Testing".equals(sampleType)) {

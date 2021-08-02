@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static uk.ac.ucl.rits.inform.datasources.ids.HL7Utils.interpretLocalTime;
 
 /**
  * Build Bio-connect LabOrders.
@@ -54,7 +55,7 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
 
         setSourceAndPatientIdentifiers(idsUnid, patientHl7);
         populateObrFields(obr);
-        populateOrderInformation(obr);
+        setOrderTemporalInformation(interpretLocalTime(obr.getObr14_SpecimenReceivedDateTime()));
         getMsg().setOrderControlId(obs.getORC().getOrc1_OrderControl().getValue());
 
         // although the request datetime is in the message, doesn't seem to make sense to set it
