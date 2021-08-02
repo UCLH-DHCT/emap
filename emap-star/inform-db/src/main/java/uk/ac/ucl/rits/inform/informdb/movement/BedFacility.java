@@ -30,12 +30,12 @@ public class BedFacility implements Serializable {
 
     /**
      * Type of facility available at bed.
-     * e.g. Cot, oxygen, ICU...
+     * e.g. Cot, oxygen, Near Nurses Station...
      */
     private String type;
 
 
-    public BedFacility(BedState bedStateId, String type, TemporalFrom temporalFrom) {
+    public BedFacility(BedState bedStateId, String type) {
         this.bedStateId = bedStateId;
         this.type = type;
     }
