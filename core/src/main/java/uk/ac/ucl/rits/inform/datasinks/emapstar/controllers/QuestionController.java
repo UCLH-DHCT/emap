@@ -39,9 +39,6 @@ public class QuestionController {
     private final RequestAnswerRepository requestAnswerRepo;
     private final RequestAnswerAuditRepository requestAnswerAuditRepo;
 
-
-
-
     /**
      * Initialising the repositories needed to store question information.
      * @param questionRepo              Repository with questions
@@ -124,7 +121,6 @@ public class QuestionController {
      * @param storedFrom        Time when star started question processing.
      * @return an answer to a question linked to a specific entity.
      */
-    @Cacheable(value = "answer")
     public RowState<RequestAnswer, RequestAnswerAudit> getOrCreateRequestAnswer(Question question,
                                                                                 String answer, String parentTable,
                                                                                 long parentId, Instant validFrom,

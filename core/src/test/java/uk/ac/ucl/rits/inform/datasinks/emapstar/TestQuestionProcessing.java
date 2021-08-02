@@ -173,7 +173,6 @@ class TestQuestionProcessing extends MessageProcessingBase {
         String newClinicalAnswer = "yes";
 
         processSingleMessage(consultReqMsg);
-        Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
 
         // process later message with updated answer
         consultReqMsg.setRequestedDateTime(messageTime_cRequest.plusSeconds(60));
@@ -185,7 +184,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         assertEquals(1, requestAnswerAuditRepo.count());
 
         ConsultationRequest cRequest = consultationRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
-        question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
+        Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
         RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getConsultId()).orElseThrow();
         assertEquals(newClinicalAnswer, answer.getAnswer());
     }
