@@ -482,9 +482,11 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
      */
     @Test
     void testTwoRoomFacilitiesForSameBed() throws Exception {
-        String newFacility = "Near Nurse Station";
         processSingleMessage(acunCensusBed);
+        String newFacility = "Near Nurse Station";
         acunCensusBed.setBedFacility(newFacility);
+        processSingleMessage(acunCensusBed);
+
 
         BedState bedState = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
         List<BedFacility> bedFacilities = bedFacilityRepo.findAllByBedStateIdOrderByType(bedState);
@@ -493,6 +495,4 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals(ACUN_BED_FACILITY, bedFacilities.get(0).getType());
         assertEquals(newFacility, bedFacilities.get(1).getType());
     }
-
-
 }
