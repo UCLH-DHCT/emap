@@ -29,7 +29,7 @@ import java.time.Instant;
 public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long answerId;
+    private long requestAnswerId;
 
     @Column(columnDefinition = "text")
     private String answer;
