@@ -1,5 +1,5 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
-hl7String: "ACUN^E03ACUN BY12^BY12-C49"
+hl7String: "ACUN^E03ACUN BY12^BY12-Cxyz"
 sourceSystem: "clarity"
 # department
 departmentHl7: "ACUN"
@@ -15,7 +15,7 @@ roomRecordState: "Active"
 roomName: "BY12"
 # bed
 bedCsn: 73803
-bedHl7: "BY12-C49"
+bedHl7: "BY12-Cxyz"
 bedContactDate: "2016-05-09T00:00:00Z"
 bedRecordState: "Inactive"
 isBunkBed: false
