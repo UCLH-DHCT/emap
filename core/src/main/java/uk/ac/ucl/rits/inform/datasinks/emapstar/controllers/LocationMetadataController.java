@@ -6,9 +6,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedFacilityRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.BedStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.DepartmentStateRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
@@ -45,8 +42,7 @@ public class LocationMetadataController {
 
     public LocationMetadataController(
             LocationRepository locationRepo, DepartmentRepository departmentRepo, DepartmentStateRepository departmentStateRepo,
-            RoomRepository roomRepo, RoomStateRepository roomStateRepo,
-            BedRepository bedRepo, BedStateRepository bedStateRepo, BedFacilityRepository bedFacilityRepo, BedController bedController) {
+            RoomRepository roomRepo, RoomStateRepository roomStateRepo, BedController bedController) {
         this.locationRepo = locationRepo;
         this.departmentRepo = departmentRepo;
         this.departmentStateRepo = departmentStateRepo;

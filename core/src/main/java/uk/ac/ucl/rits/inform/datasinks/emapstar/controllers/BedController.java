@@ -108,7 +108,7 @@ public class BedController {
      * @param states       previous states sorted by descending valid from dates
      * @param temporalFrom valid and stored from
      * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
-     * @return
+     * @return Current bed state for message
      */
     private BedState createCurrentStateAndInvalidatePrevious(
             LocationMetadata msg, Bed bed, Collection<BedState> states, TemporalFrom temporalFrom) throws IncompatibleDatabaseStateException {
