@@ -9,6 +9,7 @@ import java.time.Instant;
 
 /**
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
