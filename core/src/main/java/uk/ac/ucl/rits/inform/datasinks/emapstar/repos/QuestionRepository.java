@@ -6,7 +6,7 @@ import uk.ac.ucl.rits.inform.informdb.questions.Question;
 import java.util.Optional;
 
 /**
- * Question repository to record all questions independent to which data type they belong to.
+ * Question repository to record all questions independent of which data type they belong to.
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
