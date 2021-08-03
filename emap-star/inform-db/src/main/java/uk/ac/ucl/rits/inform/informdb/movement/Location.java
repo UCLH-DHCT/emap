@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,6 +25,7 @@ public class Location implements  Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationId;
+    @Column(nullable = false)
     private String locationString;
 
     @ManyToOne
