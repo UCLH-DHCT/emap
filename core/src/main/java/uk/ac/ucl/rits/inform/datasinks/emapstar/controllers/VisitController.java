@@ -73,14 +73,13 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return existing visit or created minimal visit
-     * @throws NullPointerException if no encounter
+     * @throws RequiredDataMissingException if no encounter in message
      */
     private RowState<HospitalVisit, HospitalVisitAudit> getOrCreateHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
             final Instant storedFrom) throws RequiredDataMissingException {
         if (encounter == null || encounter.isEmpty()) {
-            throw new RequiredDataMissingException(String.format("No encounter in message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
-                    mrn, sourceSystem, messageDateTime));
+            throw new RequiredDataMissingException("No encounter in message");
         }
         logger.debug("Getting or create Hospital Visit: mrn {}, encounter {}", mrn, encounter);
         return hospitalVisitRepo.findByEncounter(encounter)
