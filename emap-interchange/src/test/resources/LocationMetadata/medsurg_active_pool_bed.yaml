@@ -5,20 +5,20 @@ sourceSystem: "clarity"
 departmentHl7: "MEDSURG"
 departmentName: "EMH MED SURG"
 departmentSpeciality: null
-departmentRecordStatus: "Deleted and Hidden"
+departmentRecordStatus: "DELETED_AND_HIDDEN"
 departmentUpdateDate: "2021-04-23T09:00:00Z"
 # room
 roomCsn: 274
 roomContactDate: "2010-02-04T00:00:00Z"
 isRoomReady: true
 roomHl7: "MED/SURG"
-roomRecordState: "Deleted and Hidden"
+roomRecordState: "DELETED_AND_HIDDEN"
 roomName: "Med/Surg"
 # bed
 bedCsn: 11
 bedHl7: "Med/Surg"
 bedContactDate: "2011-05-02T00:00:00Z"
-bedRecordState: "Active"
+bedRecordState: "ACTIVE"
 isBunkBed: false
 bedIsInCensus: false
 isPoolBed: true
