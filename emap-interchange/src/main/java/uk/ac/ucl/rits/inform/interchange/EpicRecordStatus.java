@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
-
 /**
  * Record Status values from EPIC.
  */
@@ -45,6 +43,12 @@ public enum EpicRecordStatus {
         this.name = name;
     }
 
+    /**
+     * Find EpicRecordStatus by name.
+     * @param name name in EPIC
+     * @return EpicRecordStatus
+     * @throws IllegalArgumentException if an unknown name is encountered
+     */
     public static EpicRecordStatus findByName(String name) {
         for (EpicRecordStatus recordStatus : values()) {
             if (recordStatus.name.equals(name)) {
