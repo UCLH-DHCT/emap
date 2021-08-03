@@ -38,6 +38,10 @@ public class VisitController {
     private final HospitalVisitRepository hospitalVisitRepo;
     private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
 
+    /**
+     * @param hospitalVisitRepo      repository for HospitalVisit
+     * @param hospitalVisitAuditRepo repository for HospitalVisitAudit
+     */
     public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo) {
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;

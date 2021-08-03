@@ -26,6 +26,11 @@ public class LabProcessor {
     private final VisitController visitController;
     private final LabController labController;
 
+    /**
+     * @param personController controller for person tables
+     * @param visitController controller for visit tables
+     * @param labController controller for lab tables
+     */
     public LabProcessor(PersonController personController, VisitController visitController, LabController labController) {
         this.personController = personController;
         this.visitController = visitController;

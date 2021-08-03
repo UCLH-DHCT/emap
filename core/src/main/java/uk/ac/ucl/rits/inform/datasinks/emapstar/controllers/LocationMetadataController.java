@@ -40,6 +40,14 @@ public class LocationMetadataController {
     private final BedController bedController;
 
 
+    /**
+     * @param locationRepo repository for Location
+     * @param departmentRepo repository for Department
+     * @param departmentStateRepo  repository for DepartmentState
+     * @param roomRepo repository for Room
+     * @param roomStateRepo  repository for RoomState
+     * @param bedController controller for Bed tables
+     */
     public LocationMetadataController(
             LocationRepository locationRepo, DepartmentRepository departmentRepo, DepartmentStateRepository departmentStateRepo,
             RoomRepository roomRepo, RoomStateRepository roomStateRepo, BedController bedController) {
