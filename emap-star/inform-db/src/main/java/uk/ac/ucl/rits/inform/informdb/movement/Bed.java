@@ -31,6 +31,11 @@ public class Bed implements Serializable {
     @Column(nullable = false)
     private String hl7String;
 
+    /**
+     * Create new bed.
+     * @param hl7String hl7 string for bed
+     * @param roomId room id
+     */
     public Bed(String hl7String, Room roomId) {
         this.hl7String = hl7String;
         this.roomId = roomId;

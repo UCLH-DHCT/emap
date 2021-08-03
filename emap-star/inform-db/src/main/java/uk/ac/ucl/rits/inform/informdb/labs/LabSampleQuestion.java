@@ -48,6 +48,13 @@ public class LabSampleQuestion extends TemporalCore<LabSampleQuestion, LabSample
 
     public LabSampleQuestion() {}
 
+    /**
+     * Create valid LabSampleQuestion.
+     * @param labSampleId parent LabSample
+     * @param questionId  matching Question
+     * @param validFrom   time that the message was valid from
+     * @param storedFrom  time that emap core stared processing the message
+     */
     public LabSampleQuestion(LabSample labSampleId, Question questionId, Instant validFrom, Instant storedFrom) {
         this.labSampleId = labSampleId;
         this.questionId = questionId;
@@ -55,7 +62,7 @@ public class LabSampleQuestion extends TemporalCore<LabSampleQuestion, LabSample
         setValidFrom(validFrom);
     }
 
-    public LabSampleQuestion(LabSampleQuestion other) {
+    private LabSampleQuestion(LabSampleQuestion other) {
         super(other);
         this.labSampleQuestionId = other.labSampleQuestionId;
         this.labSampleId = other.labSampleId;

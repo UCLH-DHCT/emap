@@ -42,8 +42,15 @@ public class ConsultationRequestQuestion extends
     @Column(columnDefinition = "text")
     private String answer;
 
-    public ConsultationRequestQuestion() {};
+    public ConsultationRequestQuestion() {}
 
+    /**
+     * Create consultation request question.
+     * @param consultationRequestId parent consultation request
+     * @param questionId            question it links to
+     * @param validFrom             time that the message was valid from
+     * @param storedFrom            time that emap core stared procesing the message
+     */
     public ConsultationRequestQuestion(ConsultationRequest consultationRequestId, Question questionId, Instant validFrom, Instant storedFrom) {
         this.consultationRequestId = consultationRequestId;
         this.questionId = questionId;
@@ -51,7 +58,10 @@ public class ConsultationRequestQuestion extends
         setValidFrom(validFrom);
     }
 
-    public ConsultationRequestQuestion(ConsultationRequestQuestion other) {
+    /**
+     * @param other consultation request question
+     */
+    private ConsultationRequestQuestion(ConsultationRequestQuestion other) {
         super(other);
         this.consultationRequestId = other.consultationRequestId;
         this.questionId = other.questionId;

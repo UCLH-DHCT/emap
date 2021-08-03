@@ -34,6 +34,11 @@ public class BedFacility implements Serializable {
     private String type;
 
 
+    /**
+     * Create Bed Facility.
+     * @param bedStateId parent bed state
+     * @param type       type of facility
+     */
     public BedFacility(BedState bedStateId, String type) {
         this.bedStateId = bedStateId;
         this.type = type;

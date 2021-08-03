@@ -45,6 +45,13 @@ public class DepartmentState implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
+    /**
+     * Create valid department state.
+     * @param department parent department
+     * @param status     status of department
+     * @param validFrom  time that the message was valid from
+     * @param storedFrom time that emap core stared processing the message
+     */
     public DepartmentState(Department department, String status, Instant validFrom, Instant storedFrom) {
         departmentId = department;
         this.status = status;

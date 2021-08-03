@@ -53,6 +53,16 @@ public class BedState implements Serializable {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant storedUntil;
 
+    /**
+     * Create Bed State.
+     * @param bedId        parent bed id
+     * @param csn          CSN for contact
+     * @param isInCensus   is bed in census
+     * @param isBunk       is it a bunk bed
+     * @param status       status
+     * @param isPool       is it a pool bed
+     * @param temporalFrom temporal from information
+     */
     public BedState(Bed bedId, Long csn, Boolean isInCensus, Boolean isBunk, String status, Boolean isPool, TemporalFrom temporalFrom) {
         this.bedId = bedId;
         this.csn = csn;

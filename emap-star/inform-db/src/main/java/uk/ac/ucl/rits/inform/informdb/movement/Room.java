@@ -32,6 +32,12 @@ public class Room implements Serializable {
     private String hl7String;
     private String name;
 
+    /**
+     * Create new Room.
+     * @param hl7String    hl7 string for room
+     * @param name         name for room
+     * @param departmentId parent Department
+     */
     public Room(String hl7String, String name, Department departmentId) {
         this.hl7String = hl7String;
         this.name = name;
