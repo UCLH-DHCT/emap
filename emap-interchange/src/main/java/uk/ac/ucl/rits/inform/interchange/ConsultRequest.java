@@ -62,6 +62,13 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
      */
     private boolean closedDueToDischarge = false;
 
+    /**
+     * Create consult request.
+     * @param sourceId     ID from source system
+     * @param sourceSystem source system
+     * @param mrn          MRN
+     * @param visitNumber  visit number
+     */
     public ConsultRequest(String sourceId, String sourceSystem, String mrn, String visitNumber) {
         setSourceMessageId(sourceId);
         setSourceSystem(sourceSystem);

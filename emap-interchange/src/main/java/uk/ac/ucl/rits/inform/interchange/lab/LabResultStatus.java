@@ -48,13 +48,19 @@ public enum LabResultStatus {
         this.labCode = labCode;
     }
 
+    /**
+     * Find LabResultStatus by hl7 code.
+     * @param labCode lab code to search from
+     * @return LabResultStatus matching hl7 code
+     * @throws IllegalArgumentException if Lab result status is now known
+     */
     public static LabResultStatus findByHl7Code(String labCode) {
         for (LabResultStatus labResultStatus : values()) {
             if (labResultStatus.labCode.equals(labCode)) {
                 return labResultStatus;
             }
         }
-        throw new IllegalArgumentException(String.format("Patient Class '%s' is not a known type", labCode));
+        throw new IllegalArgumentException(String.format("Lab result status '%s' is not a known type", labCode));
     }
 
 }
