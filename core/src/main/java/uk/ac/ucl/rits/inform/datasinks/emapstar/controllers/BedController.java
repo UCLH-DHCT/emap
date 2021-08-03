@@ -118,7 +118,9 @@ public class BedController {
     private BedState createCurrentStateAndInvalidatePrevious(
             LocationMetadata msg, Bed bed, Collection<BedState> states, TemporalFrom temporalFrom) throws IncompatibleDatabaseStateException {
         BedState currentState = new BedState(
-                bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(), msg.getBedRecordState(), msg.getIsPoolBed(), temporalFrom);
+                bed, msg.getBedCsn(), msg.getBedIsInCensus(), msg.getIsBunkBed(),
+                msg.getBedRecordState().toString(), msg.getIsPoolBed(), temporalFrom
+        );
 
         if (msg.getIsPoolBed()) {
             incrementPoolBedAndSave(currentState);

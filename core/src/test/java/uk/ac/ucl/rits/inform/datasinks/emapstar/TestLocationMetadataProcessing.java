@@ -23,6 +23,7 @@ import uk.ac.ucl.rits.inform.informdb.movement.DepartmentState;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.Room;
 import uk.ac.ucl.rits.inform.informdb.movement.RoomState;
+import uk.ac.ucl.rits.inform.interchange.EpicRecordStatus;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 
 import java.io.IOException;
@@ -61,7 +62,6 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final String ACUN_ROOM_HL7_STRING = "E03ACUN BY12";
     private static final String ACUN_BED_HL7_STRING = "BY12-C49";
     private static final String ACUN_LOCATION_HL7_STRING = String.join("^", ACUN_DEPT_HL7_STRING, ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
-    private static final String ACTIVE = "Active";
     private static final Instant CONTACT_TIME = Instant.parse("2016-02-09T00:00:00Z");
     private static final Instant LATER_TIME = CONTACT_TIME.plusSeconds(20);
     private static final Instant EARLIER_TIME = CONTACT_TIME.minusSeconds(20);
@@ -134,7 +134,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals("EGA E03 ACU NURSERY", dep.getName());
         assertEquals("Maternity - Well Baby", dep.getSpeciality());
 
-        DepartmentState depState = departmentStateRepo.findByDepartmentIdAndStatus(dep, ACTIVE).orElseThrow();
+        DepartmentState depState = departmentStateRepo.findByDepartmentIdAndStatus(dep, EpicRecordStatus.ACTIVE.toString()).orElseThrow();
         assertNotNull(depState.getStoredFrom());
         assertNull(depState.getValidUntil());
         assertNotNull(depState.getValidFrom());
@@ -167,7 +167,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testDepartmentStateAdded() throws Exception {
-        String newStatus = "Inactive";
+        EpicRecordStatus newStatus = EpicRecordStatus.INACTIVE;
         acunCensusBed.setDepartmentRecordStatus(newStatus);
         acunCensusBed.setDepartmentUpdateDate(LATER_TIME);
         processSingleMessage(acunCensusBed);
@@ -175,12 +175,14 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         Location location = getLocation(ACUN_LOCATION_HL7_STRING);
 
         // previous state is invalidated
-        DepartmentState previousState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), ACTIVE).orElseThrow();
+        DepartmentState previousState = departmentStateRepo
+                .findByDepartmentIdAndStatus(location.getDepartmentId(), EpicRecordStatus.ACTIVE.toString())
+                .orElseThrow();
         assertEquals(LATER_TIME, previousState.getValidUntil());
         assertNotNull(previousState.getStoredUntil());
 
         // current state is active
-        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), newStatus).orElseThrow();
+        DepartmentState currentState = departmentStateRepo.findByDepartmentIdAndStatus(location.getDepartmentId(), newStatus.toString()).orElseThrow();
         assertNotNull(currentState.getStoredFrom());
         assertNull(currentState.getStoredUntil());
         assertEquals(LATER_TIME, currentState.getValidFrom());
@@ -230,7 +232,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals(location.getDepartmentId(), room.getDepartmentId());
 
         RoomState roomState = roomStateRepo.findByCsn(1158L).orElseThrow();
-        assertEquals(ACTIVE, roomState.getStatus());
+        assertEquals(EpicRecordStatus.ACTIVE.toString(), roomState.getStatus());
         assertTrue(roomState.getIsReady());
         assertEquals(CONTACT_TIME, roomState.getValidFrom());
         assertNull(roomState.getValidUntil());
@@ -339,7 +341,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertEquals(location.getRoomId(), bed.getRoomId());
 
         BedState state = bedStateRepo.findByCsn(ACUN_BED_CSN).orElseThrow();
-        assertEquals(ACTIVE, state.getStatus());
+        assertEquals(EpicRecordStatus.ACTIVE.toString(), state.getStatus());
         assertFalse(state.getIsBunk());
         assertTrue(state.getIsInCensus());
         assertNull(state.getPoolBedCount());
