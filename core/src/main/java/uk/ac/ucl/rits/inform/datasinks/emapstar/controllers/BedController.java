@@ -32,6 +32,11 @@ public class BedController {
     private final BedFacilityRepository bedFacilityRepo;
 
 
+    /**
+     * @param bedRepo         bed repository
+     * @param bedStateRepo    bed state repository
+     * @param bedFacilityRepo bed facility repository
+     */
     public BedController(BedRepository bedRepo, BedStateRepository bedStateRepo, BedFacilityRepository bedFacilityRepo) {
         this.bedRepo = bedRepo;
         this.bedStateRepo = bedStateRepo;
@@ -107,8 +112,8 @@ public class BedController {
      * @param bed          bed entity
      * @param states       previous states sorted by descending valid from dates
      * @param temporalFrom valid and stored from
-     * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
      * @return Current bed state for message
+     * @throws IncompatibleDatabaseStateException if a novel, non-pool CSN is found with a contact date earlier than the latest state
      */
     private BedState createCurrentStateAndInvalidatePrevious(
             LocationMetadata msg, Bed bed, Collection<BedState> states, TemporalFrom temporalFrom) throws IncompatibleDatabaseStateException {
