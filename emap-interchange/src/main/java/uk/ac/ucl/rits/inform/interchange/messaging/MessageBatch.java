@@ -33,6 +33,8 @@ public class MessageBatch<T extends EmapOperationMessage> {
      *                 CorrelationIds should be unique within the batch and not contain a colon character.
      * @param callback To be run on receipt of a successful acknowledgement of publishing from rabbitmq.
      *                 Most likely to update the state of progress.
+     * @throws NullPointerException     callback or batch is null
+     * @throws IllegalArgumentException empty batch or batchId contains a colon character
      */
     public MessageBatch(String batchId, List<ImmutablePair<T, String>> batch, Runnable callback) {
         if (callback == null) {
@@ -42,7 +44,7 @@ public class MessageBatch<T extends EmapOperationMessage> {
             throw new NullPointerException("Batch is null");
         }
         if (batch.isEmpty()) {
-            throw new IllegalArgumentException("Batch is empty ");
+            throw new IllegalArgumentException("Batch is empty");
         }
         if (batchId.contains(":")) {
             throw new IllegalArgumentException("batchId contains a colon character");
