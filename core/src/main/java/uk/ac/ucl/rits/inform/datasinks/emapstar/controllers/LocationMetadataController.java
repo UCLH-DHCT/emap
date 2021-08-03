@@ -126,14 +126,15 @@ public class LocationMetadataController {
      * @param storedFrom time that emap core started processing the message
      */
     private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
-        DepartmentState currentState = new DepartmentState(department, msg.getDepartmentRecordStatus(), msg.getDepartmentUpdateDate(), storedFrom);
+        DepartmentState currentState = new DepartmentState(
+                department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentUpdateDate(), storedFrom);
         Optional<DepartmentState> possiblePreviousState = departmentStateRepo
                 .findFirstByDepartmentIdOrderByStoredFromDesc(department);
 
         // if a state already exists and is different from current then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
             DepartmentState previousState = possiblePreviousState.get();
-            if (!previousState.getStatus().equals(msg.getDepartmentRecordStatus())) {
+            if (!previousState.getStatus().equals(msg.getDepartmentRecordStatus().toString())) {
                 previousState.setStoredUntil(currentState.getStoredFrom());
                 previousState.setValidUntil(currentState.getValidFrom());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
@@ -188,7 +189,7 @@ public class LocationMetadataController {
     private void createCurrentStateAndInvalidatePrevious(
             LocationMetadata msg, Instant storedFrom, Room room, Collection<RoomState> states) throws IncompatibleDatabaseStateException {
         RoomState currentState = new RoomState(
-                room, msg.getRoomCsn(), msg.getRoomRecordState(), msg.getIsRoomReady(), msg.getRoomContactDate(), storedFrom);
+                room, msg.getRoomCsn(), msg.getRoomRecordState().toString(), msg.getIsRoomReady(), msg.getRoomContactDate(), storedFrom);
 
 
         // if the room doesn't have any existing states we don't need to invalidate any previous states
