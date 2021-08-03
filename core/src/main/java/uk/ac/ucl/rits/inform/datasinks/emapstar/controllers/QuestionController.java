@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
@@ -61,7 +62,6 @@ public class QuestionController {
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
             Question question = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
-            questionRepo.save(question);
 
             RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(question,
                     questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
@@ -81,7 +81,7 @@ public class QuestionController {
      * @param storedFrom        Time when star started question processing.
      * @return a specific question as stored in the question repository
      */
-    // @Cacheable(value = "question")
+    @Cacheable(value = "question")
     public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
         return questionRepo
                 .findByQuestion(question)
@@ -93,12 +93,13 @@ public class QuestionController {
      * @param questionString      Content of the question as opposed to table row in Star.
      * @param validFrom           When this question is valid from.
      * @param storedFrom          When EMAP has started processing this entity.
-     * @return a generated question wrapped in RowState
+     * @return a generated Question
      */
     public Question createQuestion(String questionString, Instant validFrom,
                                                                            Instant storedFrom) {
         Question question = new Question(questionString, validFrom, storedFrom);
         logger.debug("Created new {}", question);
+        questionRepo.save(question);
         return question;
     }
 
@@ -131,7 +132,7 @@ public class QuestionController {
      * @param parentId      Entity that triggered creation of question and answer.
      * @param validFrom     When information for entity is valid from.
      * @param storedFrom    When EMAP started processing this entity type.
-     * @return a RequestAnswer wrapped in RowState
+     * @return a RequestAnswer wrapped in a RowState
      */
     public RowState<RequestAnswer, RequestAnswerAudit> createRequestAnswer(Question question, String answer,
                                                                            String parentTable, long parentId,
