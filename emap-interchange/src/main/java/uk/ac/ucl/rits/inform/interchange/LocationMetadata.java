@@ -22,10 +22,9 @@ public class LocationMetadata extends EmapOperationMessage {
     private String departmentSpeciality;
     /**
      * The department record status.
-     * Possible values in ZC_PBA_REC_STAT.
-     * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_DEP
+     * See {@link EpicRecordStatus} for values
      */
-    private String departmentRecordStatus;
+    private EpicRecordStatus departmentRecordStatus;
     /**
      * Most likely null but track in case we do have it.
      */
@@ -39,10 +38,9 @@ public class LocationMetadata extends EmapOperationMessage {
     private Instant roomContactDate;
     /**
      * Room record state from CLARITY_ROM.RECORD_STATE(_C).
-     * Possible values in ZC_PBA_REC_STAT.
-     * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_ROM
+     * See {@link EpicRecordStatus} for values
      */
-    private String roomRecordState;
+    private EpicRecordStatus roomRecordState;
     private String roomHl7;
     private String roomName;
 
@@ -54,10 +52,9 @@ public class LocationMetadata extends EmapOperationMessage {
     private Instant bedContactDate;
     /**
      * The bed record state from CLARITY_BED.RECORD_STATE.
-     * Possible values in ZC_PBA_REC_STAT.
-     * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_BED
+     * See {@link EpicRecordStatus} for values
      */
-    private String bedRecordState;
+    private EpicRecordStatus bedRecordState;
     /**
      * Pool beds are transient beds, usually waiting areas.
      */
