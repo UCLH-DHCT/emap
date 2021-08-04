@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.datasources.ids.HL7Utils;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -137,5 +139,15 @@ class TestNotesParser {
         List<NTE> notes = getNotesFromFirstOrmO01("empty_first_answer");
         NotesParser parser = new NotesParser(notes, WINPATH_QUESTION_SEPARATOR, WINPATH_QUESTION_PATTERN);
         assertEquals("*** none", parser.getQuestions().get("Date of last transfusion"));
+    }
+
+    /**
+     * If a question is blank, then an exception should be thrown
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testEmptyQuestionThrows() throws Exception {
+        List<NTE> notes = getNotesFromFirstOrmO01("empty_question");
+        assertThrows(Hl7InconsistencyException.class, () -> new NotesParser(notes, WINPATH_QUESTION_SEPARATOR, WINPATH_QUESTION_PATTERN));
     }
 }

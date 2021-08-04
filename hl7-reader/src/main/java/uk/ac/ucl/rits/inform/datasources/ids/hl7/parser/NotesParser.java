@@ -83,10 +83,10 @@ public class NotesParser {
 
     private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) throws Hl7InconsistencyException {
         String question = previousQuestion;
-        if (!questionPattern.matcher(joinedComments).find()) {
+        String[] parts = questionPattern.split(joinedComments, -1);
+        if (parts.length == 1) {
             concatenateAnswerAndSaveToQuestions(question, joinedComments);
         } else {
-            String[] parts = questionPattern.split(joinedComments);
             question = parts[0];
             // Separator can be in the answer so join it back in
             String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
