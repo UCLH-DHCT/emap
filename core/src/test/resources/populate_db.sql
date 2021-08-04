@@ -47,8 +47,8 @@ INSERT INTO public.department (department_id, hl7string, name, speciality) VALUE
 
 INSERT INTO public.department_state
 (department_state_id, status, stored_from, stored_until, valid_from, valid_until, department_id) VALUES
-(12001, 'Active', '2012-09-17 14:00:00', null, null, null, 11001),
-(12202, 'Deleted and Hidden', '2012-09-17 14:00:00', null, null, null, 11002);
+(12001, 'Active', '2012-09-17 14:00:00', null, '2018-02-08 00:00:00', null, 11001),
+(12202, 'Deleted and Hidden', '2012-09-17 14:00:00', null, '2021-04-23 09:00:00', null, 11002);
 
 INSERT INTO public.room(room_id, hl7string, name, department_id) VALUES
 (13001, 'E03ACUN BY12', 'BY12', 11001),
