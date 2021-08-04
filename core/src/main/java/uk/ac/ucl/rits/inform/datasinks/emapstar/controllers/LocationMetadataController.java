@@ -128,13 +128,13 @@ public class LocationMetadataController {
     private void createCurrentStateAndUpdatePreviousIfRequired(LocationMetadata msg, Department department, Instant storedFrom) {
         DepartmentState currentState = new DepartmentState(
                 department, msg.getDepartmentRecordStatus().toString(), msg.getDepartmentUpdateDate(), storedFrom);
-        Optional<DepartmentState> possiblePreviousState = departmentStateRepo
-                .findFirstByDepartmentIdOrderByStoredFromDesc(department);
+
+        Optional<DepartmentState> possiblePreviousState = departmentStateRepo.findFirstByDepartmentIdOrderByStoredFromDesc(department);
 
         // if a state already exists and is different from current then we should make a new valid state from the current message
         if (possiblePreviousState.isPresent()) {
             DepartmentState previousState = possiblePreviousState.get();
-            if (!previousState.getStatus().equals(msg.getDepartmentRecordStatus().toString())) {
+            if (stateIsDifferentOrMessageIsLater(currentState, previousState)) {
                 previousState.setStoredUntil(currentState.getStoredFrom());
                 previousState.setValidUntil(currentState.getValidFrom());
                 departmentStateRepo.saveAll(List.of(previousState, currentState));
@@ -143,6 +143,10 @@ public class LocationMetadataController {
             // if no state state exists already then just save the state
             departmentStateRepo.save(currentState);
         }
+    }
+
+    private boolean stateIsDifferentOrMessageIsLater(DepartmentState currentState, DepartmentState previousState) {
+        return !previousState.getStatus().equals(currentState.getStatus()) || previousState.getValidFrom().isBefore(currentState.getValidFrom());
     }
 
     /**
