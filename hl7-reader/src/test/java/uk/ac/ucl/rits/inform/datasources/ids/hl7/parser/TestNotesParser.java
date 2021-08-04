@@ -21,8 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TestNotesParser {
 
     private static final String PATH_TEMPLATE = "NotesParser/%s.txt";
-    private static final String QUESTION_SEPARATOR = "->";
-    private static final Pattern QUESTION_PATTERN = Pattern.compile(QUESTION_SEPARATOR);
+    private static final String DEFAULT_QUESTION_SEPARATOR = "->";
+    private static final Pattern DEFAULT_QUESTION_PATTERN = Pattern.compile(DEFAULT_QUESTION_SEPARATOR);
+
+    private static final String WINPATH_QUESTION_SEPARATOR = ":";
+    private static final Pattern WINPATH_QUESTION_PATTERN = Pattern.compile("[:\\?]-");
 
 
     List<NTE> getNotesFromORMO01(String resourceFileName) throws HL7Exception, IOException {
@@ -37,6 +40,12 @@ class TestNotesParser {
         return hl7Msg.getPATIENT_RESULT().getORDER_OBSERVATION().getNTEAll();
     }
 
+    List<NTE> getNotesFromFirstOrmO01(String resourceFileName) throws HL7Exception, IOException {
+        String hl7 = HL7Utils.readHl7FromResource(String.format(PATH_TEMPLATE, resourceFileName));
+        ORM_O01 hl7Msg = (ORM_O01) HL7Utils.parseHl7String(hl7);
+        return hl7Msg.getORDER().getORDER_DETAIL().getNTEAll();
+    }
+
     /**
      * Comment spanning multiple NTEs and questions afterwards should be parsed into comments and questions.
      * @throws Exception shouldn't happen
@@ -44,7 +53,7 @@ class TestNotesParser {
     @Test
     void testCommentAndQuestions() throws Exception {
         List<NTE> notes = getNotesFromORMO01("comment_and_questions");
-        NotesParser parser = new NotesParser(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
+        NotesParser parser = new NotesParser(notes, DEFAULT_QUESTION_SEPARATOR, DEFAULT_QUESTION_PATTERN);
 
         assertEquals(3, parser.getQuestions().size());
         assertEquals("Admitted with delirium vs cognitive decline\nLives alone", parser.getComments());
@@ -59,7 +68,7 @@ class TestNotesParser {
     @Test
     void testMultiLineAnswer() throws Exception {
         List<NTE> notes = getNotesFromORMO01("multiline_answer");
-        NotesParser parser = new NotesParser(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
+        NotesParser parser = new NotesParser(notes, DEFAULT_QUESTION_SEPARATOR, DEFAULT_QUESTION_PATTERN);
 
         Map<String, String> questions = parser.getQuestions();
 
@@ -78,7 +87,7 @@ class TestNotesParser {
     @Test
     void testRepeatQuestion() throws Exception {
         List<NTE> notes = getNotesFromORMO01("repeat_question");
-        NotesParser parser = new NotesParser(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
+        NotesParser parser = new NotesParser(notes, DEFAULT_QUESTION_SEPARATOR, DEFAULT_QUESTION_PATTERN);
 
         Map<String, String> questions = parser.getQuestions();
 
@@ -117,5 +126,16 @@ class TestNotesParser {
         List<NTE> notes = getNotesFromFirstOruR01Result("oru_r01_sub_comments");
         NotesParser parser = new NotesParser(notes);
         assertEquals("Clinical Note1\nover 2 lines\nClinical Note2", parser.getComments());
+    }
+
+    /**
+     * If a question is over two lines with no answer, should join the two results without the newline
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testFirstQuestionHasEmptyAnswer() throws Exception {
+        List<NTE> notes = getNotesFromFirstOrmO01("empty_first_answer");
+        NotesParser parser = new NotesParser(notes, WINPATH_QUESTION_SEPARATOR, WINPATH_QUESTION_PATTERN);
+        assertEquals("*** none", parser.getQuestions().get("Date of last transfusion"));
     }
 }
