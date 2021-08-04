@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
 import java.time.Instant;
 
 
@@ -20,7 +20,7 @@ import java.time.Instant;
 @Table
 @Data
 @NoArgsConstructor
-public class RoomState implements Serializable {
+public class RoomState extends AuditCore<RoomState> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomStateId;
@@ -36,18 +36,6 @@ public class RoomState implements Serializable {
 
     private Boolean isReady;
 
-    @Column(columnDefinition = "timestamp with time zone", nullable = false)
-    private Instant validFrom;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant validUntil;
-
-    @Column(columnDefinition = "timestamp with time zone", nullable = false)
-    private Instant storedFrom;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant storedUntil;
-
     /**
      * Constructor for an active room state.
      * @param roomId     room entity
@@ -62,7 +50,34 @@ public class RoomState implements Serializable {
         this.csn = csn;
         this.status = status;
         this.isReady = isReady;
-        this.validFrom = validFrom;
-        this.storedFrom = storedFrom;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
+    }
+
+    private RoomState(RoomState other) {
+        super(other);
+        setValidFrom(other.getValidFrom());
+        setStoredFrom(other.getValidUntil());
+        roomId = other.roomId;
+        status = other.status;
+        isReady = other.isReady;
+    }
+
+    @Override
+    public RoomState copy() {
+        return new RoomState(this);
+    }
+
+    /**
+     * @param validUntil  the event time that invalidated the current state
+     * @param storedUntil the time that star started processing the message that invalidated the current state
+     * @return A new audit entity with the current state of the object.
+     */
+    @Override
+    public RoomState createAuditEntity(Instant validUntil, Instant storedUntil) {
+        RoomState audit = copy();
+        audit.setValidUntil(validUntil);
+        audit.setStoredUntil(storedUntil);
+        return audit;
     }
 }

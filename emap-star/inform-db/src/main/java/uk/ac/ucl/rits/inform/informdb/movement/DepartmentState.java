@@ -3,8 +3,8 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
 import java.time.Instant;
 
 
@@ -22,7 +21,7 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @Table
 @NoArgsConstructor
-public class DepartmentState implements Serializable {
+public class DepartmentState extends AuditCore<DepartmentState> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentStateId;
@@ -32,18 +31,6 @@ public class DepartmentState implements Serializable {
     private Department departmentId;
 
     private String status;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant validFrom;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant validUntil;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant storedFrom;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant storedUntil;
 
     /**
      * Create valid department state.
@@ -55,7 +42,33 @@ public class DepartmentState implements Serializable {
     public DepartmentState(Department department, String status, Instant validFrom, Instant storedFrom) {
         departmentId = department;
         this.status = status;
-        this.validFrom = validFrom;
-        this.storedFrom = storedFrom;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
+    }
+
+    private DepartmentState(DepartmentState other) {
+        super(other);
+        setValidFrom(other.getValidFrom());
+        setStoredFrom(other.getValidUntil());
+        departmentId = other.departmentId;
+        status = other.status;
+    }
+
+    @Override
+    public DepartmentState copy() {
+        return new DepartmentState(this);
+    }
+
+    /**
+     * @param validUntil  the event time that invalidated the current state
+     * @param storedUntil the time that star started processing the message that invalidated the current state
+     * @return A new audit entity with the current state of the object.
+     */
+    @Override
+    public DepartmentState createAuditEntity(Instant validUntil, Instant storedUntil) {
+        DepartmentState audit = copy();
+        audit.setValidUntil(validUntil);
+        audit.setStoredUntil(storedUntil);
+        return audit;
     }
 }

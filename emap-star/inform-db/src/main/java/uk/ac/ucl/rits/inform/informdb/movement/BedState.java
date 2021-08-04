@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.ac.ucl.rits.inform.informdb.AuditCore;
 import uk.ac.ucl.rits.inform.informdb.TemporalFrom;
 
 import javax.persistence.Column;
@@ -12,7 +13,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
 import java.time.Instant;
 
 
@@ -21,7 +21,7 @@ import java.time.Instant;
 @Table
 @Data
 @NoArgsConstructor
-public class BedState implements Serializable {
+public class BedState extends AuditCore<BedState> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedStateId;
@@ -40,18 +40,6 @@ public class BedState implements Serializable {
     private String status;
 
     private Long poolBedCount;
-
-    @Column(columnDefinition = "timestamp with time zone", nullable = false)
-    private Instant validFrom;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant validUntil;
-
-    @Column(columnDefinition = "timestamp with time zone", nullable = false)
-    private Instant storedFrom;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private Instant storedUntil;
 
     /**
      * Create Bed State.
@@ -73,11 +61,41 @@ public class BedState implements Serializable {
             // will increment pool bed upon updating so initialise as 0 only if it's a pool bed
             poolBedCount = 0L;
         }
-        this.validFrom = temporalFrom.getValid();
-        this.storedFrom = temporalFrom.getStored();
+        setValidFrom(temporalFrom.getValid());
+        setStoredFrom(temporalFrom.getStored());
     }
 
     public void incrementPoolBedCount() {
         poolBedCount += 1;
+    }
+
+    private BedState(BedState other) {
+        super(other);
+        setValidFrom(other.getValidFrom());
+        setStoredFrom(other.getValidUntil());
+        bedId = other.bedId;
+        csn = other.csn;
+        isInCensus = other.isInCensus;
+        isBunk = other.isBunk;
+        poolBedCount = other.poolBedCount;
+
+    }
+
+    @Override
+    public BedState copy() {
+        return new BedState(this);
+    }
+
+    /**
+     * @param validUntil  the event time that invalidated the current state
+     * @param storedUntil the time that star started processing the message that invalidated the current state
+     * @return A new audit entity with the current state of the object.
+     */
+    @Override
+    public BedState createAuditEntity(Instant validUntil, Instant storedUntil) {
+        BedState audit = copy();
+        audit.setValidUntil(validUntil);
+        audit.setStoredUntil(storedUntil);
+        return audit;
     }
 }
