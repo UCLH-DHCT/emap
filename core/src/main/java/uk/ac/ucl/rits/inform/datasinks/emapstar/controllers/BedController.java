@@ -65,7 +65,9 @@ public class BedController {
 
         BedState bedState = processBedState(bed, msg, storedFrom);
 
-        createBedFacilityIfNotExists(bedState, msg.getBedFacility());
+        if (msg.getBedFacility() != null) {
+            createBedFacilityIfNotExists(bedState, msg.getBedFacility());
+        }
 
         return bed;
     }
