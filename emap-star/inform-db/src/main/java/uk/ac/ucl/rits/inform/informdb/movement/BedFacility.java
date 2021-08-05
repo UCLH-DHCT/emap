@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.informdb.movement;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -31,6 +32,7 @@ public class BedFacility implements Serializable {
      * Type of facility available at bed.
      * e.g. Cot, oxygen, Near Nurses Station...
      */
+    @Column(nullable = false)
     private String type;
 
 
