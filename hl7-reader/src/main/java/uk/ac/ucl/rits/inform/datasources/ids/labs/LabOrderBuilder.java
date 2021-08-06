@@ -245,8 +245,9 @@ abstract class LabOrderBuilder {
      * @param notes             notes for an order.
      * @param questionSeparator to join the answer if it contains the question pattern
      * @param questionPattern   pattern between the question and answer
+     * @throws Hl7InconsistencyException if answer encountered without a question
      */
-    void setQuestions(Collection<NTE> notes, final String questionSeparator, final Pattern questionPattern) {
+    void setQuestions(Collection<NTE> notes, final String questionSeparator, final Pattern questionPattern) throws Hl7InconsistencyException {
         NotesParser parser = new NotesParser(notes, questionSeparator, questionPattern);
         msg.setQuestions(parser.getQuestions());
     }

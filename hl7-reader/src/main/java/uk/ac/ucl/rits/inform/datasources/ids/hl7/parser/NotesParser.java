@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids.hl7.parser;
 import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.segment.NTE;
 import lombok.Getter;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,8 +37,9 @@ public class NotesParser {
      * @param notes             notes to be parsed
      * @param questionSeparator question separator as string
      * @param questionPattern   question separator regex
+     * @throws Hl7InconsistencyException if answer with no question encountered
      */
-    public NotesParser(Collection<NTE> notes, String questionSeparator, Pattern questionPattern) {
+    public NotesParser(Collection<NTE> notes, String questionSeparator, Pattern questionPattern) throws Hl7InconsistencyException {
         this.notes = List.copyOf(notes);
         this.questionSeparator = questionSeparator;
         this.questionPattern = questionPattern;
@@ -60,7 +62,7 @@ public class NotesParser {
     }
 
 
-    private void buildQuestionsAndComments() {
+    private void buildQuestionsAndComments() throws Hl7InconsistencyException {
         String previousQuestion = null;
         StringJoiner commentJoiner = new StringJoiner("\n");
 
@@ -79,25 +81,29 @@ public class NotesParser {
         }
     }
 
-    private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) {
+    private String addQuestionAndAnswerReturningQuestion(String joinedComments, String previousQuestion) throws Hl7InconsistencyException {
         String question = previousQuestion;
-        String[] parts = questionPattern.split(joinedComments);
+        String[] parts = questionPattern.split(joinedComments, -1);
         if (parts.length == 1) {
             concatenateAnswerAndSaveToQuestions(question, joinedComments);
         } else {
             question = parts[0];
-            // allow for separator to be in the answer
+            // Separator can be in the answer so join it back in
             String answer = String.join(questionSeparator, Arrays.copyOfRange(parts, 1, (parts.length)));
             concatenateAnswerAndSaveToQuestions(question, answer);
+        }
+        if (question == null || question.isEmpty()) {
+            throw new Hl7InconsistencyException("Null question encountered");
         }
         return question;
     }
 
     private void concatenateAnswerAndSaveToQuestions(String question, String answer) {
+        String outputAnswer = answer;
         if (questions.containsKey(question)) {
-            answer = String.format("%s\n%s", questions.get(question), answer);
+            outputAnswer = String.format("%s\n%s", questions.get(question), answer).trim();
         }
-        questions.put(question, answer);
+        questions.put(question, outputAnswer);
     }
 
     private void addSubCommentsFromNote(StringJoiner commentJoiner, NTE note) {

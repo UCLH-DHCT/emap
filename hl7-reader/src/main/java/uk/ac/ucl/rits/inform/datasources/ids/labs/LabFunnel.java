@@ -29,7 +29,7 @@ public final class LabFunnel {
      * @return list of LabOrder orders, one for each order
      * @throws HL7Exception               if HAPI does
      * @throws Hl7InconsistencyException  if something about the HL7 message doesn't make sense
-     * @throws Hl7MessageIgnoredException if coding sysstem not implemented
+     * @throws Hl7MessageIgnoredException if coding system not implemented
      */
     public static List<LabOrderMsg> buildMessages(String idsUnid, ORM_O01 ormO01, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {

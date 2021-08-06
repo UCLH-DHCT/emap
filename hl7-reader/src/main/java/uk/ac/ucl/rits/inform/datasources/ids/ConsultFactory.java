@@ -57,7 +57,7 @@ public class ConsultFactory {
         consult.setConsultationType(obr.getObr44_ProcedureCode().encode());
     }
 
-    private void addQuestionsAndComments(ConsultRequest consult, Collection<NTE> notes) {
+    private void addQuestionsAndComments(ConsultRequest consult, Collection<NTE> notes) throws Hl7InconsistencyException {
         NotesParser parser = new NotesParser(notes, QUESTION_SEPARATOR, QUESTION_PATTERN);
         consult.setQuestions(parser.getQuestions());
         consult.setNotes(InterchangeValue.buildFromHl7(parser.getComments()));
