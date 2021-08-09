@@ -476,7 +476,7 @@ public class IdsOperations implements AutoCloseable {
                                        List<EmapOperationMessage> messages) throws HL7Exception {
         try {
             messages.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
-        } catch (Hl7MessageNotImplementedException | HL7Exception e) {
+        } catch (Hl7MessageNotImplementedException | HL7Exception | Hl7MessageIgnoredException e) {
             if (fromAdtStream && e instanceof HL7Exception) {
                 throw (HL7Exception) e;
             } else {
