@@ -66,6 +66,7 @@ public final class HL7Utils {
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
      * @return Local date
+     * @throws DataTypeException if date can't be parsed
      */
     static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
         if (hl7Date == null) {
@@ -78,6 +79,7 @@ public final class HL7Utils {
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
      * @return Local date
+     * @throws DataTypeException if date can't be parsed
      */
     public static LocalDate interpretDate(DTM hl7Date) throws DataTypeException {
         if (hl7Date == null) {

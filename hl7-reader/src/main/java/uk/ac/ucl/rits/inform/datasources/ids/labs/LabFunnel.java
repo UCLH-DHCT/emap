@@ -88,6 +88,16 @@ public final class LabFunnel {
         }
     }
 
+    /**
+     * Build and return lab message(s).
+     * @param idsUnid unid from ids
+     * @param msg message to process
+     * @param codingSystem coding system used
+     * @return built lab interchange message(s)
+     * @throws HL7Exception if HAPI does
+     * @throws Hl7InconsistencyException if the HL7 message contains errors
+     * @throws Hl7MessageIgnoredException if the coding system was not recognised
+     */
     public static Collection<LabOrderMsg> buildMessages(String idsUnid, ORR_O02 msg, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {

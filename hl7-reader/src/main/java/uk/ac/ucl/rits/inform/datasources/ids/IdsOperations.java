@@ -211,7 +211,8 @@ public class IdsOperations implements AutoCloseable {
      * @param hl7message     the HL7 message text
      * @param id             the IDS unique ID
      * @param patientInfoHl7 the parser to get various HL7 fields out of
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception     if HAPI does
+     * @throws RuntimeException if IDS is not empty
      */
     private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
         // To avoid the risk of accidentally attempting to write into the real
@@ -284,8 +285,8 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Get next entry in the IDS, if it exists.
      * @param lastProcessedId the last one we have successfully processed
-     * @return the first message that comes after lastProcessedId, or null if there
-     * isn't one
+     * @return the first message that comes after lastProcessedId, or null if there isn't one
+     * @throws InternalError if more than row from result list
      */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
         // consider changing to "get next N messages" for more efficient database
@@ -386,7 +387,7 @@ public class IdsOperations implements AutoCloseable {
                 }
             } catch (Hl7MessageIgnoredException ignoredException) {
                 logger.warn("Skipping unid {} (class {}) {}", idsMsg.getUnid(), msgFromIds.getClass(), ignoredException.getMessage());
-            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException  e) {
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
                 logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {

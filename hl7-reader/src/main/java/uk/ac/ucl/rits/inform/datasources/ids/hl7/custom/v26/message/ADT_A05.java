@@ -18,6 +18,7 @@ public class ADT_A05 extends ca.uhn.hl7v2.model.v26.message.ADT_A05 {
 
     /**
      * Constructor.
+     * @throws HL7Exception if HAPI does
      */
     public ADT_A05() throws HL7Exception {
         this(new DefaultModelClassFactory());

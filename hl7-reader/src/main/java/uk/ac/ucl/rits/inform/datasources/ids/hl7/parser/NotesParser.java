@@ -48,6 +48,10 @@ public class NotesParser {
         buildQuestionsAndComments();
     }
 
+    /**
+     * Parse notes into comments.
+     * @param notes note segments to parse
+     */
     public NotesParser(Collection<NTE> notes) {
         this.notes = List.copyOf(notes);
         buildComments();

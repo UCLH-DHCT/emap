@@ -29,6 +29,10 @@ public class OrderAndResultService {
     private FlowsheetFactory flowsheetFactory;
     private ConsultFactory consultFactory;
 
+    /**
+     * @param flowsheetFactory factory to create flowsheets interchange messages
+     * @param consultFactory factory to create consult request interchange messages
+     */
     public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory) {
         this.flowsheetFactory = flowsheetFactory;
         this.consultFactory = consultFactory;
