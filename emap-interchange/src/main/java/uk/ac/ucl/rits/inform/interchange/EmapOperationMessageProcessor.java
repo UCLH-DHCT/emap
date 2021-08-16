@@ -90,8 +90,8 @@ public interface EmapOperationMessageProcessor {
     void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the AdvancedDecision message to process
+     * @param msg the AdvancedDecisionMessage message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(AdvancedDecision msg) throws EmapOperationMessageProcessingException;
+    void processMessage(AdvancedDecisionMessage msg) throws EmapOperationMessageProcessingException;
 }
