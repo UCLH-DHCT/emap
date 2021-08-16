@@ -10,14 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Do not attempt CPR
+ * Advanced Decision requests.
  * @author Anika Cawthorn
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class AdvancedDecision extends EmapOperationMessage implements Serializable {
+public class AdvancedDecisionMessage extends EmapOperationMessage implements Serializable {
+    /**
+     * Unique epic ID for advanced decision.
+     */
     private Long advancedDecisionId;
     private String mrn;
     private String visitNumber;
@@ -37,7 +40,7 @@ public class AdvancedDecision extends EmapOperationMessage implements Serializab
      */
     private boolean closedDueToDischarge = false;
 
-    public AdvancedDecision(String sourceId, String sourceSystem, String mrn, String visitNumber) {
+    public AdvancedDecisionMessage(String sourceId, String sourceSystem, String mrn, String visitNumber) {
         setSourceMessageId(sourceId);
         setSourceSystem(sourceSystem);
         this.mrn = mrn;
