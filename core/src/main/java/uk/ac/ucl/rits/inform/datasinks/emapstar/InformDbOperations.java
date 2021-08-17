@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
+import uk.ac.ucl.rits.inform.interchange.AdvancedDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -174,5 +175,9 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         throw new MessageIgnoredException("Location Metadata processing not implemented");
     }
 
-
+    @Override
+    @Transactional
+    public void processMessage(AdvancedDecisionMessage msg) throws EmapOperationMessageProcessingException {
+        throw new MessageIgnoredException("Advanced decision processing not implemented");
+    }
 }
