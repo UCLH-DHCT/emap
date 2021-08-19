@@ -162,7 +162,7 @@ public class LocationMetadataController {
     private Room updateOrCreateRoomAndState(Department department, LocationMetadata msg, Instant storedFrom)
             throws IncompatibleDatabaseStateException {
         Room room = roomRepo
-                .findByHl7String(msg.getRoomHl7())
+                .findByHl7StringAndDepartmentId(msg.getRoomHl7(), department)
                 .orElseGet(() -> roomRepo.save(new Room(msg.getRoomHl7(), msg.getRoomName(), department)));
 
         if (notNullAndDifferent(room.getName(), msg.getRoomName())) {

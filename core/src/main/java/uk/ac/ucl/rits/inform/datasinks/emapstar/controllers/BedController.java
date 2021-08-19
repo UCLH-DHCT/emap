@@ -60,7 +60,7 @@ public class BedController {
      */
     public Bed processBedStateAndFacility(Room room, LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Bed bed = bedRepo
-                .findByHl7String(msg.getBedHl7())
+                .findByHl7StringAndRoomId(msg.getBedHl7(), room)
                 .orElseGet(() -> bedRepo.save(new Bed(msg.getBedHl7(), room)));
 
         BedState bedState = processBedState(bed, msg, storedFrom);
