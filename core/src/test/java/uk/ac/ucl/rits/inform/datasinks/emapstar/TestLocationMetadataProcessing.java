@@ -211,7 +211,12 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Sql("/populate_db.sql")
     void testDepartmentCantChange(Consumer<LocationMetadata> metadataConsumer) {
         metadataConsumer.accept(acunCensusBed);
-        assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+        if ("NEW".equals(acunCensusBed.getDepartmentHl7())) {
+            // data integrity violation will be the thrown exception, even if our own custom exception is thrown beforehand
+            assertThrows(DataIntegrityViolationException.class, () -> processSingleMessage(acunCensusBed));
+        } else {
+            assertThrows(IncompatibleDatabaseStateException.class, () -> processSingleMessage(acunCensusBed));
+        }
     }
 
     // ROOM
