@@ -68,20 +68,23 @@ public class LocationMetadataController {
      */
     @Transactional
     public void processMessage(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        Location location = getOrCreateLocation(msg.getHl7String());
-        Department department = updateOrCreateDepartmentAndState(msg, storedFrom);
+        try {
+            Location location = getOrCreateLocation(msg.getHl7String());
+            Department department = updateOrCreateDepartmentAndState(msg, storedFrom);
 
-        Room room = null;
-        if (msg.getRoomCsn() != null) {
-            room = updateOrCreateRoomAndState(department, msg, storedFrom);
+            Room room = null;
+            if (msg.getRoomCsn() != null) {
+                room = updateOrCreateRoomAndState(department, msg, storedFrom);
+            }
+            Bed bed = null;
+            if (msg.getBedCsn() != null) {
+                bed = bedController.processBedStateAndFacility(room, msg, storedFrom);
+            }
+            addLocationForeignKeys(location, department, room, bed);
+        } catch (NullPointerException e) {
+            logger.error("NullPointer", e);
+            throw e;
         }
-        Bed bed = null;
-        if (msg.getBedCsn() != null) {
-            bed = bedController.processBedStateAndFacility(room, msg, storedFrom);
-        }
-
-
-        addLocationForeignKeys(location, department, room, bed);
     }
 
     private Location getOrCreateLocation(String hl7String) {
