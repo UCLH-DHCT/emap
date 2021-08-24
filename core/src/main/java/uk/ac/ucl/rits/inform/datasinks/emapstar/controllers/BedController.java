@@ -78,7 +78,7 @@ public class BedController {
         List<BedState> states = bedStateRepo.findAllByBedIdOrderByValidFromDesc(bed);
 
         // if we already know about the bed pool, increment it and don't do any further processing
-        if (msg.getIsPoolBed()) {
+        if (msg.getIsPoolBed() != null && msg.getIsPoolBed()) {
             Optional<BedState> existingPoolBed = findExistingPoolBedByValidFrom(msg.getBedContactDate(), states);
             if (existingPoolBed.isPresent()) {
                 incrementPoolBedAndSave(existingPoolBed.get());
