@@ -22,7 +22,7 @@ public class Department implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String hl7String;
     private String name;
     private String speciality;
