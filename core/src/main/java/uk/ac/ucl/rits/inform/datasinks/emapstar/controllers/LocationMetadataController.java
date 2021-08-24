@@ -102,12 +102,12 @@ public class LocationMetadataController {
      */
     private Department updateOrCreateDepartmentAndState(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
         Department dep = departmentRepo
-                .findByHl7String(msg.getDepartmentHl7())
+                .findByHl7StringAndName(msg.getDepartmentHl7(), msg.getDepartmentName())
                 .orElseGet(() -> departmentRepo.save(
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
 
-        if (notNullAndDifferent(dep.getName(), msg.getDepartmentName()) || notNullAndDifferent(msg.getDepartmentSpeciality(), dep.getSpeciality())) {
-            throw new IncompatibleDatabaseStateException("Department can't change it's name or speciality");
+        if (notNullAndDifferent(msg.getDepartmentSpeciality(), dep.getSpeciality())) {
+            throw new IncompatibleDatabaseStateException("Department can't change it's speciality");
         }
 
         createCurrentStateAndUpdatePreviousIfRequired(msg, dep, storedFrom);

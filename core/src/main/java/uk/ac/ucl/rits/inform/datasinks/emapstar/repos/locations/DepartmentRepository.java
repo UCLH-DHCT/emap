@@ -10,5 +10,5 @@ import java.util.Optional;
  * @author Stef Piatek
  */
 public interface DepartmentRepository extends CrudRepository<Department, Long> {
-    Optional<Department> findByHl7String(String hl7String);
+    Optional<Department> findByHl7StringAndName(String hl7String, String departmentName);
 }

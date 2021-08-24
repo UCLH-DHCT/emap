@@ -196,8 +196,7 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         String newData = "NEW";
         return Stream.of(
                 metadata -> metadata.setDepartmentHl7(newData),
-                metadata -> metadata.setDepartmentSpeciality(newData),
-                metadata -> metadata.setDepartmentName(newData)
+                metadata -> metadata.setDepartmentSpeciality(newData)
         );
     }
 
