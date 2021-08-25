@@ -45,6 +45,15 @@ public class LabOrderController {
     private final QuestionController questionController;
 
 
+    /**
+     * @param labBatteryRepo repository for LabBattery
+     * @param labSampleRepo repository for LabSample
+     * @param labSampleAuditRepo repository for LabSampleAudit
+     * @param labOrderRepo repository for LabOrder
+     * @param labResultRepo repository for LabResult
+     * @param labOrderAuditRepo repository for LabOrderAudit
+     * @param questionController controller for Question tables
+     */
     public LabOrderController(
             LabBatteryRepository labBatteryRepo, LabSampleRepository labSampleRepo,
             LabSampleAuditRepository labSampleAuditRepo, LabOrderRepository labOrderRepo, LabResultRepository labResultRepo,

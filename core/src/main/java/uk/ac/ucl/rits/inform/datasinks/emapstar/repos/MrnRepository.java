@@ -17,7 +17,7 @@ public interface MrnRepository extends CrudRepository<Mrn, Long> {
      * @param mrn       MRN string
      * @param nhsNumber NHS number
      * @return optional MRN
-     * @throws IllegalArgumentException if mrn and nhsNumber are both null
+     * @throws RequiredDataMissingException if mrn and nhsNumber are both null
      */
     default Optional<Mrn> findByMrnOrNhsNumber(String mrn, String nhsNumber) throws RequiredDataMissingException {
         if (mrn == null && nhsNumber == null) {

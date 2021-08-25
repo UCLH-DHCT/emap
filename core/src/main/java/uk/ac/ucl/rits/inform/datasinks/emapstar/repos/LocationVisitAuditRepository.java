@@ -25,9 +25,9 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
 
     /**
      * Is a message location cancelled.
-     * @param hospitalVisit hospital visit
-     * @param location location
-     * @param messageTime time of message
+     * @param hospitalVisit      hospital visit
+     * @param location           location
+     * @param messageTime        time of message
      * @param dischargeCancelled true if message is a discharge message
      * @return true if message has been cancelled.
      */
@@ -49,6 +49,12 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
     Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
             Long hospitalVisitId, Location location, Instant admissionTime, Instant dischargeTime);
 
+    /**
+     * Find a potential location visit audit for a specific discharge time.
+     * @param locationVisitId  ID for location visit
+     * @param cancellationTime time of potentially previously cancelled discharge
+     * @return potential LocationVisitAudit entity
+     */
     default Optional<LocationVisitAudit> findPreviousLocationVisitAuditForDischarge(Long locationVisitId, Instant cancellationTime) {
         List<LocationVisitAudit> audits = findAllByLocationVisitIdOrderByStoredUntilDesc(locationVisitId);
 

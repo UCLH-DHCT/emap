@@ -70,14 +70,6 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
     }
 
     /**
-     * @param entityUpdated is entity updated
-     */
-    public void setEntityUpdated(boolean entityUpdated) {
-        this.entityUpdated = entityUpdated;
-    }
-
-
-    /**
      * True if entity has been created, or the message updated time is >= entity validFrom.
      * @param lastUpdatedInstant time that the message was updated
      * @return true if message should be updated

@@ -13,7 +13,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseS
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;

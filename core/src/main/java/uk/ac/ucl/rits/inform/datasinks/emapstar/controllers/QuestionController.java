@@ -10,12 +10,12 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
 import uk.ac.ucl.rits.inform.informdb.Question;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestionAudit;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestionAudit;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestionAudit;
 
 import java.time.Instant;
 import java.util.Map;
@@ -33,6 +33,13 @@ public class QuestionController {
     private final ConsultationRequestQuestionRepository consultationRequestQuestionRepo;
     private final ConsultationRequestQuestionAuditRepository consultationRequestQuestionAuditRepo;
 
+    /**
+     * @param questionRepo                         repository for Question
+     * @param labSampleQuestionRepo                repository for LabSample
+     * @param labSampleQuestionAuditRepo           repository for LabSampleQuestion
+     * @param consultationRequestQuestionRepo      repository for ConsultationRequestQuestion
+     * @param consultationRequestQuestionAuditRepo repository for ConsultationRequestAudit
+     */
     public QuestionController(
             QuestionRepository questionRepo,
             LabSampleQuestionRepository labSampleQuestionRepo, LabSampleQuestionAuditRepository labSampleQuestionAuditRepo,
@@ -61,11 +68,11 @@ public class QuestionController {
 
     /**
      * Update or create lab order questions.
-     * @param labSample     Lab sample question relates to.
-     * @param question      Question in relation to lab sample.
-     * @param answer        Answer in relation to lab sample question.
-     * @param validFrom     Time when lab sample question got changed most recently.
-     * @param storedFrom    Time when star started lab sample question processing.
+     * @param labSample  Lab sample question relates to.
+     * @param question   Question in relation to lab sample.
+     * @param answer     Answer in relation to lab sample question.
+     * @param validFrom  Time when lab sample question got changed most recently.
+     * @param storedFrom Time when star started lab sample question processing.
      */
     private void updateOrCreateLabOrderQuestion(
             LabSample labSample, Question question, String answer, Instant validFrom, Instant storedFrom) {
@@ -94,7 +101,7 @@ public class QuestionController {
      * @param storedFrom          time that star started processing the message
      */
     void processConsultationRequestQuestions(Map<String, String> questionsAndAnswers, ConsultationRequest consultationRequest,
-                                  Instant validFrom, Instant storedFrom) {
+                                             Instant validFrom, Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
             Question question = getOrCreateQuestion(questionAndAnswer.getKey());
             updateOrCreateConsultationRequestQuestion(consultationRequest, question, questionAndAnswer.getValue(),
@@ -111,7 +118,7 @@ public class QuestionController {
      * @param storedFrom          Time when star started processing this question.
      */
     private void updateOrCreateConsultationRequestQuestion(ConsultationRequest consultationRequest, Question question,
-                                                String answer, Instant validFrom, Instant storedFrom) {
+                                                           String answer, Instant validFrom, Instant storedFrom) {
         RowState<ConsultationRequestQuestion, ConsultationRequestQuestionAudit> questionState = consultationRequestQuestionRepo
                 .findByConsultationRequestIdAndQuestionId(consultationRequest, question)
                 .map(q -> new RowState<>(q, validFrom, storedFrom, false))
@@ -129,6 +136,11 @@ public class QuestionController {
         questionState.saveEntityOrAuditLogIfRequired(consultationRequestQuestionRepo, consultationRequestQuestionAuditRepo);
     }
 
+    /**
+     * Get existing question or create and save new one.
+     * @param question question string
+     * @return Question entity
+     */
     @Cacheable(value = "question")
     public Question getOrCreateQuestion(String question) {
         return questionRepo.findByQuestion(question)
