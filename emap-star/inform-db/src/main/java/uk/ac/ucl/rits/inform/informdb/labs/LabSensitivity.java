@@ -50,13 +50,17 @@ public class LabSensitivity extends TemporalCore<LabSensitivity, LabSensitivityA
 
     public LabSensitivity() {}
 
+    /**
+     * Create minimal LabSensitivity.
+     * @param labIsolateId parent LabIsolate
+     * @param agent        antimicrobial agent
+     */
     public LabSensitivity(LabIsolate labIsolateId, String agent) {
         this.labIsolateId = labIsolateId;
         this.agent = agent;
     }
 
-
-    public LabSensitivity(LabSensitivity other) {
+    private LabSensitivity(LabSensitivity other) {
         super(other);
         this.labSensitivityId = other.labSensitivityId;
         this.labIsolateId = other.labIsolateId;

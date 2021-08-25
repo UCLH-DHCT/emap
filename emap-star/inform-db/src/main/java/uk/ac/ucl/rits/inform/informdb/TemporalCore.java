@@ -1,12 +1,11 @@
 package uk.ac.ucl.rits.inform.informdb;
 
-import java.io.Serializable;
-import java.time.Instant;
+import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-
-import lombok.Data;
+import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * This models the common core of the temporal variables stored in almost all
@@ -48,6 +47,15 @@ public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends Audit
     }
 
     /**
+     * Helper to set temporal from data in a single method call.
+     * @param temporalFrom temporal from date
+     */
+    public void setTemporalFrom(TemporalFrom temporalFrom) {
+        validFrom = temporalFrom.getValid();
+        storedFrom = temporalFrom.getStored();
+    }
+
+    /**
      * Get the time from when this bit of data was considered true or extant.
      * Historically loaded data is back dated to its original occurrence time.
      * @return the validFrom time and date.
@@ -68,7 +76,7 @@ public abstract class TemporalCore<T extends TemporalCore<T, A>, A extends Audit
     public abstract T copy();
 
     /**
-     * @param validUntil the event time that invalidated the current state
+     * @param validUntil  the event time that invalidated the current state
      * @param storedUntil the time that star started processing the message that invalidated the current state
      * @return A new audit entity with the current state of the object.
      */
