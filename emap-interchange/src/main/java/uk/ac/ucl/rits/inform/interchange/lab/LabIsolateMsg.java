@@ -34,6 +34,11 @@ public class LabIsolateMsg implements Serializable {
     public LabIsolateMsg() {
     }
 
+    /**
+     * Create minimal LabIsolateMsg.
+     * @param epicCareOrderNumber epic order number for isolate
+     * @param isolateId           WinPath isolate ID code
+     */
     public LabIsolateMsg(String epicCareOrderNumber, String isolateId) {
         this.epicCareOrderNumber = epicCareOrderNumber;
         this.isolateId = isolateId;
