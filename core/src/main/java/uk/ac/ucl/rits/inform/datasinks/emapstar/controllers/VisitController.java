@@ -123,12 +123,14 @@ public class VisitController {
     @Transactional
     public HospitalVisit updateOrCreateHospitalVisit(
             final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws RequiredDataMissingException {
+        if (msg instanceof UpdatePatientInfo) {
+            logger.debug("UpdatePatientInfo does not create and encounter");
+            return null;
+        }
+
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
-            if (msg instanceof UpdatePatientInfo) {
-                logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
-                return null;
-            } else if (msg instanceof ImpliedAdtMessage) {
-                logger.debug(String.format("ImpliedAdtMessage had no encounter information: %s", msg));
+            if (msg instanceof ImpliedAdtMessage) {
+                logger.debug("ImpliedAdtMessage had no encounter information");
                 return null;
             }
             throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));

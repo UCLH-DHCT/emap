@@ -557,7 +557,7 @@ public abstract class MessageStreamBaseCase {
         discharge.setFullLocationString(currentLocation());
         discharge.setPreviousLocationString(previousLocation());
         discharge.setVisitNumber(this.csn);
-        discharge.setPatientClass(this.getPatientClass());
+        discharge.setPatientClass(this.patientClass);
         discharge.setPatientGivenName(this.fName);
         discharge.setPatientMiddleName(this.mName);
         discharge.setPatientFamilyName(this.lName);
