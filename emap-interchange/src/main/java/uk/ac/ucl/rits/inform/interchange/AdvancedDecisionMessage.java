@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,9 +36,31 @@ public class AdvancedDecisionMessage extends EmapOperationMessage implements Ser
     private String visitNumber;
 
     /**
+     * Advanced decision type code used by EPIC.
+     * e.g. COD4
+     */
+    private String advancedDecisionType;
+
+    /**
+     * Advanced decision type name used by EPIC.
+     * e.g. DNACPR
+     */
+    private String advancedDecisionTypeName;
+
+    /**
      * Questions and answers for advanced decisions.
      */
     private Map<String, String> questions = new HashMap<>();
+
+    /**
+     * Last updated time.
+     */
+    private Instant statusChangeTime;
+
+    /**
+     * Time advanced decision was first recorded for patient and hospital visit.
+     */
+    private Instant requestedDateTime;
 
     /**
      * Indicates whether the advanced decision order has been cancelled by the user.
