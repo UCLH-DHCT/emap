@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Advanced Decision requests.
+ * Advanced Decision requests, e.g. to not be resuscitated should the situation arise while the patient is in hospital
+ * for treatment.
  * @author Anika Cawthorn
  */
 @Data
@@ -22,7 +23,15 @@ public class AdvancedDecisionMessage extends EmapOperationMessage implements Ser
      * Unique epic ID for advanced decision.
      */
     private Long advancedDecisionId;
+
+    /**
+     * Patient ID this advanced decision relates to.
+     */
     private String mrn;
+
+    /**
+     * Hospital visit of the patient that this advanced decision relates to.
+     */
     private String visitNumber;
 
     /**
@@ -40,6 +49,13 @@ public class AdvancedDecisionMessage extends EmapOperationMessage implements Ser
      */
     private boolean closedDueToDischarge = false;
 
+    /**
+     * Constructor to set source ID and system and patient and hospital visit identifying information.
+     * @param sourceId      Identifier assigned to message so that it can be retrieved from IDS.
+     * @param sourceSystem  From which system this message was retrieved (e.g. HL7 stream or existing database).
+     * @param mrn           Patient ID this advanced decision relates to.
+     * @param visitNumber   Hospital visit of patient this advanced decision relates to.
+     */
     public AdvancedDecisionMessage(String sourceId, String sourceSystem, String mrn, String visitNumber) {
         setSourceMessageId(sourceId);
         setSourceSystem(sourceSystem);
