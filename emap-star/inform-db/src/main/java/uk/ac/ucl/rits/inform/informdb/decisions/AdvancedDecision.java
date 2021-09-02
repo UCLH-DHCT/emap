@@ -2,13 +2,14 @@ package uk.ac.ucl.rits.inform.informdb.decisions;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.Instant;
 
 /**
@@ -17,17 +18,52 @@ import java.time.Instant;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 @AuditTable
 public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDecisionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    /** Identifier for specific advanced decision. */
     private long advancedDecisionId;
+
+    @ManyToOne
+    @JoinColumn(name = "advancedDecisionTypeId", nullable = false)
+    /** Identifier for type of specific advanced decision. */
+    private AdvancedDecisionType advancedDecisionTypeId;
+
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId", nullable = false)
+    /** Identifier for hospital visit of specific advanced decision. */
+    private HospitalVisit hospitalVisitId;
+
+    @ManyToOne
+    @JoinColumn(name = "mrnId", nullable = false)
+    /** Identifier for patient of specific advanced decision. */
+    private Mrn mrnId;
+
+    /** Optional fields for consultation requests. */
+    /** Indicates whether (True) or not (False) an advanced decision ceased to exist based on patient discharge.*/
+    private Boolean closedDueToDischarge = false;
+
+    /** Time when the information for the advanced decision has been last updated. */
+    private Instant statusChangeTime;
+
+    /** Time when the advanced decision for the patient's hospital visit has been recorded first. */
+    private Instant requestedDateTime;
+
+     /** Indicates whether (True) or not (False) an advanced decision was cancelled, e.g. through a patient request. */
+    private Boolean cancelled = false;
 
     /**
      * Minimal information constructor.
+     * @param advancedDecisionTypeId    Identifier of AdvancedDecisionType relevant for this AdvancedDecision.
+     * @param hospitalVisitId           Identifier of HospitalVisit this AdvancedDecision has been recorded for.
+     * @param mrnId                     Patient identifier for whom AdvancedDecision is recorded.
      */
-    public AdvancedDecision() {
-
+    public AdvancedDecision(AdvancedDecisionType advancedDecisionTypeId, HospitalVisit hospitalVisitId, Mrn mrnId) {
+        this.advancedDecisionTypeId = advancedDecisionTypeId;
+        this.hospitalVisitId = hospitalVisitId;
+        this.mrnId = mrnId;
     }
 
     /**
@@ -36,7 +72,13 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      */
     public AdvancedDecision(AdvancedDecision other) {
         super(other);
-
+        this.advancedDecisionTypeId = other.advancedDecisionTypeId;
+        this.hospitalVisitId = other.hospitalVisitId;
+        this.mrnId = other.mrnId;
+        this.cancelled = other.cancelled;
+        this.closedDueToDischarge = other.closedDueToDischarge;
+        this.statusChangeTime = other.statusChangeTime;
+        this.requestedDateTime = other.requestedDateTime;
     }
 
     @Override
