@@ -37,8 +37,8 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
 
     /**
      * Minimal information constructor.
-     * @param name          Type of patient state type; either patient infection or problem list
-     * @param careCode      EPIC code of the patient state type
+     * @param name          Name of advanced decision type.
+     * @param careCode      Care code relating to advanced decision type.
      * @param validFrom     Timestamp from which information valid from
      * @param storedFrom    Timestamp from which information stored from
      */
@@ -50,7 +50,7 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
     }
 
     /**
-     * Build a new PatientStateType from an existing one.
+     * Build a new AdvancedDecisionType from an existing one.
      * @param other existing PatientStateType
      */
     public AdvancedDecisionType(AdvancedDecisionType other) {
