@@ -7,10 +7,11 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvancedDecisionProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -46,6 +47,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private PatientStateProcessor patientStateProcessor;
     @Autowired
     private ConsultationRequestProcessor consultationRequestProcessor;
+    @Autowired
+    private AdvancedDecisionProcessor advancedDecisionProcessor;
 
     private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
 
@@ -178,6 +181,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(AdvancedDecisionMessage msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Advanced decision processing not implemented");
+        Instant storedFrom = Instant.now();
+        advancedDecisionProcessor.processMessage(msg, storedFrom);
     }
 }
