@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions;
 
 import org.springframework.data.repository.CrudRepository;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecisionType;
 
 import java.util.Optional;
@@ -16,5 +15,5 @@ public interface AdvancedDecisionTypeRepository extends CrudRepository<AdvancedD
      * @param advancedDecisionType    Code of advanced decision type recorded for an advanced decision.
      * @return AdvancedDecisionType for code provided
      */
-    Optional<AdvancedDecisionType> findByCode(String advancedDecisionType);
+    Optional<AdvancedDecisionType> findByCareCode(String advancedDecisionType);
 }
