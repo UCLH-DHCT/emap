@@ -10,6 +10,11 @@ public class IteratorFunctor<S, T> implements Functorator<T> {
     private final Iterator<List<S>> iterator;
     private final Function<? super S, ? extends T> mapper;
 
+    /**
+     * Create IteratorFunctor.
+     * @param iter   iterator of a list
+     * @param mapper mapping function
+     */
     public IteratorFunctor(Iterator<List<S>> iter, Function<? super S, ? extends T> mapper) {
         this.iterator = iter;
         this.mapper = mapper;
