@@ -42,6 +42,13 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
 
     public LabBattery() {}
 
+    /**
+     * Create a valid Lab battery.
+     * @param batteryCode battery code
+     * @param labProvider lab provider using the code
+     * @param validFrom   time that the message was valid from
+     * @param storedFrom  time that emap core stared processing the message
+     */
     public LabBattery(String batteryCode, String labProvider, Instant validFrom, Instant storedFrom) {
         this.batteryCode = batteryCode;
         this.labProvider = labProvider;
@@ -49,7 +56,7 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
         setStoredFrom(storedFrom);
     }
 
-    public LabBattery(LabBattery other) {
+    private LabBattery(LabBattery other) {
         super(other);
         this.batteryCode = other.batteryCode;
         this.batteryName = other.batteryName;

@@ -43,6 +43,13 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
 
     public LabBatteryElement() {}
 
+    /**
+     * Create a valid LabBatteryElement.
+     * @param labTestDefinitionId parent lab test definition
+     * @param labBatteryId        parent lab battery id
+     * @param validFrom           time that the message was valid from
+     * @param storedFrom          time that emap core stared processing the message
+     */
     public LabBatteryElement(LabTestDefinition labTestDefinitionId, LabBattery labBatteryId, Instant validFrom, Instant storedFrom) {
         this.labTestDefinitionId = labTestDefinitionId;
         this.labBatteryId = labBatteryId;
@@ -50,7 +57,7 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
         setStoredFrom(storedFrom);
     }
 
-    public LabBatteryElement(LabBatteryElement other) {
+    private LabBatteryElement(LabBatteryElement other) {
         super(other);
         this.labBatteryElementId = other.labBatteryElementId;
         this.labBatteryId = other.labBatteryId;

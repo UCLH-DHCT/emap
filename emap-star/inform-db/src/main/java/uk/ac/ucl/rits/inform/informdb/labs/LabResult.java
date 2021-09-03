@@ -89,7 +89,20 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
     public LabResult() {}
 
-    public LabResult(LabResult other) {
+    /**
+     * Create minimal LabResult.
+     * @param labOrderId             parent LabOrder
+     * @param labTestDefinitionId    LabTestDefinition of result
+     * @param resultLastModifiedTime most recent update time of result
+     */
+    public LabResult(LabOrder labOrderId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
+        this.labOrderId = labOrderId;
+        this.labTestDefinitionId = labTestDefinitionId;
+        this.resultLastModifiedTime = resultLastModifiedTime;
+    }
+
+
+    private LabResult(LabResult other) {
         super(other);
 
         this.labResultId = other.labResultId;
@@ -103,12 +116,6 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.rangeHigh = other.rangeHigh;
         this.rangeLow = other.rangeLow;
         this.comment = other.comment;
-    }
-
-    public LabResult(LabOrder labOrderId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
-        this.labOrderId = labOrderId;
-        this.labTestDefinitionId = labTestDefinitionId;
-        this.resultLastModifiedTime = resultLastModifiedTime;
     }
 
     @Override
