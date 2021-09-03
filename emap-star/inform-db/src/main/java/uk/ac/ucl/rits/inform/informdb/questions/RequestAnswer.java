@@ -69,6 +69,10 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
         setValidFrom(validFrom);
     }
 
+    /**
+     * Copy values of RequestAnswer to new instance thereof.
+     * @param other
+     */
     public RequestAnswer(RequestAnswer other) {
         super(other);
         this.requestAnswerId = other.requestAnswerId;
