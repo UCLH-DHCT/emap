@@ -10,6 +10,8 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
 import uk.ac.ucl.rits.inform.informdb.Question;
+import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecision;
+import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecisionAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestionAudit;
@@ -127,6 +129,19 @@ public class QuestionController {
             questionState.assignIfDifferent(answer, consultationRequestQuestion.getAnswer(), consultationRequestQuestion::setAnswer);
         }
         questionState.saveEntityOrAuditLogIfRequired(consultationRequestQuestionRepo, consultationRequestQuestionAuditRepo);
+    }
+
+    /**
+     * Recording or updating questions and potentially answers to these questions, posed in relation to a consultation
+     * request.
+     * @param questionsAndAnswers   Map in form {question, answer}
+     * @param advancedDecision      Advanced decision entity.
+     * @param validFrom             Time when most recent changes have been made to advanced decision.
+     * @param storedFrom            Time when advanced decision was recorded.
+     */
+    void processAdvancedDecisionQuestions(Map<String, String> questionsAndAnswers, AdvancedDecision advancedDecision,
+                                             Instant validFrom, Instant storedFrom) {
+        // TODO: this is here just as a place holder until the new way of processing questions has been validated
     }
 
     @Cacheable(value = "question")
