@@ -41,6 +41,13 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
     /** Identifier for patient of specific advanced decision. */
     private Mrn mrnId;
 
+    @Column(nullable = false)
+    /**
+     * Identifier assigned in source system that should be unique across all advanced decisions recorded in the
+     * hospital.
+     */
+    private Long advancedDecisionNumber;
+
     /** Optional fields for consultation requests. */
     /** Indicates whether (True) or not (False) an advanced decision ceased to exist based on patient discharge.*/
     private Boolean closedDueToDischarge = false;
@@ -59,11 +66,14 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      * @param advancedDecisionTypeId    Identifier of AdvancedDecisionType relevant for this AdvancedDecision.
      * @param hospitalVisitId           Identifier of HospitalVisit this AdvancedDecision has been recorded for.
      * @param mrnId                     Patient identifier for whom AdvancedDecision is recorded.
+     * @param advancedDecisionNumber    Unique identifier assigned by EPIC for advanced decision.
      */
-    public AdvancedDecision(AdvancedDecisionType advancedDecisionTypeId, HospitalVisit hospitalVisitId, Mrn mrnId) {
+    public AdvancedDecision(AdvancedDecisionType advancedDecisionTypeId, HospitalVisit hospitalVisitId, Mrn mrnId,
+                            Long advancedDecisionNumber) {
         this.advancedDecisionTypeId = advancedDecisionTypeId;
         this.hospitalVisitId = hospitalVisitId;
         this.mrnId = mrnId;
+        this.advancedDecisionNumber = advancedDecisionNumber;
     }
 
     /**
