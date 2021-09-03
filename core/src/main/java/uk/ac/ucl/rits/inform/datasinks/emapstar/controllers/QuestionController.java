@@ -71,7 +71,6 @@ public class QuestionController {
             }
             answerState.saveEntityOrAuditLogIfRequired(requestAnswerRepo, requestAnswerAuditRepo);
         }
-        questionState.saveEntityOrAuditLogIfRequired(consultationRequestQuestionRepo, consultationRequestQuestionAuditRepo);
     }
 
     /**
