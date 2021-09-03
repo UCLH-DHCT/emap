@@ -7,7 +7,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecision
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 /**
- * Test cases to assert correct processing of Advanced Decision Message processing.
+ * Test cases to assert correct processing of Advanced Decision Messages.
  * @author Anika Cawthorn
  */
 public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
