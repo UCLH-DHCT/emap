@@ -55,13 +55,17 @@ public class AdvancedDecisionController {
 
     /**
      * Process advanced decision message.
-     *
+     * @param msg         Message containing information for advanced decision of a patient.
+     * @param visit       Hospital visit of the patient this advanced decision was recorded for.
+     * @param mrn         Patient identifier to whom advanced decision corresponds.
+     * @param storedFrom  Time point when advanced decision was recorded first.
      */
     @Transactional
-    public void processMessage(final AdvancedDecisionMessage msg, final Instant storedFrom) {
+    public void processMessage(final AdvancedDecisionMessage msg, HospitalVisit visit, Mrn mrn,
+                               final Instant storedFrom) {
         AdvancedDecisionType advancedDecisionType = getOrCreateAdvancedDecisionType(msg, storedFrom);
         RowState<AdvancedDecision, AdvancedDecisionAudit> advancedDecisionState = getOrCreateAdvancedDecision(
-                msg, advancedDecisionType, storedFrom);
+                msg, visit, mrn, advancedDecisionType, storedFrom);
         AdvancedDecision advancedDecision = advancedDecisionState.getEntity();
 
         if (messageShouldBeUpdated(msg, advancedDecisionState)) {
@@ -82,7 +86,7 @@ public class AdvancedDecisionController {
      */
     private AdvancedDecisionType getOrCreateAdvancedDecisionType(AdvancedDecisionMessage msg, Instant storedFrom) {
         return advancedDecisionTypeRepo
-                .findByCode(msg.getAdvancedDecisionType())
+                .findByCareCode(msg.getAdvancedDecisionType())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
@@ -101,10 +105,11 @@ public class AdvancedDecisionController {
 
     /**
      * Get existing or create new advanced decision.
-     * @param msg                Advanced decision message.
-     * @param visit              Hospital visit of patient this advanced decision message refers to.
-     * @param mrn                Patient this advanced decision is recorded for.
-     * @param storedFrom         Time that emap-core started processing this advanced decision message.
+     * @param msg                   Advanced decision message.
+     * @param visit                 Hospital visit of patient this advanced decision message refers to.
+     * @param mrn                   Patient this advanced decision is recorded for.
+     * @param advancedDecisionType  Type of advanced decision recorded for patient.
+     * @param storedFrom            Time that emap-core started processing this advanced decision message.
      * @return AdvancedDecision entity wrapped in RowState
      */
     private RowState<AdvancedDecision, AdvancedDecisionAudit> getOrCreateAdvancedDecision(
@@ -118,9 +123,10 @@ public class AdvancedDecisionController {
 
     /**
      * Create minimal advanced decision wrapped in RowState.
-     * @param msg                Advanced decision message
-     * @param visit              Hospital visit of the patient advanced decision was recorded for.
-     * @param mrn                Identifier of patient the advanced decision has been recorded for.
+     * @param msg                   Advanced decision message
+     * @param visit                 Hospital visit of the patient advanced decision was recorded for.
+     * @param mrn                   Identifier of patient the advanced decision has been recorded for.
+     * @param advancedDecisionType  Type of advanced decision recorded for patient.
      * @param storedFrom         Time that emap-core started processing the advanced decision of that patient.
      * @return minimal advanced decision wrapped in RowState
      */
