@@ -13,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Index;
 import java.time.Instant;
 
 /**
@@ -26,7 +27,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@AuditTable
+@AuditTable(indexes = {@Index(name = "idxParentId", columnList = "parentId")})
 public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -71,7 +72,7 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
 
     /**
      * Copy values of RequestAnswer to new instance thereof.
-     * @param other
+     * @param other Instance of RequestAnswer from which values are copied to newly created instance.
      */
     public RequestAnswer(RequestAnswer other) {
         super(other);
