@@ -66,7 +66,6 @@ public class AdvancedDecisionController {
         AdvancedDecisionType advancedDecisionType = getOrCreateAdvancedDecisionType(msg, storedFrom);
         RowState<AdvancedDecision, AdvancedDecisionAudit> advancedDecisionState = getOrCreateAdvancedDecision(
                 msg, visit, mrn, advancedDecisionType, storedFrom);
-        AdvancedDecision advancedDecision = advancedDecisionState.getEntity();
 
         if (messageShouldBeUpdated(msg, advancedDecisionState)) {
             updateConsultRequest(msg, advancedDecisionState);
@@ -159,6 +158,8 @@ public class AdvancedDecisionController {
     private void updateConsultRequest(AdvancedDecisionMessage msg, RowState<AdvancedDecision,
             AdvancedDecisionAudit> advancedDecisionState) {
         AdvancedDecision advancedDecision = advancedDecisionState.getEntity();
+
+        logger.debug("test tes tests");
 
         advancedDecisionState.assignIfDifferent(msg.getRequestedDateTime(), advancedDecision.getRequestedDateTime(),
                 advancedDecision::setRequestedDateTime);
