@@ -73,8 +73,8 @@ public class AdvancedDecisionController {
         }
 
         advancedDecisionState.saveEntityOrAuditLogIfRequired(advancedDecisionRepo, advancedDecisionAuditRepo);
-        questionController.processAdvancedDecisionQuestions(msg.getQuestions(), advancedDecision,
-                msg.getRequestedDateTime(), storedFrom);
+        questionController.processQuestions(msg.getQuestions(), ParentTableType.ADVANCED_DECISION.toString(),
+                advancedDecisionState.getEntity().getAdvancedDecisionId(), msg.getRequestedDateTime(), storedFrom);
     }
 
     /**
