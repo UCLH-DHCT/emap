@@ -23,7 +23,7 @@ public class AdvancedDecisionMessage extends EmapOperationMessage implements Ser
     /**
      * Unique epic ID for advanced decision.
      */
-    private Long advancedDecisionId;
+    private Long advancedDecisionNumber;
 
     /**
      * Patient ID this advanced decision relates to.
@@ -39,7 +39,7 @@ public class AdvancedDecisionMessage extends EmapOperationMessage implements Ser
      * Advanced decision type code used by EPIC.
      * e.g. COD4
      */
-    private String advancedDecisionType;
+    private String advancedCareCode;
 
     /**
      * Advanced decision type name used by EPIC.
