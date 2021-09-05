@@ -71,12 +71,17 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
 
     public LabOrder() {}
 
+    /**
+     * Create minimal LabOrder.
+     * @param labBatteryId parent LabBattery
+     * @param labSampleId  parent LabSample
+     */
     public LabOrder(LabBattery labBatteryId, LabSample labSampleId) {
         this.labBatteryId = labBatteryId;
         this.labSampleId = labSampleId;
     }
 
-    public LabOrder(LabOrder other) {
+    private LabOrder(LabOrder other) {
         super(other);
         this.labOrderId = other.labOrderId;
         this.labSampleId = other.labSampleId;

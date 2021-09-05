@@ -66,13 +66,18 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
 
     public LabIsolate() {}
 
+    /**
+     * Create minimal LabIsolate.
+     * @param labResultId   parent LabResult
+     * @param labInternalId WinPath internal ID for sensitivity (per lab result)
+     */
     public LabIsolate(LabResult labResultId, String labInternalId) {
         this.labResultId = labResultId;
         this.labInternalId = labInternalId;
     }
 
 
-    public LabIsolate(LabIsolate other) {
+    private LabIsolate(LabIsolate other) {
         super(other);
         this.labIsolateId = other.labIsolateId;
         this.labResultId = other.labResultId;
