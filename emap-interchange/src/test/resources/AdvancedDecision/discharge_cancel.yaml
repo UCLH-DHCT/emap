@@ -12,4 +12,4 @@ questions:
   "Decision communicated to nurse in charge?": "Yes"
   "Name of Nurse in Charge?": "Full Name"
   "Review date?": "Indefinite"
-closedDueToDischarge: false
+closedDueToDischarge: true
