@@ -6,15 +6,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationMetadataController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvancedDecisionProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
+import uk.ac.ucl.rits.inform.interchange.AdvancedDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -45,6 +47,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private ConsultationRequestProcessor consultationRequestProcessor;
     @Autowired
     private LocationMetadataController locationMetadataController;
+    @Autowired
+    private AdvancedDecisionProcessor advancedDecisionProcessor;
 
     /**
      * Process a lab order message.
@@ -166,5 +170,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         locationMetadataController.processMessage(msg, storedFrom);
     }
 
-
+    @Override
+    @Transactional
+    public void processMessage(AdvancedDecisionMessage msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        advancedDecisionProcessor.processMessage(msg, storedFrom);
+    }
 }
