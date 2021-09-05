@@ -1,149 +1,166 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
-import org.springframework.cache.annotation.Cacheable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
-import uk.ac.ucl.rits.inform.informdb.Question;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestion;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestQuestionAudit;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestionAudit;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerRepository;
+import uk.ac.ucl.rits.inform.informdb.questions.Question;
+import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswer;
+import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswerAudit;
 
 import java.time.Instant;
 import java.util.Map;
 
+enum ParentTableType {
+    CONSULT_REQUEST,
+    LAB_SAMPLE
+}
+
 /**
- * Interacts with repositories for questions and answers.
+ * Creates or updates information in relation to questions, which can be linked to several data types (parent table
+ * information).
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 @Component
 @EnableCaching
 public class QuestionController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final QuestionRepository questionRepo;
-    private final LabSampleQuestionRepository labSampleQuestionRepo;
-    private final LabSampleQuestionAuditRepository labSampleQuestionAuditRepo;
-    private final ConsultationRequestQuestionRepository consultationRequestQuestionRepo;
-    private final ConsultationRequestQuestionAuditRepository consultationRequestQuestionAuditRepo;
+    private final RequestAnswerRepository requestAnswerRepo;
+    private final RequestAnswerAuditRepository requestAnswerAuditRepo;
 
     /**
-     * @param questionRepo                         repository for Question
-     * @param labSampleQuestionRepo                repository for LabSample
-     * @param labSampleQuestionAuditRepo           repository for LabSampleQuestion
-     * @param consultationRequestQuestionRepo      repository for ConsultationRequestQuestion
-     * @param consultationRequestQuestionAuditRepo repository for ConsultationRequestAudit
+     * Initialising the repositories needed to store question information.
+     * @param questionRepo              Repository with questions
+     * @param requestAnswerRepo         Repository for answers to questions
+     * @param requestAnswerAuditRepo    Repository for auditing answers to questions
      */
-    public QuestionController(
-            QuestionRepository questionRepo,
-            LabSampleQuestionRepository labSampleQuestionRepo, LabSampleQuestionAuditRepository labSampleQuestionAuditRepo,
-            ConsultationRequestQuestionRepository consultationRequestQuestionRepo,
-            ConsultationRequestQuestionAuditRepository consultationRequestQuestionAuditRepo) {
+    public QuestionController(QuestionRepository questionRepo, RequestAnswerRepository requestAnswerRepo,
+                              RequestAnswerAuditRepository requestAnswerAuditRepo) {
         this.questionRepo = questionRepo;
-        this.labSampleQuestionRepo = labSampleQuestionRepo;
-        this.labSampleQuestionAuditRepo = labSampleQuestionAuditRepo;
-        this.consultationRequestQuestionRepo = consultationRequestQuestionRepo;
-        this.consultationRequestQuestionAuditRepo = consultationRequestQuestionAuditRepo;
+        this.requestAnswerRepo = requestAnswerRepo;
+        this.requestAnswerAuditRepo = requestAnswerAuditRepo;
     }
 
     /**
-     * Processing lab order questions.
+     * Processing a set of questions and related answers (independent of data type they relate to).
      * @param questionsAndAnswers Map in form {question, answer}
-     * @param labSample           Lab sample entity
+     * @param parentTable         Data type that triggered the creation of question-answer pair.
+     * @param parentId            Identifier for parent entity that triggered the creation of a question, e.g. lab
+     *                            sample or consultation request
      * @param validFrom           most recent change to results
      * @param storedFrom          time that star started processing the message
      */
-    void processLabOrderQuestions(Map<String, String> questionsAndAnswers, LabSample labSample, Instant validFrom, Instant storedFrom) {
+    void processQuestions(Map<String, String> questionsAndAnswers, String parentTable, long parentId, Instant validFrom,
+                          Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
-            Question question = getOrCreateQuestion(questionAndAnswer.getKey());
-            updateOrCreateLabOrderQuestion(labSample, question, questionAndAnswer.getValue(), validFrom, storedFrom);
+            Question question = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
+
+            RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(question,
+                    questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
+
+            if (requestAnswerShouldBeUpdated(validFrom, answerState)) {
+                updateRequestAnswer(questionAndAnswer.getValue(), answerState);
+            }
+            answerState.saveEntityOrAuditLogIfRequired(requestAnswerRepo, requestAnswerAuditRepo);
         }
     }
 
     /**
-     * Update or create lab order questions.
-     * @param labSample  Lab sample question relates to.
-     * @param question   Question in relation to lab sample.
-     * @param answer     Answer in relation to lab sample question.
-     * @param validFrom  Time when lab sample question got changed most recently.
-     * @param storedFrom Time when star started lab sample question processing.
-     */
-    private void updateOrCreateLabOrderQuestion(
-            LabSample labSample, Question question, String answer, Instant validFrom, Instant storedFrom) {
-        RowState<LabSampleQuestion, LabSampleQuestionAudit> questionState = labSampleQuestionRepo
-                .findByLabSampleIdAndQuestionId(labSample, question)
-                .map(q -> new RowState<>(q, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                            LabSampleQuestion q = new LabSampleQuestion(labSample, question, validFrom, storedFrom);
-                            return new RowState<>(q, validFrom, storedFrom, true);
-                        }
-                );
-        LabSampleQuestion labSampleQuestion = questionState.getEntity();
-
-        if (questionState.isEntityCreated() || validFrom.isAfter(labSampleQuestion.getValidFrom())) {
-            questionState.assignIfDifferent(answer, labSampleQuestion.getAnswer(), labSampleQuestion::setAnswer);
-        }
-        questionState.saveEntityOrAuditLogIfRequired(labSampleQuestionRepo, labSampleQuestionAuditRepo);
-    }
-
-    /**
-     * Recording or updating questions and potentially answers to these questions, posed in relation to a consultation
-     * request.
-     * @param questionsAndAnswers Map in form {question, answer}
-     * @param consultationRequest Consultation request entity
-     * @param validFrom           most recent change to results
-     * @param storedFrom          time that star started processing the message
-     */
-    void processConsultationRequestQuestions(Map<String, String> questionsAndAnswers, ConsultationRequest consultationRequest,
-                                             Instant validFrom, Instant storedFrom) {
-        for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
-            Question question = getOrCreateQuestion(questionAndAnswer.getKey());
-            updateOrCreateConsultationRequestQuestion(consultationRequest, question, questionAndAnswer.getValue(),
-                    validFrom, storedFrom);
-        }
-    }
-
-    /**
-     * Creating or updating consultation request question.
-     * @param consultationRequest Consultation request question relates to.
-     * @param question            Question posed in relation to consultation request.
-     * @param answer              Answer to question.
-     * @param validFrom           Most recent change to question.
-     * @param storedFrom          Time when star started processing this question.
-     */
-    private void updateOrCreateConsultationRequestQuestion(ConsultationRequest consultationRequest, Question question,
-                                                           String answer, Instant validFrom, Instant storedFrom) {
-        RowState<ConsultationRequestQuestion, ConsultationRequestQuestionAudit> questionState = consultationRequestQuestionRepo
-                .findByConsultationRequestIdAndQuestionId(consultationRequest, question)
-                .map(q -> new RowState<>(q, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                            ConsultationRequestQuestion q = new ConsultationRequestQuestion(consultationRequest,
-                                    question, validFrom, storedFrom);
-                            return new RowState<>(q, validFrom, storedFrom, true);
-                        }
-                );
-        ConsultationRequestQuestion consultationRequestQuestion = questionState.getEntity();
-
-        if (questionState.isEntityCreated() || validFrom.isAfter(consultationRequestQuestion.getValidFrom())) {
-            questionState.assignIfDifferent(answer, consultationRequestQuestion.getAnswer(), consultationRequestQuestion::setAnswer);
-        }
-        questionState.saveEntityOrAuditLogIfRequired(consultationRequestQuestionRepo, consultationRequestQuestionAuditRepo);
-    }
-
-    /**
-     * Get existing question or create and save new one.
-     * @param question question string
-     * @return Question entity
+     * Check whether question (based on the entire String) already exists in the respective table. If yes, return the
+     * existing entity; if not, create a new entity based the relevant data.
+     * @param question          Question as such.
+     * @param validFrom         Time when question got changed most recently.
+     * @param storedFrom        Time when star started question processing.
+     * @return a specific question as stored in the question repository
      */
     @Cacheable(value = "question")
-    public Question getOrCreateQuestion(String question) {
-        return questionRepo.findByQuestion(question)
-                .orElseGet(() -> questionRepo.save(new Question(question)));
+    public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
+        return questionRepo
+                .findByQuestion(question)
+                .orElseGet(() -> createQuestion(question, validFrom, storedFrom));
     }
+
+    /**
+     * Creates new question from the information provided and wraps it with RowState.
+     * @param questionString      Content of the question as opposed to table row in Star.
+     * @param validFrom           When this question is valid from.
+     * @param storedFrom          When EMAP has started processing this entity.
+     * @return a generated Question
+     */
+    public Question createQuestion(String questionString, Instant validFrom,
+                                                                           Instant storedFrom) {
+        Question question = new Question(questionString, validFrom, storedFrom);
+        logger.debug("Created new {}", question);
+        questionRepo.save(question);
+        return question;
+    }
+
+    /**
+     * Check whether answer for entity triggering question already exists in the question repository or whether it would
+     * need to change.
+     * @param question          Question as such.
+     * @param answer            Answer to the questions.
+     * @param parentTable       Data type that triggered the creation of question-answer pair.
+     * @param parentId          Parent entity that triggered the creation of question and answer for it.
+     * @param validFrom         Time when question got changed most recently.
+     * @param storedFrom        Time when star started question processing.
+     * @return an answer to a question linked to a specific entity.
+     */
+    public RowState<RequestAnswer, RequestAnswerAudit> getOrCreateRequestAnswer(Question question,
+                                                                                String answer, String parentTable,
+                                                                                long parentId, Instant validFrom,
+                                                                                Instant storedFrom) {
+        return requestAnswerRepo
+                .findByQuestionIdAndParentId(question, parentId)
+                .map(r -> new RowState<>(r, validFrom, storedFrom, false))
+                .orElseGet(() -> createRequestAnswer(question, answer, parentTable, parentId, validFrom, storedFrom));
+    }
+
+    /**
+     * Create answer for question.
+     * @param question      Question answer belongs to.
+     * @param answer        Answer content.
+     * @param parentTable   Data type that triggered the creation of question-answer pair.
+     * @param parentId      Entity that triggered creation of question and answer.
+     * @param validFrom     When information for entity is valid from.
+     * @param storedFrom    When EMAP started processing this entity type.
+     * @return a RequestAnswer wrapped in a RowState
+     */
+    public RowState<RequestAnswer, RequestAnswerAudit> createRequestAnswer(Question question, String answer,
+                                                                           String parentTable, long parentId,
+                                                                           Instant validFrom, Instant storedFrom) {
+        RequestAnswer requestAnswer = new RequestAnswer(question, answer, parentTable, parentId, validFrom, storedFrom);
+        logger.debug("Created new {}", requestAnswer);
+        return new RowState<>(requestAnswer, validFrom, storedFrom, true);
+    }
+
+    /**
+     * Decides whether or not the answer held for an existing question needs to be changed or not.
+     * @param validFrom     Time of message that triggered update check
+     * @param answerState   Answer for question that is being processed
+     * @return true if message should be updated
+     */
+    private boolean requestAnswerShouldBeUpdated(Instant validFrom, RowState<RequestAnswer,
+            RequestAnswerAudit> answerState) {
+        return (answerState.isEntityCreated() || !validFrom.isBefore(
+                answerState.getEntity().getValidFrom()));
+    }
+
+    /**
+     * Update answer for an existing question for a data type.
+     * @param answer        Newly supplied answer
+     * @param answerState   Answer as previously provided for question.
+     */
+    private void updateRequestAnswer(String answer, RowState<RequestAnswer, RequestAnswerAudit> answerState) {
+        answerState.assignIfDifferent(answer, answerState.getEntity().getAnswer(), answerState.getEntity()::setAnswer);
+    }
+
 }

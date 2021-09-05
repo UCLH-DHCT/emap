@@ -34,6 +34,7 @@ public class MrnLock {
      * @param mrn The mrn to get a lock on
      * @throws InterruptedException If the thread is interrupted
      * @throws NullPointerException If MRN is null
+     * @throws IllegalStateException If unheld lock has not been removed
      */
     public void acquire(String mrn) throws InterruptedException {
         if (mrn == null) {
@@ -66,6 +67,7 @@ public class MrnLock {
      * @param mrn2 The other mrn to get a lock on
      * @throws InterruptedException If the thread is interrupted
      * @throws NullPointerException If an MRN is null
+     * @throws IllegalArgumentException If provided MRNs are equal
      */
     public void acquire(String mrn1, String mrn2) throws InterruptedException {
         if (mrn1 == null || mrn2 == null) {
