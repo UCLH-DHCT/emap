@@ -86,7 +86,7 @@ public class AdvancedDecisionController {
      */
     private AdvancedDecisionType getOrCreateAdvancedDecisionType(AdvancedDecisionMessage msg, Instant storedFrom) {
         return advancedDecisionTypeRepo
-                .findByCareCode(msg.getAdvancedDecisionType())
+                .findByCareCode(msg.getAdvancedCareCode())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
     }
 
@@ -97,7 +97,7 @@ public class AdvancedDecisionController {
      * @return saved AdvancedDecisionType
      */
     private AdvancedDecisionType createAndSaveNewType(AdvancedDecisionMessage msg, Instant storedFrom) {
-        AdvancedDecisionType advancedDecisionType = new AdvancedDecisionType(msg.getAdvancedDecisionType(),
+        AdvancedDecisionType advancedDecisionType = new AdvancedDecisionType(msg.getAdvancedCareCode(),
                 msg.getAdvancedDecisionTypeName(), msg.getRequestedDateTime(), storedFrom);
         logger.debug("Created new {}", advancedDecisionType);
         return advancedDecisionTypeRepo.save(advancedDecisionType);
@@ -116,7 +116,7 @@ public class AdvancedDecisionController {
             AdvancedDecisionMessage msg, HospitalVisit visit, Mrn mrn, AdvancedDecisionType advancedDecisionType,
             Instant storedFrom) {
         return advancedDecisionRepo
-                .findByAdvancedDecisionNumber(msg.getAdvancedDecisionId())
+                .findByAdvancedDecisionNumber(msg.getAdvancedDecisionNumber())
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalAdvancedDecision(msg, visit, mrn, advancedDecisionType, storedFrom));
     }
@@ -134,7 +134,7 @@ public class AdvancedDecisionController {
             AdvancedDecisionMessage msg, HospitalVisit visit, Mrn mrn, AdvancedDecisionType advancedDecisionType,
             Instant storedFrom) {
         AdvancedDecision advancedDecision = new AdvancedDecision(advancedDecisionType, visit, mrn,
-                msg.getAdvancedDecisionId());
+                msg.getAdvancedDecisionNumber());
         logger.debug("Created new {}", advancedDecision);
         return new RowState<>(advancedDecision, msg.getStatusChangeTime(), storedFrom, true);
     }
