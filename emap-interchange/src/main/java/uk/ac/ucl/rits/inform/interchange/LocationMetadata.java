@@ -1,16 +1,15 @@
 package uk.ac.ucl.rits.inform.interchange;
 
-import java.time.Instant;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.time.Instant;
+
 /**
  * @author Jeremy Stein
- *
+ * @author Stef Piatek
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -18,52 +17,57 @@ import lombok.ToString;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LocationMetadata extends EmapOperationMessage {
     private String hl7String;
-
-    private String epicDepartmentName;
-    private Instant epicDepartmentMpiFromDate;
-    private Instant epicDepartmentMpiToDate;
+    private String departmentHl7;
+    private String departmentName;
+    private String departmentSpeciality;
     /**
      * The department record status.
-     * Possible values in ZC_PBA_REC_STAT.
-     * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_DEP
+     * See {@link EpicRecordStatus} for values
      */
-    private String departmentRecordStatus;
-    private Long epicRoomId;
+    private EpicRecordStatus departmentRecordStatus;
+    /**
+     * Most likely null but track in case we do have it.
+     */
+    private Instant departmentUpdateDate;
 
     /**
-     * Room record state.
-     * Possible values in ZC_PBA_REC_STAT.
-     * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_ROM
+     * Unique ID for the contact, can have multiple from the same hl7 representation.
      */
-    private String roomRecordState;
+    private Long roomCsn;
+    private Boolean isRoomReady;
+    private Instant roomContactDate;
+    /**
+     * Room record state.
+     * See {@link EpicRecordStatus} for values
+     */
+    private EpicRecordStatus roomRecordState;
+    private String roomHl7;
     private String roomName;
 
     /**
-     * CLARITY_ROM.BED_POOL_BED_NAME
-     * The name for the pool beds of the room record.
+     * Unique ID for the contact, can have multiple from the same hl7 representation.
      */
-    private String roomAssociatedPoolBedName;
-
-    /**
-     * CLARITY_ROM.BED_POOL_CENSUS_YN Indicates whether the pool beds for the room
-     * record should be included in bed census reports.
-     * https://datahandbook.epic.com/ClarityDictionary/Details?tblName=CLARITY_ROM
-     */
-    private Boolean roomPoolBedIsInCensus;
-    private Long epicBedId;
-
+    private Long bedCsn;
+    private String bedHl7;
+    private Instant bedContactDate;
     /**
      * The bed record state.
-     * Possible values in ZC_PBA_REC_STAT.
-     * <p>
+     * See {@link EpicRecordStatus} for values
      */
-    private String bedRecordState;
-
+    private EpicRecordStatus bedRecordState;
+    /**
+     * Pool beds are transient beds, usually waiting areas.
+     */
+    private Boolean isPoolBed;
+    /**
+     * Duplicate beds will be created in EPIC if moving someone to a bunk bed that is already filled.
+     */
+    private Boolean isBunkBed;
     /**
      * Whether the bed record should be
      * included in bed census reports.
      * <p>
-     *
+     * <p>
      * Roma says: Census beds are beds that count as real beds
      * where you stay (and we get ADT messages for), rather than non-census beds
      * which are transient and don't trigger ADT messages (at the moment, and when
@@ -80,11 +84,7 @@ public class LocationMetadata extends EmapOperationMessage {
      * use.)
      */
     private Boolean bedIsInCensus;
-
-    /**
-     * Pool beds are transient beds.
-     */
-    private Boolean isPoolBed;
+    private String bedFacility;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {

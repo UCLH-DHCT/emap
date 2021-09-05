@@ -50,6 +50,11 @@ public enum PatientClass {
         this.hl7Code = hl7Code;
     }
 
+    /**
+     * @param hl7Code hl7 code for enum
+     * @return matching PatientClass
+     * @throws IllegalArgumentException if patient class is unknown
+     */
     public static PatientClass findByHl7Code(String hl7Code) {
         for (PatientClass patientClass : values()) {
             if (patientClass.hl7Code.equals(hl7Code)) {
