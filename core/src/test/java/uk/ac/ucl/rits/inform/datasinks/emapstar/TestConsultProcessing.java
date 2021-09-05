@@ -4,11 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestQuestionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -43,7 +43,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
     @Autowired
-    ConsultationRequestQuestionRepository consultationRequestQuestionRepository;
+    QuestionRepository questionRepository;
 
     private ConsultRequest minimalConsult;
     private ConsultRequest cancelledConsult;
@@ -148,7 +148,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     void testCreateConsultWithQuestions() throws EmapOperationMessageProcessingException{
         processSingleMessage(notesConsult);
         ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
-        assertEquals(3, consultationRequestQuestionRepository.count());
+        assertEquals(3, questionRepository.count());
     }
 
     /**
