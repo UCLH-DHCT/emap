@@ -113,6 +113,7 @@ public class AdtProcessor {
      * Move a visit from a previous MRN to the current MRN.
      * @param msg        MoveVisitInformation
      * @param storedFrom time that emap-core started processing the message.
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
     public void moveVisitInformation(MoveVisitInformation msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
@@ -127,6 +128,7 @@ public class AdtProcessor {
      * Change the MRN string and NHS number for a patient.
      * @param msg        ChangePatientIdentifiers
      * @param storedFrom time that emap-core started processing the message.
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
     public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
@@ -138,6 +140,7 @@ public class AdtProcessor {
      * Swap the locations of two patient's encounters.
      * @param msg        swap locations
      * @param storedFrom time that emap-core started processing the message.
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
     public void swapLocations(SwapLocations msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
