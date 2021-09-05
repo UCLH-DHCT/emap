@@ -88,7 +88,9 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      */
     public AdvancedDecision(AdvancedDecision other) {
         super(other);
+        this.advancedDecisionId = other.advancedDecisionId;
         this.advancedDecisionTypeId = other.advancedDecisionTypeId;
+        this.advancedDecisionNumber = other.getAdvancedDecisionNumber();
         this.hospitalVisitId = other.hospitalVisitId;
         this.mrnId = other.mrnId;
         this.cancelled = other.cancelled;
