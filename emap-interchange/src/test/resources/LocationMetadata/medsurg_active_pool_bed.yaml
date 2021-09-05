@@ -1,0 +1,25 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.LocationMetadata"
+hl7String: "MEDSURG^MED/SURG^Med/Surg"
+sourceSystem: "clarity"
+# department
+departmentHl7: "MEDSURG"
+departmentName: "EMH MED SURG"
+departmentSpeciality: null
+departmentRecordStatus: "DELETED_AND_HIDDEN"
+departmentUpdateDate: "2021-04-23T09:00:00Z"
+# room
+roomCsn: 274
+roomContactDate: "2010-02-04T00:00:00Z"
+isRoomReady: true
+roomHl7: "MED/SURG"
+roomRecordState: "DELETED_AND_HIDDEN"
+roomName: "Med/Surg"
+# bed
+bedCsn: 11
+bedHl7: "Med/Surg"
+bedContactDate: "2011-05-02T00:00:00Z"
+bedRecordState: "ACTIVE"
+isBunkBed: false
+bedIsInCensus: false
+isPoolBed: true
+bedFacility: null
