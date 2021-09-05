@@ -42,7 +42,7 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
      * @param validFrom     Timestamp from which information valid from
      * @param storedFrom    Timestamp from which information stored from
      */
-    public AdvancedDecisionType(String name, String careCode, Instant validFrom, Instant storedFrom) {
+    public AdvancedDecisionType(String careCode, String name, Instant validFrom, Instant storedFrom) {
         this.name = name;
         this.careCode = careCode;
         setValidFrom(validFrom);
@@ -55,6 +55,7 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
      */
     public AdvancedDecisionType(AdvancedDecisionType other) {
         super(other);
+        this.advancedDecisionTypeId = other.getAdvancedDecisionTypeId();
         this.name = other.name;
         this.careCode = other.careCode;
     }
