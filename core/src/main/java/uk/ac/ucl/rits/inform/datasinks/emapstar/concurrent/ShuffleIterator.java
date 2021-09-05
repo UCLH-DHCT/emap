@@ -7,10 +7,8 @@ import java.util.Stack;
 
 /**
  * Lazy shuffling iterator. Creates all possible orderings of the given list.
- *
- * @author Roma Klapaukh
- *
  * @param <T> Type of the items to shuffle
+ * @author Roma Klapaukh
  */
 public class ShuffleIterator<T> implements Functorator<T> {
 
@@ -21,10 +19,8 @@ public class ShuffleIterator<T> implements Functorator<T> {
 
     /**
      * Create a new iterator that lazily produces permutations of the list.
-     *
-     * Note that the original list is only shallow cloned. This means that changes
-     * to data items will be reflected in the iterator.
-     *
+     * <p>
+     * Note that the original list is only shallow cloned. This means that changes to data items will be reflected in the iterator.
      * @param data
      */
     public ShuffleIterator(List<T> data) {
@@ -59,6 +55,7 @@ public class ShuffleIterator<T> implements Functorator<T> {
 
     /**
      * Step through the shuffling algorithm until a solution is found.
+     * @throws IllegalStateException If two adjacent leaves are in the stack
      */
     private void process() {
         // If the stack runs out, all options have been exhausted
@@ -78,20 +75,18 @@ public class ShuffleIterator<T> implements Functorator<T> {
                     return;
                 }
             } // If no child, then discard the frame and continue (i.e. return in the
-              // recusion).
+            // recusion).
         }
     }
 
     /**
      * Hold the transient state of the shuffling algorithm.
-     *
      * @author Roma Klapaukh
-     *
      */
     private class ShuffleStackFrame {
         private final List<T> soFar;
         private final List<T> data;
-        private int           index;
+        private int index;
 
         ShuffleStackFrame(List<T> data, List<T> soFar) {
             this.data = data;
@@ -101,7 +96,6 @@ public class ShuffleIterator<T> implements Functorator<T> {
 
         /**
          * Check if this node is a final solution or not.
-         *
          * @return True if it a solution.
          */
         boolean isLeaf() {
@@ -110,7 +104,6 @@ public class ShuffleIterator<T> implements Functorator<T> {
 
         /**
          * If this is a leaf node, return the permutation described.
-         *
          * @return The permutation of the original list described by this stack frame.
          */
         List<T> getOrdering() {
@@ -119,7 +112,6 @@ public class ShuffleIterator<T> implements Functorator<T> {
 
         /**
          * Return the next stack frame.
-         *
          * @return Child stack frame. Returns null if it should return.
          */
         ShuffleStackFrame process() {

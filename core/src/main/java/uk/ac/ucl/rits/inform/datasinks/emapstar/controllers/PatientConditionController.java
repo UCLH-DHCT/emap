@@ -186,6 +186,7 @@ public class PatientConditionController {
      * @param conditionType condition type referred to in message
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
+     * @throws RequiredDataMissingException if no patient infection Id in hoover data or unrecognised source system
      */
     private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
             PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) throws RequiredDataMissingException {
