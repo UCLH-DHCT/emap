@@ -55,6 +55,16 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<ConsultRequest>() {});
     }
 
+    /**
+     * @param fileName filename within the ConsultRequest folder
+     * @return consult message
+     * @throws IOException if the file doesn't exist
+     */
+    public AdvancedDecisionMessage getAdvancedDecision(final String fileName) throws IOException {
+        InputStream inputStream = getClass().getResourceAsStream(String.format("/AdvancedDecision/%s", fileName));
+        return mapper.readValue(inputStream, new TypeReference<AdvancedDecisionMessage>() {});
+    }
+
 
     /**
      * Builds lab orders from yaml file given, overriding default values for lab orders and lab results
