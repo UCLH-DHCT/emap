@@ -54,7 +54,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      */
     private Long advancedDecisionNumber;
 
-    /** Optional fields for consultation requests. */
+    /** Optional fields for advanced decisions. */
     /** Indicates whether (True) or not (False) an advanced decision ceased to exist based on patient discharge.*/
     private Boolean closedDueToDischarge = false;
 
