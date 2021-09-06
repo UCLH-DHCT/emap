@@ -47,6 +47,17 @@ public class InterchangeMessageFactory {
 
 
     /**
+     * @param fileName filename within the ConsultRequest folder
+     * @return consult message
+     * @throws IOException if the file doesn't exist
+     */
+    public ConsultRequest getConsult(final String fileName) throws IOException {
+        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultRequest/%s", fileName));
+        return mapper.readValue(inputStream, new TypeReference<ConsultRequest>() {});
+    }
+
+
+    /**
      * Builds lab orders from yaml file given, overriding default values for lab orders and lab results
      * @param fileName            filename in test resources/LabOrders,
      *                            defaults are '{file_stem}_order_defaults.yaml' and '{file_stem}_order_defaults.yaml'
