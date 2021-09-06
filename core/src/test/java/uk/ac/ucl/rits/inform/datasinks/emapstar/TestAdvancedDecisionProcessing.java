@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionTypeRepository;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecision;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecisionType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -179,5 +177,41 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
         processSingleMessage(closedAtDischarge);
         advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
         assertTrue(advancedDecision.getClosedDueToDischarge());
+    }
+
+    /**
+     * Given that an AdvancedDecision has already been processed
+     * When an earlier AdvancedDecisionMessage with cancellation flag active is sent
+     * Then the existing AdvancedDecision is not updated
+     */
+    @Test
+    void testEarlierMessageNoCancelUpdate() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalNoQuestions);
+
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        assertFalse(advancedDecision.getCancelled());
+
+        cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
+        processSingleMessage(cancelled);
+        advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        assertFalse(advancedDecision.getCancelled());
+    }
+
+    /**
+     * Given that an AdvancedDecision has already been processed
+     * When an earlier AdvancedDecisionMessage with closedDueToDischarge flag active is sent
+     * Then the existing AdvancedDecision is not updated
+     */
+    @Test
+    void testEarlierMessageNoClosedDueToDischargeUpdate() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalNoQuestions);
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(
+                ADVANCED_DECISION_NUMBER).orElseThrow();
+        assertFalse(advancedDecision.getClosedDueToDischarge());
+
+        closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
+        processSingleMessage(closedAtDischarge);
+        advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        assertFalse(advancedDecision.getClosedDueToDischarge());
     }
 }
