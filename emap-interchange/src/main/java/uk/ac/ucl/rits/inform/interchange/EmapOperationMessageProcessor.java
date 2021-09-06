@@ -82,7 +82,7 @@ public interface EmapOperationMessageProcessor {
      * @param msg the FlowsheetMpiMetadata message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    void processMessage(FlowsheetMpiMetadata flowsheetMpiMetadata);
+    void processMessage(FlowsheetMpiMetadata msg);
 
     /**
      * @param msg the LocationMetadata message to process
