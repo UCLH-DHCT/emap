@@ -1,0 +1,14 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultRequest"
+sourceSystem: "EPIC"
+sourceMessageId: "11828212"
+epicConsultId: 1234521112
+mrn: "40800000"
+visitNumber: "123412341234"
+consultationType: "CON255"  # consultancy type for frailty
+statusChangeTime: "2013-02-12T14:00:00Z"
+requestedDateTime: "2013-02-12T11:55:00Z"
+questions:
+  "Reason for Consult?": "frail, delirium, ? cognitive decline"
+  "Did you contact the team?": "No"
+  "Your contact details? (Name, Tel/Bleep)": "1232"
+cancelled: true
