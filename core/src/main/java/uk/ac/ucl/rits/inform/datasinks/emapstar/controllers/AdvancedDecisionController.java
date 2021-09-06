@@ -38,7 +38,7 @@ public class AdvancedDecisionController {
      * @param advancedDecisionAuditRepo      Holds historic information on advanced decisions recorded for patients.
      * @param advancedDecisionTypeRepo       Holds type information of advanced decisions.
      * @param advancedDecisionTypeAuditRepo  Repository holding historic changes to advanced decisions types.
-     * @param questionController             Question controller for questions in relation to consultation requests
+     * @param questionController             Question controller for questions in relation to advanced decisions
      */
     public AdvancedDecisionController(
             AdvancedDecisionRepository advancedDecisionRepo,
