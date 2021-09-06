@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMpiMetadata;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,6 +100,18 @@ public class InterchangeMessageFactory {
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
         flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<List<FlowsheetMetadata>>() {});
         return flowsheetMetadata;
+    }
+
+    /**
+     * Build flowsheet metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange messages
+     * @throws IOException if reading failed
+     */
+    public List<FlowsheetMpiMetadata> getFlowsheetMpiMetadata(final String fileName) throws IOException {
+        String resourcePath = "/FlowsheetMpiMetadata/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<List<FlowsheetMpiMetadata>>() {});
     }
 
     /**
