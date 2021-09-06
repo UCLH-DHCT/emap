@@ -26,7 +26,7 @@ public class AdvancedDecisionProcessor {
     private final VisitController visitController;
 
     /**
-     * Set controllers needed to process consultation requests.
+     * Set controllers needed to process advanced decisions.
      * @param advancedDecisionController   advanced decision controller
      * @param personController             person controller to link consultation request to patient
      * @param visitController              visit controller to link consultation request to hospital visit
