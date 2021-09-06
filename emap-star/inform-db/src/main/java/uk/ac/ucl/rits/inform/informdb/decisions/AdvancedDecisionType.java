@@ -13,6 +13,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.Instant;
 
+/**
+ * Advanced decisions can be different in nature and therefore are distinguished by their type. Each of these types is
+ * identified by a care code and name, e.g. "DNACPR" with care code "COD4".
+ * @author Anika Cawthorn
+ */
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -24,13 +29,13 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
     private long advancedDecisionTypeId;
 
     /**
-     * problem list or patient infection.
+     * Name of the advanced decision type, e.g. DNACPR
      */
     @Column(nullable = false)
     private String name;
 
     /**
-     * Code used within EPIC for condition.
+     * Code used within EPIC for advanced decision type, e.g COD4 for DNACPR.
      */
     @Column(nullable = false)
     private String careCode;
@@ -51,7 +56,7 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
 
     /**
      * Build a new AdvancedDecisionType from an existing one.
-     * @param other existing PatientStateType
+     * @param other existing AdvancedDecisionType
      */
     public AdvancedDecisionType(AdvancedDecisionType other) {
         super(other);
