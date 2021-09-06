@@ -29,7 +29,7 @@ public class AdvancedDecisionProcessor {
      * Set controllers needed to process advanced decisions.
      * @param advancedDecisionController   advanced decision controller
      * @param personController             person controller to link advanced decision to patient
-     * @param visitController              visit controller to link consultation request to hospital visit
+     * @param visitController              visit controller to link advanced decision to hospital visit
      */
     public AdvancedDecisionProcessor(
             AdvancedDecisionController advancedDecisionController, PersonController personController,
