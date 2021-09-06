@@ -17,7 +17,7 @@
     <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
     <apache.commons.csv.version>1.6</apache.commons.csv.version>
     <inform-db.version>2.2</inform-db.version>
-    <emap-interchange.version>2.1</emap-interchange.version>
+    <emap-interchange.version>2.2</emap-interchange.version>
   </properties>
 
   <profiles>
