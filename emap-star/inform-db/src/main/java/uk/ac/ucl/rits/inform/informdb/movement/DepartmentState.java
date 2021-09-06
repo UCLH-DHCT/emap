@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.informdb.movement;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.AuditCore;
@@ -21,6 +22,7 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @Table
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class DepartmentState extends AuditCore<DepartmentState> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
