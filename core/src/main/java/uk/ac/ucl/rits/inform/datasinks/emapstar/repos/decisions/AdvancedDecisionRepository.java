@@ -13,7 +13,7 @@ public interface AdvancedDecisionRepository extends CrudRepository<AdvancedDecis
     /**
      * Find advanced decision by unique identifier.
      * @param advancedDecisionId   Advanced decision identifier.
-     * @return possible ConsultationRequest
+     * @return possible AdvancedDecision
      */
     Optional<AdvancedDecision> findByAdvancedDecisionNumber(Long advancedDecisionId);
 }
