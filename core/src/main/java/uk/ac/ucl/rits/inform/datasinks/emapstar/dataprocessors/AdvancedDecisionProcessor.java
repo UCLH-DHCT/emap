@@ -40,7 +40,7 @@ public class AdvancedDecisionProcessor {
     }
 
     /**
-     * Process consultation request message.
+     * Process advanced decision message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
