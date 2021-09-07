@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.locations.LocationRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
@@ -72,8 +72,8 @@ public class LocationController {
      * @param visit      hospital visit
      * @param msg        Adt Message
      * @param storedFrom when the message has been read by emap core
-     * @throws RequiredDataMissingException      If cancellation information is missing
-     * @throws MessageCancelledException If the message location has been cancelled
+     * @throws RequiredDataMissingException If cancellation information is missing
+     * @throws MessageCancelledException    If the message location has been cancelled
      */
     @Transactional
     public void processVisitLocation(HospitalVisit visit, AdtMessage msg, Instant storedFrom)
@@ -144,20 +144,15 @@ public class LocationController {
      */
     private void processMoveMessage(HospitalVisit visit, AdtMessage msg, Instant storedFrom, Location currentLocationId, Instant validFrom)
             throws MessageCancelledException {
-        if (!(msg instanceof UpdatePatientInfo) && locationVisitAuditRepo.messageLocationIsCancelled(visit, currentLocationId, validFrom, false)) {
+        if (locationVisitAuditRepo.messageLocationIsCancelled(visit, currentLocationId, validFrom, false)) {
             throw new MessageCancelledException("Admission or Transfer was cancelled");
-        }
-
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
-        if ((msg instanceof UpdatePatientInfo && !visitLocations.isEmpty())) {
-            logger.debug("UpdatePatientInfo where previous visit location for this encounter already exists");
-            return;
         }
         if (msg.getFullLocationString().equals(msg.getPreviousLocationString())) {
             logger.debug("Ignoring MoveMessage where the previous and current location strings are the same");
             return;
         }
 
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, currentLocationId, validFrom, storedFrom);
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
@@ -425,8 +420,8 @@ public class LocationController {
      * @param msg               DischargePatient Message
      * @param storedFrom        when the message has been read by emap core
      * @param currentLocationId Location entity
-     * @throws MessageCancelledException if discharge message was cancelled
-     * @throws RequiredDataMissingException      if the discharge message doesn't have a time
+     * @throws MessageCancelledException    if discharge message was cancelled
+     * @throws RequiredDataMissingException if the discharge message doesn't have a time
      */
     private void processDischargeMessage(
             HospitalVisit visit, DischargePatient msg, Instant storedFrom, Location currentLocationId)
@@ -568,11 +563,6 @@ public class LocationController {
         locationState.assignIfDifferent(isInferred, existingLocation.getInferredDischarge(), existingLocation::setInferredDischarge);
     }
 
-    /**
-     * @param isInferred
-     * @param dischargeTime
-     * @param locationState
-     */
     private void setInferredAdmissionAndTime(Boolean isInferred, Instant
             dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
         LocationVisit existingLocation = locationState.getEntity();
@@ -585,7 +575,7 @@ public class LocationController {
      * @return true if message should not be processed.
      */
     private boolean untrustedMessageType(AdtMessage msg) {
-        return msg instanceof ImpliedAdtMessage;
+        return msg instanceof ImpliedAdtMessage || msg instanceof UpdatePatientInfo;
     }
 
     /**
@@ -832,7 +822,7 @@ public class LocationController {
      * @return true if a message outcome is moving from one location to another.
      */
     private boolean messageOutcomeIsSimpleMove(AdtMessage msg) {
-        return msg instanceof TransferPatient || msg instanceof UpdatePatientInfo || msg instanceof AdmitPatient || msg instanceof RegisterPatient;
+        return msg instanceof TransferPatient || msg instanceof AdmitPatient || msg instanceof RegisterPatient;
     }
 
     /**

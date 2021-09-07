@@ -3,65 +3,92 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.RequestAnswerRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionAuditRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabSampleQuestionRepository;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSampleQuestion;
+import uk.ac.ucl.rits.inform.informdb.questions.Question;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
+import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswer;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
+
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 
 import java.io.IOException;
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Testing functionality in relation to question and answers, e.g. for lab samples or consultation requests. Questions
+ * are held in a question table and linked through RequestAnswers with the answer to the question and the entity that
+ * created the question.
+ * @author Stef Piatek
+ * @author Anika Cawthorn
+ */
 class TestQuestionProcessing extends MessageProcessingBase {
     private LabOrderMsg labOrderMsg;
+    private final Long FRAILTY_CONSULT_ID = Long.valueOf(1234521112);
     private final String coPathTemplate = "co_path/%s.yaml";
     private final String coPathSampleNumber = "UH20-4444";
     private final Instant messageTime = Instant.parse("2020-11-09T15:04:45Z");
+    private final Instant messageTime_cRequest = Instant.parse("2013-02-12T12:00:00Z");
+    private ConsultRequest consultReqMsg;
 
     @Autowired
-    QuestionRepository questionRepository;
+    QuestionRepository questionRepo;
     @Autowired
-    LabSampleQuestionRepository labSampleQuestionRepository;
+    RequestAnswerRepository requestAnswerRepo;
     @Autowired
-    LabSampleQuestionAuditRepository labSampleQuestionAuditRepository;
+    RequestAnswerAuditRepository requestAnswerAuditRepo;
 
+    @Autowired
+    LabSampleRepository labSampleRepo;
+    @Autowired
+    ConsultationRequestRepository consultationRequestRepo;
 
     @BeforeEach
     void setUp() throws IOException {
         labOrderMsg = messageFactory.buildLabOrderOverridingDefaults(
                 String.format(coPathTemplate, "orm_defaults"), String.format(coPathTemplate, "orm_o01_questions")
         );
+        consultReqMsg = messageFactory.getConsult("notes.yaml");
     }
 
     /**
-     * Nothing in database, and 3 questions in message.
-     * Should create 3 questions
+     * Given that there is nothing in database,
+     * When a lab sample message with 3 questions is processed,
+     * 3 questions should be created in the question repo.
      * @throws Exception shouldn't happen
      */
     @Test
-    void testQuestionsAdded() throws Exception {
+    void testLabQuestionsAdded() throws Exception {
         processSingleMessage(labOrderMsg);
-        assertEquals(3, questionRepository.count());
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(0, labSampleQuestionAuditRepository.count());
+        assertEquals(3, questionRepo.count());
     }
 
     /**
-     * Nothing in database, and 3 questions in message.
-     * Should create 3 questions
+     * Given that there is nothing in database,
+     * When a consultation request message with 3 questions is processed,
+     * 3 questions should be created in the question repo.
      * @throws Exception shouldn't happen
      */
     @Test
-    void testLabOrderQuestionsAdded() throws Exception {
-        processSingleMessage(labOrderMsg);
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(0, labSampleQuestionAuditRepository.count());
+    void testConsultRequestQuestionsAdded() throws Exception {
+        processSingleMessage(consultReqMsg);
+        assertEquals(3, questionRepo.count());
     }
 
+    /**
+     * Given that there is one lab sample with question added to database
+     * When a newer lab sample message with an updated answer is processed
+     * The existing RequestAnswer should be updated to reflect the newer answer
+     * @throws Exception shouldn't happen
+     */
     @Test
     void testLabQuestionAnswerUpdatedIfNewer() throws Exception {
         // process original message
@@ -73,10 +100,13 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
-        assertEquals(3, labSampleQuestionRepository.count());
-        assertEquals(1, labSampleQuestionAuditRepository.count());
-        LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertEquals(newClinicalAnswer, labSampleQuestion.getAnswer());
+        LabSample sample = labSampleRepo.findByExternalLabNumber(labOrderMsg.getLabSpecimenNumber()).orElseThrow();
+
+        assertEquals(3, questionRepo.count());
+        Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
+
+        RequestAnswer requestAnswer = requestAnswerRepo.findByQuestionIdAndParentId(question, sample.getLabSampleId()).orElseThrow();
+        assertEquals(newClinicalAnswer, requestAnswer.getAnswer());
     }
 
     @Test
@@ -90,8 +120,11 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
         processSingleMessage(labOrderMsg);
 
-        LabSampleQuestion labSampleQuestion = labSampleQuestionRepository.findByQuestionIdQuestion(clinicalQuestion).orElseThrow();
-        assertNotEquals(newClinicalAnswer, labSampleQuestion.getAnswer());
+        LabSample sample = labSampleRepo.findByExternalLabNumber(labOrderMsg.getLabSpecimenNumber()).orElseThrow();
+        Question question= questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
+
+        RequestAnswer requestAnswer = requestAnswerRepo.findByQuestionIdAndParentId(question, sample.getLabSampleId()).orElseThrow();
+        assertNotEquals(newClinicalAnswer, requestAnswer.getAnswer());
     }
 
     /**
@@ -103,7 +136,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
     void testLabQuestionDeleteDoesntExist() throws Exception {
         labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathSampleNumber));
         processSingleMessage(labOrderMsg);
-        assertEquals(0, labSampleQuestionRepository.count());
+        assertEquals(0, questionRepo.count());
     }
 
     /**
@@ -120,7 +153,33 @@ class TestQuestionProcessing extends MessageProcessingBase {
         labOrderMsg.setStatusChangeTime(messageTime.plusSeconds(60));
         processSingleMessage(labOrderMsg);
 
-        assertEquals(3, labSampleQuestionRepository.count());
+        assertEquals(3, questionRepo.count());
     }
 
+
+    /**
+     * Once consultation request question exists, update answer if newer message processed.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testConsultationRequestQuestionAnswerUpdatedIfNewer() throws Exception {
+        // process original message
+        String clinicalQuestion = "Did you contact the team?";
+        String newClinicalAnswer = "yes";
+        processSingleMessage(consultReqMsg);
+
+        // process later message with updated answer
+        consultReqMsg.setRequestedDateTime(messageTime_cRequest.plusSeconds(60));
+        consultReqMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
+
+        processSingleMessage(consultReqMsg);
+
+        assertEquals(3, requestAnswerRepo.count());
+        assertEquals(1, requestAnswerAuditRepo.count());
+
+        ConsultationRequest cRequest = consultationRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
+        RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getConsultId()).orElseThrow();
+        assertEquals(newClinicalAnswer, answer.getAnswer());
+    }
 }
