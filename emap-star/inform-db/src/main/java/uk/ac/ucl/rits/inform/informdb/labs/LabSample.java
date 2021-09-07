@@ -74,6 +74,13 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
 
     public LabSample() {}
 
+    /**
+     * Create minimal valid LabSample.
+     * @param mrnId             Mrn for sample
+     * @param externalLabNumber lab number for sample
+     * @param validFrom         time that the message was valid from
+     * @param storedFrom        time that emap core stared processing the message
+     */
     public LabSample(Mrn mrnId, String externalLabNumber, Instant validFrom, Instant storedFrom) {
         this.mrnId = mrnId;
         this.externalLabNumber = externalLabNumber;
@@ -81,7 +88,7 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
         setStoredFrom(storedFrom);
     }
 
-    public LabSample(LabSample other) {
+    private LabSample(LabSample other) {
         super(other);
         this.mrnId = other.mrnId;
         this.labSampleId = other.labSampleId;
@@ -89,6 +96,8 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
         this.receiptAtLab = other.receiptAtLab;
         this.sampleCollectionTime = other.sampleCollectionTime;
         this.specimenType = other.specimenType;
+        this.sampleSite = other.sampleSite;
+        this.collectionMethod = other.collectionMethod;
     }
 
     @Override
