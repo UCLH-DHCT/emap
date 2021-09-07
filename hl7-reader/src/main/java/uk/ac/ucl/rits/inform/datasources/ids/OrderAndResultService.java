@@ -28,10 +28,13 @@ import java.util.Collections;
 public class OrderAndResultService {
     private FlowsheetFactory flowsheetFactory;
     private ConsultFactory consultFactory;
+    private AdvancedDecisionFactory advancedDecisionFactory;
 
-    public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory) {
+    public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory,
+                                 AdvancedDecisionFactory advancedDecisionFactory) {
         this.flowsheetFactory = flowsheetFactory;
         this.consultFactory = consultFactory;
+        this.advancedDecisionFactory = advancedDecisionFactory;
     }
 
     /**
@@ -60,6 +63,8 @@ public class OrderAndResultService {
                 throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
             case CONSULT_ORDER:
                 return Collections.singleton(consultFactory.makeConsult(sourceId, msg));
+            case ADVANCED_DECISION_ORDER:
+                return Collections.singleton(advancedDecisionFactory.makeAdvancedDecision(sourceId, msg));
             default:
                 // Lab Funnel will throw message ignored exception if not a parsed type (e.g. flowsheet)
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);
@@ -176,6 +181,8 @@ public class OrderAndResultService {
             return OrderCodingSystem.FLOWSHEET;
         } else if ("Consult Orders".equals(sendingFacility)) {
             return OrderCodingSystem.CONSULT_ORDER;
+        } else if ("DNACPR & CPR".equals(sendingFacility)) {
+            return OrderCodingSystem.ADVANCED_DECISION_ORDER;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }
