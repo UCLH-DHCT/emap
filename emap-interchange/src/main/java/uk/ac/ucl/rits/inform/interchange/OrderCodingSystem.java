@@ -27,5 +27,13 @@ public enum OrderCodingSystem {
     /**
      * Bank manager Blood Products.
      */
-    BLOOD_PRODUCTS
+    BLOOD_PRODUCTS,
+    /**
+     * Flowsheets.
+     */
+    FLOWSHEET,
+    /**
+     * Consultation order.
+     */
+    CONSULT_ORDER;
 }

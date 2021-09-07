@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
  * Define the message types that an Emap processor
  * must process.
  * @author Jeremy Stein
+ * @author Stef Piatek
  */
 public interface EmapOperationMessageProcessor {
     /**
@@ -81,4 +82,10 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the ConsultRequest message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException;
 }
