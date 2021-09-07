@@ -18,6 +18,7 @@ import ca.uhn.hl7v2.model.v26.segment.PV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageNotImplementedException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.EthnicGroup;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PV1Wrap;
@@ -66,8 +67,10 @@ public class AdtMessageFactory {
      * @return AdtMessage built from the hl7 message
      * @throws HL7Exception                      if HAPI does
      * @throws Hl7MessageNotImplementedException if the ADT type hasn't been implemented
+     * @throws Hl7MessageIgnoredException if sending application missing from message
      */
-    public AdtMessage getAdtMessage(final Message hl7Msg, final String sourceId) throws HL7Exception, Hl7MessageNotImplementedException {
+    public AdtMessage getAdtMessage(final Message hl7Msg, final String sourceId)
+            throws HL7Exception, Hl7MessageNotImplementedException, Hl7MessageIgnoredException {
         MSH msh = getMsh(hl7Msg);
         PID pid = getPid(hl7Msg, false);
         PV1 pv1 = getPv1(hl7Msg, false);
@@ -87,11 +90,16 @@ public class AdtMessageFactory {
      * @param patientInfoHl7 patientInfo
      * @param evn            EVN segment
      * @param msg            AdtMessage to be altered
-     * @throws HL7Exception If HAPI does
+     * @throws HL7Exception               If HAPI does
+     * @throws Hl7MessageIgnoredException if sending application missing from message
      */
     private void addGenericDataToAdtMessage(final String sourceId, final PatientInfoHl7 patientInfoHl7, final EVN evn,
-                                            AdtMessage msg) throws HL7Exception {
+                                            AdtMessage msg) throws HL7Exception, Hl7MessageIgnoredException {
         msg.setSourceMessageId(sourceId);
+        String sendingApplication = patientInfoHl7.getSendingApplication();
+        if (sendingApplication.isEmpty()) {
+            throw new Hl7MessageIgnoredException("No sending application in message");
+        }
         msg.setSourceSystem(patientInfoHl7.getSendingApplication());
         // will be replaced if there is an evn segment
         msg.setRecordedDateTime(patientInfoHl7.getMessageTimestamp());

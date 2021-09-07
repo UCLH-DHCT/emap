@@ -66,6 +66,10 @@ interface MSHWrap {
         return getMSH().getMessageType().getMessageCode().getValueOrEmpty();
     }
 
+    default String getSecurityCode() {
+        return getMSH().getMsh8_Security().getValueOrEmpty();
+    }
+
     /**
      * @return MSH-9.2 Trigger Event (e.g. "A01")
      * @throws HL7Exception if HAPI does

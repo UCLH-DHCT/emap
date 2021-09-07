@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.datasources.ids.labs;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.group.ORM_O01_ORDER;
-import ca.uhn.hl7v2.model.v26.group.ORM_O01_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORR_O02_ORDER;
 import ca.uhn.hl7v2.model.v26.group.ORR_O02_PATIENT;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
@@ -174,12 +173,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
     public static List<LabOrderMsg> build(String idsUnid, ORM_O01 ormO01)
             throws HL7Exception, Hl7InconsistencyException {
         List<ORM_O01_ORDER> hl7Orders = ormO01.getORDERAll();
-        MSH msh = ormO01.getMSH();
-        ORM_O01_PATIENT patient = ormO01.getPATIENT();
-        PID pid = patient.getPID();
-        PV1 pv1 = patient.getPATIENT_VISIT().getPV1();
-
-        PatientInfoHl7 patientInfo = new PatientInfoHl7(msh, pid, pv1);
+        PatientInfoHl7 patientInfo = new PatientInfoHl7(ormO01);
 
         List<LabOrderMsg> interchangeOrders = new ArrayList<>(hl7Orders.size());
         int msgSuffix = 0;

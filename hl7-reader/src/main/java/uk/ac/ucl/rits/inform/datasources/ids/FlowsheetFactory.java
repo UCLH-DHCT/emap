@@ -6,7 +6,6 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
-import ca.uhn.hl7v2.model.v26.datatype.FT;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
 import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
@@ -23,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
+import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.NotesParser;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.ValueType;
@@ -213,23 +213,12 @@ public class FlowsheetFactory {
 
     /**
      * Build comments from list of NTEs, trimmed and lines separated by newlines.
-     * @param notes List of NTE objects
+     * @param notes NTE objects
      * @return String of trimmed comment lines, joined by newlines
      */
-    private String getComments(List<NTE> notes) {
-        StringBuilder commentBuilder = new StringBuilder();
-        // multiple NTE segments
-        for (NTE note : notes) {
-            FT[] allComments = note.getNte3_Comment();
-            // Multiple lines in field
-            for (FT comment : allComments) {
-                if (commentBuilder.length() > 1) {
-                    commentBuilder.append("\n");
-                }
-                commentBuilder.append(comment.getValueOrEmpty().trim());
-            }
-        }
-        return commentBuilder.toString().trim();
+    private String getComments(Collection<NTE> notes) {
+        NotesParser parser = new NotesParser(notes);
+        return parser.getComments();
     }
 
     /**

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -14,12 +15,15 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -156,6 +160,34 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         testAdtMessage("DoubleA01WithA13/A13");
         testAdtMessage("DoubleA01WithA13/FirstA01");
         testAdtMessage("DoubleA01WithA13/SecondA01");
+    }
+
+    void checkConsultMatchesInterchange(String fileName) throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
+                String.format("ConsultRequest/%s.txt", fileName));
+        ConsultRequest expected = interchangeFactory.getConsult(String.format("%s.yaml", fileName));
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(expected, messagesFromHl7Message.get(0));
+    }
+
+    @Test
+    void testClosedAtDischarge() throws Exception {
+        checkConsultMatchesInterchange("closed_at_discharge");
+    }
+
+    @Test
+    void testCancelledConsult() throws Exception {
+        checkConsultMatchesInterchange("cancelled");
+    }
+
+    @Test
+    void testMinimalConsult() throws Exception {
+        checkConsultMatchesInterchange("minimal");
+    }
+
+    @Test
+    void testNotesConsult() throws Exception {
+        checkConsultMatchesInterchange("notes");
     }
 
     @Test
