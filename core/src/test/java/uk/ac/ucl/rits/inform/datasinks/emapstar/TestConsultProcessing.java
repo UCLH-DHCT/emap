@@ -128,7 +128,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     void testCreateNewConsult() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
 
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
 
         assertNull(cRequest.getComments());
         assertNotNull(cRequest.getConsultationRequestId());
@@ -147,7 +147,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testCreateConsultWithQuestions() throws EmapOperationMessageProcessingException{
         processSingleMessage(notesConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(3, questionRepository.count());
     }
 
@@ -159,7 +159,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testCreateConsultWithNotes() throws EmapOperationMessageProcessingException {
         processSingleMessage(notesConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertNotNull(cRequest.getComments());
         assertEquals(FRAILTY_NOTE, cRequest.getComments());
     }
@@ -172,11 +172,11 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageCancelRequest() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getCancelled());
 
         processSingleMessage(cancelledConsult);
-        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertTrue(cRequest.getCancelled());
     }
 
@@ -188,11 +188,11 @@ public class TestConsultProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageClosedDueToDischarge() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getClosedDueToDischarge());
 
         processSingleMessage(closedAtDischargeConsult);
-        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertTrue(cRequest.getClosedDueToDischarge());
     }
 
@@ -206,14 +206,14 @@ public class TestConsultProcessing extends MessageProcessingBase {
         String great_note = "Great note";
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note));
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
 
         String great_note_2 = "bla bla bla";
         minimalConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note_2));
         processSingleMessage(minimalConsult);
-        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
     }
 
@@ -227,12 +227,12 @@ public class TestConsultProcessing extends MessageProcessingBase {
         String great_note = "Great note";
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note));
         processSingleMessage(minimalConsult);
-        ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
 
         cancelledConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
         processSingleMessage(cancelledConsult);
-        cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getCancelled());
     }
 
