@@ -25,6 +25,7 @@ public class InterchangeValue<T> implements Serializable {
 
     /**
      * @param status status to set.
+     * @throws IllegalArgumentException If trying to create a save with no value
      */
     private InterchangeValue(ResultStatus status) {
         if (status == ResultStatus.SAVE) {
@@ -37,6 +38,7 @@ public class InterchangeValue<T> implements Serializable {
      * Construct a delete.
      * @param deleteStatus to set
      * @param value        to be deleted
+     * @throws IllegalArgumentException If result status isn't DELETE
      */
     private InterchangeValue(ResultStatus deleteStatus, T value) {
         if (deleteStatus != ResultStatus.DELETE) {
@@ -49,6 +51,7 @@ public class InterchangeValue<T> implements Serializable {
     /**
      * Construct with a known value.
      * @param value of the field, cannot be null
+     * @throws IllegalStateException If trying to create a save with no value
      */
     public InterchangeValue(T value) {
         if (value == null) {
@@ -105,6 +108,7 @@ public class InterchangeValue<T> implements Serializable {
 
     /**
      * @return the known value.
+     * @throws IllegalStateException If trying to get the value for an unknown result status
      */
     public T get() {
         if (status == ResultStatus.IGNORE) {
