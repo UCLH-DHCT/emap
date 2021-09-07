@@ -27,7 +27,7 @@ class TestFlowsheetFactory {
     private Flowsheet firstFlowsheet;
 
     @BeforeEach
-    void setUp() throws IOException, HL7Exception {
+    void setUp() throws Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MixedHL7Message.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
@@ -128,7 +128,7 @@ class TestFlowsheetFactory {
     }
 
     @Test
-    void testMultipleOBRs() throws IOException, HL7Exception {
+    void testMultipleOBRs() throws Exception {
         String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MultiOBR.txt");
         Message hl7Msg = HL7Utils.parseHl7String(hl7);
         flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
