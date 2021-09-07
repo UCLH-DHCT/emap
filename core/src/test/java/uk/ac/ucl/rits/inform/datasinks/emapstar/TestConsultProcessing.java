@@ -51,7 +51,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private ConsultRequest notesConsult;
     private static String FRAILTY_MRN = "40800000";
     private static String FRAILTY_VISIT_ID = "123412341234";
-    private static Long FRAILTY_CONSULT_ID = Long.valueOf(1234521112);
+    private static Long FRAILTY_CONSULT_ID = 1234521112L;
     private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
@@ -132,10 +132,10 @@ public class TestConsultProcessing extends MessageProcessingBase {
 
         assertNull(cRequest.getComments());
         assertNotNull(cRequest.getConsultationRequestId());
-        assertEquals(FRAILTY_CONSULT_ID, cRequest.getConsultId());
+        assertEquals(FRAILTY_CONSULT_ID, cRequest.getInternalId());
         assertNotNull(cRequest.getValidFrom());
         assertNotNull(cRequest.getStoredFrom());
-        assertEquals(FRAILTY_REQ_TIME, cRequest.getRequestedDateTime());
+        assertEquals(FRAILTY_REQ_TIME, cRequest.getScheduledDatetime());
         assertEquals(FRAILTY_STAT_CHANGE_TIME, cRequest.getStatusChangeTime());
     }
 

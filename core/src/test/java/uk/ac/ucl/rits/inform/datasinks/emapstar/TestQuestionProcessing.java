@@ -179,7 +179,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
 
         ConsultationRequest cRequest = consultationRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
-        RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getConsultId()).orElseThrow();
+        RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getInternalId()).orElseThrow();
         assertEquals(newClinicalAnswer, answer.getAnswer());
     }
 }
