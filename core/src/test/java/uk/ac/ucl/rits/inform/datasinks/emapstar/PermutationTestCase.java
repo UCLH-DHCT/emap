@@ -48,21 +48,20 @@ public class PermutationTestCase extends MessageStreamBaseCase {
      * demographics must be at the start, with index <= to the noDemoEndIndex Note
      * that queueDischarge must be last.
      */
-    private Runnable[] operations = {
+    private final Runnable[] operations = {
             this::queueFlowsheet,                                                                             // 0
             this::queueRegister,                                                                              // 1
             this::queueAdmitTransfer,                                                                         // 2
             this::queueAdmitClass,                                                                            // 3
-            this::queuePatUpdateClass,                                                                        // 4
-            this::queueTransfer,                                                                              // 5
-            this::queueCancelTransfer,                                                                        // 6
-            this::queueDischarge                                                                              // 7
+            this::queueTransfer,                                                                              // 4
+            this::queueCancelTransfer,                                                                        // 5
+            this::queueDischarge                                                                              // 6
     };
 
     private final int noDemoEndIndex = 0;
 
     @SuppressWarnings("unchecked")
-    private InterchangeValue<PatientClass>[] patientClass = new InterchangeValue[]{new InterchangeValue<>(PatientClass.EMERGENCY),
+    private final InterchangeValue<PatientClass>[] patientClass = new InterchangeValue[]{new InterchangeValue<>(PatientClass.EMERGENCY),
             new InterchangeValue<>(PatientClass.OUTPATIENT), new InterchangeValue<>(PatientClass.INPATIENT),
             new InterchangeValue<>(PatientClass.DAY_CASE), new InterchangeValue<>(PatientClass.SURGICAL_ADMISSION)};
     private int currentClass;
@@ -104,14 +103,6 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private void queueAdmitClass() {
         this.currentClass = (this.currentClass + 1) % patientClass.length;
         queueAdmit(false, this.patientClass[this.currentClass]);
-    }
-
-    /**
-     * Send an Patient update which changes the patient class.
-     */
-    private void queuePatUpdateClass() {
-        this.currentClass = (this.currentClass + 1) % patientClass.length;
-        queueUpdatePatientDetails(this.patientClass[this.currentClass]);
     }
 
     /**
@@ -207,11 +198,11 @@ public class PermutationTestCase extends MessageStreamBaseCase {
                 case 1:
                     testRegister();
                     break;
-                case 5:
+                case 4:
                     testLastBedVisit(transferTime.size(), currentLocation().get(), super.getPatientClass().get(),
                             lastTransferTime(), lastTransferTime());
                     break;
-                case 6:
+                case 5:
                     testCancelTransfer();
                     break;
             }
