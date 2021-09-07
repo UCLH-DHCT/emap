@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -124,7 +125,7 @@ public final class HL7Utils {
     public static URI getPathFromResource(String fileName) throws URISyntaxException {
         // the class used here doesn't seem to matter
         ClassLoader classLoader = HL7Utils.class.getClassLoader();
-        return classLoader.getResource(fileName).toURI();
+        return Objects.requireNonNull(classLoader.getResource(fileName)).toURI();
     }
 
     /**
