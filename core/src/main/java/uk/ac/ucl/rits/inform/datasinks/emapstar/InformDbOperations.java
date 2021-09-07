@@ -1,16 +1,16 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationMetadataController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageIgnoredException;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
@@ -41,15 +41,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private LabProcessor labProcessor;
     @Autowired
     private PatientStateProcessor patientStateProcessor;
-
-    private static final Logger logger = LoggerFactory.getLogger(InformDbOperations.class);
-
-
-    /**
-     * Call when you are finished with this object.
-     */
-    public void close() {}
-
+    @Autowired
+    private ConsultationRequestProcessor consultationRequestProcessor;
+    @Autowired
+    private LocationMetadataController locationMetadataController;
 
     /**
      * Process a lab order message.
@@ -159,8 +154,16 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     @Override
     @Transactional
+    public void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        consultationRequestProcessor.processMessage(msg, storedFrom);
+    }
+
+    @Override
+    @Transactional
     public void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException {
-        throw new MessageIgnoredException("Location Metadata processing not implemented");
+        Instant storedFrom = Instant.now();
+        locationMetadataController.processMessage(msg, storedFrom);
     }
 
 

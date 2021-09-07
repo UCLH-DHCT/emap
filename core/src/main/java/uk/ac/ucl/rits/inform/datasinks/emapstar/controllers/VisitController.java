@@ -38,6 +38,10 @@ public class VisitController {
     private final HospitalVisitRepository hospitalVisitRepo;
     private final HospitalVisitAuditRepository hospitalVisitAuditRepo;
 
+    /**
+     * @param hospitalVisitRepo      repository for HospitalVisit
+     * @param hospitalVisitAuditRepo repository for HospitalVisitAudit
+     */
     public VisitController(HospitalVisitRepository hospitalVisitRepo, HospitalVisitAuditRepository hospitalVisitAuditRepo) {
         this.hospitalVisitRepo = hospitalVisitRepo;
         this.hospitalVisitAuditRepo = hospitalVisitAuditRepo;
@@ -73,14 +77,13 @@ public class VisitController {
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
      * @return existing visit or created minimal visit
-     * @throws NullPointerException if no encounter
+     * @throws RequiredDataMissingException if no encounter in message
      */
     private RowState<HospitalVisit, HospitalVisitAudit> getOrCreateHospitalVisit(
             final String encounter, final Mrn mrn, final String sourceSystem, final Instant messageDateTime,
             final Instant storedFrom) throws RequiredDataMissingException {
         if (encounter == null || encounter.isEmpty()) {
-            throw new RequiredDataMissingException(String.format("No encounter in message. Mrn: %s, sourceSystem: %s, messageDateTime: %s",
-                    mrn, sourceSystem, messageDateTime));
+            throw new RequiredDataMissingException("No encounter in message");
         }
         logger.debug("Getting or create Hospital Visit: mrn {}, encounter {}", mrn, encounter);
         return hospitalVisitRepo.findByEncounter(encounter)
@@ -120,12 +123,14 @@ public class VisitController {
     @Transactional
     public HospitalVisit updateOrCreateHospitalVisit(
             final AdtMessage msg, final Instant storedFrom, final Mrn mrn) throws RequiredDataMissingException {
+        if (msg instanceof UpdatePatientInfo) {
+            logger.debug("UpdatePatientInfo does not create and encounter");
+            return null;
+        }
+
         if (msg.getVisitNumber() == null || msg.getVisitNumber().isEmpty()) {
-            if (msg instanceof UpdatePatientInfo) {
-                logger.debug(String.format("UpdatePatientInfo had no encounter information: %s", msg));
-                return null;
-            } else if (msg instanceof ImpliedAdtMessage) {
-                logger.debug(String.format("ImpliedAdtMessage had no encounter information: %s", msg));
+            if (msg instanceof ImpliedAdtMessage) {
+                logger.debug("ImpliedAdtMessage had no encounter information");
                 return null;
             }
             throw new RequiredDataMissingException(String.format("ADT message doesn't have a visit number: %s", msg));

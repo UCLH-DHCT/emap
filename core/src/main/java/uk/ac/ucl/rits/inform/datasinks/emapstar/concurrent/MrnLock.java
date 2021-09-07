@@ -7,18 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 /**
- * An MrnLock allows us to lock either individual or groups of MRNs
- * individually. The implementation will seek to run in memory proportional to
- * the number of currently held locks, not the total number seen.
+ * An MrnLock allows us to lock either individual or groups of MRNs individually. The implementation will seek to run in memory proportional to the
+ * number of currently held locks, not the total number seen.
  * <p>
- * Holders must acquire all desired locks with a single call to acquire. Once
- * aquire is called it may not be called again until all aquired locks are
+ * Holders must acquire all desired locks with a single call to acquire. Once aquire is called it may not be called again until all aquired locks are
  * released. Unlike aquiring, locks can be released individually in any order.
  * <p>
- * Note that it may be possible for many locks for the same mrn to exist at the
- * same time and all to have granted access at the same time. The restriction is
- * that all except at most one, will have already called release() and therefore
- * will no longer be using that access.
+ * Note that it may be possible for many locks for the same mrn to exist at the same time and all to have granted access at the same time. The
+ * restriction is that all except at most one, will have already called release() and therefore will no longer be using that access.
  * @author Roma Klapaukh
  */
 public class MrnLock {
@@ -33,11 +29,12 @@ public class MrnLock {
     /**
      * Block until you get an exclusive lock on a single mrn.
      * <p>
-     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock,
-     * you are not allowed to acquire more until you release all those you already
-     * hold.
+     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock, you are not allowed to acquire more until you release all those you
+     * already hold.
      * @param mrn The mrn to get a lock on
      * @throws InterruptedException If the thread is interrupted
+     * @throws NullPointerException If MRN is null
+     * @throws IllegalStateException If unheld lock has not been removed
      */
     public void acquire(String mrn) throws InterruptedException {
         if (mrn == null) {
@@ -64,12 +61,13 @@ public class MrnLock {
     /**
      * Block until you get an exclusive lock on a pair of mrns.
      * <p>
-     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock,
-     * you are not allowed to acquire more until you release all those you already
-     * hold.
+     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock, you are not allowed to acquire more until you release all those you
+     * already hold.
      * @param mrn1 One of the mrns to get a lock on
      * @param mrn2 The other mrn to get a lock on
      * @throws InterruptedException If the thread is interrupted
+     * @throws NullPointerException If an MRN is null
+     * @throws IllegalArgumentException If provided MRNs are equal
      */
     public void acquire(String mrn1, String mrn2) throws InterruptedException {
         if (mrn1 == null || mrn2 == null) {
@@ -92,11 +90,11 @@ public class MrnLock {
     /**
      * Block until you get an exclusive lock on a list of mrns.
      * <p>
-     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock,
-     * you are not allowed to acquire more until you release all those you already
-     * hold.
+     * Locks are <b>not</b> reentrant. Moreover, if you hold already hold a lock, you are not allowed to acquire more until you release all those you
+     * already hold.
      * @param mrns The mrns to get a lock on
-     * @throws InterruptedException If the thread is interrupted
+     * @throws InterruptedException     If the thread is interrupted
+     * @throws IllegalArgumentException If MRNS are empty or not unique
      */
     public void acquire(List<String> mrns) throws InterruptedException {
         if (mrns.isEmpty()) {
@@ -117,9 +115,10 @@ public class MrnLock {
     }
 
     /**
-     * Release a previously acquired lock. You must not release a lock that you do
-     * not already hold. This is not checked for.
+     * Release a previously acquired lock. You must not release a lock that you do not already hold. This is not checked for.
      * @param mrn The mrn to release the lock for.
+     * @throws NullPointerException   If MRNS are null
+     * @throws NoSuchElementException If no lock held for MRN
      */
     public void release(String mrn) {
         if (mrn == null) {
@@ -141,10 +140,10 @@ public class MrnLock {
     }
 
     /**
-     * Release two previously acquired locks. You must not release a lock that you
-     * do not already hold. This is not checked for.
+     * Release two previously acquired locks. You must not release a lock that you do not already hold. This is not checked for.
      * @param mrn1 One mrn to release the lock for.
      * @param mrn2 Another mrn to release the lock for.
+     * @throws IllegalArgumentException If Mrns are null or the same
      */
     public void release(String mrn1, String mrn2) {
         if (mrn1 == null || mrn2 == null || mrn1.equals(mrn2)) {
@@ -157,12 +156,11 @@ public class MrnLock {
     }
 
     /**
-     * Release a list of previously acquired locks. You must not release a lock that
-     * you do not already hold. This is not checked for.
-     * @param mrns Iterable of locks to release. Must be non-null, non-empty, and
-     *             contain no duplicates.
+     * Release a list of previously acquired locks. You must not release a lock that you do not already hold. This is not checked for.
+     * @param mrns Iterable of locks to release. Must be non-null, non-empty, and contain no duplicates.
+     * @throws IllegalArgumentException If Mrns are null
      */
-    public void release(Iterable<String> mrns) {
+    public void release(Iterable<String> mrns) throws IllegalArgumentException {
         if (mrns == null) {
             throw new IllegalArgumentException("mrns must not be null");
         }
@@ -190,8 +188,7 @@ public class MrnLock {
         }
 
         /**
-         * Release the lock. This must only be called if you have previously acquired
-         * the lock.
+         * Release the lock. This must only be called if you have previously acquired the lock.
          */
         void release() {
             this.semaphore.release();
@@ -206,8 +203,9 @@ public class MrnLock {
 
         /**
          * Register that interest in the lock is now complete.
+         * @throws IllegalStateException If holders are already at 0
          */
-        void decrement() {
+        void decrement() throws IllegalStateException {
             if (this.holders == 0) {
                 throw new IllegalStateException("Cannot decrement if there are no holders");
             }
@@ -215,8 +213,7 @@ public class MrnLock {
         }
 
         /**
-         * Return true if there are no registered interests in this lock (so it can
-         * potentially be deleted).
+         * Return true if there are no registered interests in this lock (so it can potentially be deleted).
          * @return True if there are no registered interested holders.
          */
         boolean isUnheld() {
