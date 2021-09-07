@@ -177,7 +177,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         assertEquals(3, requestAnswerRepo.count());
         assertEquals(1, requestAnswerAuditRepo.count());
 
-        ConsultationRequest cRequest = consultationRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
+        ConsultationRequest cRequest = consultationRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
         RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getConsultId()).orElseThrow();
         assertEquals(newClinicalAnswer, answer.getAnswer());
