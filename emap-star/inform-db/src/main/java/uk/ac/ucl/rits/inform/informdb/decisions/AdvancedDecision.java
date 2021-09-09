@@ -62,7 +62,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
     private Instant statusChangeTime;
 
     /** Time when the advanced decision for the patient's hospital visit has been recorded first. */
-    private Instant requestedDateTime;
+    private Instant requestedDatetime;
 
      /** Indicates whether (True) or not (False) an advanced decision was cancelled, e.g. through a patient request. */
     private Boolean cancelled = false;
