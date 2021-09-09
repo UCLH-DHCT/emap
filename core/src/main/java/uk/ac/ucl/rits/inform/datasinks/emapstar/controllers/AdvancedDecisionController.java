@@ -97,8 +97,7 @@ public class AdvancedDecisionController {
      * @return saved AdvancedDecisionType
      */
     private AdvancedDecisionType createAndSaveNewType(AdvancedDecisionMessage msg, Instant storedFrom) {
-        AdvancedDecisionType advancedDecisionType = new AdvancedDecisionType(msg.getAdvancedCareCode(),
-                msg.getAdvancedDecisionTypeName(), msg.getRequestedDateTime(), storedFrom);
+        AdvancedDecisionType advancedDecisionType = new AdvancedDecisionType(msg.getAdvancedCareCode(), msg.getAdvancedDecisionTypeName());
         logger.debug("Created new {}", advancedDecisionType);
         return advancedDecisionTypeRepo.save(advancedDecisionType);
     }
