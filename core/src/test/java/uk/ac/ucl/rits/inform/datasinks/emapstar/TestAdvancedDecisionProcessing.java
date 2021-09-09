@@ -46,7 +46,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     private static String ADVANCED_DECISION_CARE_CODE = "COD4";
     private static Instant ADVANCED_DECISION_REQ_TIME =  Instant.parse("2013-02-12T11:55:00Z");
     private static Instant ADVANCED_DECISION_STAT_CHANGE_TIME =  Instant.parse("2013-02-14T14:09:00Z");
-    private static Long ADVANCED_DECISION_NUMBER = Long.valueOf("1234521112");
+    private static Long ADVANCED_DECISION_INTERNAL_ID = 1234521112L;
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -119,7 +119,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     void testCreateNewAdvancedDecision() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
 
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
 
         assertNotNull(advancedDecision.getAdvancedDecisionId());
         assertNotNull(advancedDecision.getValidFrom());
@@ -136,7 +136,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     @Test
     void testAdvancedDecisionWithQuestionsCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalWithQuestions);
-        AdvancedDecision advancedDecisionRequest = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        AdvancedDecision advancedDecisionRequest = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertEquals(3, questionRepository.count());
     }
 
@@ -150,12 +150,12 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     void testLaterMessageCancelRequest() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
 
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advancedDecision.getCancelled());
 
         cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().plusSeconds(60));
         processSingleMessage(cancelled);
-        advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertTrue(advancedDecision.getCancelled());
     }
 
@@ -169,13 +169,12 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageClosedDueToDischarge() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(
-                ADVANCED_DECISION_NUMBER).orElseThrow();
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advancedDecision.getClosedDueToDischarge());
 
         closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().plusSeconds(60));
         processSingleMessage(closedAtDischarge);
-        advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertTrue(advancedDecision.getClosedDueToDischarge());
     }
 
@@ -188,12 +187,12 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     void testEarlierMessageNoCancelUpdate() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
 
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advancedDecision.getCancelled());
 
         cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
         processSingleMessage(cancelled);
-        advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advancedDecision.getCancelled());
     }
 
@@ -205,13 +204,12 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     @Test
     void testEarlierMessageNoClosedDueToDischargeUpdate() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(
-                ADVANCED_DECISION_NUMBER).orElseThrow();
+        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advancedDecision.getClosedDueToDischarge());
 
         closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
         processSingleMessage(closedAtDischarge);
-        advancedDecision = advancedDecisionRepo.findByAdvancedDecisionNumber(ADVANCED_DECISION_NUMBER).orElseThrow();
+        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advancedDecision.getClosedDueToDischarge());
     }
 }
