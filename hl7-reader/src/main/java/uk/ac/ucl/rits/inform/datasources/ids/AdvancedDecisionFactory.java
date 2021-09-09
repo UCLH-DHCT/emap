@@ -31,7 +31,7 @@ public class AdvancedDecisionFactory {
      * @param ormO01   ORM O01 message
      * @return advanced decision
      * @throws HL7Exception              if HAPI does
-     * @throws Hl7InconsistencyException if there isn't exactly one consult request in the message
+     * @throws Hl7InconsistencyException if there isn't exactly one advanced decision in the message
      */
     AdvancedDecisionMessage makeAdvancedDecision(String sourceId, ORM_O01 ormO01) throws HL7Exception, Hl7InconsistencyException {
         if (ormO01.getORDERReps() != 1) {
@@ -43,12 +43,12 @@ public class AdvancedDecisionFactory {
 
         ORM_O01_ORDER order = ormO01.getORDER();
         addCancelledOrClosed(advancedDecision, order, patientInfo);
-        addRequestInformation(advancedDecision, order);
+        addAdvancedDecisionInformation(advancedDecision, order);
         addQuestions(advancedDecision, order.getORDER_DETAIL().getNTEAll());
         return advancedDecision;
     }
 
-    private void addRequestInformation(AdvancedDecisionMessage advancedDecisionMessage, ORM_O01_ORDER order)
+    private void addAdvancedDecisionInformation(AdvancedDecisionMessage advancedDecisionMessage, ORM_O01_ORDER order)
             throws HL7Exception {
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
