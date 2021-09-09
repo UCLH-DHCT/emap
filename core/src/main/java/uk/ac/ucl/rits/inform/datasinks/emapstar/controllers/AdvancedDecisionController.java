@@ -154,8 +154,6 @@ public class AdvancedDecisionController {
             AdvancedDecisionAudit> advancedDecisionState) {
         AdvancedDecision advancedDecision = advancedDecisionState.getEntity();
 
-        logger.debug("test tes tests");
-
         advancedDecisionState.assignIfDifferent(msg.getRequestedDateTime(), advancedDecision.getRequestedDatetime(),
                 advancedDecision::setRequestedDatetime);
         advancedDecisionState.assignIfDifferent(msg.getStatusChangeTime(), advancedDecision.getStatusChangeTime(),
