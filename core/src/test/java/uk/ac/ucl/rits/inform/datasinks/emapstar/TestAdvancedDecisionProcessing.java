@@ -45,15 +45,15 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     private static String ADVANCED_DECISION_MRN = "40800000";
     private static String ADVANCED_DECISION_CARE_CODE = "COD4";
     private static Instant ADVANCED_DECISION_REQ_TIME =  Instant.parse("2013-02-12T11:55:00Z");
-    private static Instant ADVANCED_DECISION_STAT_CHANGE_TIME =  Instant.parse("2013-02-14T14:09:00Z");
+    private static Instant ADVANCED_DECISION_STAT_CHANGE_TIME =  Instant.parse("2013-02-14T09:00:00Z");
     private static Long ADVANCED_DECISION_INTERNAL_ID = 1234521112L;
 
     @BeforeEach
     private void setUp() throws IOException {
-        minimalNoQuestions = messageFactory.getAdvancedDecision("new_no_questions.yaml");
+        minimalNoQuestions = messageFactory.getAdvancedDecision("minimal.yaml");
         minimalWithQuestions = messageFactory.getAdvancedDecision("new_with_questions.yaml");
-        closedAtDischarge = messageFactory.getAdvancedDecision("discharge_cancel.yaml");
-        cancelled = messageFactory.getAdvancedDecision("user_cancel.yaml");
+        closedAtDischarge = messageFactory.getAdvancedDecision("closed_at_discharge.yaml");
+        cancelled = messageFactory.getAdvancedDecision("cancelled.yaml");
     }
 
     /**
