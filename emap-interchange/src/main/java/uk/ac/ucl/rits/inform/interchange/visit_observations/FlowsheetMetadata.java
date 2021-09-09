@@ -31,7 +31,7 @@ public class FlowsheetMetadata extends EmapOperationMessage implements  Observat
     private String description;
     private Instant creationInstant;
     private Instant lastUpdatedInstant;
-    private String sourceObservationType = "flowsheetMetadata";
+    private String sourceObservationType = "flowsheet";
 
     public FlowsheetMetadata() {
     }
