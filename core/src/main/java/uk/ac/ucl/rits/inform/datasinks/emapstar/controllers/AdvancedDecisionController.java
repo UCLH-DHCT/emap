@@ -31,6 +31,13 @@ public class AdvancedDecisionController {
     private final AdvancedDecisionTypeRepository advancedDecisionTypeRepo;
     private final QuestionController questionController;
 
+    /**
+     * Setting repositories that enable searching for components of advanced decisions.
+     * @param advancedDecisionRepo      Repository with search functionality for advanced decisions.
+     * @param advancedDecisionTypeRepo  Repository with search functionality for advanced decisions types.
+     * @param advancedDecisionAuditRepo Repository with search functionality for advanced decision audit data.
+     * @param questionController        Controller for handling questions attached to advanced decisions.
+     */
     public AdvancedDecisionController(
             AdvancedDecisionRepository advancedDecisionRepo,
             AdvancedDecisionTypeRepository advancedDecisionTypeRepo,
