@@ -5,6 +5,6 @@ mrn: "40800000"
 visitNumber: "123412341234"
 statusChangeTime: "2013-02-14T14:09:00Z"
 requestedDateTime: "2013-02-12T11:55:00Z"
-advancedDecisionNumber: "1234521112"
+advancedDecisionNumber: 1234521112
 advancedDecisionTypeName: "DNACPR"
 advancedCareCode: "COD4"
