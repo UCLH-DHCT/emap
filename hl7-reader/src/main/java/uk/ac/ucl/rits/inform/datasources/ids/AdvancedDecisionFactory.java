@@ -56,6 +56,7 @@ public class AdvancedDecisionFactory {
         advancedDecisionMessage.setStatusChangeTime(HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction()));
         advancedDecisionMessage.setRequestedDateTime(HL7Utils.interpretLocalTime(obr.getObr36_ScheduledDateTime()));
         advancedDecisionMessage.setAdvancedCareCode(obr.getObr44_ProcedureCode().encode());
+        advancedDecisionMessage.setAdvancedDecisionTypeName(obr.getObr4_UniversalServiceIdentifier().getCwe5_AlternateText().getValueOrEmpty());
     }
 
     private void addQuestions(AdvancedDecisionMessage advancedDecisionMessage, Collection<NTE> notes)
