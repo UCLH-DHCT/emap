@@ -27,8 +27,8 @@ public class EthnicGroup {
     private Map<String, String> ethnicGroups = new HashMap<>();
 
     /**
-     * Minimal constructor of Ethnic group.
-     * @throws IOException if ehtnic group map cannot be build.
+     * Create Ethnic group mapping.
+     * @throws IOException if file can't be read
      */
     public EthnicGroup() throws IOException {
         logger.info("Building EthnicGroup map");

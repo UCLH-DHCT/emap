@@ -163,7 +163,7 @@ public class FlowsheetFactory {
      * @param flowsheet          flowsheet to add the values to
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
-     * @throws DataTypeException If datatype is not known
+     * @throws DataTypeException         if datetime values cannot be parsed
      */
     private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
             throws Hl7InconsistencyException, DataTypeException {
