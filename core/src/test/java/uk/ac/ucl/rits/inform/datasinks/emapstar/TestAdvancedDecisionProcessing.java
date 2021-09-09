@@ -106,7 +106,6 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
         processSingleMessage(minimalNoQuestions);
         AdvancedDecisionType adType = advancedDecisionTypeRepo.findByCareCode(ADVANCED_DECISION_CARE_CODE).orElseThrow();
 
-        assertEquals(ADVANCED_DECISION_REQ_TIME, adType.getValidFrom());
         assertNotNull(adType.getName());
     }
 
@@ -124,7 +123,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
         assertNotNull(advancedDecision.getAdvancedDecisionId());
         assertNotNull(advancedDecision.getValidFrom());
         assertNotNull(advancedDecision.getStoredFrom());
-        assertEquals(ADVANCED_DECISION_REQ_TIME, advancedDecision.getRequestedDateTime());
+        assertEquals(ADVANCED_DECISION_REQ_TIME, advancedDecision.getRequestedDatetime());
         assertEquals(ADVANCED_DECISION_STAT_CHANGE_TIME, advancedDecision.getStatusChangeTime());
     }
 
