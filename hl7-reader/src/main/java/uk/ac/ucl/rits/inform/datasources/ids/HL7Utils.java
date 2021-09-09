@@ -68,6 +68,7 @@ public final class HL7Utils {
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
      * @return Local date
+     * @throws DataTypeException if date cannot be parsed correctly.
      */
     static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
         if (hl7Date == null) {
@@ -80,6 +81,7 @@ public final class HL7Utils {
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
      * @return Local date
+     * @throws DataTypeException if date cannot be parsed correctly.
      */
     public static LocalDate interpretDate(DTM hl7Date) throws DataTypeException {
         if (hl7Date == null) {
@@ -109,6 +111,7 @@ public final class HL7Utils {
      * @param fileName The name of the resource file that's in the resource directory
      * @return string of the entire file contents with line endings converted to carriage returns
      * @throws IOException when reading file
+     * @throws URISyntaxException if the fileName provided cannot be turned into URI
      */
     public static String readHl7FromResource(String fileName) throws IOException, URISyntaxException {
         URI uri = getPathFromResource(fileName);
@@ -119,6 +122,7 @@ public final class HL7Utils {
     /**
      * @param fileName the relative filename of the resource
      * @return the filename in the resource directory
+     * @throws URISyntaxException if the fileName provided cannot be turned into URI
      */
     public static URI getPathFromResource(String fileName) throws URISyntaxException {
         // the class used here doesn't seem to matter

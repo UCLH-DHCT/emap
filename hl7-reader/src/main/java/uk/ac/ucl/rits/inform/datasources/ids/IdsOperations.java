@@ -196,6 +196,7 @@ public class IdsOperations implements AutoCloseable {
      * @param id             the IDS unique ID
      * @param patientInfoHl7 the parser to get various HL7 fields out of
      * @throws HL7Exception if HAPI does
+     * @throws RuntimeException if IDS is not empty
      */
     private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
         // To avoid the risk of accidentally attempting to write into the real
@@ -268,8 +269,8 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Get next entry in the IDS, if it exists.
      * @param lastProcessedId the last one we have successfully processed
-     * @return the first message that comes after lastProcessedId, or null if there
-     * isn't one
+     * @return the first message that comes after lastProcessedId, or null if there isn't one
+     * @throws InternalError if something has gone wrong with batching of HL7 messages
      */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
         // consider changing to "get next N messages" for more efficient database
