@@ -57,6 +57,8 @@ public class OrderAndResultService {
         String sendingFacility = msh.getMsh4_SendingFacility().getHd1_NamespaceID().getValueOrEmpty();
         OBR obr = msg.getORDER().getORDER_DETAIL().getOBR();
 
+        System.out.println(obr);
+
         OrderCodingSystem codingSystem = determineCodingSystem(obr, sendingApplication, sendingFacility);
         switch (codingSystem) {
             case BLOOD_PRODUCTS:
@@ -165,6 +167,8 @@ public class OrderAndResultService {
         String codingSystem = obr.getObr4_UniversalServiceIdentifier().getCwe3_NameOfCodingSystem().getValueOrEmpty();
         String alternativeIdentifier = obr.getObr4_UniversalServiceIdentifier().getCwe4_AlternateIdentifier().getValueOrEmpty();
 
+        System.out.println(obr);
+
         if ("WinPath".equals(codingSystem)) {
             return OrderCodingSystem.WIN_PATH;
         } else if ("CoPathPlus".equals(fillerNamespace) || "CPEAP".equals(codingSystem)) {
@@ -184,7 +188,7 @@ public class OrderAndResultService {
         } else if ("DNACPR & CPR".equals(sendingFacility)) {
             return OrderCodingSystem.ADVANCED_DECISION_ORDER;
         }
-        throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
+        throw new Hl7MessageIgnoredException("Unknown coding system for order/result " + codingSystem + " tttt");
     }
 
 }
