@@ -11,9 +11,9 @@ import java.util.Optional;
  */
 public interface AdvancedDecisionRepository extends CrudRepository<AdvancedDecision, Long> {
     /**
-     * Find advanced decision by unique identifier.
-     * @param advancedDecisionId   Advanced decision identifier.
+     * Find advanced decision by unique, internal identifier.
+     * @param internalId Internal identifier for advanced decision.
      * @return possible AdvancedDecision
      */
-    Optional<AdvancedDecision> findByAdvancedDecisionNumber(Long advancedDecisionId);
+    Optional<AdvancedDecision> findByInternalId(Long internalId);
 }

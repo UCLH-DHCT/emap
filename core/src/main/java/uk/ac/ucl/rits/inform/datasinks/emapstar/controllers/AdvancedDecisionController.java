@@ -21,7 +21,8 @@ import java.time.Instant;
 
 
 /**
- *
+ * Controller required to process internal advanced decision messages and write data into UDS.
+ * @author Anika Cawthorn
  */
 @Component
 public class AdvancedDecisionController {
@@ -115,7 +116,7 @@ public class AdvancedDecisionController {
             AdvancedDecisionMessage msg, HospitalVisit visit, Mrn mrn, AdvancedDecisionType advancedDecisionType,
             Instant storedFrom) {
         return advancedDecisionRepo
-                .findByAdvancedDecisionNumber(msg.getAdvancedDecisionNumber())
+                .findByInternalId(msg.getAdvancedDecisionNumber())
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalAdvancedDecision(msg, visit, mrn, advancedDecisionType, storedFrom));
     }
