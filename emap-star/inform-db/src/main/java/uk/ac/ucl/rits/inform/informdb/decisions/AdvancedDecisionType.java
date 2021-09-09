@@ -37,7 +37,7 @@ public class AdvancedDecisionType extends TemporalCore<AdvancedDecisionType, Adv
     /**
      * Code used within EPIC for advanced decision type, e.g COD4 for DNACPR.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String careCode;
 
     /**

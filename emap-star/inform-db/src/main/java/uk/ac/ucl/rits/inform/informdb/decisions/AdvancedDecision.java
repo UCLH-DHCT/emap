@@ -29,22 +29,30 @@ import java.time.Instant;
 public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDecisionAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    /** Identifier for specific advanced decision. */
+    /**
+     * Identifier for specific advanced decision.
+     */
     private long advancedDecisionId;
 
     @ManyToOne
     @JoinColumn(name = "advancedDecisionTypeId", nullable = false)
-    /** Identifier for type of specific advanced decision. */
+    /**
+     * Identifier for type of specific advanced decision.
+     */
     private AdvancedDecisionType advancedDecisionTypeId;
 
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
-    /** Identifier for hospital visit of specific advanced decision. */
+    /**
+     * Identifier for hospital visit of specific advanced decision.
+     */
     private HospitalVisit hospitalVisitId;
 
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
-    /** Identifier for patient of specific advanced decision. */
+    /**
+     * Identifier for patient of specific advanced decision.
+     */
     private Mrn mrnId;
 
     @Column(nullable = false)
@@ -52,19 +60,29 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      * Identifier assigned in source system that should be unique across all advanced decisions recorded in the
      * hospital.
      */
-    private Long advancedDecisionNumber;
+    private Long internalId;
 
-    /** Optional fields for advanced decisions. */
-    /** Indicates whether (True) or not (False) an advanced decision ceased to exist based on patient discharge.*/
+    /**
+     * Optional fields for advanced decisions.
+     */
+    /**
+     * Indicates whether (True) or not (False) an advanced decision ceased to exist based on patient discharge.
+     */
     private Boolean closedDueToDischarge = false;
 
-    /** Time when the information for the advanced decision has been last updated. */
+    /**
+     * Time when the information for the advanced decision has been last updated.
+     */
     private Instant statusChangeTime;
 
-    /** Time when the advanced decision for the patient's hospital visit has been recorded first. */
+    /**
+     * Time when the advanced decision for the patient's hospital visit has been recorded first.
+     */
     private Instant requestedDateTime;
 
-     /** Indicates whether (True) or not (False) an advanced decision was cancelled, e.g. through a patient request. */
+     /**
+      * Indicates whether (True) or not (False) an advanced decision was cancelled, e.g. through a patient request.
+      */
     private Boolean cancelled = false;
 
     /**
@@ -79,7 +97,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
         this.advancedDecisionTypeId = advancedDecisionTypeId;
         this.hospitalVisitId = hospitalVisitId;
         this.mrnId = mrnId;
-        this.advancedDecisionNumber = advancedDecisionNumber;
+        this.internalId = advancedDecisionNumber;
     }
 
     /**
@@ -90,7 +108,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
         super(other);
         this.advancedDecisionId = other.advancedDecisionId;
         this.advancedDecisionTypeId = other.advancedDecisionTypeId;
-        this.advancedDecisionNumber = other.getAdvancedDecisionNumber();
+        this.internalId = other.getInternalId();
         this.hospitalVisitId = other.hospitalVisitId;
         this.mrnId = other.mrnId;
         this.cancelled = other.cancelled;
