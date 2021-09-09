@@ -339,6 +339,7 @@ public class AdtMessageFactory {
      * @param hl7Msg        hl7 message
      * @param secondSegment get the second segment
      * @return PV1
+     * @throws HL7Exception if hl7 message could not be processed.
      */
     private PV1 getPv1(Message hl7Msg, boolean secondSegment) throws HL7Exception {
         PV1 pv1 = null;

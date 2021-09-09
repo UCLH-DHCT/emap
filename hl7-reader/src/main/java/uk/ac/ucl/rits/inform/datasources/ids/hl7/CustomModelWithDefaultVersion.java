@@ -12,6 +12,12 @@ import ca.uhn.hl7v2.parser.CustomModelClassFactory;
 public class CustomModelWithDefaultVersion extends CustomModelClassFactory {
     private String customVersion;
 
+    /**
+     * Default model constructor.
+     * @param customPackageForModels Custom package for model.
+     * @param canonicalVersion Version of model.
+     * @throws IllegalArgumentException if model version is not known.
+     */
     public CustomModelWithDefaultVersion(String customPackageForModels, String canonicalVersion) {
         super(customPackageForModels);
         if (canonicalVersion == null || !Version.supportsVersion(canonicalVersion)) {

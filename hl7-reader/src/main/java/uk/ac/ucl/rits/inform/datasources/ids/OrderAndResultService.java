@@ -30,6 +30,12 @@ public class OrderAndResultService {
     private ConsultFactory consultFactory;
     private AdvancedDecisionFactory advancedDecisionFactory;
 
+    /**
+     * Minimal constructur for order and result service.
+     * @param flowsheetFactory          Flowsheet factory for respective messages.
+     * @param consultFactory            Consult request factory for respective messages.
+     * @param advancedDecisionFactory   Advanced decision factory for handling respective messages.
+     */
     public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory,
                                  AdvancedDecisionFactory advancedDecisionFactory) {
         this.flowsheetFactory = flowsheetFactory;
@@ -181,7 +187,7 @@ public class OrderAndResultService {
             return OrderCodingSystem.FLOWSHEET;
         } else if ("Consult Orders".equals(sendingFacility)) {
             return OrderCodingSystem.CONSULT_ORDER;
-        } else if ("DNACPR".equals(sendingFacility.trim())) {  // sendingFacility comes with a trailing space, which might be due to it being "DNACPR & CPR" but the resulting string being "DNACPR "
+        } else if ("DNACPR".equals(sendingFacility.trim())) {
             return OrderCodingSystem.ADVANCED_DECISION_ORDER;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");

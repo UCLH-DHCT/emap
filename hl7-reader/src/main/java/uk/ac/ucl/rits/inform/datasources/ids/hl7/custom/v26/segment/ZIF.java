@@ -18,6 +18,11 @@ public class ZIF extends AbstractSegment {
     private static final int MAX_REPS = 0;
     private static final int MAX_LENGTH = 250;
 
+    /**
+     * Minimal constructor.
+     * @param parent Parent information for segment.
+     * @param factory Factory segment should be handled with.
+     */
     public ZIF(Group parent, ModelClassFactory factory) {
         super(parent, factory);
         // By convention, an init() method is created which adds

@@ -26,6 +26,10 @@ public class EthnicGroup {
     private static final Resource CSV_RESOURCE = new ClassPathResource("ethnic_group.csv");
     private Map<String, String> ethnicGroups = new HashMap<>();
 
+    /**
+     * Minimal constructor of Ethnic group.
+     * @throws IOException if ehtnic group map cannot be build.
+     */
     public EthnicGroup() throws IOException {
         logger.info("Building EthnicGroup map");
         buildMap();

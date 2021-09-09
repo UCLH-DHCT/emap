@@ -48,6 +48,10 @@ public class NotesParser {
         buildQuestionsAndComments();
     }
 
+    /**
+     * Minimal constructor to turn NTE elements of message into notes.
+     * @param notes collection of NTE elements from HL7 message.
+     */
     public NotesParser(Collection<NTE> notes) {
         this.notes = List.copyOf(notes);
         buildComments();
