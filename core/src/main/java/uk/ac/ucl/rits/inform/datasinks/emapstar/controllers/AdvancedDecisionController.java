@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecision;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecisionAudit;
@@ -30,7 +29,6 @@ public class AdvancedDecisionController {
     private final AdvancedDecisionRepository advancedDecisionRepo;
     private final AdvancedDecisionAuditRepository advancedDecisionAuditRepo;
     private final AdvancedDecisionTypeRepository advancedDecisionTypeRepo;
-    private final AdvancedDecisionTypeAuditRepository advancedDecisionTypeAuditRepo;
     private final QuestionController questionController;
 
     /**
@@ -38,19 +36,16 @@ public class AdvancedDecisionController {
      * @param advancedDecisionRepo           Holds current advanced decisions recorded for hospital patients.
      * @param advancedDecisionAuditRepo      Holds historic information on advanced decisions recorded for patients.
      * @param advancedDecisionTypeRepo       Holds type information of advanced decisions.
-     * @param advancedDecisionTypeAuditRepo  Repository holding historic changes to advanced decisions types.
      * @param questionController             Question controller for questions in relation to advanced decisions
      */
     public AdvancedDecisionController(
             AdvancedDecisionRepository advancedDecisionRepo,
             AdvancedDecisionTypeRepository advancedDecisionTypeRepo,
             AdvancedDecisionAuditRepository advancedDecisionAuditRepo,
-            AdvancedDecisionTypeAuditRepository advancedDecisionTypeAuditRepo,
             QuestionController questionController) {
         this.advancedDecisionRepo = advancedDecisionRepo;
         this.advancedDecisionAuditRepo = advancedDecisionAuditRepo;
         this.advancedDecisionTypeRepo = advancedDecisionTypeRepo;
-        this.advancedDecisionTypeAuditRepo = advancedDecisionTypeAuditRepo;
         this.questionController = questionController;
     }
 
@@ -161,8 +156,8 @@ public class AdvancedDecisionController {
 
         logger.debug("test tes tests");
 
-        advancedDecisionState.assignIfDifferent(msg.getRequestedDateTime(), advancedDecision.getRequestedDateTime(),
-                advancedDecision::setRequestedDateTime);
+        advancedDecisionState.assignIfDifferent(msg.getRequestedDateTime(), advancedDecision.getRequestedDatetime(),
+                advancedDecision::setRequestedDatetime);
         advancedDecisionState.assignIfDifferent(msg.getStatusChangeTime(), advancedDecision.getStatusChangeTime(),
                 advancedDecision::setStatusChangeTime);
         advancedDecisionState.assignIfDifferent(msg.isCancelled(), advancedDecision.getCancelled(),
