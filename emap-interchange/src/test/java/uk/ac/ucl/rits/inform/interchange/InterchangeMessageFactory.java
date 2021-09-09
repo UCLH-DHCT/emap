@@ -57,7 +57,7 @@ public class InterchangeMessageFactory {
 
     /**
      * @param fileName filename within the ConsultRequest folder
-     * @return consult message
+     * @return advanced decision message
      * @throws IOException if the file doesn't exist
      */
     public AdvancedDecisionMessage getAdvancedDecision(final String fileName) throws IOException {
