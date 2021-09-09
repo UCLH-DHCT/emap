@@ -1,7 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.AdvancedDecisionController;
