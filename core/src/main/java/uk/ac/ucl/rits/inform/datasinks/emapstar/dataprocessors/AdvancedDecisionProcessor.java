@@ -15,12 +15,12 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import java.time.Instant;
 
 /**
- * Advanced decision message processor.
+ * Advanced decision message processor that retrieves or creates all entities required to update or create an advanced
+ * care decision.
  * @author Anika Cawthorn
  */
 @Component
 public class AdvancedDecisionProcessor {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final AdvancedDecisionController advancedDecisionController;
     private final PersonController personController;
     private final VisitController visitController;
