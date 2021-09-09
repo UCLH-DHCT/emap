@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @SpringBootTest
 public class TestAdvancedDecisions extends TestHl7MessageStream {
-    private static final String FILE_TEMPLATE = "AdvancedDecisions/%s.txt";
+    private static final String FILE_TEMPLATE = "AdvancedDecision/%s.txt";
     private static final String MRN = "40800000";
     private static final Instant CHANGE_TIME = Instant.parse("2013-02-14T09:00:00Z");
     private static final Instant CANCEL_TIME = Instant.parse("2013-02-14T10:00:00Z");
@@ -56,7 +56,7 @@ public class TestAdvancedDecisions extends TestHl7MessageStream {
      */
     @Test
     void testSingleAdvancedDecisionProcessed() throws Exception {
-        AdvancedDecisionMessage advancedDecision = getPatientAdvancedDecision("minimal_no_questions");
+        AdvancedDecisionMessage advancedDecision = getPatientAdvancedDecision("minimal");
         assertEquals(MRN, advancedDecision.getMrn());
         assertEquals(EPIC, advancedDecision.getSourceSystem());
         assertEquals(CHANGE_TIME, advancedDecision.getStatusChangeTime());
