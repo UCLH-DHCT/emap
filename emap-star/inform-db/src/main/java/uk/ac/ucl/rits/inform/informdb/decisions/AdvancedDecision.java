@@ -62,9 +62,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      */
     private Long internalId;
 
-    /**
-     * Optional fields for advanced decisions.
-     */
+    // Optional fields for advanced decisions.
     /**
      * Indicates whether (True) or not (False) an advanced decision ceased to exist based on patient discharge.
      */
