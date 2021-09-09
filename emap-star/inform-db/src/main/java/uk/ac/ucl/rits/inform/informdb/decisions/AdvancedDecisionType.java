@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.informdb.decisions;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,7 +17,6 @@ import javax.persistence.Id;
 @Entity
 @Data
 @NoArgsConstructor
-@AuditTable
 public class AdvancedDecisionType {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
