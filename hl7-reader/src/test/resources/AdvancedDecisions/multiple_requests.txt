@@ -1,0 +1,32 @@
+MSH|^~\&|EPIC|DNACPR & CPR|||20130214090020|11828212|ORM^O01|1234|P|2.4|||AL|NE
+PID|1||40800000^^^MRENTR^MEDREC~9999999999^^^NHS^HN||ORANGE^BLOOD^^^^^D||19800101|F|||^^^^^ENGLAND^L|||||||||||Z2||||||||N
+PV1||I|T01^T01 BY06^BY06-34R^U^^^^^^^DEPID||||HB^BADGER^HONEY^^^^^^CONS^^^^CONS~C1111111^BADGER^HONEY^^^^^^CDS^^^^CDS||TYS^BADGER^HONEY^^^^^^CONS^^^^CONS|HaemGen|||||||TYS^BADGER^HONEY^^^^^^CONS^^^^CONS||123412341234|||||||||||||||||||||||||20130212110052||||||123412341234
+ZPV|5||||||||||2013024100020
+ORC|NW|1234521112^EPC|||||^^^20130212115500^^R||20130214090000|12321^JACK^PETER||111^JACK^PETER^^^^^^PROVID^^^^PROVID|T01^UCH T01 ACUTE MEDICAL^DEPID^10201^^^^^UCH T01 ACUTE MEDICAL|||||DTPDS123^DTPDS123|||||||||||I
+OBR|1|1234521112^EPC||^^^^DNACPR||20130212115500|||||Hosp Perf|||||222^JACK^PETER^^^^^^PROVID^^^^PROVID||||||||Resus Status|||^^^20130212115500^^R|||||||||20130212115500||||||||COD2
+NTE|1||Does the patient have capacity to make and communicate decisions about CPR?->Yes
+NTE|2||Summary of the main clinical problems and reasons why CPR would be inappropriate, unsuccessful or not in the patient's best interests:->Met breast Ca, brain mets, therapy related MDS, unlikely resus to add benefit
+NTE|3||Summary of communication with patient (or Legal Power of Attorney Healthcare). If this decision has not been discussed with the patient or Lasting Power of Attorney Healthcare state the reason why?->Patient aware of prognosis and was re-referred to her Oncologist
+NTE|4||Summary of communication with patient's relatives or friends:->Family aware
+NTE|5||Names of members of multidisciplinary team contributing to this decision:->PETER, JACK
+NTE|6||Names of members of multidisciplinary team contributing to this decision:->OTHER, AN
+NTE|7||Names of members of multidisciplinary team contributing to this decision:->ELSE, SOMEONE
+NTE|8||Name of responsible consultant:->PETER, JACK
+NTE|9||Responsible consultant aware of this DNACPR order?->Yes
+NTE|10||Decision communicated to nurse in charge->Yes
+NTE|11||Name of Nurse in Charge->Fullname Nurse
+NTE|12||Review date->Indefinite
+ORC|NW|1234521112^EPC|||||^^^20130212115500^^R||20130214090000|12321^JACK^PETER||111^JACK^PETER^^^^^^PROVID^^^^PROVID|T01^UCH T01 ACUTE MEDICAL^DEPID^10201^^^^^UCH T01 ACUTE MEDICAL|||||DTPDS123^DTPDS123|||||||||||I
+OBR|1|1234521112^EPC||^^^^DNACPR||20130212115500|||||Hosp Perf|||||222^JACK^PETER^^^^^^PROVID^^^^PROVID||||||||Resus Status|||^^^20130212115500^^R|||||||||20130212115500||||||||COD2
+NTE|1||Does the patient have capacity to make and communicate decisions about CPR?->Yes
+NTE|2||Summary of the main clinical problems and reasons why CPR would be inappropriate, unsuccessful or not in the patient's best interests:->Met breast Ca, brain mets, therapy related MDS, unlikely resus to add benefit
+NTE|3||Summary of communication with patient (or Legal Power of Attorney Healthcare). If this decision has not been discussed with the patient or Lasting Power of Attorney Healthcare state the reason why?->Patient aware of prognosis and was re-referred to her Oncologist
+NTE|4||Summary of communication with patient's relatives or friends:->Family aware
+NTE|5||Names of members of multidisciplinary team contributing to this decision:->PETER, JACK
+NTE|6||Names of members of multidisciplinary team contributing to this decision:->OTHER, AN
+NTE|7||Names of members of multidisciplinary team contributing to this decision:->ELSE, SOMEONE
+NTE|8||Name of responsible consultant:->PETER, JACK
+NTE|9||Responsible consultant aware of this DNACPR order?->Yes
+NTE|10||Decision communicated to nurse in charge->Yes
+NTE|11||Name of Nurse in Charge->Fullname Nurse
+NTE|12||Review date->Indefinite
