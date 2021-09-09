@@ -84,9 +84,9 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException{
         processSingleMessage(minimalNoQuestions);
 
-        List mrns = getAllMrns();
+        List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
-        List visits = getAllEntities(hospitalVisitRepository);
+        List<HospitalVisit> visits = getAllEntities(hospitalVisitRepository);
         assertEquals(1, visits.size());
 
         processSingleMessage(minimalNoQuestions);
@@ -120,7 +120,6 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
 
         AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
 
-        assertNotNull(advancedDecision.getAdvancedDecisionId());
         assertNotNull(advancedDecision.getValidFrom());
         assertNotNull(advancedDecision.getStoredFrom());
         assertEquals(ADVANCED_DECISION_REQ_TIME, advancedDecision.getRequestedDatetime());
@@ -156,6 +155,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
         processSingleMessage(cancelled);
         advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertTrue(advancedDecision.getCancelled());
+        assertEquals(ADVANCED_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advancedDecision.getStatusChangeTime());
     }
 
     /**
@@ -175,6 +175,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
         processSingleMessage(closedAtDischarge);
         advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
         assertTrue(advancedDecision.getClosedDueToDischarge());
+        assertEquals(ADVANCED_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advancedDecision.getStatusChangeTime());
     }
 
     /**
