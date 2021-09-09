@@ -78,7 +78,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
     /**
      * Time when the advanced decision for the patient's hospital visit has been recorded first.
      */
-    private Instant requestedDateTime;
+    private Instant requestedDatetime;
 
      /**
       * Indicates whether (True) or not (False) an advanced decision was cancelled, e.g. through a patient request.
@@ -114,7 +114,7 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
         this.cancelled = other.cancelled;
         this.closedDueToDischarge = other.closedDueToDischarge;
         this.statusChangeTime = other.statusChangeTime;
-        this.requestedDateTime = other.requestedDateTime;
+        this.requestedDatetime = other.requestedDatetime;
     }
 
     @Override
