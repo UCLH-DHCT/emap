@@ -31,13 +31,6 @@ public class AdvancedDecisionController {
     private final AdvancedDecisionTypeRepository advancedDecisionTypeRepo;
     private final QuestionController questionController;
 
-    /**
-     * Setting repositories holding information on advanced decisions.
-     * @param advancedDecisionRepo           Holds current advanced decisions recorded for hospital patients.
-     * @param advancedDecisionAuditRepo      Holds historic information on advanced decisions recorded for patients.
-     * @param advancedDecisionTypeRepo       Holds type information of advanced decisions.
-     * @param questionController             Question controller for questions in relation to advanced decisions
-     */
     public AdvancedDecisionController(
             AdvancedDecisionRepository advancedDecisionRepo,
             AdvancedDecisionTypeRepository advancedDecisionTypeRepo,
