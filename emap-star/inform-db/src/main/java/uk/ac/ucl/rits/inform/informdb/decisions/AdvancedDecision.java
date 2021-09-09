@@ -90,14 +90,14 @@ public class AdvancedDecision extends TemporalCore<AdvancedDecision, AdvancedDec
      * @param advancedDecisionTypeId    Identifier of AdvancedDecisionType relevant for this AdvancedDecision.
      * @param hospitalVisitId           Identifier of HospitalVisit this AdvancedDecision has been recorded for.
      * @param mrnId                     Patient identifier for whom AdvancedDecision is recorded.
-     * @param advancedDecisionNumber    Unique identifier assigned by EPIC for advanced decision.
+     * @param internalId                Unique identifier assigned by EPIC for advanced decision.
      */
     public AdvancedDecision(AdvancedDecisionType advancedDecisionTypeId, HospitalVisit hospitalVisitId, Mrn mrnId,
-                            Long advancedDecisionNumber) {
+                            Long internalId) {
         this.advancedDecisionTypeId = advancedDecisionTypeId;
         this.hospitalVisitId = hospitalVisitId;
         this.mrnId = mrnId;
-        this.internalId = advancedDecisionNumber;
+        this.internalId = internalId;
     }
 
     /**
