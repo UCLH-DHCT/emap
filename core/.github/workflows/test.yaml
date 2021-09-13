@@ -36,13 +36,12 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
       - name: Build inform-db
-        with:
-          path: Inform-DB
-        run: mvn install -Dmaven.test.skip=true
+        run: |
+        cd Inform-DB
+        mvn install -Dmaven.test.skip=true
       - name: Build Emap-Interchange
-        with:
-          path: Emap-Interchange
-        run:
+        run: |
+          cd Emap-Interchange
           # run tests so that test classes can be used in current testing
           mvn install
       - name: Build and test
