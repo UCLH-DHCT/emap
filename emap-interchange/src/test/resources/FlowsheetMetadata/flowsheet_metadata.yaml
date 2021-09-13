@@ -1,5 +1,8 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetId: "1090000038"
+  interfaceId:        null
+  sourceMessageId:    "1090000038"
+  flowsheetIdSourceSystem: 'CABOODLE'
   name:               "R HPSC IDG SW PRESENT"
   displayName:        "Social Work Team Member"
   valueType:          "String Type"
@@ -10,6 +13,9 @@
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetId: "1010010003"
+  interfaceId:        null
+  sourceMessageId:    "1010010003"
+  flowsheetIdSourceSystem: 'CABOODLE'
   name:               "R ED INTERPRETER ARRIVED"
   displayName:        "Arrival Time"
   valueType:          "Time"
@@ -20,6 +26,9 @@
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetId: "1020100368"
+  interfaceId:        null
+  sourceMessageId:    "1020100368"
+  flowsheetIdSourceSystem: 'CABOODLE'
   name:               "R OB NEWBORN HEARING SCREEN DATE"
   displayName:        "Date of Test"
   valueType:          "Date"

@@ -22,15 +22,34 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class FlowsheetMetadata extends EmapOperationMessage implements  ObservationType {
+public class FlowsheetMetadata extends EmapOperationMessage implements ObservationType {
+    /**
+     * The flowsheet's internal ID within the hospital.
+     */
     private String flowsheetId;
+    /**
+     * Flowsheet's ID number on this particular interface, eg. HL7 interface ID (MPI ID).
+     * Can be null in case of metadata from Caboodle.
+     */
+    private String interfaceId;
+    /**
+     * The namespace that the flowsheet (or is it interface?) ID refers to.
+     */
+    private FlowsheetIdSourceSystem flowsheetIdSourceSystem;
+
     private String name;
     private String displayName;
     private String valueType;
     private String unit;
     private String description;
+
+    // Only one of these gets set depending on the source of the data.
+    // Do these even need to be in the message? (doesn't the core proc compare existing data anyway)
     private Instant creationInstant;
     private Instant lastUpdatedInstant;
+    /**
+     * What is the data type to which this metadata message relates?
+     */
     private String sourceObservationType = "flowsheet";
 
     public FlowsheetMetadata() {
