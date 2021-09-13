@@ -37,15 +37,17 @@ jobs:
           distribution: 'adopt'
       - name: Build inform-db
         run: |
-        cd Inform-DB
+        cd Inform-DB \
         mvn install -Dmaven.test.skip=true
       - name: Build Emap-Interchange
         run: |
-          cd Emap-Interchange
+          cd Emap-Interchange \
           # run tests so that test classes can be used in current testing
           mvn install
       - name: Build and test
-        run: mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+        run: |
+        cd Emap-Core \
+        mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
         env:
           TZ: "America/Chicago"
       - name: Publish Test Report
