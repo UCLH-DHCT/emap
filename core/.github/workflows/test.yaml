@@ -9,10 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      # enable docker buildkit for faster building
-      DOCKER_BUILDKIT: 1
-      COMPOSE_DOCKER_CLI_BUILD: 1
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v2
@@ -34,35 +30,15 @@ jobs:
       run: |
         git clone --branch ${{ steps.vars.outputs.branch }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
         || git clone --branch develop https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
+    - name: Set up JDK 11 # also enables caching
+      uses: actions/setup-java@v2
       with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-    - name: Enable caching of docker build layers
-      uses: actions/cache@v2
-      with:
-        path: /tmp/build-cache
-        # use the same key for same operating system, could try and do for most recent tag of repo?
-        key: ${{ runner.os }}
-    - name: Build docker
-      working-directory: github_actions_test
-      # building services, importing cache and exporting cache
-      # there is a github action cache but experimental so not using for now
-      run: |
-        docker-compose -f docker-compose.fake-services.yml -f docker-compose.test.yml build
-          --import-cache type=local,src=/tmp/build-cache --export-cache type=local,dest=/tmp/build-cache-new
-    - name: run tests
-      working-directory: github_actions_test
-      run: |
-        docker-compose -f docker-compose.fake-services.yml  -f docker-compose.test.yml up --exit-code-from sut
+        java-version: '11'
+        distribution: 'adopt'
+    - name: Build and test
+      run: mvn --batch-mode --update-snapshots verify
     - name: Publish Test Report
       uses: mikepenz/action-junit-report@v2
       if: always() # always run even if the previous step fails
       with:
         report_paths: '**/target/surefire-reports/TEST-*.xml'
-    - name: Move cache
-      # remove previous cache and the transfer new cache to current
-      run: |
-        rm -rf /tmp/build-cache
-        mv /tmp/.build-cache-new /tmp/build-cache
