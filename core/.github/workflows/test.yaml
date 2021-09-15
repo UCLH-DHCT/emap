@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          path: Emap-Core
+        # try and checkout the same branch as the PR, otherwise revert to develop
+      - name: Set output variables
+        # gets current branch name
+        id: vars
+        run: echo ::set-output name=branch::${GITHUB_REF#refs/*/} # ${{ steps.vars.outputs.branch }}
+      - name: Checkout Inform-DB
+        id: checkout-informdb
+        run: |
+          git clone --branch ${{ steps.vars.outputs.branch }} https://github.com/inform-health-informatics/Inform-DB.git \
+          || git clone --branch develop https://github.com/inform-health-informatics/Inform-DB.git
+      - name: Checkout Emap-Interchange
+        id: checkout-interchange
+        # need to clone using secrets with a github access token as private repo
+        run: |
+          git clone --branch ${{ steps.vars.outputs.branch }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
+          || git clone --branch develop https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git
+      - name: Set up JDK 11 # also enables caching
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: 'maven'
+      - name: Build inform-db
+        run: mvn install -Dmaven.test.skip=true
+        working-directory: Inform-DB
+      - name: Build Emap-Interchange
+        run: mvn install # run tests so that test classes can be used in current testing
+        working-directory: Emap-Interchange
+      - name: Build and test
+        run: mvn -Dspring.profiles.active=test integration-test -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
+        working-directory: Emap-Core
+        env:
+          TZ: "America/Chicago"
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v2
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
