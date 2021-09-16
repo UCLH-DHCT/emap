@@ -31,7 +31,10 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-      - name: Build Emap-Interchange
+      - name: Clean emap-hl7-processor
+        run: mvn clean # clean everything before starting
+        working-directory: emap-hl7-processor
+      - name: Clean Emap-Interchange
         run: mvn clean # clean everything before starting
         working-directory: Emap-Interchange
       - name: Build Emap-Interchange
