@@ -43,10 +43,10 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
     private String unit;
     private String description;
 
-    // Only one of these gets set depending on the source of the data.
-    // Do these even need to be in the message? (doesn't the core proc compare existing data anyway)
     private Instant creationInstant;
+    // Not guaranteed to be set depending on the source of the data.
     private Instant lastUpdatedInstant;
+
     /**
      * What is the data type to which this metadata message relates?
      */
