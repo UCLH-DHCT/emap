@@ -19,8 +19,8 @@ jobs:
         # gets current branch name
         id: vars
         run: echo ::set-output name=branch::${GITHUB_REF#refs/*/} # ${{ steps.vars.outputs.branch }}
-      - name: Checkout Emap-Interchange
-        id: checkout-interchange
+      - name: Checkout emap-hl7-processor
+        id: checkout-emap-hl7-processor
         # need to clone using secrets with a github access token as private repo
         run: |
           git clone --branch ${{ steps.vars.outputs.branch }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
@@ -31,9 +31,9 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-      - name: Build Emap-Interchange
+      - name: Build emap-hl7-processor
         run: mvn clean install # run tests so that test classes can be used in current testing
-        working-directory: Emap-Interchange
+        working-directory: emap-hl7-processor
       - name: Build and test
         run: mvn test
         working-directory: emap-hl7-processor
