@@ -32,6 +32,9 @@ jobs:
           distribution: 'adopt'
           cache: 'maven'
       - name: Build Emap-Interchange
+        run: mvn clean # clean everything before starting
+        working-directory: Emap-Interchange
+      - name: Build Emap-Interchange
         run: mvn install # run tests so that test classes can be used in current testing
         working-directory: Emap-Interchange
       - name: Build and test
