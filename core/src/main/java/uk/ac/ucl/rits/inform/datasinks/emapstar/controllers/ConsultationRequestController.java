@@ -78,8 +78,8 @@ public class ConsultationRequestController {
      * @param storedFrom when consultation request information is stored from
      * @return ConsultRequestType
      */
-    @Cacheable(value = "ConsultationTypeCache", key = "ConsultationType")
-    private ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
+    @Cacheable(value = "ConsultationType", key = "{#msg.consultationType}")
+    public ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
         return consultationTypeRepo
                 .findByCode(msg.getConsultationType())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
