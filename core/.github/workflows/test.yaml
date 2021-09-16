@@ -36,6 +36,9 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
+      - name: Clean all cached versions before testing
+        run: mvn clean
+        working-directory: Emap-Core
       - name: Build inform-db
         run: mvn install -Dmaven.test.skip=true
         working-directory: Inform-DB
