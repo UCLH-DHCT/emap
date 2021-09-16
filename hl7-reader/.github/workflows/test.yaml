@@ -31,14 +31,8 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-      - name: Clean emap-hl7-processor
-        run: mvn clean # clean everything before starting
-        working-directory: emap-hl7-processor
-      - name: Clean Emap-Interchange
-        run: mvn clean # clean everything before starting
-        working-directory: Emap-Interchange
       - name: Build Emap-Interchange
-        run: mvn install # run tests so that test classes can be used in current testing
+        run: mvn clean install # run tests so that test classes can be used in current testing
         working-directory: Emap-Interchange
       - name: Build and test
         run: mvn test
