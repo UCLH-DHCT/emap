@@ -35,7 +35,7 @@ jobs:
         run: mvn clean install # run tests so that test classes can be used in current testing
         working-directory: Emap-Interchange
       - name: Build and test
-        run: mvn clean test
+        run: mvn test
         working-directory: emap-hl7-processor
         env:
           TZ: "America/Chicago"
