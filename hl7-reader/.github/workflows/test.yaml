@@ -23,8 +23,8 @@ jobs:
         id: checkout-Emap-Interchange
         # need to clone using secrets with a github access token as private repo
         run: |
-          echo "cloning ${{ GITHUB_HEAD_REF }}"
-          && git clone --branch ${{ GITHUB_HEAD_REF }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
+          echo "cloning ${{ env.GITHUB_HEAD_REF }}"
+          && git clone --branch ${{ env.GITHUB_HEAD_REF }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
           || git clone --branch develop https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git
       - name: Set up JDK 11 # also enables caching
         uses: actions/setup-java@v2
