@@ -4,7 +4,7 @@ package uk.ac.ucl.rits.inform.interchange.visit_observations;
  * @author Jeremy Stein
  *
  */
-public enum FlowsheetIdSourceSystem {
+public enum InterfaceIdSourceSystem {
     /**
      * An ID from the HL7 interface (aka MPI ID).
      */
@@ -17,7 +17,7 @@ public enum FlowsheetIdSourceSystem {
 
     private String stringVal;
 
-    FlowsheetIdSourceSystem(String stringVal) {
+    InterfaceIdSourceSystem(String stringVal) {
         this.stringVal = stringVal;
     }
 
