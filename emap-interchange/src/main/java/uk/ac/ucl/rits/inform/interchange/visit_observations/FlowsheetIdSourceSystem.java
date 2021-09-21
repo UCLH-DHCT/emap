@@ -6,12 +6,12 @@ package uk.ac.ucl.rits.inform.interchange.visit_observations;
  */
 public enum FlowsheetIdSourceSystem {
     /**
-     * A flowsheet ID from the HL7 interface (aka MPI ID).
+     * An ID from the HL7 interface (aka MPI ID).
      */
     EPIC("EPIC"),
 
     /**
-     * A flowsheet ID from Caboodle.
+     * An ID from Caboodle.
      */
     CABOODLE("CABOODLE");
 

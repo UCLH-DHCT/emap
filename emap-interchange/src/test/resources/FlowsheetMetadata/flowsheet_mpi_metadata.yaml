@@ -4,7 +4,7 @@
   sourceMessageId: '7001026'
   name: 'UCLH EMAP EPIDURAL VOLUME'
   description: null
-  flowsheetIdSourceSystem: 'EPIC'
+  interfaceIdSourceSystem: 'EPIC'
   unit: null
   creationInstant: '2020-05-29T00:00:00.000Z'
   sourceSystem: "clarity"
@@ -14,7 +14,7 @@
   sourceMessageId: '25251'
   name: 'UCLH EMAP R UCLH METOPROLOL VOLUME'
   description: null
-  flowsheetIdSourceSystem: 'EPIC'
+  interfaceIdSourceSystem: 'EPIC'
   unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
@@ -24,7 +24,7 @@
   sourceMessageId: '331243'
   name: 'UCLH EMAP R ESMOLOL VOLUME'
   description: null
-  flowsheetIdSourceSystem: 'EPIC'
+  interfaceIdSourceSystem: 'EPIC'
   unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
@@ -34,7 +34,7 @@
   sourceMessageId: '331258'
   name: 'UCLH EMAP R UCLH SODIUM NITROPRUSSIDE VOLUME'
   description: null
-  flowsheetIdSourceSystem: 'EPIC'
+  interfaceIdSourceSystem: 'EPIC'
   unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"

@@ -24,18 +24,19 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class FlowsheetMetadata extends EmapOperationMessage implements ObservationType {
     /**
+     * The flowsheet's ID that will be seen in subsequent flowsheet messages.
+     * This will depend on the flowsheet data source.
+     * (Eg. For HL7 it's the MPI ID. For Caboodle it's the flowsheetRowEpicId).
+     */
+    private String interfaceId;
+    /**
      * The flowsheet's Epic ID.
      */
     private String flowsheetRowEpicId;
     /**
-     * Flowsheet's ID number on this particular interface, eg. HL7 interface ID (MPI ID).
-     * Can be null in case of metadata from Caboodle.
+     * Denotes the source system of the interfaceId field.
      */
-    private String interfaceId;
-    /**
-     * Denotes the source system of the flowsheetRowEpicId field.
-     */
-    private FlowsheetIdSourceSystem flowsheetIdSourceSystem;
+    private FlowsheetIdSourceSystem interfaceIdSourceSystem;
 
     private String name;
     private String displayName;
@@ -66,6 +67,6 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
     @Override
     @JsonIgnore
     public String getId() {
-        return flowsheetRowEpicId;
+        return interfaceId;
     }
 }
