@@ -36,7 +36,7 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
     /**
      * Denotes the source system of the interfaceId field.
      */
-    private FlowsheetIdSourceSystem interfaceIdSourceSystem;
+    private InterfaceIdSourceSystem interfaceIdSourceSystem;
 
     private String name;
     private String displayName;
