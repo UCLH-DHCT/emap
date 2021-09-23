@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.*;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvancedDecisionTypeRepository;
-import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecision;
-import uk.ac.ucl.rits.inform.informdb.decisions.AdvancedDecisionType;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvanceDecisionRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvanceDecisionTypeRepository;
+import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecision;
+import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecisionType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
-import uk.ac.ucl.rits.inform.interchange.AdvancedDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 
 import java.io.IOException;
@@ -22,14 +22,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test cases to assert correct processing of AdvancedDecisionMessages.
+ * Test cases to assert correct processing of AdvanceDecisionMessages.
  * @author Anika Cawthorn
  */
-public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
+public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
     @Autowired
-    AdvancedDecisionRepository advancedDecisionRepo;
+    AdvanceDecisionRepository advanceDecisionRepo;
     @Autowired
-    AdvancedDecisionTypeRepository advancedDecisionTypeRepo;
+    AdvanceDecisionTypeRepository advanceDecisionTypeRepo;
     @Autowired
     MrnRepository mrnRepository;
     @Autowired
@@ -37,28 +37,28 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     @Autowired
     QuestionRepository questionRepository;
 
-    private AdvancedDecisionMessage minimalNoQuestions;
-    private AdvancedDecisionMessage minimalWithQuestions;
-    private AdvancedDecisionMessage closedAtDischarge;
-    private AdvancedDecisionMessage cancelled;
+    private AdvanceDecisionMessage minimalNoQuestions;
+    private AdvanceDecisionMessage minimalWithQuestions;
+    private AdvanceDecisionMessage closedAtDischarge;
+    private AdvanceDecisionMessage cancelled;
 
-    private static String ADVANCED_DECISION_MRN = "40800000";
-    private static String ADVANCED_DECISION_CARE_CODE = "COD4";
-    private static Instant ADVANCED_DECISION_REQ_TIME =  Instant.parse("2013-02-12T11:55:00Z");
-    private static Instant ADVANCED_DECISION_STAT_CHANGE_TIME =  Instant.parse("2013-02-14T09:00:00Z");
-    private static Long ADVANCED_DECISION_INTERNAL_ID = 1234521112L;
+    private static String ADVANCE_DECISION_MRN = "40800000";
+    private static String ADVANCE_DECISION_CARE_CODE = "COD4";
+    private static Instant ADVANCE_DECISION_REQ_TIME =  Instant.parse("2013-02-12T11:55:00Z");
+    private static Instant ADVANCE_DECISION_STAT_CHANGE_TIME =  Instant.parse("2013-02-14T09:00:00Z");
+    private static Long ADVANCE_DECISION_INTERNAL_ID = 1234521112L;
 
     @BeforeEach
     private void setUp() throws IOException {
-        minimalNoQuestions = messageFactory.getAdvancedDecision("minimal.yaml");
-        minimalWithQuestions = messageFactory.getAdvancedDecision("new_with_questions.yaml");
-        closedAtDischarge = messageFactory.getAdvancedDecision("closed_at_discharge.yaml");
-        cancelled = messageFactory.getAdvancedDecision("cancelled.yaml");
+        minimalNoQuestions = messageFactory.getAdvanceDecision("minimal.yaml");
+        minimalWithQuestions = messageFactory.getAdvanceDecision("new_with_questions.yaml");
+        closedAtDischarge = messageFactory.getAdvanceDecision("closed_at_discharge.yaml");
+        cancelled = messageFactory.getAdvanceDecision("cancelled.yaml");
     }
 
     /**
      *  Given that no MRNS or hospital visits exist in the database
-     *  When a new AdvancedDecisionMessage without questions arrives
+     *  When a new AdvanceDecisionMessage without questions arrives
      *  Then a minimal HospitalVisit, Mrn and AdvancedDecision should be created
      */
     @Test
@@ -68,7 +68,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
 
-        assertEquals(ADVANCED_DECISION_MRN, mrns.get(0).getMrn());
+        assertEquals(ADVANCE_DECISION_MRN, mrns.get(0).getMrn());
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
 
@@ -77,7 +77,7 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
 
     /**
      * Given that MRNs and hospital visits exist in the database
-     * When an AdvancedDecisionMessage is processed with existing mrn and visit number
+     * When an AdvanceDecisionMessage is processed with existing mrn and visit number
      * Then minimal MRN and hospital visit are not created
      */
     @Test
@@ -97,14 +97,14 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Given that no advanced decision type exist in the database
-     * When an AdvancedDecisionMessage is processed
+     * Given that no advance decision type exist in the database
+     * When an AdvanceDecisionMessage is processed
      * Then A new minimal AdvancedDecicisionType should be created
      */
     @Test
     void testMinimalAdvancedDecisionTypeCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
-        AdvancedDecisionType adType = advancedDecisionTypeRepo.findByCareCode(ADVANCED_DECISION_CARE_CODE).orElseThrow();
+        AdvanceDecisionType adType = advanceDecisionTypeRepo.findByCareCode(ADVANCE_DECISION_CARE_CODE).orElseThrow();
 
         assertNotNull(adType.getName());
     }
@@ -118,44 +118,44 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     void testCreateNewAdvancedDecision() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
 
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
+        AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
 
-        assertNotNull(advancedDecision.getValidFrom());
-        assertNotNull(advancedDecision.getStoredFrom());
-        assertEquals(ADVANCED_DECISION_REQ_TIME, advancedDecision.getRequestedDatetime());
-        assertEquals(ADVANCED_DECISION_STAT_CHANGE_TIME, advancedDecision.getStatusChangeTime());
+        assertNotNull(advanceDecision.getValidFrom());
+        assertNotNull(advanceDecision.getStoredFrom());
+        assertEquals(ADVANCE_DECISION_REQ_TIME, advanceDecision.getRequestedDatetime());
+        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME, advanceDecision.getStatusChangeTime());
     }
 
     /**
-     *  Given that no AdvancedDecision exist
-     *  When a new AdvancedDecisionMessage with questions arrives
-     *  Then a new AdvancedDecision and the related questions should be created
+     *  Given that no AdvanceDecision exist
+     *  When a new AdvanceDecisionMessage with questions arrives
+     *  Then a new AdvanceDecision and the related questions should be created
      */
     @Test
     void testAdvancedDecisionWithQuestionsCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalWithQuestions);
-        AdvancedDecision advancedDecisionRequest = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
+        AdvanceDecision advanceDecisionRequest = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertEquals(3, questionRepository.count());
     }
 
     /**
-     * Given that the minimal AdvancedDecision has already been processed
-     * When a later AdvancedDecisionMessage with cancel=true with the same internal id and advancedDecisionType is processed
-     * Then the existing AdvancedDecision has after processing a cancelled state set to true and the storedFrom and
+     * Given that the minimal AdvanceDecision has already been processed
+     * When a later AdvanceDecisionMessage with cancel=true with the same internal id and advancedDecisionType is processed
+     * Then the existing AdvanceDecision has after processing a cancelled state set to true and the storedFrom and
      *   validFrom fields are updated
      */
     @Test
     void testLaterMessageCancelRequest() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
 
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertFalse(advancedDecision.getCancelled());
+        AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertFalse(advanceDecision.getCancelled());
 
         cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().plusSeconds(60));
         processSingleMessage(cancelled);
-        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertTrue(advancedDecision.getCancelled());
-        assertEquals(ADVANCED_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advancedDecision.getStatusChangeTime());
+        advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertTrue(advanceDecision.getCancelled());
+        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advanceDecision.getStatusChangeTime());
     }
 
     /**
@@ -168,14 +168,14 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     @Test
     void testLaterMessageClosedDueToDischarge() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertFalse(advancedDecision.getClosedDueToDischarge());
+        AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertFalse(advanceDecision.getClosedDueToDischarge());
 
         closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().plusSeconds(60));
         processSingleMessage(closedAtDischarge);
-        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertTrue(advancedDecision.getClosedDueToDischarge());
-        assertEquals(ADVANCED_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advancedDecision.getStatusChangeTime());
+        advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertTrue(advanceDecision.getClosedDueToDischarge());
+        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advanceDecision.getStatusChangeTime());
     }
 
     /**
@@ -187,29 +187,29 @@ public class TestAdvancedDecisionProcessing extends MessageProcessingBase {
     void testEarlierMessageNoCancelUpdate() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
 
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertFalse(advancedDecision.getCancelled());
+        AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertFalse(advanceDecision.getCancelled());
 
         cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
         processSingleMessage(cancelled);
-        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertFalse(advancedDecision.getCancelled());
+        advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertFalse(advanceDecision.getCancelled());
     }
 
     /**
-     * Given that an AdvancedDecision has already been processed
-     * When an earlier AdvancedDecisionMessage with closedDueToDischarge flag active is sent
-     * Then the existing AdvancedDecision is not updated
+     * Given that an AdvanceDecision has already been processed
+     * When an earlier AdvanceDecisionMessage with closedDueToDischarge flag active is sent
+     * Then the existing AdvanceDecision is not updated
      */
     @Test
     void testEarlierMessageNoClosedDueToDischargeUpdate() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalNoQuestions);
-        AdvancedDecision advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertFalse(advancedDecision.getClosedDueToDischarge());
+        AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertFalse(advanceDecision.getClosedDueToDischarge());
 
         closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
         processSingleMessage(closedAtDischarge);
-        advancedDecision = advancedDecisionRepo.findByInternalId(ADVANCED_DECISION_INTERNAL_ID).orElseThrow();
-        assertFalse(advancedDecision.getClosedDueToDischarge());
+        advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertFalse(advanceDecision.getClosedDueToDischarge());
     }
 }
