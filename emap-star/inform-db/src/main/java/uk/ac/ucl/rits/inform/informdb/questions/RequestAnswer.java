@@ -6,14 +6,7 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Index;
+import javax.persistence.*;
 import java.time.Instant;
 
 /**
@@ -27,7 +20,8 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@AuditTable(indexes = {@Index(name = "idxParentId", columnList = "parentId")})
+@AuditTable
+@Table(indexes = {@Index(name = "idxParentId", columnList = "parentId")})
 public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
