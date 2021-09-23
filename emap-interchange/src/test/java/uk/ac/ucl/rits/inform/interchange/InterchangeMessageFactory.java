@@ -60,9 +60,9 @@ public class InterchangeMessageFactory {
      * @return advanced decision message
      * @throws IOException if the file doesn't exist
      */
-    public AdvancedDecisionMessage getAdvancedDecision(final String fileName) throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream(String.format("/AdvancedDecision/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<AdvancedDecisionMessage>() {});
+    public AdvanceDecisionMessage getAdvancedDecision(final String fileName) throws IOException {
+        InputStream inputStream = getClass().getResourceAsStream(String.format("/AdvanceDecision/%s", fileName));
+        return mapper.readValue(inputStream, new TypeReference<AdvanceDecisionMessage>() {});
     }
 
 
