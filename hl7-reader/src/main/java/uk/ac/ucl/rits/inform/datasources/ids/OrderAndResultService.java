@@ -28,19 +28,19 @@ import java.util.Collections;
 public class OrderAndResultService {
     private FlowsheetFactory flowsheetFactory;
     private ConsultFactory consultFactory;
-    private AdvancedDecisionFactory advancedDecisionFactory;
+    private AdvanceDecisionFactory advanceDecisionFactory;
 
     /**
      * Minimal constructur for order and result service.
      * @param flowsheetFactory          Flowsheet factory for respective messages.
      * @param consultFactory            Consult request factory for respective messages.
-     * @param advancedDecisionFactory   Advanced decision factory for handling respective messages.
+     * @param advanceDecisionFactory   Advanced decision factory for handling respective messages.
      */
     public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory,
-                                 AdvancedDecisionFactory advancedDecisionFactory) {
+                                 AdvanceDecisionFactory advanceDecisionFactory) {
         this.flowsheetFactory = flowsheetFactory;
         this.consultFactory = consultFactory;
-        this.advancedDecisionFactory = advancedDecisionFactory;
+        this.advanceDecisionFactory = advanceDecisionFactory;
     }
 
     /**
@@ -70,7 +70,7 @@ public class OrderAndResultService {
             case CONSULT_ORDER:
                 return Collections.singleton(consultFactory.makeConsult(sourceId, msg));
             case ADVANCED_DECISION_ORDER:
-                return Collections.singleton(advancedDecisionFactory.makeAdvancedDecision(sourceId, msg));
+                return Collections.singleton(advanceDecisionFactory.makeAdvancedDecision(sourceId, msg));
             default:
                 // Lab Funnel will throw message ignored exception if not a parsed type (e.g. flowsheet)
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);

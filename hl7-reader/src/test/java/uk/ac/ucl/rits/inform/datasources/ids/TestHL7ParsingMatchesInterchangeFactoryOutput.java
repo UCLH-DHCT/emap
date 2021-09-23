@@ -185,27 +185,27 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         checkConsultMatchesInterchange("notes");
     }
 
-    void checkAdvancedDecisionMatchesInterchange(String fileName) throws Exception {
+    void checkAdvanceDecisionMatchesInterchange(String fileName) throws Exception {
         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
-                String.format("AdvancedDecision/%s.txt", fileName));
-        AdvancedDecisionMessage expected = interchangeFactory.getAdvancedDecision(String.format("%s.yaml", fileName));
+                String.format("AdvanceDecision/%s.txt", fileName));
+        AdvanceDecisionMessage expected = interchangeFactory.getAdvanceDecision(String.format("%s.yaml", fileName));
         assertEquals(1, messagesFromHl7Message.size());
         assertEquals(expected, messagesFromHl7Message.get(0));
     }
 
     @Test
-    void testClosedAtDischargeAdvancedDecision() throws Exception {
-        checkAdvancedDecisionMatchesInterchange("closed_at_discharge");
+    void testClosedAtDischargeAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("closed_at_discharge");
     }
 
     @Test
-    void testCancelledAdvancedDecision() throws Exception {
-        checkAdvancedDecisionMatchesInterchange("cancelled");
+    void testCancelledAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("cancelled");
     }
 
     @Test
-    void testMinimalAdvancedDecision() throws Exception {
-        checkAdvancedDecisionMatchesInterchange("minimal");
+    void testMinimalAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("minimal");
     }
 
     @Test
