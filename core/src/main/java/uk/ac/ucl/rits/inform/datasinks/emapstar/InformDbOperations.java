@@ -11,7 +11,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationReque
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
-import uk.ac.ucl.rits.inform.interchange.AdvancedDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -172,7 +172,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
 
     @Override
     @Transactional
-    public void processMessage(AdvancedDecisionMessage msg) throws EmapOperationMessageProcessingException {
+    public void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
         advancedDecisionProcessor.processMessage(msg, storedFrom);
     }
