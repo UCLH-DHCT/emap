@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationMetadataController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvancedDecisionProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvanceDecisionProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
@@ -48,7 +48,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Autowired
     private LocationMetadataController locationMetadataController;
     @Autowired
-    private AdvancedDecisionProcessor advancedDecisionProcessor;
+    private AdvanceDecisionProcessor advanceDecisionProcessor;
 
     /**
      * Process a lab order message.
@@ -174,6 +174,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        advancedDecisionProcessor.processMessage(msg, storedFrom);
+        advanceDecisionProcessor.processMessage(msg, storedFrom);
     }
 }
