@@ -55,7 +55,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
      */
     private Mrn mrnId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     /**
      * Identifier assigned in source system that should be unique across all advance decisions recorded in the
      * hospital.
