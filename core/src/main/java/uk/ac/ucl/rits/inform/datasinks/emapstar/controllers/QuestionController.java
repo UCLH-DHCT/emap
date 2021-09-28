@@ -20,7 +20,7 @@ import java.util.Map;
 enum ParentTableType {
     CONSULT_REQUEST,
     LAB_SAMPLE,
-    ADVANCED_DECISION
+    ADVANCE_DECISION
 }
 
 /**
