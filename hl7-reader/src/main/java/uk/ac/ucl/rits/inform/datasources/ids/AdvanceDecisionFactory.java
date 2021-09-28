@@ -43,12 +43,12 @@ public class AdvanceDecisionFactory {
 
         ORM_O01_ORDER order = ormO01.getORDER();
         addCancelledOrClosed(advanceDecision, order, patientInfo);
-        addAdvancedDecisionInformation(advanceDecision, order);
+        addAdvanceDecisionInformation(advanceDecision, order);
         addQuestions(advanceDecision, order.getORDER_DETAIL().getNTEAll());
         return advanceDecision;
     }
 
-    private void addAdvancedDecisionInformation(AdvanceDecisionMessage advanceDecisionMessage, ORM_O01_ORDER order)
+    private void addAdvanceDecisionInformation(AdvanceDecisionMessage advanceDecisionMessage, ORM_O01_ORDER order)
             throws HL7Exception {
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
