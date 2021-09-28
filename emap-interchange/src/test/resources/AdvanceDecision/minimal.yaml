@@ -3,7 +3,7 @@ sourceSystem: "EPIC"
 sourceMessageId: "11828212"
 mrn: "40800000"
 visitNumber: "123412341234"
-statusChangeTime: "2013-02-14T09:00:00Z"
+statusChangeDatetime: "2013-02-14T09:00:00Z"
 requestedDatetime: "2013-02-12T11:55:00Z"
 advanceDecisionNumber: 1234521112
 advanceDecisionTypeName: "FULL ACTIVE TREATMENT"
