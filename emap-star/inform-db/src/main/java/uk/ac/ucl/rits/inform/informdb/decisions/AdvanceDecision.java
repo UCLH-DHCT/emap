@@ -71,7 +71,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
     /**
      * Time when the information for the advance decision has been last updated.
      */
-    private Instant statusChangeTime;
+    private Instant statusChangeDatetime;
 
     /**
      * Time when the advance decision for the patient's hospital visit has been recorded first.
@@ -111,7 +111,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
         this.mrnId = other.mrnId;
         this.cancelled = other.cancelled;
         this.closedDueToDischarge = other.closedDueToDischarge;
-        this.statusChangeTime = other.statusChangeTime;
+        this.statusChangeDatetime = other.statusChangeDatetime;
         this.requestedDatetime = other.requestedDatetime;
     }
 
