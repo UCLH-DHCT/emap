@@ -63,7 +63,7 @@ public class AdvanceDecisionController {
         RowState<AdvanceDecision, AdvanceDecisionAudit> advanceDecisionState = getOrCreateAdvancedDecision(
                 msg, visit, mrn, advanceDecisionType, storedFrom);
 
-        if (messageShouldBeUpdated(msg, advanceDecisionState)) {
+        if (messageShouldBeUpdated(msg.getStatusChangeDatetime(), advanceDecisionState)) {
             updateConsultRequest(msg, advanceDecisionState);
         }
 
@@ -135,13 +135,13 @@ public class AdvanceDecisionController {
 
     /**
      * Decides whether or not the data held for a specific advance decision needs to be updated or not.
-     * @param msg                     Advance decision message.
+     * @param statusChangeDatetime    Datetime of AdvanceDecisionMessage that's currently processed.
      * @param advancedDecisionState   State of advance decision created from message.
      * @return true if message should be updated
      */
-    private boolean messageShouldBeUpdated(AdvanceDecisionMessage msg, RowState<AdvanceDecision,
+    private boolean messageShouldBeUpdated(Instant statusChangeDatetime, RowState<AdvanceDecision,
             AdvanceDecisionAudit> advancedDecisionState) {
-        return (advancedDecisionState.isEntityCreated() || !msg.getStatusChangeDatetime().isBefore(
+        return (advancedDecisionState.isEntityCreated() || !statusChangeDatetime.isBefore(
                 advancedDecisionState.getEntity().getValidFrom()));
     }
 
