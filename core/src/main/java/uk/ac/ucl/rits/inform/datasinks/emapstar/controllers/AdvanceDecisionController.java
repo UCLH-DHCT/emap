@@ -68,14 +68,14 @@ public class AdvanceDecisionController {
         }
 
         advanceDecisionState.saveEntityOrAuditLogIfRequired(advanceDecisionRepo, advanceDecisionAuditRepo);
-        questionController.processQuestions(msg.getQuestions(), ParentTableType.ADVANCED_DECISION.toString(),
+        questionController.processQuestions(msg.getQuestions(), ParentTableType.ADVANCE_DECISION.toString(),
                 advanceDecisionState.getEntity().getAdvanceDecisionId(), msg.getRequestedDatetime(), storedFrom);
     }
 
     /**
      * Check whether advanced decision type exists already. If it does, add the existing type to the advanced decision;
-     * if not, create a new advanced decision type from the information provided in the message.
-     * @param msg        Advanced decision message.
+     * if not, create a new advance decision type from the information provided in the message.
+     * @param msg        Advance decision message.
      * @param storedFrom When information in relation to advanced decision type has been stored from
      * @return AdvancedDecisionType
      */
@@ -86,8 +86,8 @@ public class AdvanceDecisionController {
     }
 
     /**
-     * Create and save a new AdvancedDecisionType from the information contained in the AdvancedDecisionMessage.
-     * @param msg           Advanced decision message.
+     * Create and save a new AdvanceDecisionType from the information contained in the AdvancedDecisionMessage.
+     * @param msg           Advance decision message.
      * @param storedFrom    Time that emap-core started processing this type of message.
      * @return saved AdvancedDecisionType
      */
@@ -98,8 +98,8 @@ public class AdvanceDecisionController {
     }
 
     /**
-     * Get existing or create new advanced decision.
-     * @param msg                   Advanced decision message.
+     * Get existing or create new advance decision.
+     * @param msg                   Advance decision message.
      * @param visit                 Hospital visit of patient this advanced decision message refers to.
      * @param mrn                   Patient this advanced decision is recorded for.
      * @param advanceDecisionType  Type of advanced decision recorded for patient.
@@ -111,13 +111,13 @@ public class AdvanceDecisionController {
             Instant storedFrom) {
         return advanceDecisionRepo
                 .findByInternalId(msg.getAdvanceDecisionNumber())
-                .map(obs -> new RowState<>(obs, msg.getRequestedDatetime(), storedFrom, false))
+                .map(obs -> new RowState<>(obs, msg.getStatusChangeDatetime(), storedFrom, false))
                 .orElseGet(() -> createMinimalAdvanceDecision(msg, visit, mrn, advanceDecisionType, storedFrom));
     }
 
     /**
-     * Create minimal advanced decision wrapped in RowState.
-     * @param msg                   Advanced decision message
+     * Create minimal advance decision wrapped in RowState.
+     * @param msg                   Advance decision message
      * @param visit                 Hospital visit of the patient advanced decision was recorded for.
      * @param mrn                   Identifier of patient the advanced decision has been recorded for.
      * @param advanceDecisionType  Type of advanced decision recorded for patient.
@@ -130,25 +130,25 @@ public class AdvanceDecisionController {
         AdvanceDecision advanceDecision = new AdvanceDecision(advanceDecisionType, visit, mrn,
                 msg.getAdvanceDecisionNumber());
         logger.debug("Created new {}", advanceDecision);
-        return new RowState<>(advanceDecision, msg.getStatusChangeTime(), storedFrom, true);
+        return new RowState<>(advanceDecision, msg.getStatusChangeDatetime(), storedFrom, true);
     }
 
     /**
-     * Decides whether or not the data held for a specific advanced decision needs to be updated or not.
-     * @param msg                     Advanced decision message.
-     * @param advancedDecisionState   State of advanced decision created from message.
+     * Decides whether or not the data held for a specific advance decision needs to be updated or not.
+     * @param msg                     Advance decision message.
+     * @param advancedDecisionState   State of advance decision created from message.
      * @return true if message should be updated
      */
     private boolean messageShouldBeUpdated(AdvanceDecisionMessage msg, RowState<AdvanceDecision,
             AdvanceDecisionAudit> advancedDecisionState) {
-        return (advancedDecisionState.isEntityCreated() || !msg.getStatusChangeTime().isBefore(
+        return (advancedDecisionState.isEntityCreated() || !msg.getStatusChangeDatetime().isBefore(
                 advancedDecisionState.getEntity().getValidFrom()));
     }
 
     /**
-     * Update advanced decision data with information from advanced decision message.
-     * @param msg                       Advanced decision message.
-     * @param advanceDecisionState     Advanced decision referred to in message
+     * Update advance decision data with information from AdvanceDecisionMessage.
+     * @param msg                   Advance decision message.
+     * @param advanceDecisionState  Advance decision referred to in message
      */
     private void updateConsultRequest(AdvanceDecisionMessage msg, RowState<AdvanceDecision,
             AdvanceDecisionAudit> advanceDecisionState) {
@@ -156,8 +156,8 @@ public class AdvanceDecisionController {
 
         advanceDecisionState.assignIfDifferent(msg.getRequestedDatetime(), advanceDecision.getRequestedDatetime(),
                 advanceDecision::setRequestedDatetime);
-        advanceDecisionState.assignIfDifferent(msg.getStatusChangeTime(), advanceDecision.getStatusChangeTime(),
-                advanceDecision::setStatusChangeTime);
+        advanceDecisionState.assignIfDifferent(msg.getStatusChangeDatetime(), advanceDecision.getStatusChangeDatetime(),
+                advanceDecision::setStatusChangeDatetime);
         advanceDecisionState.assignIfDifferent(msg.isCancelled(), advanceDecision.getCancelled(),
                 advanceDecision::setCancelled);
         advanceDecisionState.assignIfDifferent(msg.isClosedDueToDischarge(),
