@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,7 +73,11 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
 
-        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        Optional<HospitalVisit> visit = hospitalVisitRepository.findByEncounter(defaultEncounter);
+        assertTrue(visit.isPresent());
+
+        AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
+        assertEquals(advanceDecision.getStatusChangeDatetime(), ADVANCE_DECISION_STAT_CHANGE_TIME);
     }
 
     /**
@@ -123,7 +128,7 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         assertNotNull(advanceDecision.getValidFrom());
         assertNotNull(advanceDecision.getStoredFrom());
         assertEquals(ADVANCE_DECISION_REQ_TIME, advanceDecision.getRequestedDatetime());
-        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME, advanceDecision.getStatusChangeTime());
+        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME, advanceDecision.getStatusChangeDatetime());
     }
 
     /**
@@ -136,6 +141,7 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         processSingleMessage(minimalWithQuestions);
         AdvanceDecision advanceDecisionRequest = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertEquals(3, questionRepository.count());
+        assertEquals(advanceDecisionRequest.getStatusChangeDatetime(), ADVANCE_DECISION_STAT_CHANGE_TIME);
     }
 
     /**
@@ -151,11 +157,11 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advanceDecision.getCancelled());
 
-        cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().plusSeconds(60));
+        cancelled.setStatusChangeDatetime(minimalNoQuestions.getStatusChangeDatetime().plusSeconds(60));
         processSingleMessage(cancelled);
         advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertTrue(advanceDecision.getCancelled());
-        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advanceDecision.getStatusChangeTime());
+        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advanceDecision.getStatusChangeDatetime());
     }
 
     /**
@@ -171,11 +177,11 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advanceDecision.getClosedDueToDischarge());
 
-        closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().plusSeconds(60));
+        closedAtDischarge.setStatusChangeDatetime(minimalNoQuestions.getStatusChangeDatetime().plusSeconds(60));
         processSingleMessage(closedAtDischarge);
         advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertTrue(advanceDecision.getClosedDueToDischarge());
-        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advanceDecision.getStatusChangeTime());
+        assertEquals(ADVANCE_DECISION_STAT_CHANGE_TIME.plusSeconds(60), advanceDecision.getStatusChangeDatetime());
     }
 
     /**
@@ -190,10 +196,11 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advanceDecision.getCancelled());
 
-        cancelled.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
+        cancelled.setStatusChangeDatetime(minimalNoQuestions.getStatusChangeDatetime().minusSeconds(60));
         processSingleMessage(cancelled);
         advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advanceDecision.getCancelled());
+        assertEquals(advanceDecision.getStatusChangeDatetime(), ADVANCE_DECISION_STAT_CHANGE_TIME);
     }
 
     /**
@@ -207,9 +214,10 @@ public class TestAdvanceDecisionProcessing extends MessageProcessingBase {
         AdvanceDecision advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advanceDecision.getClosedDueToDischarge());
 
-        closedAtDischarge.setStatusChangeTime(minimalNoQuestions.getStatusChangeTime().minusSeconds(60));
+        closedAtDischarge.setStatusChangeDatetime(minimalNoQuestions.getStatusChangeDatetime().minusSeconds(60));
         processSingleMessage(closedAtDischarge);
         advanceDecision = advanceDecisionRepo.findByInternalId(ADVANCE_DECISION_INTERNAL_ID).orElseThrow();
         assertFalse(advanceDecision.getClosedDueToDischarge());
+        assertEquals(advanceDecision.getStatusChangeDatetime(), ADVANCE_DECISION_STAT_CHANGE_TIME);
     }
 }
