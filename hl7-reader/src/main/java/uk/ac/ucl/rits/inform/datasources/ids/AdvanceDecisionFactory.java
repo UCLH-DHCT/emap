@@ -53,7 +53,7 @@ public class AdvanceDecisionFactory {
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
         advanceDecisionMessage.setAdvanceDecisionNumber(Long.decode(orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty()));
-        advanceDecisionMessage.setStatusChangeTime(HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction()));
+        advanceDecisionMessage.setStatusChangeDatetime(HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction()));
         advanceDecisionMessage.setRequestedDatetime(HL7Utils.interpretLocalTime(obr.getObr36_ScheduledDateTime()));
         advanceDecisionMessage.setAdvanceCareCode(obr.getObr44_ProcedureCode().encode());
         advanceDecisionMessage.setAdvanceDecisionTypeName(obr.getObr4_UniversalServiceIdentifier().getCwe5_AlternateText().getValueOrEmpty());
