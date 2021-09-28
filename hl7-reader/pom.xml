@@ -216,6 +216,7 @@
     </plugins>
     <pluginManagement>
       <plugins>
+        <!-- Allows for compiler errors to be reported during github actions. -->
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
