@@ -31,7 +31,7 @@ public class OrderAndResultService {
     private AdvanceDecisionFactory advanceDecisionFactory;
 
     /**
-     * Minimal constructur for order and result service.
+     * Minimal constructor for order and result service.
      * @param flowsheetFactory          Flowsheet factory for respective messages.
      * @param consultFactory            Consult request factory for respective messages.
      * @param advanceDecisionFactory   Advanced decision factory for handling respective messages.
