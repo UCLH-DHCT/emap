@@ -4,7 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import uk.ac.ucl.rits.inform.interchange.*;
+
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
+import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -17,9 +23,6 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 
 /**
  *
