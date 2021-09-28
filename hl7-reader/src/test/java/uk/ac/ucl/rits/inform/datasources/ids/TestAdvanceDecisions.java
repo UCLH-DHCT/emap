@@ -59,7 +59,7 @@ public class TestAdvanceDecisions extends TestHl7MessageStream {
         AdvanceDecisionMessage advanceDecision = getPatientAdvanceDecision("minimal");
         assertEquals(MRN, advanceDecision.getMrn());
         assertEquals(EPIC, advanceDecision.getSourceSystem());
-        assertEquals(CHANGE_TIME, advanceDecision.getStatusChangeTime());
+        assertEquals(CHANGE_TIME, advanceDecision.getStatusChangeDatetime());
         assertEquals(REQUEST_TIME, advanceDecision.getRequestedDatetime());
         assertEquals(ADVANCED_CARE_CODE, advanceDecision.getAdvanceCareCode());
         assertEquals(VISIT_NUMBER, advanceDecision.getVisitNumber());
@@ -97,7 +97,7 @@ public class TestAdvanceDecisions extends TestHl7MessageStream {
     void testCancelledOrder() throws Exception {
         AdvanceDecisionMessage advanceDecisionMessage = getPatientAdvanceDecision("cancelled");
         assertEquals(REQUEST_TIME, advanceDecisionMessage.getRequestedDatetime());
-        assertEquals(CANCEL_TIME, advanceDecisionMessage.getStatusChangeTime());
+        assertEquals(CANCEL_TIME, advanceDecisionMessage.getStatusChangeDatetime());
         assertTrue(advanceDecisionMessage.isCancelled());
         assertFalse(advanceDecisionMessage.isClosedDueToDischarge());
     }
@@ -111,7 +111,7 @@ public class TestAdvanceDecisions extends TestHl7MessageStream {
     void testClosedAtDischarge() throws Exception {
         AdvanceDecisionMessage advanceDecisionMessage = getPatientAdvanceDecision("closed_at_discharge");
         assertEquals(REQUEST_TIME, advanceDecisionMessage.getRequestedDatetime());
-        assertEquals(CLOSED_TIME, advanceDecisionMessage.getStatusChangeTime());
+        assertEquals(CLOSED_TIME, advanceDecisionMessage.getStatusChangeDatetime());
         assertFalse(advanceDecisionMessage.isCancelled());
         assertTrue(advanceDecisionMessage.isClosedDueToDischarge());
     }
