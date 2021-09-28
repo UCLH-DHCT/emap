@@ -55,7 +55,7 @@ public class AdvanceDecisionMessage extends EmapOperationMessage implements Seri
     /**
      * Last updated time.
      */
-    private Instant statusChangeTime;
+    private Instant statusChangeDatetime;
 
     /**
      * Time advance decision was first recorded for patient and hospital visit.
