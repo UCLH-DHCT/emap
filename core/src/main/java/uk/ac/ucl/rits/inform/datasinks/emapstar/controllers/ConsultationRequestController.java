@@ -4,68 +4,101 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
-
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestAuditRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeRepository;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
-import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationTypeAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 
 import java.time.Instant;
 
 /**
- * Functionality to create consultation requests for patients. A consultation request is initiated when specialist
- * advice on a patient's condition is requested through the treating physician.
+ * Functionality to create consultation requests for patients.
+ * <p>
+ * A consultation request is initiated when specialist advice on a patient's condition is requested.
  * @author Anika Cawthorn
+ * @author Stef Piatek
  */
 @Component
 public class ConsultationRequestController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
     private final ConsultationTypeRepository consultationTypeRepo;
+    private final ConsultationTypeAuditRepository consultationTypeAuditRepo;
     private final ConsultationRequestAuditRepository consultationRequestAuditRepo;
     private final QuestionController questionController;
 
     /**
      * Setting repositories holding information on consultation requests.
-     * @param consultationRequestRepo        Consultation request repo
-     * @param consultationTypeRepo    Consultation request type repo
-     * @param consultationRequestAuditRepo   Consultation request audit type repo
-     * @param questionController             Question controller for questions in relation to consultation requests
+     * @param consultationRequestRepo      Consultation request repo
+     * @param consultationTypeRepo         Consultation request type repo
+     * @param consultationTypeAuditRepo    Audit for Consultation requests
+     * @param consultationRequestAuditRepo Consultation request audit type repo
+     * @param questionController           Question controller for questions in relation to consultation requests
      */
     public ConsultationRequestController(
-            ConsultationRequestRepository consultationRequestRepo,
-            ConsultationTypeRepository consultationTypeRepo,
-            ConsultationRequestAuditRepository consultationRequestAuditRepo,
+            ConsultationRequestRepository consultationRequestRepo, ConsultationRequestAuditRepository consultationRequestAuditRepo,
+            ConsultationTypeRepository consultationTypeRepo, ConsultationTypeAuditRepository consultationTypeAuditRepo,
             QuestionController questionController) {
         this.consultationRequestRepo = consultationRequestRepo;
         this.consultationTypeRepo = consultationTypeRepo;
+        this.consultationTypeAuditRepo = consultationTypeAuditRepo;
         this.consultationRequestAuditRepo = consultationRequestAuditRepo;
         this.questionController = questionController;
     }
 
     /**
+     * Update or create consultation request metadata.
+     * @param msg        consultation metadata message
+     * @param storedFrom time that the message was started to be processed by star
+     */
+    @Transactional
+    public void processMessage(final ConsultMetadata msg, final Instant storedFrom) {
+        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(msg.getCode(), msg.getLastUpdatedDate(), storedFrom);
+        ConsultationType consultationType = consultationState.getEntity();
+
+        if (consultationTypeShouldBeUpdated(msg.getLastUpdatedDate(), consultationType)) {
+            consultationState.assignIfDifferent(msg.getName(), consultationType.getName(), consultationType::setName);
+        }
+        consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
+    }
+
+    /**
+     * Consultation type should be updated if it has no name data, or if the current message is newer.
+     * @param messageTime      time that the message is valid from
+     * @param consultationType consultation type entity
+     * @return true if the consultation type should be updated
+     */
+    private boolean consultationTypeShouldBeUpdated(Instant messageTime, ConsultationType consultationType) {
+        return consultationType.getName() == null || messageTime.isAfter(consultationType.getValidFrom());
+    }
+
+    /**
      * Process consultation request message.
-     * @param msg           Consultation request message
-     * @param visit         Hospital visit this consultation request relates to.
-     * @param storedFrom    valid from in database
+     * @param msg        Consultation request message
+     * @param visit      Hospital visit this consultation request relates to.
+     * @param storedFrom time that the message was started to be processed by star
      */
     @Transactional
     public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom) {
-        ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
+        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(
+                msg.getConsultationType(), msg.getStatusChangeTime(), storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
-                msg, visit, consultationType, storedFrom);
-        ConsultationRequest request = consultationRequest.getEntity();
+                msg, visit, consultationState.getEntity(), storedFrom);
 
         if (messageShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
         }
 
+        consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
                 consultationRequest.getEntity().getConsultId(), msg.getRequestedDateTime(), storedFrom);
@@ -74,36 +107,39 @@ public class ConsultationRequestController {
     /**
      * Check whether consultation type exists already. If it does, add it to consultation request; if not, create a new
      * consultation type from the information provided in the message.
-     * @param msg        consultation request message
-     * @param storedFrom when consultation request information is stored from
+     * @param code            code for consultation type
+     * @param messageDatetime time of the message
+     * @param storedFrom      when consultation request information is stored from
      * @return ConsultRequestType
      */
-    @Cacheable(value = "ConsultationTypeCache", key = "ConsultationType")
-    private ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
+    @Cacheable(value = "ConsultationTypeCache", key = "#code")
+    public RowState<ConsultationType, ConsultationTypeAudit> getOrCreateType(
+            String code, Instant messageDatetime, Instant storedFrom) {
         return consultationTypeRepo
-                .findByCode(msg.getConsultationType())
-                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
+                .findByCode(code)
+                .map(msg -> new RowState<>(msg, messageDatetime, storedFrom, false))
+                .orElseGet(() -> createNewType(code, messageDatetime, storedFrom));
     }
 
     /**
      * Create and save a ConsultationType from the information contained in the ConsultRequest message.
-     * @param msg           Consultation request message
-     * @param storedFrom    Time that emap-core started processing the message
+     * @param code            code for consultation type
+     * @param messageDatetime time of the message
+     * @param storedFrom      Time that emap-core started processing the message
      * @return saved ConsultationType
      */
-    private ConsultationType createAndSaveNewType(ConsultRequest msg, Instant storedFrom) {
-        ConsultationType consultationType = new ConsultationType(msg.getConsultationType(),
-                msg.getRequestedDateTime(), storedFrom);
+    private RowState<ConsultationType, ConsultationTypeAudit> createNewType(String code, Instant messageDatetime, Instant storedFrom) {
+        ConsultationType consultationType = new ConsultationType(code, messageDatetime, storedFrom);
         logger.debug("Created new {}", consultationType);
-        return consultationTypeRepo.save(consultationType);
+        return new RowState<>(consultationType, messageDatetime, storedFrom, true);
     }
 
     /**
      * Get or create existing ConsultationRequest entity.
-     * @param msg                Consultation request message
-     * @param visit              Hospital visit of patient this consultation request refers to.
-     * @param consultationType   Consultancy type as identified in message
-     * @param storedFrom         Time that emap-core started processing the message
+     * @param msg              Consultation request message
+     * @param visit            Hospital visit of patient this consultation request refers to.
+     * @param consultationType Consultancy type as identified in message
+     * @param storedFrom       Time that emap-core started processing the message
      * @return ConsultationRequest entity wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
@@ -116,10 +152,10 @@ public class ConsultationRequestController {
 
     /**
      * Create minimal consultation request wrapped in RowState.
-     * @param msg                Consultation request message
-     * @param visit              Hospital visit of the patient consultation request occurred at
-     * @param consultationType   Consultation request type referred to in message
-     * @param storedFrom         Time that emap-core started processing the message
+     * @param msg              Consultation request message
+     * @param visit            Hospital visit of the patient consultation request occurred at
+     * @param consultationType Consultation request type referred to in message
+     * @param storedFrom       Time that emap-core started processing the message
      * @return minimal consultation request wrapped in RowState
      */
     private RowState<ConsultationRequest, ConsultationRequestAudit> createMinimalConsultationRequest(
@@ -134,8 +170,8 @@ public class ConsultationRequestController {
     /**
      * Decides whether or not message data held in the user data storage (accessed by researchers) needs to be updated
      * with the data held in the message that is processed.
-     * @param msg                   Consultation request message
-     * @param consultationRequest   Consultation request
+     * @param msg                 Consultation request message
+     * @param consultationRequest Consultation request
      * @return true if message should be updated
      */
     private boolean messageShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
@@ -146,8 +182,8 @@ public class ConsultationRequestController {
 
     /**
      * Update consultation request from consultation request message.
-     * @param msg                   consultation request message
-     * @param requestState          consultation request referred to in message
+     * @param msg          consultation request message
+     * @param requestState consultation request referred to in message
      */
     private void updateConsultRequest(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> requestState) {
