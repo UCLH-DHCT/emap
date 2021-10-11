@@ -27,7 +27,7 @@ public class ConsultationType extends TemporalCore<ConsultationType, Consultatio
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationTypeId;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String code;
     private String name;
     /**
