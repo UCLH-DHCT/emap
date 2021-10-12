@@ -79,7 +79,8 @@ public class AdvanceDecisionController {
      * @param storedFrom When information in relation to advanced decision type has been stored from
      * @return AdvancedDecisionType
      */
-    private AdvanceDecisionType getOrCreateAdvancedDecisionType(AdvanceDecisionMessage msg, Instant storedFrom) {
+    @Cacheable(value = "advanceDecisionType", key = "#msg.advanceCareCode")
+    public AdvanceDecisionType getOrCreateAdvancedDecisionType(AdvanceDecisionMessage msg, Instant storedFrom) {
         return advanceDecisionTypeRepo
                 .findByCareCode(msg.getAdvanceCareCode())
                 .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
