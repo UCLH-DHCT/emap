@@ -55,6 +55,15 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<ConsultRequest>() {});
     }
 
+    /**
+     * @param fileName filename within the ConsultMetadata folder
+     * @return consult message
+     * @throws IOException if the file doesn't exist
+     */
+    public ConsultMetadata getConsultMetadata(final String fileName) throws IOException {
+        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultMetadata/%s", fileName));
+        return mapper.readValue(inputStream, new TypeReference<ConsultMetadata>() {});
+    }
 
     /**
      * Builds lab orders from yaml file given, overriding default values for lab orders and lab results
