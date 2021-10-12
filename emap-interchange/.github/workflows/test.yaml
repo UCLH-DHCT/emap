@@ -18,6 +18,8 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
+      - name: Clean
+        run: mvn clean
       - name: Build and test
         run: mvn test
       - name: Publish Test Report

@@ -35,5 +35,9 @@ public enum OrderCodingSystem {
     /**
      * Consultation order.
      */
-    CONSULT_ORDER;
+    CONSULT_ORDER,
+    /**
+     * Advanced decision order.
+     */
+    ADVANCED_DECISION_ORDER;
 }
