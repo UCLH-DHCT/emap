@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.identity.MrnToLive;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -49,13 +50,14 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private ConsultRequest cancelledConsult;
     private ConsultRequest closedAtDischargeConsult;
     private ConsultRequest notesConsult;
+    private ConsultMetadata frailtyMetadata;
     private static String FRAILTY_MRN = "40800000";
-    private static String FRAILTY_VISIT_ID = "123412341234";
-    private static Long FRAILTY_CONSULT_ID = Long.valueOf(1234521112);
+    private static Long FRAILTY_CONSULT_ID = 1234521112L;
     private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
     private static String FRAILTY_NOTE = "Admitted with delirium vs cognitive decline\nLives alone";
+    private static String FRAILTY_NAME = "Inpatient Consult to Acute Frailty Team";
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -63,6 +65,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         cancelledConsult = messageFactory.getConsult("cancelled.yaml");
         closedAtDischargeConsult = messageFactory.getConsult("closed_at_discharge.yaml");
         notesConsult = messageFactory.getConsult("notes.yaml");
+        frailtyMetadata = messageFactory.getConsultMetadata("con255.yaml");
     }
 
     /**
@@ -234,6 +237,57 @@ public class TestConsultProcessing extends MessageProcessingBase {
         processSingleMessage(cancelledConsult);
         cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getCancelled());
+    }
+
+    /**
+     * Given that no consult types exist in database
+     * when consult metadata is processed
+     * new consult type be created
+     *
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testNewTypeCreatedFromMetadata() throws EmapOperationMessageProcessingException {
+        processSingleMessage(frailtyMetadata);
+        ConsultationType crType = consultTypeRepo.findByCode(FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertEquals(FRAILTY_NAME, crType.getName());
+    }
+
+    /**
+     * Given frailty consult type exists from request message
+     * When the metadata is processed with an update time before the request message
+     * Then the frailty metadata name should still be added to the type
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testMinimalConsultTypeUpdatedWithMetadata() throws EmapOperationMessageProcessingException {
+        processSingleMessage(minimalConsult);
+        frailtyMetadata.setLastUpdatedDate(FRAILTY_REQ_TIME.minusSeconds(1));
+        processSingleMessage(frailtyMetadata);
+
+        ConsultationType crType = consultTypeRepo.findByCode(FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertEquals(FRAILTY_NAME, crType.getName());
+    }
+
+    /**
+     * Given that frailty type has been populated from metadata
+     * When older metadata for the same type is processed
+     * Then the older metadata message should have no effect
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testTypeNotUpdatedWithOlderMetadata() throws EmapOperationMessageProcessingException {
+        processSingleMessage(frailtyMetadata);
+        ConsultMetadata olderMetadata = frailtyMetadata;
+        olderMetadata.setLastUpdatedDate(frailtyMetadata.getLastUpdatedDate().minusSeconds(1));
+        olderMetadata.setName("Crazy name that was clearly wrong so changed");
+
+        ConsultationType crType = consultTypeRepo.findByCode(FRAILTY_CONSULTATION_TYPE).orElseThrow();
+
+        assertEquals(FRAILTY_NAME, crType.getName());
+        assertEquals(frailtyMetadata.getLastUpdatedDate(), crType.getValidFrom());
     }
 
 }
