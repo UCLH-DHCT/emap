@@ -30,19 +30,19 @@ class TestNotesParser {
     private static final Pattern WINPATH_QUESTION_PATTERN = Pattern.compile("[:\\?]-");
 
 
-    List<NTE> getNotesFromORMO01(String resourceFileName) throws HL7Exception, IOException {
+    List<NTE> getNotesFromORMO01(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(String.format(PATH_TEMPLATE, resourceFileName));
         ORM_O01 hl7Msg = (ORM_O01) HL7Utils.parseHl7String(hl7);
         return hl7Msg.getORDER().getORDER_DETAIL().getNTEAll();
     }
 
-    List<NTE> getNotesFromFirstOruR01Result(String resourceFileName) throws HL7Exception, IOException {
+    List<NTE> getNotesFromFirstOruR01Result(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(String.format(PATH_TEMPLATE, resourceFileName));
         ORU_R01 hl7Msg = (ORU_R01) HL7Utils.parseHl7String(hl7);
         return hl7Msg.getPATIENT_RESULT().getORDER_OBSERVATION().getNTEAll();
     }
 
-    List<NTE> getNotesFromFirstOrmO01(String resourceFileName) throws HL7Exception, IOException {
+    List<NTE> getNotesFromFirstOrmO01(String resourceFileName) throws Exception {
         String hl7 = HL7Utils.readHl7FromResource(String.format(PATH_TEMPLATE, resourceFileName));
         ORM_O01 hl7Msg = (ORM_O01) HL7Utils.parseHl7String(hl7);
         return hl7Msg.getORDER().getORDER_DETAIL().getNTEAll();

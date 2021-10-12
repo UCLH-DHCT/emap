@@ -28,10 +28,19 @@ import java.util.Collections;
 public class OrderAndResultService {
     private FlowsheetFactory flowsheetFactory;
     private ConsultFactory consultFactory;
+    private AdvanceDecisionFactory advanceDecisionFactory;
 
-    public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory) {
+    /**
+     * Minimal constructor for order and result service.
+     * @param flowsheetFactory          Flowsheet factory for respective messages.
+     * @param consultFactory            Consult request factory for respective messages.
+     * @param advanceDecisionFactory   Advanced decision factory for handling respective messages.
+     */
+    public OrderAndResultService(FlowsheetFactory flowsheetFactory, ConsultFactory consultFactory,
+                                 AdvanceDecisionFactory advanceDecisionFactory) {
         this.flowsheetFactory = flowsheetFactory;
         this.consultFactory = consultFactory;
+        this.advanceDecisionFactory = advanceDecisionFactory;
     }
 
     /**
@@ -60,6 +69,8 @@ public class OrderAndResultService {
                 throw new Hl7MessageIgnoredException("Bank Manager products not implemented for now");
             case CONSULT_ORDER:
                 return Collections.singleton(consultFactory.makeConsult(sourceId, msg));
+            case ADVANCED_DECISION_ORDER:
+                return Collections.singleton(advanceDecisionFactory.makeAdvancedDecision(sourceId, msg));
             default:
                 // Lab Funnel will throw message ignored exception if not a parsed type (e.g. flowsheet)
                 return LabFunnel.buildMessages(sourceId, msg, codingSystem);
@@ -176,6 +187,8 @@ public class OrderAndResultService {
             return OrderCodingSystem.FLOWSHEET;
         } else if ("Consult Orders".equals(sendingFacility)) {
             return OrderCodingSystem.CONSULT_ORDER;
+        } else if ("DNACPR".equals(sendingFacility.trim())) {
+            return OrderCodingSystem.ADVANCED_DECISION_ORDER;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");
     }

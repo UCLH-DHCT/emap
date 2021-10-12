@@ -67,7 +67,7 @@ public class AdtMessageFactory {
      * @return AdtMessage built from the hl7 message
      * @throws HL7Exception                      if HAPI does
      * @throws Hl7MessageNotImplementedException if the ADT type hasn't been implemented
-     * @throws Hl7MessageIgnoredException if sending application missing from message
+     * @throws Hl7MessageIgnoredException        if sending application missing from message
      */
     public AdtMessage getAdtMessage(final Message hl7Msg, final String sourceId)
             throws HL7Exception, Hl7MessageNotImplementedException, Hl7MessageIgnoredException {
@@ -339,6 +339,7 @@ public class AdtMessageFactory {
      * @param hl7Msg        hl7 message
      * @param secondSegment get the second segment
      * @return PV1
+     * @throws HL7Exception if required segment doesn't exist
      */
     private PV1 getPv1(Message hl7Msg, boolean secondSegment) throws HL7Exception {
         PV1 pv1 = null;

@@ -18,10 +18,14 @@ public class ZIF extends AbstractSegment {
     private static final int MAX_REPS = 0;
     private static final int MAX_LENGTH = 250;
 
+    /**
+     * Create ZIF segment using HAPI conventions.
+     * @param parent parent group for the segment
+     * @param factory to look up classes for concrete implementation of parts of a message
+     */
     public ZIF(Group parent, ModelClassFactory factory) {
         super(parent, factory);
-        // By convention, an init() method is created which adds
-        // the specific fields to this segment class
+        // By convention, an init() method is created which adds the specific fields to this segment class
         init(factory);
     }
 

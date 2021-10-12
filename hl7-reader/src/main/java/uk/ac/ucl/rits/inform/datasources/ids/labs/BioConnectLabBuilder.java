@@ -12,7 +12,6 @@ import ca.uhn.hl7v2.model.v26.segment.ORC;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
 import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7InconsistencyException;
-import uk.ac.ucl.rits.inform.datasources.ids.exceptions.Hl7MessageIgnoredException;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
@@ -77,14 +76,14 @@ public final class BioConnectLabBuilder extends LabOrderBuilder {
 
     /**
      * Build Lab Order from BIO-CONNECT point of care device.
-     * @param idsUnid      unique Id from the IDS
-     * @param oruR01       the HL7 message
+     * @param idsUnid unique Id from the IDS
+     * @param oruR01  the HL7 message
      * @return a list of LabOrder messages built from the results message
      * @throws HL7Exception              if HAPI does
      * @throws Hl7InconsistencyException if hl7 message is malformed
+     * @throws Hl7MessageIgnoredException if hl7 message was ignored
      */
-    public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01)
-            throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
+    public static Collection<LabOrderMsg> build(String idsUnid, ORU_R01 oruR01) throws HL7Exception, Hl7InconsistencyException {
         ORU_R01_PATIENT_RESULT patientResults = oruR01.getPATIENT_RESULT();
         MSH msh = (MSH) oruR01.get("MSH");
         if (patientResults.getORDER_OBSERVATIONReps() > 1) {

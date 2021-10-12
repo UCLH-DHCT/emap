@@ -19,6 +19,7 @@
     will be relative to the specified directory. See https://checkstyle.org/5.x/config.html#Checker
     <property name="basedir" value="${basedir}"/> -->
 
+  <module name="SuppressWarningsFilter"/>
   <property name="fileExtensions" value="java, properties, xml"/>
 
   <!-- Checks that a package-info.java file exists for each package. -->
@@ -63,10 +64,16 @@
   <!-- </module> -->
 
   <module name="TreeWalker">
+    <module name="SuppressWarningsHolder"/>
 
     <!-- Checks for Javadoc comments. -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html -->
-    <module name="JavadocMethod"/>
+    <module name="JavadocMethod">
+      <property name="validateThrows" value="true"/>
+    </module>
+    <module name="MissingJavadocMethod">
+      <property name="minLineCount" value="1"/>
+    </module>
     <module name="JavadocType"/>
     <module name="JavadocVariable">
       <property name="scope" value="public"/>

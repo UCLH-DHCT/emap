@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
@@ -15,16 +17,12 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 
 /**
  *
@@ -188,6 +186,29 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     void testNotesConsult() throws Exception {
         checkConsultMatchesInterchange("notes");
+    }
+
+    void checkAdvanceDecisionMatchesInterchange(String fileName) throws Exception {
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
+                String.format("AdvanceDecision/%s.txt", fileName));
+        AdvanceDecisionMessage expected = interchangeFactory.getAdvanceDecision(String.format("%s.yaml", fileName));
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(expected, messagesFromHl7Message.get(0));
+    }
+
+    @Test
+    void testClosedAtDischargeAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("closed_at_discharge");
+    }
+
+    @Test
+    void testCancelledAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("cancelled");
+    }
+
+    @Test
+    void testMinimalAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("minimal");
     }
 
     @Test

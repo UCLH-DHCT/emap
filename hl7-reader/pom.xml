@@ -216,6 +216,13 @@
     </plugins>
     <pluginManagement>
       <plugins>
+        <!-- Allows for compiler errors to be reported during github actions. -->
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <forceJavacCompilerUse>true</forceJavacCompilerUse>
+          </configuration>
+        </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings
         only. It has no influence on the Maven build itself. -->
         <plugin>

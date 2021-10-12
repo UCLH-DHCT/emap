@@ -20,13 +20,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -66,6 +68,7 @@ public final class HL7Utils {
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
      * @return Local date
+     * @throws DataTypeException if date cannot be parsed correctly.
      */
     static LocalDate interpretDate(DT hl7Date) throws DataTypeException {
         if (hl7Date == null) {
@@ -78,6 +81,7 @@ public final class HL7Utils {
      * Process date value from HL7.
      * @param hl7Date HAPI DT date
      * @return Local date
+     * @throws DataTypeException if date cannot be parsed correctly.
      */
     public static LocalDate interpretDate(DTM hl7Date) throws DataTypeException {
         if (hl7Date == null) {
@@ -107,23 +111,23 @@ public final class HL7Utils {
      * @param fileName The name of the resource file that's in the resource directory
      * @return string of the entire file contents with line endings converted to carriage returns
      * @throws IOException when reading file
+     * @throws URISyntaxException if the fileName provided cannot be turned into URI
      */
-    public static String readHl7FromResource(String fileName) throws IOException {
-        String path = getPathFromResource(fileName);
-        List<String> readAllLines = Files.readAllLines(Paths.get(path));
+    public static String readHl7FromResource(String fileName) throws IOException, URISyntaxException {
+        URI uri = getPathFromResource(fileName);
+        List<String> readAllLines = Files.readAllLines(Path.of(uri));
         return String.join("\r", readAllLines) + "\r";
     }
 
     /**
      * @param fileName the relative filename of the resource
      * @return the filename in the resource directory
+     * @throws URISyntaxException if the fileName provided cannot be turned into URI
      */
-    public static String getPathFromResource(String fileName) {
+    public static URI getPathFromResource(String fileName) throws URISyntaxException {
         // the class used here doesn't seem to matter
         ClassLoader classLoader = HL7Utils.class.getClassLoader();
-        URL url = classLoader.getResource(fileName);
-        String path = url.getPath();
-        return path;
+        return Objects.requireNonNull(classLoader.getResource(fileName)).toURI();
     }
 
     /**
