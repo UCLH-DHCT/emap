@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
@@ -54,6 +55,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private static String FRAILTY_MRN = "40800000";
     private static Long FRAILTY_CONSULT_ID = 1234521112L;
     private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
+    private static Instant FRAILTY_UPDATE_TIME = Instant.parse("2013-02-12T12:00:00Z");
     private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
     private static String FRAILTY_NOTE = "Admitted with delirium vs cognitive decline\nLives alone";
@@ -118,7 +120,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         processSingleMessage(minimalConsult);
         ConsultationType crType = consultTypeRepo.findByCode(FRAILTY_CONSULTATION_TYPE).orElseThrow();
 
-        assertEquals(FRAILTY_REQ_TIME, crType.getValidFrom());
+        assertEquals(FRAILTY_UPDATE_TIME, crType.getValidFrom());
         assertNull(crType.getName());
     }
 
@@ -279,15 +281,16 @@ public class TestConsultProcessing extends MessageProcessingBase {
      */
     @Test
     void testTypeNotUpdatedWithOlderMetadata() throws EmapOperationMessageProcessingException {
+        Instant originalUpdateTime = frailtyMetadata.getLastUpdatedDate();
         processSingleMessage(frailtyMetadata);
         ConsultMetadata olderMetadata = frailtyMetadata;
-        olderMetadata.setLastUpdatedDate(frailtyMetadata.getLastUpdatedDate().minusSeconds(1));
+        olderMetadata.setLastUpdatedDate(originalUpdateTime.minusSeconds(1));
         olderMetadata.setName("Crazy name that was clearly wrong so changed");
 
         ConsultationType crType = consultTypeRepo.findByCode(FRAILTY_CONSULTATION_TYPE).orElseThrow();
 
         assertEquals(FRAILTY_NAME, crType.getName());
-        assertEquals(frailtyMetadata.getLastUpdatedDate(), crType.getValidFrom());
+        assertEquals(originalUpdateTime, crType.getValidFrom());
     }
 
 }
