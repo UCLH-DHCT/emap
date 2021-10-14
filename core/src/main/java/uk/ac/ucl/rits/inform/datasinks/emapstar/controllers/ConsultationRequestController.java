@@ -94,7 +94,7 @@ public class ConsultationRequestController {
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
                 msg, visit, consultationState.getEntity(), storedFrom);
 
-        if (messageShouldBeUpdated(msg, consultationRequest)) {
+        if (consultRequestShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
         }
 
@@ -105,12 +105,11 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Check whether consultation type exists already. If it does, add it to consultation request; if not, create a new
-     * consultation type from the information provided in the message.
+     * Create a new minimal consult type if it doesn't exist, if it does then return the existing entity.
      * @param code            code for consultation type
      * @param messageDatetime time of the message
-     * @param storedFrom      when consultation request information is stored from
-     * @return ConsultRequestType
+     * @param storedFrom      when star started processing this message
+     * @return ConsultaionType wrapped in row state
      */
     @Cacheable(value = "ConsultationTypeCache", key = "#code")
     public RowState<ConsultationType, ConsultationTypeAudit> getOrCreateType(
@@ -122,11 +121,11 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Create and save a ConsultationType from the information contained in the ConsultRequest message.
+     * Create a minimal ConsultationType entity.
      * @param code            code for consultation type
      * @param messageDatetime time of the message
      * @param storedFrom      Time that emap-core started processing the message
-     * @return saved ConsultationType
+     * @return Consultation Type wrapped in row state
      */
     private RowState<ConsultationType, ConsultationTypeAudit> createNewType(String code, Instant messageDatetime, Instant storedFrom) {
         ConsultationType consultationType = new ConsultationType(code, messageDatetime, storedFrom);
@@ -168,13 +167,12 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Decides whether or not message data held in the user data storage (accessed by researchers) needs to be updated
-     * with the data held in the message that is processed.
+     * Should the consult request be updated (for fields that can change over time).
      * @param msg                 Consultation request message
      * @param consultationRequest Consultation request
      * @return true if message should be updated
      */
-    private boolean messageShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
+    private boolean consultRequestShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultationRequest) {
         return (consultationRequest.isEntityCreated() || !msg.getStatusChangeTime().isBefore(
                 consultationRequest.getEntity().getValidFrom()));
