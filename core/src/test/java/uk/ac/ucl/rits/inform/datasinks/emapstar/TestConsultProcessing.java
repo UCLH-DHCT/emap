@@ -3,8 +3,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
@@ -25,9 +23,9 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -56,7 +54,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     private static Long FRAILTY_CONSULT_ID = 1234521112L;
     private static Instant FRAILTY_REQ_TIME = Instant.parse("2013-02-12T11:55:00Z");
     private static Instant FRAILTY_UPDATE_TIME = Instant.parse("2013-02-12T12:00:00Z");
-    private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse( "2013-02-12T12:00:00Z");
+    private static Instant FRAILTY_STAT_CHANGE_TIME = Instant.parse("2013-02-12T12:00:00Z");
     private static String FRAILTY_CONSULTATION_TYPE = "CON255";
     private static String FRAILTY_NOTE = "Admitted with delirium vs cognitive decline\nLives alone";
     private static String FRAILTY_NAME = "Inpatient Consult to Acute Frailty Team";
@@ -94,7 +92,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * Then minimal MRN and hospital visit should not be created
      */
     @Test
-    void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException{
+    void testMinimalMrnAndHospitalVisitNotCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(minimalConsult);
 
         List mrns = getAllMrns();
@@ -150,7 +148,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * Then 3 questions should be created and linked to 3 consult questions for the answers to the questions
      */
     @Test
-    void testCreateConsultWithQuestions() throws EmapOperationMessageProcessingException{
+    void testCreateConsultWithQuestions() throws EmapOperationMessageProcessingException {
         processSingleMessage(notesConsult);
         ConsultationRequest cRequest = consultRequestRepo.findByConsultId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(3, questionRepository.count());
@@ -245,7 +243,6 @@ public class TestConsultProcessing extends MessageProcessingBase {
      * Given that no consult types exist in database
      * when consult metadata is processed
      * new consult type be created
-     *
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
