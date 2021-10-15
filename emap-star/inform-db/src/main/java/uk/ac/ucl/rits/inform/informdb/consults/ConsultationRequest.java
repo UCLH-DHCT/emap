@@ -29,34 +29,58 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationRequestId;
 
+    /**
+     * Type of consult requested.
+     */
     @ManyToOne
     @JoinColumn(name = "consultationTypeId", nullable = false)
     private ConsultationType consultationTypeId;
 
+    /**
+     * Foreign key to hospital visit.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * ID for the consult within EPIC.
+     */
     @Column(nullable = false)
-    private Long consultId;
+    private Long internalId;
 
-    /** Optional fields for consultation requests. */
+    /**
+     * Consult request was closed on discharge.
+     */
     private Boolean closedDueToDischarge = false;
+    /**
+     * Notes added to the consult request which are not tied to a question.
+     */
+    @Column(columnDefinition = "text")
     private String comments;
+    /**
+     * Time that the consult has last been updated.
+     */
     private Instant statusChangeTime;
-    private Instant requestedDateTime;
+    /**
+     * Time that the consult was scheduled to occur at.
+     */
+    private Instant scheduledDatetime;
+    /**
+     * The consultation request has been cancelled by a user.
+     */
     private Boolean cancelled = false;
 
     /**
      * Minimal information constructor.
-     * @param consultationTypeId    ID for relevant consultation type
-     * @param hospitalVisitId       ID for hospital visit of patient that consultation request relates to
-     * @param consultId             ID for consultation request
+     * @param consultationTypeId ID for relevant consultation type
+     * @param hospitalVisitId    ID for hospital visit of patient that consultation request relates to
+     * @param internalId         ID for consultation request
      */
-    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, Long consultId) {
+    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, Long internalId) {
         this.consultationTypeId = consultationTypeId;
         this.hospitalVisitId = hospitalVisitId;
-        this.consultId = consultId;
+        this.internalId = internalId;
     }
 
     /**
@@ -67,11 +91,11 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
         super(other);
         this.consultationTypeId = other.consultationTypeId;
         this.hospitalVisitId = other.hospitalVisitId;
-        this.consultId = other.consultId;
+        this.internalId = other.internalId;
         this.closedDueToDischarge = other.closedDueToDischarge;
         this.comments = other.comments;
         this.statusChangeTime = other.statusChangeTime;
-        this.requestedDateTime = other.requestedDateTime;
+        this.scheduledDatetime = other.scheduledDatetime;
         this.cancelled = other.cancelled;
     }
 
