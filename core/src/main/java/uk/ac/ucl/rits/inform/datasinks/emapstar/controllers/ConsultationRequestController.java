@@ -101,15 +101,15 @@ public class ConsultationRequestController {
         consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
-                consultationRequest.getEntity().getConsultId(), msg.getRequestedDateTime(), storedFrom);
+                consultationRequest.getEntity().getInternalId(), msg.getRequestedDateTime(), storedFrom);
     }
 
     /**
      * Create a new minimal consult type if it doesn't exist, if it does then return the existing entity.
-     * @param code            code for consultation type
-     * @param messageDatetime time of the message
-     * @param storedFrom      when star started processing this message
-     * @return ConsultaionType wrapped in row state
+     * @param code            Consultation type code
+     * @param messageDatetime Time that the message data was last updated
+     * @param storedFrom      When star started processing this message
+     * @return ConsultationType wrapped in row state
      */
     @Cacheable(value = "ConsultationTypeCache", key = "#code")
     public RowState<ConsultationType, ConsultationTypeAudit> getOrCreateType(
@@ -121,11 +121,11 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Create a minimal ConsultationType entity.
-     * @param code            code for consultation type
-     * @param messageDatetime time of the message
+     * Create a minimal ConsultationType.
+     * @param code            Consultation type code
+     * @param messageDatetime Time that the message data was last updated
      * @param storedFrom      Time that emap-core started processing the message
-     * @return Consultation Type wrapped in row state
+     * @return ConsultationType wrapped in row state
      */
     private RowState<ConsultationType, ConsultationTypeAudit> createNewType(String code, Instant messageDatetime, Instant storedFrom) {
         ConsultationType consultationType = new ConsultationType(code, messageDatetime, storedFrom);
@@ -144,7 +144,7 @@ public class ConsultationRequestController {
     private RowState<ConsultationRequest, ConsultationRequestAudit> getOrCreateConsultationRequest(
             ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
-                .findByConsultId(msg.getEpicConsultId())
+                .findByInternalId(msg.getEpicConsultId())
                 .map(obs -> new RowState<>(obs, msg.getRequestedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalConsultationRequest(msg, visit, consultationType, storedFrom));
     }
@@ -187,13 +187,10 @@ public class ConsultationRequestController {
             ConsultationRequestAudit> requestState) {
         ConsultationRequest request = requestState.getEntity();
 
-        requestState.assignIfDifferent(msg.getRequestedDateTime(), request.getRequestedDateTime(),
-                request::setRequestedDateTime);
-        requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(),
-                request::setStatusChangeTime);
+        requestState.assignIfDifferent(msg.getRequestedDateTime(), request.getScheduledDatetime(), request::setScheduledDatetime);
+        requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(), request::setStatusChangeTime);
         requestState.assignInterchangeValue(msg.getNotes(), request.getComments(), request::setComments);
         requestState.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
-        requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(),
-                request::setClosedDueToDischarge);
+        requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(), request::setClosedDueToDischarge);
     }
 }
