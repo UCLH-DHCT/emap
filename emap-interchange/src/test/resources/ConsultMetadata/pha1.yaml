@@ -1,7 +1,0 @@
-# doesn't come up in hl7 interface so perhaps we should restrict the query to inpatient consultation requests?
-"@class": "uk.ac.ucl.rits.inform.interchange.ConsultMetadata"
-sourceSystem: "clarity"
-sourceMessageId: "PHA1"
-code: "PHA1"
-name: "Pharmacy to review dose"
-lastUpdatedDate: "2007-12-10T21:59:25Z"
