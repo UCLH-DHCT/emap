@@ -101,7 +101,7 @@ public class ConsultationRequestController {
         consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
-                consultationRequest.getEntity().getInternalId(), msg.getRequestedDateTime(), storedFrom);
+                consultationRequest.getEntity().getConsultationRequestId(), msg.getRequestedDateTime(), storedFrom);
     }
 
     /**
