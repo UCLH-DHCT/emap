@@ -1,0 +1,6 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultMetadata"
+sourceSystem: "clarity"
+sourceMessageId: "CON2"
+code: "CON2"
+name: "Inpatient consult to Diabetes educator"
+lastUpdatedDate: "2018-05-08T14:30:33Z"
