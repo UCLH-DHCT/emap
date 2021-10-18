@@ -8,25 +8,31 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationRequestRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConsultationTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequestAudit;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationType;
+import uk.ac.ucl.rits.inform.informdb.consults.ConsultationTypeAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 
 import java.time.Instant;
 
 /**
- * Functionality to create consultation requests for patients. A consultation request is initiated when specialist
- * advice on a patient's condition is requested through the treating physician.
+ * Functionality to create consultation requests for patients.
+ * <p>
+ * A consultation request is initiated when specialist advice on a patient's condition is requested.
  * @author Anika Cawthorn
+ * @author Stef Piatek
  */
 @Component
 public class ConsultationRequestController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
     private final ConsultationTypeRepository consultationTypeRepo;
+    private final ConsultationTypeAuditRepository consultationTypeAuditRepo;
     private final ConsultationRequestAuditRepository consultationRequestAuditRepo;
     private final QuestionController questionController;
 
@@ -34,66 +40,97 @@ public class ConsultationRequestController {
      * Setting repositories holding information on consultation requests.
      * @param consultationRequestRepo      Consultation request repo
      * @param consultationTypeRepo         Consultation request type repo
+     * @param consultationTypeAuditRepo    Audit for Consultation requests
      * @param consultationRequestAuditRepo Consultation request audit type repo
      * @param questionController           Question controller for questions in relation to consultation requests
      */
     public ConsultationRequestController(
-            ConsultationRequestRepository consultationRequestRepo,
-            ConsultationTypeRepository consultationTypeRepo,
-            ConsultationRequestAuditRepository consultationRequestAuditRepo,
+            ConsultationRequestRepository consultationRequestRepo, ConsultationRequestAuditRepository consultationRequestAuditRepo,
+            ConsultationTypeRepository consultationTypeRepo, ConsultationTypeAuditRepository consultationTypeAuditRepo,
             QuestionController questionController) {
         this.consultationRequestRepo = consultationRequestRepo;
         this.consultationTypeRepo = consultationTypeRepo;
+        this.consultationTypeAuditRepo = consultationTypeAuditRepo;
         this.consultationRequestAuditRepo = consultationRequestAuditRepo;
         this.questionController = questionController;
+    }
+
+    /**
+     * Update or create consultation request metadata.
+     * @param msg        consultation metadata message
+     * @param storedFrom time that the message was started to be processed by star
+     */
+    @Transactional
+    public void processMessage(final ConsultMetadata msg, final Instant storedFrom) {
+        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(msg.getCode(), msg.getLastUpdatedDate(), storedFrom);
+        ConsultationType consultationType = consultationState.getEntity();
+
+        if (consultationTypeShouldBeUpdated(msg.getLastUpdatedDate(), consultationType)) {
+            consultationState.assignIfDifferent(msg.getName(), consultationType.getName(), consultationType::setName);
+        }
+        consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
+    }
+
+    /**
+     * Consultation type should be updated if it has no name data, or if the current message is newer.
+     * @param messageTime      time that the message is valid from
+     * @param consultationType consultation type entity
+     * @return true if the consultation type should be updated
+     */
+    private boolean consultationTypeShouldBeUpdated(Instant messageTime, ConsultationType consultationType) {
+        return consultationType.getName() == null || messageTime.isAfter(consultationType.getValidFrom());
     }
 
     /**
      * Process consultation request message.
      * @param msg        Consultation request message
      * @param visit      Hospital visit this consultation request relates to.
-     * @param storedFrom valid from in database
+     * @param storedFrom time that the message was started to be processed by star
      */
     @Transactional
     public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom) {
-        ConsultationType consultationType = getOrCreateConsultationRequestType(msg, storedFrom);
+        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(
+                msg.getConsultationType(), msg.getStatusChangeTime(), storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
-                msg, visit, consultationType, storedFrom);
+                msg, visit, consultationState.getEntity(), storedFrom);
 
-        if (messageShouldBeUpdated(msg, consultationRequest)) {
+        if (consultRequestShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
         }
 
+        consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
                 consultationRequest.getEntity().getInternalId(), msg.getRequestedDateTime(), storedFrom);
     }
 
     /**
-     * Check whether consultation type exists already. If it does, add it to consultation request; if not, create a new
-     * consultation type from the information provided in the message.
-     * @param msg        consultation request message
-     * @param storedFrom when consultation request information is stored from
-     * @return ConsultRequestType
+     * Create a new minimal consult type if it doesn't exist, if it does then return the existing entity.
+     * @param code            Consultation type code
+     * @param messageDatetime Time that the message data was last updated
+     * @param storedFrom      When star started processing this message
+     * @return ConsultationType wrapped in row state
      */
-    @Cacheable(value = "ConsultationTypeCache", key = "ConsultationType")
-    public ConsultationType getOrCreateConsultationRequestType(ConsultRequest msg, Instant storedFrom) {
+    @Cacheable(value = "ConsultationTypeCache", key = "#code")
+    public RowState<ConsultationType, ConsultationTypeAudit> getOrCreateType(
+            String code, Instant messageDatetime, Instant storedFrom) {
         return consultationTypeRepo
-                .findByCode(msg.getConsultationType())
-                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
+                .findByCode(code)
+                .map(msg -> new RowState<>(msg, messageDatetime, storedFrom, false))
+                .orElseGet(() -> createNewType(code, messageDatetime, storedFrom));
     }
 
     /**
-     * Create and save a ConsultationType from the information contained in the ConsultRequest message.
-     * @param msg        Consultation request message
-     * @param storedFrom Time that emap-core started processing the message
-     * @return saved ConsultationType
+     * Create a minimal ConsultationType.
+     * @param code            Consultation type code
+     * @param messageDatetime Time that the message data was last updated
+     * @param storedFrom      Time that emap-core started processing the message
+     * @return ConsultationType wrapped in row state
      */
-    private ConsultationType createAndSaveNewType(ConsultRequest msg, Instant storedFrom) {
-        ConsultationType consultationType = new ConsultationType(msg.getConsultationType(),
-                msg.getRequestedDateTime(), storedFrom);
+    private RowState<ConsultationType, ConsultationTypeAudit> createNewType(String code, Instant messageDatetime, Instant storedFrom) {
+        ConsultationType consultationType = new ConsultationType(code, messageDatetime, storedFrom);
         logger.debug("Created new {}", consultationType);
-        return consultationTypeRepo.save(consultationType);
+        return new RowState<>(consultationType, messageDatetime, storedFrom, true);
     }
 
     /**
@@ -130,13 +167,12 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Decides whether or not message data held in the user data storage (accessed by researchers) needs to be updated
-     * with the data held in the message that is processed.
+     * Should the consult request be updated (for fields that can change over time).
      * @param msg                 Consultation request message
      * @param consultationRequest Consultation request
      * @return true if message should be updated
      */
-    private boolean messageShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
+    private boolean consultRequestShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultationRequest) {
         return (consultationRequest.isEntityCreated() || !msg.getStatusChangeTime().isBefore(
                 consultationRequest.getEntity().getValidFrom()));
