@@ -23,6 +23,12 @@ import java.time.Instant;
 @ToString(callSuper = true)
 @NoArgsConstructor
 public class Question {
+
+    /**
+     * \brief Unique identifier in EMAP for this question record.
+     *
+     * This is the primary key for the Question table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long questionId;

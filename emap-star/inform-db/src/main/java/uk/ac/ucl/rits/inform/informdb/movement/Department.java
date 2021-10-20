@@ -18,6 +18,12 @@ import java.io.Serializable;
 @Table
 @NoArgsConstructor
 public class Department implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this department record.
+     *
+     * This is the primary key for the Department table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentId;

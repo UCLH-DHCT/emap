@@ -37,6 +37,11 @@ import java.time.Instant;
 @Table(indexes = {@Index(name = "vot_id_in_application", columnList = "idInApplication")})
 public class VisitObservationType extends TemporalCore<VisitObservationType, VisitObservationTypeAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this visitObservationTypeId record.
+     *
+     * This is the primary key for the VisitObservationType table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long visitObservationTypeId;

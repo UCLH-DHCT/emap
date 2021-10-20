@@ -28,6 +28,11 @@ import java.time.Instant;
 @AuditTable
 public class LabSensitivity extends TemporalCore<LabSensitivity, LabSensitivityAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labSensitivity record.
+     *
+     * This is the primary key for the LabSensitivity table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labSensitivityId;

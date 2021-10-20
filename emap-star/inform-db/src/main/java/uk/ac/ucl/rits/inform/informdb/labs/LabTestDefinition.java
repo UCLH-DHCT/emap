@@ -28,6 +28,11 @@ import java.time.Instant;
 @AuditTable
 public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDefinitionAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labTestDefinition record.
+     *
+     * This is the primary key for the LabTestDefinition table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labTestDefinitionId;

@@ -31,6 +31,12 @@ import java.time.Instant;
 @AuditTable
 @Table(indexes = {@Index(name = "idxParentId", columnList = "parentId")})
 public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this requestAnswerId record.
+     *
+     * This is the primary key for the RequestAnswer table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long requestAnswerId;

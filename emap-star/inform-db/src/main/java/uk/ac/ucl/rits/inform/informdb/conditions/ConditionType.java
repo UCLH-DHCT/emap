@@ -14,7 +14,8 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * Type of condition that a patient can have.
+ * \brief Type of condition that a patient can have.
+ *
  * Types are defined by the dataType (problem list or infection) and the name (problem list-> diagnosis; infection -> infection name)
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -26,27 +27,40 @@ import java.time.Instant;
 @AuditTable
 public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this ConditionType record.
+     *
+     * This is the primary key for the ConditionType table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long conditionTypeId;
 
     /**
-     * problem list or patient infection.
+     * \brief Problem list or patient infection.
      */
     @Column(nullable = false)
     private String dataType;
 
     /**
-     * Code used within EPIC for condition.
+     * \brief Code used within EPIC for this ConditionType.
      */
     @Column(nullable = false)
     private String internalCode;
 
     /**
-     * Human readable name for condition.
+     * \brief Human readable name for this ConditionType.
      */
     private String name;
+
+    /**
+     * \brief Not yet implemented.
+     */
     private String standardisedCode;
+
+    /**
+     * \brief Not yet implemented.
+     */
     private String standardisedVocabulary;
 
     /**

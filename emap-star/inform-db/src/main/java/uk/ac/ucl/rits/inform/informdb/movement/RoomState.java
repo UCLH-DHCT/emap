@@ -23,6 +23,12 @@ import java.time.Instant;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class RoomState extends AuditCore<RoomState> {
+
+    /**
+     * \brief Unique identifier in EMAP for this roomState record.
+     *
+     * This is the primary key for the RoomState table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomStateId;

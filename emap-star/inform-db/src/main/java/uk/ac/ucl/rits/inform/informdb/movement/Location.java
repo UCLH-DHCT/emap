@@ -22,6 +22,12 @@ import lombok.Data;
 @Table
 @Data
 public class Location implements  Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this location record.
+     *
+     * This is the primary key for the Location table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationId;

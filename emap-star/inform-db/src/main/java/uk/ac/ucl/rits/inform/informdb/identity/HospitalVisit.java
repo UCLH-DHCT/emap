@@ -39,9 +39,10 @@ import java.util.List;
 @AuditTable
 public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudit> {
 
-
     /**
-     * A primary key for this row.
+     * \brief Unique identifier in EMAP for this hospitalVisit record.
+     *
+     * This is the primary key for the HospitalVisit table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

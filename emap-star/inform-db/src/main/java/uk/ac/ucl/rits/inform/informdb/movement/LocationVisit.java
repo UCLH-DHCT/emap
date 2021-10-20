@@ -42,6 +42,11 @@ import java.time.Instant;
         @Index(name = "lva_location_id", columnList = "locationId")})
 public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this locationVisit record.
+     *
+     * This is the primary key for the LocationVisit table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationVisitId;

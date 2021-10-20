@@ -24,6 +24,12 @@ import java.time.Instant;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class BedState extends AuditCore<BedState> {
+
+    /**
+     * \brief Unique identifier in EMAP for this bedState record.
+     *
+     * This is the primary key for the BedState table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedStateId;

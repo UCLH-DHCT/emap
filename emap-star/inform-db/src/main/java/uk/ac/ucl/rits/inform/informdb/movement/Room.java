@@ -20,6 +20,12 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 public class Room implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this room record.
+     *
+     * This is the primary key for the Room table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomId;

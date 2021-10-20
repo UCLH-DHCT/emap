@@ -20,6 +20,12 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 public class Bed implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this bed record.
+     *
+     * This is the primary key for the Bed table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedId;

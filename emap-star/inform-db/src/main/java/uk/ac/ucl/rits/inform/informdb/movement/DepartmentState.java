@@ -24,6 +24,12 @@ import java.time.Instant;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class DepartmentState extends AuditCore<DepartmentState> {
+
+    /**
+     * \brief Unique identifier in EMAP for this departmentState record.
+     *
+     * This is the primary key for the DepartmentState table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentStateId;

@@ -34,6 +34,11 @@ import java.time.Instant;
 @AuditTable
 public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labResult record.
+     *
+     * This is the primary key for the LabResult table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultId;

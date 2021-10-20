@@ -38,6 +38,11 @@ import java.time.LocalDate;
 @AuditTable
 public class VisitObservation extends TemporalCore<VisitObservation, VisitObservationAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this visitObservation record.
+     *
+     * This is the primary key for the VisitObservation table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long visitObservationId;

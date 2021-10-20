@@ -35,6 +35,11 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 @AuditTable
 public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this mrnToLive record.
+     *
+     * This is the primary key for the MrnToLive table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnToLiveId;

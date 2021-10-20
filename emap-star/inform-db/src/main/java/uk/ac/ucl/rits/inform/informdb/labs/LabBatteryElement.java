@@ -28,6 +28,11 @@ import java.time.Instant;
 @AuditTable
 public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatteryElementAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labBatteryElement record.
+     *
+     * This is the primary key for the LabBatteryElement table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labBatteryElementId;

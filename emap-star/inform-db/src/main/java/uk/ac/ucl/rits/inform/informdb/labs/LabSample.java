@@ -31,6 +31,11 @@ import java.time.Instant;
 @Table(indexes = {@Index(name = "lo_mrn_id", columnList = "mrnId")})
 public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labSample record.
+     *
+     * This is the primary key for the LabSample table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labSampleId;

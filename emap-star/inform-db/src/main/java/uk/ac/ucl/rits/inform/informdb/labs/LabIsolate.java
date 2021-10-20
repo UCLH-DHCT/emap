@@ -26,6 +26,11 @@ import java.time.Instant;
 @AuditTable
 public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labIsolate record.
+     *
+     * This is the primary key for the LabIsolate table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labIsolateId;

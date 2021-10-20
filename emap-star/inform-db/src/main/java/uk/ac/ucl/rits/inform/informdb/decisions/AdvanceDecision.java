@@ -19,7 +19,7 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * Holds information relevant to advance decisions taken by patients.
+ * \brief Holds information relevant to advance decisions taken by patients.
  */
 @Entity
 @Data
@@ -27,59 +27,69 @@ import java.time.Instant;
 @NoArgsConstructor
 @AuditTable
 public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisionAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this AdvancedDecision record.
+     *
+     * This is the primary key for the AdvanceDecision table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    /**
-     * Identifier for specific advance decision.
-     */
     private long advanceDecisionId;
 
+    /**
+     * \brief Identifier for the AdvanceDecisionType associated with this record.
+     *
+     * This is a foreign key that joins the AdvanceDecisionType table to the AdvanceDecision table.
+     */
     @ManyToOne
     @JoinColumn(name = "advanceDecisionTypeId", nullable = false)
-    /**
-     * Identifier for type of specific advance decision.
-     */
     private AdvanceDecisionType advanceDecisionTypeId;
 
+    /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the AdvanceDecision table to the HospitalVisit table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
-    /**
-     * Identifier for hospital visit of specific advance decision.
-     */
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the AdvanceDecision table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
-    /**
-     * Identifier for patient of specific advance decision.
-     */
     private Mrn mrnId;
 
-    @Column(nullable = false, unique = true)
     /**
-     * Identifier assigned in source system that should be unique across all advance decisions recorded in the
-     * hospital.
+     * \brief Unique identifier assigned in source system.
+     *
+     * This identifier should be unique across all advance decisions recorded in the hospital.
      */
+    @Column(nullable = false, unique = true)
     private Long internalId;
 
     // Optional fields for advance decisions.
     /**
-     * Indicates whether (True) or not (False) an advance decision ceased to exist based on patient discharge.
+     * \brief Indicates whether (True) or not (False) an advance decision ceased to exist based on patient discharge.
      */
     private Boolean closedDueToDischarge = false;
 
     /**
-     * Time when the information for the advance decision has been last updated.
+     * \brief Time when the information for the advance decision has been last updated.
      */
     private Instant statusChangeDatetime;
 
     /**
-     * Time when the advance decision for the patient's hospital visit has been recorded first.
+     * \brief Time when the advance decision for the patient's hospital visit has been recorded first.
      */
     private Instant requestedDatetime;
 
      /**
-      * Indicates whether (True) or not (False) an advance decision was cancelled, e.g. through a patient request.
+      * \brief Indicates whether (True) or not (False) an advance decision was cancelled, e.g. through a patient request.
       */
     private Boolean cancelled = false;
 

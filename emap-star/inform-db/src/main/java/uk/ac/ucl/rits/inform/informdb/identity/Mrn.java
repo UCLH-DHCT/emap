@@ -38,7 +38,9 @@ import lombok.Data;
 public class Mrn implements Serializable {
 
     /**
-     * The MrnId is the UID for the association of an MRN value to a Person.
+     * \brief Unique identifier in EMAP for this mrn record.
+     *
+     * This is the primary key for the Mrn table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

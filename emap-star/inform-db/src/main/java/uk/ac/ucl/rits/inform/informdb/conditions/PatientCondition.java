@@ -20,7 +20,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Represents patient conditions that start and can end.
+ * \brief Represents patient conditions that start and can end.
+ *
  * Currently envisaged as storing infection control's patient infection information and problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -32,41 +33,83 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AuditTable
 public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this PatientCondition record.
+     *
+     * This is the primary key for the PatientCondition table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long patientConditionId;
 
+    /**
+     * \brief Identifier for the ConditionType associated with this record.
+     *
+     * This is a foreign key that joins the PatientCondition table to the ConditionType table.
+     */
     @ManyToOne
     @JoinColumn(name = "conditionTypeId", nullable = false)
     private ConditionType conditionTypeId;
 
+    /**
+     * \brief Identifier used in EPIC for this PatientCondition.
+     */
     private Long internalId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the PatientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
+    /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the PatientCondition table to the HospitalVisit table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Date this record was added to database.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
+    /**
+     * \brief Date the PatientCondition referred to in this record was resolved.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resolutionDateTime;
 
+    /**
+     * \brief Date at which the PatientCondition was first observed in the patient.
+     */
     private LocalDate onsetDate;
 
     /**
-     * temporary infection?
+     * \brief ?
      */
     private String classification;
 
+    /**
+     * \brief ?
+     */
     private String status;
 
+    /**
+     * \brief ?
+     */
     private String priority;
 
+    /**
+     * Comments added by clincian
+     */
     @Column(columnDefinition = "text")
     private String comment;
 
