@@ -49,13 +49,17 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
      */
     private String externalLabNumber;
     /**
-     * The time the sample arrived at the lab where there test was being performed.
+     * \brief Date and time at which this labSample arrived at the lab.
+     *
+     * where there test was being performed.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant receiptAtLab;
 
     /**
-     * The time the sample was take from the patient (e.g. time of phlebotomy).
+     * \brief Date and time at which this labSample was take from the patient.
+     *
+     * (e.g. time of phlebotomy).
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant sampleCollectionTime;

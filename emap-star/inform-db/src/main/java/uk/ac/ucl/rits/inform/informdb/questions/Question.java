@@ -36,9 +36,15 @@ public class Question {
     @Column(columnDefinition = "text", nullable = false)
     private String question;
 
+    /**
+     * \brief Date and time from which this question is stored.
+     */
     @Column(nullable = false)
     private Instant storedFrom;
 
+    /**
+     * \brief Date and time from which this question is valid.
+     */
     @Column(nullable = false)
     private Instant validFrom;
 

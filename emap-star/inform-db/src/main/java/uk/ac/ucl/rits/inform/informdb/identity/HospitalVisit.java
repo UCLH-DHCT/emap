@@ -65,21 +65,26 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
     private String sourceSystem;
 
     /**
-     * \brief The date and time the patient was first seen in the hospital as part of this visit.
+     * \brief Date and time at which this hospitalVisit was first recorded.
      *
+     * patient was first seen in the hospital as part of this visit.
      * This may be prior to their admission.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant presentationTime;
 
     /**
-     * \brief The dae and time the patient was formally admitted.
+     * \brief Date and time at which this hospitalVisit formally began.
+     *
+     * at which the patient was formally admitted.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant admissionTime;
 
     /**
-     * \brief The date time the patient was discharged.
+     * \brief Date and time at which this hospitalVisit formally ended.
+     *
+     * at which the patient was discharged.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant dischargeTime;

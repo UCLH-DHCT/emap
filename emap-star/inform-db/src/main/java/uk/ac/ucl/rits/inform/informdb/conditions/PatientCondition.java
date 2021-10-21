@@ -35,32 +35,32 @@ import java.time.LocalDate;
 public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
 
     /**
-     * \brief Unique identifier in EMAP for this PatientCondition record.
+     * \brief Unique identifier in EMAP for this patientCondition record.
      *
-     * This is the primary key for the PatientCondition table.
+     * This is the primary key for the patientCondition table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long patientConditionId;
 
     /**
-     * \brief Identifier for the ConditionType associated with this record.
+     * \brief Identifier for the conditionType associated with this record.
      *
-     * This is a foreign key that joins the PatientCondition table to the ConditionType table.
+     * This is a foreign key that joins the patientCondition table to the ConditionType table.
      */
     @ManyToOne
     @JoinColumn(name = "conditionTypeId", nullable = false)
     private ConditionType conditionTypeId;
 
     /**
-     * \brief Identifier used in EPIC for this PatientCondition.
+     * \brief Identifier used in EPIC for this patientCondition.
      */
     private Long internalId;
 
     /**
      * \brief Identifier for the Mrn associated with this record.
      *
-     * This is a foreign key that joins the PatientCondition table to the Mrn table.
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
      */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
@@ -69,26 +69,26 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
      *
-     * This is a foreign key that joins the PatientCondition table to the HospitalVisit table.
+     * This is a foreign key that joins the patientCondition table to the HospitalVisit table.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
     /**
-     * \brief Date this record was added to database.
+     * \brief Date and time at which this patientCondition was added to the record.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
     /**
-     * \brief Date the PatientCondition referred to in this record was resolved.
+     * \brief Date and time at which this patientCondition was resolved.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resolutionDateTime;
 
     /**
-     * \brief Date at which the PatientCondition was first observed in the patient.
+     * \brief Date at which the patientCondition was first observed in the patient.
      */
     private LocalDate onsetDate;
 

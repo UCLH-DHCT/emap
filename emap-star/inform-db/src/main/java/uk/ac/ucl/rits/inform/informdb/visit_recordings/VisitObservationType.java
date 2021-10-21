@@ -95,7 +95,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String primaryDataType;
 
     /**
-     * Datetime that the data type was created in the source system.
+     * \brief Date and time at which this visitObservationType was created in the source system.
      */
     private Instant creationTime;
 

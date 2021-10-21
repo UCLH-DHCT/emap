@@ -58,9 +58,15 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @JoinColumn(name = "labBatteryId", nullable = false)
     private LabBattery labBatteryId;
 
+    /**
+     * \brief Date and time at which this labOrder was actioned.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
 
+    /**
+     * \brief Date and time at which this labOrder was requested.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant requestDatetime;
 

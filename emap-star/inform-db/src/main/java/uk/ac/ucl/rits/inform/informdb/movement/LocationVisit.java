@@ -57,8 +57,15 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
 
     private Long parentLocationVisitId;
 
+    /**
+     * \brief Date and time at which the patient was admitted to this location.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant admissionTime;
+
+    /**
+     * Date and time at which the patient was discharged from this location.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant dischargeTime;
 

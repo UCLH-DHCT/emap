@@ -79,12 +79,12 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
     private Boolean closedDueToDischarge = false;
 
     /**
-     * \brief Time when the information for the advance decision has been last updated.
+     * \brief Date and time at which this advanceDecision was last updated.
      */
     private Instant statusChangeDatetime;
 
     /**
-     * \brief Time when the advance decision for the patient's hospital visit has been recorded first.
+     * \brief Date and time at which this advanceDecision was first recorded.
      */
     private Instant requestedDatetime;
 

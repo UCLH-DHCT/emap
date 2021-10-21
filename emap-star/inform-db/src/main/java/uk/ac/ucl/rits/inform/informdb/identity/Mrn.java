@@ -69,7 +69,7 @@ public class Mrn implements Serializable {
     private String sourceSystem;
 
     /**
-     * The datetime this row was written.
+     * \brief Date and time at which this mrn was first recorded in EMAP.
      */
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant storedFrom;

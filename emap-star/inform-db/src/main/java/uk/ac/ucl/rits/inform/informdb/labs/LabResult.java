@@ -51,6 +51,9 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @JoinColumn(name = "labTestDefinitionId", nullable = false)
     private LabTestDefinition labTestDefinitionId;
 
+    /**
+     * \brief Date and time at which the labResult was last modified.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resultLastModifiedTime;
 

@@ -50,6 +50,9 @@ public class LabSensitivity extends TemporalCore<LabSensitivity, LabSensitivityA
      */
     private String sensitivity;
 
+    /**
+     * \brief Date and time at which this labSensitivity was reported.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant reportingDatetime;
 

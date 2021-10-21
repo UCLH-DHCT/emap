@@ -71,12 +71,12 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     private String comments;
 
     /**
-     * \brief Time that the ConsultationRequest has last been updated.
+     * \brief Date and time at which this consultationRequest was last updated.
      */
     private Instant statusChangeTime;
 
     /**
-     * \brief Time for which the consult resulting from this ConsultationRequest was scheduled.
+     * \brief Date and time at which this consultationRequest was scheduled.
      */
 
     private Instant scheduledDatetime;

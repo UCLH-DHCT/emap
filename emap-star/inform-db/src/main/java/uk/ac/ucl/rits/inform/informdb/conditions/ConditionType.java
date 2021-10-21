@@ -28,9 +28,9 @@ import java.time.Instant;
 public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudit> {
 
     /**
-     * \brief Unique identifier in EMAP for this ConditionType record.
+     * \brief Unique identifier in EMAP for this conditionType record.
      *
-     * This is the primary key for the ConditionType table.
+     * This is the primary key for the conditionType table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -43,13 +43,13 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private String dataType;
 
     /**
-     * \brief Code used within EPIC for this ConditionType.
+     * \brief Code used within EPIC for this conditionType.
      */
     @Column(nullable = false)
     private String internalCode;
 
     /**
-     * \brief Human readable name for this ConditionType.
+     * \brief Human readable name for this conditionType.
      */
     private String name;
 
