@@ -43,10 +43,20 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labResultId;
 
+    /**
+     * \brief Identifier for the LabOrder associated with this record.
+     *
+     * This is a foreign key that joins the labResult table to the LabOrder table.
+     */
     @ManyToOne
     @JoinColumn(name = "labOrderId", nullable = false)
     private LabOrder labOrderId;
 
+    /**
+     * \brief Identifier for the LabTestDefinition associated with this record.
+     *
+     * This is a foreign key that joins the labResult table to the LabTestDefinition table.
+     */
     @ManyToOne
     @JoinColumn(name = "labTestDefinitionId", nullable = false)
     private LabTestDefinition labTestDefinitionId;
@@ -58,40 +68,65 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     private Instant resultLastModifiedTime;
 
     /**
-     * Lab system flag for value outside of normal range.
+     * \brief Lab system flag for value outside of normal range.
      */
     private String abnormalFlag;
 
     /**
-     * Mime type (or custom type) of the value.
+     * \brief Mime type (or custom type) of the value.
+     *
      * This will tell you which column you should expect to be populated for the value.
      */
     private String mimeType;
 
+    /**
+     * \brief Value as text.
+     */
     @Column(columnDefinition = "text")
     private String valueAsText;
+
+    /**
+     * \brief Value as a number.
+     */
     private Double valueAsReal;
-    @Column(columnDefinition = "bytea")
+
+    /**
+     * \brief Value as bytes.
+     */
+    @Column(columnDefinition = "bytea") //TODO should this be bytes not bytea
     private byte[] valueAsBytes;
 
     /**
-     * For numeric results, defines the operator used to define the value.
-     * <p>
+     * \brief For numeric results, defines the operator used to define the value.
+     *
      * For example an estimated GFR is given as `>90`, this would have a valueAsReal of `90` and a numeric operator of `>`
      * Most of the time, values are precise so have a `=` result operator
      */
     private String resultOperator;
+
     /**
-     * Upper limit of reference range.
+     * \brief Upper limit of reference range.
      */
     private Double rangeHigh;
+
     /**
-     * Lower limit of reference range.
+     * \brief Lower limit of reference range.
      */
     private Double rangeLow;
+
+    /**
+     * \brief Status of the result.
+     */
     private String resultStatus;
+
+    /**
+     * \brief Units of the result.
+     */
     private String units;
 
+    /**
+     * \brief Additional comments.
+     */
     @Column(columnDefinition = "text")
     private String comment;
 

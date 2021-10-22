@@ -33,6 +33,11 @@ public class RoomState extends AuditCore<RoomState> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomStateId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;

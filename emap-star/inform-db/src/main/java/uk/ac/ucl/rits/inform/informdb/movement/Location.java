@@ -34,14 +34,29 @@ public class Location implements  Serializable {
     @Column(nullable = false)
     private String locationString;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "departmentId")
     private Department departmentId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "roomId")
     private Room roomId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "bedId")
     private Bed bedId;

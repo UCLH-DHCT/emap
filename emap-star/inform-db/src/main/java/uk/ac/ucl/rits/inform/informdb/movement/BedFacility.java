@@ -30,6 +30,11 @@ public class BedFacility implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedFacilityId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "bedStateId", nullable = false)
     private BedState bedStateId;

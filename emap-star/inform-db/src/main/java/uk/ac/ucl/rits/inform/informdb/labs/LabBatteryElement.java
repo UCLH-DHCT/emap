@@ -37,10 +37,20 @@ public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatter
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labBatteryElementId;
 
+    /**
+     * \brief Identifier for the LabBattery associated with this record.
+     *
+     * This is a foreign key that joins the labBatteryElement table to the LabBattery table.
+     */
     @ManyToOne
     @JoinColumn(name = "labBatteryId", nullable = false)
     private LabBattery labBatteryId;
 
+    /**
+     * \brief Identifier for the LabTestDefinition associated with this record.
+     *
+     * This is a foreign key that joins the labBatteryElement table to the LabTestDefinition table.
+     */
     @ManyToOne
     @JoinColumn(name = "labTestDefinitionId", nullable = false)
     private LabTestDefinition labTestDefinitionId;

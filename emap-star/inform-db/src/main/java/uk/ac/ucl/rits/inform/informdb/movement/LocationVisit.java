@@ -51,6 +51,11 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationVisitId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;

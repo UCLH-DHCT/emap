@@ -36,6 +36,7 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labTestDefinitionId;
+
     /**
      * What system this code belongs to. Examples could be WinPath, or Epic.
      */

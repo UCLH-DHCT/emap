@@ -47,10 +47,20 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long visitObservationId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "visitObservationTypeId", nullable = false)
     private VisitObservationType visitObservationTypeId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;

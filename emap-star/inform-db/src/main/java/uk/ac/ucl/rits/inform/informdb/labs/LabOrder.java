@@ -34,26 +34,40 @@ import java.time.Instant;
         @Index(name = "lo_lab_sample_id", columnList = "labSampleId"),
         @Index(name = "lo_order_datetime", columnList = "orderDatetime")})
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
+
     /**
      * \brief Unique identifier in EMAP for this labOrder record.
      *
-     * This is the primary key for the LabOrder table.
+     * This is the primary key for the labOrder table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long labOrderId;
 
+    /**
+     * \brief Identifier for the LabSample associated with this record.
+     *
+     * This is a foreign key that joins the labOrder table to the LabSample table.
+     */
     @ManyToOne
     @JoinColumn(name = "labSampleId", nullable = false)
     private LabSample labSampleId;
 
     /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the labOrder table to the HospitalVisit table.
      * Can have labs that are not linked to a hospital visit.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Identifier for the LabBattery associated with this record.
+     *
+     * This is a foreign key that joins the labOrder table to the LabBattery table.
+     */
     @ManyToOne
     @JoinColumn(name = "labBatteryId", nullable = false)
     private LabBattery labBatteryId;
@@ -70,6 +84,9 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     @Column(columnDefinition = "timestamp with time zone")
     private Instant requestDatetime;
 
+    /**
+     * \brief Additional information supplied.
+     */
     @Column(columnDefinition = "text")
     private String clinicalInformation;
 
@@ -78,6 +95,9 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
      */
     private String internalLabNumber;
 
+    /**
+     * \brief Name of the source system where this labOrder was created.
+     */
     private String sourceSystem;
 
     public LabOrder() {}

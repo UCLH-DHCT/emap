@@ -40,14 +40,20 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labSampleId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the labSample table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
     /**
-     * Lab number for the system doing the lab test.
+     * \brief Lab number for the system doing the lab test.
      */
     private String externalLabNumber;
+
     /**
      * \brief Date and time at which this labSample arrived at the lab.
      *
@@ -65,17 +71,22 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
     private Instant sampleCollectionTime;
 
     /**
-     * Type of specimen.
+     * \brief Type of specimen.
+     *
      * E.g. Mid Stream Urine
      */
     private String specimenType;
+
     /**
-     * Site the sample was taken from.
+     * \brief Site on body the sample was taken from.
+     *
      * E.g. Right kidney
      */
     private String sampleSite;
+
     /**
-     * Method of collection
+     * \brief Method of collection
+     *
      * E.g. Bone marrow trephine biopsy
      */
     @Column(columnDefinition = "text")

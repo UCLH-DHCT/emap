@@ -34,6 +34,11 @@ public class DepartmentState extends AuditCore<DepartmentState> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentStateId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
