@@ -53,7 +53,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private ConditionType conditionTypeId;
 
     /**
-     * \brief Identifier used in EPIC for this patientCondition.
+     * \brief Identifier used in source system for this patientCondition.
      */
     private Long internalId;
 
@@ -108,7 +108,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private String priority;
 
     /**
-     * Comments added by clincian
+     * Comments added by clinician.
      */
     @Column(columnDefinition = "text")
     private String comment;

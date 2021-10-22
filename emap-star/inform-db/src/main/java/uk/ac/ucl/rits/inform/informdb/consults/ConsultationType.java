@@ -28,9 +28,9 @@ import java.time.Instant;
 public class ConsultationType extends TemporalCore<ConsultationType, ConsultationTypeAudit> {
 
     /**
-     * \brief Unique identifier in EMAP for this ConsultationType record.
+     * \brief Unique identifier in EMAP for this consultationType record.
      *
-     * This is the primary key for the ConsultationType table.
+     * This is the primary key for the consultationType table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,12 +38,12 @@ public class ConsultationType extends TemporalCore<ConsultationType, Consultatio
     @Column(nullable = false, unique = true)
 
     /**
-     * \brief Code used in EPIC for this ConsultationType.
+     * \brief Code used in source system for this consultationType.
      */
     private String code;
 
     /**
-     * \brief Human readable name for this ConsultationType.
+     * \brief Human readable name for this consultationType.
      */
     private String name;
 

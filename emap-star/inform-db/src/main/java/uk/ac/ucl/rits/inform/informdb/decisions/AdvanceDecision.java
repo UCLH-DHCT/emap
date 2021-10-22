@@ -29,9 +29,9 @@ import java.time.Instant;
 public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisionAudit> {
 
     /**
-     * \brief Unique identifier in EMAP for this AdvancedDecision record.
+     * \brief Unique identifier in EMAP for this advanceDecision record.
      *
-     * This is the primary key for the AdvanceDecision table.
+     * This is the primary key for the advanceDecision table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -40,7 +40,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
     /**
      * \brief Identifier for the AdvanceDecisionType associated with this record.
      *
-     * This is a foreign key that joins the AdvanceDecisionType table to the AdvanceDecision table.
+     * This is a foreign key that joins the advanceDecision table to the AdvanceDecisionType table.
      */
     @ManyToOne
     @JoinColumn(name = "advanceDecisionTypeId", nullable = false)
@@ -49,7 +49,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
      *
-     * This is a foreign key that joins the AdvanceDecision table to the HospitalVisit table.
+     * This is a foreign key that joins the advanceDecision table to the HospitalVisit table.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
@@ -58,14 +58,14 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
     /**
      * \brief Identifier for the Mrn associated with this record.
      *
-     * This is a foreign key that joins the AdvanceDecision table to the Mrn table.
+     * This is a foreign key that joins the advanceDecision table to the Mrn table.
      */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
     /**
-     * \brief Unique identifier assigned in source system.
+     * \brief Identifier used in source system for this advanceDecision.
      *
      * This identifier should be unique across all advance decisions recorded in the hospital.
      */

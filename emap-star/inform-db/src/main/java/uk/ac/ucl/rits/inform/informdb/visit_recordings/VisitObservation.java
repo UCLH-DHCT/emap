@@ -41,7 +41,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     /**
      * \brief Unique identifier in EMAP for this visitObservation record.
      *
-     * This is the primary key for the VisitObservation table.
+     * This is the primary key for the visitObservation table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

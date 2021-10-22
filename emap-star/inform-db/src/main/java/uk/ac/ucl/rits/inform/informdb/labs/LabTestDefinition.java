@@ -31,7 +31,7 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
     /**
      * \brief Unique identifier in EMAP for this labTestDefinition record.
      *
-     * This is the primary key for the LabTestDefinition table.
+     * This is the primary key for the labTestDefinition table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

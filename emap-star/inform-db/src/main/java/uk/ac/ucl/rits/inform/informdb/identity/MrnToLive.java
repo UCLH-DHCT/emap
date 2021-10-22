@@ -43,10 +43,21 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnToLiveId;
+
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the mrnToLive table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the mrnToLive table to the Mrn table.
+     */
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "liveMrnId", nullable = false)
     private Mrn liveMrnId;

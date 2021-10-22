@@ -23,20 +23,20 @@ public class AdvanceDecisionType {
     /**
      * \brief Unique identifier in EMAP for this advanceDecisionType record.
      *
-     * This is the primary key for the AdvanceDecisionType table.
+     * This is the primary key for the advanceDecisionType table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long advanceDecisionTypeId;
 
     /**
-     * \brief Name of the advance decision type, e.g. DNACPR
+     * \brief Name of the advanceDecisionType, e.g. DNACPR
      */
     @Column(nullable = false)
     private String name;
 
     /**
-     * \brief Code used within EPIC for advance decision type, e.g COD4 for DNACPR.
+     * \brief Code used within source system for advanceDecisionType, e.g COD4 for DNACPR.
      */
     @Column(nullable = false, unique = true)
     private String careCode;

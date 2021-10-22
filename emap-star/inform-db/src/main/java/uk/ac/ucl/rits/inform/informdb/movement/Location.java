@@ -26,7 +26,7 @@ public class Location implements  Serializable {
     /**
      * \brief Unique identifier in EMAP for this location record.
      *
-     * This is the primary key for the Location table.
+     * This is the primary key for the location table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -52,7 +52,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
     /**
      * \brief Identifier for the Mrn associated with this record.
      *
-     * This is a foreign key that joins the HospitalVisit table to the Mrn table.
+     * This is a foreign key that joins the hospitalVisit table to the Mrn table.
      */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)

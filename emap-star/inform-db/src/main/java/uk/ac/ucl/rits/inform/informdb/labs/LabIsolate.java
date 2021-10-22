@@ -29,7 +29,7 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
     /**
      * \brief Unique identifier in EMAP for this labIsolate record.
      *
-     * This is the primary key for the LabIsolate table.
+     * This is the primary key for the labIsolate table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -40,7 +40,8 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
     private LabResult labResultId;
 
     /**
-     * Internal Id of the lab isolate.
+     * \brief Internal Id of the labIsolate.
+     *
      * This is constant throughout the results, where isolate code and name can change as more detail added.
      */
     private String labInternalId;

@@ -28,7 +28,7 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
     /**
      * \brief Unique identifier in EMAP for this labBattery record.
      *
-     * This is the primary key for the LabBattery table.
+     * This is the primary key for the labBattery table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

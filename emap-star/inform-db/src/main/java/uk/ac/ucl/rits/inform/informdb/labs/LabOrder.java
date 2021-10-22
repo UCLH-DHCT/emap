@@ -74,7 +74,7 @@ public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
     private String clinicalInformation;
 
     /**
-     * Lab number in the EHR.
+     * \brief Identifier used in source system for this labOrder.
      */
     private String internalLabNumber;
 

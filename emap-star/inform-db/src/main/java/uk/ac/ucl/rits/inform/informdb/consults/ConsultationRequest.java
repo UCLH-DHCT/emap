@@ -27,9 +27,9 @@ import java.time.Instant;
 public class ConsultationRequest extends TemporalCore<ConsultationRequest, ConsultationRequestAudit> {
 
     /**
-     * \brief Unique identifier in EMAP for this ConsultationRequest record.
+     * \brief Unique identifier in EMAP for this consultationRequest record.
      *
-     * This is the primary key for the ConsultationRequest table.
+     * This is the primary key for the consultationRequest table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,7 +38,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     /**
      * \brief Identifier for the ConsultationType associated with this record.
      *
-     * This is a foreign key that joins the ConsultationRequest table to the ConsultationType table.
+     * This is a foreign key that joins the consultationRequest table to the ConsultationType table.
      */
     @ManyToOne
     @JoinColumn(name = "consultationTypeId", nullable = false)
@@ -47,25 +47,25 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
      *
-     * This is a foreign key that joins the ConsultationRequest table to the HospitalVisit table.
+     * This is a foreign key that joins the consultationRequest table to the HospitalVisit table.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
     /**
-     * \brief Identifier used in EPIC for this ConsultationRequest.
+     * \brief Identifier used in source system for this consultationRequest.
      */
     @Column(nullable = false)
     private Long internalId;
 
     /**
-     * \brief This ConsultationRequest was closed on discharge.
+     * \brief This consultationRequest was closed on discharge.
      */
     private Boolean closedDueToDischarge = false;
 
     /**
-     * \brief Notes added to the ConsultationRequest which are not tied to a Question.
+     * \brief Notes added to the consultationRequest which are not tied to a Question.
      */
     @Column(columnDefinition = "text")
     private String comments;
@@ -82,7 +82,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     private Instant scheduledDatetime;
 
     /**
-     * \brief The ConsultationRequest has been cancelled by a user.
+     * \brief The consultationRequest has been cancelled by a user.
      */
     private Boolean cancelled = false;
 

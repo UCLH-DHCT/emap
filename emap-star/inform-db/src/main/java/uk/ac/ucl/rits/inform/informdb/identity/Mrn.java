@@ -38,16 +38,16 @@ import lombok.Data;
 public class Mrn implements Serializable {
 
     /**
-     * \brief Unique identifier in EMAP for this Mrn record.
+     * \brief Unique identifier in EMAP for this mrn record.
      *
-     * This is the primary key for the Mrn table.
+     * This is the primary key for the mrn table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnId;
 
     /**
-     * \brief List of hospital visits associated with this Mrn record.
+     * \brief List of hospital visits associated with this mrn record.
      */
     @OneToMany(targetEntity = HospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
     private List<HospitalVisit> hospitalVisits;

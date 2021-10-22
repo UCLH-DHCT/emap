@@ -27,7 +27,7 @@ public class Question {
     /**
      * \brief Unique identifier in EMAP for this question record.
      *
-     * This is the primary key for the Question table.
+     * This is the primary key for the question table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

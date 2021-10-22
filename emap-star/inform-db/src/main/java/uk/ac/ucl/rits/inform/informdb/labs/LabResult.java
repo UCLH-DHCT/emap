@@ -37,7 +37,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
     /**
      * \brief Unique identifier in EMAP for this labResult record.
      *
-     * This is the primary key for the LabResult table.
+     * This is the primary key for the labResult table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

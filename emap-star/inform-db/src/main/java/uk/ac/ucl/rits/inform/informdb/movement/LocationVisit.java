@@ -45,7 +45,7 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     /**
      * \brief Unique identifier in EMAP for this locationVisit record.
      *
-     * This is the primary key for the LocationVisit table.
+     * This is the primary key for the locationVisit table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

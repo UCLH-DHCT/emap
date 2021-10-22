@@ -43,7 +43,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private String dataType;
 
     /**
-     * \brief Code used within EPIC for this conditionType.
+     * \brief Code used within source system for this conditionType.
      */
     @Column(nullable = false)
     private String internalCode;

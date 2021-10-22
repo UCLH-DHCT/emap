@@ -34,7 +34,7 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
     /**
      * \brief Unique identifier in EMAP for this labSample record.
      *
-     * This is the primary key for the LabSample table.
+     * This is the primary key for the labSample table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

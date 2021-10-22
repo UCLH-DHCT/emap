@@ -35,7 +35,7 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     /**
      * \brief Unique identifier in EMAP for this requestAnswerId record.
      *
-     * This is the primary key for the RequestAnswer table.
+     * This is the primary key for the requestAnswer table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -51,6 +51,9 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     @Column(nullable = false)
     private String parentTable;
 
+    /**
+     * \brief ??
+     */
     @Column(nullable = false)
     private long parentId;
 

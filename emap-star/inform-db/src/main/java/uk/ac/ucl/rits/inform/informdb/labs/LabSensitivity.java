@@ -31,7 +31,7 @@ public class LabSensitivity extends TemporalCore<LabSensitivity, LabSensitivityA
     /**
      * \brief Unique identifier in EMAP for this labSensitivity record.
      *
-     * This is the primary key for the LabSensitivity table.
+     * This is the primary key for the labSensitivity table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -41,7 +41,7 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
     /**
      * \brief Unique identifier in EMAP for this coreDemographic record.
      *
-     * This is the primary key for the CoreDemographics table.
+     * This is the primary key for the coreDemographics table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -50,7 +50,7 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
     /**
      * \brief Identifier for the Mrn associated with this record.
      *
-     * This is a foreign key that joins the CoreDemographic table to the Mrntable.
+     * This is a foreign key that joins the coreDemographic table to the Mrn table.
      */
     @OneToOne
     @JoinColumn(name = "mrnId", nullable = false)
