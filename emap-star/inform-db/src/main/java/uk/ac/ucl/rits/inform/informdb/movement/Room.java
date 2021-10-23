@@ -24,23 +24,31 @@ public class Room implements Serializable {
     /**
      * \brief Unique identifier in EMAP for this room record.
      *
-     * This is the primary key for the Room table.
+     * This is the primary key for the room table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the Department associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the room table to the Department table.
      */
     @ManyToOne
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
+    /**
+     * \brief Text name used by HL7 for this room.
+     */
     @Column(nullable = false)
     private String hl7String;
+
+
+    /**
+     * \brief Name for this room.
+     */
     private String name;
 
     /**

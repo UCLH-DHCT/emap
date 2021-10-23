@@ -24,23 +24,24 @@ public class BedFacility implements Serializable {
     /**
      * \brief Unique identifier in EMAP for this bedFacility record.
      *
-     * This is the primary key for the BedFacility table.
+     * This is the primary key for the bedFacility table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedFacilityId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the BedState associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the bedFacility table to the BedState table.
      */
     @ManyToOne
     @JoinColumn(name = "bedStateId", nullable = false)
     private BedState bedStateId;
 
     /**
-     * Type of facility available at bed.
+     * \brief Type of facility available at bed.
+     *
      * e.g. Cot, oxygen, Near Nurses Station...
      */
     @Column(nullable = false)

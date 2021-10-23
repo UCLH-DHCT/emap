@@ -24,21 +24,24 @@ public class Bed implements Serializable {
     /**
      * \brief Unique identifier in EMAP for this bed record.
      *
-     * This is the primary key for the Bed table.
+     * This is the primary key for the bed table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the Room associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the bed table to the Room table.
      */
     @ManyToOne
     @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;
 
+    /**
+     * \brief Text name used by HL7 for this bed.
+     */
     @Column(nullable = false)
     private String hl7String;
 

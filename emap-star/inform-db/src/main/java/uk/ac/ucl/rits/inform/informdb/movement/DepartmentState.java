@@ -28,21 +28,24 @@ public class DepartmentState extends AuditCore<DepartmentState> {
     /**
      * \brief Unique identifier in EMAP for this departmentState record.
      *
-     * This is the primary key for the DepartmentState table.
+     * This is the primary key for the departmentState table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentStateId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the Department associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the departmentState table to the Department table.
      */
     @ManyToOne
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
+    /**
+     * \brief Current status of the Department.
+     */
     private String status;
 
     /**

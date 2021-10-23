@@ -60,7 +60,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     private Long internalId;
 
     /**
-     * \brief This consultationRequest was closed on discharge.
+     * \brief Predicate determining whether this consultationRequest was closed on discharge.
      */
     private Boolean closedDueToDischarge = false;
 
@@ -82,7 +82,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
     private Instant scheduledDatetime;
 
     /**
-     * \brief The consultationRequest has been cancelled by a user.
+     * \brief Predicate determining whether this consultationRequest has been cancelled by a user.
      */
     private Boolean cancelled = false;
 

@@ -28,30 +28,45 @@ public class BedState extends AuditCore<BedState> {
     /**
      * \brief Unique identifier in EMAP for this bedState record.
      *
-     * This is the primary key for the BedState table.
+     * This is the primary key for the bedState table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedStateId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the Bed associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the bedState table to the Bed table.
      */
     @ManyToOne
     @JoinColumn(name = "bedId", nullable = false)
     private Bed bedId;
 
+    /**
+     * \brief Indentifier ??
+     */
     @Column(nullable = false, unique = true)
     private Long csn;
 
+    /**
+     * \brief Predicate determining whether the Bed is in census.
+     */
     private Boolean isInCensus;
 
+    /**
+     * \brief Predicate determining whether the Bed is a bunk.
+     */
     private Boolean isBunk;
 
+    /**
+     * \brief Current status of the Bed.
+     */
     private String status;
 
+    /**
+     * \brief Pool bed count ??
+     */
     private Long poolBedCount;
 
     /**

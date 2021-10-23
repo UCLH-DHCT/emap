@@ -15,7 +15,8 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * This represents all the different batteries of test that can be ordered, and
+ * \brief This represents all the different batteries of test that can be ordered
+ *
  * what we know about which constituent tests make them up.
  * @author Roma Klapaukh
  * @author Stef Piatek

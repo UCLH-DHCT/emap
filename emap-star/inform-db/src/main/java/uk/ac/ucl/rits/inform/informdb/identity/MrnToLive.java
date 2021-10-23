@@ -20,9 +20,10 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 /**
- * Over time MRNs are merged into others as more is found out about a patient.
- * This table stores a mapping from every MRN known to the system, to its
+ * \brief This table stores a mapping from every MRN known to the system, to its
  * currently live (in use) MRN.
+ *
+ * Over time MRNs are merged into others as more is found out about a patient.
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
@@ -52,6 +53,8 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
+
+    ///////////// NOT SURE OF DIFFERENCE
 
     /**
      * \brief Identifier for the Mrn associated with this record.

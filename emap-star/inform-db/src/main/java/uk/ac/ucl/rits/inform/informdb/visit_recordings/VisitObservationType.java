@@ -19,7 +19,9 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * VisitObservationType describes the meaning behind a specific observations. In
+ * \brief VisitObservationType describes the meaning behind a specific observation.
+ *
+ * In
  * EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
  * into standardised vocabularies to make their meanings clear.

@@ -94,7 +94,7 @@ public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemograph
     private Instant datetimeOfDeath;
 
     /**
-     * \brief Indicator as to whether the patient is alive.
+     * \brief Predicate determining whether the patient is alive.
      */
     private Boolean alive;
 

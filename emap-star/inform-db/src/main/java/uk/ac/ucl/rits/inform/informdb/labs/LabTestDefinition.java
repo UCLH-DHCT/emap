@@ -14,7 +14,9 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * This represents the definition of a single lab test by a single provider. An
+ * \brief This represents the definition of a single lab test by a single provider.
+ *
+ * An
  * individual test may feature more than once in this table, where there is more
  * than one lab provider that supplies it.
  * @author Roma Klapaukh

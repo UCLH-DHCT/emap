@@ -22,7 +22,9 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * This represents a patient being in a location for an amount of time. Every
+ * \brief This represents a patient being in a location for an amount of time.
+ *
+ * Every
  * location visit is part of a hospital visit, as you have to be in the hospital
  * before you can go to a specific location within it. Location visits can
  * optionally have a parent location visit. This happens when the patient is
@@ -52,14 +54,17 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     private long locationVisitId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the HospitalVisit associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the locationVisit table to the HospitalVisit table.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Identifier of the parent locationVisit.
+     */
     private Long parentLocationVisitId;
 
     /**
@@ -74,16 +79,21 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     @Column(columnDefinition = "timestamp with time zone")
     private Instant dischargeTime;
 
+    /**
+     * Identifier of the Location associated with this locationVisit.
+     */
     @OneToOne
     @JoinColumn(name = "locationId", nullable = false)
     private Location locationId;
+
     /**
-     * Admission time has been inferred (not set from an A01, A02 or A03).
+     * \brief Predicate determining whether the admission time has been inferred (not set from an A01, A02 or A03).
      */
     @Column(nullable = false)
     private Boolean inferredAdmission = false;
+
     /**
-     * Discharge time has been inferred (not set from an A01, A02 or A03).
+     * \brief Predicate determining whether discharge time has been inferred (not set from an A01, A02 or A03).
      */
     @Column(nullable = false)
     private Boolean inferredDischarge = false;

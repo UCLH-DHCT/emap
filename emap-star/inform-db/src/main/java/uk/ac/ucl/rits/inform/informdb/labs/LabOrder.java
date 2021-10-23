@@ -19,7 +19,8 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * A LabOrder contains the details of the request to perform a lab investigation.
+ * \brief A LabOrder contains the details of the request to perform a lab investigation.
+ *
  * A given LabSample may have multiple LabOrders. Each of the lab orders is defined by a unique combination of LabBattery and LabSample.
  * @author Roma Klapaukh
  * @author Stef Piatek

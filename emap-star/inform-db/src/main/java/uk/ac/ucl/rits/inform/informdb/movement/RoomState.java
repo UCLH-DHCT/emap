@@ -27,26 +27,35 @@ public class RoomState extends AuditCore<RoomState> {
     /**
      * \brief Unique identifier in EMAP for this roomState record.
      *
-     * This is the primary key for the RoomState table.
+     * This is the primary key for the roomState table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomStateId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the Room associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the roomState table to the Room table.
      */
     @ManyToOne
     @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;
 
+    /**
+     * \brief Indentifier ??
+     */
     @Column(nullable = false, unique = true)
     private Long csn;
 
+    /**
+     * \brief Current status of the Room.
+     */
     private String status;
 
+    /**
+     * \brief Predicate determining whether the Room is ready.
+     */
     private Boolean isReady;
 
     /**

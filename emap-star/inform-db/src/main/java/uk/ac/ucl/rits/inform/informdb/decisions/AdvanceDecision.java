@@ -74,7 +74,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
 
     // Optional fields for advance decisions.
     /**
-     * \brief Indicates whether (True) or not (False) an advance decision ceased to exist based on patient discharge.
+     * \brief Predicate determining whether (True) or not (False) an advance decision ceased to exist based on patient discharge.
      */
     private Boolean closedDueToDischarge = false;
 
@@ -89,7 +89,7 @@ public class AdvanceDecision extends TemporalCore<AdvanceDecision, AdvanceDecisi
     private Instant requestedDatetime;
 
      /**
-      * \brief Indicates whether (True) or not (False) an advance decision was cancelled, e.g. through a patient request.
+      * \brief Predicate determining whether  (True) or not (False) an advance decision was cancelled, e.g. through a patient request.
       */
     private Boolean cancelled = false;
 

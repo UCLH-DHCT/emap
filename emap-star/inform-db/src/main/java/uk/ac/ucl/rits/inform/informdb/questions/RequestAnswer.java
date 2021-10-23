@@ -18,6 +18,8 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
+ * \brief Answers to questions listed in Question table.
+ *
  * Several data types, such as e.g. lab samples and consultation requests, hold questions. As these data types are
  * progressed within the hospital, e.g. lab samples are analysed, these questions are likely to be answered. The
  * answers to questions are held in EMAP as RequestAnswers and link to both the question that triggered the answer and
