@@ -56,6 +56,15 @@ public class InterchangeMessageFactory {
     }
 
     /**
+     * @param fileName filename within the ConsultMetadata folder
+     * @return consult message
+     * @throws IOException if the file doesn't exist
+     */
+    public ConsultMetadata getConsultMetadata(final String fileName) throws IOException {
+        InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultMetadata/%s", fileName));
+        return mapper.readValue(inputStream, new TypeReference<ConsultMetadata>() {});
+    }
+    /**
      * @param fileName filename within the AdvancedDecisions messages folder
      * @return advanced decision message
      * @throws IOException if the file doesn't exist

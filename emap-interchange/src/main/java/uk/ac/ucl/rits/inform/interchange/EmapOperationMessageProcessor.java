@@ -90,6 +90,13 @@ public interface EmapOperationMessageProcessor {
     void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException;
 
     /**
+     * Process mapping for consult code -> human readable name.
+     * @param consultMetadata consult metadata message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ConsultMetadata consultMetadata) throws EmapOperationMessageProcessingException;
+
+    /**
      * @param msg the AdvanceDecisionMessage to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
