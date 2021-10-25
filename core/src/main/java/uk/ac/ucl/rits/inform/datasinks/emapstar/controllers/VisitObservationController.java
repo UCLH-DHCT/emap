@@ -53,13 +53,14 @@ public class VisitObservationController {
      * Process metadata, clearing existing cache for the visit observation.
      * @param msg        flowsheet metadata
      * @param storedFrom time that star started processing the message
-     * @throws RequiredDataMissingException
+     * @throws RequiredDataMissingException if required data is missing
      */
     @Transactional
     public void processMetadata(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
         if (msg.getId() == null) {
             throw new RequiredDataMissingException("Flowsheet id not set");
         }
+
         RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationTypeClearingCache(
                 msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
         VisitObservationType observationType = typeState.getEntity();
