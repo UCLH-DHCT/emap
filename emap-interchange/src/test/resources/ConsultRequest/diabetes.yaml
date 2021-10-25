@@ -1,0 +1,15 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultRequest"
+sourceSystem: "clarity"
+sourceMessageId: "1000"
+epicConsultId: 1000
+mrn: "UzEYPpR"
+visitNumber: "100000011"
+consultationType: "CON2"  # consultancy type for diabetes educator
+statusChangeTime: "2021-09-28T06:08:49Z"
+requestedDateTime: "2019-11-08T18:57:00Z"
+questions:
+  "Reason for Consult?": "consistently fainting"
+notes:
+  "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+  status: "SAVE"
+  value: "19:37 FC SPOKEN TO EDUCATOR\n\n18:47 PATIENT ON EDUCATOR LIST."
