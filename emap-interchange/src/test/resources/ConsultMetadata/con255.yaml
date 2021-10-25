@@ -1,0 +1,7 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultMetadata"
+sourceSystem: "clarity"
+sourceMessageId: "CON255"
+code: "CON255"
+name: "Inpatient Consult to Acute Frailty Team"
+# was null so should use application start date as a sensible default
+lastUpdatedDate: "2018-03-01T00:00:00Z"
