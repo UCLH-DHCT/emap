@@ -93,8 +93,8 @@ INSERT INTO public.location_visit (
 INSERT INTO public.visit_observation_type (
     visit_observation_type_id, primary_data_type, source_observation_type, id_in_application, name,
     source_system, stored_from, valid_from)
-    VALUES (107001, null, 'flowsheet', '5', 'blood pressure', 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (107002, null, 'flowsheet', '5', 'blood pressure', 'caboodle', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+    VALUES (107001, null, 'flowsheet', '5', 'R HPSC IDG SW PRESENT', 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (107002, null, 'flowsheet', '5', 'R HPSC IDG SW PRESENT', 'caboodle', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
            (107003, null, 'flowsheet', '8', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
            (107004, null, 'flowsheet', '10', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
            (107005, null, 'flowsheet', '6466', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
