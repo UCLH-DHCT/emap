@@ -48,18 +48,18 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     private long visitObservationId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the VisitObservationType associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the visitObservation table to the VisitObservationType table.
      */
     @ManyToOne
     @JoinColumn(name = "visitObservationTypeId", nullable = false)
     private VisitObservationType visitObservationTypeId;
 
     /**
-     * \brief Identifier for the Mrn associated with this record.
+     * \brief Identifier for the HospitalVisit associated with this record.
      *
-     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     * This is a foreign key that joins the visitObservation table to the HospitalVisit table.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
@@ -73,11 +73,31 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant observationDatetime;
 
+    /**
+     * \brief Value as text.
+     */
     @Column(columnDefinition = "text")
     private String valueAsText;
+
+    /**
+     * \brief Value as a number.
+     */
     private Double valueAsReal;
+
+    /**
+     * \brief Value as a date.
+     */
     private LocalDate valueAsDate;
+
+    /**
+     * \brief Units of the visitObservation.
+     */
     private String unit;
+
+
+    /**
+     * \brief Comments added by clinician.
+     */
     @Column(columnDefinition = "text")
     private String comment;
 

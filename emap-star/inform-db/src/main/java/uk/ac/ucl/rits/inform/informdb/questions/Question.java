@@ -35,6 +35,9 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long questionId;
 
+    /**
+     * \brief Text content of the question.
+     */
     @Column(columnDefinition = "text", nullable = false)
     private String question;
 

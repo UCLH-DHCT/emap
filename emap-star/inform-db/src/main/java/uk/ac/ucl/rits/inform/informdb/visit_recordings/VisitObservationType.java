@@ -49,45 +49,47 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private long visitObservationTypeId;
 
     /**
+     * \brief The source system from which we learnt about this hospital visit.
+     *
      * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
      */
     @Column(nullable = false)
     private String sourceSystem;
 
     /**
-     * The data type in the source system.
+     * \brief The data type in the source system.
      */
     @Column(nullable = false)
     private String sourceObservationType;
 
     /**
-     * The code used by the hospital application to identify the observation type.
+     * \brief The code used by the source system to identify the observation type.
      */
     @Column(nullable = false)
     private String idInApplication;
 
     /**
-     * Readable name for the hospital application observation type.
+     * \brief Readable name for the source system observation type.
      */
     private String name;
 
     /**
-     * Name displayed to users.
+     * \brief Name displayed to users.
      */
     private String displayName;
 
     /**
-     * Description of the data type.
+     * \brief Description of the data type.
      */
     private String description;
 
     /**
-     * Mapping code for the observation from the standardised vocabulary system.
+     * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
     private String standardisedCode;
 
     /**
-     * Nomenclature or classification system used.
+     * \brief Nomenclature or classification system used. Not yet implemented.
      */
     private String standardisedVocabulary;
 

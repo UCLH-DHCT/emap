@@ -13,8 +13,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
-@SuppressWarnings("serial")
+/**
+ * \brief Represents a bed in the hospital.
+ */
+ @SuppressWarnings("serial")
 @Entity
 @Table
 @Data

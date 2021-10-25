@@ -48,25 +48,26 @@ public class Mrn implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnId;
 
-    /**
+    //TODO Exclude from doxygen
+    /*
      * \brief List of hospital visits associated with this mrn record.
      */
     @OneToMany(targetEntity = HospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
     private List<HospitalVisit> hospitalVisits;
 
     /**
-     * The value of the MRN identifier.
+     * \brief The value of the MRN identifier.
      */
     @Column(unique = true)
     private String mrn;
 
     /**
-     * NHS number.
+     * \brief NHS number.
      */
     private String nhsNumber;
 
     /**
-     * The system from which this MRN was initially discovered.
+     * \brief The system from which this MRN was initially discovered.
      */
     private String sourceSystem;
 

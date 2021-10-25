@@ -44,7 +44,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private long patientConditionId;
 
     /**
-     * \brief Identifier for the conditionType associated with this record.
+     * \brief Identifier for the ConditionType associated with this record.
      *
      * This is a foreign key that joins the patientCondition table to the ConditionType table.
      */
@@ -108,7 +108,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private String priority;
 
     /**
-     * Comments added by clinician.
+     * \brief Comments added by clinician.
      */
     @Column(columnDefinition = "text")
     private String comment;

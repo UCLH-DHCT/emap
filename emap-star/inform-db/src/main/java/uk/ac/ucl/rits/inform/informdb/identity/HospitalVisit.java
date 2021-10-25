@@ -117,6 +117,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
     @Column(nullable = false, unique = true)
     private String encounter;
 
+    //TODO Exclude from doxygen
     /**
      * Visit observations should be deleted if an encounter is deleted.
      */

@@ -14,7 +14,7 @@ import javax.persistence.Table;
 import lombok.Data;
 
 /**
- * Known locations within the hospital.
+ * \breif Known locations within the hospital.
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
@@ -31,6 +31,10 @@ public class Location implements  Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationId;
+
+    /**
+     * \brief Text value of the location.
+     */
     @Column(nullable = false)
     private String locationString;
 

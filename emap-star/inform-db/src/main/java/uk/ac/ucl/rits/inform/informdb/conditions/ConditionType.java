@@ -54,14 +54,15 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private String name;
 
     /**
-     * \brief Not yet implemented.
+     * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
     private String standardisedCode;
 
     /**
-     * \brief Not yet implemented.
+     * \brief Nomenclature or classification system used. Not yet implemented.
      */
     private String standardisedVocabulary;
+
 
     /**
      * Minimal information constructor.

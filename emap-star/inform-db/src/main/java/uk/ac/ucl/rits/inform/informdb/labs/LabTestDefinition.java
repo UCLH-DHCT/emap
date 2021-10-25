@@ -40,31 +40,32 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
     private long labTestDefinitionId;
 
     /**
-     * What system this code belongs to. Examples could be WinPath, or Epic.
+     * \brief What system this code belongs to. Examples could be WinPath, or Epic.
      */
     @Column(nullable = false)
     private String labProvider;
 
     /**
-     * The department within the lab responsible for the test.
+     * \brief The department within the lab responsible for the test.
      */
     private String labDepartment;
 
     /**
-     * The code for this test as reported by the lab.
+     * \brief The code for this test as reported by the lab.
      */
     @Column(nullable = false)
     private String testLabCode;
 
     /**
-     * The code for this test in a standardised vocabulary.
+     * \brief The code for this test in a standardised vocabulary.
      */
     private String testStandardCode;
 
     /**
-     * Where a standardised code is provided, this says which vocabulary was used.
+     * \brief Nomenclature or classification system used. Not yet implemented.
      */
     private String standardisedVocabulary;
+
 
     public LabTestDefinition() {}
 

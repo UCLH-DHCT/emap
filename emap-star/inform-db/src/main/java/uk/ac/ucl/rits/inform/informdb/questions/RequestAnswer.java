@@ -43,13 +43,24 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long requestAnswerId;
 
+    /**
+     * \brief Text content of the requestAnswer.
+          */
     @Column(columnDefinition = "text")
     private String answer;
 
+    /**
+     * \brief Identifier for the Question associated with this record.
+     *
+     * This is a foreign key that joins the requestAnswer table to the Question table.
+     */
     @ManyToOne
     @JoinColumn(name = "questionId", nullable = false)
     private Question questionId;
 
+    /**
+     * \brief ??
+     */
     @Column(nullable = false)
     private String parentTable;
 

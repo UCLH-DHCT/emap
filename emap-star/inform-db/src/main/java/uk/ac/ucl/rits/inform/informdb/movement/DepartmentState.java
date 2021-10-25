@@ -15,7 +15,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
 
-
+/**
+ * \brief Represents the state of a given Department.
+ */
 @SuppressWarnings("serial")
 @Entity
 @Data

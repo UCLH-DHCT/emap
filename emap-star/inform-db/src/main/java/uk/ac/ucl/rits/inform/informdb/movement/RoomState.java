@@ -16,6 +16,9 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 
+/**
+ * \brief Represents the state of a given Room.
+ */
 @SuppressWarnings("serial")
 @Entity
 @Table
