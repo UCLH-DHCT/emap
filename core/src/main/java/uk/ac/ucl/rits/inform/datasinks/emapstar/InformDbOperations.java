@@ -12,11 +12,12 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcesso
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
+import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -159,6 +160,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(ConsultRequest msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        consultationRequestProcessor.processMessage(msg, storedFrom);
+    }
+
+    /**
+     * Process Consult Metadata message.
+     * @param msg mapping for consult code to human readable data
+     */
+    @Override
+    @Transactional
+    public void processMessage(ConsultMetadata msg) {
         Instant storedFrom = Instant.now();
         consultationRequestProcessor.processMessage(msg, storedFrom);
     }
