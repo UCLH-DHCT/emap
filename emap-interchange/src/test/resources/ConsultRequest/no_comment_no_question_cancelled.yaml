@@ -1,0 +1,10 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.ConsultRequest"
+sourceSystem: "clarity"
+sourceMessageId: "900"
+epicConsultId: 900
+mrn: "nydh2a"
+visitNumber: "100000012"
+consultationType: "CON2"  # consultancy type for diabetes educator
+statusChangeTime: "2021-09-21T06:08:49Z"
+requestedDateTime: "2021-09-21T00:55:00Z"
+cancelled: true
