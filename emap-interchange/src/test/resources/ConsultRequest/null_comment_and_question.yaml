@@ -1,7 +1,7 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.ConsultRequest"
 sourceSystem: "clarity"
-sourceMessageId: "1000"
-epicConsultId: 1000
+sourceMessageId: "902"
+epicConsultId: 902
 mrn: "UzEYPpR"
 visitNumber: "100000011"
 consultationType: "CON2"  # consultancy type for diabetes educator
