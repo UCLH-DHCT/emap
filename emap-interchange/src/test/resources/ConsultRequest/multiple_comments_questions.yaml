@@ -2,11 +2,11 @@
 sourceSystem: "clarity"
 sourceMessageId: "901"
 epicConsultId: 901
-mrn: "UzEYPpR"
+mrn: "xo9dzpR0Zx7J"
 visitNumber: "100000013"
 consultationType: "CON1"
-statusChangeTime: "2021-09-28T06:08:49Z"
-requestedDateTime: "2021-09-28T17:57:00Z"
+statusChangeTime: "2021-11-21T07:08:49Z"
+requestedDateTime: "2021-09-22T09:00:00Z"
 closedDueToDischarge: true
 questions:
   "Reason for Consult?": "post-operative issues"
