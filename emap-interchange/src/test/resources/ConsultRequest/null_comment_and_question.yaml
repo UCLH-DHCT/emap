@@ -14,4 +14,4 @@ notes:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   # null line at start and in the middle
-  value: "\n19:37 FC SPOKEN TO EDUCATOR\n\n18:47 PATIENT ON EDUCATOR LIST."
+  value: "19:37 FC SPOKEN TO EDUCATOR\n\n18:47 PATIENT ON EDUCATOR LIST."
