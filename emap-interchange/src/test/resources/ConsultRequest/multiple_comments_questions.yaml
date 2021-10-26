@@ -7,11 +7,11 @@ visitNumber: "100000013"
 consultationType: "CON1"
 statusChangeTime: "2021-09-28T06:08:49Z"
 requestedDateTime: "2021-09-28T17:57:00Z"
+closedDueToDischarge: true
 questions:
-  # null line converted to empty string
-  "Reason for Consult?": ""
+  "Reason for Consult?": "post-operative issues"
+  "Indication?": "here are some indications\nSomething something\nAnother thing"
 notes:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
-  # null line at start and in the middle
-  value: "\n19:37 FC SPOKEN TO EDUCATOR\n\n18:47 PATIENT ON EDUCATOR LIST."
+  value: "Have contacted surgery by phone\nSo and so says they can schedule time tomorrow if needs be"
