@@ -197,7 +197,7 @@ public class FlowsheetFactory {
                 flowsheet.setStringValue(InterchangeValue.delete());
             } else if (!value.isEmpty()) {
                 String stringValue = getStringValue(obx);
-                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
+                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.strip()));
             }
         } else if (singularData instanceof DT) {
             flowsheet.setValueType(ValueType.DATE);
@@ -239,10 +239,10 @@ public class FlowsheetFactory {
                 if (valueBuilder.length() > 1) {
                     valueBuilder.append("\n");
                 }
-                valueBuilder.append(lineValue.trim());
+                valueBuilder.append(lineValue.strip());
             }
         }
-        return valueBuilder.toString().trim();
+        return valueBuilder.toString().strip();
     }
 
 

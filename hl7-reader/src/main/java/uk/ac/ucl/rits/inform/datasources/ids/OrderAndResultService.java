@@ -187,7 +187,7 @@ public class OrderAndResultService {
             return OrderCodingSystem.FLOWSHEET;
         } else if ("Consult Orders".equals(sendingFacility)) {
             return OrderCodingSystem.CONSULT_ORDER;
-        } else if ("DNACPR".equals(sendingFacility.trim())) {
+        } else if ("DNACPR".equals(sendingFacility.strip())) {
             return OrderCodingSystem.ADVANCED_DECISION_ORDER;
         }
         throw new Hl7MessageIgnoredException("Unknown coding system for order/result");

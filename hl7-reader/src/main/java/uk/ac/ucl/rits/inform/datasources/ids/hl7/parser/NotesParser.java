@@ -105,7 +105,7 @@ public class NotesParser {
     private void concatenateAnswerAndSaveToQuestions(String question, String answer) {
         String outputAnswer = answer;
         if (questions.containsKey(question)) {
-            outputAnswer = String.format("%s\n%s", questions.get(question), answer).trim();
+            outputAnswer = String.format("%s\n%s", questions.get(question), answer).strip();
         }
         questions.put(question, outputAnswer);
     }
