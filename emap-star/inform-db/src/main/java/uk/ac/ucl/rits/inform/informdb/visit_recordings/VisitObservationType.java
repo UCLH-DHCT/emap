@@ -21,8 +21,7 @@ import java.time.Instant;
 /**
  * \brief VisitObservationType describes the meaning behind a specific observation.
  *
- * In
- * EHR systems these are often coded either with potentially ambiguous short
+ * In EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
  * into standardised vocabularies to make their meanings clear.
  * @author Roma Klapaukh
