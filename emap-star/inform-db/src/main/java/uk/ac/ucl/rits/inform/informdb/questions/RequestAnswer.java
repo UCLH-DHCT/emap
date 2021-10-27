@@ -59,7 +59,9 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     private Question questionId;
 
     /**
-     * \brief ??
+     * \brief Parent table that should be included as a part of the join.
+     *
+     * E.g. The value PATIENT_CONDITION should be a part of the join criteria for PatientCondition questions
      */
     @Column(nullable = false)
     private String parentTable;
