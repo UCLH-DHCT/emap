@@ -98,7 +98,9 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private String classification;
 
     /**
-     * \brief ?
+     * \brief Status of patientCondition
+     *
+     * Is this active, resolved, expired etc.
      */
     private String status;
 
