@@ -22,7 +22,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * VisitObservations represent discrete nurse (or machine) recoded observations
+ * \brief An observation recorded about patient.
+ *
+ * VisitObservations represent discrete nurse (or machine) recodred observations
  * about patients at specific time points.
  * @author Roma Klapaukh & Stef Piatek
  */
@@ -38,30 +40,66 @@ import java.time.LocalDate;
 @AuditTable
 public class VisitObservation extends TemporalCore<VisitObservation, VisitObservationAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this visitObservation record.
+     *
+     * This is the primary key for the visitObservation table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long visitObservationId;
 
+    /**
+     * \brief Identifier for the VisitObservationType associated with this record.
+     *
+     * This is a foreign key that joins the visitObservation table to the VisitObservationType table.
+     */
     @ManyToOne
     @JoinColumn(name = "visitObservationTypeId", nullable = false)
     private VisitObservationType visitObservationTypeId;
 
+    /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the visitObservation table to the HospitalVisit table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
     /**
-     * The time this individual observation was first made.
+     * \brief Date and time at which this visitObservation was first made.
+     *
      * The validFrom {@link TemporalCore#getValidFrom()} is the recording time, or last updated time.
      */
     @Column(columnDefinition = "timestamp with time zone", nullable = false)
     private Instant observationDatetime;
 
+    /**
+     * \brief Value as text.
+     */
     @Column(columnDefinition = "text")
     private String valueAsText;
+
+    /**
+     * \brief Value as a number.
+     */
     private Double valueAsReal;
+
+    /**
+     * \brief Value as a date.
+     */
     private LocalDate valueAsDate;
+
+    /**
+     * \brief Units of the visitObservation.
+     */
     private String unit;
+
+
+    /**
+     * \brief Comments added by clinician.
+     */
     @Column(columnDefinition = "text")
     private String comment;
 

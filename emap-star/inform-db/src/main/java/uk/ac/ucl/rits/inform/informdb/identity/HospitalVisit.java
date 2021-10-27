@@ -25,8 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This a single visit to the hospital. This is not necessarily an inpatient
- * visit, but includes outpatients, imaging, etc.
+ * \brief This a single visit to the hospital.
+ *
+ * This is not necessarily an inpatient visit, but includes outpatients, imaging, etc.
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
@@ -39,73 +40,84 @@ import java.util.List;
 @AuditTable
 public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudit> {
 
-
     /**
-     * A primary key for this row.
+     * \brief Unique identifier in EMAP for this hospitalVisit record.
+     *
+     * This is the primary key for the HospitalVisit table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long hospitalVisitId;
 
     /**
-     * The MRN this hospital visit happened under.
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the hospitalVisit table to the Mrn table.
      */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
     /**
-     * The source system from which we learnt about this hospital visit.
+     * \brief The source system from which we learnt about this hospital visit.
      */
     @Column(nullable = false)
     private String sourceSystem;
 
     /**
-     * The time the patient was first seen in the hospital as part of their visit.
+     * \brief Date and time at which this hospitalVisit was first recorded.
+     *
+     * patient was first seen in the hospital as part of this visit.
      * This may be prior to their admission.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant presentationTime;
 
     /**
-     * The time the patient was formally admitted.
+     * \brief Date and time at which this hospitalVisit formally began.
+     *
+     * at which the patient was formally admitted.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant admissionTime;
 
     /**
-     * The time the patient was discharged.
+     * \brief Date and time at which this hospitalVisit formally ended.
+     *
+     * at which the patient was discharged.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant dischargeTime;
 
     /**
-     * The patient class. E.g. Inpatient or Outpaitent.
+     * \brief The patient class. E.g. Inpatient or Outpaitent.
      */
     private String patientClass;
 
     /**
-     * The patient's arrival method at hospital.
+     * \brief The patient's arrival method at hospital.
      */
     private String arrivalMethod;
 
     /**
-     * Where the patient went after their departure.
+     * \brief Where the patient went after their departure.
      */
     private String dischargeDestination;
 
     /**
-     * The patient's disposition on departure.
+     * \brief The patient's disposition on departure.
      */
     private String dischargeDisposition;
 
     /**
-     * The source system identifier of this hospital visit. In Epic this corresponds
-     * to the CSN.
+     * \brief The source system identifier of this hospital visit.
+     *
+     * In Epic this corresponds to the CSN.
      */
     @Column(nullable = false, unique = true)
     private String encounter;
 
+    //TODO Exclude from doxygen
     /**
      * Visit observations should be deleted if an encounter is deleted.
      */

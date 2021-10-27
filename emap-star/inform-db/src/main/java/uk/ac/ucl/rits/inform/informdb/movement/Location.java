@@ -14,7 +14,7 @@ import javax.persistence.Table;
 import lombok.Data;
 
 /**
- * Known locations within the hospital.
+ * \breif Known locations within the hospital.
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
@@ -22,20 +22,45 @@ import lombok.Data;
 @Table
 @Data
 public class Location implements  Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this location record.
+     *
+     * This is the primary key for the location table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long locationId;
+
+    /**
+     * \brief Text value of the location.
+     */
     @Column(nullable = false)
     private String locationString;
 
+    /**
+     * \brief Identifier for the Department associated with this record.
+     *
+     * This is a foreign key that joins the location table to the Department table.
+     */
     @ManyToOne
     @JoinColumn(name = "departmentId")
     private Department departmentId;
 
+    /**
+     * \brief Identifier for the Room associated with this record.
+     *
+     * This is a foreign key that joins the location table to the Room table.
+     */
     @ManyToOne
     @JoinColumn(name = "roomId")
     private Room roomId;
 
+    /**
+     * \brief Identifier for the Bed associated with this record.
+     *
+     * This is a foreign key that joins the location table to the Bed table.
+     */
     @ManyToOne
     @JoinColumn(name = "bedId")
     private Bed bedId;

@@ -18,6 +18,8 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
+ * \brief Answers to questions listed in Question table.
+ *
  * Several data types, such as e.g. lab samples and consultation requests, hold questions. As these data types are
  * progressed within the hospital, e.g. lab samples are analysed, these questions are likely to be answered. The
  * answers to questions are held in EMAP as RequestAnswers and link to both the question that triggered the answer and
@@ -31,20 +33,46 @@ import java.time.Instant;
 @AuditTable
 @Table(indexes = {@Index(name = "idxParentId", columnList = "parentId")})
 public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this requestAnswerId record.
+     *
+     * This is the primary key for the requestAnswer table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long requestAnswerId;
 
+    /**
+     * \brief Text content of the requestAnswer.
+     */
     @Column(columnDefinition = "text")
     private String answer;
 
+    /**
+     * \brief Identifier for the Question associated with this record.
+     *
+     * This is a foreign key that joins the requestAnswer table to the Question table.
+     */
     @ManyToOne
     @JoinColumn(name = "questionId", nullable = false)
     private Question questionId;
 
+    /**
+     * \brief Parent table that should be included as a part of the join.
+     *
+     * E.g. The value PATIENT_CONDITION should be a part of the join criteria for PatientCondition questions
+     * Because there are multiple data types that trigger questions and we hold them all together in one table,
+     * this column is an identifier to specify the data type that particular question corresponds to
+     */
     @Column(nullable = false)
     private String parentTable;
 
+    /**
+     * \brief Identifier for the parentTable associated with this record.
+     *
+     * This is a foreign key that joins the appropriate table to the Question table.
+     */
     @Column(nullable = false)
     private long parentId;
 
