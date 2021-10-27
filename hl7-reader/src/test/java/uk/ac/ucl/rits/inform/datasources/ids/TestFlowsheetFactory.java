@@ -149,12 +149,4 @@ class TestFlowsheetFactory {
 
         assertEquals(InterchangeValue.buildFromHl7(expected), msg.getDateValue());
     }
-
-    @Test
-    void testError() throws Exception {
-        String hl7 = HL7Utils.readHl7FromResource("VitalSigns/clinical.txt");
-        Message hl7Msg = HL7Utils.parseHl7String(hl7);
-        flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
-
-    }
 }
