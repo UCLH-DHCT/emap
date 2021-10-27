@@ -93,19 +93,19 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private LocalDate onsetDate;
 
     /**
-     * \brief Problem List classification (e.g. Temporary)
+     * \brief Problem List classification (e.g. Temporary).
      */
     private String classification;
 
     /**
-     * \brief Status of patientCondition
+     * \brief Status of patientCondition.
      *
      * Is this active, resolved, expired etc.
      */
     private String status;
 
     /**
-     * \brief Problem List priority
+     * \brief Problem List priority.
      */
     private String priority;
 
