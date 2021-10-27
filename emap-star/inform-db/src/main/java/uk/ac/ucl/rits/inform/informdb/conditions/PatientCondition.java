@@ -88,7 +88,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private Instant resolutionDateTime;
 
     /**
-     * \brief Date at which the patientCondition was first observed in the patient.
+     * \brief Date at which the patientCondition started (if known).
      */
     private LocalDate onsetDate;
 
