@@ -22,7 +22,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * VisitObservations represent discrete nurse (or machine) recoded observations
+ * \brief An observation recorded about patient.
+ *
+ * VisitObservations represent discrete nurse (or machine) recodred observations
  * about patients at specific time points.
  * @author Roma Klapaukh & Stef Piatek
  */

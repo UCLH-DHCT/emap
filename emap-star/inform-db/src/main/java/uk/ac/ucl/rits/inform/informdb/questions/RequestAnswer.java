@@ -45,7 +45,7 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
 
     /**
      * \brief Text content of the requestAnswer.
-          */
+     */
     @Column(columnDefinition = "text")
     private String answer;
 
@@ -62,6 +62,8 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
      * \brief Parent table that should be included as a part of the join.
      *
      * E.g. The value PATIENT_CONDITION should be a part of the join criteria for PatientCondition questions
+     * Because there are multiple data types that trigger questions and we hold them all together in one table,
+     * this column is an identifier to specify the data type that particular question corresponds to
      */
     @Column(nullable = false)
     private String parentTable;

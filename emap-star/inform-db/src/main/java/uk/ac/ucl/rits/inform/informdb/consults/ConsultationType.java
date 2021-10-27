@@ -14,7 +14,7 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * \brief Type of a consultation request made for a patient.
+ * \brief Type of a ConsultationRequest made for a patient.
  *
  * Inpatient referrals and inpatient referrals ancillary departments.
  * The data model suggests consultation requests from pharmacy but it looks like these are not created.

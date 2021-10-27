@@ -48,7 +48,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private long visitObservationTypeId;
 
     /**
-     * \brief The source system from which we learnt about this hospital visit.
+     * \brief The source system from which we learnt about this visitObservationType.
      *
      * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
      */
@@ -93,7 +93,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private String standardisedVocabulary;
 
     /**
-     * Data type expected to be returned.
+     * \brief Data type expected to be returned.
      */
     private String primaryDataType;
 
