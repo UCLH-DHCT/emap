@@ -177,7 +177,9 @@ public class FlowsheetFactory {
         Type singularData = obx.getObservationValue(0).getData();
         // HAPI can return null so use nullDefault as empty string
         String value = singularData.toString();
-        value = value == null ? "" : value;
+        if (value == null) {
+            throw new Hl7InconsistencyException("Null value field for flowsheet");
+        }
 
         if (singularData instanceof NM) {
             flowsheet.setValueType(ValueType.NUMERIC);
@@ -195,7 +197,7 @@ public class FlowsheetFactory {
             flowsheet.setValueType(ValueType.TEXT);
             if ("D".equals(resultStatus)) {
                 flowsheet.setStringValue(InterchangeValue.delete());
-            } else if (!value.isEmpty()) {
+            } else {
                 String stringValue = getStringValue(obx);
                 flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
             }
