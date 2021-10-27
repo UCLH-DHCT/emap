@@ -67,7 +67,9 @@ public class RequestAnswer extends TemporalCore<RequestAnswer, RequestAnswerAudi
     private String parentTable;
 
     /**
-     * \brief ??
+     * \brief Identifier for the parentTable associated with this record.
+     *
+     * This is a foreign key that joins the appropriate table to the Question table.
      */
     @Column(nullable = false)
     private long parentId;
