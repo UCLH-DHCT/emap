@@ -169,7 +169,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         processSingleMessage(consultReqMsg);
 
         // process later message with updated answer
-        consultReqMsg.setRequestedDateTime(messageTime_cRequest.plusSeconds(60));
+        consultReqMsg.setScheduledDateTime(messageTime_cRequest.plusSeconds(60));
         consultReqMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
 
         processSingleMessage(consultReqMsg);
