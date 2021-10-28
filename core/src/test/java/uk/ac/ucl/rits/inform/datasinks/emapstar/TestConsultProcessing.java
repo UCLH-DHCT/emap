@@ -126,7 +126,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     /**
      * Given that no consults exist in the database
      * When a consult message is processed
-     * A new consult should be created (in addition to PK and FKs should store internalConsultId, getScheduledDateTime, storedFrom, validFrom)
+     * A new consult should be created (in addition to PK and FKs should store internalConsultId, getScheduledDatetime, storedFrom, validFrom)
      */
     @Test
     void testCreateNewConsult() throws EmapOperationMessageProcessingException {
