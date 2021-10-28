@@ -63,7 +63,7 @@ class TestConsultRequests extends TestHl7MessageStream {
         assertEquals(MRN, consult.getMrn());
         assertEquals(EPIC, consult.getSourceSystem());
         assertEquals(CHANGE_TIME, consult.getStatusChangeTime());
-        assertEquals(REQUEST_TIME, consult.getRequestedDateTime());
+        assertEquals(REQUEST_TIME, consult.getScheduledDatetime());
         assertEquals(CONSULT_TYPE, consult.getConsultationType());
         assertEquals(VISIT_NUMBER, consult.getVisitNumber());
         assertEquals(CONSULT_ID, consult.getEpicConsultId());
@@ -110,7 +110,7 @@ class TestConsultRequests extends TestHl7MessageStream {
     @Test
     void testCancelledOrder() throws Exception {
         ConsultRequest consult = getPatientConsult("cancelled");
-        assertEquals(REQUEST_TIME, consult.getRequestedDateTime());
+        assertEquals(REQUEST_TIME, consult.getScheduledDatetime());
         assertEquals(CANCEL_TIME, consult.getStatusChangeTime());
         assertTrue(consult.isCancelled());
         assertFalse(consult.isClosedDueToDischarge());
@@ -124,7 +124,7 @@ class TestConsultRequests extends TestHl7MessageStream {
     @Test
     void testClosedAtDischarge() throws Exception {
         ConsultRequest consult = getPatientConsult("closed_at_discharge");
-        assertEquals(REQUEST_TIME, consult.getRequestedDateTime());
+        assertEquals(REQUEST_TIME, consult.getScheduledDatetime());
         assertEquals(CLOSED_TIME, consult.getStatusChangeTime());
         assertFalse(consult.isCancelled());
         assertTrue(consult.isClosedDueToDischarge());
