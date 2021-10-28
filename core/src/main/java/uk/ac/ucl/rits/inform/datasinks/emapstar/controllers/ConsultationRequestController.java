@@ -101,7 +101,7 @@ public class ConsultationRequestController {
         consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
-                consultationRequest.getEntity().getConsultationRequestId(), msg.getScheduledDateTime(), storedFrom);
+                consultationRequest.getEntity().getConsultationRequestId(), msg.getScheduledDatetime(), storedFrom);
     }
 
     /**
@@ -145,7 +145,7 @@ public class ConsultationRequestController {
             ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
                 .findByInternalId(msg.getEpicConsultId())
-                .map(obs -> new RowState<>(obs, msg.getScheduledDateTime(), storedFrom, false))
+                .map(obs -> new RowState<>(obs, msg.getScheduledDatetime(), storedFrom, false))
                 .orElseGet(() -> createMinimalConsultationRequest(msg, visit, consultationType, storedFrom));
     }
 
@@ -187,7 +187,7 @@ public class ConsultationRequestController {
             ConsultationRequestAudit> requestState) {
         ConsultationRequest request = requestState.getEntity();
 
-        requestState.assignIfDifferent(msg.getScheduledDateTime(), request.getScheduledDatetime(), request::setScheduledDatetime);
+        requestState.assignIfDifferent(msg.getScheduledDatetime(), request.getScheduledDatetime(), request::setScheduledDatetime);
         requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(), request::setStatusChangeTime);
         requestState.assignInterchangeValue(msg.getNotes(), request.getComments(), request::setComments);
         requestState.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
