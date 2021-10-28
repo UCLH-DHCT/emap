@@ -39,9 +39,9 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     private Instant statusChangeTime;
 
     /**
-     * Time the consult was requested.
+     * Time the consult was scheduled to start.
      */
-    private Instant requestedDateTime;
+    private Instant scheduledDateTime;
 
     /**
      * Questions and answers for consult questions.
@@ -58,7 +58,7 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     private boolean cancelled = false;
 
     /**
-     * Has the request been closed because of discharing the patient.
+     * Has the request been closed because of discharging the patient.
      */
     private boolean closedDueToDischarge = false;
 
