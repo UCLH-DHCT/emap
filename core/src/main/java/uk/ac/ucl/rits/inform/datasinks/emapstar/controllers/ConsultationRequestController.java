@@ -101,7 +101,7 @@ public class ConsultationRequestController {
         consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
-                consultationRequest.getEntity().getConsultationRequestId(), msg.getScheduledDatetime(), storedFrom);
+                consultationRequest.getEntity().getConsultationRequestId(), msg.getStatusChangeTime(), storedFrom);
     }
 
     /**
@@ -145,7 +145,7 @@ public class ConsultationRequestController {
             ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
                 .findByInternalId(msg.getEpicConsultId())
-                .map(obs -> new RowState<>(obs, msg.getScheduledDatetime(), storedFrom, false))
+                .map(obs -> new RowState<>(obs, msg.getStatusChangeTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalConsultationRequest(msg, visit, consultationType, storedFrom));
     }
 
