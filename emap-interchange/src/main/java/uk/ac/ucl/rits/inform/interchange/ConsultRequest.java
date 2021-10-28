@@ -41,7 +41,7 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     /**
      * Time the consult was scheduled to start.
      */
-    private Instant scheduledDateTime;
+    private Instant scheduledDatetime;
 
     /**
      * Questions and answers for consult questions.
