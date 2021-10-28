@@ -213,9 +213,9 @@ public class FlowsheetFactory {
     }
 
     /**
-     * Build comments from list of NTEs, trimmed and lines separated by newlines.
+     * Build comments from list of NTEs, leading & lagging whitespace removed, and lines separated by newlines.
      * @param notes NTE objects
-     * @return String of trimmed comment lines, joined by newlines
+     * @return String of leading & lagging whitespace removed comment lines, joined by newlines
      */
     private String getComments(Collection<NTE> notes) {
         NotesParser parser = new NotesParser(notes);
