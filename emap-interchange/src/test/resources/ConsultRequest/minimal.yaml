@@ -6,7 +6,7 @@ mrn: "40800000"
 visitNumber: "123412341234"
 consultationType: "CON255"  # consultancy type for frailty
 statusChangeTime: "2013-02-12T12:00:00Z"
-requestedDateTime: "2013-02-12T11:55:00Z"
+scheduledDateTime: "2013-02-12T11:55:00Z"
 questions:
   "Reason for Consult?": "frail, delirium, ? cognitive decline"
   "Did you contact the team?": "No"

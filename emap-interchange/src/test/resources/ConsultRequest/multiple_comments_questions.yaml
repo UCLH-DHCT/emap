@@ -6,7 +6,7 @@ mrn: "xo9dzpR0Zx7J"
 visitNumber: "100000013"
 consultationType: "CON1"
 statusChangeTime: "2021-11-21T07:08:49Z"
-requestedDateTime: "2021-09-22T09:00:00Z"
+scheduledDateTime: "2021-09-22T09:00:00Z"
 closedDueToDischarge: true
 questions:
   "Reason for Consult?": "post-operative issues"
