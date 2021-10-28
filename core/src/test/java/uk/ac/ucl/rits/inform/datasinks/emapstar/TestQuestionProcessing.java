@@ -32,12 +32,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class TestQuestionProcessing extends MessageProcessingBase {
     private LabOrderMsg labOrderMsg;
-    private final Long FRAILTY_CONSULT_ID = Long.valueOf(1234521112);
+    private final Long FRAILTY_CONSULT_ID = 1234521112L;
     private final String coPathTemplate = "co_path/%s.yaml";
     private final String coPathSampleNumber = "UH20-4444";
-    private final Instant messageTime = Instant.parse("2020-11-09T15:04:45Z");
-    private final Instant messageTime_cRequest = Instant.parse("2013-02-12T12:00:00Z");
+    private final Instant labMessageTime = Instant.parse("2020-11-09T15:04:45Z");
+    private final Instant consultStatusChangeTime = Instant.parse("2013-02-12T12:00:00Z");
     private ConsultRequest consultReqMsg;
+
 
     @Autowired
     QuestionRepository questionRepo;
@@ -94,7 +95,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         // process original message
         processSingleMessage(labOrderMsg);
         // process later message with updated answer
-        labOrderMsg.setStatusChangeTime(messageTime.plusSeconds(60));
+        labOrderMsg.setStatusChangeTime(labMessageTime.plusSeconds(60));
         String clinicalQuestion = "Clinical Details:";
         String newClinicalAnswer = "very sleepy";
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
@@ -114,7 +115,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         // process original message
         processSingleMessage(labOrderMsg);
         // process earlier message with updated answer
-        labOrderMsg.setStatusChangeTime(messageTime.minusSeconds(60));
+        labOrderMsg.setStatusChangeTime(labMessageTime.minusSeconds(60));
         String clinicalQuestion = "Clinical Details:";
         String newClinicalAnswer = "very sleepy";
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
@@ -150,7 +151,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         processSingleMessage(labOrderMsg);
         // process later message with delete order
         labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathSampleNumber));
-        labOrderMsg.setStatusChangeTime(messageTime.plusSeconds(60));
+        labOrderMsg.setStatusChangeTime(labMessageTime.plusSeconds(60));
         processSingleMessage(labOrderMsg);
 
         assertEquals(3, questionRepo.count());
@@ -169,7 +170,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         processSingleMessage(consultReqMsg);
 
         // process later message with updated answer
-        consultReqMsg.setScheduledDatetime(messageTime_cRequest.plusSeconds(60));
+        consultReqMsg.setStatusChangeTime(consultStatusChangeTime.plusSeconds(1));
         consultReqMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
 
         processSingleMessage(consultReqMsg);
@@ -179,7 +180,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
 
         ConsultationRequest cRequest = consultationRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         Question question = questionRepo.findByQuestion(clinicalQuestion).orElseThrow();
-        RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getInternalId()).orElseThrow();
+        RequestAnswer answer = requestAnswerRepo.findByQuestionIdAndParentId(question, cRequest.getConsultationRequestId()).orElseThrow();
         assertEquals(newClinicalAnswer, answer.getAnswer());
     }
 }
