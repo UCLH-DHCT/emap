@@ -1,0 +1,26 @@
+name: PR checklist comment
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout documentation
+        uses: actions/checkout@v2
+        with:
+          repository: inform-health-informatics/emap_documentation
+          ref: develop
+      - id: get-pr-checklist
+        name: Get PR checklist
+        uses: chuhlomin/render-template@v1.2
+        with:
+          template: SOP/pr_checklist.md
+      - name: Comment
+        uses: peter-evans/create-or-update-comment@v1
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.get-pr-checklist.outputs.result }}
