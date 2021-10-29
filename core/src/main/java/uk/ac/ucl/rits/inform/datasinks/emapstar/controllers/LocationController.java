@@ -752,7 +752,7 @@ public class LocationController {
      * @param locationString full location string.
      * @return Location entity
      */
-    @Cacheable("location")
+    @Cacheable(value = "location", key = "{#locationString}")
     public Location getOrCreateLocation(String locationString) {
         return locationRepo.findByLocationStringEquals(locationString)
                 .orElseGet(() -> {
