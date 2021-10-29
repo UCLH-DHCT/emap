@@ -17,7 +17,7 @@ jobs:
         name: Get PR checklist
         uses: chuhlomin/render-template@v1.2
         with:
-          template: SOP/release_procedure.md # SOP/pr_checklist.md
+          template: SOP/pr_checklist.md
       - name: Comment
         uses: peter-evans/create-or-update-comment@v1
         if: ${{ github.event_name == 'pull_request' }}
