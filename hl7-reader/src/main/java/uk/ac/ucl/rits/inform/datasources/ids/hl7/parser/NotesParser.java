@@ -27,7 +27,7 @@ public class NotesParser {
     @Getter
     private Map<String, String> questions;
     /**
-     * Comments, lines are joined by newline character, each line is trimmed of whitespace.
+     * Comments, lines are joined by newline character, each line has leading and lagging whitespace removed.
      */
     @Getter
     private String comments;
@@ -105,7 +105,7 @@ public class NotesParser {
     private void concatenateAnswerAndSaveToQuestions(String question, String answer) {
         String outputAnswer = answer;
         if (questions.containsKey(question)) {
-            outputAnswer = String.format("%s\n%s", questions.get(question), answer).trim();
+            outputAnswer = String.format("%s\n%s", questions.get(question), answer).strip();
         }
         questions.put(question, outputAnswer);
     }

@@ -197,7 +197,7 @@ public class FlowsheetFactory {
                 flowsheet.setStringValue(InterchangeValue.delete());
             } else if (!value.isEmpty()) {
                 String stringValue = getStringValue(obx);
-                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
+                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.strip()));
             }
         } else if (singularData instanceof DT) {
             flowsheet.setValueType(ValueType.DATE);
@@ -213,9 +213,9 @@ public class FlowsheetFactory {
     }
 
     /**
-     * Build comments from list of NTEs, trimmed and lines separated by newlines.
+     * Build comments from list of NTEs, leading & lagging whitespace removed, and lines separated by newlines.
      * @param notes NTE objects
-     * @return String of trimmed comment lines, joined by newlines
+     * @return String of leading & lagging whitespace removed comment lines, joined by newlines
      */
     private String getComments(Collection<NTE> notes) {
         NotesParser parser = new NotesParser(notes);
@@ -239,10 +239,10 @@ public class FlowsheetFactory {
                 if (valueBuilder.length() > 1) {
                     valueBuilder.append("\n");
                 }
-                valueBuilder.append(lineValue.trim());
+                valueBuilder.append(lineValue.strip());
             }
         }
-        return valueBuilder.toString().trim();
+        return valueBuilder.toString().strip();
     }
 
 
