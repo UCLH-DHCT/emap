@@ -1,5 +1,5 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
+  sourceSystem: "clarity"
   sourceMessageId: "1"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
@@ -30,7 +30,7 @@
     status: "IGNORE"
     value: null
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
+  sourceSystem: "clarity"
   sourceMessageId: "2"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
