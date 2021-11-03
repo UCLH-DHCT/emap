@@ -40,72 +40,71 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
     @BeforeEach
     void setup() throws IOException {
-        flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(0);
+        // flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(0);
+
+        // need flowsheet meta EPIC
+        // need flowsheet meta caboodle
+        // need flowsheet that meta refers to
     }
 
     /**
      * Given no metadata types exist.
-     * When a single metadata message is processed
-     * Then a visit observation type should be created
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * When a single CLARITY/CABOODLE flowsheet message is processed
+     * Then a visit observation type is created and the in_application_id is null
      */
-    @Test
-    void testEntityCreated() throws EmapOperationMessageProcessingException {
-        processSingleMessage(flowsheetMetadata);
-        assertEquals(1, visitObservationTypeRepository.count());
-
-        VisitObservationType type = visitObservationTypeRepository.findAll().iterator().next();
-        assertMetadataFields(type, flowsheetMetadata.getLastUpdatedInstant());
-    }
 
     /**
-     * Given flowsheet visit observation type already exists
-     * When a new metadata message is processed
-     * Non-minimal fields should be updated
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * Given no metadata types exist.
+     * When a single EPIC flowsheet message is processed
+     * Then a largely empty visit observation type is created and the in_application_id is null
      */
-    @Test
-    @Sql("/populate_db.sql")
-    void testFieldsUpdated() throws EmapOperationMessageProcessingException {
-        // Set existing data to be a flowsheet which exists already
-        FlowsheetMetadata metadata = flowsheetMetadata;
-        metadata.setLastUpdatedInstant(LATER_TIME);
-        metadata.setFlowsheetRowEpicId(FLOWSHEET_ID);
-        metadata.setInterfaceId(FLOWSHEET_ID);
-        processSingleMessage(metadata);
-
-        VisitObservationType type = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(FLOWSHEET_ID, CABOODLE_APPLICATION, FLOWSHEET)
-                .orElseThrow();
-
-        assertMetadataFields(type, LATER_TIME);
-    }
 
     /**
-     * Given flowsheet visit observation type already exists
-     * When an older metadata message is processed
-     * Non-minimal fields should be updated
-     * @throws EmapOperationMessageProcessingException shouldn't happen
+     * Given an EPIC visit observation type exists
+     * When a newer EPIC flowsheet message is processed
+     * Non-minimal fields should be updated, but type not linked through in_application_id
      */
-    @Test
-    @Sql("/populate_db.sql")
-    void testOldMessageUpdates() throws EmapOperationMessageProcessingException {
-        // Set existing data to be a flowsheet which exists already
-        FlowsheetMetadata metadata = flowsheetMetadata;
-        metadata.setLastUpdatedInstant(EARLIER_TIME);
-        metadata.setFlowsheetRowEpicId(FLOWSHEET_ID);
-        metadata.setInterfaceId(FLOWSHEET_ID);
-        processSingleMessage(metadata);
 
-        System.out.println(metadata);
+    /**
+     * Given an EPIC visit observation type exists
+     * When a newer CLARITY/CABOODLE flowsheet message is processed
+     * Non-minimal fields and null fields should be updated and the link through in_application_id created
+     */
 
-        VisitObservationType type = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(FLOWSHEET_ID, CABOODLE_APPLICATION, FLOWSHEET)
-                .orElseThrow();
+    /**
+     * Given a CLARITY/CABOODLE visit observation type exists
+     * When a newer CLARITY/CABOODLE flowsheet message is processed
+     * Non-minimal fields and null fields should be updated, link through in_application_id should not be changed
+     */
 
-        // shouldn't update as already has data in, and message is older
-        assertEquals("R HPSC IDG SW PRESENT", type.getName());
-        // should update because was null when older message is processed
-        // assertEquals("Social Work Team Member", type.getDisplayName());
-    }
+    /**
+     * Given a CLARITY/CABOODLE visit observation type exists
+     * When a newer EPIC flowsheet message is processed
+     * Non-minimal fields and null fields should be updated, link through in_application_id should not be changed
+     */
+
+    /**
+     * Given a CLARITY/CABOODLE visit observation type exists
+     * When an older CLARITY/CABOODLE flowsheet message is processed
+     * Null fields should be updated, link through in_application_id should not be changed
+     */
+
+    /**
+     * Given a CLARITY/CABOODLE visit observation type exists
+     * When an older EPIC flowsheet message is processed
+     * Null fields should be updated, link through in_application_id should not be changed
+     */
+
+    /**
+     * Given an EPIC visit observation type exists
+     * When an older EPIC flowsheet message is processed
+     * Null fields should be updated, link through in_application_id should still be null
+     */
+
+    /**
+     * Given an EPIC visit observation type exists
+     * When an older CLARITY/CABOODLE flowsheet message is processed
+     * Null fields should be updated, link through in_application_id should still be set to link
+     */
+
 }
