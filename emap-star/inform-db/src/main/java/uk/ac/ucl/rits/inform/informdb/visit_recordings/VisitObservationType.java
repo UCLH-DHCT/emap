@@ -56,7 +56,6 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * The code used by the hospital application to identify the observation type.
      */
-    @Column(nullable = false)
     private String idInApplication;
 
     /**
@@ -96,12 +95,10 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
 
     /**
      * Minimal information constructor.
-     * @param idInApplication       Id from the application
      * @param sourceSystem          source system
      * @param sourceObservationType data type in the source system (e.g. flowsheet)
      */
-    public VisitObservationType(String idInApplication, String sourceSystem, String sourceObservationType) {
-        this.idInApplication = idInApplication;
+    public VisitObservationType(String sourceSystem, String sourceObservationType) {
         this.sourceSystem = sourceSystem;
         this.sourceObservationType = sourceObservationType;
     }
