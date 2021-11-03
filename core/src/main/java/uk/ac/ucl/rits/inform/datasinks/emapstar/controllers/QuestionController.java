@@ -2,9 +2,8 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.QuestionRepository;
@@ -39,9 +38,9 @@ public class QuestionController {
 
     /**
      * Initialising the repositories needed to store question information.
-     * @param questionRepo              Repository with questions
-     * @param requestAnswerRepo         Repository for answers to questions
-     * @param requestAnswerAuditRepo    Repository for auditing answers to questions
+     * @param questionRepo           Repository with questions
+     * @param requestAnswerRepo      Repository for answers to questions
+     * @param requestAnswerAuditRepo Repository for auditing answers to questions
      */
     public QuestionController(QuestionRepository questionRepo, RequestAnswerRepository requestAnswerRepo,
                               RequestAnswerAuditRepository requestAnswerAuditRepo) {
@@ -77,12 +76,12 @@ public class QuestionController {
     /**
      * Check whether question (based on the entire String) already exists in the respective table. If yes, return the
      * existing entity; if not, create a new entity based the relevant data.
-     * @param question          Question as such.
-     * @param validFrom         Time when question got changed most recently.
-     * @param storedFrom        Time when star started question processing.
+     * @param question   Question as such.
+     * @param validFrom  Time when question got changed most recently.
+     * @param storedFrom Time when star started question processing.
      * @return a specific question as stored in the question repository
      */
-    @Cacheable(value = "question")
+    @Cacheable(value = "question", key = "{#question}")
     public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
         return questionRepo
                 .findByQuestion(question)
@@ -91,13 +90,13 @@ public class QuestionController {
 
     /**
      * Creates new question from the information provided and wraps it with RowState.
-     * @param questionString      Content of the question as opposed to table row in Star.
-     * @param validFrom           When this question is valid from.
-     * @param storedFrom          When EMAP has started processing this entity.
+     * @param questionString Content of the question as opposed to table row in Star.
+     * @param validFrom      When this question is valid from.
+     * @param storedFrom     When EMAP has started processing this entity.
      * @return a generated Question
      */
     public Question createQuestion(String questionString, Instant validFrom,
-                                                                           Instant storedFrom) {
+                                   Instant storedFrom) {
         Question question = new Question(questionString, validFrom, storedFrom);
         logger.debug("Created new {}", question);
         questionRepo.save(question);
@@ -107,12 +106,12 @@ public class QuestionController {
     /**
      * Check whether answer for entity triggering question already exists in the question repository or whether it would
      * need to change.
-     * @param question          Question as such.
-     * @param answer            Answer to the questions.
-     * @param parentTable       Data type that triggered the creation of question-answer pair.
-     * @param parentId          Parent entity that triggered the creation of question and answer for it.
-     * @param validFrom         Time when question got changed most recently.
-     * @param storedFrom        Time when star started question processing.
+     * @param question    Question as such.
+     * @param answer      Answer to the questions.
+     * @param parentTable Data type that triggered the creation of question-answer pair.
+     * @param parentId    Parent entity that triggered the creation of question and answer for it.
+     * @param validFrom   Time when question got changed most recently.
+     * @param storedFrom  Time when star started question processing.
      * @return an answer to a question linked to a specific entity.
      */
     public RowState<RequestAnswer, RequestAnswerAudit> getOrCreateRequestAnswer(Question question,
@@ -127,12 +126,12 @@ public class QuestionController {
 
     /**
      * Create answer for question.
-     * @param question      Question answer belongs to.
-     * @param answer        Answer content.
-     * @param parentTable   Data type that triggered the creation of question-answer pair.
-     * @param parentId      Entity that triggered creation of question and answer.
-     * @param validFrom     When information for entity is valid from.
-     * @param storedFrom    When EMAP started processing this entity type.
+     * @param question    Question answer belongs to.
+     * @param answer      Answer content.
+     * @param parentTable Data type that triggered the creation of question-answer pair.
+     * @param parentId    Entity that triggered creation of question and answer.
+     * @param validFrom   When information for entity is valid from.
+     * @param storedFrom  When EMAP started processing this entity type.
      * @return a RequestAnswer wrapped in a RowState
      */
     public RowState<RequestAnswer, RequestAnswerAudit> createRequestAnswer(Question question, String answer,
@@ -145,8 +144,8 @@ public class QuestionController {
 
     /**
      * Decides whether or not the answer held for an existing question needs to be changed or not.
-     * @param validFrom     Time of message that triggered update check
-     * @param answerState   Answer for question that is being processed
+     * @param validFrom   Time of message that triggered update check
+     * @param answerState Answer for question that is being processed
      * @return true if message should be updated
      */
     private boolean requestAnswerShouldBeUpdated(Instant validFrom, RowState<RequestAnswer,
@@ -157,8 +156,8 @@ public class QuestionController {
 
     /**
      * Update answer for an existing question for a data type.
-     * @param answer        Newly supplied answer
-     * @param answerState   Answer as previously provided for question.
+     * @param answer      Newly supplied answer
+     * @param answerState Answer as previously provided for question.
      */
     private void updateRequestAnswer(String answer, RowState<RequestAnswer, RequestAnswerAudit> answerState) {
         answerState.assignIfDifferent(answer, answerState.getEntity().getAnswer(), answerState.getEntity()::setAnswer);
