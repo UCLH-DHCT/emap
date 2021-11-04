@@ -24,9 +24,10 @@ import java.time.LocalDate;
 /**
  * VisitObservations represent discrete nurse (or machine) recoded observations
  * about patients at specific time points.
- * @author Roma Klapaukh & Stef Piatek
+ * @author Roma Klapaukh
+ * @author Stef Piatek
+ * @author Anika Cawthorn
  */
-@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(name = "vo_hospital_visit_id", columnList = "hospitalVisitId"),
         @Index(name = "vo_visit_observation_type", columnList = "visitObservationTypeId"),
@@ -66,6 +67,12 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     private String comment;
 
     /**
+     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
+     */
+    @Column(nullable = false)
+    private String sourceSystem;
+
+    /**
      * Default constructor.
      */
     public VisitObservation() {}
@@ -75,14 +82,16 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
      * @param hospitalVisitId        hospital visit
      * @param visitObservationTypeId visit observation type
      * @param observationDatetime    observation datetime
+     * @param sourceSystem           information on system that last changed visit observation information
      * @param validFrom              Time of the message event
      * @param storedFrom             Time that emap-core encountered the message
      */
     public VisitObservation(HospitalVisit hospitalVisitId, VisitObservationType visitObservationTypeId,
-                            Instant observationDatetime, Instant validFrom, Instant storedFrom) {
+                            Instant observationDatetime, String sourceSystem, Instant validFrom, Instant storedFrom) {
         this.visitObservationTypeId = visitObservationTypeId;
         this.hospitalVisitId = hospitalVisitId;
         this.observationDatetime = observationDatetime;
+        this.sourceSystem = sourceSystem;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
@@ -102,6 +111,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
         this.unit = other.unit;
         this.comment = other.comment;
         this.observationDatetime = other.observationDatetime;
+        this.sourceSystem = other.sourceSystem;
     }
 
     @Override

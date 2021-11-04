@@ -7,7 +7,6 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -25,6 +24,7 @@ import java.time.Instant;
  * into standardised vocabularies to make their meanings clear.
  * @author Roma Klapaukh
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 @Entity
 @Data
@@ -42,21 +42,16 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private long visitObservationTypeId;
 
     /**
-     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
+     * The flowsheet's ID that will be seen for any subsequent messages. This is also referred to as MPI ID and is
+     * retrieved from clarity.
      */
-    @Column(nullable = false)
-    private String sourceSystem;
+    private String interfaceId;
 
     /**
-     * The data type in the source system.
+     * The code used by the hospital application to identify the observation type. This is the flowsheetId
+     * retrieved from caboodle and also referred to as internal ID.
      */
-    @Column(nullable = false)
-    private String sourceObservationType;
-
-    /**
-     * The code used by the hospital application to identify the observation type.
-     */
-    private String idInApplication;
+    private String idInApplication;  // EPIC ROW ID!!!
 
     /**
      * Readable name for the hospital application observation type.
