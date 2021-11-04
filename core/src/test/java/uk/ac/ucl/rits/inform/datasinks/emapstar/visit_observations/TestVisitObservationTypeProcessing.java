@@ -42,69 +42,74 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     void setup() throws IOException {
         // flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(0);
 
-        // need flowsheet meta EPIC
-        // need flowsheet meta caboodle
-        // need flowsheet that meta refers to
+        // flowsheet meta clarity (has the mapping information)
+        // flowsheet meta caboodle (all of the naming data)
+        // flowsheet clarity -- flowsheet that needs visit observation type linked
+        // flowsheet EPIC -- flowsheet that needs visit observation type linked
     }
 
+
     /**
-     * Given no metadata types exist.
-     * When a single CLARITY/CABOODLE flowsheet message is processed
-     * Then a visit observation type is created and the in_application_id is null
+     * Given no visit observation type exist.
+     * When an EPIC flowsheet message arrives
+     * Then a visit observation type is created with only interface_id, but no id_in_application
+     */
+
+
+    /**
+     * Given no visit observation type exist.
+     * When a caboodle flowsheet metadata message arrives
+     * Then a visit observation type is created with only id_in_application, but no interface_id
+     */
+
+
+    /**
+     * Given no visit observation type exist.
+     * When a clarity flowsheet metadata message arrives
+     * Then a visit observation type is created with both id_in_application and interface_id
+     */
+
+
+    /**
+     * Given a visit observation type with id_in_application but no interface_id exists
+     * When a clarity flowsheet metadata message arrives
+     * Then another visit observation type is created with id_in_application but no interface_id
+     */
+
+
+    /**
+     * Given a visit observation type with interface_id but no id_in_application exists
+     * When an EPIC flowsheet message arrives
+     * Then another visit observation type is created with interface_id but no id_in_application
+     */
+
+
+    /**
+     * Given a visit observation type with id_in_application but no interface_id exists
+     * When a clarity flowsheet metadata message arrives
+     * Then the missing id_in_application for visit observation type is filled in
      */
 
     /**
-     * Given no metadata types exist.
-     * When a single EPIC flowsheet message is processed
-     * Then a largely empty visit observation type is created and the in_application_id is null
+     * Given a visit observation type with id_in_application, a second visit observation type with interface_id,
+     *   a visit observation referring to the first visit observation type and another visit observation referring to the second visit observation type
+     * When a clarity flowsheet metadata message is processed that links id_in_application with interface_id
+     * Then the visit observation type with id_in_application is updated to hold the interface_id from second visit
+     *   observation type and the id is updated for the second visit observation referring to second visit observation type
      */
 
     /**
-     * Given an EPIC visit observation type exists
-     * When a newer EPIC flowsheet message is processed
-     * Non-minimal fields should be updated, but type not linked through in_application_id
+     * Given a visit observation type with both id_in_application and interface_id
+     * When a newer caboodle flowsheet metadata message arrives with different names
+     * Then the names are updated accordingly but ids are kept as they are
      */
 
     /**
-     * Given an EPIC visit observation type exists
-     * When a newer CLARITY/CABOODLE flowsheet message is processed
-     * Non-minimal fields and null fields should be updated and the link through in_application_id created
+     * Given a visit observation type with both id_in_application and interface_id
+     * When an older caboodle flowsheet metadata message arrives with different names
+     * Then the names are not updated and ids are kept as they are
      */
 
-    /**
-     * Given a CLARITY/CABOODLE visit observation type exists
-     * When a newer CLARITY/CABOODLE flowsheet message is processed
-     * Non-minimal fields and null fields should be updated, link through in_application_id should not be changed
-     */
 
-    /**
-     * Given a CLARITY/CABOODLE visit observation type exists
-     * When a newer EPIC flowsheet message is processed
-     * Non-minimal fields and null fields should be updated, link through in_application_id should not be changed
-     */
-
-    /**
-     * Given a CLARITY/CABOODLE visit observation type exists
-     * When an older CLARITY/CABOODLE flowsheet message is processed
-     * Null fields should be updated, link through in_application_id should not be changed
-     */
-
-    /**
-     * Given a CLARITY/CABOODLE visit observation type exists
-     * When an older EPIC flowsheet message is processed
-     * Null fields should be updated, link through in_application_id should not be changed
-     */
-
-    /**
-     * Given an EPIC visit observation type exists
-     * When an older EPIC flowsheet message is processed
-     * Null fields should be updated, link through in_application_id should still be null
-     */
-
-    /**
-     * Given an EPIC visit observation type exists
-     * When an older CLARITY/CABOODLE flowsheet message is processed
-     * Null fields should be updated, link through in_application_id should still be set to link
-     */
 
 }
