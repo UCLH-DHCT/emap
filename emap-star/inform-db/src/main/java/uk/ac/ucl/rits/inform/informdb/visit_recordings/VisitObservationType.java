@@ -49,14 +49,15 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private long visitObservationTypeId;
 
     /**
-     * \brief The source system from which we learnt about this visitObservationType.
+     * \brief The ID used in the HL7 messages for referring to this visit observation type.
      *
-     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
+     * This ID in conjunction with the application idInApplication describes the visit observation type uniquely.
      */
     private String interfaceId;
 
     /**
      * \brief The data type in the source system.
+     *
      * The code used by the hospital application to identify the observation type. This is the flowsheetId
      * retrieved from caboodle and also referred to as internal ID.
      */
@@ -65,10 +66,11 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
 
     /**
      * \brief The code used by the source system to identify the observation type.
+     *
+     * This ID in conjunction with the interfaceId uniquely identifies the observation type.
      */
     @Column(nullable = false)
     private String idInApplication;
-    private String idInApplication;  // EPIC ROW ID!!!
 
     /**
      * \brief Readable name for the source system observation type.
@@ -111,7 +113,6 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
      * @param sourceObservationType data type in the source system (e.g. flowsheet)
      */
     public VisitObservationType(String sourceSystem, String sourceObservationType) {
-        this.sourceSystem = sourceSystem;
         this.sourceObservationType = sourceObservationType;
     }
 
@@ -122,9 +123,9 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     public VisitObservationType(VisitObservationType other) {
         super(other);
         visitObservationTypeId = other.visitObservationTypeId;
-        sourceSystem = other.sourceSystem;
         sourceObservationType = other.sourceObservationType;
         idInApplication = other.idInApplication;
+        interfaceId = other.interfaceId;
         name = other.name;
         displayName = other.displayName;
         description = other.description;
