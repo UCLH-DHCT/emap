@@ -13,23 +13,44 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
+/**
+ * \brief Represents a room in the hospital.
+ */
 @SuppressWarnings("serial")
 @Entity
 @Table
 @Data
 @NoArgsConstructor
 public class Room implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this room record.
+     *
+     * This is the primary key for the room table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long roomId;
 
+    /**
+     * \brief Identifier for the Department associated with this record.
+     *
+     * This is a foreign key that joins the room table to the Department table.
+     */
     @ManyToOne
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
+    /**
+     * \brief Text name used by HL7 for this room.
+     */
     @Column(nullable = false)
     private String hl7String;
+
+
+    /**
+     * \brief Name for this room.
+     */
     private String name;
 
     /**

@@ -26,39 +26,54 @@ import java.time.Instant;
 @AuditTable
 public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labIsolate record.
+     *
+     * This is the primary key for the labIsolate table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labIsolateId;
 
+    /**
+     * \brief Identifier for the LabResult associated with this record.
+     *
+     * This is a foreign key that joins the labIsolate table to the LabResult table.
+     */
     @ManyToOne
     @JoinColumn(name = "labResultId", nullable = false)
     private LabResult labResultId;
 
     /**
-     * Internal Id of the lab isolate.
+     * \brief Internal Id of the labIsolate.
+     *
      * This is constant throughout the results, where isolate code and name can change as more detail added.
      */
     private String labInternalId;
 
     /**
-     * Lab system's code for the isolate.
+     * \brief Lab system's code for the isolate.
      */
     private String isolateCode;
+
     /**
-     * Name of the isolate.
+     * \brief Name of the isolate.
      */
     private String isolateName;
+
     /**
-     * Method of culture.
+     * \brief Method of culture.
      */
     private String cultureType;
+
     /**
-     * Usually CFU range, but can also be categorical.
+     * \brief Usually CFU range, but can also be categorical.
      */
     private String quantity;
 
     /**
-     * Any clinical information for the isolate.
+     * \brief Any clinical information for the isolate.
+     *
      * E.g. Gentamicin resistant, or specific sub-species identification
      */
     private String clinicalInformation;

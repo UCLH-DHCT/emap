@@ -7,6 +7,7 @@ import lombok.ToString;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,8 +19,9 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * VisitObservationType describes the meaning behind a specific observations. In
- * EHR systems these are often coded either with potentially ambiguous short
+ * \brief VisitObservationType describes the meaning behind a specific observation.
+ *
+ * In EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
  * into standardised vocabularies to make their meanings clear.
  * @author Roma Klapaukh
@@ -37,54 +39,69 @@ import java.time.Instant;
 @Table(indexes = {@Index(name = "vot_id_in_application", columnList = "idInApplication")})
 public class VisitObservationType extends TemporalCore<VisitObservationType, VisitObservationTypeAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this visitObservationTypeId record.
+     *
+     * This is the primary key for the visitObservationType table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long visitObservationTypeId;
 
     /**
-     * The flowsheet's ID that will be seen for any subsequent messages. This is also referred to as MPI ID and is
-     * retrieved from clarity.
+     * \brief The source system from which we learnt about this visitObservationType.
+     *
+     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
      */
     private String interfaceId;
 
     /**
+     * \brief The data type in the source system.
      * The code used by the hospital application to identify the observation type. This is the flowsheetRowEpicId
      * retrieved from caboodle and also referred to as internal ID.
      */
+    @Column(nullable = false)
+    private String sourceObservationType;
+
+    /**
+     * \brief The code used by the source system to identify the observation type.
+     */
+    @Column(nullable = false)
+    private String idInApplication;
     private String idInApplication;  // EPIC ROW ID!!!
 
     /**
-     * Readable name for the hospital application observation type.
+     * \brief Readable name for the source system observation type.
      */
     private String name;
 
     /**
-     * Name displayed to users.
+     * \brief Name displayed to users.
      */
     private String displayName;
 
     /**
-     * Description of the data type.
+     * \brief Description of the data type.
      */
     private String description;
 
     /**
-     * Mapping code for the observation from the standardised vocabulary system.
+     * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
      */
     private String standardisedCode;
 
     /**
-     * Nomenclature or classification system used.
+     * \brief Nomenclature or classification system used. Not yet implemented.
      */
     private String standardisedVocabulary;
 
     /**
-     * Data type expected to be returned.
+     * \brief Data type expected to be returned.
      */
     private String primaryDataType;
 
     /**
-     * Datetime that the data type was created in the source system.
+     * \brief Date and time at which this visitObservationType was created in the source system.
      */
     private Instant creationTime;
 

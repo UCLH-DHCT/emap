@@ -15,7 +15,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
 
-
+/**
+ * \brief Represents the state of a given Department.
+ */
 @SuppressWarnings("serial")
 @Entity
 @Data
@@ -24,14 +26,28 @@ import java.time.Instant;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class DepartmentState extends AuditCore<DepartmentState> {
+
+    /**
+     * \brief Unique identifier in EMAP for this departmentState record.
+     *
+     * This is the primary key for the departmentState table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentStateId;
 
+    /**
+     * \brief Identifier for the Department associated with this record.
+     *
+     * This is a foreign key that joins the departmentState table to the Department table.
+     */
     @ManyToOne
     @JoinColumn(name = "departmentId", nullable = false)
     private Department departmentId;
 
+    /**
+     * \brief Current status of the Department.
+     */
     private String status;
 
     /**

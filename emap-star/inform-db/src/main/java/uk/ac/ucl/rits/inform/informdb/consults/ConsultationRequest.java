@@ -17,7 +17,7 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * Holds information relevant to consultation requests for patients.
+ * \brief Holds information relevant to consultation requests for patients.
  */
 @Entity
 @Data
@@ -25,49 +25,64 @@ import java.time.Instant;
 @NoArgsConstructor
 @AuditTable
 public class ConsultationRequest extends TemporalCore<ConsultationRequest, ConsultationRequestAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this consultationRequest record.
+     *
+     * This is the primary key for the consultationRequest table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationRequestId;
 
     /**
-     * Type of consult requested.
+     * \brief Identifier for the ConsultationType associated with this record.
+     *
+     * This is a foreign key that joins the consultationRequest table to the ConsultationType table.
      */
     @ManyToOne
     @JoinColumn(name = "consultationTypeId", nullable = false)
     private ConsultationType consultationTypeId;
 
     /**
-     * Foreign key to hospital visit.
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the consultationRequest table to the HospitalVisit table.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
     /**
-     * ID for the consult within EPIC.
+     * \brief Identifier used in source system for this consultationRequest.
      */
     @Column(nullable = false)
     private Long internalId;
 
     /**
-     * Consult request was closed on discharge.
+     * \brief Predicate determining whether this consultationRequest was closed on discharge.
      */
     private Boolean closedDueToDischarge = false;
+
     /**
-     * Notes added to the consult request which are not tied to a question.
+     * \brief Notes added to the consultationRequest which are not tied to a Question.
      */
     @Column(columnDefinition = "text")
     private String comments;
+
     /**
-     * Time that the consult has last been updated.
+     * \brief Date and time at which this consultationRequest was last updated.
      */
     private Instant statusChangeTime;
+
     /**
-     * Time that the consult was scheduled to occur at.
+     * \brief Date and time at which this consultationRequest was scheduled.
      */
+
     private Instant scheduledDatetime;
+
     /**
-     * The consultation request has been cancelled by a user.
+     * \brief Predicate determining whether this consultationRequest has been cancelled by a user.
      */
     private Boolean cancelled = false;
 

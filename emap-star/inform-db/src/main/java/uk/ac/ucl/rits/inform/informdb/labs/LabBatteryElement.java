@@ -15,7 +15,8 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * This represents all the different batteries of test that can be ordered, and
+ * \brief This represents all the different batteries of test that can be ordered
+ *
  * what we know about which constituent tests make them up.
  * @author Roma Klapaukh
  * @author Stef Piatek
@@ -28,14 +29,29 @@ import java.time.Instant;
 @AuditTable
 public class LabBatteryElement extends TemporalCore<LabBatteryElement, LabBatteryElementAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labBatteryElement record.
+     *
+     * This is the primary key for the labBatteryElement table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labBatteryElementId;
 
+    /**
+     * \brief Identifier for the LabBattery associated with this record.
+     *
+     * This is a foreign key that joins the labBatteryElement table to the LabBattery table.
+     */
     @ManyToOne
     @JoinColumn(name = "labBatteryId", nullable = false)
     private LabBattery labBatteryId;
 
+    /**
+     * \brief Identifier for the LabTestDefinition associated with this record.
+     *
+     * This is a foreign key that joins the labBatteryElement table to the LabTestDefinition table.
+     */
     @ManyToOne
     @JoinColumn(name = "labTestDefinitionId", nullable = false)
     private LabTestDefinition labTestDefinitionId;
