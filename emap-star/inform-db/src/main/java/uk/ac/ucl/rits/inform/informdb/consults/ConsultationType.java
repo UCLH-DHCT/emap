@@ -14,8 +14,8 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * Type of a consultation request made for a patient.
- * <p>
+ * \brief Type of a ConsultationRequest made for a patient.
+ *
  * Inpatient referrals and inpatient referrals ancillary departments.
  * The data model suggests consultation requests from pharmacy but it looks like these are not created.
  * @author Anika Cawthorn
@@ -26,11 +26,25 @@ import java.time.Instant;
 @NoArgsConstructor
 @AuditTable
 public class ConsultationType extends TemporalCore<ConsultationType, ConsultationTypeAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this consultationType record.
+     *
+     * This is the primary key for the consultationType table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationTypeId;
     @Column(nullable = false, unique = true)
+
+    /**
+     * \brief Code used in source system for this consultationType.
+     */
     private String code;
+
+    /**
+     * \brief Human readable name for this consultationType.
+     */
     private String name;
 
     /**

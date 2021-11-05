@@ -31,42 +31,62 @@ import java.time.Instant;
 @Table(indexes = {@Index(name = "lo_mrn_id", columnList = "mrnId")})
 public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labSample record.
+     *
+     * This is the primary key for the labSample table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labSampleId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the labSample table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
     /**
-     * Lab number for the system doing the lab test.
+     * \brief Lab number for the system doing the lab test.
      */
     private String externalLabNumber;
+
     /**
-     * The time the sample arrived at the lab where there test was being performed.
+     * \brief Date and time at which this labSample arrived at the lab.
+     *
+     * where there test was being performed.
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant receiptAtLab;
 
     /**
-     * The time the sample was take from the patient (e.g. time of phlebotomy).
+     * \brief Date and time at which this labSample was take from the patient.
+     *
+     * (e.g. time of phlebotomy).
      */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant sampleCollectionTime;
 
     /**
-     * Type of specimen.
+     * \brief Type of specimen.
+     *
      * E.g. Mid Stream Urine
      */
     private String specimenType;
+
     /**
-     * Site the sample was taken from.
+     * \brief Site on body the sample was taken from.
+     *
      * E.g. Right kidney
      */
     private String sampleSite;
+
     /**
-     * Method of collection
+     * \brief Method of collection
+     *
      * E.g. Bone marrow trephine biopsy
      */
     @Column(columnDefinition = "text")

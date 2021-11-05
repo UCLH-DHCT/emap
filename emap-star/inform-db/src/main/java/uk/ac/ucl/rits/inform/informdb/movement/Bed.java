@@ -13,21 +13,37 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
-@SuppressWarnings("serial")
+/**
+ * \brief Represents a bed in the hospital.
+ */
+ @SuppressWarnings("serial")
 @Entity
 @Table
 @Data
 @NoArgsConstructor
 public class Bed implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this bed record.
+     *
+     * This is the primary key for the bed table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedId;
 
+    /**
+     * \brief Identifier for the Room associated with this record.
+     *
+     * This is a foreign key that joins the bed table to the Room table.
+     */
     @ManyToOne
     @JoinColumn(name = "roomId", nullable = false)
     private Room roomId;
 
+    /**
+     * \brief Text name used by HL7 for this bed.
+     */
     @Column(nullable = false)
     private String hl7String;
 

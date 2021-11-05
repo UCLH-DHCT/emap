@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
+ * \brief Types of AdvancedDecision that can be recorded.
+ *
  * Advance decisions can be different in nature and therefore are distinguished by their type. Each of these types is
  * identified by a care code and name, e.g. "DNACPR" with care code "COD4".
  * @author Anika Cawthorn
@@ -18,18 +20,23 @@ import javax.persistence.Id;
 @Data
 @NoArgsConstructor
 public class AdvanceDecisionType {
+    /**
+     * \brief Unique identifier in EMAP for this advanceDecisionType record.
+     *
+     * This is the primary key for the advanceDecisionType table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long advanceDecisionTypeId;
 
     /**
-     * Name of the advance decision type, e.g. DNACPR
+     * \brief Name of the advanceDecisionType, e.g. DNACPR
      */
     @Column(nullable = false)
     private String name;
 
     /**
-     * Code used within EPIC for advance decision type, e.g COD4 for DNACPR.
+     * \brief Code used within source system for advanceDecisionType, e.g COD4 for DNACPR.
      */
     @Column(nullable = false, unique = true)
     private String careCode;

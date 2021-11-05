@@ -20,8 +20,10 @@ import org.hibernate.annotations.Check;
 import lombok.Data;
 
 /**
- * This class represents the association of Medical Resource Number (MRN) to
- * an individual patient (a Person). This represents nothing more than a list of
+ * \brief This represents the association of Medical Resource Number (MRN) to
+ * an individual patient.
+ *
+ * This represents nothing more than a list of
  * all MRNs the system is aware of.
  * <p>
  * Over the course of its lifetime a single MRN may be associated with any
@@ -38,33 +40,39 @@ import lombok.Data;
 public class Mrn implements Serializable {
 
     /**
-     * The MrnId is the UID for the association of an MRN value to a Person.
+     * \brief Unique identifier in EMAP for this mrn record.
+     *
+     * This is the primary key for the mrn table.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnId;
 
+    //TODO Exclude from doxygen
+    /*
+     * \brief List of hospital visits associated with this mrn record.
+     */
     @OneToMany(targetEntity = HospitalVisit.class, mappedBy = "mrnId", cascade = CascadeType.ALL)
     private List<HospitalVisit> hospitalVisits;
 
     /**
-     * The value of the MRN identifier.
+     * \brief The value of the MRN identifier.
      */
     @Column(unique = true)
     private String mrn;
 
     /**
-     * NHS number.
+     * \brief NHS number.
      */
     private String nhsNumber;
 
     /**
-     * The system from which this MRN was initially discovered.
+     * \brief The system from which this MRN was initially discovered.
      */
     private String sourceSystem;
 
     /**
-     * The datetime this row was written.
+     * \brief Date and time at which this mrn was first recorded in EMAP.
      */
     @Column(nullable = false, columnDefinition = "timestamp with time zone")
     private Instant storedFrom;
