@@ -198,9 +198,9 @@ public class PatientConditionController {
                 patientCondition = patientConditionRepo
                         .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType, msg.getInfectionAdded());
                 break;
-            case "hoover":
+            case "clarity":
                 if (msg.getEpicInfectionId().isUnknown()) {
-                    throw new RequiredDataMissingException("No patientInfectionId from hoover");
+                    throw new RequiredDataMissingException("No patientInfectionId from clarity");
                 }
                 epicInfectionId = msg.getEpicInfectionId().get();
                 patientCondition = patientConditionRepo.findByConditionTypeIdAndInternalId(conditionType, epicInfectionId);
