@@ -122,13 +122,14 @@ public class LocationMetadataController {
 
     /**
      * Create location string with no room and bed if it doesn't already exist.
-     *
+     * <p>
      * Skipping department with null hl7 string and full locations where have no room or department.
      * <p>
      * SQL query will not return department^null^null if there are rooms and locations linked from the query.
      * Correcting this here which isn't that clean but seems justifiable to be able to link patients who
      * have just turned up to the department and are not in a specific room/bed.
-     * @param department department entity
+     * @param department        department entity
+     * @param locationHl7String full hl7 location string
      */
     private void createDepartmentOnlyLocationIfRequired(Department department, String locationHl7String) {
         if ("null".equals(department.getHl7String()) || locationHl7String.endsWith("^null^null")) {
