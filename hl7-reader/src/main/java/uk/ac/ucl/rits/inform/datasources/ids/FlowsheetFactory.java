@@ -112,7 +112,7 @@ public class FlowsheetFactory {
      * @throws HL7Exception              if HL7 message cannot be parsed
      * @throws Hl7InconsistencyException if message does not have required data
      */
-    private Flowsheet buildFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1, Instant recordedDateTime)
+    Flowsheet buildFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1, Instant recordedDateTime)
             throws HL7Exception, Hl7InconsistencyException {
         Flowsheet flowsheet = new Flowsheet();
 
