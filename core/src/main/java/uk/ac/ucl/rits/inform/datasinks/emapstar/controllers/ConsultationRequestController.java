@@ -90,7 +90,7 @@ public class ConsultationRequestController {
     @Transactional
     public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom) {
         RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(
-                msg.getConsultationType(), msg.getStatusChangeTime(), storedFrom);
+                msg.getConsultationType(), msg.getStatusChangeDatetime(), storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
                 msg, visit, consultationState.getEntity(), storedFrom);
 
@@ -101,7 +101,7 @@ public class ConsultationRequestController {
         consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
-                consultationRequest.getEntity().getConsultationRequestId(), msg.getStatusChangeTime(), storedFrom);
+                consultationRequest.getEntity().getConsultationRequestId(), msg.getStatusChangeDatetime(), storedFrom);
     }
 
     /**
@@ -145,7 +145,7 @@ public class ConsultationRequestController {
             ConsultRequest msg, HospitalVisit visit, ConsultationType consultationType, Instant storedFrom) {
         return consultationRequestRepo
                 .findByInternalId(msg.getEpicConsultId())
-                .map(obs -> new RowState<>(obs, msg.getStatusChangeTime(), storedFrom, false))
+                .map(obs -> new RowState<>(obs, msg.getStatusChangeDatetime(), storedFrom, false))
                 .orElseGet(() -> createMinimalConsultationRequest(msg, visit, consultationType, storedFrom));
     }
 
@@ -163,7 +163,7 @@ public class ConsultationRequestController {
         ConsultationRequest consultationRequest = new ConsultationRequest(consultationType, visit,
                 msg.getEpicConsultId());
         logger.debug("Created new {}", consultationRequest);
-        return new RowState<>(consultationRequest, msg.getStatusChangeTime(), storedFrom, true);
+        return new RowState<>(consultationRequest, msg.getStatusChangeDatetime(), storedFrom, true);
     }
 
     /**
@@ -174,7 +174,7 @@ public class ConsultationRequestController {
      */
     private boolean consultRequestShouldBeUpdated(ConsultRequest msg, RowState<ConsultationRequest,
             ConsultationRequestAudit> consultationRequest) {
-        return (consultationRequest.isEntityCreated() || !msg.getStatusChangeTime().isBefore(
+        return (consultationRequest.isEntityCreated() || !msg.getStatusChangeDatetime().isBefore(
                 consultationRequest.getEntity().getValidFrom()));
     }
 
@@ -193,7 +193,7 @@ public class ConsultationRequestController {
         requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(), request::setClosedDueToDischarge);
         // only update status change time if the entity has been created or updated
         if (requestState.isEntityCreated() || requestState.isEntityUpdated()) {
-            requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(), request::setStatusChangeTime);
+            requestState.assignIfDifferent(msg.getStatusChangeDatetime(), request.getStatusChangeTime(), request::setStatusChangeTime);
         }
     }
 }
