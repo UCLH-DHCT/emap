@@ -35,8 +35,8 @@ class TestQuestionProcessing extends MessageProcessingBase {
     private final Long FRAILTY_CONSULT_ID = 1234521112L;
     private final String coPathTemplate = "co_path/%s.yaml";
     private final String coPathSampleNumber = "UH20-4444";
-    private final Instant labMessageTime = Instant.parse("2020-11-09T15:04:45Z");
-    private final Instant consultStatusChangeTime = Instant.parse("2013-02-12T12:00:00Z");
+    private final Instant labMessageDatetime = Instant.parse("2020-11-09T15:04:45Z");
+    private final Instant consultStatusDatetime = Instant.parse("2013-02-12T12:00:00Z");
     private ConsultRequest consultReqMsg;
 
 
@@ -95,7 +95,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         // process original message
         processSingleMessage(labOrderMsg);
         // process later message with updated answer
-        labOrderMsg.setStatusChangeTime(labMessageTime.plusSeconds(60));
+        labOrderMsg.setStatusChangeTime(labMessageDatetime.plusSeconds(60));
         String clinicalQuestion = "Clinical Details:";
         String newClinicalAnswer = "very sleepy";
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
@@ -115,7 +115,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         // process original message
         processSingleMessage(labOrderMsg);
         // process earlier message with updated answer
-        labOrderMsg.setStatusChangeTime(labMessageTime.minusSeconds(60));
+        labOrderMsg.setStatusChangeTime(labMessageDatetime.minusSeconds(60));
         String clinicalQuestion = "Clinical Details:";
         String newClinicalAnswer = "very sleepy";
         labOrderMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
@@ -151,7 +151,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         processSingleMessage(labOrderMsg);
         // process later message with delete order
         labOrderMsg.setEpicCareOrderNumber(InterchangeValue.deleteFromValue(coPathSampleNumber));
-        labOrderMsg.setStatusChangeTime(labMessageTime.plusSeconds(60));
+        labOrderMsg.setStatusChangeTime(labMessageDatetime.plusSeconds(60));
         processSingleMessage(labOrderMsg);
 
         assertEquals(3, questionRepo.count());
@@ -170,7 +170,7 @@ class TestQuestionProcessing extends MessageProcessingBase {
         processSingleMessage(consultReqMsg);
 
         // process later message with updated answer
-        consultReqMsg.setStatusChangeTime(consultStatusChangeTime.plusSeconds(1));
+        consultReqMsg.setStatusChangeDatetime(consultStatusDatetime.plusSeconds(1));
         consultReqMsg.getQuestions().put(clinicalQuestion, newClinicalAnswer);
 
         processSingleMessage(consultReqMsg);

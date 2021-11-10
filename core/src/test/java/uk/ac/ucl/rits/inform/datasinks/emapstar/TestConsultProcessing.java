@@ -214,7 +214,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         assertEquals(cRequest.getComments(), great_note);
 
         String great_note_2 = "bla bla bla";
-        minimalConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
+        minimalConsult.setStatusChangeDatetime(minimalConsult.getStatusChangeDatetime().minusSeconds(60));
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note_2));
         processSingleMessage(minimalConsult);
         cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
@@ -234,7 +234,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
 
-        cancelledConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
+        cancelledConsult.setStatusChangeDatetime(minimalConsult.getStatusChangeDatetime().minusSeconds(60));
         processSingleMessage(cancelledConsult);
         cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getCancelled());
