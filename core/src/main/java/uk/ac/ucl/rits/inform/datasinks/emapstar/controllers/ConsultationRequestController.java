@@ -188,9 +188,12 @@ public class ConsultationRequestController {
         ConsultationRequest request = requestState.getEntity();
 
         requestState.assignIfDifferent(msg.getScheduledDatetime(), request.getScheduledDatetime(), request::setScheduledDatetime);
-        requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(), request::setStatusChangeTime);
         requestState.assignInterchangeValue(msg.getNotes(), request.getComments(), request::setComments);
         requestState.assignIfDifferent(msg.isCancelled(), request.getCancelled(), request::setCancelled);
         requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(), request::setClosedDueToDischarge);
+        // only update status change time if the entity has been created or updated
+        if (requestState.isEntityCreated() || requestState.isEntityUpdated()) {
+            requestState.assignIfDifferent(msg.getStatusChangeTime(), request.getStatusChangeTime(), request::setStatusChangeTime);
+        }
     }
 }
