@@ -52,7 +52,7 @@ public class ConsultFactory {
         ORC orc = order.getORC();
         OBR obr = order.getORDER_DETAIL().getOBR();
         consult.setEpicConsultId(Long.decode(orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().getValueOrEmpty()));
-        consult.setStatusChangeTime(HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction()));
+        consult.setStatusChangeDatetime(HL7Utils.interpretLocalTime(orc.getOrc9_DateTimeOfTransaction()));
         consult.setScheduledDatetime(HL7Utils.interpretLocalTime(obr.getObr36_ScheduledDateTime()));
         consult.setConsultationType(obr.getObr44_ProcedureCode().encode());
     }
