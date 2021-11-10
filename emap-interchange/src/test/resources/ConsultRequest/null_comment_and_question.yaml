@@ -5,7 +5,7 @@ epicConsultId: 902
 mrn: "UzEYPpR"
 visitNumber: "100000011"
 consultationType: "CON2"  # consultancy type for diabetes educator
-statusChangeTime: "2021-09-29T06:08:49Z"
+statusChangeDatetime: "2021-09-29T06:08:49Z"
 scheduledDatetime: "2021-09-28T17:57:00Z"
 questions:
   # null line converted to empty string
