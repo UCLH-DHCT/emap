@@ -5,7 +5,7 @@ epicConsultId: 910
 mrn: "xo9dzpR0Zx7J"
 visitNumber: "100000013"
 consultationType: "CON1"
-statusChangeTime: "2021-11-22T07:08:49Z"
+statusChangeDatetime: "2021-11-22T07:08:49Z"
 scheduledDatetime: "2021-09-23T09:00:00Z"
 closedDueToDischarge: true
 questions:

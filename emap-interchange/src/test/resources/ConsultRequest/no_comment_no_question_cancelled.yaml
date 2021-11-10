@@ -5,6 +5,6 @@ epicConsultId: 900
 mrn: "nydh2a"
 visitNumber: "100000012"
 consultationType: "CON2"  # consultancy type for diabetes educator
-statusChangeTime: "2021-09-21T06:08:49Z"
+statusChangeDatetime: "2021-09-21T06:08:49Z"
 scheduledDatetime: "2021-09-21T00:55:00Z"
 cancelled: true

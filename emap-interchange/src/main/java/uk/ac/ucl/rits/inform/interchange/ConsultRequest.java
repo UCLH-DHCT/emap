@@ -36,7 +36,7 @@ public class ConsultRequest extends EmapOperationMessage implements Serializable
     /**
      * Last updated time.
      */
-    private Instant statusChangeTime;
+    private Instant statusChangeDatetime;
 
     /**
      * Time the consult was scheduled to start.
