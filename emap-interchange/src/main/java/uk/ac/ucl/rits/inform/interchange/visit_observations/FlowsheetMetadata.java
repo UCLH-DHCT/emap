@@ -56,13 +56,4 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
     }
-
-    /**
-     * @return Id of observation in application.
-     */
-    @Override
-    @JsonIgnore
-    public String getId() {
-        return interfaceId;
-    }
 }
