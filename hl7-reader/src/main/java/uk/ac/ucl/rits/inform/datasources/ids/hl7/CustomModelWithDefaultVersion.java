@@ -16,6 +16,7 @@ public class CustomModelWithDefaultVersion extends CustomModelClassFactory {
      * Create custom model factory with default hl7 version.
      * @param customPackageForModels package reference for custom models
      * @param canonicalVersion       default version for hl7 parsing
+     * @throws IllegalArgumentException if version does not match expectation
      */
     public CustomModelWithDefaultVersion(String customPackageForModels, String canonicalVersion) {
         super(customPackageForModels);
