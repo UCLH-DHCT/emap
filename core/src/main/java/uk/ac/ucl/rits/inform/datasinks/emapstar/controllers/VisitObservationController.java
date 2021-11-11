@@ -25,6 +25,7 @@ import java.time.Instant;
 /**
  * Interactions with observation visits.
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 @Component
 public class VisitObservationController {
@@ -57,6 +58,7 @@ public class VisitObservationController {
      */
     @Transactional
     public void processMetadata(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
+        // TODO: this is the core of what needs to change but not sure about all the IDs just yet
         if (msg.getId() == null) {
             throw new RequiredDataMissingException("Flowsheet id not set");
         }
@@ -108,16 +110,16 @@ public class VisitObservationController {
 
     /**
      * Get existing observation type or create, adding to cache.
-     * @param idInApplication Id of the observation in the application (e.g. flowsheet row epic ID)
-     * @param sourceSystem    source system
+     * @param idInApplication Id of the observation in the application (flowsheet row epic ID)
+     * @param interfaceId     Id of oberservation type in HL messages
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return VisitObservationType
      */
-    @Cacheable(value = "visitObservationType", key = "{ #idInApplication, #sourceSystem, #observationType }")
+    @Cacheable(value = "visitObservationType", key = "{ #idInApplication, #interfaceId, #observationType }")
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeFromCache(
-            String idInApplication, String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
         return getOrCreateObservationType(idInApplication, sourceSystem, observationType, validFrom, storedFrom);
     }
 
@@ -141,21 +143,19 @@ public class VisitObservationController {
         return visitObservationTypeRepo
                 .findByIdInApplicationAndSourceSystemAndSourceObservationType(flowsheetId, sourceSystem, observationType)
                 .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
-                .orElseGet(() -> createNewType(flowsheetId, sourceSystem, observationType, validFrom, storedFrom));
+                .orElseGet(() -> createNewType(sourceSystem, observationType, validFrom, storedFrom));
     }
 
     /**
      * Create a minimal visit observation type.
-     * @param idInApplication Id of the observation in the application (e.g. flowsheet row epic ID)
      * @param sourceSystem    source system
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return minimal VisitObservationType wrapped in row state
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(
-            String idInApplication, String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(idInApplication, sourceSystem, observationType);
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
+        VisitObservationType type = new VisitObservationType(sourceSystem, observationType);
         return new RowState<>(type, validFrom, storedFrom, true);
     }
 
@@ -185,7 +185,8 @@ public class VisitObservationController {
      */
     private RowState<VisitObservation, VisitObservationAudit> createMinimalFlowsheetState(
             Flowsheet msg, HospitalVisit visit, VisitObservationType observationType, Instant storedFrom) {
-        VisitObservation obs = new VisitObservation(visit, observationType, msg.getObservationTime(), msg.getLastUpdatedInstant(), storedFrom);
+        VisitObservation obs = new VisitObservation(visit, observationType, msg.getObservationTime(),
+                msg.getSourceSystem(), msg.getLastUpdatedInstant(), storedFrom);
         return new RowState<>(obs, msg.getLastUpdatedInstant(), storedFrom, true);
     }
 

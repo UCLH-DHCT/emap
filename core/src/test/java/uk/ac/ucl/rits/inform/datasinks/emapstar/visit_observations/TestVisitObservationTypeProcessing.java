@@ -44,7 +44,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
         // flowsheet meta clarity (has the mapping information)
         // flowsheet meta caboodle (all of the naming data)
-        // flowsheet clarity -- flowsheet that needs visit observation type linked
+        // flowsheet clarity/caboodle -- flowsheet that needs visit observation type linked
         // flowsheet EPIC -- flowsheet that needs visit observation type linked
     }
 
@@ -110,6 +110,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * Then the names are not updated and ids are kept as they are
      */
 
-
+    /**
+     * Given
+     */
 
 }
