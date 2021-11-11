@@ -66,7 +66,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     void testCreateVisitObservationTypeFromEPIC() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
 
-        VisitObservationType visitObservationType = visitObservationTypeRepository.findByInterfaceId(INTERFACE_ID).orElseThrow(NullPointerException::new);
+        VisitObservationType visitObservationType = visitObservationTypeRepository.find(INTERFACE_ID,
+                null, FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getIdInApplication());
     }
 
