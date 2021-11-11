@@ -33,10 +33,6 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
      * The flowsheet's internal ID within the hospital.
      */
     private String flowsheetId;
-    /**
-     * Denotes the source system of the interfaceId field.
-     */
-    private InterfaceIdSourceSystem interfaceIdSourceSystem;
 
     private String name;
     private String displayName;
