@@ -20,4 +20,14 @@ public interface VisitObservationTypeRepository extends CrudRepository<VisitObse
      */
     Optional<VisitObservationType> findByIdInApplicationAndSourceSystemAndSourceObservationType(
             String id, String sourceSystem, String sourceObservationType);
+
+    /**
+     * Query visit observation type by required fields.
+     * @param interfaceId       Identifier for visit observation type in EPIC
+     * @param idInApplication   Hospital flowsheet identifier
+     * @param observationType type of observation from the source system
+     * @return optional visit observation type
+     */
+    Optional<VisitObservationType> findByInterfaceIdAndIdInApplicationAndSourceObservationType(
+            String interfaceId, String idInApplication, String observationType);
 }
