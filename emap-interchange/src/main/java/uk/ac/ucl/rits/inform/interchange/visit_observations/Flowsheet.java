@@ -26,6 +26,7 @@ import java.time.LocalTime;
 public class Flowsheet extends EmapOperationMessage implements ObservationType {
     private String sourceObservationType = "flowsheet";
     private String mrn = "";
+    private String interfaceId = null;
 
     private String visitNumber = "";
 
@@ -37,7 +38,7 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
     /**
      * Identifier used by caboodle/EPIC for the flowsheet.
      */
-    private String flowsheetId = "";
+    private String flowsheetRowEpicId = null;
 
     /**
      * Data type of value.
@@ -94,15 +95,6 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
-    }
-
-    /**
-     * @return Id of observation in application.
-     */
-    @Override
-    @JsonIgnore
-    public String getId() {
-        return flowsheetId;
     }
 
     /**
