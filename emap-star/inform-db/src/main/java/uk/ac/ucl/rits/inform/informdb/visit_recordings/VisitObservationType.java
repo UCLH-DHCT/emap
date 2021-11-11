@@ -23,7 +23,8 @@ import java.time.Instant;
  *
  * In EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
- * into standardised vocabularies to make their meanings clear.
+ * into standardised vocabularies to make their meanings clear. While we currently use this table for flowsheets only,
+ * we anticipate that we can use this table for smart data elements also.
  * @author Roma Klapaukh
  * @author Stef Piatek
  * @author Anika Cawthorn
@@ -58,8 +59,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * \brief The data type in the source system.
      *
-     * The code used by the hospital application to identify the observation type. This is the flowsheetId
-     * retrieved from caboodle and also referred to as internal ID.
+     * E.g. flowsheet or smart data elements
      */
     @Column(nullable = false)
     private String sourceObservationType;
@@ -67,7 +67,9 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * \brief The code used by the source system to identify the observation type.
      *
-     * This ID in conjunction with the interfaceId uniquely identifies the observation type.
+     * The code used by the hospital application to identify the observation type. This is the flowsheetId retrieved
+     * This ID in conjunction with the interfaceId uniquely identifies the
+     * observation type.
      */
     @Column(nullable = false)
     private String idInApplication;
