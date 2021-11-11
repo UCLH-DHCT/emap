@@ -91,23 +91,22 @@ INSERT INTO public.location_visit (
      null, 4003, 105002);
 
 INSERT INTO public.visit_observation_type (
-    visit_observation_type_id, primary_data_type, source_observation_type, id_in_application, name,
-    source_system, stored_from, valid_from)
-    VALUES (107001, null, 'flowsheet', '5', 'R HPSC IDG SW PRESENT', 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (107002, null, 'flowsheet', '5', 'R HPSC IDG SW PRESENT', 'caboodle', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (107003, null, 'flowsheet', '8', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (107004, null, 'flowsheet', '10', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (107005, null, 'flowsheet', '6466', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
-           (107006, null, 'flowsheet', '28315', null, 'EPIC', '2012-09-17 14:00:00', '2020-01-22 14:04:00');
+    visit_observation_type_id, primary_data_type, source_observation_type, interface_id, id_in_application, name, stored_from, valid_from)
+    VALUES (107001, null, 'flowsheet', '5', null, 'R HPSC IDG SW PRESENT', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (107002, null, 'flowsheet', null, '5', 'R HPSC IDG SW PRESENT', '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (107003, null, 'flowsheet', '8', '8', null, '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (107004, null, 'flowsheet', '10', '10', null, '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (107005, null, 'flowsheet', '6466', '6466', null, '2012-09-17 14:00:00', '2020-01-22 14:04:00'),
+           (107006, null, 'flowsheet', '28315', '28315', null, '2012-09-17 14:00:00', '2020-01-22 14:04:00');
 
 INSERT INTO public.visit_observation (
     visit_observation_id, hospital_visit_id, stored_from, valid_from, comment, observation_datetime,
-    unit, value_as_real, value_as_text, visit_observation_type_id)
+    unit, value_as_real, value_as_text, visit_observation_type_id, source_system)
     VALUES (108001, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
-            null, null, '140/90', 107001),
+            null, null, '140/90', 107001, 'EPIC'),
            (108002, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
-            null, 50.0, null, 107003),
+            null, 50.0, null, 107003, 'EPIC'),
            (108003, 4001, '2012-09-17 14:00:00', '2020-01-22 14:04:00', null, '2020-01-22 14:03:00',
-            null, null, 'you should delete me', 107006);
+            null, null, 'you should delete me', 107006, 'EPIC');
 
 
