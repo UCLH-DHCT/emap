@@ -120,42 +120,52 @@ public class VisitObservationController {
     @Cacheable(value = "visitObservationType", key = "{ #idInApplication, #interfaceId, #observationType }")
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeFromCache(
             String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
-        return getOrCreateObservationType(idInApplication, sourceSystem, observationType, validFrom, storedFrom);
+        return getOrCreateObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
     }
 
     /**
      * Get existing observation type or create, evicting cache as we expect new information to be added to the observation type.
      * @param idInApplication Id of the observation in the application
-     * @param sourceSystem    source system
+     * @param interfaceId     Interface identifier used in EPIC messages to identify visit observation type
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return VisitObservationType
      */
-    @CacheEvict(value = "visitObservationType", key = "{ #idInApplication, #sourceSystem, #observationType }")
+    @CacheEvict(value = "visitObservationType", key = "{ #idInApplication, #interfaceId, #sourceSystem, #observationType }")
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeClearingCache(
-            String idInApplication, String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
-        return getOrCreateObservationType(idInApplication, sourceSystem, observationType, validFrom, storedFrom);
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
+        return getOrCreateObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
     }
 
+    /**
+     * Retrieves the existing information if visit observation type already exists, otherwise creates a new visit
+     * observation type.
+     * @param idInApplication   Flowsheet row EPIC identifoer
+     * @param interfaceId       Interface id
+     * @param observationType   Type of visit observation
+     * @param validFrom         When last updated
+     * @param storedFrom        When this type of information was first processed from
+     * @return RowState<VisitObservationType, VisitObservationTypeAudit> containing either existing or newly create repo information
+     */
     private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
-            String flowsheetId, String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
         return visitObservationTypeRepo
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(flowsheetId, sourceSystem, observationType)
+                .findByInterfaceIdAndIdInApplicationAndSourceObservationType(interfaceId, idInApplication, observationType)
                 .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
-                .orElseGet(() -> createNewType(sourceSystem, observationType, validFrom, storedFrom));
+                .orElseGet(() -> createNewType(idInApplication, interfaceId, observationType, validFrom, storedFrom));
     }
 
     /**
      * Create a minimal visit observation type.
-     * @param sourceSystem    source system
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return minimal VisitObservationType wrapped in row state
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(String sourceSystem, String observationType, Instant validFrom, Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(sourceSystem, observationType);
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(String observationType, Instant validFrom,
+                                                                                    Instant storedFrom) {
+        VisitObservationType type = new VisitObservationType(observationType);
         return new RowState<>(type, validFrom, storedFrom, true);
     }
 
