@@ -60,12 +60,12 @@ public class VisitObservationController {
      */
     @Transactional
     public void processMetadata(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
-        if (msg.getId() == null) {
-            throw new RequiredDataMissingException("Flowsheet id not set");
+        if (msg.getInterfaceId() == null && msg.getFlowsheetId() == null) {
+            throw new RequiredDataMissingException("Both identifiers cannot be null");
         }
 
         RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationTypeClearingCache(
-                msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+                msg.getInterfaceId(), msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
         VisitObservationType observationType = typeState.getEntity();
         // Update metadata with usable information
         Instant messageValidFrom = msg.getLastUpdatedInstant();
@@ -100,7 +100,7 @@ public class VisitObservationController {
         }
 
         RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationTypeFromCache(
-                msg.getId(), msg.getSourceSystem(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+                msg.getInterfaceId(), msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
         typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
 
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, typeState.getEntity(), storedFrom);
