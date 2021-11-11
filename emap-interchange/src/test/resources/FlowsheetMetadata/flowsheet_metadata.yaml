@@ -1,8 +1,6 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetRowEpicId: "1090000038"
-  interfaceId:        "1090000038"
   sourceMessageId:    "1090000038"
-  interfaceIdSourceSystem: 'CABOODLE'
   name:               "R HPSC IDG SW PRESENT"
   displayName:        "Social Work Team Member"
   valueType:          "String Type"
@@ -13,9 +11,7 @@
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetRowEpicId: "1010010003"
-  interfaceId:        "1010010003"
   sourceMessageId:    "1010010003"
-  interfaceIdSourceSystem: 'CABOODLE'
   name:               "R ED INTERPRETER ARRIVED"
   displayName:        "Arrival Time"
   valueType:          "Time"
@@ -26,9 +22,7 @@
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   flowsheetRowEpicId: "1020100368"
-  interfaceId:        "1020100368"
   sourceMessageId:    "1020100368"
-  interfaceIdSourceSystem: 'CABOODLE'
   name:               "R OB NEWBORN HEARING SCREEN DATE"
   displayName:        "Date of Test"
   valueType:          "Date"
@@ -38,10 +32,8 @@
   lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
   sourceSystem: "caboodle"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
-  interfaceId: null
   flowsheetRowEpicId: '449876'
   sourceMessageId: '331258'
-  interfaceIdSourceSystem: 'CABOODLE'
   name:               "R OB NEWBORN HEARING SCREEN DATE"
   displayName:        "Date of Test"
   valueType:          "Date"
