@@ -3,9 +3,6 @@
   flowsheetRowEpicId: '7001026'
   sourceMessageId: '7001026'
   name: 'UCLH EMAP EPIDURAL VOLUME'
-  description: null
-  interfaceIdSourceSystem: 'EPIC'
-  unit: null
   creationInstant: '2020-05-29T00:00:00.000Z'
   sourceSystem: "clarity"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
@@ -13,9 +10,6 @@
   flowsheetRowEpicId: '___25251'
   sourceMessageId: '25251'
   name: 'UCLH EMAP R UCLH METOPROLOL VOLUME'
-  description: null
-  interfaceIdSourceSystem: 'EPIC'
-  unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
@@ -23,9 +17,6 @@
   flowsheetRowEpicId: '331243'
   sourceMessageId: '331243'
   name: 'UCLH EMAP R ESMOLOL VOLUME'
-  description: null
-  interfaceIdSourceSystem: 'EPIC'
-  unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
@@ -33,9 +24,6 @@
   flowsheetRowEpicId: '331258'
   sourceMessageId: '331258'
   name: 'UCLH EMAP R UCLH SODIUM NITROPRUSSIDE VOLUME'
-  description: null
-  interfaceIdSourceSystem: 'EPIC'
-  unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
@@ -43,18 +31,11 @@
   flowsheetRowEpicId: '331258'
   sourceMessageId: '331258'
   name: 'UCLH EMAP R UCLH SODIUM NITROPRUSSIDE VOLUME'
-  description: null
-  interfaceIdSourceSystem: 'EPIC'
-  unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
   interfaceId: '331258'
   flowsheetRowEpicId: '449876'
   sourceMessageId: '331258'
-  name: null
-  description: null
-  interfaceIdSourceSystem: 'EPIC'
-  unit: null
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"

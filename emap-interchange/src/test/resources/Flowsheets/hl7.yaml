@@ -65,10 +65,3 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2020-01-01"
-- "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "331258"
-  valueType: "DATE"
-  dateValue:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "2020-01-01"
