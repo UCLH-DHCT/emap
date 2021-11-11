@@ -121,6 +121,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         this.interfaceId = interfaceId;
         this.sourceObservationType = sourceObservationType;
         setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     /**
