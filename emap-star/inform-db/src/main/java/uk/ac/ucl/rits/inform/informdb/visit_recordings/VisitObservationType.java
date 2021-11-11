@@ -109,11 +109,18 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
 
     /**
      * Minimal information constructor.
-     * @param sourceSystem          source system
-     * @param sourceObservationType data type in the source system (e.g. flowsheet)
+     * @param idInApplication       Flowsheet row EPIC identifier
+     * @param interfaceId           Interface identifier
+     * @param sourceObservationType Data type in the source system (e.g. flowsheet)
+     * @param validFrom             When information last changed
+     * @param storedFrom            When type of information was first processed in EMAP
      */
-    public VisitObservationType(String sourceSystem, String sourceObservationType) {
+    public VisitObservationType(String idInApplication, String interfaceId, String sourceObservationType, Instant validFrom,
+                                Instant storedFrom) {
+        this.idInApplication = idInApplication;
+        this.interfaceId = interfaceId;
         this.sourceObservationType = sourceObservationType;
+        setValidFrom(validFrom);
     }
 
     /**
