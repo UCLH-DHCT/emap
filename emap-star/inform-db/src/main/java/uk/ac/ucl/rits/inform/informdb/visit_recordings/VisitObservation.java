@@ -105,7 +105,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
     private String comment;
 
     /**
-     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
+     * The hospital system that emap received the data from (caboodle or EPIC).
      */
     @Column(nullable = false)
     private String sourceSystem;
