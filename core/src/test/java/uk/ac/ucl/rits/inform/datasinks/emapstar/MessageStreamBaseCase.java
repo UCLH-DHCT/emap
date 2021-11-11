@@ -287,7 +287,7 @@ public abstract class MessageStreamBaseCase {
         vital.setSourceSystem("EPIC");
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
-        vital.setFlowsheetId("HEART_RATE");
+        vital.setSourceObservationType("HEART_RATE");
         vital.setNumericValue(InterchangeValue.buildFromHl7(vitalReading));
         vital.setUnit(InterchangeValue.buildFromHl7("/min"));
         vital.setObservationTime(vitalTime);
