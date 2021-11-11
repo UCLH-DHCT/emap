@@ -80,7 +80,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     /**
      * Given a visit observation type with interface_id but no id_in_application exists
      * When an EPIC flowsheet message arrives
-     * Then another visit observation type is created with interface_id but no id_in_application
+     * Then the existing visit observation type is not changed
      */
 
 
