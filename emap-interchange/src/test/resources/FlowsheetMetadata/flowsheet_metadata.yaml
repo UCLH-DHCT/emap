@@ -37,3 +37,16 @@
   creationInstant:       "2019-01-24T01:14:15.650Z"
   lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
   sourceSystem: "caboodle"
+- "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
+  interfaceId: null
+  flowsheetRowEpicId: '449876'
+  sourceMessageId: '331258'
+  interfaceIdSourceSystem: 'CABOODLE'
+  name:               "R OB NEWBORN HEARING SCREEN DATE"
+  displayName:        "Date of Test"
+  valueType:          "Date"
+  unit:               ""
+  description:        "*Unknown"
+  creationInstant:       "2019-01-24T01:14:15.650Z"
+  lastUpdatedInstant: "2020-10-30T00:57:31.897Z"
+  sourceSystem: "caboodle"

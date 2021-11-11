@@ -52,7 +52,7 @@
   interfaceId: '331258'
   flowsheetRowEpicId: '449876'
   sourceMessageId: '331258'
-  name: 'UCLH EMAP VOLUME SOMETHING OR OTHER'
+  name: null
   description: null
   interfaceIdSourceSystem: 'EPIC'
   unit: null
