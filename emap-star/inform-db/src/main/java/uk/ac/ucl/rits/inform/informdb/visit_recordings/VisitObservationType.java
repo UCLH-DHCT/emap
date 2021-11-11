@@ -71,7 +71,6 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
      * from caboodle and also referred to as internal ID. This ID in conjunction with the interfaceId uniquely identifies the
      * observation type.
      */
-    @Column(nullable = false)
     private String idInApplication;
 
     /**
