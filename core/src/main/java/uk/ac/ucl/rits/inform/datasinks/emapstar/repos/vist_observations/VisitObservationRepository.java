@@ -11,6 +11,7 @@ import java.util.Optional;
 
 /**
  * Visit Observation repository.
+ *
  * @author Stef Piatek
  */
 public interface VisitObservationRepository extends CrudRepository<VisitObservation, Long> {
@@ -26,6 +27,7 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
 
     /**
      * For testing.
+     *
      * @param visit hospital visit
      * @return list of visit observations
      */
@@ -33,9 +35,11 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
 
     /**
      * For testing.
-     * @param visit           hospital visit
-     * @param idInApplication Id in application for the visit observation type
+     *
+     * @param visit       hospital visit
+     * @param interfaceId Identifier in interface
      * @return optional visit observation
      */
-    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(HospitalVisit visit, String idInApplication);
+    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(
+            HospitalVisit visit, String interfaceId);
 }
