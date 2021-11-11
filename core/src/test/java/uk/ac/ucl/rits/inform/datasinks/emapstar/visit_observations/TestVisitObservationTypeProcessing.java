@@ -1,29 +1,38 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.visit_observations;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.jdbc.Sql;
+// import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
+    FlowsheetMetadata flowsheetMpiMetadata;
+    Flowsheet flowsheetEpic;
 
     @Autowired
     VisitObservationTypeRepository visitObservationTypeRepository;
     @Autowired
     VisitObservationTypeAuditRepository visitObservationTypeAuditRepository;
     private static final String CABOODLE_APPLICATION = "caboodle";
+    private static final String EPIC_APPLICATION = "EPIC";
+    private static final String CLARITY_APPLICATION = "clarity";
+    private static final String ID_IN_APPLICATION = "449876";
+    private static final String INTERFACE_ID = "331258";
     private static final String FLOWSHEET = "flowsheet";
     private static final String FLOWSHEET_ID = "5";
     private static final Instant EARLIER_TIME = Instant.parse("1991-01-01T00:00:00Z");
@@ -40,20 +49,26 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
     @BeforeEach
     void setup() throws IOException {
-        // flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(0);
+        flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(4);
+        flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(5);
 
-        // flowsheet meta clarity (has the mapping information)
-        // flowsheet meta caboodle (all of the naming data)
         // flowsheet clarity/caboodle -- flowsheet that needs visit observation type linked
-        // flowsheet EPIC -- flowsheet that needs visit observation type linked
+        flowsheetEpic = messageFactory.getFlowsheets("hl7.yaml", "0000040").get(8);
     }
-
 
     /**
      * Given no visit observation type exist.
      * When an EPIC flowsheet message arrives
      * Then a visit observation type is created with only interface_id, but no id_in_application
+     * @throws EmapOperationMessageProcessingException should never happen
      */
+    @Test
+    void testCreateVisitObservationTypeFromEPIC() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetEpic);
+
+        VisitObservationType visitObservationType = visitObservationTypeRepository.findByInterfaceId(INTERFACE_ID).orElseThrow(NullPointerException::new);
+        assertNull(visitObservationType.getIdInApplication());
+    }
 
 
     /**
