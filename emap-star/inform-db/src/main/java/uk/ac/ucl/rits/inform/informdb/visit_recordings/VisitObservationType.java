@@ -71,7 +71,6 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
      * This ID in conjunction with the interfaceId uniquely identifies the
      * observation type.
      */
-    @Column(nullable = false)
     private String idInApplication;
 
     /**
