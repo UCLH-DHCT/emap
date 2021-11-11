@@ -1,5 +1,5 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "5"
+  flowsheetRowEpicId: "5"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -13,7 +13,7 @@
     status: "SAVE"
     value: 102.2
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "8"
+  flowsheetRowEpicId: "8"
   valueType: "NUMERIC"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -24,7 +24,7 @@
     status: "SAVE"
     value: "patient was running really fast (on a hamster wheel)"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "10"
+  flowsheetRowEpicId: "10"
   valueType: "NUMERIC"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -39,27 +39,27 @@
     status: "SAVE"
     value: "%"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "6466"
+  flowsheetRowEpicId: "6466"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "A"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "28315"
+  flowsheetRowEpicId: "28315"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "DELETE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "3040109304"
+  flowsheetRowEpicId: "3040109304"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Supplemental Oxygen\nextra line"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "40445"
+  flowsheetRowEpicId: "40445"
   valueType: "DATE"
   dateValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
