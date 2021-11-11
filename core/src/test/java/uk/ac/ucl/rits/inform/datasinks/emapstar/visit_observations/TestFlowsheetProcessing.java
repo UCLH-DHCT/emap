@@ -93,12 +93,13 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
             processSingleMessage(msg);
         }
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(updateId, HL7_SOURCE, FLOWSHEET).orElseThrow();
+                .find(null, updateId, FLOWSHEET).orElseThrow();
 
         // value is updated
         VisitObservation updatedObservation = visitObservationRepository
                 .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, updateId)
                 .orElseThrow();
+
         assertNotEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
         // comment is updated
         assertEquals(newComment, updatedObservation.getComment());
@@ -153,7 +154,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(stringDeleteId, HL7_SOURCE, FLOWSHEET).orElseThrow();
+                .find(stringDeleteId, null, FLOWSHEET).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
@@ -187,7 +188,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         processSingleMessage(msg);
 
         VisitObservationType obsType = visitObservationTypeRepository
-                .findByIdInApplicationAndSourceSystemAndSourceObservationType(numericDeleteId, HL7_SOURCE, FLOWSHEET).orElseThrow();
+                .find(numericDeleteId, null, FLOWSHEET).orElseThrow();
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
