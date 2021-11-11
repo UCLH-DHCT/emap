@@ -24,6 +24,7 @@ import java.time.Instant;
 
 /**
  * Interactions with observation visits.
+ *
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
@@ -52,13 +53,13 @@ public class VisitObservationController {
 
     /**
      * Process metadata, clearing existing cache for the visit observation.
+     *
      * @param msg        flowsheet metadata
      * @param storedFrom time that star started processing the message
      * @throws RequiredDataMissingException if required data is missing
      */
     @Transactional
     public void processMetadata(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
-        // TODO: this is the core of what needs to change but not sure about all the IDs just yet
         if (msg.getId() == null) {
             throw new RequiredDataMissingException("Flowsheet id not set");
         }
@@ -86,6 +87,7 @@ public class VisitObservationController {
     /**
      * Create, update or delete a flowsheet, saving the visit observation to the cache.
      * Will also create a new VisitObservationType if it doesn't already exist.
+     *
      * @param msg        flowsheet
      * @param visit      hospital visit
      * @param storedFrom time that emap-core started processing the message
@@ -110,67 +112,80 @@ public class VisitObservationController {
 
     /**
      * Get existing observation type or create, adding to cache.
+     *
      * @param idInApplication Id of the observation in the application (flowsheet row epic ID)
      * @param interfaceId     Id of oberservation type in HL messages
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return VisitObservationType
+     * @throws RequiredDataMissingException if both identifiers are missing
      */
     @Cacheable(value = "visitObservationType", key = "{ #idInApplication, #interfaceId, #observationType }")
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeFromCache(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         return getOrCreateObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
     }
 
     /**
      * Get existing observation type or create, evicting cache as we expect new information to be added to the observation type.
+     *
      * @param idInApplication Id of the observation in the application (e.g. flowsheet row epic ID)
      * @param interfaceId     Interface identifier used in EPIC messages to identify visit observation type
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return VisitObservationType
+     * @throws RequiredDataMissingException if both identifiers are null
      */
-    @CacheEvict(value = "visitObservationType", key = "{ #idInApplication, #interfaceId, #sourceSystem, #observationType }")
+    @CacheEvict(value = "visitObservationType", allEntries = true)
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeClearingCache(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         return getOrCreateObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
     }
 
     /**
      * Retrieves the existing information if visit observation type already exists, otherwise creates a new visit
      * observation type.
-     * @param idInApplication   Flowsheet row EPIC identifoer
-     * @param interfaceId       Interface id
-     * @param observationType   Type of visit observation
-     * @param validFrom         When last updated
-     * @param storedFrom        When this type of information was first processed from
+     *
+     * @param idInApplication Flowsheet row EPIC identifoer
+     * @param interfaceId     Interface id
+     * @param observationType Type of visit observation
+     * @param validFrom       When last updated
+     * @param storedFrom      When this type of information was first processed from
      * @return RowState<VisitObservationType, VisitObservationTypeAudit> containing either existing or newly create repo information
+     * @throws RequiredDataMissingException if both identifiers are null
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         return visitObservationTypeRepo
-                .findByInterfaceIdAndIdInApplicationAndSourceObservationType(interfaceId, idInApplication, observationType)
+                .find(interfaceId, idInApplication, observationType)
                 .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
                 .orElseGet(() -> createNewType(idInApplication, interfaceId, observationType, validFrom, storedFrom));
     }
 
     /**
      * Create a minimal visit observation type.
+     *
+     * @param idInApplication EPIC identifier
+     * @param interfaceId     HL7 identifier
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return minimal VisitObservationType wrapped in row state
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(String observationType, Instant validFrom,
-                                                                                    Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(observationType);
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(
+            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
+        VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
         return new RowState<>(type, validFrom, storedFrom, true);
     }
 
     /**
      * Get or create existing observation entity.
+     *
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -187,6 +202,7 @@ public class VisitObservationController {
 
     /**
      * Create minimal visit observation wrapped in RowState.
+     *
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -202,6 +218,7 @@ public class VisitObservationController {
 
     /**
      * Update observation state from Flowsheet message.
+     *
      * @param msg              flowsheet
      * @param observationState observation entity wrapped in RowState
      * @throws RequiredDataMissingException if data type is not recognised for flowsheets
