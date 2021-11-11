@@ -72,8 +72,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
     /**
      * Given a visit observation type with id_in_application but no interface_id exists
-     * When a clarity flowsheet metadata message arrives
-     * Then another visit observation type is created with id_in_application but no interface_id
+     * When a EPIC flowsheet message arrives
+     * Then another visit observation type is created with interface_id but no id_in_application
      */
 
 
