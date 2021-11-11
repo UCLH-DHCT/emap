@@ -6,7 +6,7 @@
     status: "SAVE"
     value: "140/90"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetId: "6"
+  flowsheetRowEpicId: "6"
   valueType: "NUMERIC"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
