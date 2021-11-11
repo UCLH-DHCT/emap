@@ -72,15 +72,15 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
     /**
      * Given a visit observation type with id_in_application but no interface_id exists
-     * When a clarity flowsheet metadata message arrives
-     * Then another visit observation type is created with id_in_application but no interface_id
+     * When a EPIC flowsheet message arrives
+     * Then another visit observation type is created with interface_id but no id_in_application
      */
 
 
     /**
      * Given a visit observation type with interface_id but no id_in_application exists
      * When an EPIC flowsheet message arrives
-     * Then another visit observation type is created with interface_id but no id_in_application
+     * Then the existing visit observation type is not changed
      */
 
 
@@ -91,11 +91,16 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      */
 
     /**
-     * Given a visit observation type with id_in_application, a second visit observation type with interface_id,
-     *   a visit observation referring to the first visit observation type and another visit observation referring to the second visit observation type
+     * Given:
+     * - a visit observation type with id_in_application
+     * - a second visit observation type with interface_id
+     * - a visit observation referring to the first visit observation type
+     * - another visit observation referring to the second visit observation type
      * When a clarity flowsheet metadata message is processed that links id_in_application with interface_id
-     * Then the visit observation type with id_in_application is updated to hold the interface_id from second visit
-     *   observation type and the id is updated for the second visit observation referring to second visit observation type
+     * Then 
+     * - the visit observation type with id_in_application is updated to hold the interface_id from second visit observation type
+     * - the id is updated for the second visit observation referring to second visit observation type
+     * - the second visit observation type is deleted
      */
 
     /**
