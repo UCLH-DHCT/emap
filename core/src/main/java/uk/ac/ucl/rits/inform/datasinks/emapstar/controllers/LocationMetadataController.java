@@ -123,7 +123,9 @@ public class LocationMetadataController {
     /**
      * Create location string with no room and bed if it doesn't already exist.
      * <p>
-     * Skipping department with null hl7 string and full locations where have no room or department.
+     * Skipping:
+     * - locations without room or department (as these will already create a department only location)
+     * - departments that have no interface ID (so some through with hl7 string of "null"). As these won't be unique.
      * <p>
      * SQL query will not return department^null^null if there are rooms and locations linked from the query.
      * Correcting this here which isn't that clean but seems justifiable to be able to link patients who
