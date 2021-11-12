@@ -11,7 +11,8 @@ jobs:
       - name: Checkout documentation
         uses: actions/checkout@v2
         with:
-          repository: inform-health-informatics/emap_documentation
+          repository: inform-health-informatics/internal_emap_docs
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
           ref: develop
       - id: get-pr-checklist
         name: Get PR checklist
