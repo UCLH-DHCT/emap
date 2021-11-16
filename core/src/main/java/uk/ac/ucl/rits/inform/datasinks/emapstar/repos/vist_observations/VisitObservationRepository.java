@@ -42,4 +42,14 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
      */
     Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(
             HospitalVisit visit, String interfaceId);
+
+    /**
+     * For testing.
+     *
+     * @param visit           hospital visit
+     * @param idInApplication Identifier in application
+     * @return optional visit observation
+     */
+    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(
+            HospitalVisit visit, String idInApplication);
 }
