@@ -114,18 +114,18 @@ public class VisitObservationController {
      * Get existing observation type or create, adding to cache.
      *
      * @param idInApplication Id of the observation in the application (flowsheet row epic ID)
-     * @param interfaceId     Id of oberservation type in HL messages
+     * @param interfaceId     Id of observation type in HL messages
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
      * @return VisitObservationType
      * @throws RequiredDataMissingException if both identifiers are missing
      */
-    @Cacheable(value = "visitObservationType", key = "{ #idInApplication, #interfaceId, #observationType }")
+    @Cacheable(value = "visitObservationType", key = "{ #interfaceId, #idInApplication, #observationType }")
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeFromCache(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom)
+            String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom)
             throws RequiredDataMissingException {
-        return getOrCreateObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
+        return getOrCreateObservationType(interfaceId, idInApplication, observationType, validFrom, storedFrom);
     }
 
     /**
@@ -141,9 +141,9 @@ public class VisitObservationController {
      */
     @CacheEvict(value = "visitObservationType", allEntries = true)
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeClearingCache(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom)
+            String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom)
             throws RequiredDataMissingException {
-        return getOrCreateObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
+        return getOrCreateObservationType(interfaceId, idInApplication, observationType, validFrom, storedFrom);
     }
 
     /**
@@ -159,12 +159,12 @@ public class VisitObservationController {
      * @throws RequiredDataMissingException if both identifiers are null
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom)
+            String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom)
             throws RequiredDataMissingException {
         return visitObservationTypeRepo
                 .find(interfaceId, idInApplication, observationType)
                 .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
-                .orElseGet(() -> createNewType(idInApplication, interfaceId, observationType, validFrom, storedFrom));
+                .orElseGet(() -> createNewType(interfaceId, idInApplication, observationType, validFrom, storedFrom));
     }
 
     /**
@@ -178,7 +178,7 @@ public class VisitObservationController {
      * @return minimal VisitObservationType wrapped in row state
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(
-            String idInApplication, String interfaceId, String observationType, Instant validFrom, Instant storedFrom) {
+            String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom) {
         VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
         return new RowState<>(type, validFrom, storedFrom, true);
     }
