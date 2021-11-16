@@ -52,8 +52,6 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     void setup() throws IOException {
         flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(3);
         flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(5);
-
-        // flowsheet clarity/caboodle -- flowsheet that needs visit observation type linked
         flowsheetEpic = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(0);
     }
 
@@ -95,7 +93,15 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When a clarity flowsheet metadata message arrives
      * Then a visit observation type is created with both id_in_application and interface_id
      */
+    @Test
+    void testCreateVisitObservationTypeFromClarityMetadata() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetMpiMetadata);
 
+        VisitObservationType visitObservationType = visitObservationTypeRepository.find(INTERFACE_ID, ID_IN_APPLICATION,
+                FLOWSHEET).orElseThrow();
+        assertNotNull(visitObservationType.getInterfaceId());
+        assertNotNull(visitObservationType.getIdInApplication());
+    }
 
     /**
      * Given a visit observation type with id_in_application but no interface_id exists
