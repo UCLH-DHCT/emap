@@ -236,7 +236,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         processSingleMessage(messages.get(7));
         LocalDate expected = LocalDate.parse("2020-01-01");
         VisitObservation obs = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, flowsheetDateId)
+                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, flowsheetDateId)
                 .orElseThrow();
         assertEquals(expected, obs.getValueAsDate());
     }
