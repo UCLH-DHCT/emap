@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
@@ -49,11 +50,11 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
     @BeforeEach
     void setup() throws IOException {
-        flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(4);
+        flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(3);
         flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(5);
 
         // flowsheet clarity/caboodle -- flowsheet that needs visit observation type linked
-        flowsheetEpic = messageFactory.getFlowsheets("hl7.yaml", "0000040").get(8);
+        flowsheetEpic = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(0);
     }
 
     /**
@@ -68,7 +69,9 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(INTERFACE_ID,
                 null, FLOWSHEET).orElseThrow();
+
         assertNull(visitObservationType.getIdInApplication());
+        assertNotNull(visitObservationType.getInterfaceId());
     }
 
 
@@ -77,7 +80,15 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When a caboodle flowsheet metadata message arrives
      * Then a visit observation type is created with only id_in_application, but no interface_id
      */
+    @Test
+    void testCreateVisitObservationTypeFromCaboodleMetadata() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetMetadata);
 
+        VisitObservationType visitObservationType = visitObservationTypeRepository.find(null, ID_IN_APPLICATION,
+                FLOWSHEET).orElseThrow();
+        assertNull(visitObservationType.getInterfaceId());
+        assertNotNull(visitObservationType.getIdInApplication());
+    }
 
     /**
      * Given no visit observation type exist.
