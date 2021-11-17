@@ -1,10 +1,8 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.visit_observations;
 
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeRepository;
@@ -139,6 +137,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When a clarity flowsheet metadata message arrives
      * Then the missing id_in_application for visit observation type is filled in
      */
+
 
     /**
      * Given:
