@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -62,7 +63,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * @throws EmapOperationMessageProcessingException should never happen
      */
     @Test
-    void testCreateVisitObservationTypeFromEPIC() throws EmapOperationMessageProcessingException {
+    void testCreateVisitObservationTypeFromEpic() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
 
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(INTERFACE_ID,
@@ -108,14 +109,30 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When a EPIC flowsheet message arrives
      * Then another visit observation type is created with interface_id but no id_in_application
      */
+    @Test
+    void testCreateVisitObservationTypeFromEpicAndCaboodle() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetEpic);
+        processSingleMessage(flowsheetMetadata);
 
+        List vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(2, vots.size());
+    }
 
     /**
      * Given a visit observation type with interface_id but no id_in_application exists
      * When an EPIC flowsheet message arrives
      * Then the existing visit observation type is not changed
      */
+    @Test
+    void testNotCreateVisitObservationTypeIfExistsEpic() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetEpic);
+        List vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
 
+        processSingleMessage(flowsheetEpic);
+        vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
+    }
 
     /**
      * Given a visit observation type with id_in_application but no interface_id exists
