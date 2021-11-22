@@ -137,6 +137,17 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When a clarity flowsheet metadata message arrives
      * Then the missing id_in_application for visit observation type is filled in
      */
+    @Test
+    void testFillIdInApplication() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetEpic);
+        processSingleMessage(flowsheetMpiMetadata);
+
+        List vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
+
+        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
+        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
+    }
 
 
     /**
@@ -164,8 +175,5 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * Then the names are not updated and ids are kept as they are
      */
 
-    /**
-     * Given
-     */
 
 }

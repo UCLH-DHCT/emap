@@ -13,6 +13,7 @@ import java.util.Optional;
  * Visit Observation repository.
  *
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 public interface VisitObservationRepository extends CrudRepository<VisitObservation, Long> {
 
@@ -25,6 +26,12 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
     Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdAndObservationDatetime(
             HospitalVisit visit, VisitObservationType type, Instant observationTime);
 
+    /**
+     * Retrieve all visit observations referring to one specific observation type.
+     * @param vot Visit observation type of relevance
+     * @return List of visit observations referring to visit observation type of interest.
+     */
+    List<VisitObservation> findAllByVisitObservationTypeId(VisitObservationType vot);
     /**
      * For testing.
      *
