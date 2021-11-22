@@ -94,7 +94,7 @@ public class VisitObservationController {
      *
      * @param msg        Flowsheet metadata message containing mapping information
      * @param storedFrom When this information was first processed in Star.
-     * @throws RequiredDataMissingException
+     * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
      */
     public void processMappingMessage(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
         if (!mappingExists(msg.getInterfaceId(), msg.getFlowsheetId())) {
@@ -161,14 +161,10 @@ public class VisitObservationController {
      * @param interfaceId     Identifier of observation type.
      * @param idInApplication IdInApplication of observation type.
      * @return True if mapping between interfaceId and idInApplication already exists, otherwise false.
-     * @throws RequiredDataMissingException if not both
      */
-    public boolean mappingExists(String interfaceId, String idInApplication) throws RequiredDataMissingException {
+    public boolean mappingExists(String interfaceId, String idInApplication) {
         VisitObservationType vot = visitObservationTypeRepo.findByInterfaceIdAndIdInApplication(interfaceId, idInApplication).orElse(null);
-        if (vot != null) {
-            return true;
-        }
-        return false;
+        return vot != null;
     }
 
     /**
@@ -211,10 +207,10 @@ public class VisitObservationController {
      * Deletes VisitObservationType that was created in the absence of mapping information. Once mapping information is
      * present, the metadata VisitObservationType will be updated instead and the key information replaced respectively.
      *
-     * @param interfaceId
-     * @param idInApplication
-     * @param visitObservationType
-     * @param vVisitObservationType
+     * @param interfaceId Interface id associated with VisitObservationType to be deleted for cache entry
+     * @param idInApplication Flowsheet row EPIC id associated with VisitObservationType to be deleted for cache entry
+     * @param visitObservationType VisitObservationType to be deleted as string for cache deletion
+     * @param vVisitObservationType VisitObservationType to be deleted as object for repository deletion
      */
     @CacheEvict(value = "visitObservationType", allEntries = true)
     public void deleteVisitObservationType(String interfaceId, String idInApplication, String visitObservationType,
