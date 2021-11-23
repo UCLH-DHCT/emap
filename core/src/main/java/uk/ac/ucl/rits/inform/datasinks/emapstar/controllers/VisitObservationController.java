@@ -110,18 +110,20 @@ public class VisitObservationController {
                 RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeFromCache(msg.getInterfaceId(),
                         msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
                 vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-            } else if (votCaboodleState != null && votEpicState != null) {
+            } else if (votCaboodleState != null) {
                 VisitObservationType votCaboodle = votCaboodleState.getEntity();
-                VisitObservationType votEpic = votEpicState.getEntity();
                 votCaboodleState.assignIfDifferent(msg.getInterfaceId(), votCaboodle.getInterfaceId(), votCaboodle::setInterfaceId);
-                for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
-                    RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(), storedFrom, false);
-                    vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
-                    vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
+                if (votEpicState != null) {
+                    VisitObservationType votEpic = votEpicState.getEntity();
+                    for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
+                        RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(), storedFrom, false);
+                        vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
+                        vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
+                    }
+                    deleteVisitObservationType(msg.getInterfaceId(), null, msg.getSourceObservationType(), votEpic);
                 }
-                deleteVisitObservationType(msg.getInterfaceId(), null, msg.getSourceObservationType(), votEpic);
                 votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-            } else if (votCaboodleState == null && votEpicState != null) {
+            } else {
                 VisitObservationType votEpic = votEpicState.getEntity();
                 votEpicState.assignIfDifferent(msg.getFlowsheetRowEpicId(), votEpic.getIdInApplication(), votEpic::setIdInApplication);
                 votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);

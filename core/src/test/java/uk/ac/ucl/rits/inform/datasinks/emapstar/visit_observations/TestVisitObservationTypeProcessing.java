@@ -168,6 +168,24 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When a newer caboodle flowsheet metadata message arrives with different names
      * Then the names are updated accordingly but ids are kept as they are
      */
+    @Test
+    void testNewCaboodleUpdate() throws EmapOperationMessageProcessingException {
+        String newDescription = "new description";
+        processSingleMessage(flowsheetMetadata);
+        processSingleMessage(flowsheetMpiMetadata);
+
+        List vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
+
+//        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
+//        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
+//
+//        flowsheetMetadata.setDescription(newDescription);
+//        flowsheetMetadata.setLastUpdatedInstant(flowsheetMetadata.getLastUpdatedInstant().plusSeconds(60));
+//        vots = getAllEntities(visitObservationTypeRepository);
+//        assertEquals(1, vots.size());
+//        assertEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
+    }
 
     /**
      * Given a visit observation type with both id_in_application and interface_id
