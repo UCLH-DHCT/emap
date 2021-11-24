@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.handler.annotation.Header;
@@ -26,6 +29,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Entry point class for the HL7 pipeline.
@@ -129,6 +133,23 @@ public class App {
 //            dbOps.ensureVocabLoaded();
             logger.info("Running test CommandLineRunner, to ensure the vocab is loaded.");
         };
+    }
+
+    /**
+     * @return Caffeine cache manager.
+     */
+    @Bean
+    @Profile("default")
+    public CacheManager cacheManager() {
+        Caffeine<Object, Object> caffeineCacheBuilder =
+                Caffeine.newBuilder()
+                        .maximumSize(10000)
+                        .expireAfterAccess(1, TimeUnit.DAYS);
+
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+        cacheManager.setCaffeine(caffeineCacheBuilder);
+        return cacheManager;
+
     }
 
 }
