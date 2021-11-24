@@ -4,8 +4,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeRepository;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
@@ -16,6 +20,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -23,18 +28,19 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
     FlowsheetMetadata flowsheetMpiMetadata;
     Flowsheet flowsheetEpic;
+    Flowsheet flowsheetClarity;
 
+    @Autowired
+    HospitalVisitRepository hospitalVisitRepository;
+    @Autowired
+    VisitObservationRepository visitObservationRepository;
     @Autowired
     VisitObservationTypeRepository visitObservationTypeRepository;
     @Autowired
     VisitObservationTypeAuditRepository visitObservationTypeAuditRepository;
-    private static final String CABOODLE_APPLICATION = "caboodle";
-    private static final String EPIC_APPLICATION = "EPIC";
-    private static final String CLARITY_APPLICATION = "clarity";
     private static final String ID_IN_APPLICATION = "449876";
     private static final String INTERFACE_ID = "331258";
     private static final String FLOWSHEET = "flowsheet";
-    private static final String FLOWSHEET_ID = "5";
     private static final Instant EARLIER_TIME = Instant.parse("1991-01-01T00:00:00Z");
     private static final Instant LATER_TIME = Instant.parse("2021-12-23T00:00:00Z");
 
@@ -52,6 +58,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(3);
         flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(5);
         flowsheetEpic = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(0);
+        flowsheetClarity = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(1);
     }
 
     /**
@@ -149,7 +156,6 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
     }
 
-
     /**
      * Given:
      * - a visit observation type with id_in_application
@@ -162,6 +168,27 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * - the id is updated for the second visit observation referring to second visit observation type
      * - the second visit observation type is deleted
      */
+    @Test
+    void testMappingClaritySecondOT() throws EmapOperationMessageProcessingException {
+        processSingleMessage(flowsheetEpic);
+        processSingleMessage(flowsheetClarity);
+
+        List vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(2, vots.size());
+        assertEquals(((VisitObservationType)vots.get(0)).getInterfaceId(), INTERFACE_ID);
+        assertEquals(((VisitObservationType)vots.get(1)).getIdInApplication(), ID_IN_APPLICATION);
+
+        processSingleMessage(flowsheetMpiMetadata);
+        vots = getAllEntities(visitObservationTypeRepository);
+        // check that ID replacements on observation types worked
+        assertEquals(1, vots.size());
+        assertEquals(((VisitObservationType)vots.get(0)).getInterfaceId(), INTERFACE_ID);
+        assertEquals(((VisitObservationType)vots.get(0)).getIdInApplication(), ID_IN_APPLICATION);
+
+        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
+        List<VisitObservation> vos = visitObservationRepository.findAllByHospitalVisitId(visit);
+        assertEquals(vos.get(1).getVisitObservationTypeId().getVisitObservationTypeId(), ((VisitObservationType)vots.get(0)).getVisitObservationTypeId());
+    }
 
     /**
      * Given a visit observation type with both id_in_application and interface_id
@@ -173,18 +200,19 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         String newDescription = "new description";
         processSingleMessage(flowsheetMetadata);
         processSingleMessage(flowsheetMpiMetadata);
-
         List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
 
-//        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
-//        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
-//
-//        flowsheetMetadata.setDescription(newDescription);
-//        flowsheetMetadata.setLastUpdatedInstant(flowsheetMetadata.getLastUpdatedInstant().plusSeconds(60));
-//        vots = getAllEntities(visitObservationTypeRepository);
-//        assertEquals(1, vots.size());
-//        assertEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
+        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
+        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
+
+        flowsheetMetadata.setDescription(newDescription);
+        flowsheetMetadata.setLastUpdatedInstant(LATER_TIME);
+        processSingleMessage(flowsheetMetadata);
+
+        vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
+        assertEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
     }
 
     /**
@@ -192,6 +220,23 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * When an older caboodle flowsheet metadata message arrives with different names
      * Then the names are not updated and ids are kept as they are
      */
+    @Test
+    void testOlderCaboodleUpdate() throws EmapOperationMessageProcessingException {
+        String newDescription = "new description";
+        processSingleMessage(flowsheetMetadata);
+        processSingleMessage(flowsheetMpiMetadata);
+        List vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
 
+        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
+        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
 
+        flowsheetMetadata.setDescription(newDescription);
+        flowsheetMetadata.setLastUpdatedInstant(EARLIER_TIME);
+        processSingleMessage(flowsheetMetadata);
+
+        vots = getAllEntities(visitObservationTypeRepository);
+        assertEquals(1, vots.size());
+        assertNotEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
+    }
 }

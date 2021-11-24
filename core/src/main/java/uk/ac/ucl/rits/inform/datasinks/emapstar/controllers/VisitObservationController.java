@@ -116,7 +116,8 @@ public class VisitObservationController {
                 if (votEpicState != null) {
                     VisitObservationType votEpic = votEpicState.getEntity();
                     for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
-                        RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(), storedFrom, false);
+                        RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(),
+                                storedFrom, false);
                         vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
                         vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
                     }
