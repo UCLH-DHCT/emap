@@ -4,19 +4,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
-
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvanceDecisionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvanceDecisionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.decisions.AdvanceDecisionTypeRepository;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecision;
-import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecisionType;
 import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecisionAudit;
+import uk.ac.ucl.rits.inform.informdb.decisions.AdvanceDecisionType;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 
 
@@ -33,11 +33,18 @@ public class AdvanceDecisionController {
     private final QuestionController questionController;
 
     /**
+     * Self-autowire so that @Caching annotation call will be intercepted.
+     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
+     */
+    @Resource
+    private AdvanceDecisionController self;
+
+    /**
      * Setting repositories that enable searching for components of advanced decisions.
      * @param advanceDecisionRepo      Repository with search functionality for advanced decisions.
      * @param advanceDecisionTypeRepo  Repository with search functionality for advanced decisions types.
      * @param advanceDecisionAuditRepo Repository with search functionality for advanced decision audit data.
-     * @param questionController        Controller for handling questions attached to advanced decisions.
+     * @param questionController       Controller for handling questions attached to advanced decisions.
      */
     public AdvanceDecisionController(
             AdvanceDecisionRepository advanceDecisionRepo,
@@ -52,15 +59,15 @@ public class AdvanceDecisionController {
 
     /**
      * Process advanced decision message.
-     * @param msg         Message containing information for advanced decision of a patient.
-     * @param visit       Hospital visit of the patient this advanced decision was recorded for.
-     * @param mrn         Patient identifier to whom advanced decision corresponds.
-     * @param storedFrom  Time point when advanced decision was recorded first.
+     * @param msg        Message containing information for advanced decision of a patient.
+     * @param visit      Hospital visit of the patient this advanced decision was recorded for.
+     * @param mrn        Patient identifier to whom advanced decision corresponds.
+     * @param storedFrom Time point when advanced decision was recorded first.
      */
     @Transactional
     public void processMessage(final AdvanceDecisionMessage msg, HospitalVisit visit, Mrn mrn,
                                final Instant storedFrom) {
-        AdvanceDecisionType advanceDecisionType = getOrCreateAdvancedDecisionType(msg, storedFrom);
+        AdvanceDecisionType advanceDecisionType = self.getOrCreateAdvancedDecisionType(msg, storedFrom);
         RowState<AdvanceDecision, AdvanceDecisionAudit> advanceDecisionState = getOrCreateAdvancedDecision(
                 msg, visit, mrn, advanceDecisionType, storedFrom);
 
@@ -89,8 +96,8 @@ public class AdvanceDecisionController {
 
     /**
      * Create and save a new AdvanceDecisionType from the information contained in the AdvancedDecisionMessage.
-     * @param msg           Advance decision message.
-     * @param storedFrom    Time that emap-core started processing this type of message.
+     * @param msg        Advance decision message.
+     * @param storedFrom Time that emap-core started processing this type of message.
      * @return saved AdvancedDecisionType
      */
     private AdvanceDecisionType createAndSaveNewType(AdvanceDecisionMessage msg, Instant storedFrom) {
@@ -101,11 +108,11 @@ public class AdvanceDecisionController {
 
     /**
      * Get existing or create new advance decision.
-     * @param msg                   Advance decision message.
-     * @param visit                 Hospital visit of patient this advanced decision message refers to.
-     * @param mrn                   Patient this advanced decision is recorded for.
-     * @param advanceDecisionType  Type of advanced decision recorded for patient.
-     * @param storedFrom            Time that emap-core started processing this advanced decision message.
+     * @param msg                 Advance decision message.
+     * @param visit               Hospital visit of patient this advanced decision message refers to.
+     * @param mrn                 Patient this advanced decision is recorded for.
+     * @param advanceDecisionType Type of advanced decision recorded for patient.
+     * @param storedFrom          Time that emap-core started processing this advanced decision message.
      * @return AdvancedDecision entity wrapped in RowState
      */
     private RowState<AdvanceDecision, AdvanceDecisionAudit> getOrCreateAdvancedDecision(
@@ -119,11 +126,11 @@ public class AdvanceDecisionController {
 
     /**
      * Create minimal advance decision wrapped in RowState.
-     * @param msg                   Advance decision message
-     * @param visit                 Hospital visit of the patient advanced decision was recorded for.
-     * @param mrn                   Identifier of patient the advanced decision has been recorded for.
-     * @param advanceDecisionType  Type of advanced decision recorded for patient.
-     * @param storedFrom         Time that emap-core started processing the advanced decision of that patient.
+     * @param msg                 Advance decision message
+     * @param visit               Hospital visit of the patient advanced decision was recorded for.
+     * @param mrn                 Identifier of patient the advanced decision has been recorded for.
+     * @param advanceDecisionType Type of advanced decision recorded for patient.
+     * @param storedFrom          Time that emap-core started processing the advanced decision of that patient.
      * @return minimal advanced decision wrapped in RowState
      */
     private RowState<AdvanceDecision, AdvanceDecisionAudit> createMinimalAdvanceDecision(
@@ -137,8 +144,8 @@ public class AdvanceDecisionController {
 
     /**
      * Decides whether or not the data held for a specific advance decision needs to be updated or not.
-     * @param statusChangeDatetime    Datetime of AdvanceDecisionMessage that's currently processed.
-     * @param advancedDecisionState   State of advance decision created from message.
+     * @param statusChangeDatetime  Datetime of AdvanceDecisionMessage that's currently processed.
+     * @param advancedDecisionState State of advance decision created from message.
      * @return true if message should be updated
      */
     private boolean messageShouldBeUpdated(Instant statusChangeDatetime, RowState<AdvanceDecision,
@@ -149,8 +156,8 @@ public class AdvanceDecisionController {
 
     /**
      * Update advance decision data with information from AdvanceDecisionMessage.
-     * @param msg                   Advance decision message.
-     * @param advanceDecisionState  Advance decision referred to in message
+     * @param msg                  Advance decision message.
+     * @param advanceDecisionState Advance decision referred to in message
      */
     private void updateConsultRequest(AdvanceDecisionMessage msg, RowState<AdvanceDecision,
             AdvanceDecisionAudit> advanceDecisionState) {

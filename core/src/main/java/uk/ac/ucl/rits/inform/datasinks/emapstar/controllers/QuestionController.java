@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.informdb.questions.Question;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswer;
 import uk.ac.ucl.rits.inform.informdb.questions.RequestAnswerAudit;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 import java.util.Map;
 
@@ -35,6 +36,13 @@ public class QuestionController {
     private final QuestionRepository questionRepo;
     private final RequestAnswerRepository requestAnswerRepo;
     private final RequestAnswerAuditRepository requestAnswerAuditRepo;
+
+    /**
+     * Self-autowire so that @Caching annotation call will be intercepted.
+     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
+     */
+    @Resource
+    private QuestionController self;
 
     /**
      * Initialising the repositories needed to store question information.
@@ -61,7 +69,7 @@ public class QuestionController {
     void processQuestions(Map<String, String> questionsAndAnswers, String parentTable, long parentId, Instant validFrom,
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
-            Question question = getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
+            Question question = self.getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
 
             RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(question,
                     questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
