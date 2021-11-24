@@ -135,21 +135,4 @@ public class App {
         };
     }
 
-    /**
-     * @return Caffeine cache manager.
-     */
-    @Bean
-    @Profile("default")
-    public CacheManager cacheManager() {
-        Caffeine<Object, Object> caffeineCacheBuilder =
-                Caffeine.newBuilder()
-                        .maximumSize(10000)
-                        .expireAfterAccess(1, TimeUnit.DAYS);
-
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-        cacheManager.setCaffeine(caffeineCacheBuilder);
-        return cacheManager;
-
-    }
-
 }
