@@ -130,7 +130,7 @@ public class FlowsheetFactory {
 
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
-        flowsheet.setFlowsheetId(observationId);
+        flowsheet.setFlowsheetRowEpicId(observationId);
 
         setFlowsheetValueAndValueType(subMessageSourceId, flowsheet, obx);
 
