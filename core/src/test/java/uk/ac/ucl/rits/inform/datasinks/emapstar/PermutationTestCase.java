@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ucl.rits.inform.informdb.demographics.CoreDemographic;
@@ -16,6 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -37,6 +39,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Roma Klapaukh
  */
 public class PermutationTestCase extends MessageStreamBaseCase {
+
+    @Autowired
+    CacheManager cacheManager;
+
 
     private TransactionTemplate transactionTemplate;
 
@@ -126,6 +132,8 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             super.csn = l.toString();
             Exception e = transactionTemplate.execute(status -> {
                 status.setRollbackOnly();
+                clearCache();
+
                 try {
                     runTest(l);
                 } catch (EmapOperationMessageProcessingException a) {
@@ -138,6 +146,16 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             }
         }));
 
+    }
+
+    /**
+     * Manually clear all cache.
+     */
+    private void clearCache() {
+        Collection<String> caches =  cacheManager.getCacheNames();
+        for (String cache: caches) {
+            cacheManager.getCache(cache).clear();
+        }
     }
 
     /**

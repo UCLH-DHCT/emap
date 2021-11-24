@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -11,11 +12,15 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 
+import java.util.Collection;
+
 public abstract class OrderPermutationBase {
     private final TransactionTemplate transactionTemplate;
     private final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
     @Autowired
     private InformDbOperations dbOps;
+    @Autowired
+    private CacheManager cacheManager;
 
     /**
      * @param transactionManager Spring transaction manager
@@ -55,6 +60,7 @@ public abstract class OrderPermutationBase {
     public void buildTestFromPermutation(Iterable<String> fileNames) throws Exception {
         Exception e = transactionTemplate.execute(status -> {
             status.setRollbackOnly();
+            clearCache();
             try {
                 runTest(fileNames);
             } catch (MessageCancelledException | IncompatibleDatabaseStateException allowed) {
@@ -66,6 +72,16 @@ public abstract class OrderPermutationBase {
         });
         if (e != null) {
             throw e;
+        }
+    }
+
+    /**
+     * Manually clear all cache.
+     */
+    private void clearCache() {
+        Collection<String> caches =  cacheManager.getCacheNames();
+        for (String cache: caches) {
+            cacheManager.getCache(cache).clear();
         }
     }
 
