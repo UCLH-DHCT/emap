@@ -112,7 +112,7 @@ public class FlowsheetFactory {
      * @throws HL7Exception              if HL7 message cannot be parsed
      * @throws Hl7InconsistencyException if message does not have required data
      */
-    private Flowsheet buildFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1, Instant recordedDateTime)
+    Flowsheet buildFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1, Instant recordedDateTime)
             throws HL7Exception, Hl7InconsistencyException {
         Flowsheet flowsheet = new Flowsheet();
 
@@ -177,7 +177,9 @@ public class FlowsheetFactory {
         Type singularData = obx.getObservationValue(0).getData();
         // HAPI can return null so use nullDefault as empty string
         String value = singularData.toString();
-        value = value == null ? "" : value;
+        if (value == null) {
+            throw new Hl7InconsistencyException("Null value field for flowsheet");
+        }
 
         if (singularData instanceof NM) {
             flowsheet.setValueType(ValueType.NUMERIC);
@@ -195,7 +197,7 @@ public class FlowsheetFactory {
             flowsheet.setValueType(ValueType.TEXT);
             if ("D".equals(resultStatus)) {
                 flowsheet.setStringValue(InterchangeValue.delete());
-            } else if (!value.isEmpty()) {
+            } else {
                 String stringValue = getStringValue(obx);
                 flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.strip()));
             }

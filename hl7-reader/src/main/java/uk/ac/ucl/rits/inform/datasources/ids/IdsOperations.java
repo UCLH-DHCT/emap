@@ -447,7 +447,7 @@ public class IdsOperations implements AutoCloseable {
     }
 
     private void logErrorConstructingFromType(String messageType, String triggerEvent) {
-        logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+        logger.warn("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
     }
 
     /**
