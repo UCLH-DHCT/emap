@@ -41,12 +41,12 @@ public class LocationMetadataController {
 
 
     /**
-     * @param locationRepo repository for Location
-     * @param departmentRepo repository for Department
-     * @param departmentStateRepo  repository for DepartmentState
-     * @param roomRepo repository for Room
-     * @param roomStateRepo  repository for RoomState
-     * @param bedController controller for Bed tables
+     * @param locationRepo        repository for Location
+     * @param departmentRepo      repository for Department
+     * @param departmentStateRepo repository for DepartmentState
+     * @param roomRepo            repository for Room
+     * @param roomStateRepo       repository for RoomState
+     * @param bedController       controller for Bed tables
      */
     public LocationMetadataController(
             LocationRepository locationRepo, DepartmentRepository departmentRepo, DepartmentStateRepository departmentStateRepo,
@@ -109,6 +109,8 @@ public class LocationMetadataController {
                 .orElseGet(() -> departmentRepo.save(
                         new Department(msg.getDepartmentHl7(), msg.getDepartmentName(), msg.getDepartmentSpeciality())));
 
+        createDepartmentOnlyLocationIfRequired(dep, msg.getHl7String());
+
         if (notNullAndDifferent(msg.getDepartmentSpeciality(), dep.getSpeciality())) {
             throw new IncompatibleDatabaseStateException("Department can't change it's speciality");
         }
@@ -116,6 +118,31 @@ public class LocationMetadataController {
         createCurrentStateAndUpdatePreviousIfRequired(msg, dep, storedFrom);
 
         return dep;
+    }
+
+    /**
+     * Create location string with no room and bed if it doesn't already exist.
+     * <p>
+     * Skipping:
+     * - locations without room or department (as these will already create a department only location)
+     * - departments that have no interface ID (so some through with hl7 string of "null"). As these won't be unique.
+     * <p>
+     * SQL query will not return department^null^null if there are rooms and locations linked from the query.
+     * Correcting this here which isn't that clean but seems justifiable to be able to link patients who
+     * have just turned up to the department and are not in a specific room/bed.
+     * @param department        department entity
+     * @param locationHl7String full hl7 location string
+     */
+    private void createDepartmentOnlyLocationIfRequired(Department department, String locationHl7String) {
+        if ("null".equals(department.getHl7String()) || locationHl7String.endsWith("^null^null")) {
+            return;
+        }
+        String departmentOnlyHl7 = String.format("%s^null^null", department.getHl7String());
+        Location departmentLocation = getOrCreateLocation(departmentOnlyHl7);
+        if (departmentLocation.getDepartmentId() == null) {
+            departmentLocation.setDepartmentId(department);
+            locationRepo.save(departmentLocation);
+        }
     }
 
     private boolean notNullAndDifferent(String msg, String dep) {

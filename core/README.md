@@ -8,9 +8,9 @@ Find a place to put the source code. If this instance is not attached to a perso
 
 Once the directory has been created, it must be set up correctly:
  * `mkdir /gae/emap-live`
- * `chown -R :docker /gae/emap-live` -- set group to docker
+ * `chgrp -R docker /gae/emap-live` -- set group to docker
  * `chmod -R g+rws /gae/emap-live` -- allow docker group the right access. `s` ensures the group ownership is inherited (but not the permissions)
- * `setfacl -d -m g::rwx /gae/emap-live` -- ensure the permissions for the group are also inherited
+ * `setfacl -R -m d:g::rwX  /gae/emap-live` -- ensure the permissions for the group are also inherited
 
 It should now look like:
 
