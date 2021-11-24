@@ -73,7 +73,8 @@ public class ConsultationRequestController {
     @Transactional
     @CacheEvict(value = "consultationType", key = "#msg.code")
     public void processMessage(final ConsultMetadata msg, final Instant storedFrom) {
-        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateTypeState(msg.getCode(), msg.getLastUpdatedDate(), storedFrom);
+        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateTypeState(
+                msg.getCode(), msg.getLastUpdatedDate(), storedFrom);
         ConsultationType consultationType = consultationState.getEntity();
 
         if (consultationTypeShouldBeUpdated(msg.getLastUpdatedDate(), consultationType)) {
@@ -114,7 +115,7 @@ public class ConsultationRequestController {
     }
 
     /**
-     * Get existing consult type or create a new saved minimal consult type if it doesn't exist
+     * Get existing consult type or create a new saved minimal consult type if it doesn't exist.
      * @param code            Consultation type code
      * @param messageDatetime Time that the message data was last updated
      * @param storedFrom      When star started processing this message
