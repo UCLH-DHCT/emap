@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 
 /**
@@ -29,6 +31,12 @@ import java.time.Instant;
  */
 @Component
 public class ConsultationRequestController {
+    /**
+     * Self-autowire so that @Caching annotation call will be intercepted.
+     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
+     */
+    @Resource
+    private ConsultationRequestController self;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ConsultationRequestRepository consultationRequestRepo;
     private final ConsultationTypeRepository consultationTypeRepo;
@@ -57,12 +65,15 @@ public class ConsultationRequestController {
 
     /**
      * Update or create consultation request metadata.
+     * <p>
+     * Also evicts cache for existing metadata
      * @param msg        consultation metadata message
      * @param storedFrom time that the message was started to be processed by star
      */
     @Transactional
+    @CacheEvict(value = "consultationType", key = "#msg.code")
     public void processMessage(final ConsultMetadata msg, final Instant storedFrom) {
-        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(msg.getCode(), msg.getLastUpdatedDate(), storedFrom);
+        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateTypeState(msg.getCode(), msg.getLastUpdatedDate(), storedFrom);
         ConsultationType consultationType = consultationState.getEntity();
 
         if (consultationTypeShouldBeUpdated(msg.getLastUpdatedDate(), consultationType)) {
@@ -89,30 +100,44 @@ public class ConsultationRequestController {
      */
     @Transactional
     public void processMessage(final ConsultRequest msg, HospitalVisit visit, final Instant storedFrom) {
-        RowState<ConsultationType, ConsultationTypeAudit> consultationState = getOrCreateType(
-                msg.getConsultationType(), msg.getStatusChangeDatetime(), storedFrom);
+        ConsultationType consultType = self.getOrCreateMinimalType(msg.getConsultationType(), msg.getStatusChangeDatetime(), storedFrom);
         RowState<ConsultationRequest, ConsultationRequestAudit> consultationRequest = getOrCreateConsultationRequest(
-                msg, visit, consultationState.getEntity(), storedFrom);
+                msg, visit, consultType, storedFrom);
 
         if (consultRequestShouldBeUpdated(msg, consultationRequest)) {
             updateConsultRequest(msg, consultationRequest);
         }
 
-        consultationState.saveEntityOrAuditLogIfRequired(consultationTypeRepo, consultationTypeAuditRepo);
         consultationRequest.saveEntityOrAuditLogIfRequired(consultationRequestRepo, consultationRequestAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.CONSULT_REQUEST.toString(),
                 consultationRequest.getEntity().getConsultationRequestId(), msg.getStatusChangeDatetime(), storedFrom);
     }
 
     /**
-     * Create a new minimal consult type if it doesn't exist, if it does then return the existing entity.
+     * Get existing consult type or create a new saved minimal consult type if it doesn't exist
+     * @param code            Consultation type code
+     * @param messageDatetime Time that the message data was last updated
+     * @param storedFrom      When star started processing this message
+     * @return consult type
+     */
+    @Cacheable(value = "consultationType", key = "#code")
+    public ConsultationType getOrCreateMinimalType(String code, Instant messageDatetime, Instant storedFrom) {
+        return consultationTypeRepo
+                .findByCode(code)
+                .orElseGet(() -> {
+                    ConsultationType type = new ConsultationType(code, messageDatetime, storedFrom);
+                    return consultationTypeRepo.save(type);
+                });
+    }
+
+    /**
+     * Create or create consultation type state.
      * @param code            Consultation type code
      * @param messageDatetime Time that the message data was last updated
      * @param storedFrom      When star started processing this message
      * @return ConsultationType wrapped in row state
      */
-    @Cacheable(value = "consultationType", key = "#code")
-    public RowState<ConsultationType, ConsultationTypeAudit> getOrCreateType(
+    private RowState<ConsultationType, ConsultationTypeAudit> getOrCreateTypeState(
             String code, Instant messageDatetime, Instant storedFrom) {
         return consultationTypeRepo
                 .findByCode(code)
