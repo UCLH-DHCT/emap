@@ -27,16 +27,10 @@
   creationInstant: '2021-02-01T00:00:00.000Z'
   sourceSystem: "clarity"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
-  interfaceId: '331258'
-  flowsheetRowEpicId: '331258'
-  sourceMessageId: '331258'
-  name: 'UCLH EMAP R UCLH SODIUM NITROPRUSSIDE VOLUME'
-  creationInstant: '2021-02-01T00:00:00.000Z'
+  interfaceId: '38577'
+  flowsheetRowEpicId: '38577'
+  sourceMessageId: '38577'
+  creationInstant: '2021-02-02T00:00:00.000Z'
+  # lastUpdatedInstant: "2021-05-01T01:00:31.897Z"
   sourceSystem: "clarity"
-- "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata"
-  interfaceId: '331258'
-  flowsheetRowEpicId: '449876'
-  sourceMessageId: '331258'
-  creationInstant: '2021-02-01T00:00:00.000Z'
-  lastUpdatedInstant: "2021-05-01T01:00:31.897Z"
-  sourceSystem: "clarity"
+  name: 'UCLH EMAP FLO-R TERLIPRESSIN VOLUME'
