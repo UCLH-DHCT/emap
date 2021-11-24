@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -125,7 +126,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
     /**
      * Given that no consults exist in the database
      * When a consult message is processed
-     * A new consult should be created (in addition to PK and FKs should store internalConsultId, requestedDateTime, storedFrom, validFrom)
+     * A new consult should be created (in addition to PK and FKs should store internalConsultId, getScheduledDatetime, storedFrom, validFrom)
      */
     @Test
     void testCreateNewConsult() throws EmapOperationMessageProcessingException {
@@ -134,7 +135,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
 
         assertNull(cRequest.getComments());
-        assertNotNull(cRequest.getConsultationRequestId());
+        assertNotEquals(0, cRequest.getConsultationRequestId());
         assertEquals(FRAILTY_CONSULT_ID, cRequest.getInternalId());
         assertNotNull(cRequest.getValidFrom());
         assertNotNull(cRequest.getStoredFrom());
@@ -213,7 +214,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         assertEquals(cRequest.getComments(), great_note);
 
         String great_note_2 = "bla bla bla";
-        minimalConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
+        minimalConsult.setStatusChangeDatetime(minimalConsult.getStatusChangeDatetime().minusSeconds(60));
         minimalConsult.setNotes(InterchangeValue.buildFromHl7(great_note_2));
         processSingleMessage(minimalConsult);
         cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
@@ -233,7 +234,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         ConsultationRequest cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertEquals(cRequest.getComments(), great_note);
 
-        cancelledConsult.setStatusChangeTime(minimalConsult.getStatusChangeTime().minusSeconds(60));
+        cancelledConsult.setStatusChangeDatetime(minimalConsult.getStatusChangeDatetime().minusSeconds(60));
         processSingleMessage(cancelledConsult);
         cRequest = consultRequestRepo.findByInternalId(FRAILTY_CONSULT_ID).orElseThrow();
         assertFalse(cRequest.getCancelled());
