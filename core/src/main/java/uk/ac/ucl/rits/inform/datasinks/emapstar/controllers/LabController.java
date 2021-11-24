@@ -44,10 +44,10 @@ public class LabController {
     private final LabResultController labResultController;
 
     /**
-     * @param labOrderController  controller for LabOrder tables
+     * @param labOrderController    controller for LabOrder tables
      * @param labTestDefinitionRepo repository for LabTestDefinition
      * @param labBatteryElementRepo repository for LabBatterElement
-     * @param labResultController controller for LabResult tables
+     * @param labResultController   controller for LabResult tables
      */
     public LabController(
             LabOrderController labOrderController, LabTestDefinitionRepository labTestDefinitionRepo,

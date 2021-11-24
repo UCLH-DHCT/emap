@@ -111,7 +111,7 @@ public class ConsultationRequestController {
      * @param storedFrom      When star started processing this message
      * @return ConsultationType wrapped in row state
      */
-    @Cacheable(value = "ConsultationTypeCache", key = "#code")
+    @Cacheable(value = "consultationType", key = "#code")
     public RowState<ConsultationType, ConsultationTypeAudit> getOrCreateType(
             String code, Instant messageDatetime, Instant storedFrom) {
         return consultationTypeRepo
