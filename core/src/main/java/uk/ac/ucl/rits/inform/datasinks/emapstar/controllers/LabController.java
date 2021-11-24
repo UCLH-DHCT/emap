@@ -83,6 +83,7 @@ public class LabController {
 
         LabOrder labOrder = labOrderController.processSampleAndOrderInformation(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
+            logger.trace("** Starting to process lab result {} from {}", result.getTestItemLocalCode(), msg.getTestBatteryCodingSystem());
             LabTestDefinition testDefinition = self.getOrCreateLabTestDefinition(
                     msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode(), storedFrom, validFrom);
             self.createLabBatteryElementIfNotExists(testDefinition, battery, storedFrom, validFrom);
@@ -102,6 +103,7 @@ public class LabController {
     @Cacheable(value = "labTestDefinition", key = "{ #labProvider , #labDepartment, #testLabCode }")
     public LabTestDefinition getOrCreateLabTestDefinition(
             String labProvider, String labDepartment, String testLabCode, Instant validFrom, Instant storedFrom) {
+        logger.trace("** Querying Lab test definition {} from labProvider {}", testLabCode, labProvider);
         return labTestDefinitionRepo
                 .findByLabProviderAndLabDepartmentAndTestLabCode(labProvider, labDepartment, testLabCode)
                 .orElseGet(() -> {
