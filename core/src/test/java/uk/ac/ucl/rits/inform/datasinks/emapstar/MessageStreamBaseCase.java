@@ -284,6 +284,7 @@ public abstract class MessageStreamBaseCase {
         this.vitalTime.add(vitalTime);
 
         Flowsheet vital = new Flowsheet();
+        vital.setFlowsheetId("448867");
         vital.setSourceSystem("EPIC");
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
