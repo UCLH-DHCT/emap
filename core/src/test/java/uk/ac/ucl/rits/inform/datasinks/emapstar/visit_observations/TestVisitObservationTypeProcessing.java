@@ -84,7 +84,6 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Test
     void testCreateVisitObservationTypeFromCaboodleMetadata() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetMetadata);
-
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(null, ID_IN_APPLICATION,
                 FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getInterfaceId());
@@ -99,7 +98,6 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Test
     void testCreateVisitObservationTypeFromClarityMetadata() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetMpiMetadata);
-
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(INTERFACE_ID, ID_IN_APPLICATION,
                 FLOWSHEET).orElseThrow();
         assertNotNull(visitObservationType.getInterfaceId());
@@ -108,14 +106,14 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
     /**
      * Given a visit observation type with id_in_application but no interface_id exists
-     * When a EPIC flowsheet message arrives
+     * When an EPIC flowsheet message arrives
      * Then another visit observation type is created with interface_id but no id_in_application
      */
     @Test
+    @Sql("/test_files/visit_observation_type_processing/ot_caboodle.sql")
     void testCreateVisitObservationTypeFromEpicAndCaboodle() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
         processSingleMessage(flowsheetMetadata);
-
         List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(2, vots.size());
     }
@@ -126,13 +124,10 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * Then the existing visit observation type is not changed
      */
     @Test
+    @Sql("/test_files/visit_observation_type_processing/ot_epic.sql")
     void testNotCreateVisitObservationTypeIfExistsEpic() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
         List vots = getAllEntities(visitObservationTypeRepository);
-        assertEquals(1, vots.size());
-
-        processSingleMessage(flowsheetEpic);
-        vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
     }
 
@@ -142,13 +137,11 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * Then the missing id_in_application for visit observation type is filled in
      */
     @Test
+    @Sql("/test_files/visit_observation_type_processing/ot_caboodle.sql")
     void testFillIdInApplication() throws EmapOperationMessageProcessingException {
-        processSingleMessage(flowsheetEpic);
         processSingleMessage(flowsheetMpiMetadata);
-
         List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
-
         assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
         assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
     }
@@ -166,14 +159,13 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * - the second visit observation type is deleted
      */
     @Test
-    @Sql("/populate_db_test_visit_observation_type.sql")
+    @Sql("/test_files/visit_observation_type_processing/complex.sql")
     void testMappingClaritySecondOT() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetMpiMetadata);
         List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
         assertEquals(((VisitObservationType)vots.get(0)).getInterfaceId(), INTERFACE_ID);
         assertEquals(((VisitObservationType)vots.get(0)).getIdInApplication(), ID_IN_APPLICATION);
-
         List<VisitObservation> vos = visitObservationRepository.findAllByHospitalVisitIdEncounter(defaultEncounter);
         assertEquals(vos.get(1).getVisitObservationTypeId().getVisitObservationTypeId(), ((VisitObservationType)vots.get(0)).getVisitObservationTypeId());
     }
@@ -184,21 +176,13 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * Then the names are updated accordingly but ids are kept as they are
      */
     @Test
+    @Sql("/test_files/visit_observation_type_processing/ot_mapping.sql")
     void testNewCaboodleUpdate() throws EmapOperationMessageProcessingException {
         String newDescription = "new description";
-        processSingleMessage(flowsheetMetadata);
-        processSingleMessage(flowsheetMpiMetadata);
-        List vots = getAllEntities(visitObservationTypeRepository);
-        assertEquals(1, vots.size());
-
-        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
-        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
-
         flowsheetMetadata.setDescription(newDescription);
         flowsheetMetadata.setLastUpdatedInstant(LATER_TIME);
         processSingleMessage(flowsheetMetadata);
-
-        vots = getAllEntities(visitObservationTypeRepository);
+        List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
         assertEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
     }
@@ -209,21 +193,13 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * Then the names are not updated and ids are kept as they are
      */
     @Test
+    @Sql("/test_files/visit_observation_type_processing/ot_mapping.sql")
     void testOlderCaboodleUpdate() throws EmapOperationMessageProcessingException {
         String newDescription = "new description";
-        processSingleMessage(flowsheetMetadata);
-        processSingleMessage(flowsheetMpiMetadata);
-        List vots = getAllEntities(visitObservationTypeRepository);
-        assertEquals(1, vots.size());
-
-        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
-        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
-
         flowsheetMetadata.setDescription(newDescription);
         flowsheetMetadata.setLastUpdatedInstant(EARLIER_TIME);
         processSingleMessage(flowsheetMetadata);
-
-        vots = getAllEntities(visitObservationTypeRepository);
+        List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
         assertNotEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
     }
