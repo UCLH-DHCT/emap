@@ -99,41 +99,39 @@ public class VisitObservationController {
     public void processMappingMessage(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
         if (mappingExists(msg.getInterfaceId(), msg.getFlowsheetId())) {
              return;
-         }
-            RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
-                    .find(null, msg.getFlowsheetId(), msg.getSourceObservationType())
-                    .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                    .orElse(null);
-            RowState<VisitObservationType, VisitObservationTypeAudit> votEpicState = visitObservationTypeRepo
-                    .find(msg.getInterfaceId(), null, msg.getSourceObservationType())
-                    .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                    .orElse(null);
-            if (votCaboodleState == null && votEpicState == null) {
-                RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeFromCache(msg.getInterfaceId(),
-                        msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
-                vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-            } else if (votCaboodleState != null) {
-                VisitObservationType votCaboodle = votCaboodleState.getEntity();
-                votCaboodleState.assignIfDifferent(msg.getInterfaceId(), votCaboodle.getInterfaceId(), votCaboodle::setInterfaceId);
-                if (votEpicState != null) {
-                    VisitObservationType votEpic = votEpicState.getEntity();
-                    for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
-                        RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(),
-                                storedFrom, false);
-                        vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
-                        vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
-                    }
-                    deleteVisitObservationType(msg.getInterfaceId(), null, msg.getSourceObservationType(), votEpic);
-                }
-                votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-            } else {
+        }
+        RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
+                .find(null, msg.getFlowsheetId(), msg.getSourceObservationType())
+                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
+                .orElse(null);
+        RowState<VisitObservationType, VisitObservationTypeAudit> votEpicState = visitObservationTypeRepo
+                .find(msg.getInterfaceId(), null, msg.getSourceObservationType())
+                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
+                .orElse(null);
+        if (votCaboodleState == null && votEpicState == null) {
+            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeFromCache(msg.getInterfaceId(),
+                    msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+            vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        } else if (votCaboodleState != null) {
+            VisitObservationType votCaboodle = votCaboodleState.getEntity();
+            votCaboodleState.assignIfDifferent(msg.getInterfaceId(), votCaboodle.getInterfaceId(), votCaboodle::setInterfaceId);
+            if (votEpicState != null) {
                 VisitObservationType votEpic = votEpicState.getEntity();
-                votEpicState.assignIfDifferent(msg.getFlowsheetId(), votEpic.getIdInApplication(), votEpic::setIdInApplication);
-                votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+                for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
+                    RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(),
+                            storedFrom, false);
+                    vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
+                    vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
+                }
+                deleteVisitObservationType(msg.getInterfaceId(), null, msg.getSourceObservationType(), votEpic);
             }
+            votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        } else {
+            VisitObservationType votEpic = votEpicState.getEntity();
+            votEpicState.assignIfDifferent(msg.getFlowsheetId(), votEpic.getIdInApplication(), votEpic::setIdInApplication);
+            votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
         }
     }
-
     /**
      * Create, update or delete a flowsheet, saving the visit observation to the cache.
      * Will also create a new VisitObservationType if it doesn't already exist.
@@ -155,7 +153,7 @@ public class VisitObservationController {
 
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, typeState.getEntity(), storedFrom);
         if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
-            updateVisitObservation(msg, visit, flowsheetState);
+            updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
         }
     }
@@ -297,11 +295,10 @@ public class VisitObservationController {
      * Update observation state from Flowsheet message.
      *
      * @param msg              flowsheet
-     * @param visit            Hospital visit for which visit observation type was observed
      * @param observationState observation entity wrapped in RowState
      * @throws RequiredDataMissingException if data type is not recognised for flowsheets
      */
-    private void updateVisitObservation(Flowsheet msg, HospitalVisit visit, RowState<VisitObservation, VisitObservationAudit> observationState)
+    private void updateVisitObservation(Flowsheet msg, RowState<VisitObservation, VisitObservationAudit> observationState)
             throws RequiredDataMissingException {
         VisitObservation observation = observationState.getEntity();
         switch (msg.getValueType()) {
