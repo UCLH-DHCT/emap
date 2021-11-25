@@ -3,12 +3,12 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.visit_observations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations.VisitObservationTypeRepository;
-import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservation;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -28,7 +28,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
     FlowsheetMetadata flowsheetMpiMetadata;
     Flowsheet flowsheetEpic;
-    Flowsheet flowsheetClarity;
+    Flowsheet flowsheetCaboodle;
 
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
@@ -57,8 +57,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     void setup() throws IOException {
         flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(3);
         flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(4);
-        flowsheetEpic = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(0);
-        flowsheetClarity = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(1);
+        flowsheetEpic = messageFactory.getFlowsheets("epic_flowsheets_for_metadata_testing.yaml", "0000040").get(0);
+        flowsheetCaboodle = messageFactory.getFlowsheets("caboodle_flowsheets_for_metadata_testing.yaml", "0000040").get(0);
     }
 
     /**
@@ -70,14 +70,11 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Test
     void testCreateVisitObservationTypeFromEpic() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
-
         VisitObservationType visitObservationType = visitObservationTypeRepository.find(INTERFACE_ID,
                 null, FLOWSHEET).orElseThrow();
-
         assertNull(visitObservationType.getIdInApplication());
         assertNotNull(visitObservationType.getInterfaceId());
     }
-
 
     /**
      * Given no visit observation type exist.
@@ -169,25 +166,15 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
      * - the second visit observation type is deleted
      */
     @Test
+    @Sql("/populate_db_test_visit_observation_type.sql")
     void testMappingClaritySecondOT() throws EmapOperationMessageProcessingException {
-        processSingleMessage(flowsheetEpic);
-        processSingleMessage(flowsheetClarity);
-
-        List vots = getAllEntities(visitObservationTypeRepository);
-        assertEquals(2, vots.size());
-        assertEquals(((VisitObservationType)vots.get(0)).getInterfaceId(), INTERFACE_ID);
-        assertEquals(((VisitObservationType)vots.get(1)).getIdInApplication(), ID_IN_APPLICATION);
-
         processSingleMessage(flowsheetMpiMetadata);
-        vots = getAllEntities(visitObservationTypeRepository);
-        // check that ID replacements on observation types worked
+        List vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
         assertEquals(((VisitObservationType)vots.get(0)).getInterfaceId(), INTERFACE_ID);
         assertEquals(((VisitObservationType)vots.get(0)).getIdInApplication(), ID_IN_APPLICATION);
 
-        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         List<VisitObservation> vos = visitObservationRepository.findAllByHospitalVisitIdEncounter(defaultEncounter);
-
         assertEquals(vos.get(1).getVisitObservationTypeId().getVisitObservationTypeId(), ((VisitObservationType)vots.get(0)).getVisitObservationTypeId());
     }
 
