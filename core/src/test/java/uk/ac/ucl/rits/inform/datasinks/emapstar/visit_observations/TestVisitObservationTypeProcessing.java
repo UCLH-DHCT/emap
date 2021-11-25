@@ -186,7 +186,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         assertEquals(((VisitObservationType)vots.get(0)).getIdInApplication(), ID_IN_APPLICATION);
 
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-        List<VisitObservation> vos = visitObservationRepository.findAllByHospitalVisitId(visit);
+        List<VisitObservation> vos = visitObservationRepository.findAllByHospitalVisitIdEncounter(defaultEncounter);
+
         assertEquals(vos.get(1).getVisitObservationTypeId().getVisitObservationTypeId(), ((VisitObservationType)vots.get(0)).getVisitObservationTypeId());
     }
 
