@@ -97,7 +97,9 @@ public class VisitObservationController {
      * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
      */
     public void processMappingMessage(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
-        if (!mappingExists(msg.getInterfaceId(), msg.getFlowsheetRowEpicId())) {
+        if (mappingExists(msg.getInterfaceId(), msg.getFlowsheetRowEpicId())) {
+             return;
+         }
             RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
                     .find(null, msg.getFlowsheetRowEpicId(), msg.getSourceObservationType())
                     .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
