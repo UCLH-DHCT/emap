@@ -116,6 +116,8 @@ public class ConsultationRequestController {
 
     /**
      * Get existing consult type or create a new saved minimal consult type if it doesn't exist.
+     * <p>
+     * Will cache the consultation type returned from this method.
      * @param code            Consultation type code
      * @param messageDatetime Time that the message data was last updated
      * @param storedFrom      When star started processing this message
