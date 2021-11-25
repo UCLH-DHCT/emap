@@ -38,8 +38,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     VisitObservationTypeRepository visitObservationTypeRepository;
     @Autowired
     VisitObservationTypeAuditRepository visitObservationTypeAuditRepository;
-    private static final String ID_IN_APPLICATION = "449876";
-    private static final String INTERFACE_ID = "331258";
+    private static final String ID_IN_APPLICATION = "38577";
+    private static final String INTERFACE_ID = "38577";
     private static final String FLOWSHEET = "flowsheet";
     private static final Instant EARLIER_TIME = Instant.parse("1991-01-01T00:00:00Z");
     private static final Instant LATER_TIME = Instant.parse("2021-12-23T00:00:00Z");
@@ -56,7 +56,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @BeforeEach
     void setup() throws IOException {
         flowsheetMetadata = messageFactory.getFlowsheetMetadata("flowsheet_metadata.yaml").get(3);
-        flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(5);
+        flowsheetMpiMetadata = messageFactory.getFlowsheetMetadata("flowsheet_mpi_metadata.yaml").get(4);
         flowsheetEpic = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(0);
         flowsheetClarity = messageFactory.getFlowsheets("hl7_flowsheet_metadata.yaml", "0000040").get(1);
     }
