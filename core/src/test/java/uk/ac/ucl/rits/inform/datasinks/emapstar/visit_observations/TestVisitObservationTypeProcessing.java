@@ -28,7 +28,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     FlowsheetMetadata flowsheetMetadata;
     FlowsheetMetadata flowsheetMpiMetadata;
     Flowsheet flowsheetEpic;
-    Flowsheet flowsheetClarity;
+    Flowsheet flowsheetCaboodle;
 
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
