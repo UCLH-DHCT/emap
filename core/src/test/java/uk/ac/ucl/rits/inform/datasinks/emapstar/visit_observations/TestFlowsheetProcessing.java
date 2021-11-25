@@ -69,10 +69,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
 
-        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-
         // 8 flowsheets in input file
-        List<VisitObservation> observations = visitObservationRepository.findAllByHospitalVisitId(visit);
+        List<VisitObservation> observations = visitObservationRepository.findAllByHospitalVisitIdEncounter(defaultEncounter);
         assertEquals(8, observations.size());
     }
 
@@ -86,7 +84,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     void testRowUpdates() throws EmapOperationMessageProcessingException {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow();
         VisitObservation preUpdateObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, updateId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, updateId)
                 .orElseThrow();
 
         for (Flowsheet msg : messages) {
@@ -97,7 +95,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // value is updated
         VisitObservation updatedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, updateId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, updateId)
                 .orElseThrow();
 
         assertNotEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
@@ -119,9 +117,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testOldUpdateDoesNothing() throws EmapOperationMessageProcessingException {
-        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow();
         VisitObservation preUpdateObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, updateId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, updateId)
                 .orElseThrow();
 
         for (Flowsheet msg : messages) {
@@ -130,7 +127,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         VisitObservation updatedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, updateId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, updateId)
                 .orElseThrow();
 
         assertEquals(preUpdateObservation.getValueAsReal(), updatedObservation.getValueAsReal());
@@ -146,7 +143,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     void testStringDeletes() throws EmapOperationMessageProcessingException {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow();
         VisitObservation preDeleteObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, stringDeleteId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, stringDeleteId)
                 .orElseThrow();
 
         for (Flowsheet msg : messages) {
@@ -158,7 +155,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, stringDeleteId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, stringDeleteId)
                 .orElseThrow();
         assertNull(deletedObservation.getValueAsText());
 
@@ -179,7 +176,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     void testNumericDeletes() throws EmapOperationMessageProcessingException {
         HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow();
         VisitObservation preDeleteObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, numericDeleteId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, numericDeleteId)
                 .orElseThrow();
 
         // process flowsheet with delete numeric value
@@ -192,7 +189,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
 
         // visit observation now does not exist
         VisitObservation deletedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, numericDeleteId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, numericDeleteId)
                 .orElseThrow();
         assertNull(deletedObservation.getValueAsText());
 
@@ -211,9 +208,8 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testOldDeleteDoesNothing() throws EmapOperationMessageProcessingException {
-        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
         VisitObservation preDeleteObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, stringDeleteId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, stringDeleteId)
                 .orElseThrow();
 
         for (Flowsheet msg : messages) {
@@ -222,7 +218,7 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         }
 
         VisitObservation notDeletedObservation = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(visit, stringDeleteId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(defaultEncounter, stringDeleteId)
                 .orElseThrow();
 
         assertEquals(preDeleteObservation.getValueAsReal(), notDeletedObservation.getValueAsReal());
@@ -231,12 +227,10 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testDateTimeValueAdded() throws EmapOperationMessageProcessingException {
-        HospitalVisit visit = hospitalVisitRepository.findByEncounter(defaultEncounter).orElseThrow(NullPointerException::new);
-
         processSingleMessage(messages.get(7));
         LocalDate expected = LocalDate.parse("2020-01-01");
         VisitObservation obs = visitObservationRepository
-                .findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(visit, flowsheetDateId)
+                .findByHospitalVisitIdEncounterAndVisitObservationTypeIdIdInApplication(defaultEncounter, flowsheetDateId)
                 .orElseThrow();
         assertEquals(expected, obs.getValueAsDate());
     }

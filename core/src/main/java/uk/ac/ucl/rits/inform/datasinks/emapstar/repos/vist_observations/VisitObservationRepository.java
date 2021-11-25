@@ -38,7 +38,7 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
      * @param visit hospital visit
      * @return list of visit observations
      */
-    List<VisitObservation> findAllByHospitalVisitId(HospitalVisit visit);
+    List<VisitObservation> findAllByHospitalVisitIdEncounter(String visit);
     /**
      * For testing.
      *
@@ -46,16 +46,7 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
      * @param interfaceId Identifier in interface
      * @return optional visit observation
      */
-    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(
-            HospitalVisit visit, String interfaceId);
-    /**
-     * For testing.
-     *
-     * @param visit       hospital visit
-     * @param interfaceId Identifier in interface
-     * @return optional visit observation
-     */
-    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdInterfaceId(
+    Optional<VisitObservation> findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(
             String visit, String interfaceId);
     /**
      * For testing.
@@ -64,6 +55,6 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
      * @param idInApplication Identifier in application
      * @return optional visit observation
      */
-    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(
-            HospitalVisit visit, String idInApplication);
+    Optional<VisitObservation> findByHospitalVisitIdEncounterAndVisitObservationTypeIdIdInApplication(
+            String visit, String idInApplication);
 }
