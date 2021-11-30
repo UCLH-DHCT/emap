@@ -1,5 +1,5 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
+  sourceSystem: "clarity"
   sourceMessageId: "3"
   updatedDateTime: "2019-05-07T09:40:25Z"
   mrn: "Bq6PQt5xSa"
@@ -26,7 +26,7 @@
     status: "IGNORE"
     value: null
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
+  sourceSystem: "clarity"
   sourceMessageId: "4"
   updatedDateTime: "2019-05-14T08:19:11Z"
   mrn: "xo9dzpR0Zx7J"
@@ -49,7 +49,7 @@
     value: "Active"
   infectionAdded: "2019-05-14T08:19:11Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
+  sourceSystem: "clarity"
   sourceMessageId: "1"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
@@ -80,7 +80,7 @@
     status: "IGNORE"
     value: null
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
-  sourceSystem: "hoover"
+  sourceSystem: "clarity"
   sourceMessageId: "2"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
