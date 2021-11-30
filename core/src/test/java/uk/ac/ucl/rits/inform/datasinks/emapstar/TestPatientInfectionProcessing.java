@@ -94,7 +94,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         List<Mrn> mrns = getAllMrns();
 
         assertEquals(2, mrns.size());
-        assertEquals("hoover", mrns.get(0).getSourceSystem());
+        assertEquals("clarity", mrns.get(0).getSourceSystem());
     }
 
     /**

@@ -75,7 +75,8 @@ INSERT INTO public.location (location_id, location_string, department_id, room_i
 (105003, 'T06C^T06C SR41^SR41-41', null, null, null),
 (105004, 'T11E^T11E BY02^BY02-25', null, null, null),
 (105005, 'ACUN^E03ACUN BY12^BY12-C49', 11001, 13001, 15001),
-(105006, 'MEDSURG^MED/SURG^Med/Surg', 11002, 13002, 15002);
+(105006, 'MEDSURG^MED/SURG^Med/Surg', 11002, 13002, 15002),
+(105007, 'ACUN^null^null', 11001, null, null);
 
 
 INSERT INTO public.location_visit (
