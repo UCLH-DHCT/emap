@@ -112,7 +112,7 @@ public class FlowsheetFactory {
      * @throws HL7Exception              if HL7 message cannot be parsed
      * @throws Hl7InconsistencyException if message does not have required data
      */
-    private Flowsheet buildFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1, Instant recordedDateTime)
+    Flowsheet buildFlowsheet(String subMessageSourceId, ORU_R01_OBSERVATION observation, MSH msh, PID pid, PV1 pv1, Instant recordedDateTime)
             throws HL7Exception, Hl7InconsistencyException {
         Flowsheet flowsheet = new Flowsheet();
 
@@ -163,6 +163,7 @@ public class FlowsheetFactory {
      * @param flowsheet          flowsheet to add the values to
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
+     * @throws DataTypeException         if datetime values cannot be parsed
      */
     private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
             throws Hl7InconsistencyException, DataTypeException {
@@ -176,7 +177,9 @@ public class FlowsheetFactory {
         Type singularData = obx.getObservationValue(0).getData();
         // HAPI can return null so use nullDefault as empty string
         String value = singularData.toString();
-        value = value == null ? "" : value;
+        if (value == null) {
+            throw new Hl7InconsistencyException("Null value field for flowsheet");
+        }
 
         if (singularData instanceof NM) {
             flowsheet.setValueType(ValueType.NUMERIC);
@@ -194,9 +197,9 @@ public class FlowsheetFactory {
             flowsheet.setValueType(ValueType.TEXT);
             if ("D".equals(resultStatus)) {
                 flowsheet.setStringValue(InterchangeValue.delete());
-            } else if (!value.isEmpty()) {
+            } else {
                 String stringValue = getStringValue(obx);
-                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.trim()));
+                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.strip()));
             }
         } else if (singularData instanceof DT) {
             flowsheet.setValueType(ValueType.DATE);
@@ -212,9 +215,9 @@ public class FlowsheetFactory {
     }
 
     /**
-     * Build comments from list of NTEs, trimmed and lines separated by newlines.
+     * Build comments from list of NTEs, leading & lagging whitespace removed, and lines separated by newlines.
      * @param notes NTE objects
-     * @return String of trimmed comment lines, joined by newlines
+     * @return String of leading & lagging whitespace removed comment lines, joined by newlines
      */
     private String getComments(Collection<NTE> notes) {
         NotesParser parser = new NotesParser(notes);
@@ -238,10 +241,10 @@ public class FlowsheetFactory {
                 if (valueBuilder.length() > 1) {
                     valueBuilder.append("\n");
                 }
-                valueBuilder.append(lineValue.trim());
+                valueBuilder.append(lineValue.strip());
             }
         }
-        return valueBuilder.toString().trim();
+        return valueBuilder.toString().strip();
     }
 
 

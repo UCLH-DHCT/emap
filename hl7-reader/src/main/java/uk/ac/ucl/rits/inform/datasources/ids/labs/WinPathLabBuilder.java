@@ -293,6 +293,7 @@ public final class WinPathLabBuilder extends LabOrderBuilder {
      * <p>
      * Eg. microbiology ISOLATE + CFU conc. appear in different OBX segments, linked by a sub ID.
      * @param labResults the list of lab results to merge. This elements of the list will be modified and/or removed.
+     * @throws Hl7InconsistencyException if hl7 message is malformed
      */
     private static void mergeOrFilterResults(List<WinPathResultBuilder> labResults) throws Hl7InconsistencyException {
         Map<String, WinPathResultBuilder> subIdMapping = new HashMap<>(labResults.size());

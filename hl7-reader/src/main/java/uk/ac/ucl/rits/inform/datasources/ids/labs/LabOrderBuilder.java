@@ -126,6 +126,7 @@ abstract class LabOrderBuilder {
      * Set the specimen number from the ORC segment.
      * Each lab result that uses this appears to need a separate implementation of this.
      * @param orc ORC segment
+     * @throws  Hl7InconsistencyException if hl7 message is malformed
      */
     protected abstract void setLabSpecimenNumber(ORC orc) throws Hl7InconsistencyException;
 
