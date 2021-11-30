@@ -22,7 +22,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * A core demographic represents the main demographics stored around patients.
+ * \brief A core demographic represents the main demographics stored around patients.
+ *
  * These are attached to an MRN and describe patient level, rather than visit
  * level, data.
  * @author UCL RITS
@@ -37,29 +38,79 @@ import java.time.LocalDate;
 @AuditTable
 public class CoreDemographic extends TemporalCore<CoreDemographic, CoreDemographicAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this coreDemographic record.
+     *
+     * This is the primary key for the coreDemographics table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long coreDemographicId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the coreDemographic table to the Mrn table.
+     */
     @OneToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
+    /**
+     * \brief First name of the patient.
+     */
     private String firstname;
+
+    /**
+     * \brief Middle name of the patient.
+     */
     private String middlename;
+
+    /**
+     * \brief Last name of the patient.
+     */
     private String lastname;
 
+    /**
+     * \brief Date of birth of the patient.
+     */
     private LocalDate dateOfBirth;
+
+    /**
+     * \brief Date of death of the patient.
+     */
     private LocalDate dateOfDeath;
 
+    /**
+     * \brief Date and time of birth of the patient.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant datetimeOfBirth;
+
+    /**
+     * \brief Date and time of death of the patient.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant datetimeOfDeath;
 
+    /**
+     * \brief Predicate determining whether the patient is alive.
+     */
     private Boolean alive;
+
+    /**
+     * \brief Postcode of the patient's home address.
+     */
     private String homePostcode;
+
+    /**
+     * \brief Sex of the patient.
+     */
     private String sex;
+
+    /**
+     * \brief Ethnicity of the patient.
+     */
     private String ethnicity;
 
     /**

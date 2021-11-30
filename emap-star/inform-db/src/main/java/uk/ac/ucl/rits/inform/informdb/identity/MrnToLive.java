@@ -20,9 +20,10 @@ import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 /**
- * Over time MRNs are merged into others as more is found out about a patient.
- * This table stores a mapping from every MRN known to the system, to its
+ * \brief This table stores a mapping from every MRN known to the system, to its
  * currently live (in use) MRN.
+ *
+ * Over time MRNs are merged into others as more is found out about a patient.
  * @author UCL RITS
  */
 @SuppressWarnings("serial")
@@ -35,13 +36,31 @@ import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 @AuditTable
 public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this mrnToLive record.
+     *
+     * This is the primary key for the MrnToLive table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long mrnToLiveId;
+
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the mrnToLive table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
+    ///////////// NOT SURE OF DIFFERENCE
+
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the mrnToLive table to the Mrn table.
+     */
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "liveMrnId", nullable = false)
     private Mrn liveMrnId;

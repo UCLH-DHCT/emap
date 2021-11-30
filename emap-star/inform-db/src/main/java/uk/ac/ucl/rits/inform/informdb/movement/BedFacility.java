@@ -13,23 +13,37 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
+/**
+ * \brief Represents a facility available at a Bed.
+ */
 @SuppressWarnings("serial")
 @Entity
 @Table
 @Data
 @NoArgsConstructor
 public class BedFacility implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this bedFacility record.
+     *
+     * This is the primary key for the bedFacility table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bedFacilityId;
 
+    /**
+     * \brief Identifier for the BedState associated with this record.
+     *
+     * This is a foreign key that joins the bedFacility table to the BedState table.
+     */
     @ManyToOne
     @JoinColumn(name = "bedStateId", nullable = false)
     private BedState bedStateId;
 
     /**
-     * Type of facility available at bed.
+     * \brief Type of facility available at bed.
+     *
      * e.g. Cot, oxygen, Near Nurses Station...
      */
     @Column(nullable = false)

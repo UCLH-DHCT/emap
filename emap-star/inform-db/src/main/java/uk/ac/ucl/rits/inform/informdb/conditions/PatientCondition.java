@@ -20,7 +20,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Represents patient conditions that start and can end.
+ * \brief Represents patient conditions that start and can end.
+ *
  * Currently envisaged as storing infection control's patient infection information and problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
@@ -32,41 +33,85 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AuditTable
 public class PatientCondition extends TemporalCore<PatientCondition, PatientConditionAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this patientCondition record.
+     *
+     * This is the primary key for the patientCondition table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long patientConditionId;
 
+    /**
+     * \brief Identifier for the ConditionType associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the ConditionType table.
+     */
     @ManyToOne
     @JoinColumn(name = "conditionTypeId", nullable = false)
     private ConditionType conditionTypeId;
 
+    /**
+     * \brief Identifier used in source system for this patientCondition.
+     */
     private Long internalId;
 
+    /**
+     * \brief Identifier for the Mrn associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the Mrn table.
+     */
     @ManyToOne
     @JoinColumn(name = "mrnId", nullable = false)
     private Mrn mrnId;
 
+    /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the patientCondition table to the HospitalVisit table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Date and time at which this patientCondition was added to the record.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant addedDateTime;
 
+    /**
+     * \brief Date and time at which this patientCondition was resolved.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant resolutionDateTime;
 
+    /**
+     * \brief Date at which the patientCondition started (if known).
+     */
     private LocalDate onsetDate;
 
     /**
-     * temporary infection?
+     * \brief Problem List classification (e.g. Temporary).
      */
     private String classification;
 
+    /**
+     * \brief Status of patientCondition.
+     *
+     * Is this active, resolved, expired etc.
+     */
     private String status;
 
+    /**
+     * \brief Problem List priority.
+     */
     private String priority;
 
+    /**
+     * \brief Comments added by clinician.
+     */
     @Column(columnDefinition = "text")
     private String comment;
 

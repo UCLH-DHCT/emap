@@ -19,7 +19,8 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * A LabOrder contains the details of the request to perform a lab investigation.
+ * \brief A LabOrder contains the details of the request to perform a lab investigation.
+ *
  * A given LabSample may have multiple LabOrders. Each of the lab orders is defined by a unique combination of LabBattery and LabSample.
  * @author Roma Klapaukh
  * @author Stef Piatek
@@ -34,39 +35,70 @@ import java.time.Instant;
         @Index(name = "lo_lab_sample_id", columnList = "labSampleId"),
         @Index(name = "lo_order_datetime", columnList = "orderDatetime")})
 public class LabOrder extends TemporalCore<LabOrder, LabOrderAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this labOrder record.
+     *
+     * This is the primary key for the labOrder table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long labOrderId;
 
+    /**
+     * \brief Identifier for the LabSample associated with this record.
+     *
+     * This is a foreign key that joins the labOrder table to the LabSample table.
+     */
     @ManyToOne
     @JoinColumn(name = "labSampleId", nullable = false)
     private LabSample labSampleId;
 
     /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the labOrder table to the HospitalVisit table.
      * Can have labs that are not linked to a hospital visit.
      */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId")
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Identifier for the LabBattery associated with this record.
+     *
+     * This is a foreign key that joins the labOrder table to the LabBattery table.
+     */
     @ManyToOne
     @JoinColumn(name = "labBatteryId", nullable = false)
     private LabBattery labBatteryId;
 
+    /**
+     * \brief Date and time at which this labOrder was actioned.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant orderDatetime;
 
+    /**
+     * \brief Date and time at which this labOrder was requested.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant requestDatetime;
 
+    /**
+     * \brief Additional information supplied.
+     */
     @Column(columnDefinition = "text")
     private String clinicalInformation;
 
     /**
-     * Lab number in the EHR.
+     * \brief Identifier used in source system for this labOrder.
      */
     private String internalLabNumber;
 
+    /**
+     * \brief Name of the source system where this labOrder was created.
+     */
     private String sourceSystem;
 
     public LabOrder() {}

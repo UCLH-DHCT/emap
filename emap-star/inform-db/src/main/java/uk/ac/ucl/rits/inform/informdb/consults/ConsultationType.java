@@ -11,11 +11,13 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
 import java.time.Instant;
 
 /**
- * Type of a consultation request made for a patient.
+ * \brief Type of a ConsultationRequest made for a patient.
+ *
+ * Inpatient referrals and inpatient referrals ancillary departments.
+ * The data model suggests consultation requests from pharmacy but it looks like these are not created.
  * @author Anika Cawthorn
  */
 @Entity
@@ -24,24 +26,40 @@ import java.time.Instant;
 @NoArgsConstructor
 @AuditTable
 public class ConsultationType extends TemporalCore<ConsultationType, ConsultationTypeAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this consultationType record.
+     *
+     * This is the primary key for the consultationType table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationTypeId;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
+
+    /**
+     * \brief Code used in source system for this consultationType.
+     */
     private String code;
+
+    /**
+     * \brief Human readable name for this consultationType.
+     */
     private String name;
+
     /**
      * Minimal constructor to create ConsultRequestType and add name for it. As there's only one field for now, it's
      * also the only constructor required for now.
-     * @param code  Consultation type as provided in ConsultationRequest message
-     * @param validFrom         From which point in time the ConsultationType is valid
-     * @param storedFrom        Time point at which ConsultationType was stored first
+     * @param code       Consultation type as provided in ConsultationRequest message
+     * @param validFrom  From which point in time the ConsultationType is valid
+     * @param storedFrom Time point at which ConsultationType was stored first
      */
     public ConsultationType(String code, Instant validFrom, Instant storedFrom) {
         this.code = code;
         setValidFrom(validFrom);
         setStoredFrom(storedFrom);
     }
+
     /**
      * Build a new ConsultationType from an existing one.
      * @param other existing ConsultationType

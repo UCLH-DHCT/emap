@@ -11,20 +11,39 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
+/**
+ * \brief Represents a department in the hospital.
+ */
 @SuppressWarnings("serial")
 @Entity
 @Data
 @Table
 @NoArgsConstructor
 public class Department implements Serializable {
+
+    /**
+     * \brief Unique identifier in EMAP for this department record.
+     *
+     * This is the primary key for the department table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long departmentId;
 
+    /**
+     * \brief Text name used by HL7 for this department.
+     */
     @Column(nullable = false)
     private String hl7String;
+
+    /**
+     * \brief Name of this department.
+     */
     private String name;
+
+    /**
+     * \brief Speciality of this department.
+     */
     private String speciality;
 
     /**

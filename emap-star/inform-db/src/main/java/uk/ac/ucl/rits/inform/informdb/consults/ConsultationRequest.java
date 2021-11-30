@@ -17,7 +17,7 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * Holds information relevant to consultation requests for patients.
+ * \brief Holds information relevant to consultation requests for patients.
  */
 @Entity
 @Data
@@ -25,38 +25,77 @@ import java.time.Instant;
 @NoArgsConstructor
 @AuditTable
 public class ConsultationRequest extends TemporalCore<ConsultationRequest, ConsultationRequestAudit> {
+
+    /**
+     * \brief Unique identifier in EMAP for this consultationRequest record.
+     *
+     * This is the primary key for the consultationRequest table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long consultationRequestId;
 
+    /**
+     * \brief Identifier for the ConsultationType associated with this record.
+     *
+     * This is a foreign key that joins the consultationRequest table to the ConsultationType table.
+     */
     @ManyToOne
     @JoinColumn(name = "consultationTypeId", nullable = false)
     private ConsultationType consultationTypeId;
 
+    /**
+     * \brief Identifier for the HospitalVisit associated with this record.
+     *
+     * This is a foreign key that joins the consultationRequest table to the HospitalVisit table.
+     */
     @ManyToOne
     @JoinColumn(name = "hospitalVisitId", nullable = false)
     private HospitalVisit hospitalVisitId;
 
+    /**
+     * \brief Identifier used in source system for this consultationRequest.
+     */
     @Column(nullable = false)
-    private Long consultId;
+    private Long internalId;
 
-    /** Optional fields for consultation requests. */
+    /**
+     * \brief Predicate determining whether this consultationRequest was closed on discharge.
+     */
     private Boolean closedDueToDischarge = false;
+
+    /**
+     * \brief Notes added to the consultationRequest which are not tied to a Question.
+     */
+    @Column(columnDefinition = "text")
     private String comments;
+
+    /**
+     * \brief Date and time at which this consultationRequest was last updated.
+     */
     private Instant statusChangeTime;
-    private Instant requestedDateTime;
+
+    /**
+     * \brief Date and time at which this consultationRequest was scheduled.
+     */
+
+    private Instant scheduledDatetime;
+
+    /**
+     * \brief Predicate determining whether this consultationRequest has been cancelled by a user.
+     */
     private Boolean cancelled = false;
 
     /**
      * Minimal information constructor.
-     * @param consultationTypeId    ID for relevant consultation type
-     * @param hospitalVisitId       ID for hospital visit of patient that consultation request relates to
-     * @param consultId             ID for consultation request
+     * @param consultationTypeId ID for relevant consultation type
+     * @param hospitalVisitId    ID for hospital visit of patient that consultation request relates to
+     * @param internalId         ID for consultation request
      */
-    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, Long consultId) {
+    public ConsultationRequest(ConsultationType consultationTypeId, HospitalVisit hospitalVisitId, Long internalId) {
         this.consultationTypeId = consultationTypeId;
         this.hospitalVisitId = hospitalVisitId;
-        this.consultId = consultId;
+        this.internalId = internalId;
     }
 
     /**
@@ -67,11 +106,11 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
         super(other);
         this.consultationTypeId = other.consultationTypeId;
         this.hospitalVisitId = other.hospitalVisitId;
-        this.consultId = other.consultId;
+        this.internalId = other.internalId;
         this.closedDueToDischarge = other.closedDueToDischarge;
         this.comments = other.comments;
         this.statusChangeTime = other.statusChangeTime;
-        this.requestedDateTime = other.requestedDateTime;
+        this.scheduledDatetime = other.scheduledDatetime;
         this.cancelled = other.cancelled;
     }
 

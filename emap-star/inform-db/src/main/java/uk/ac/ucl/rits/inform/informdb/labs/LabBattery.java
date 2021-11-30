@@ -25,16 +25,33 @@ import java.time.Instant;
 @AuditTable
 public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labBattery record.
+     *
+     * This is the primary key for the labBattery table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labBatteryId;
 
-
+    /**
+     * \brief Code for this battery of tests.
+     */
     private String batteryCode;
+
+    /**
+     * \brief Human readable name for this battery of tests.
+     */
     private String batteryName;
+
+    /**
+     * \brief Desription of this battery of tests.
+     */
     private String description;
 
     /**
+     * \brief Source system of this batteryCode.
+     *
      * What system this code belongs to. Examples could be WinPath, or Epic.
      */
     @Column(nullable = false)

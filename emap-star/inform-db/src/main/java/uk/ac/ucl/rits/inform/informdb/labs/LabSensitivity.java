@@ -28,23 +28,37 @@ import java.time.Instant;
 @AuditTable
 public class LabSensitivity extends TemporalCore<LabSensitivity, LabSensitivityAudit> {
 
+    /**
+     * \brief Unique identifier in EMAP for this labSensitivity record.
+     *
+     * This is the primary key for the labSensitivity table.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long labSensitivityId;
 
+    /**
+     * \brief Identifier for the LabIsolate associated with this record.
+     *
+     * This is a foreign key that joins the labSensitivity table to the LabIsolate table.
+     */
     @ManyToOne
     @JoinColumn(name = "labIsolateId", nullable = false)
     private LabIsolate labIsolateId;
 
     /**
-     * The chemical (often antibiotic) used.
+     * \brief The chemical (often antibiotic) used.
      */
     private String agent;
+
     /**
-     * Sensitivity of the microbe to the agent.
+     * \brief Sensitivity of the microbe to the agent.
      */
     private String sensitivity;
 
+    /**
+     * \brief Date and time at which this labSensitivity was reported.
+     */
     @Column(columnDefinition = "timestamp with time zone")
     private Instant reportingDatetime;
 
