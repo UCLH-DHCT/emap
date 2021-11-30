@@ -69,15 +69,19 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     private static final long ACUN_BED_CSN = 4417L;
     private static final String ACUN_BED_FACILITY = "Cot";
 
-    private static final String MEDSURG_HL7_STRING = "MEDSURG^MED/SURG^Med/Surg";
     private static final long MEDSURG_BED_CSN = 11L;
+
+    private static final String DENTAL_HL7_STRING = "1000000059^null^null";
+
 
     private LocationMetadata acunCensusBed;
     private LocationMetadata medSurgPoolBed;
+    private LocationMetadata dentalDepOnly;
 
     TestLocationMetadataProcessing() throws IOException {
         acunCensusBed = messageFactory.getLocationMetadata("acun_census_bed.yaml");
         medSurgPoolBed = messageFactory.getLocationMetadata("medsurg_active_pool_bed.yaml");
+        dentalDepOnly = messageFactory.getLocationMetadata("dental_department_only.yaml");
     }
 
     /**
@@ -97,8 +101,8 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
     @Test
     void testLocationCreated() throws Exception {
         processSingleMessage(acunCensusBed);
-        getLocation(ACUN_LOCATION_HL7_STRING);
-        assertEquals(1, locationRepo.count());
+        Location location = getLocation(ACUN_LOCATION_HL7_STRING);
+        assertNotNull(location);
     }
 
     /**
@@ -141,6 +145,75 @@ class TestLocationMetadataProcessing extends MessageProcessingBase {
         assertNull(depState.getStoredUntil());
     }
 
+    /**
+     * Given no departments exist in the database
+     * When a location with full hl7 string (dep^room^bed) is processed
+     * Then a full location entity is created, and a department only location is created
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testDepartmentOnlyLocationCreated() throws Exception {
+        processSingleMessage(acunCensusBed);
+
+        assertTrue(locationRepo.findByLocationStringEquals(ACUN_LOCATION_HL7_STRING).isPresent());
+
+        String departmentOnlyHl7 = String.format("%s^null^null", ACUN_DEPT_HL7_STRING);
+        Location depOnly = locationRepo.findByLocationStringEquals(departmentOnlyHl7).orElseThrow();
+        assertNotNull(depOnly.getDepartmentId());
+        assertNull(depOnly.getRoomId());
+        assertNull(depOnly.getBedId());
+    }
+
+    /**
+     * Given no departments exist in the database
+     * When a location with full hl7 string (dep^room^bed) is processed with a null department hl7 string
+     * Then only a full location entity is created
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testNullDepartmentOnlyCreatedFullLocation() throws Exception {
+        String nullDept = String.join("^", "null", ACUN_ROOM_HL7_STRING, ACUN_BED_HL7_STRING);
+        acunCensusBed.setHl7String(nullDept);
+        acunCensusBed.setDepartmentHl7("null");
+
+        processSingleMessage(acunCensusBed);
+
+        assertTrue(locationRepo.findByLocationStringEquals(nullDept).isPresent());
+        assertTrue(locationRepo.findByLocationStringEquals("null^null^null").isEmpty());
+    }
+
+    /**
+     * Given full hl7 location and department only already exists in the database
+     * When a location with full hl7 string (dep^room^bed) is processed
+     * Then no new locations should be created
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    @Sql("/populate_db.sql")
+    void testFullLocationAndDepartmentOnlyLocationExistsAlready() throws Exception {
+        long preProcessingCount = locationRepo.count();
+
+        processSingleMessage(acunCensusBed);
+
+        long postProcessingCount = locationRepo.count();
+        assertEquals(preProcessingCount, postProcessingCount);
+    }
+
+    /**
+     * Given no departments exist in the database
+     * When a location with only a department is processed
+     * Then the department only location is created
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testDepartmentOnlyLocationParsed() throws Exception {
+        processSingleMessage(dentalDepOnly);
+
+        Location depOnly = locationRepo.findByLocationStringEquals(DENTAL_HL7_STRING).orElseThrow();
+        assertNotNull(depOnly.getDepartmentId());
+        assertNull(depOnly.getRoomId());
+        assertNull(depOnly.getBedId());
+    }
 
     /**
      * Given department exists in database

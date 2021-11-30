@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface ConsultationRequestRepository extends CrudRepository<ConsultationRequest, Long> {
     /**
      * Find consultation request by unique identifier.
-     * @param consultId   Consultancy type
+     * @param internalId internal ID for the consultation
      * @return possible ConsultationRequest
      */
-    Optional<ConsultationRequest> findByConsultId(Long consultId);
+    Optional<ConsultationRequest> findByInternalId(Long internalId);
 }

@@ -6,10 +6,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationMetadataController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdtProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.AdvanceDecisionProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationRequestProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
+import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
+import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
@@ -45,6 +48,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private ConsultationRequestProcessor consultationRequestProcessor;
     @Autowired
     private LocationMetadataController locationMetadataController;
+    @Autowired
+    private AdvanceDecisionProcessor advanceDecisionProcessor;
 
     /**
      * Process a lab order message.
@@ -159,6 +164,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         consultationRequestProcessor.processMessage(msg, storedFrom);
     }
 
+    /**
+     * Process Consult Metadata message.
+     * @param msg mapping for consult code to human readable data
+     */
+    @Override
+    @Transactional
+    public void processMessage(ConsultMetadata msg) {
+        Instant storedFrom = Instant.now();
+        consultationRequestProcessor.processMessage(msg, storedFrom);
+    }
+
     @Override
     @Transactional
     public void processMessage(LocationMetadata msg) throws EmapOperationMessageProcessingException {
@@ -166,5 +182,10 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         locationMetadataController.processMessage(msg, storedFrom);
     }
 
-
+    @Override
+    @Transactional
+    public void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        advanceDecisionProcessor.processMessage(msg, storedFrom);
+    }
 }
