@@ -261,8 +261,12 @@ public class Publisher implements Runnable, Releasable {
             @Override
             public void run() {
                 rabbitTemplate.convertAndSend(getEmapDataSource.getQueueName(), message, correlationData);
-                logger.info("Failed message (correlationData {}) was resent after a delay of {} seconds",
-                        correlationData, currentDelay);
+                String queueFull = "Failed to deliver message (correlationData {}) was resent after a delay of {} seconds";
+                if (currentDelayIsFirstThreeRounds()) {
+                    logger.trace(queueFull, correlationData, currentDelay);
+                } else {
+                    logger.info(queueFull, correlationData, currentDelay);
+                }
             }
         }, currentDelay, TimeUnit.SECONDS);
 
@@ -274,5 +278,12 @@ public class Publisher implements Runnable, Releasable {
         } else {
             currentDelay = maximumDelay;
         }
+    }
+
+    /**
+     * @return true if the current delay has been multiplied less than 3 times.
+     */
+    private boolean currentDelayIsFirstThreeRounds() {
+        return currentDelay <= initialDelay * delayMultiplier * delayMultiplier;
     }
 }
