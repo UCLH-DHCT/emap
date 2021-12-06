@@ -26,7 +26,7 @@ import java.time.LocalTime;
 public class Flowsheet extends EmapOperationMessage implements ObservationType {
     private String sourceObservationType = "flowsheet";
     private String mrn = "";
-    private String interfaceId = null;
+    private String interfaceId;
 
     private String visitNumber = "";
 
