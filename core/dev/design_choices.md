@@ -70,3 +70,58 @@ Most likely exists in the RxJava ecosystem
 - It will be easier to track the state of entities. Getting the state directly from the state.
 - Getting or creating entities will have to be wrapped in creating a RowState instance.
 
+
+# Caching of type entities
+
+## Context
+
+- Every time we process some data that requires a`type` entity 
+  (e.g. `VisitObservation` requires a `VisitObservationType`, `LocationVisit` requires a `Location` )
+- These `type` entities are only required for saving the data with the correct foreign key to the type
+  - There may be extra data that is added to the `type` over time, but this doesn't affect the core processing
+- We want to be able to cache these entities so we're not carrying out unnecessary queries
+- Spring has a starter for caching that makes sense to use
+
+## Options
+
+### Default caching
+
+Requires no configuration other than enabling the Caching 
+
+#### Pros
+
+- simple and basically a concurrent hashmap
+
+#### Cons
+
+- Only allows 256 entities per cache key
+
+### [Caffeine](https://github.com/ben-manes/caffeine/wiki/)
+
+Continues on Guava caching as that is now deprecated.
+
+#### Pros
+
+- In memory, pretty much a concurrent hashmap
+- Faster than [concurrent hashmap](https://github.com/ben-manes/caffeine/wiki/Benchmarks)
+- Allows configuration for more than 256 entities and expiry of entities
+- Configuration options investigated
+  - expireAfterAccess - expire entry after the time has passed for the entry being accessed by read or write
+    `Requires Java configuration and can't be done from application.properties`
+  - expireAfterWrite - expire entry after the time has passed for the entry since it was created
+  - maximumSize - remove rarely used items from individual cache to ensure cache doesn't grow bigger than this 
+
+#### Cons
+
+- Requires more thought on configuration
+
+
+## Decision
+
+Caffeine caching with expireAfterWrite and maximumSize in application.properties.
+Caching disabled in testing as registering and creating new cache for each test adds ~50% run time
+
+## Consequences
+
+- No effect on tests
+- We should ensure that when a `type` entity is updated, we remove the current entry (or all entries) from the cache

@@ -20,6 +20,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
