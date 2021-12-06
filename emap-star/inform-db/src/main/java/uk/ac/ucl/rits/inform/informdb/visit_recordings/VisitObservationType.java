@@ -52,7 +52,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * \brief The ID used in the HL7 messages for referring to this visit observation type.
      *
-     * This ID in conjunction with the application idInApplication describes the visit observation type uniquely.
+     * This ID in conjunction with the application idInApplication and the sourceObservationType describes the visit observation type uniquely.
      */
     private String interfaceId;
 
