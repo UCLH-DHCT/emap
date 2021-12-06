@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,13 @@ public class PatientConditionController {
     private final PatientConditionRepository patientConditionRepo;
     private final ConditionTypeRepository conditionTypeRepo;
     private final PatientConditionAuditRepository patientConditionAuditRepo;
+
+    /**
+     * Self-autowire so that @Caching annotation call will be intercepted.
+     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
+     */
+    @Resource
+    private PatientConditionController self;
 
     private enum PatientConditionType {
         PATIENT_INFECTION
@@ -65,6 +73,7 @@ public class PatientConditionController {
     @Cacheable(value = "conditionType", key = "{#type, #conditionCode}")
     public ConditionType getOrCreateConditionType(
             PatientConditionType type, String conditionCode, Instant updatedDateTime, Instant storedFrom) {
+        logger.trace("** Querying condition: {}, code {}", type.toString(), conditionCode);
         return conditionTypeRepo
                 .findByDataTypeAndInternalCode(type.toString(), conditionCode)
                 .orElseGet(() -> {
@@ -83,7 +92,7 @@ public class PatientConditionController {
      */
     @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
     public void updateNameAndClearFromCache(ConditionType typeToUpdate, String name, PatientConditionType type, String conditionCode) {
-        logger.trace("Adding name '{}' to {}", name, typeToUpdate);
+        logger.trace("** Adding name '{}' to {}", name, typeToUpdate);
         typeToUpdate.setName(name);
         conditionTypeRepo.save(typeToUpdate);
     }
@@ -98,7 +107,7 @@ public class PatientConditionController {
     @Transactional
     public void processMessage(final PatientInfection msg, Mrn mrn, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        ConditionType conditionType = getOrCreateConditionType(
+        ConditionType conditionType = self.getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
 
         updateConditionTypeNameIfDifferent(msg, conditionType);
@@ -125,7 +134,7 @@ public class PatientConditionController {
         }
         String infectionName = msg.getInfectionName().get();
         if (!infectionName.equals(conditionType.getName())) {
-            updateNameAndClearFromCache(conditionType, infectionName, PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode());
+            self.updateNameAndClearFromCache(conditionType, infectionName, PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode());
         }
     }
 
@@ -138,10 +147,10 @@ public class PatientConditionController {
     private void deletePreviousInfectionTypesOrClearCache(PatientInfection msg, Instant deleteUntil) {
         if (msg.getEpicInfectionId().isSave()) {
             logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
-            List<ConditionType> hl7InfectionTypes = getAllInfectionTypesAndCacheResults();
+            List<ConditionType> hl7InfectionTypes = self.getAllInfectionTypesAndCacheResults();
             auditAndDeletePatientConditionsUntil(hl7InfectionTypes, msg.getUpdatedDateTime(), deleteUntil);
         } else {
-            clearCacheOfInfectionTypes();
+            self.clearCacheOfInfectionTypes();
         }
     }
 
@@ -176,7 +185,7 @@ public class PatientConditionController {
      */
     @CacheEvict(value = "infectionTypes", allEntries = true)
     public void clearCacheOfInfectionTypes() {
-        return;
+        logger.trace("** Clearing cache of all infection types");
     }
 
     /**
