@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
  * source system.
  *
  * @author Jeremy Stein
+ * @author Anika Cawthorn
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -38,11 +39,14 @@ public class FlowsheetMetadata extends EmapOperationMessage implements Observati
     private String description;
 
     private Instant creationInstant;
-    // Not guaranteed to be set depending on the source of the data.
+    /**
+     * Not guaranteed to be set depending on the source of the data. In cases were no information is available,
+     * the lastUpdatedInstant is populated with creationInstant.
+     */
     private Instant lastUpdatedInstant;
 
     /**
-     * What is the data type to which this metadata message relates?
+     * The data type to which this metadata message relates.
      */
     private String sourceObservationType = "flowsheet";
 
