@@ -38,7 +38,7 @@ public class Flowsheet extends EmapOperationMessage implements ObservationType {
     /**
      * Identifier used by caboodle/EPIC for the flowsheet.
      */
-    private String flowsheetRowEpicId = null;
+    private String flowsheetRowEpicId;
 
     /**
      * Data type of value.
