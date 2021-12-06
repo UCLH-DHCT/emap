@@ -67,7 +67,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * \brief The code used by the source system to identify the observation type.
      *
-     * The code used by the hospital application to identify the observation type. This is the flowsheetRowEpicId retrieved
+     * The code used by the hospital application to identify the observation type. For flowsheets this is the flowsheetRowEpicId retrieved
      * from caboodle and also referred to as internal ID. This ID in conjunction with the interfaceId uniquely identifies the
      * observation type.
      */
