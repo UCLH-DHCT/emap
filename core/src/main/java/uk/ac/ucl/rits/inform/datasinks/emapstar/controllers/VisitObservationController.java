@@ -205,7 +205,6 @@ public class VisitObservationController {
      * @return VisitObservationType
      * @throws RequiredDataMissingException if both identifiers are null
      */
-    @CacheEvict(value = "visitObservationType", allEntries = true)
     public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeClearingCache(
             String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom)
             throws RequiredDataMissingException {
@@ -218,7 +217,6 @@ public class VisitObservationController {
      *
      * @param vVisitObservationType VisitObservationType to be deleted as object for repository deletion
      */
-    @CacheEvict(value = "visitObservationType", allEntries = true)
     public void deleteVisitObservationType(VisitObservationType vVisitObservationType) {
         visitObservationTypeRepo.delete(vVisitObservationType);
     }
@@ -255,7 +253,7 @@ public class VisitObservationController {
      */
     private RowState<VisitObservationType, VisitObservationTypeAudit> createNewType(String interfaceId,
             String idInApplication, String observationType, Instant validFrom, Instant storedFrom) {
-        VisitObservationType type = new VisitObservationType(interfaceId, idInApplication, observationType, validFrom, storedFrom);
+        VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
         return new RowState<>(type, validFrom, storedFrom, true);
     }
 

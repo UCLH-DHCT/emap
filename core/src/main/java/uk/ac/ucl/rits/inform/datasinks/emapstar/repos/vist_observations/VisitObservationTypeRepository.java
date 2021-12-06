@@ -49,21 +49,6 @@ public interface VisitObservationTypeRepository extends CrudRepository<VisitObse
     Optional<VisitObservationType> findByIdInApplicationAndSourceObservationType(String idInApplication, String sourceObservationType);
 
     /**
-     * Searches for observation types with both interfaceId and idInApplication.
-     *
-     * @param interfaceId     Identifier for VisitObservationType.
-     * @param idInApplication IdInApplication for VisitObservationType.
-     * @return Visit Observation Type with interfaceId and idInApplication as specified, if exists.
-     * @throws RequiredDataMissingException if either interfaceId or idInApplication is not specified.
-     */
-    default Optional<VisitObservationType> findByIdentifiers(String interfaceId, String idInApplication) throws RequiredDataMissingException {
-        if (interfaceId == null || idInApplication == null) {
-            throw new RequiredDataMissingException("Both interface identifier and id in application are required");
-        }
-        return findByInterfaceIdAndIdInApplication(interfaceId, idInApplication);
-    }
-
-    /**
      * Finds a Visit Observation Type that is specified by both an interface identifier and a flowsheet row EPIC id.
      *
      * @param interfaceId     Identifier for VisitObservationType.
