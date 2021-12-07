@@ -172,8 +172,7 @@ public class VisitObservationController {
      * @return True if mapping between interfaceId and idInApplication already exists, otherwise false.
      */
     public boolean mappingExists(String interfaceId, String idInApplication) {
-        VisitObservationType vot = visitObservationTypeRepo.findByInterfaceIdAndIdInApplication(interfaceId, idInApplication).orElse(null);
-        return vot != null;
+        return visitObservationTypeRepo.findByInterfaceIdAndIdInApplication(interfaceId, idInApplication).isPresent();
     }
 
     /**
