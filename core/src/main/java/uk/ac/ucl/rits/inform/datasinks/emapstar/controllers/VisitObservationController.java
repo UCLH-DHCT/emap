@@ -189,7 +189,7 @@ public class VisitObservationController {
         return visitObservationTypeRepo
                 .find(interfaceId, idInApplication, observationType)
                 .orElseGet(() -> {
-                    VisitObservationType type = new VisitObservationType(interfaceId, idInApplication, observationType, validFrom, storedFrom);
+                    VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
                     return visitObservationTypeRepo.save(type);
                 });
     }
