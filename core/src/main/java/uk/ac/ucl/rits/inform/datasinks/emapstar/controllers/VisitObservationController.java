@@ -60,6 +60,9 @@ public class VisitObservationController {
 
     /**
      * Process metadata, clearing existing cache for all visit observations.
+     * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
+     * ii) containing lots of naming data for the particular VisitObservationType. This function decides what kind of
+     * metadata is handled and how it should therefore be processed.
      * @param msg        flowsheet metadata
      * @param storedFrom time that star started processing the message
      * @throws java.util.NoSuchElementException if the VisitObservationTypes that a mapping message is referring to cannot be found
@@ -96,9 +99,7 @@ public class VisitObservationController {
     }
 
     /**
-     * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
-     * ii) containing lots of naming data for the particular VisitObservationType.
-     *
+     * Processing mapping metadata, as opposed to naming metadata.
      * @param msg        Flowsheet metadata message containing mapping information
      * @param storedFrom When this information was first processed in Star.
      * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
