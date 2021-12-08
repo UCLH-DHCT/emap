@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -260,4 +261,17 @@ public class InterchangeMessageFactory {
 
         return orderReader.readValue(getClass().getResourceAsStream(overridingPath));
     }
+
+    /**
+     * Build location metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange message
+     * @throws IOException if reading failed
+     */
+    public ClimbSequenceMsg getClimbSequenceMsg(final String fileName) throws IOException {
+        String resourcePath = "/ClimbSequenceMsg/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<ClimbSequenceMsg>() {});
+    }
+
 }

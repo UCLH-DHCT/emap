@@ -13,7 +13,11 @@ public enum EmapDataSource {
     /**
      * The message queue for database extracts.
      */
-    DATABASE_EXTRACTS("databaseExtracts");
+    DATABASE_EXTRACTS("databaseExtracts"),
+    /**
+     * The message queue for data relating to non-core projects, eg. HOCI.
+     */
+    EXTENSION_PROJECTS("extensionProjects");
 
     private final String queueName;
 
