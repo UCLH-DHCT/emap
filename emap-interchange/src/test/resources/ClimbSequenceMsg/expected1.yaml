@@ -1,0 +1,8 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg"
+sourceSystem: "CLIMB"
+processingStartTime: null
+fastaHeader: "Something"
+sequence: "AGCUNAGNUGACGNAGCGN"
+labSpecimenNumber: "SpecimenNumber"
+cogId: "LOND-555C22B"
+pheId: "H2111111268"
