@@ -46,10 +46,10 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
 
 
     private void assertMetadataFields(VisitObservationType type, Instant validFrom) {
-        assertEquals("R HPSC IDG SW PRESENT", type.getName());
-        assertEquals("Social Work Team Member", type.getDisplayName());
+        assertEquals("R TERLIPRESSIN VOLUME", type.getName());
+        assertEquals("Volume (mL) Terlipressin", type.getDisplayName());
         assertEquals("*Unknown", type.getDescription());
-        assertEquals("String Type", type.getPrimaryDataType());
+        assertEquals("Numeric Type", type.getPrimaryDataType());
         assertEquals(validFrom, type.getValidFrom());
     }
 
@@ -88,6 +88,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getInterfaceId());
         assertNotNull(visitObservationType.getIdInApplication());
+        assertMetadataFields(visitObservationType, flowsheetMetadata.getCreationInstant());
     }
 
     /**

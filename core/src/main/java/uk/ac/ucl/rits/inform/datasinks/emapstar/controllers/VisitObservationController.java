@@ -77,25 +77,26 @@ public class VisitObservationController {
         // if both IDs are present, it's a mapping metadata message (as opposed to data for observation type)
         if (msg.getInterfaceId() != null && msg.getFlowsheetRowEpicId() != null) {
             processMappingMessage(msg, storedFrom);
-        }
-        RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(
-                msg.getInterfaceId(), msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
-        VisitObservationType observationType = typeState.getEntity();
-        // Update metadata with usable information
-        Instant messageValidFrom = msg.getLastUpdatedInstant();
-        Instant entityValidFrom = observationType.getValidFrom();
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getName(), observationType.getName(), observationType::setName, messageValidFrom, entityValidFrom);
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getDisplayName(), observationType.getDisplayName(), observationType::setDisplayName, messageValidFrom, entityValidFrom);
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getDescription(), observationType.getDescription(), observationType::setDescription, messageValidFrom, entityValidFrom);
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getValueType(), observationType.getPrimaryDataType(), observationType::setPrimaryDataType, messageValidFrom, entityValidFrom);
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getCreationInstant(), observationType.getCreationTime(), observationType::setCreationTime, messageValidFrom, entityValidFrom);
+        } else {
+            RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(
+                    msg.getInterfaceId(), msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+            VisitObservationType observationType = typeState.getEntity();
+            // Update metadata with usable information
+            Instant messageValidFrom = msg.getLastUpdatedInstant();
+            Instant entityValidFrom = observationType.getValidFrom();
+            typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                    msg.getName(), observationType.getName(), observationType::setName, messageValidFrom, entityValidFrom);
+            typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                    msg.getDisplayName(), observationType.getDisplayName(), observationType::setDisplayName, messageValidFrom, entityValidFrom);
+            typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                    msg.getDescription(), observationType.getDescription(), observationType::setDescription, messageValidFrom, entityValidFrom);
+            typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                    msg.getValueType(), observationType.getPrimaryDataType(), observationType::setPrimaryDataType, messageValidFrom, entityValidFrom);
+            typeState.assignIfCurrentlyNullOrNewerAndDifferent(
+                    msg.getCreationInstant(), observationType.getCreationTime(), observationType::setCreationTime, messageValidFrom, entityValidFrom);
 
-        typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+            typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        }
     }
 
     /**
@@ -134,7 +135,7 @@ public class VisitObservationController {
                 deleteVisitObservationType(votEpic);
             }
             votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-        } else {
+        } else { // state where votEpic exists and votCaboodle doesn't
             VisitObservationType votEpic = votEpicState.getEntity();
             votEpicState.assignIfDifferent(msg.getFlowsheetRowEpicId(), votEpic.getIdInApplication(), votEpic::setIdInApplication);
             votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
