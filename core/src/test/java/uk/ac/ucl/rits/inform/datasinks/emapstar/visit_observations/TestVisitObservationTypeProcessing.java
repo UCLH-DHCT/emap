@@ -114,7 +114,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Sql("/test_files/visit_observation_type_processing/ot_caboodle.sql")
     void testCreateVisitObservationTypeFromEpicAndCaboodle() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
-        List vots = getAllEntities(visitObservationTypeRepository);
+        List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(2, vots.size());
     }
 
