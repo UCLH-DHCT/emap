@@ -25,7 +25,6 @@ import java.time.Instant;
 
 /**
  * Interactions with observation visits.
- *
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
@@ -75,7 +74,7 @@ public class VisitObservationController {
         if (msg.getInterfaceId() != null && msg.getFlowsheetRowEpicId() != null) {
             processMappingMessage(msg, storedFrom);
         }
-        RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(
+        RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationTypeState(
                 msg.getInterfaceId(), msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
         VisitObservationType observationType = typeState.getEntity();
         // Update metadata with usable information
@@ -98,14 +97,13 @@ public class VisitObservationController {
     /**
      * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
      * ii) containing lots of naming data for the particular VisitObservationType.
-     *
      * @param msg        Flowsheet metadata message containing mapping information
      * @param storedFrom When this information was first processed in Star.
      * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
      */
     public void processMappingMessage(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
         if (mappingExists(msg.getInterfaceId(), msg.getFlowsheetRowEpicId())) {
-             return;
+            return;
         }
         RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
                 .find(null, msg.getFlowsheetRowEpicId(), msg.getSourceObservationType())
@@ -116,7 +114,7 @@ public class VisitObservationController {
                 .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
                 .orElse(null);
         if (votCaboodleState == null && votEpicState == null) {
-            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationType(msg.getInterfaceId(),
+            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeState(msg.getInterfaceId(),
                     msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
             vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
         } else if (votCaboodleState != null) {
@@ -139,10 +137,10 @@ public class VisitObservationController {
             votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
         }
     }
+
     /**
      * Create, update or delete a flowsheet, saving the visit observation to the cache.
      * Will also create a new VisitObservationType if it doesn't already exist.
-     *
      * @param msg        flowsheet
      * @param visit      hospital visit
      * @param storedFrom time that emap-core started processing the message
@@ -153,11 +151,10 @@ public class VisitObservationController {
         if (msg.getValueType() == null) {
             throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
-        RowState<VisitObservationType, VisitObservationTypeAudit> typeState = getOrCreateObservationType(
+        VisitObservationType observationType = self.getOrCreatePersistedObservationType(
                 msg.getInterfaceId(), msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
-        typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
 
-        RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, typeState.getEntity(), storedFrom);
+        RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
         if (flowsheetState.messageShouldBeUpdated(msg.getLastUpdatedInstant())) {
             updateVisitObservation(msg, flowsheetState);
             flowsheetState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
@@ -166,7 +163,6 @@ public class VisitObservationController {
 
     /**
      * If mapping between flowsheet row EPIC id and interface id already exists, nothing (?) needs to change.
-     *
      * @param interfaceId     Identifier of observation type.
      * @param idInApplication IdInApplication of observation type.
      * @return True if mapping between interfaceId and idInApplication already exists, otherwise false.
@@ -176,26 +172,30 @@ public class VisitObservationController {
     }
 
     /**
-     * Get existing observation type or create, adding to cache.
-     *
-     * @param idInApplication Id of the observation in the application (flowsheet row epic ID)
+     * Get or create visit observation type, persisting and caching the output of this method.
+     * @param idInApplication Id of the observation in the application (e.g. flowsheet row epic ID)
      * @param interfaceId     Id of observation type in HL messages
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
-     * @return VisitObservationType
+     * @return persisted VisitObservationType
      * @throws RequiredDataMissingException if both identifiers are missing
      */
     @Cacheable(value = "visitObservationType", key = "{ #interfaceId, #idInApplication, #observationType }")
-    public RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeFromCache(
+    public VisitObservationType getOrCreatePersistedObservationType(
             String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom)
             throws RequiredDataMissingException {
-        return getOrCreateObservationType(interfaceId, idInApplication, observationType, validFrom, storedFrom);
+        return visitObservationTypeRepo
+                .find(interfaceId, idInApplication, observationType)
+                .orElseGet(() -> {
+                    VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
+                    return visitObservationTypeRepo.save(type);
+                });
     }
+
     /**
      * Deletes VisitObservationType that was created in the absence of mapping information. Once mapping information is
      * present, the metadata VisitObservationType will be updated instead and the key information replaced respectively.
-     *
      * @param vVisitObservationType VisitObservationType to be deleted as object for repository deletion
      */
     public void deleteVisitObservationType(VisitObservationType vVisitObservationType) {
@@ -205,7 +205,6 @@ public class VisitObservationController {
     /**
      * Retrieves the existing information if visit observation type already exists, otherwise creates a new visit
      * observation type.
-     *
      * @param idInApplication Flowsheet row EPIC identifier
      * @param interfaceId     Interface id
      * @param observationType Type of visit observation
@@ -214,28 +213,28 @@ public class VisitObservationController {
      * @return RowState<VisitObservationType, VisitObservationTypeAudit> containing either existing or newly create repo information
      * @throws RequiredDataMissingException if both identifiers are null
      */
-    private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationType(
+    private RowState<VisitObservationType, VisitObservationTypeAudit> getOrCreateObservationTypeState(
             String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom)
             throws RequiredDataMissingException {
         return visitObservationTypeRepo
                 .find(interfaceId, idInApplication, observationType)
                 .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
-                .orElseGet(() -> new RowState<>(createNewType(interfaceId, idInApplication, observationType, validFrom,
-                        storedFrom), validFrom, storedFrom, true));
+                .orElseGet(() -> createNewTypeInState(interfaceId, idInApplication, observationType, validFrom, storedFrom));
     }
 
     /**
      * Create a minimal visit observation type.
-     * @param interfaceId     Interface id
-     * @param idInApplication Id of the observation in the application (e.g. flowsheet row epic ID)
-     * @param observationType type of observation (e.g. flowsheet)
-     * @param validFrom       Timestamp from which information valid from
-     * @param storedFrom      time that emap-core started processing the message
+     * @param idInApplication       Id of the observation in the application (e.g. flowsheet row epic ID)
+     * @param interfaceId           hl7 interface id
+     * @param sourceObservationType type of visit observation
+     * @param validFrom             Timestamp from which information valid from
+     * @param storedFrom            time that emap-core started processing the message
      * @return minimal VisitObservationType wrapped in row state
      */
-    private VisitObservationType createNewType(String interfaceId,
-            String idInApplication, String observationType, Instant validFrom, Instant storedFrom) {
-        return new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
+    private RowState<VisitObservationType, VisitObservationTypeAudit> createNewTypeInState(
+            String idInApplication, String interfaceId, String sourceObservationType, Instant validFrom, Instant storedFrom) {
+        VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, sourceObservationType, validFrom, storedFrom);
+        return new RowState<>(type, validFrom, storedFrom, true);
     }
 
     /**
