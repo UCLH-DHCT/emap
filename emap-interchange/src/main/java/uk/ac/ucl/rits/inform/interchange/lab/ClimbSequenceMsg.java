@@ -13,7 +13,7 @@ import java.time.Instant;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class ClimbSequenceMsg extends EmapOperationMessage implements Serializable {
 
-    private Instant processingStartTime;
+    private Instant sequenceValidFrom;
     private String fastaHeader;
     private String sequence;
     private String labSpecimenNumber;
