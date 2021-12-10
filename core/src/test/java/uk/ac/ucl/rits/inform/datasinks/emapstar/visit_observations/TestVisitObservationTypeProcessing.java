@@ -45,12 +45,12 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     private static final Instant LATER_TIME = Instant.parse("2021-12-23T00:00:00Z");
     private static final Instant VALID_FROM = Instant.parse("2020-10-30T00:57:31.897Z");
 
-    private void assertMetadataFields(VisitObservationType type, Instant validFrom) {
+    private void assertMetadataFields(VisitObservationType type) {
         assertEquals("R TERLIPRESSIN VOLUME", type.getName());
         assertEquals("Volume (mL) Terlipressin", type.getDisplayName());
         assertEquals("*Unknown", type.getDescription());
         assertEquals("Numeric Type", type.getPrimaryDataType());
-        assertEquals(validFrom, type.getValidFrom());
+        assertEquals(VALID_FROM, type.getValidFrom());
     }
 
     @BeforeEach
@@ -88,7 +88,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getInterfaceId());
         assertNotNull(visitObservationType.getIdInApplication());
-        assertMetadataFields(visitObservationType, VALID_FROM);
+        assertMetadataFields(visitObservationType);
     }
 
     /**
@@ -127,7 +127,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Sql("/test_files/visit_observation_type_processing/ot_epic.sql")
     void testNotCreateVisitObservationTypeIfExistsEpic() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetEpic);
-        List vots = getAllEntities(visitObservationTypeRepository);
+        List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
     }
 
@@ -140,10 +140,10 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Sql("/test_files/visit_observation_type_processing/ot_caboodle.sql")
     void testFillIdInApplication() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetMpiMetadata);
-        List vots = getAllEntities(visitObservationTypeRepository);
+        List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
-        assertEquals(INTERFACE_ID, ((VisitObservationType)vots.get(0)).getInterfaceId());
-        assertEquals(ID_IN_APPLICATION, ((VisitObservationType)vots.get(0)).getIdInApplication());
+        assertEquals(INTERFACE_ID, vots.get(0).getInterfaceId());
+        assertEquals(ID_IN_APPLICATION, vots.get(0).getIdInApplication());
     }
 
     /**
@@ -162,12 +162,12 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     @Sql("/test_files/visit_observation_type_processing/complex.sql")
     void testMappingClaritySecondOT() throws EmapOperationMessageProcessingException {
         processSingleMessage(flowsheetMpiMetadata);
-        List vots = getAllEntities(visitObservationTypeRepository);
+        List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
-        assertEquals(((VisitObservationType)vots.get(0)).getInterfaceId(), INTERFACE_ID);
-        assertEquals(((VisitObservationType)vots.get(0)).getIdInApplication(), ID_IN_APPLICATION);
+        assertEquals(vots.get(0).getInterfaceId(), INTERFACE_ID);
+        assertEquals(vots.get(0).getIdInApplication(), ID_IN_APPLICATION);
         List<VisitObservation> vos = visitObservationRepository.findAllByHospitalVisitIdEncounter(defaultEncounter);
-        assertEquals(vos.get(1).getVisitObservationTypeId().getVisitObservationTypeId(), ((VisitObservationType)vots.get(0)).getVisitObservationTypeId());
+        assertEquals(vos.get(1).getVisitObservationTypeId().getVisitObservationTypeId(), vots.get(0).getVisitObservationTypeId());
     }
 
     /**
@@ -182,9 +182,9 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         flowsheetMetadata.setDescription(newDescription);
         flowsheetMetadata.setLastUpdatedInstant(LATER_TIME);
         processSingleMessage(flowsheetMetadata);
-        List vots = getAllEntities(visitObservationTypeRepository);
+        List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
-        assertEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
+        assertEquals(newDescription, vots.get(0).getDescription());
     }
 
     /**
@@ -199,8 +199,8 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
         flowsheetMetadata.setDescription(newDescription);
         flowsheetMetadata.setLastUpdatedInstant(EARLIER_TIME);
         processSingleMessage(flowsheetMetadata);
-        List vots = getAllEntities(visitObservationTypeRepository);
+        List<VisitObservationType> vots = getAllEntities(visitObservationTypeRepository);
         assertEquals(1, vots.size());
-        assertNotEquals(newDescription, ((VisitObservationType) vots.get(0)).getDescription());
+        assertNotEquals(newDescription, vots.get(0).getDescription());
     }
 }
