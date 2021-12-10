@@ -1,6 +1,6 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg"
 sourceSystem: "CLIMB"
-processingStartTime: null
+sequenceValidFrom: "2020-01-03T13:37:00.00Z"
 fastaHeader: "Something"
 sequence: "AGCUNAGNUGACGNAGCGN"
 labSpecimenNumber: "SpecimenNumber"
