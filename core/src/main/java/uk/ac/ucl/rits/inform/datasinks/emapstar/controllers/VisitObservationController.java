@@ -25,6 +25,7 @@ import java.time.Instant;
 
 /**
  * Interactions with observation visits.
+ *
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
@@ -62,6 +63,7 @@ public class VisitObservationController {
      * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
      * ii) containing lots of naming data for the particular VisitObservationType. This function decides what kind of
      * metadata is handled and how it should therefore be processed.
+     *
      * @param msg        flowsheet metadata
      * @param storedFrom time that star started processing the message
      * @throws java.util.NoSuchElementException if the VisitObservationTypes that a mapping message is referring to cannot be found
@@ -101,6 +103,7 @@ public class VisitObservationController {
     /**
      * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
      * ii) containing lots of naming data for the particular VisitObservationType.
+     *
      * @param msg        Flowsheet metadata message containing mapping information
      * @param storedFrom When this information was first processed in Star.
      * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
@@ -125,14 +128,7 @@ public class VisitObservationController {
             VisitObservationType votCaboodle = votCaboodleState.getEntity();
             votCaboodleState.assignIfDifferent(msg.getInterfaceId(), votCaboodle.getInterfaceId(), votCaboodle::setInterfaceId);
             if (votEpicState != null) {
-                VisitObservationType votEpic = votEpicState.getEntity();
-                for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
-                    RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, msg.getLastUpdatedInstant(),
-                            storedFrom, false);
-                    vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
-                    vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
-                }
-                deleteVisitObservationType(votEpic);
+                replaceVisitObservationType(votEpicState.getEntity(), votCaboodle, msg.getLastUpdatedInstant(), storedFrom);
             }
             votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
         } else { // state where votEpic exists and votCaboodle doesn't
@@ -179,6 +175,7 @@ public class VisitObservationController {
 
     /**
      * Get or create visit observation type, persisting and caching the output of this method.
+     *
      * @param idInApplication Id of the observation in the application
      * @param interfaceId     Id of observation type in HL messages
      * @param observationType type of observation (e.g. flowsheet)
@@ -210,6 +207,28 @@ public class VisitObservationController {
     }
 
     /**
+     * If two visit observation types had been created due to mapping information not being available at the time of creation,
+     * once one of them is replaced, the linking in visit observation referring to the EPIC visit observation type need to be
+     * replaced once information has been added to the caboodle visit observation type. After the linkage has been changed,
+     * the superfluous EPIC visit observation type is deleted.
+     *
+     * @param votEpic     Visit observation type generated through EPIC message, which needs to be deleted
+     * @param votCaboodle Visit observation type that is enriched with mapping information and replaces EPIC visit observation type in
+     *                    visit observations
+     * @param validFrom   When information is valid from
+     * @param storedFrom  When information was first processed in star
+     */
+    private void replaceVisitObservationType(VisitObservationType votEpic, VisitObservationType votCaboodle, Instant validFrom, Instant storedFrom) {
+        for (VisitObservation visit : visitObservationRepo.findAllByVisitObservationTypeId(votEpic)) {
+            RowState<VisitObservation, VisitObservationAudit> vState = new RowState<>(visit, validFrom,
+                    storedFrom, false);
+            vState.assignIfDifferent(votCaboodle, votEpic, vState.getEntity()::setVisitObservationTypeId);
+            vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
+        }
+        deleteVisitObservationType(votEpic);
+    }
+
+    /**
      * Retrieves the existing information if visit observation type already exists, otherwise creates a new visit
      * observation type.
      *
@@ -232,6 +251,7 @@ public class VisitObservationController {
 
     /**
      * Create a minimal visit observation type.
+     *
      * @param idInApplication       Id of the observation in the application
      * @param interfaceId           hl7 interface id
      * @param sourceObservationType type of visit observation
@@ -247,6 +267,7 @@ public class VisitObservationController {
 
     /**
      * Get or create existing observation entity.
+     *
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -263,6 +284,7 @@ public class VisitObservationController {
 
     /**
      * Create minimal visit observation wrapped in RowState.
+     *
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -278,6 +300,7 @@ public class VisitObservationController {
 
     /**
      * Update observation state from Flowsheet message.
+     *
      * @param msg              flowsheet
      * @param observationState observation entity wrapped in RowState
      * @throws RequiredDataMissingException if data type is not recognised for flowsheets
