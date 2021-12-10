@@ -43,7 +43,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
     private static final String FLOWSHEET = "flowsheet";
     private static final Instant EARLIER_TIME = Instant.parse("1991-01-01T00:00:00Z");
     private static final Instant LATER_TIME = Instant.parse("2021-12-23T00:00:00Z");
-
+    private static final Instant VALID_FROM = Instant.parse("2020-10-30T00:57:31.897Z");
 
     private void assertMetadataFields(VisitObservationType type, Instant validFrom) {
         assertEquals("R TERLIPRESSIN VOLUME", type.getName());
@@ -88,7 +88,7 @@ public class TestVisitObservationTypeProcessing extends MessageProcessingBase {
                 FLOWSHEET).orElseThrow();
         assertNull(visitObservationType.getInterfaceId());
         assertNotNull(visitObservationType.getIdInApplication());
-        assertMetadataFields(visitObservationType, flowsheetMetadata.getCreationInstant());
+        assertMetadataFields(visitObservationType, VALID_FROM);
     }
 
     /**

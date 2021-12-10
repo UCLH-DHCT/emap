@@ -94,7 +94,8 @@ public class VisitObservationController {
             typeState.assignIfCurrentlyNullOrNewerAndDifferent(
                     msg.getCreationInstant(), observationType.getCreationTime(), observationType::setCreationTime, messageValidFrom, entityValidFrom);
 
-        typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+            typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        }
     }
 
     /**
@@ -117,7 +118,7 @@ public class VisitObservationController {
                 .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
                 .orElse(null);
         if (votCaboodleState == null && votEpicState == null) {
-            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationType(msg.getInterfaceId(),
+            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeState(msg.getInterfaceId(),
                     msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
             vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
         } else if (votCaboodleState != null) {
@@ -226,7 +227,7 @@ public class VisitObservationController {
         return visitObservationTypeRepo
                 .find(interfaceId, idInApplication, observationType)
                 .map(vot -> new RowState<>(vot, validFrom, storedFrom, false))
-                .orElseGet(() -> createNewTypeInState(interfaceId, idInApplication, observationType, validFrom, storedFrom));
+                .orElseGet(() -> createNewTypeInState(idInApplication, interfaceId, observationType, validFrom, storedFrom));
     }
 
     /**
