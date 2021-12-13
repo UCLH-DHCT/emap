@@ -25,9 +25,6 @@ public interface VisitObservationTypeRepository extends CrudRepository<VisitObse
      */
     default Optional<VisitObservationType> find(
             String interfaceId, String idInApplication, String observationType) throws RequiredDataMissingException {
-        if (interfaceId == null && idInApplication == null) {
-            throw new RequiredDataMissingException("Both the interface identifier and the id in application can't be null");
-        }
         if (interfaceId != null) {
             return findByInterfaceIdAndSourceObservationType(interfaceId, observationType);
         }
