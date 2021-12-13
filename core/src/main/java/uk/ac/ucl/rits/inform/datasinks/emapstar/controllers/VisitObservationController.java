@@ -101,44 +101,6 @@ public class VisitObservationController {
     }
 
     /**
-     * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
-     * ii) containing lots of naming data for the particular VisitObservationType.
-     *
-     * @param msg        Flowsheet metadata message containing mapping information
-     * @param storedFrom When this information was first processed in Star.
-     * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
-     */
-    public void processMappingMessage(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
-        if (mappingExists(msg.getInterfaceId(), msg.getFlowsheetId())) {
-            return;
-        }
-        RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
-                .find(null, msg.getFlowsheetId(), msg.getSourceObservationType())
-                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                .orElse(null);
-        RowState<VisitObservationType, VisitObservationTypeAudit> votEpicState = visitObservationTypeRepo
-                .find(msg.getInterfaceId(), null, msg.getSourceObservationType())
-                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                .orElse(null);
-        if (votCaboodleState == null && votEpicState == null) {
-            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeState(msg.getInterfaceId(),
-                    msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
-            vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-        } else if (votCaboodleState != null) {
-            VisitObservationType votCaboodle = votCaboodleState.getEntity();
-            votCaboodleState.assignIfDifferent(msg.getInterfaceId(), votCaboodle.getInterfaceId(), votCaboodle::setInterfaceId);
-            if (votEpicState != null) {
-                replaceVisitObservationType(votEpicState.getEntity(), votCaboodle, msg.getLastUpdatedInstant(), storedFrom);
-            }
-            votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-        } else { // state where votEpic exists and votCaboodle doesn't
-            VisitObservationType votEpic = votEpicState.getEntity();
-            votEpicState.assignIfDifferent(msg.getFlowsheetId(), votEpic.getIdInApplication(), votEpic::setIdInApplication);
-            votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
-        }
-    }
-
-    /**
      * Create, update or delete a flowsheet, saving the visit observation to the cache.
      * Will also create a new VisitObservationType if it doesn't already exist.
      *
@@ -200,12 +162,49 @@ public class VisitObservationController {
      * Deletes VisitObservationType that was created in the absence of mapping information. Once mapping information is
      * present, the metadata VisitObservationType will be updated instead and the key information replaced respectively.
      *
-     * @param vVisitObservationType VisitObservationType to be deleted as object for repository deletion
+     * @param visitObservationType VisitObservationType to be deleted as object for repository deletion
      */
     public void deleteVisitObservationType(VisitObservationType visitObservationType) {
         visitObservationTypeRepo.delete(visitObservationType);
     }
 
+    /**
+     * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
+     * ii) containing lots of naming data for the particular VisitObservationType.
+     *
+     * @param msg        Flowsheet metadata message containing mapping information
+     * @param storedFrom When this information was first processed in Star.
+     * @throws RequiredDataMissingException if relevant VisitObservationType(s) cannot be found
+     */
+    private void processMappingMessage(FlowsheetMetadata msg, Instant storedFrom) throws RequiredDataMissingException {
+        if (mappingExists(msg.getInterfaceId(), msg.getFlowsheetId())) {
+            return;
+        }
+        RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
+                .find(null, msg.getFlowsheetId(), msg.getSourceObservationType())
+                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
+                .orElse(null);
+        RowState<VisitObservationType, VisitObservationTypeAudit> votEpicState = visitObservationTypeRepo
+                .find(msg.getInterfaceId(), null, msg.getSourceObservationType())
+                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
+                .orElse(null);
+        if (votCaboodleState == null && votEpicState == null) {
+            RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeState(msg.getInterfaceId(),
+                    msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
+            vot.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        } else if (votCaboodleState != null) {
+            VisitObservationType votCaboodle = votCaboodleState.getEntity();
+            votCaboodleState.assignIfDifferent(msg.getInterfaceId(), votCaboodle.getInterfaceId(), votCaboodle::setInterfaceId);
+            if (votEpicState != null) {
+                replaceVisitObservationType(votEpicState.getEntity(), votCaboodle, msg.getLastUpdatedInstant(), storedFrom);
+            }
+            votCaboodleState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        } else { // state where votEpic exists and votCaboodle doesn't
+            VisitObservationType votEpic = votEpicState.getEntity();
+            votEpicState.assignIfDifferent(msg.getFlowsheetId(), votEpic.getIdInApplication(), votEpic::setIdInApplication);
+            votEpicState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
+        }
+    }
     /**
      * If two visit observation types had been created due to mapping information not being available at the time of creation,
      * once one of them is replaced, the linking in visit observation referring to the EPIC visit observation type need to be
