@@ -21,10 +21,9 @@ public interface VisitObservationTypeRepository extends CrudRepository<VisitObse
      * @param idInApplication Flowsheet row EPIC identifier
      * @param observationType type of observation from the source system
      * @return optional visit observation type
-     * @throws RequiredDataMissingException If neither identifiers are provided
      */
     default Optional<VisitObservationType> find(
-            String interfaceId, String idInApplication, String observationType) throws RequiredDataMissingException {
+            String interfaceId, String idInApplication, String observationType) {
         if (interfaceId != null) {
             return findByInterfaceIdAndSourceObservationType(interfaceId, observationType);
         }

@@ -180,14 +180,10 @@ public class VisitObservationController {
         if (mappingExists(msg.getInterfaceId(), msg.getFlowsheetRowEpicId())) {
             return;
         }
-        RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = visitObservationTypeRepo
-                .find(null, msg.getFlowsheetRowEpicId(), msg.getSourceObservationType())
-                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                .orElse(null);
-        RowState<VisitObservationType, VisitObservationTypeAudit> votEpicState = visitObservationTypeRepo
-                .find(msg.getInterfaceId(), null, msg.getSourceObservationType())
-                .map(vot -> new RowState<>(vot, msg.getLastUpdatedInstant(), storedFrom, false))
-                .orElse(null);
+        RowState<VisitObservationType, VisitObservationTypeAudit> votCaboodleState = getTypeStateOrNull(null, msg.getFlowsheetRowEpicId(),
+                msg.getLastUpdatedInstant(), msg.getCreationInstant(), msg.getSourceObservationType());
+        RowState<VisitObservationType, VisitObservationTypeAudit> votEpicState = getTypeStateOrNull(msg.getInterfaceId(), null,
+                msg.getLastUpdatedInstant(), msg.getCreationInstant(), msg.getSourceObservationType());
         if (votCaboodleState == null && votEpicState == null) {
             RowState<VisitObservationType, VisitObservationTypeAudit> vot = getOrCreateObservationTypeState(msg.getInterfaceId(),
                     msg.getFlowsheetRowEpicId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
@@ -225,6 +221,24 @@ public class VisitObservationController {
             vState.saveEntityOrAuditLogIfRequired(visitObservationRepo, visitObservationAuditRepo);
         }
         deleteVisitObservationType(votEpic);
+    }
+
+    /**
+     * Finds existing visit observation type wrapped in row state or returns null.
+     * @param interfaceId Interface identifier of visit observation type to be retrieved.
+     * @param idInApplication Flowsheet row EPIC identifier of the visit observation type to be retrieved.
+     * @param lastUpdated Last updated date for visit observation type to be retrieved
+     * @param storedFrom When required visit observation type was stored from
+     * @param sourceObservationType Source of required visit observation type
+     * @return Required VisitObservationType wrapped in RowState or Null if VisitObservationType does not exist yet
+     */
+    private RowState<VisitObservationType, VisitObservationTypeAudit> getTypeStateOrNull(String interfaceId, String idInApplication,
+                                                                                         Instant lastUpdated,
+                                                                                         Instant storedFrom, String sourceObservationType) {
+        return visitObservationTypeRepo
+                .find(interfaceId, idInApplication, sourceObservationType)
+                .map(vot -> new RowState<>(vot, lastUpdated, storedFrom, false))
+                .orElse(null);
     }
 
     /**
