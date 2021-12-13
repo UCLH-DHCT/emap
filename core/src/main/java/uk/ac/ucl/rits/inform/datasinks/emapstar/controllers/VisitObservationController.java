@@ -177,7 +177,7 @@ public class VisitObservationController {
      * Get or create visit observation type, persisting and caching the output of this method.
      *
      * @param idInApplication Id of the observation in the application
-     * @param interfaceId     Id of observation type in HL messages
+     * @param interfaceId     Id of observation type in HL7 messages
      * @param observationType type of observation (e.g. flowsheet)
      * @param validFrom       Timestamp from which information valid from
      * @param storedFrom      time that emap-core started processing the message
