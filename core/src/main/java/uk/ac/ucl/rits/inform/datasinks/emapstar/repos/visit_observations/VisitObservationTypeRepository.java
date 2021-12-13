@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations;
 
 import org.springframework.data.repository.CrudRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.visit_recordings.VisitObservationType;
 
 import java.util.Optional;
