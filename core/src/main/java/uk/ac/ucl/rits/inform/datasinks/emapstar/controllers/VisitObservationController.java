@@ -202,8 +202,8 @@ public class VisitObservationController {
      *
      * @param vVisitObservationType VisitObservationType to be deleted as object for repository deletion
      */
-    public void deleteVisitObservationType(VisitObservationType vVisitObservationType) {
-        visitObservationTypeRepo.delete(vVisitObservationType);
+    public void deleteVisitObservationType(VisitObservationType visitObservationType) {
+        visitObservationTypeRepo.delete(visitObservationType);
     }
 
     /**
