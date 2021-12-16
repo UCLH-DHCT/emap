@@ -76,7 +76,7 @@ public class FlowsheetFactory {
      * @param recordedDateTime Event datetime of the message
      * @param orderObs         ORU R01 order observations from the HL7 message
      * @return Flowsheet entities built from ORU R01 order observations
-     * @throws HL7Exception
+     * @throws HL7Exception when Flowsheet HL7 message could not be parsed
      */
     private List<Flowsheet> buildAllFlowsheets(
             final String idsUnid, final PID pid, final MSH msh, final PV1 pv1,
@@ -130,7 +130,7 @@ public class FlowsheetFactory {
 
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
-        flowsheet.setFlowsheetRowEpicId(observationId);
+        flowsheet.setInterfaceId(observationId);
 
         setFlowsheetValueAndValueType(subMessageSourceId, flowsheet, obx);
 

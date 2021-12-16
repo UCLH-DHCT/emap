@@ -91,7 +91,7 @@ class TestFlowsheetFactory {
 
     @Test
     void testVitalSignIdentifier() {
-        String result = firstFlowsheet.getFlowsheetRowEpicId();
+        String result = firstFlowsheet.getInterfaceId();
         assertEquals("5", result);
     }
 
