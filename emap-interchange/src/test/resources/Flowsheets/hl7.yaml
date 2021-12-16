@@ -1,19 +1,19 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "5"
+  interfaceId: "5"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "140/90"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "6"
+  interfaceId: "6"
   valueType: "NUMERIC"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 102.2
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "8"
+  interfaceId: "8"
   valueType: "NUMERIC"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -24,7 +24,7 @@
     status: "SAVE"
     value: "patient was running really fast (on a hamster wheel)"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "10"
+  interfaceId: "10"
   valueType: "NUMERIC"
   numericValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -39,27 +39,27 @@
     status: "SAVE"
     value: "%"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "6466"
+  interfaceId: "6466"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "A"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "28315"
+  interfaceId: "28315"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "DELETE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "3040109304"
+  interfaceId: "3040109304"
   valueType: "TEXT"
   stringValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Supplemental Oxygen\nextra line"
 - "@class": "uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet"
-  flowsheetRowEpicId: "40445"
+  interfaceId: "40445"
   valueType: "DATE"
   dateValue:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
