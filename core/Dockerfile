@@ -34,7 +34,9 @@ RUN source /app/set_mvn_proxy.sh; mvn install -f /app/Emap-Interchange/pom.xml
 # Set up Emap-Core
 WORKDIR /app/Emap-Core
 COPY Emap-Core/src/ /app/Emap-Core/src/
-# RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
+# Create final jar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
-# -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
+# Temporarily remove the unused log4j version which is downloaded from spring boot dependencies
+RUN source /app/set_mvn_proxy.sh; mvn dependency:purge-local-repository \
+    -DmanualInclude=org.apache.logging.log4j:log4j-api:2.13.3,org.apache.logging.log4j:log4j-core:2.13.3,org.apache.logging.log4j:log4j-to-slf4j:2.13.3
 CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/Emap-Core.jar"]
