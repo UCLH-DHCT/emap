@@ -18,6 +18,8 @@
     <apache.commons.csv.version>1.6</apache.commons.csv.version>
     <inform-db.version>2.3</inform-db.version>
     <emap-interchange.version>2.3</emap-interchange.version>
+    <!-- manually pin log4j version to avoid log4shell exploit -->
+    <log4j2.version>2.17.0</log4j2.version>
   </properties>
 
   <profiles>
