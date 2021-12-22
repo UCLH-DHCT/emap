@@ -72,6 +72,12 @@ public interface EmapOperationMessageProcessor {
     void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
 
     /**
+     * @param msg the ProblemList message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(ProblemList msg) throws EmapOperationMessageProcessingException;
+
+    /**
      * @param msg the FlowsheetMetadata message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
