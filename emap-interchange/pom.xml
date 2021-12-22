@@ -14,7 +14,8 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<checkstyle.version>8.32</checkstyle.version>
 		<checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
-		<jackson.annotations.version>2.9.9</jackson.annotations.version>
+		<!-- manually pin log4j version to avoid log4shell exploit -->
+		<log4j2.version>2.17.0</log4j2.version>
 	</properties>
 
 	<parent>
@@ -27,23 +28,19 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
-			<version>${jackson.annotations.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.annotations.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-yaml</artifactId>
-			<version>${jackson.annotations.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>${jackson.annotations.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -58,10 +55,10 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
+		<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+		</dependency>
     </dependencies>
 
 	<build>
