@@ -100,4 +100,15 @@ class TestPatientInfections extends TestHl7MessageStream {
         assertEquals(1, infections.size());
         assertNull(infections.get(0).getInfectionAdded());
     }
+
+    /**
+     * Given that patient infection added date time is earlier than service start
+     * When the message is processed
+     * Then the infection should not be added
+     */
+    @Test
+    void testEarlierInfectionSkipped() throws Exception {
+        List<PatientInfection> infections = getAllInfections("earlierInfection");
+        assertTrue(infections.isEmpty());
+    }
 }
