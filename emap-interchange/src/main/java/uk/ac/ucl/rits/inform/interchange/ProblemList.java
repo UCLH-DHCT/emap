@@ -50,10 +50,14 @@ public class ProblemList extends EmapOperationMessage implements Serializable {
     private InterchangeValue<Instant> problemResolved = InterchangeValue.unknown();
 
     /**
-     * Onset of Problem known at...
+     * Onset of problem known at...
      */
     private InterchangeValue<LocalDate> problemOnset = InterchangeValue.unknown();
 
+    /**
+     * Status of problem list...
+     */
+    private InterchangeValue<String> status = InterchangeValue.unknown();
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
