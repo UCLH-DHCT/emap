@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class Problem extends EmapOperationMessage implements Serializable {
+public class PatientProblem extends EmapOperationMessage implements Serializable {
     private String mrn;
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
     /**
