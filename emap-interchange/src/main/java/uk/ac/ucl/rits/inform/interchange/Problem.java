@@ -11,14 +11,17 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Interchange format of a ProblemList message.
+ * Interchange format of a PatientProblem message.
+ * <p>
+ * PatientProblems are similar to PatientInfections in that they have a start date from which they have been diagnosed
+ * and they can change (be updated or deleted) over time.
  * @author Anika Cawthorn
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class ProblemList extends EmapOperationMessage implements Serializable {
+public class Problem extends EmapOperationMessage implements Serializable {
     private String mrn;
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
     /**
@@ -58,6 +61,11 @@ public class ProblemList extends EmapOperationMessage implements Serializable {
      * Status of problem list...
      */
     private InterchangeValue<String> status = InterchangeValue.unknown();
+
+    /**
+     * Notes in relation to problem list...
+     */
+    private InterchangeValue<String> notes = InterchangeValue.unknown();
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
