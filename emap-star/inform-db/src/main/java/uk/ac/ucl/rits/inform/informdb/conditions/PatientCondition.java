@@ -22,7 +22,7 @@ import java.time.LocalDate;
 /**
  * \brief Represents patient conditions that start and can end.
  *
- * Currently envisaged as storing infection control's patient infection information and problem lists.
+ * Currently envisaged as storing infection control's patient infection information and problems from problem lists.
  * @author Anika Cawthorn
  * @author Stef Piatek
  */
