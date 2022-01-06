@@ -329,7 +329,7 @@ public class PersonController {
     @Transactional
     public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
             throws IncompatibleDatabaseStateException, RequiredDataMissingException {
-        if (mrnExists(msg.getMrn())) {
+        if (msg.getMrn() != null && mrnExists(msg.getMrn())) {
             throw new IncompatibleDatabaseStateException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
         }
         Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
