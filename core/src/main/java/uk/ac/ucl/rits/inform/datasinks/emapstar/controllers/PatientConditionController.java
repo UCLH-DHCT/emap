@@ -14,6 +14,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
@@ -101,11 +102,12 @@ public class PatientConditionController {
      * Process patient condition message.
      * @param msg        message
      * @param mrn        patient id
+     * @param visit      hospital visit
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final PatientInfection msg, Mrn mrn, final Instant storedFrom)
+    public void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         ConditionType conditionType = self.getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
@@ -116,7 +118,7 @@ public class PatientConditionController {
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType, storedFrom);
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
-            updatePatientCondition(msg, patientCondition);
+            updatePatientCondition(msg, visit, patientCondition);
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
@@ -254,10 +256,12 @@ public class PatientConditionController {
     /**
      * Update patient condition from patient infection message.
      * @param msg            patient infection message
+     * @param visit          hospital visit
      * @param conditionState patient condition entity to update
      */
-    private void updatePatientCondition(PatientInfection msg, RowState<PatientCondition, PatientConditionAudit> conditionState) {
+    private void updatePatientCondition(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition, PatientConditionAudit> conditionState) {
         PatientCondition condition = conditionState.getEntity();
+        conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getInfectionResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
