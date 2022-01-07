@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
@@ -41,6 +42,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     PatientConditionAuditRepository patientConditionAuditRepository;
     @Autowired
     ConditionTypeRepository conditionTypeRepository;
+    @Autowired
+    HospitalVisitRepository hospitalVisitRepository;
 
     private List<PatientInfection> hooverMessages;
     private PatientInfection hl7Mumps;
@@ -95,6 +98,23 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         assertEquals(2, mrns.size());
         assertEquals("clarity", mrns.get(0).getSourceSystem());
+    }
+
+    /**
+     * Given that no hospital visits exist in EMAP and each infection processed has a visit number
+     * When infection messages are processed
+     * Then hospital visits will be created
+     * @throws EmapOperationMessageProcessingException shouldn't happen
+     */
+    @Test
+    void testCreatesVisit() throws EmapOperationMessageProcessingException {
+        int messageCount = hooverMessages.size();
+        for (int i = 0; i < messageCount; i++) {
+            PatientInfection msg = hooverMessages.get(i);
+            msg.setVisitNumber(InterchangeValue.buildFromHl7(String.valueOf(i)));
+            processSingleMessage(msg);
+        }
+        assertEquals(messageCount, getAllEntities(hospitalVisitRepository).size());
     }
 
     /**
