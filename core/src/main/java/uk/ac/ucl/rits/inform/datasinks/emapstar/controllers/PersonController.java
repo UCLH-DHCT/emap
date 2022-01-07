@@ -25,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -322,30 +323,38 @@ public class PersonController {
      * @param msg             ChangePatientIdentifiers
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
-     * @return MRN with the correct identifiers
      * @throws IncompatibleDatabaseStateException if an MRN already exists
      * @throws RequiredDataMissingException       If MRN and NHS number are both null
      */
     @Transactional
-    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
+    public void updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
             throws IncompatibleDatabaseStateException, RequiredDataMissingException {
-        if (msg.getMrn() != null && mrnExists(msg.getMrn())) {
-            throw new IncompatibleDatabaseStateException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
+        Optional<Mrn> existingMrn = mrnRepo.findByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
+        Mrn previousMrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+        // simple case, the current MRN doesn't exist so just update previous MRN with the new details
+        if (existingMrn.isEmpty()) {
+            if (msg.getMrn() != null) {
+                previousMrn.setMrn(msg.getMrn());
+            }
+            if (msg.getNhsNumber() != null) {
+                previousMrn.setNhsNumber(msg.getNhsNumber());
+            }
+            return;
         }
-        Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+        // current MRN exists, should only be allowed if the current or previous MRNs are from untrusted sources
+        if (untrustedSource(existingMrn.get()) || untrustedSource(previousMrn)) {
+            throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
+        }
 
-        mrn.setMrn(msg.getMrn());
-        if (msg.getNhsNumber() != null) {
-            mrn.setNhsNumber(msg.getNhsNumber());
-        }
-        return mrn;
+
     }
 
+
     /**
-     * @param mrn mrn string
-     * @return true if an MRN exists by the mrn string
+     * @param mrn MRN entity
+     * @return true if a MRN exists in EMAP and is from a trusted datasource
      */
-    private boolean mrnExists(String mrn) {
-        return mrnRepo.getByMrnEquals(mrn).isPresent();
+    private boolean untrustedSource(Mrn mrn) {
+        return !DataSources.isTrusted(mrn.getSourceSystem());
     }
 }
