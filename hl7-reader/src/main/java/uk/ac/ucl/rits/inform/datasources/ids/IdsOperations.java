@@ -410,7 +410,7 @@ public class IdsOperations implements AutoCloseable {
                 }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 if ("A05".equals(triggerEvent)) {
-                    messages.addAll(patientStatusService.buildMessages(sourceId, (ADT_A05) msgFromIds));
+                    messages.addAll(patientStatusService.buildPatientInfections(sourceId, (ADT_A05) msgFromIds));
                 }
                 break;
             case "ORM":
