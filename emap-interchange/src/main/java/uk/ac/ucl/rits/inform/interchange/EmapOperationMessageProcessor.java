@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 /**
  * Define the message types that an Emap processor
  * must process.
+ *
  * @author Jeremy Stein
  * @author Stef Piatek
  */
@@ -72,7 +73,7 @@ public interface EmapOperationMessageProcessor {
     void processMessage(PatientInfection msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the ProblemList message to process
+     * @param msg the PatientProblem message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(PatientProblem msg) throws EmapOperationMessageProcessingException;
@@ -97,6 +98,7 @@ public interface EmapOperationMessageProcessor {
 
     /**
      * Process mapping for consult code -> human readable name.
+     *
      * @param consultMetadata consult metadata message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */

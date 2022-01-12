@@ -117,6 +117,12 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
     }
 
+    public List<PatientProblem> getPatientProblems(final String fileName) throws IOException {
+        String resourcePath = "/PatientProblem/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
+    }
+
     /**
      * Build flowsheet metadata expected data from specified file.
      * @param fileName the file from which to build the data
