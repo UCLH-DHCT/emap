@@ -1,0 +1,62 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "8DcEwvqa8Q3"
+  problemCode: "C90.0"
+  problemName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Multiple Myelome"
+  epicProblemId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
+  problemAdded: "2019-06-02T10:31:05Z"
+  problemResolved:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-06-08T14:22:01Z"
+  problemOnset:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-05"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "clarity"
+  sourceMessageId: "2"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "suI83US"
+  problemCode: "A00"
+  problemName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "Varicella"
+  epicProblemId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 2
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Deleted"
+  problemAdded: "2019-06-08T02:05:49Z"
+  problemResolved:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "IGNORE"
+    value: null
+  problemOnset:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-20"
+  comment:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Proin risus."
