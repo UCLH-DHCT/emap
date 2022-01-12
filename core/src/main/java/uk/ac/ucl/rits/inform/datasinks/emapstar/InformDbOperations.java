@@ -1,5 +1,6 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
+import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
@@ -188,4 +190,12 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant storedFrom = Instant.now();
         advanceDecisionProcessor.processMessage(msg, storedFrom);
     }
+
+    @Override
+    @Transactional
+    public void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException {
+        throw new NotImplementedException();
+    }
+
+
 }
