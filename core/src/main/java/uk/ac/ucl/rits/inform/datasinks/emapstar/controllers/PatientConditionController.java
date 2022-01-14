@@ -46,7 +46,8 @@ public class PatientConditionController {
     private PatientConditionController self;
 
     private enum PatientConditionType {
-        PATIENT_INFECTION
+        PATIENT_INFECTION,
+        PATIENT_ALLERGY
     }
 
     /**
