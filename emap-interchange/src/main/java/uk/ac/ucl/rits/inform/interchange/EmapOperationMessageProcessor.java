@@ -108,4 +108,10 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the PatientAllergy message to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException;
 }
