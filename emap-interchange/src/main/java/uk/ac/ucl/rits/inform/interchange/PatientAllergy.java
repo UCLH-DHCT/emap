@@ -62,6 +62,10 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
 
     /**
+     * Reaction occurring when patient exposed to allergen...
+     */
+    private String reaction;
+    /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be processed
