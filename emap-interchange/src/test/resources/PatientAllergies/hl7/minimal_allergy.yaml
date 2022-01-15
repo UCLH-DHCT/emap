@@ -1,0 +1,7 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
+  sourceSystem: "EPIC"
+  updatedDateTime: "2019-06-07T11:32:00Z"
+  mrn: "8DcEwvqa8Q3"
+  allergenType: "DRUG INGREDI"
+  allergenName: "METRONIDAZOLE"
+  allergyAdded: "2019-01-01T10:31:05Z"
