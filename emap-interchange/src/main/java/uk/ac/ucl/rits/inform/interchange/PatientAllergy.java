@@ -62,6 +62,10 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
 
     /**
+     * Severity of reaction patient shows when exposed to allergen...
+     */
+    private String severity;
+    /**
      * Reaction occurring when patient exposed to allergen...
      */
     private String reaction;
