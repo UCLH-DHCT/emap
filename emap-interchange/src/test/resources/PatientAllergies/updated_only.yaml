@@ -1,0 +1,39 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
+  sourceSystem: "clarity"
+  sourceMessageId: "1"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "8DcEwvqa8Q3"
+  allergenType: "Drug Class"
+  allergenName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
+  epicAllergyId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1
+  allergyAdded: "2019-06-08T10:31:05Z"
+  allergyOnset:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-05"
+  severity: "High"
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
+  sourceSystem: "clarity"
+  sourceMessageId: "2"
+  updatedDateTime: "2019-06-09T01:00:05Z"
+  mrn: "suI83US"
+  allergenType: "Environ"
+  allergenName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value:  "NICKEL (METAL)"
+  epicAllergyId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 2
+  allergyAdded: "2019-06-08T02:05:49Z"
+  allergyOnset:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "2019-03-20"

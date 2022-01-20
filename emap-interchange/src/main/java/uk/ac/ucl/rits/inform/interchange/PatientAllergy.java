@@ -42,22 +42,12 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     private InterchangeValue<Long> epicAllergyId = InterchangeValue.unknown();
 
     /**
-     * Status of infection.
-     */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
-
-    /**
-     * Infection added at...
+     * Allergy added at...
      */
     private Instant allergyAdded;
 
     /**
-     * Infection resolved at...
-     */
-    private InterchangeValue<Instant> allergyResolved = InterchangeValue.unknown();
-
-    /**
-     * Onset of infection known at...
+     * Onset of allergy known at...
      */
     private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
 
