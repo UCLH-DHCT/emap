@@ -58,14 +58,14 @@ public class PatientProblem extends EmapOperationMessage implements Serializable
     private InterchangeValue<LocalDate> problemOnset = InterchangeValue.unknown();
 
     /**
-     * Status of problem list...
+     * Status of problem...
      */
     private InterchangeValue<String> status = InterchangeValue.unknown();
 
     /**
-     * Notes in relation to problem list...
+     * Notes in relation to problem...
      */
-    private InterchangeValue<String> notes = InterchangeValue.unknown();
+    private InterchangeValue<String> comment = InterchangeValue.unknown();
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
