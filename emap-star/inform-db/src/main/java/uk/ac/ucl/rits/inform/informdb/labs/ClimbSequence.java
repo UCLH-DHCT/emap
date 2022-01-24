@@ -19,8 +19,9 @@ import javax.persistence.Table;
 import java.time.Instant;
 
 /**
- * A LabResult is a single component result of a lab. A single order or sample
- * is likely to produce several results.
+ * A sequence from MRC-CLIMB.
+ * <p>
+ * Created for HOCI continuation project in order to store SARS-CoV2 sequences.
  * @author Stef Piatek
  */
 @SuppressWarnings("serial")
