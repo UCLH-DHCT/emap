@@ -44,12 +44,12 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
     private long climbSequenceId;
 
     /**
-     * \brief Identifier for the LabOrder associated with this record.
+     * \brief Identifier for the LabSample associated with this record.
      * <p>
-     * This is a foreign key that joins the labResult table to the LabOrder table.
+     * Patient sequences will always have a labSampleId, and community samples will not have a labSampleId set.
      */
     @ManyToOne
-    @JoinColumn(name = "labSampleId", nullable = false)
+    @JoinColumn(name = "labSampleId")
     private LabSample labSampleId;
 
     /**
