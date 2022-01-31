@@ -273,7 +273,8 @@ class PatientConditionCache {
      * @param name          updated name to add
      */
     @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
-    public void updateNameAndClearFromCache(ConditionType typeToUpdate, String name, PatientConditionController.PatientConditionType type, String conditionCode) {
+    public void updateNameAndClearFromCache(
+            ConditionType typeToUpdate, String name, PatientConditionController.PatientConditionType type, String conditionCode) {
         logger.trace("** Adding name '{}' to {}", name, typeToUpdate);
         typeToUpdate.setName(name);
         conditionTypeRepo.save(typeToUpdate);
