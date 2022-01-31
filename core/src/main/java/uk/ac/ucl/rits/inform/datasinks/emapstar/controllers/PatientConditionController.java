@@ -36,67 +36,25 @@ import java.util.Optional;
 public class PatientConditionController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PatientConditionRepository patientConditionRepo;
-    private final ConditionTypeRepository conditionTypeRepo;
     private final PatientConditionAuditRepository patientConditionAuditRepo;
 
-    /**
-     * Self-autowire so that @Caching annotation call will be intercepted.
-     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
-     */
     @Resource
-    private PatientConditionController self;
+    private PatientConditionCache cache;
 
-    private enum PatientConditionType {
+    enum PatientConditionType {
         PATIENT_INFECTION
     }
 
     /**
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
-     * @param conditionTypeRepo         autowired ConditionTypeRepository
      */
     public PatientConditionController(
-            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo,
-            ConditionTypeRepository conditionTypeRepo) {
+            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo) {
         this.patientConditionRepo = patientConditionRepo;
         this.patientConditionAuditRepo = patientConditionAuditRepo;
-        this.conditionTypeRepo = conditionTypeRepo;
     }
 
-    /**
-     * Get existing condition type or create and save minimal condition type.
-     * @param type            Condition Type
-     * @param conditionCode   EPIC code for the condition within the type
-     * @param updatedDateTime when the condition information is valid from
-     * @param storedFrom      when patient infection information is stored from
-     * @return ConditionType
-     */
-    @Cacheable(value = "conditionType", key = "{#type, #conditionCode}")
-    public ConditionType getOrCreateConditionType(
-            PatientConditionType type, String conditionCode, Instant updatedDateTime, Instant storedFrom) {
-        logger.trace("** Querying condition: {}, code {}", type.toString(), conditionCode);
-        return conditionTypeRepo
-                .findByDataTypeAndInternalCode(type.toString(), conditionCode)
-                .orElseGet(() -> {
-                    ConditionType conditionType = new ConditionType(type.toString(), conditionCode, updatedDateTime, storedFrom);
-                    logger.debug("Created new {}", conditionType);
-                    return conditionTypeRepo.save(conditionType);
-                });
-    }
-
-    /**
-     * Persist condition type with new name and remove this entry from the cache.
-     * @param typeToUpdate  condition type entity to updated
-     * @param type          type of condition, used as the key for the cache
-     * @param conditionCode used as the key for the cache
-     * @param name          updated name to add
-     */
-    @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
-    public void updateNameAndClearFromCache(ConditionType typeToUpdate, String name, PatientConditionType type, String conditionCode) {
-        logger.trace("** Adding name '{}' to {}", name, typeToUpdate);
-        typeToUpdate.setName(name);
-        conditionTypeRepo.save(typeToUpdate);
-    }
 
     /**
      * Process patient condition message.
@@ -109,7 +67,7 @@ public class PatientConditionController {
     @Transactional
     public void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        ConditionType conditionType = self.getOrCreateConditionType(
+        ConditionType conditionType = cache.getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
 
         updateConditionTypeNameIfDifferent(msg, conditionType);
@@ -136,7 +94,7 @@ public class PatientConditionController {
         }
         String infectionName = msg.getInfectionName().get();
         if (!infectionName.equals(conditionType.getName())) {
-            self.updateNameAndClearFromCache(conditionType, infectionName, PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode());
+            cache.updateNameAndClearFromCache(conditionType, infectionName, PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode());
         }
     }
 
@@ -149,20 +107,11 @@ public class PatientConditionController {
     private void deletePreviousInfectionTypesOrClearCache(PatientInfection msg, Instant deleteUntil) {
         if (msg.getEpicInfectionId().isSave()) {
             logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
-            List<ConditionType> hl7InfectionTypes = self.getAllInfectionTypesAndCacheResults();
+            List<ConditionType> hl7InfectionTypes = cache.getAllInfectionTypesAndCacheResults();
             auditAndDeletePatientConditionsUntil(hl7InfectionTypes, msg.getUpdatedDateTime(), deleteUntil);
         } else {
-            self.clearCacheOfInfectionTypes();
+            cache.clearCacheOfInfectionTypes();
         }
-    }
-
-    /**
-     * Get all patient infection condition types or get form cache if it hasn't been cleared.
-     * @return all patient infection condition types
-     */
-    @Cacheable(value = "infectionTypes")
-    public List<ConditionType> getAllInfectionTypesAndCacheResults() {
-        return conditionTypeRepo.findAllByDataType(PatientConditionType.PATIENT_INFECTION.toString());
     }
 
     /**
@@ -180,14 +129,6 @@ public class PatientConditionController {
             patientConditionAuditRepo.save(hl7InfectionAudit);
             patientConditionRepo.delete(hl7Infection);
         }
-    }
-
-    /**
-     * Clear cache of patient infection condition types.
-     */
-    @CacheEvict(value = "infectionTypes", allEntries = true)
-    public void clearCacheOfInfectionTypes() {
-        logger.trace("** Clearing cache of all infection types");
     }
 
     /**
@@ -267,4 +208,75 @@ public class PatientConditionController {
         conditionState.assignInterchangeValue(msg.getInfectionResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
         conditionState.assignInterchangeValue(msg.getInfectionOnset(), condition.getOnsetDate(), condition::setOnsetDate);
     }
+}
+
+
+/**
+ * Helper component, used because Spring cache doesn't intercept self-invoked method calls.
+ */
+@Component
+class PatientConditionCache {
+    private static final Logger logger = LoggerFactory.getLogger(PatientConditionCache.class);
+    private final ConditionTypeRepository conditionTypeRepo;
+
+    /**
+     * @param conditionTypeRepo autowired ConditionTypeRepository
+     */
+    PatientConditionCache(ConditionTypeRepository conditionTypeRepo) {
+        this.conditionTypeRepo = conditionTypeRepo;
+    }
+
+
+    /**
+     * Get existing condition type or create and save minimal condition type.
+     * @param type            Condition Type
+     * @param conditionCode   EPIC code for the condition within the type
+     * @param updatedDateTime when the condition information is valid from
+     * @param storedFrom      when patient infection information is stored from
+     * @return ConditionType
+     */
+    @Cacheable(value = "conditionType", key = "{#type, #conditionCode}")
+    public ConditionType getOrCreateConditionType(
+            PatientConditionController.PatientConditionType type, String conditionCode, Instant updatedDateTime, Instant storedFrom) {
+        logger.trace("** Querying condition: {}, code {}", type.toString(), conditionCode);
+        return conditionTypeRepo
+                .findByDataTypeAndInternalCode(type.toString(), conditionCode)
+                .orElseGet(() -> {
+                    ConditionType conditionType = new ConditionType(type.toString(), conditionCode, updatedDateTime, storedFrom);
+                    logger.debug("Created new {}", conditionType);
+                    return conditionTypeRepo.save(conditionType);
+                });
+    }
+
+    /**
+     * Get all patient infection condition types or get form cache if it hasn't been cleared.
+     * @return all patient infection condition types
+     */
+    @Cacheable(value = "infectionTypes")
+    public List<ConditionType> getAllInfectionTypesAndCacheResults() {
+        return conditionTypeRepo.findAllByDataType(PatientConditionController.PatientConditionType.PATIENT_INFECTION.toString());
+    }
+
+    /**
+     * Clear cache of patient infection condition types.
+     */
+    @CacheEvict(value = "infectionTypes", allEntries = true)
+    public void clearCacheOfInfectionTypes() {
+        logger.trace("** Clearing cache of all infection types");
+    }
+
+    /**
+     * Persist condition type with new name and remove this entry from the cache.
+     * @param typeToUpdate  condition type entity to updated
+     * @param type          type of condition, used as the key for the cache
+     * @param conditionCode used as the key for the cache
+     * @param name          updated name to add
+     */
+    @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
+    public void updateNameAndClearFromCache(ConditionType typeToUpdate, String name, PatientConditionController.PatientConditionType type, String conditionCode) {
+        logger.trace("** Adding name '{}' to {}", name, typeToUpdate);
+        typeToUpdate.setName(name);
+        conditionTypeRepo.save(typeToUpdate);
+    }
+
 }
