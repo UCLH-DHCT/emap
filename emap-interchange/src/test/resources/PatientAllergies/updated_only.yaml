@@ -3,11 +3,11 @@
   sourceMessageId: "1"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "8DcEwvqa8Q3"
-  allergenType: "Drug Class"
+  allergenType: "Food"
   allergenName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
+    value:  "NUTS"
   epicAllergyId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -23,11 +23,11 @@
   sourceMessageId: "2"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
-  allergenType: "Environ"
+  allergenType: "Drug Class"
   allergenName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "NICKEL (METAL)"
+    value:  "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
   epicAllergyId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -36,4 +36,5 @@
   allergyOnset:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "2019-03-20"
+    value: "2019-03-05"
+  severity: "Medium"
