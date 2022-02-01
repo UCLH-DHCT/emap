@@ -159,7 +159,7 @@ class AdvanceDecisionCache {
 
 
     /**
-     * Check whether advanced decision type exists already. If it does, add the existing type to the advanced decision;
+     * Check whether advanced decision type exists already. If it does, add the existing type to the advance decision;
      * if not, create a new advance decision type from the information provided in the message.
      * @param msg        Advance decision message.
      * @param storedFrom When information in relation to advanced decision type has been stored from
