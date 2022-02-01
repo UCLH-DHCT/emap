@@ -23,6 +23,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,20 +70,15 @@ public class PersonController {
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
                 .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber());
-        mergeMrns(
-                originalMrns, survivingMrn, msg.getPreviousMrn(), msg.getPreviousNhsNumber(),
-                msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom
-        );
-    }
-
-    private void mergeMrns(List<Mrn> existingMrns, Mrn survivingMrn, String previousMrn,
-                           String previousNhs, String sourceSystem, Instant validFrom, Instant storedFrom) {
-        List<Mrn> originalMrns = existingMrns;
         if (originalMrns.isEmpty()) {
             originalMrns = Collections.singletonList(
-                    createNewLiveMrn(previousMrn, previousNhs, sourceSystem, validFrom, storedFrom)
+                    createNewLiveMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)
             );
         }
+        mergeMrns(originalMrns, survivingMrn, msg.bestGuessAtValidFrom(), storedFrom);
+    }
+
+    private void mergeMrns(Collection<Mrn> originalMrns, Mrn survivingMrn, Instant validFrom, Instant storedFrom) {
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
@@ -355,11 +351,9 @@ public class PersonController {
             throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
         }
         Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(existingMrn.get(0)).getLiveMrnId();
+        previousMrn.setSourceSystem(msg.getSourceSystem());
 
-        mergeMrns(
-                Collections.singletonList(previousMrn), liveMrn,
-                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom
-        );
+        mergeMrns(Collections.singletonList(previousMrn), liveMrn, messageDateTime, storedFrom);
     }
 
 
