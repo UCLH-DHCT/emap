@@ -25,7 +25,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Interactions with patients at the person level: MRN and core demographics.
@@ -70,15 +69,24 @@ public class PersonController {
         // get original mrn objects by mrn or nhs number
         List<Mrn> originalMrns = mrnRepo
                 .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber());
+        mergeMrns(
+                originalMrns, survivingMrn, msg.getPreviousMrn(), msg.getPreviousNhsNumber(),
+                msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom
+        );
+    }
+
+    private void mergeMrns(List<Mrn> existingMrns, Mrn survivingMrn, String previousMrn,
+                           String previousNhs, String sourceSystem, Instant validFrom, Instant storedFrom) {
+        List<Mrn> originalMrns = existingMrns;
         if (originalMrns.isEmpty()) {
             originalMrns = Collections.singletonList(
-                    createNewLiveMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)
+                    createNewLiveMrn(previousMrn, previousNhs, sourceSystem, validFrom, storedFrom)
             );
         }
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.bestGuessAtValidFrom(), storedFrom, mrnToLive));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, validFrom, storedFrom, mrnToLive));
     }
 
     /**
@@ -329,7 +337,7 @@ public class PersonController {
     @Transactional
     public void updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
             throws IncompatibleDatabaseStateException, RequiredDataMissingException {
-        Optional<Mrn> existingMrn = mrnRepo.findByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
+        List<Mrn> existingMrn = mrnRepo.findAllByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
         Mrn previousMrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
         // simple case, the current MRN doesn't exist so just update previous MRN with the new details
         if (existingMrn.isEmpty()) {
@@ -342,11 +350,16 @@ public class PersonController {
             return;
         }
         // current MRN exists, should only be allowed if the current or previous MRNs are from untrusted sources
-        if (untrustedSource(existingMrn.get()) || untrustedSource(previousMrn)) {
+        Boolean existingMrnUntrusted = existingMrn.stream().map(this::untrustedSource).findAny().orElseThrow();
+        if (untrustedSource(previousMrn) || existingMrnUntrusted) {
             throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
         }
+        Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(existingMrn.get(0)).getLiveMrnId();
 
-
+        mergeMrns(
+                Collections.singletonList(previousMrn), liveMrn,
+                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom
+        );
     }
 
 
