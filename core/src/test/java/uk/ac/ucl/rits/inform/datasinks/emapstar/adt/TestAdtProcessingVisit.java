@@ -8,7 +8,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitAuditReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisitAudit;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
@@ -20,19 +19,18 @@ import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class TestAdtProcessingVisit extends MessageProcessingBase {
     @Autowired
