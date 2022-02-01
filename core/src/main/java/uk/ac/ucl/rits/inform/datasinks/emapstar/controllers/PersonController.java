@@ -68,14 +68,22 @@ public class PersonController {
     @Transactional
     public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws RequiredDataMissingException {
         // get original mrn objects by mrn or nhs number
+        List<Mrn> originalMrns = getMrnsOrCreateOne(
+                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom
+        );
+        mergeMrns(originalMrns, survivingMrn, msg.bestGuessAtValidFrom(), storedFrom);
+    }
+
+    private List<Mrn> getMrnsOrCreateOne(String mrn, String nhsNumber, String sourceSystem, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         List<Mrn> originalMrns = mrnRepo
-                .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber());
+                .findAllByMrnOrNhsNumber(mrn, nhsNumber);
         if (originalMrns.isEmpty()) {
             originalMrns = Collections.singletonList(
-                    createNewLiveMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)
+                    createNewLiveMrn(mrn, nhsNumber, sourceSystem, validFrom, storedFrom)
             );
         }
-        mergeMrns(originalMrns, survivingMrn, msg.bestGuessAtValidFrom(), storedFrom);
+        return originalMrns;
     }
 
     private void mergeMrns(Collection<Mrn> originalMrns, Mrn survivingMrn, Instant validFrom, Instant storedFrom) {
@@ -320,10 +328,11 @@ public class PersonController {
     }
 
     /**
-     * Update the patient identifiers for an MRN. Because new MRN doesn't already exist, this is a modify instead of a merge.
+     * Update the patient identifiers for an MRN.
      * <p>
-     * It looks very rare that this is done, neonates and unusual cases where there are only a few ADT messages, no other result types
-     * found so it should be fine even if mid-stream.
+     * With messages out of order and difference sources of information, we have had to alter the way we process these messages.
+     * - If the surviving MRN doesn't already exist then we modify the previous MRN (as per HL7 specification).
+     * - If MRNs matching the surviving or previous identifiers are from untrusted sources, merge the MRNs.
      * @param msg             ChangePatientIdentifiers
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
@@ -333,35 +342,38 @@ public class PersonController {
     @Transactional
     public void updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
             throws IncompatibleDatabaseStateException, RequiredDataMissingException {
-        List<Mrn> existingMrn = mrnRepo.findAllByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
-        Mrn previousMrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+        List<Mrn> survivingMrns = mrnRepo.findAllByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
+        List<Mrn> previousMrns = getMrnsOrCreateOne(
+                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom
+        );
         // simple case, the current MRN doesn't exist so just update previous MRN with the new details
-        if (existingMrn.isEmpty()) {
+        if (survivingMrns.isEmpty()) {
             if (msg.getMrn() != null) {
-                previousMrn.setMrn(msg.getMrn());
+                previousMrns.forEach(mrn -> mrn.setMrn(msg.getMrn()));
             }
             if (msg.getNhsNumber() != null) {
-                previousMrn.setNhsNumber(msg.getNhsNumber());
+                previousMrns.forEach(mrn -> mrn.setNhsNumber(msg.getNhsNumber()));
             }
+            logger.debug("Surviving MRN didn't already exist, so updated the previous MRN with the correct identifiers");
             return;
         }
-        // current MRN exists, should only be allowed if the current or previous MRNs are from untrusted sources
-        Boolean existingMrnUntrusted = existingMrn.stream().map(this::untrustedSource).findAny().orElseThrow();
-        if (untrustedSource(previousMrn) || existingMrnUntrusted) {
+        // current MRN exists should only be allowed if the current or previous MRNs are all from untrusted sources
+        if (allMrnsTrusted(previousMrns) || allMrnsTrusted(survivingMrns)) {
             throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
         }
-        Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(existingMrn.get(0)).getLiveMrnId();
-        previousMrn.setSourceSystem(msg.getSourceSystem());
+        // existing Mrn should always have the correct live MRN so use the first one of these
+        Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(survivingMrns.get(0)).getLiveMrnId();
 
-        mergeMrns(Collections.singletonList(previousMrn), liveMrn, messageDateTime, storedFrom);
+        mergeMrns(previousMrns, liveMrn, messageDateTime, storedFrom);
     }
 
-
     /**
-     * @param mrn MRN entity
-     * @return true if a MRN exists in EMAP and is from a trusted datasource
+     * All MRNs are from a trusted source.
+     * @param mrns mrns
+     * @return true if all MRNs are trusted
      */
-    private boolean untrustedSource(Mrn mrn) {
-        return !DataSources.isTrusted(mrn.getSourceSystem());
+    private boolean allMrnsTrusted(Collection<Mrn> mrns) {
+        return mrns.stream()
+                .allMatch(mrn -> DataSources.isTrusted(mrn.getSourceSystem()));
     }
 }
