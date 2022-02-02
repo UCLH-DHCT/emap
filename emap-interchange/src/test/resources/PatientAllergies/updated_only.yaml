@@ -18,6 +18,9 @@
     status: "SAVE"
     value: "2019-03-05"
   severity: "High"
+  reactions:
+    - "Anaphylaxis"
+    - "Hives"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
   sourceSystem: "clarity"
   sourceMessageId: "2"
@@ -38,3 +41,5 @@
     status: "SAVE"
     value: "2019-03-05"
   severity: "Medium"
+  reactions:
+    - "Hives"

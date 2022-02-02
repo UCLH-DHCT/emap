@@ -8,6 +8,8 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Interchange format of a PatientAllergy message.
@@ -58,7 +60,7 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     /**
      * Reaction occurring when patient exposed to allergen...
      */
-    private String reaction;
+    private List<String> reactions = new ArrayList<>();
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
