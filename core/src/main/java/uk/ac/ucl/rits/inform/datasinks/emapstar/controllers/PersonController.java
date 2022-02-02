@@ -346,7 +346,7 @@ public class PersonController {
         List<Mrn> previousMrns = getMrnsOrCreateOne(
                 msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom
         );
-        // simple case, the current MRN doesn't exist so just update previous MRN with the new details
+        // simple case, the surviving MRN doesn't exist so just update previous MRN with the new details
         if (survivingMrns.isEmpty()) {
             if (msg.getMrn() != null) {
                 previousMrns.forEach(mrn -> mrn.setMrn(msg.getMrn()));
@@ -357,11 +357,11 @@ public class PersonController {
             logger.debug("Surviving MRN didn't already exist, so updated the previous MRN with the correct identifiers");
             return;
         }
-        // current MRN exists should only be allowed if the current or previous MRNs are all from untrusted sources
+        // surviving MRN exists should only be allowed if at least one of the surviving or previous MRNs are untrusted
         if (allMrnsTrusted(previousMrns) && allMrnsTrusted(survivingMrns)) {
             throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
         }
-        // existing Mrn should always have the correct live MRN so use the first one of these
+        // surviving Mrn should always have the correct live MRN so use the first one of these
         Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(survivingMrns.get(0)).getLiveMrnId();
 
         mergeMrns(previousMrns, liveMrn, messageDateTime, storedFrom);
