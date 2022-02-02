@@ -358,7 +358,7 @@ public class PersonController {
             return;
         }
         // current MRN exists should only be allowed if the current or previous MRNs are all from untrusted sources
-        if (allMrnsTrusted(previousMrns) || allMrnsTrusted(survivingMrns)) {
+        if (allMrnsTrusted(previousMrns) && allMrnsTrusted(survivingMrns)) {
             throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
         }
         // existing Mrn should always have the correct live MRN so use the first one of these
