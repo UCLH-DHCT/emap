@@ -80,11 +80,13 @@ Most likely exists in the RxJava ecosystem
 - These `type` entities are only required for saving the data with the correct foreign key to the type
   - There may be extra data that is added to the `type` over time, but this doesn't affect the core processing
 - We want to be able to cache these entities so we're not carrying out unnecessary queries
-- Spring has a starter for caching that makes sense to use
+- Spring has a starter for caching that makes sense to use, and allows us to control what fields are used for caching
+- When a class calls its own method, Spring will not intercept the method to use the cache.
+  We should address a way to allow for this self invocation.
 
-## Options
+## Options for caching broker
 
-### Default caching
+### Default Spring caching
 
 Requires no configuration other than enabling the Caching 
 
@@ -115,11 +117,45 @@ Continues on Guava caching as that is now deprecated.
 
 - Requires more thought on configuration
 
+## Options for allowing self-invoked caching calls to be intercepted
+
+### Self-reference as a Spring @resource
+
+In Spring versions < 2.6, this circular reference was allowed and works as long as you only use if after
+the bean has been fully initialised. Spring versions >= 2.6 throw an error so this is not a workable solution
+
+
+### Using AspectJ to intercept internal method calls 
+
+#### Pros
+
+- No change required to the classes which implement the @Cachable methods
+
+#### Cons
+
+- Configuration of AspectJ seems like it would take a reasonable amount of work, 
+  seems like it may require adding an extra JVM argument when we run the application.
+- Would add an extra layer of complexity to understanding our application configuration
+
+### Using a cache delegate
+
+We could create an internal Spring bean which has the cache methods to intercept defined, 
+then call the cache methods using the public Spring bean class, effectively not calling self-invoked caching methods.  
+
+#### Pros
+
+- Does not affect the configuration and may even reduce the number of fields required in the public Spring beans.
+
+#### Cons
+
+- Internal classes within the same file will add some overhead to understanding the code-base.
+- Not sure if there is a way to make a shared interface for all cache delegates
 
 ## Decision
 
-Caffeine caching with expireAfterWrite and maximumSize in application.properties.
-Caching disabled in testing as registering and creating new cache for each test adds ~50% run time
+- Caffeine caching with expireAfterWrite and maximumSize in application.properties.
+- Caching disabled in testing as registering and creating new cache for each test adds ~50% run time
+- Use of an internal delegate cache class to allow method calls to be intercepted
 
 ## Consequences
 
