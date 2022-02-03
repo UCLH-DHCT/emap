@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
@@ -20,7 +19,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
@@ -32,7 +30,6 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestAdtProcessingPerson extends MessageProcessingBase {
@@ -437,39 +434,6 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
         Mrn survivingMrn = mrnRepo.findByMrnEquals(postChangeIdMrn).orElseThrow();
         Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(previousMrn).getLiveMrnId();
         assertEquals(liveMrn.getMrnId(), survivingMrn.getMrnId());
-    }
-
-    /**
-     * Given that surviving MRN already exists and is from trusted sources
-     * When a change patient identifiers message is processed
-     * Then an exception should be thrown, as this is definitely against the HL7 specification
-     * @throws IOException shouldn't happen
-     */
-    @Test
-    @Sql("/populate_db.sql")
-    void testAllSurvivingMrnTrustedThrowsException() throws IOException {
-        ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
-        msg.setPreviousMrn("I don't exist");
-        msg.setMrn("707070700");
-        msg.setNhsNumber(null);
-        assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
-    }
-
-    /**
-     * Given that surviving and previous identifiers exist and are from trusted sources
-     * When a change patient identifiers message is processed
-     * Then an exception should be thrown, as this is definitely against the HL7 specification
-     * Should monitor for this, as could happen when messages are received out of order
-     * @throws IOException shouldn't happen
-     */
-    @Test
-    @Sql("/populate_db.sql")
-    void testAllPreviousAndSurvivingMrnsTrustedThrowsException() throws IOException {
-        ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
-        msg.setPreviousMrn(defaultMrn);
-        msg.setMrn("707070700");
-        msg.setNhsNumber(null);
-        assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
     }
 
     private void createAndProcess(String nhsNumber, String mrn, Integer minuteAdded) throws Exception {
