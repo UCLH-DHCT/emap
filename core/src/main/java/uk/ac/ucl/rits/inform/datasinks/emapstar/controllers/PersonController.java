@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
@@ -331,17 +330,18 @@ public class PersonController {
      * Update the patient identifiers for an MRN.
      * <p>
      * With messages out of order and difference sources of information, we have had to alter the way we process these messages.
-     * - If the surviving MRN doesn't already exist then we modify the previous MRN (as per HL7 specification).
-     * - If MRNs matching the surviving or previous identifiers are from untrusted sources, merge the MRNs.
+     * <ul>
+     *     <li> If the surviving MRN doesn't already exist then we modify the previous MRN (as per HL7 specification) </li>
+     *     <li> If the surviving MRN does exist then we merge the MRNs (this occurs frequently when reading real data) </li>
+     * </ul>
      * @param msg             ChangePatientIdentifiers
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
-     * @throws IncompatibleDatabaseStateException if an MRN already exists
-     * @throws RequiredDataMissingException       If MRN and NHS number are both null
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     @Transactional
     public void updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
-            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
+            throws RequiredDataMissingException {
         List<Mrn> survivingMrns = mrnRepo.findAllByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
         List<Mrn> previousMrns = getMrnsOrCreateOne(
                 msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom
@@ -357,23 +357,10 @@ public class PersonController {
             logger.debug("Surviving MRN didn't already exist, so updated the previous MRN with the correct identifiers");
             return;
         }
-        // surviving MRN exists should only be allowed if at least one of the surviving or previous MRNs are untrusted
-        if (allMrnsTrusted(previousMrns) && allMrnsTrusted(survivingMrns)) {
-            throw new IncompatibleDatabaseStateException(String.format("New MRN already exists: %s", msg));
-        }
         // surviving Mrn should always have the correct live MRN so use the first one of these
         Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(survivingMrns.get(0)).getLiveMrnId();
+        logger.debug("Merging MRNs as the surviving MRN already exists");
 
         mergeMrns(previousMrns, liveMrn, messageDateTime, storedFrom);
-    }
-
-    /**
-     * All MRNs are from a trusted source.
-     * @param mrns mrns
-     * @return true if all MRNs are trusted
-     */
-    private boolean allMrnsTrusted(Collection<Mrn> mrns) {
-        return mrns.stream()
-                .allMatch(mrn -> DataSources.isTrusted(mrn.getSourceSystem()));
     }
 }
