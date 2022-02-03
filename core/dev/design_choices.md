@@ -117,7 +117,7 @@ Continues on Guava caching as that is now deprecated.
 
 - Requires more thought on configuration
 
-## Options for allowing self-invoked caching calls to be intercepted
+## Options for allowing caching method calls to be intercepted
 
 ### Self-reference as a Spring @resource
 
