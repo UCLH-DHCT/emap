@@ -1,7 +1,6 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
@@ -163,6 +162,7 @@ public class FlowsheetFactory {
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
      * @throws DataTypeException         if datetime values cannot be parsed
+     * @throws HL7Exception              If value can't be decoded
      */
     private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
             throws Hl7InconsistencyException, HL7Exception {
@@ -226,6 +226,7 @@ public class FlowsheetFactory {
      * Extracts string value from obx. Allows for multiple lines in an OBX (separated by newline characters)
      * @param obx OBX object
      * @return String of all whitespace trimmed lines separated by newlines
+     * @throws HL7Exception If value can't be decoded
      */
     private String getStringValue(OBX obx) throws HL7Exception {
         // Strings can be made of multiple values
