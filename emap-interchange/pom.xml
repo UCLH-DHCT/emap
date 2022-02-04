@@ -125,6 +125,7 @@
         <!-- Allows for compiler errors to be reported during github actions. -->
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
