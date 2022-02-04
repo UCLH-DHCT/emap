@@ -24,7 +24,6 @@
     <!-- matches current version in spring boot -->
     <jackson-annotations.version>2.13.1</jackson-annotations.version>
     <lombok.version>1.18.22</lombok.version>
-    <junit-jupiter-engine.version>5.8.2</junit-jupiter-engine.version>
   </properties>
 
   <dependencies>
@@ -45,8 +44,8 @@
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit-jupiter-engine.version}</version>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit-jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -63,7 +62,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit-jupiter-engine.version}</version>
+      <version>${junit-jupiter.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

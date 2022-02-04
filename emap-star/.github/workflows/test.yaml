@@ -19,7 +19,7 @@ jobs:
           distribution: 'adopt'
           cache: 'maven'
       - name: Build
-        run: mvn clean install -f inform-annotations/pom.xml -f inform-db/pom.xml -f pom.xml
+        run: mvn clean install
       - name: Tests
         run: mvn test
       - name: Publish Test Report
