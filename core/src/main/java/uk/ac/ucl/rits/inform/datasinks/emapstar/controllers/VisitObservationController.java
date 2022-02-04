@@ -25,18 +25,14 @@ import java.time.Instant;
 
 /**
  * Interactions with observation visits.
- *
  * @author Stef Piatek
  * @author Anika Cawthorn
  */
 @Component
 public class VisitObservationController {
-    /**
-     * Self-autowire so that @Caching annotation call will be intercepted.
-     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
-     */
+
     @Resource
-    private VisitObservationController self;
+    private VisitObservationCache cache;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final VisitObservationRepository visitObservationRepo;
     private final VisitObservationAuditRepository visitObservationAuditRepo;
@@ -63,7 +59,6 @@ public class VisitObservationController {
      * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
      * ii) containing lots of naming data for the particular VisitObservationType. This function decides what kind of
      * metadata is handled and how it should therefore be processed.
-     *
      * @param msg        flowsheet metadata
      * @param storedFrom time that star started processing the message
      * @throws java.util.NoSuchElementException if the VisitObservationTypes that a mapping message is referring to cannot be found
@@ -103,7 +98,6 @@ public class VisitObservationController {
     /**
      * Create, update or delete a flowsheet, saving the visit observation to the cache.
      * Will also create a new VisitObservationType if it doesn't already exist.
-     *
      * @param msg        flowsheet
      * @param visit      hospital visit
      * @param storedFrom time that emap-core started processing the message
@@ -114,7 +108,7 @@ public class VisitObservationController {
         if (msg.getValueType() == null) {
             throw new RequiredDataMissingException("Flowsheet DataType not set");
         }
-        VisitObservationType observationType = self.getOrCreatePersistedObservationType(msg.getInterfaceId(),
+        VisitObservationType observationType = cache.getOrCreatePersistedObservationType(msg.getInterfaceId(),
                 msg.getFlowsheetId(), msg.getSourceObservationType(), msg.getLastUpdatedInstant(), storedFrom);
 
         RowState<VisitObservation, VisitObservationAudit> flowsheetState = getOrCreateFlowsheet(msg, visit, observationType, storedFrom);
@@ -126,7 +120,6 @@ public class VisitObservationController {
 
     /**
      * If mapping between internal id and interface id already exists, nothing (?) needs to change.
-     *
      * @param interfaceId     Identifier of observation type.
      * @param idInApplication IdInApplication of observation type.
      * @return True if mapping between interfaceId and idInApplication already exists, otherwise false.
@@ -136,30 +129,8 @@ public class VisitObservationController {
     }
 
     /**
-     * Get or create visit observation type, persisting and caching the output of this method.
-     *
-     * @param idInApplication Id of the observation in the application
-     * @param interfaceId     Id of observation type in HL7 messages
-     * @param observationType type of observation (e.g. flowsheet)
-     * @param validFrom       Timestamp from which information valid from
-     * @param storedFrom      time that emap-core started processing the message
-     * @return persisted VisitObservationType
-     */
-    @Cacheable(value = "visitObservationType", key = "{ #interfaceId, #idInApplication, #observationType }")
-    public VisitObservationType getOrCreatePersistedObservationType(
-            String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom) {
-        return visitObservationTypeRepo
-                .find(interfaceId, idInApplication, observationType)
-                .orElseGet(() -> {
-                    VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
-                    return visitObservationTypeRepo.save(type);
-                });
-    }
-
-    /**
      * Deletes VisitObservationType that was created in the absence of mapping information. Once mapping information is
      * present, the metadata VisitObservationType will be updated instead and the key information replaced respectively.
-     *
      * @param visitObservationType VisitObservationType to be deleted as object for repository deletion
      * @param validFrom            Datetime from which the VisitObservationType was deleted
      * @param storedFrom           Datetime when the information was first held in Star
@@ -173,7 +144,6 @@ public class VisitObservationController {
     /**
      * There are two different types of metadata: i) containing the mapping between an interfaceId and idInApplication and
      * ii) containing lots of naming data for the particular VisitObservationType.
-     *
      * @param msg        Flowsheet metadata message containing mapping information
      * @param storedFrom When this information was first processed in Star.
      */
@@ -208,7 +178,6 @@ public class VisitObservationController {
      * once one of them is replaced, the linking in visit observation referring to the EPIC visit observation type need to be
      * replaced once information has been added to the caboodle visit observation type. After the linkage has been changed,
      * the superfluous EPIC visit observation type is deleted.
-     *
      * @param votEpic     Visit observation type generated through EPIC message, which needs to be deleted
      * @param votCaboodle Visit observation type that is enriched with mapping information and replaces EPIC visit observation type in
      *                    visit observations
@@ -227,7 +196,6 @@ public class VisitObservationController {
 
     /**
      * Finds existing visit observation type wrapped in row state or returns null.
-     *
      * @param interfaceId           Interface identifier of visit observation type to be retrieved.
      * @param idInApplication       Hospital flowsheet identifier of the visit observation type to be retrieved.
      * @param lastUpdated           Last updated date for visit observation type to be retrieved
@@ -247,7 +215,6 @@ public class VisitObservationController {
     /**
      * Retrieves the existing information if visit observation type already exists, otherwise creates a new visit
      * observation type.
-     *
      * @param idInApplication Hospital flowsheet identifier
      * @param interfaceId     Interface id
      * @param observationType Type of visit observation
@@ -265,7 +232,6 @@ public class VisitObservationController {
 
     /**
      * Create a minimal visit observation type.
-     *
      * @param idInApplication       Id of the observation in the application
      * @param interfaceId           hl7 interface id
      * @param sourceObservationType type of visit observation
@@ -281,7 +247,6 @@ public class VisitObservationController {
 
     /**
      * Get or create existing observation entity.
-     *
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -298,7 +263,6 @@ public class VisitObservationController {
 
     /**
      * Create minimal visit observation wrapped in RowState.
-     *
      * @param msg             flowsheet
      * @param visit           hospital visit
      * @param observationType visit observation type
@@ -314,7 +278,6 @@ public class VisitObservationController {
 
     /**
      * Update observation state from Flowsheet message.
-     *
      * @param msg              flowsheet
      * @param observationState observation entity wrapped in RowState
      * @throws RequiredDataMissingException if data type is not recognised for flowsheets
@@ -341,3 +304,36 @@ public class VisitObservationController {
 
 }
 
+
+/**
+ * Helper component, used because Spring cache doesn't intercept self-invoked method calls.
+ */
+@Component
+class VisitObservationCache {
+
+    private final VisitObservationTypeRepository visitObservationTypeRepo;
+
+    VisitObservationCache(VisitObservationTypeRepository visitObservationTypeRepo) {
+        this.visitObservationTypeRepo = visitObservationTypeRepo;
+    }
+
+    /**
+     * Get or create visit observation type, persisting and caching the output of this method.
+     * @param idInApplication Id of the observation in the application
+     * @param interfaceId     Id of observation type in HL7 messages
+     * @param observationType type of observation (e.g. flowsheet)
+     * @param validFrom       Timestamp from which information valid from
+     * @param storedFrom      time that emap-core started processing the message
+     * @return persisted VisitObservationType
+     */
+    @Cacheable(value = "visitObservationType", key = "{ #interfaceId, #idInApplication, #observationType }")
+    public VisitObservationType getOrCreatePersistedObservationType(
+            String interfaceId, String idInApplication, String observationType, Instant validFrom, Instant storedFrom) {
+        return visitObservationTypeRepo
+                .find(interfaceId, idInApplication, observationType)
+                .orElseGet(() -> {
+                    VisitObservationType type = new VisitObservationType(idInApplication, interfaceId, observationType, validFrom, storedFrom);
+                    return visitObservationTypeRepo.save(type);
+                });
+    }
+}

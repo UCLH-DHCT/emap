@@ -29,31 +29,23 @@ public class AdvanceDecisionController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final AdvanceDecisionRepository advanceDecisionRepo;
     private final AdvanceDecisionAuditRepository advanceDecisionAuditRepo;
-    private final AdvanceDecisionTypeRepository advanceDecisionTypeRepo;
     private final QuestionController questionController;
 
-    /**
-     * Self-autowire so that @Caching annotation call will be intercepted.
-     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
-     */
     @Resource
-    private AdvanceDecisionController self;
+    private AdvanceDecisionCache cache;
 
     /**
      * Setting repositories that enable searching for components of advanced decisions.
      * @param advanceDecisionRepo      Repository with search functionality for advanced decisions.
-     * @param advanceDecisionTypeRepo  Repository with search functionality for advanced decisions types.
      * @param advanceDecisionAuditRepo Repository with search functionality for advanced decision audit data.
      * @param questionController       Controller for handling questions attached to advanced decisions.
      */
     public AdvanceDecisionController(
             AdvanceDecisionRepository advanceDecisionRepo,
-            AdvanceDecisionTypeRepository advanceDecisionTypeRepo,
             AdvanceDecisionAuditRepository advanceDecisionAuditRepo,
             QuestionController questionController) {
         this.advanceDecisionRepo = advanceDecisionRepo;
         this.advanceDecisionAuditRepo = advanceDecisionAuditRepo;
-        this.advanceDecisionTypeRepo = advanceDecisionTypeRepo;
         this.questionController = questionController;
     }
 
@@ -67,7 +59,7 @@ public class AdvanceDecisionController {
     @Transactional
     public void processMessage(final AdvanceDecisionMessage msg, HospitalVisit visit, Mrn mrn,
                                final Instant storedFrom) {
-        AdvanceDecisionType advanceDecisionType = self.getOrCreateAdvancedDecisionType(msg, storedFrom);
+        AdvanceDecisionType advanceDecisionType = cache.getOrCreateAdvancedDecisionType(msg, storedFrom);
         RowState<AdvanceDecision, AdvanceDecisionAudit> advanceDecisionState = getOrCreateAdvancedDecision(
                 msg, visit, mrn, advanceDecisionType, storedFrom);
 
@@ -78,32 +70,6 @@ public class AdvanceDecisionController {
         advanceDecisionState.saveEntityOrAuditLogIfRequired(advanceDecisionRepo, advanceDecisionAuditRepo);
         questionController.processQuestions(msg.getQuestions(), ParentTableType.ADVANCE_DECISION.toString(),
                 advanceDecisionState.getEntity().getAdvanceDecisionId(), msg.getRequestedDatetime(), storedFrom);
-    }
-
-    /**
-     * Check whether advanced decision type exists already. If it does, add the existing type to the advanced decision;
-     * if not, create a new advance decision type from the information provided in the message.
-     * @param msg        Advance decision message.
-     * @param storedFrom When information in relation to advanced decision type has been stored from
-     * @return AdvancedDecisionType
-     */
-    @Cacheable(value = "advanceDecisionType", key = "#msg.advanceCareCode")
-    public AdvanceDecisionType getOrCreateAdvancedDecisionType(AdvanceDecisionMessage msg, Instant storedFrom) {
-        return advanceDecisionTypeRepo
-                .findByCareCode(msg.getAdvanceCareCode())
-                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
-    }
-
-    /**
-     * Create and save a new AdvanceDecisionType from the information contained in the AdvancedDecisionMessage.
-     * @param msg        Advance decision message.
-     * @param storedFrom Time that emap-core started processing this type of message.
-     * @return saved AdvancedDecisionType
-     */
-    private AdvanceDecisionType createAndSaveNewType(AdvanceDecisionMessage msg, Instant storedFrom) {
-        AdvanceDecisionType advanceDecisionType = new AdvanceDecisionType(msg.getAdvanceCareCode(), msg.getAdvanceDecisionTypeName());
-        logger.debug("Created new {}", advanceDecisionType);
-        return advanceDecisionTypeRepo.save(advanceDecisionType);
     }
 
     /**
@@ -172,5 +138,49 @@ public class AdvanceDecisionController {
         advanceDecisionState.assignIfDifferent(msg.isClosedDueToDischarge(),
                 advanceDecision.getClosedDueToDischarge(),
                 advanceDecision::setClosedDueToDischarge);
+    }
+}
+
+
+/**
+ * Helper component, used because Spring cache doesn't intercept self-invoked method calls.
+ */
+@Component
+class AdvanceDecisionCache {
+    private static final Logger logger = LoggerFactory.getLogger(AdvanceDecisionCache.class);
+    private final AdvanceDecisionTypeRepository advanceDecisionTypeRepo;
+
+    /**
+     * @param advanceDecisionTypeRepo Repository with search functionality for advanced decisions types.
+     */
+    AdvanceDecisionCache(AdvanceDecisionTypeRepository advanceDecisionTypeRepo) {
+        this.advanceDecisionTypeRepo = advanceDecisionTypeRepo;
+    }
+
+
+    /**
+     * Check whether advanced decision type exists already. If it does, add the existing type to the advance decision;
+     * if not, create a new advance decision type from the information provided in the message.
+     * @param msg        Advance decision message.
+     * @param storedFrom When information in relation to advanced decision type has been stored from
+     * @return AdvancedDecisionType
+     */
+    @Cacheable(value = "advanceDecisionType", key = "#msg.advanceCareCode")
+    public AdvanceDecisionType getOrCreateAdvancedDecisionType(AdvanceDecisionMessage msg, Instant storedFrom) {
+        return advanceDecisionTypeRepo
+                .findByCareCode(msg.getAdvanceCareCode())
+                .orElseGet(() -> createAndSaveNewType(msg, storedFrom));
+    }
+
+    /**
+     * Create and save a new AdvanceDecisionType from the information contained in the AdvancedDecisionMessage.
+     * @param msg        Advance decision message.
+     * @param storedFrom Time that emap-core started processing this type of message.
+     * @return saved AdvancedDecisionType
+     */
+    private AdvanceDecisionType createAndSaveNewType(AdvanceDecisionMessage msg, Instant storedFrom) {
+        AdvanceDecisionType advanceDecisionType = new AdvanceDecisionType(msg.getAdvanceCareCode(), msg.getAdvanceDecisionTypeName());
+        logger.debug("Created new {}", advanceDecisionType);
+        return advanceDecisionTypeRepo.save(advanceDecisionType);
     }
 }
