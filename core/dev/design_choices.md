@@ -121,8 +121,8 @@ Continues on Guava caching as that is now deprecated.
 
 ### Self-reference as a Spring @resource
 
-In Spring versions < 2.6, this circular reference was allowed and works as long as you only use if after
-the bean has been fully initialised. Spring versions >= 2.6 throw an error so this is not a workable solution
+In Spring versions < 2.6, this circular reference was allowed and works as long as you only use it after
+the bean has been fully initialised. Spring versions >= 2.6 throw an error so this is no longer a workable solution.
 
 
 ### Using AspectJ to intercept internal method calls 
@@ -130,6 +130,7 @@ the bean has been fully initialised. Spring versions >= 2.6 throw an error so th
 #### Pros
 
 - No change required to the classes which implement the @Cachable methods
+- No additional functional source code to maintain
 
 #### Cons
 
@@ -149,6 +150,7 @@ then call the cache methods using the public Spring bean class, effectively not 
 #### Cons
 
 - Internal classes within the same file will add some overhead to understanding the code-base.
+- Increase in classes and code required to maintain
 - Not sure if there is a way to make a shared interface for all cache delegates
 
 ## Decision
