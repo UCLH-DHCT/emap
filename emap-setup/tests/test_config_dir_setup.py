@@ -10,6 +10,9 @@ from emap_setup.code_setup.config_dir_setup import ConfigDirSetup
 
 @fixture(scope="module")
 def dir_setup():
+    """
+    returns: Instance of ConfigDirSetup to use in tests
+    """
     filename = './data/test-global-configuration.yaml'
     config_file = ReadConfig(filename)
     dir_setup = ConfigDirSetup(os.path.join(os.getcwd(), 'data'), config_file)
@@ -22,7 +25,6 @@ def test_create_config_dir(dir_setup : ConfigDirSetup):
     """
     tests that the config directory is created
     :param dir_setup:
-    :return:
     """
     assert not os.path.isdir('./data/config')
     dir_setup.create_or_update_config_dir()
@@ -30,8 +32,11 @@ def test_create_config_dir(dir_setup : ConfigDirSetup):
 
 
 def test_files_written():
-    dir1 = './data/config_test'
-    dir2 = './data/config'
+    """
+    Test the files written for config were as expected
+    """
+    dir1 = './data/config_test'  # example test files
+    dir2 = './data/config'  # files written by create_or_update_config_dir() function
     different = dircmp(dir1, dir2).diff_files
     assert len(different) == 0
     _clean_up()
