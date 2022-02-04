@@ -37,7 +37,7 @@ class ConfigDirSetup:
         for this_dir in list_of_dirs:
             # dont process the config dir
             if this_dir.startswith('config'):
-                continue;
+                continue
             # get list f -envs.EXAMPLE files
             list_of_envs_files = []
             this_dir_full = os.path.join(self.main_dir, this_dir)
