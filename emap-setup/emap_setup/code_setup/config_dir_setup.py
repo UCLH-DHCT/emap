@@ -1,6 +1,7 @@
 import os
 import shutil
 import fnmatch
+from datetime import datetime
 
 from emap_setup.code_setup.read_config import ReadConfig
 
@@ -106,10 +107,12 @@ class ConfigDirSetup:
                 # should match
                 if config_type != 'informdb' and fieldname != config_type:
                     fieldname = config_type
-                data = self.config_file.get_data_for(code[0], fieldname,
-                                                     config_type)
+                data = self.config_file.get_data_for(code[0], fieldname, config_type)
                 if data:
-                    newline = '{0}={1}\n'.format(code[0], data)
+                    if isinstance(data, datetime):
+                        datestr = data.strftime('%Y-%m-%dT%H:%M:%S.%zZ')
+                        data = datestr[0:20] + datestr[21:23] + 'Z'
+                    newline = f'{code[0]}={data}\n'
                 else:
                     newline = line
             new_contents = new_contents + newline
