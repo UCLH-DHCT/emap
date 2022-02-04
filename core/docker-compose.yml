@@ -18,7 +18,7 @@ services:
         - glowroot-central
         - rabbitmq
   rabbitmq:
-    image: rabbitmq:3.8-management
+    image: rabbitmq:management
     env_file:
       - ../config/rabbitmq-config-envs
     ports:
