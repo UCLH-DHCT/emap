@@ -16,6 +16,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <!-- matches current version in spring boot -->
     <hibernate-core.version>5.6.4.Final</hibernate-core.version>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
   </properties>
 
   <modules>
@@ -29,9 +30,11 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <source>${maven.compiler.source}</source>
             <target>${maven.compiler.target}</target>
+            <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
         </plugin>
         <plugin>
