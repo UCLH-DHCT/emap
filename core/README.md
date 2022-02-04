@@ -126,7 +126,8 @@ Emap [project dir, name doesn't actually matter]
  +-- config
  |  |
  |  +-- global-config-envs [global emap config file]
- |  +-- FOO-config-envs [config file for service FOO]
+ |  +-- FOO1-config-envs [config file for service FOO1]
+ |  +-- FOO2-config-envs [config file for service FOO2]...
  +-- Emap-Core [git repo]
  |  |
  |  +-- emap.sh [runs emap, optionally in a box]
@@ -141,7 +142,7 @@ to reference the code containing the dependencies.
 
 ## `FOO-config-envs` file
 
-This file is used by hl7source and emapstar to point to the IDS, UDS, and rabbitmq server.
+Each service has its own configuration file, which is used by the service's `application.properties` file.
 
 The required envs in this file with example values are found in [emap-core-config-envs.EXAMPLE](emap-core-config-envs.EXAMPLE)
 
@@ -151,10 +152,6 @@ This sets the username+password on the rabbitmq server. If you're on the GAE thi
 
 [rabbitmq-config-envs.EXAMPLE](rabbitmq-config-envs.EXAMPLE)
 
-## `.env` file
-
-These files are now deprecated in favour of `global-config-envs`.
-
 ## `global-config-envs` file
 
 This is used for specifying which port on the host your rabbitmq queue, fakeuds port should bind to, and for specifying the project name (`-p` option to docker-compose) to keep the Emap instances on the same docker host separate. Example found here:
@@ -163,33 +160,6 @@ This is used for specifying which port on the host your rabbitmq queue, fakeuds 
 
 If you're running on your own machine, you can set EMAP_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
 
-We should allocate ports to people to avoid clashes, and double check what the firewall rules are for different ports. In the meantime, please use a strong password on your rabbitmq server.
-
-# hl7source
-
-## HAPI
-
- See https://hapifhir.github.io/hapi-hl7v2/xref/ca/uhn/hl7v2/examples/HandlingMultipleVersions.html
- for how we handkle multiple versions of HL7.
- 
- From HAPI FAQ: https://hapifhir.github.io/hapi-hl7v2/hapi-faq.html 
- Q. Why are some message classes missing? For example, I can find
- the class ADT_A01, but not the class ADT_A04.
- A. HL7 defines that some message triggers reuse the same structure. So, for example,
- the ADT^A04 message has the exact same structure as an ADT^A01 message. Therefore,
- when an ADT^A04 message is parsed, or when you want to create one, you will actually
- use the ADT_A01 message class, but the "triggerEvent" property of MSH-9 will be set to A04.
-
- The full list is documented in 2.7.properties file:
- A01 also handles A04, A08, A13
- A05 also handles A14, A28, A31
- A06 handles A07
- A09 handles A10, A11
- A21 handles A22, A23, A25, A26, A27, A29, A32, A33
- ADT_A39 handles A40, A41, A42
- ADT_A43 handles A49
- ADT_A44 handles A47
- ADT_A50 handles A51
- ADT_A52 handles A53
- ADT_A54 handles A55
- ADT_A61 handles A62
+Ports which are allocated per project are listen on the [GAE port log](https://liveuclac.sharepoint.com/sites/RITS-EMAP/_layouts/OneNote.aspx?id=%2Fsites%2FRITS-EMAP%2FSiteAssets%2FInform%20-%20Emap%20Notebook&wd=target%28_Collaboration%20Space%2FOrganisation%20Notes.one%7C3BDBA82E-CB01-45FF-B073-479542EA6D7E%2FGAE%20Port%20Log%7C1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF%2F%29
+onenote:https://liveuclac.sharepoint.com/sites/RITS-EMAP/SiteAssets/Inform%20-%20Emap%20Notebook/_Collaboration%20Space/Organisation%20Notes.one#GAE%20Port%20Log&section-id={3BDBA82E-CB01-45FF-B073-479542EA6D7E}&page-id={1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF}&end). 
+Please use a strong password on your rabbitmq server.
