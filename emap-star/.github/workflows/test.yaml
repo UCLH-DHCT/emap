@@ -18,9 +18,9 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-      - name: Build emap-hl7-processor
+      - name: Build
         run: mvn clean install # run tests so that test classes can be used in current testing
-      - name: Build and test
+      - name: Tests
         run: mvn test
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
