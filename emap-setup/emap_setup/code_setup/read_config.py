@@ -79,11 +79,9 @@ class ReadConfig:
         """
         if dataname in self.config:
             return self.config[dataname]
-        elif element in self.config and \
-                dataname in self.config[element]:
+        elif element in self.config and dataname in self.config[element]:
             return self.config[element][dataname]
-        elif outer_element in self.config and \
-                element in self.config[outer_element] and \
+        elif outer_element in self.config and element in self.config[outer_element] and \
                 dataname in self.config[outer_element][element]:
             return self.config[outer_element][element][dataname]
         return None

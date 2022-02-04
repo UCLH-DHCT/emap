@@ -3,7 +3,7 @@ IDS_SCHEMA=schemaname
 IDS_USERNAME=someuserids
 IDS_PASSWORD=redactedids
 # can omit or leave empty start and end
-IDS_CFG_DEFAULT_START_DATETIME=2020-06-04T00:00:00.00Z
+IDS_CFG_DEFAULT_START_DATETIME=2020-06-04 00:00:00+00:00
 IDS_CFG_END_DATETIME= 
 # note, separate progress schema than emap core
 INFORMDB_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/ids

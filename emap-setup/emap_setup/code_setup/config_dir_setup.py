@@ -35,6 +35,9 @@ class ConfigDirSetup:
             os.mkdir(self.config_dir)
         list_of_dirs = os.listdir(self.main_dir)
         for this_dir in list_of_dirs:
+            # dont process the config dir
+            if this_dir.startswith('config'):
+                continue;
             # get list f -envs.EXAMPLE files
             list_of_envs_files = []
             this_dir_full = os.path.join(self.main_dir, this_dir)

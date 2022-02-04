@@ -13,10 +13,17 @@ def dir_setup():
     filename = './data/test-global-configuration.yaml'
     config_file = ReadConfig(filename)
     dir_setup = ConfigDirSetup(os.path.join(os.getcwd(), 'data'), config_file)
+    if os.path.isdir('./data/config'):
+        _clean_up()
     return dir_setup
 
 
-def test_create_config_dir(dir_setup):
+def test_create_config_dir(dir_setup : ConfigDirSetup):
+    """
+    tests that the config directory is created
+    :param dir_setup:
+    :return:
+    """
     assert not os.path.isdir('./data/config')
     dir_setup.create_or_update_config_dir()
     assert os.path.isdir('./data/config')

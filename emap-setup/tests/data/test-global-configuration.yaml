@@ -39,7 +39,7 @@ config:
 
   # These dates are used to set the start and end dates between which data should be collected
   dates:
-    start: 2020-06-04T00:00:00.000Z
+    start: 2020-06-04T00:00:00.00Z
     end:
 
   informdb:

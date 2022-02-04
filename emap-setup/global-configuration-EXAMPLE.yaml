@@ -29,17 +29,17 @@ config:
   repositories:
     Emap-Core:
       branch:  develop
-    caboodle-vitalsigns:
+    hoover:
       branch:  develop
-    OMOP-ETL:
-      branch:  event_driven
-    Emap-interchange:
-      branch:  master
+    emap-hl7-processor:
+      branch:  develop
+    Emap-Interchange:
+      branch:  develop
     InformDB:
       branch:  develop
-    hl7-vitals:
-      branch:  vitalsigns
-      repo_name: Emap-Core
+#    hl7-vitals:
+#      branch:  vitalsigns
+#      repo_name: Emap-Core
 
   # Configuration data for the rabbitmq instance used by Spring in the pipeline
 
@@ -66,7 +66,7 @@ config:
 
   # These dates are used to set the start and end dates between which data should be collected
   dates:
-    start: 2020-06-04T00:00:00.000Z
+    start: 2020-06-04T00:00:00.00Z
     end:
 
   informdb:
@@ -76,18 +76,12 @@ config:
       INFORMDB_SCHEMA: inform_schema
       INFORMDB_USERNAME: someuser
       INFORMDB_PASSWORD: redacted
-    OMOP-ETL:
-      INFORMDB_SCHEMA: inform_schema
-      INFORMDB_USERNAME: someuser_omop
-      INFORMDB_PASSWORD: redacted_omop
-      INFORMDB_DDL_AUTO: update
-      INFORM_INIT_MODE: always
     hl7-vitals:
       INFORMDB_SCHEMA: inform_schema_for_branch
       INFORMDB_USERNAME: someuseraaa
       INFORMDB_PASSWORD: redactedaaa
 
-# These are the configurations for the caboodle.
+# These are the configurations for caboodle.
 
   caboodle:
     CABOODLE_JDBC_URL: jdbc:sqlserver://caboodle_db
@@ -101,9 +95,3 @@ config:
     UDS_SCHEMA: caboodle_extract
     UDS_USERNAME: caboodle_vitals
     UDS_PASSWORD: inform
-
-# These are the configurations for the omop.
-
-  omop:
-    OPS_DROP_AND_CREATE_SCHEMA: false
-    OPS_SCHEMA: ops_dev
