@@ -327,9 +327,9 @@ public class PersonController {
     }
 
     /**
-     * Update the patient identifiers for an MRN.
+     * Update the patient identifiers for an MRN if the surviving MRN doesn't exist, otherwise merge the MRNs.
      * <p>
-     * With messages out of order and difference sources of information, we have had to alter the way we process these messages.
+     * With messages out of order and difference sources of information, we have had to allow for non-HL7 specified behaviour in our processing
      * <ul>
      *     <li> If the surviving MRN doesn't already exist then we modify the previous MRN (as per HL7 specification) </li>
      *     <li> If the surviving MRN does exist then we merge the MRNs (this occurs frequently when reading real data) </li>
@@ -340,7 +340,7 @@ public class PersonController {
      * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     @Transactional
-    public void updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
+    public void updatePatientIdentifiersOrMerge(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
             throws RequiredDataMissingException {
         List<Mrn> survivingMrns = mrnRepo.findAllByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
         List<Mrn> previousMrns = getMrnsOrCreateOne(
