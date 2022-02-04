@@ -59,12 +59,6 @@
       <artifactId>inform-annotations</artifactId>
       <version>${inform-annotations.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
