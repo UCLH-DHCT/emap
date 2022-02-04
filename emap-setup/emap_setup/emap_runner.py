@@ -54,7 +54,7 @@ def define_arguments():
                         help='update repositories and config files',
                         default=False,
                         action='store_true')
-    # place holder for second group
+    # place holder for second group relating to docker
     group2 = parser.add_argument_group()
     group2.add_argument('docker',
                         help='something',
