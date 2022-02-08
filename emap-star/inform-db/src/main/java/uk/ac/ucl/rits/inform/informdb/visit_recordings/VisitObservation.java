@@ -120,7 +120,7 @@ public class VisitObservation extends TemporalCore<VisitObservation, VisitObserv
      * @param hospitalVisitId        hospital visit
      * @param visitObservationTypeId visit observation type
      * @param observationDatetime    observation datetime
-     * @param sourceSystem           information on system that last changed visit observation information
+     * @param sourceSystem           the system that last changed visit observation information
      * @param validFrom              Time of the message event
      * @param storedFrom             Time that emap-core encountered the message
      */
