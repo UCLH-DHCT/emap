@@ -273,10 +273,9 @@ interface PIDWrap {
 
     /**
      * @return PID-18.1 (or PID-18?) Patient Account Number.
-     * @throws HL7Exception if HAPI does
      */
-    default String getPatientAccountNumber() throws HL7Exception {
-        return getPID().getPatientAccountNumber().getComponent(0).toString();
+    default String getPatientAccountNumber() {
+        return getPID().getPatientAccountNumber().getCx1_IDNumber().getValueOrEmpty();
     }
 
     // PID-21 Mother's Identifier (for newborns). This is not mapped in the Carecast spec
