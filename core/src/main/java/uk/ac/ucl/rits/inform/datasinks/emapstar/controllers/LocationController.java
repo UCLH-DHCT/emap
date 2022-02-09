@@ -34,6 +34,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.adt.TransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.UpdatePatientInfo;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -53,6 +54,13 @@ public class LocationController {
     private final LocationVisitRepository locationVisitRepo;
     private final LocationRepository locationRepo;
     private final LocationVisitAuditRepository locationVisitAuditRepo;
+
+    /**
+     * Self-autowire so that @Caching annotation call will be intercepted.
+     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
+     */
+    @Resource
+    private LocationController self;
 
     /**
      * Constructor implicitly autowiring beans.
@@ -87,7 +95,7 @@ public class LocationController {
             return;
         }
 
-        Location locationEntity = getOrCreateLocation(msg.getFullLocationString().get());
+        Location locationEntity = self.getOrCreateLocation(msg.getFullLocationString().get());
         Instant validFrom = msg.bestGuessAtValidFrom();
 
 
@@ -117,11 +125,11 @@ public class LocationController {
         }
         Instant validFrom = msg.bestGuessAtValidFrom();
         // get or create first visit location before the swap
-        Location locationB = getOrCreateLocation(msg.getOtherFullLocationString().get());
+        Location locationB = self.getOrCreateLocation(msg.getOtherFullLocationString().get());
         RowState<LocationVisit, LocationVisitAudit> visitStateA = getOrCreateOpenLocationByLocation(
                 visitA, locationB, validFrom, storedFrom);
         // get or create second visit location before the swap
-        Location locationA = getOrCreateLocation(msg.getFullLocationString().get());
+        Location locationA = self.getOrCreateLocation(msg.getFullLocationString().get());
         RowState<LocationVisit, LocationVisitAudit> visitStateB = getOrCreateOpenLocationByLocation(
                 visitB, locationA, validFrom, storedFrom);
         // swap to the correct locations
@@ -532,7 +540,7 @@ public class LocationController {
     private Optional<Location> getPreviousLocationId(AdtMessage msg) {
         Location previousLocation = null;
         if (msg.getPreviousLocationString().isSave()) {
-            previousLocation = getOrCreateLocation(msg.getPreviousLocationString().get());
+            previousLocation = self.getOrCreateLocation(msg.getPreviousLocationString().get());
         }
         return Optional.ofNullable(previousLocation);
     }
@@ -663,7 +671,7 @@ public class LocationController {
             HospitalVisit visit, Instant storedFrom, CancelTransferPatient cancelTransferPatient) throws RequiredDataMissingException {
         List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
         Instant cancellationTime = getCancellationTime(cancelTransferPatient);
-        Location cancelledLocationId = getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
+        Location cancelledLocationId = self.getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
 
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, cancelledLocationId, cancellationTime, storedFrom);
@@ -754,6 +762,7 @@ public class LocationController {
      */
     @Cacheable(value = "location", key = "{#locationString}")
     public Location getOrCreateLocation(String locationString) {
+        logger.trace("** Querying for location {}", locationString);
         return locationRepo.findByLocationStringEquals(locationString)
                 .orElseGet(() -> {
                     Location location = new Location(locationString);
