@@ -1,6 +1,53 @@
+# Emap Core
+
+This services takes messages from a queue and uses this information to update the EMAP database.
+
+# Local setup instructions using IntelliJ IDEA
+
+These setup instructions are aimed at developing in IntelliJ IDEA, but hopefully should be similar in Eclipse
+
+1. before creating a project in your IDE, create a parent directory for the project e.g. `~/projects/INFORM`
+1. clone the Emap-Core, Inform-DB and Emap-Interchange repositories into this parent directory
+1. In IntelliJ, go to File > New > New Project From existing sources and select the parent directory. If prompted, choose "Create project from existing sources"
+1. In the project pane on the top left of the IDE, switch to "Project Files" mode, right click the `Emap-Core/pom.xml` and select "Add as Maven project".
+   Do the same with `Emap-Interchange/pom.xml` and `Inform-DB/pom.xml` - not to be confused with `Inform-DB/inform-db/pom.xml`! If you add something by mistake, "Unlink Maven projects" in the Maven pane is the opposite of "Add..."
+1. Allow annotation processing by going to File > Settings > and searching for `processor`
+    - check `enable annotation preprocessing`
+    - change the production sources directory to `classes`
+      ![preprocessor](img/annotation_processor.png)
+1. In the `Maven` pane (which should now have appeared on the top right of the IDE), click the `Reimport all maven projects` (says `Reload` on Jeremy's version)
+1. Ensure that you have lombok and checkstyle plugins installed in your IDE. (File > Settings > search for plugins)
+1. Setup checkstyle (File > settings > search for checkstyle)
+    - set the version of checkstyle to the latest version
+    - click on the `+` to add a new checkstyle configuration
+      ![checkstyle_setup](img/checkstyle_setup.png)
+1. Make a description and select the checkstyle file in `Emap-Core/inform-checker.xml`. When done, tick box to make the new configuration active.
+   ![checkstyle](img/checkstyle.png)
+   you can now run checkstyle from the bottom panel in the IDE
+
+## Running tests using local services
+
+- Now you can create a run configuration for running all tests
+    - Run > Edit Configurations
+    - click on the `+` at the top left-hand side of the window
+      ![new run](img/new_run.png)
+    - Select `Junit` from the drop down
+        - Set Test kind to `All in package`
+        - Set the package to `uk.ac.ucl.rits.inform.datasinks.emapstar`
+        - You may also want to set logging level to TRACE for our classes by defining the environmental variable:
+          `LOGGING_LEVEL_UK_AC_UCL=TRACE`
+- You can run the tests from the run configurations drop-down (this can take a while).
+  ![tests pass](img/test_pass.png)
+    - if this fails to compile, you may need to go to the maven pane on the right-hand side and
+      run the Lifecycle `clean` goal for: `Inform Annotations` and `Inform-DB`.
+      Then `clean` and then `install` on `Emap Star Schema`
+    - After this then select the `Reload All Maven Projects` icon at the top of the same pane as shown below
+
+      ![reload](img/reload_maven.png)
+    
 # How to deploy a live version
 
-How to deploy an instance of Emap that isn't attached to a person.
+How to deploy an instance of Emap on the ULCH GAE, to be run on real patient data. 
 
 ## source code location and setup
 
@@ -26,15 +73,23 @@ You can `touch` a file and `mkdir` a dir to test that group and group permission
 
 ### git config
 
-Ideally: Authentication should not be tied to any one user, we have the github user `inform-machine-user` for this. The password can be distributed through Lastpass to those who need it. The email address for the github account is a gmail account that also has its details in Lastpass.
+Ideally: Authentication should not be tied to any one user, we have the github user `inform-machine-user` for this. 
+The password can be distributed through Lastpass to those who need it. 
+The email address for the github account is a gmail account that also has its details in Lastpass.
 
-For now: use your own username+password to clone/fetch/etc from github. I don't think it will matter if subsequent git fetches are done by a different GAE and/or github user. Jeremy puts the following in his `~/.gitconfig` on the GAE to reduce typing:
+For now: use your own username+password to clone/fetch/etc from github. Jeremy puts the following in his `~/.gitconfig` on the GAE to reduce typing:
 
 ```
 [credential "https://github.com"]
     username = jeremyestein
 ```
-You could also add `password = foobar` depending on how comfortable you are having your github password stored in plaintext on the GAE.
+You will also need to create a github token as password access from git CLI is now deprecated.
+You will probably want to configure the credential helper to store the token access token 
+(this will store the connection information in plain text in your home directory)
+
+```shell
+git config --global credential.helper store
+```
 
 We use https because outgoing ssh is blocked from the GAE.
 
@@ -54,7 +109,7 @@ You need the `-p` option to `docker-compose` to make sure the container and netw
 
 `docker-compose -p emaplive up --build -d`
 
-## Adding in a fake UDS
+### Adding in a fake UDS
 
 In dev/test environments, you may want to make your own UDS in a docker container. It could also double as an IDS as there's nothing to say these can't be on the same postgres instance.
 
@@ -114,9 +169,7 @@ WARNING: The https_proxy variable is not set. Defaulting to a blank string.
       jes1_rabbitmq_1    docker-entrypoint.sh rabbi ...   Up         15671/tcp, 0.0.0.0:15972->15672/tcp, 25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5972->5672/tcp
 ```
 
-# emapstar
-
-## Dependencies
+## Dependencies and configuration
 
 The Dockerfiles have to build the dependencies before building Emap-Core. Therefore your local directory structure has to be like this:
 
