@@ -8,7 +8,21 @@
 # How to deploy a live version
 
 Please see the [emap-core repository](https://github.com/inform-health-informatics/Emap-Core/)
-for deploying a live version
+for an overview of deploying a live instance of EMAP services
+
+## Dependencies
+
+- Repositories must be checked out to the correct branches.
+  "Correct" will depend on what you're trying to do.
+- Conventionally a live instance would all be deployed off master,
+  but during the development phase `develop` is more likely to be the correct branch.
+- Occasionally you may need to deploy off a feature branch -
+  if in doubt ask the author of that code.
+
+```shell script
+ git clone --branch develop https://github.com/inform-health-informatics/emap-hl7-processor.git
+ git clone --branch develop https://github.com/inform-health-informatics/Emap-Interchange.git
+```
 
 ## config
 
