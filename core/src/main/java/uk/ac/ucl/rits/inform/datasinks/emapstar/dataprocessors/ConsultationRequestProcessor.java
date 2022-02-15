@@ -49,7 +49,6 @@ public class ConsultationRequestProcessor {
     @Transactional
     public void processMessage(final ConsultRequest msg, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        String mrnStr = msg.getMrn();
         Instant msgStatusChangeTime = msg.getStatusChangeDatetime();
 
         // retrieve patient to whom message refers to; if MRN not registered, create new patient

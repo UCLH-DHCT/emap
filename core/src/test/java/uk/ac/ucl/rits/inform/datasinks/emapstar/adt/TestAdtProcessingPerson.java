@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnToLiveAuditRepository;
@@ -31,7 +30,6 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestAdtProcessingPerson extends MessageProcessingBase {
@@ -49,6 +47,8 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     private String newMrnString = "60600000";
+    private String postChangeIdMrn = "51111111";
+    private String preChangeIdMrn = "50100010";
 
 
     /**
@@ -99,7 +99,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
         List<Mrn> mrns = getAllMrns();
         assertEquals(1, mrns.size());
 
-        assertEquals("40800001", mrns.get(0).getMrn());
+        assertEquals(postChangeIdMrn, mrns.get(0).getMrn());
     }
 
 
@@ -257,7 +257,7 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
         assertEquals(survivingMrn.getMrnId(), retiredMrnToLive.getLiveMrnId().getMrnId());
         // check number of mrn to live rows by live mrn
         List<MrnToLive> survivingMrnToLiveRows = mrnToLiveRepo.getAllByLiveMrnIdEquals(survivingMrn);
-        assertEquals(3, survivingMrnToLiveRows.size());
+        assertEquals(5, survivingMrnToLiveRows.size());
     }
 
     /**
@@ -386,50 +386,61 @@ class TestAdtProcessingPerson extends MessageProcessingBase {
     }
 
     /**
-     * Change patient identifiers, new identifier doesn't already exist so the mrn should be changed.
+     * Given that surviving MRN doesn't exist and previous MRN does
+     * When a change patient identifier message is processed
+     * The previous MRN should be edited to have the new identifiers (following the HL7 spec)
      * @throws Exception shouldn't happen
      */
     @Test
     @Sql(value = "/populate_db.sql")
     void testChangePatientIdentifiers() throws Exception {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
+        String nonExistingMrn = "nope";
+        String nonExistingNhsNumber = "also no";
+        msg.setMrn(nonExistingMrn);
+        msg.setNhsNumber(nonExistingNhsNumber);
 
         // save state before processing to be sure that it works
-        Optional<Mrn> previousMrnBeforeProcessing = mrnRepo.findByMrnEquals(defaultMrn);
-        Optional<Mrn> newMrnBeforeProcessing = mrnRepo.findByMrnEquals("40800001");
+        Optional<Mrn> oldMrnBeforeProcessing = mrnRepo.findByMrnEquals(preChangeIdMrn);
+        Optional<Mrn> newMrnBeforeProcessing = mrnRepo.findByMrnEquals(nonExistingMrn);
 
         //process message
         dbOps.processMessage(msg);
 
         // previous Mrn should go from existing previously, to now not existing
-        Optional<Mrn> previousMrn = mrnRepo.findByMrnEquals(defaultMrn);
-        assertTrue(previousMrnBeforeProcessing.isPresent());
+        Optional<Mrn> previousMrn = mrnRepo.findByMrnEquals(preChangeIdMrn);
+        assertTrue(oldMrnBeforeProcessing.isPresent());
         assertFalse(previousMrn.isPresent());
 
         // new Mrn should go from not existing previously, to now existing
-        Optional<Mrn> newMrn = mrnRepo.findByMrnEquals("40800001");
+        Optional<Mrn> newMrn = mrnRepo.findByMrnEquals(nonExistingMrn);
         assertFalse(newMrnBeforeProcessing.isPresent());
         assertTrue(newMrn.isPresent());
     }
 
     /**
-     * Change patient identifiers, final MRN already exists, so should throw an exception.
+     * Given the surviving MRN already exists in emap, and so does the previous MRN
+     * When a change patient identifiers message is processed
+     * The previous MRNs mrn to live should now point to the surviving MRN.
      * @throws Exception shouldn't happen
      */
     @Test
-    @Sql(value = "/populate_db.sql")
-    void testChangePatientIdentifiersWithExistingFinalMrn() throws Exception {
+    @Sql("/populate_db.sql")
+    void testChangePatientIdentifiersWithExistingSurvivingMrn() throws Exception {
         ChangePatientIdentifiers msg = messageFactory.getAdtMessage("generic/A47.yaml");
-        msg.setMrn(newMrnString);
+        dbOps.processMessage(msg);
 
-        assertThrows(IncompatibleDatabaseStateException.class, () -> dbOps.processMessage(msg));
+        Mrn previousMrn = mrnRepo.findByMrnEquals(preChangeIdMrn).orElseThrow();
+        Mrn survivingMrn = mrnRepo.findByMrnEquals(postChangeIdMrn).orElseThrow();
+        Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(previousMrn).getLiveMrnId();
+        assertEquals(liveMrn.getMrnId(), survivingMrn.getMrnId());
     }
 
-    private void createAndProcess(String nhsNumber, String Mrn, Integer minuteAdded) throws Exception {
+    private void createAndProcess(String nhsNumber, String mrn, Integer minuteAdded) throws Exception {
         AdmitPatient msg = messageFactory.getAdtMessage("generic/A01.yaml");
 
         msg.setNhsNumber(nhsNumber);
-        msg.setMrn(Mrn);
+        msg.setMrn(mrn);
         msg.setVisitNumber(minuteAdded.toString());
         msg.setEventOccurredDateTime(past.plus(minuteAdded, ChronoUnit.MINUTES));
         dbOps.processMessage(msg);
