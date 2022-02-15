@@ -6,7 +6,7 @@ This services takes messages from a queue and uses this information to update th
 
 These setup instructions are aimed at developing in IntelliJ IDEA, but hopefully should be similar in Eclipse
 
-1. before creating a project in your IDE, create a parent directory for the project e.g. `~/projects/INFORM`
+1. before creating a project in your IDE, create a parent directory for the project e.g. `~/projects/EMAP`
 1. clone the Emap-Core, Inform-DB and Emap-Interchange repositories into this parent directory
 1. In IntelliJ, go to File > New > New Project From existing sources and select the parent directory. If prompted, choose "Create project from existing sources"
 1. In the project pane on the top left of the IDE, switch to "Project Files" mode, right click the `Emap-Core/pom.xml` and select "Add as Maven project".
@@ -213,6 +213,6 @@ This is used for specifying which port on the host your rabbitmq queue, fakeuds 
 
 If you're running on your own machine, you can set EMAP_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
 
-Ports which are allocated per project are listen on the [GAE port log](https://liveuclac.sharepoint.com/sites/RITS-EMAP/_layouts/OneNote.aspx?id=%2Fsites%2FRITS-EMAP%2FSiteAssets%2FInform%20-%20Emap%20Notebook&wd=target%28_Collaboration%20Space%2FOrganisation%20Notes.one%7C3BDBA82E-CB01-45FF-B073-479542EA6D7E%2FGAE%20Port%20Log%7C1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF%2F%29
+Ports which are allocated per project are listed on the [GAE port log](https://liveuclac.sharepoint.com/sites/RITS-EMAP/_layouts/OneNote.aspx?id=%2Fsites%2FRITS-EMAP%2FSiteAssets%2FInform%20-%20Emap%20Notebook&wd=target%28_Collaboration%20Space%2FOrganisation%20Notes.one%7C3BDBA82E-CB01-45FF-B073-479542EA6D7E%2FGAE%20Port%20Log%7C1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF%2F%29
 onenote:https://liveuclac.sharepoint.com/sites/RITS-EMAP/SiteAssets/Inform%20-%20Emap%20Notebook/_Collaboration%20Space/Organisation%20Notes.one#GAE%20Port%20Log&section-id={3BDBA82E-CB01-45FF-B073-479542EA6D7E}&page-id={1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF}&end). 
 Please use a strong password on your rabbitmq server.
