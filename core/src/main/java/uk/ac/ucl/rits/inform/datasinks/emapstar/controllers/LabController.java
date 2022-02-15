@@ -29,32 +29,22 @@ import java.time.Instant;
  */
 @Component
 public class LabController {
-    /**
-     * Self-autowire so that @Caching annotation call will be intercepted.
-     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
-     */
+
     @Resource
-    private LabController self;
+    private LabCache cache;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final LabOrderController labOrderController;
-    private final LabTestDefinitionRepository labTestDefinitionRepo;
-    private final LabBatteryElementRepository labBatteryElementRepo;
     private final LabResultController labResultController;
 
     /**
-     * @param labOrderController    controller for LabOrder tables
-     * @param labTestDefinitionRepo repository for LabTestDefinition
-     * @param labBatteryElementRepo repository for LabBatterElement
-     * @param labResultController   controller for LabResult tables
+     * @param labOrderController  controller for LabOrder tables
+     * @param labResultController controller for LabResult tables
      */
     public LabController(
-            LabOrderController labOrderController, LabTestDefinitionRepository labTestDefinitionRepo,
-            LabBatteryElementRepository labBatteryElementRepo, LabResultController labResultController) {
+            LabOrderController labOrderController, LabResultController labResultController) {
         this.labOrderController = labOrderController;
-        this.labTestDefinitionRepo = labTestDefinitionRepo;
-        this.labBatteryElementRepo = labBatteryElementRepo;
         this.labResultController = labResultController;
     }
 
@@ -84,11 +74,32 @@ public class LabController {
         LabOrder labOrder = labOrderController.processSampleAndOrderInformation(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             logger.trace("** Starting to process lab result {} from {}", result.getTestItemLocalCode(), msg.getTestBatteryCodingSystem());
-            LabTestDefinition testDefinition = self.getOrCreateLabTestDefinition(
+            LabTestDefinition testDefinition = cache.getOrCreateLabTestDefinition(
                     msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode(), storedFrom, validFrom);
-            self.createLabBatteryElementIfNotExists(testDefinition, battery, storedFrom, validFrom);
+            cache.createLabBatteryElementIfNotExists(testDefinition, battery, storedFrom, validFrom);
             labResultController.processResult(testDefinition, labOrder, result, validFrom, storedFrom);
         }
+    }
+
+}
+
+/**
+ * Helper component, used because Spring cache doesn't intercept self-invoked method calls.
+ */
+@Component
+class LabCache {
+    private static final Logger logger = LoggerFactory.getLogger(LabCache.class);
+    private final LabTestDefinitionRepository labTestDefinitionRepo;
+    private final LabBatteryElementRepository labBatteryElementRepo;
+
+
+    /**
+     * @param labTestDefinitionRepo repository for LabTestDefinition
+     * @param labBatteryElementRepo repository for LabBatterElement
+     */
+    LabCache(LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo) {
+        this.labTestDefinitionRepo = labTestDefinitionRepo;
+        this.labBatteryElementRepo = labBatteryElementRepo;
     }
 
 
@@ -131,5 +142,4 @@ public class LabController {
                     return labBatteryElementRepo.save(batteryElement);
                 });
     }
-
 }
