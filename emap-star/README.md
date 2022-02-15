@@ -6,7 +6,7 @@ This repository describes the structure of the EMAP-Star database.
 
 ## Intro
 
-The entire database is modelled using plain Java objects which are use Hibernate annotations to map these to the
+The entire database is modelled using plain Java objects which use Hibernate annotations to map these to the
 relational database. We have chosen a relational structure for ease of use and enabling indexes to improve query speed.
 
 ## Package structure
@@ -70,7 +70,8 @@ relational database. We have chosen a relational structure for ease of use and e
   @JoinColumn(name = "mrnId", nullable = false)
   private Mrn mrnId;
   ```
-- Timestamps are timezone aware (and automated testing enforces this)
+- Timestamps (date and times) are timezone aware (and automated testing enforces this) and named in the form `<something>Datetime`
+- Dates should only have date information and be named in the form `<something>Date`
   ```java
   @Column(columnDefinition = "timestamp with time zone")
   private Instant admissionTime;
