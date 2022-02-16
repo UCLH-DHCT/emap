@@ -19,7 +19,7 @@ jobs:
           distribution: 'adopt'
           cache: 'maven'
       - name: Build
-        run: mvn clean install # run tests so that test classes can be used in current testing
+        run: mvn clean install
       - name: Tests
         run: mvn test
       - name: Publish Test Report
