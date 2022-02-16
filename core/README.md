@@ -113,7 +113,8 @@ You need the `-p` option to `docker-compose` to make sure the container and netw
 
 ### Adding in a fake UDS
 
-In dev/test environments, you may want to make your own UDS in a docker container. It could also double as an IDS as there's nothing to say these can't be on the same postgres instance.
+In dev environments, you may want to make your own UDS in a docker container.
+It could also double as an IDS as there's nothing to say these can't be on the same postgres instance.
 
 This container is defined in a separate docker-compose file, so you need to specify both files as below:
 
@@ -132,15 +133,22 @@ Emap-Core/emap.sh run glowroot-central java -jar "glowroot-central.jar" setup-ad
 
 ## `emap.sh` script and Emap-in-a-box
 
-To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
+To make running with multiple docker-compose files easier, there's a script called `emap.sh` which can run the above command for you. 
+It's a wrapper around `docker-compose` that works out what the "stem" of the command should be (the `-f` and `-p` options, 
+and you just have to pass in the compose commands like `ps`, `up`, `down`, etc).
 
-By default it gives you the full Emap-in-a-box experience, ie. you get a dockerised postgres server to act as a UDS, and you get a rabbitmq server. To avoid this you would need to pass the service names you need to the script (see docker-compose help).
+By default it gives you the full Emap-in-a-box experience, 
+ie. you get a dockerised postgres server to act as a UDS, and you get a rabbitmq server. 
+To avoid this you would need to pass the service names you need to the script (see docker-compose help).
+
 Useful command: `./emap.sh ps --services` to list available services.
-We should really have multiple emap scripts that include/exclude the fake UDS and/or the DBfiller. Good, concise names on a postcard...
 
-It needs configuring with at least one environment variable `EMAP_PROJECT_NAME` which must live in the file `global-config-envs` in the directory `config`, adjacent to `Emap-Core` and friends.
+It needs configuring with at least one environment variable `EMAP_PROJECT_NAME`
+which must be defined in `global-config-envs` in the directory `config`, adjacent to `Emap-Core` and friends.
 
-Because this is just a file containing environment variables, you can actually put all the local ports here as well, instead of spreading them over multiple `.env` files inside the repository dirs themselves:
+Because this is just a file containing environment variables, 
+you can actually put all the local ports here as well, 
+instead of spreading them over multiple `.env` files inside the repository dirs themselves:
 
 Example `global-config-envs`:
 ```bash
@@ -153,7 +161,8 @@ FAKEUDS_PORT=5433
 
 ### Example
 
-I've appended the docker-compose command `ps` to `emap.sh`, and you can see all the services from all our repos in one place!
+I've appended the docker-compose command `ps` to `emap.sh`, a
+and you can see all the services from all our repos in one place!
 ```
 (develop) $ ./emap.sh ps
 Global Emap config file: /Users/jeremystein/Emap/global-config-envs
@@ -173,7 +182,8 @@ WARNING: The https_proxy variable is not set. Defaulting to a blank string.
 
 ## Dependencies and configuration
 
-The Dockerfiles have to build the dependencies before building Emap-Core. Therefore your local directory structure has to be like this:
+The Dockerfiles have to build the dependencies before building Emap-Core. 
+Therefore your local directory structure has to be like this:
 
 ```
 Emap [project dir, name doesn't actually matter]
