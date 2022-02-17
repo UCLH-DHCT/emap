@@ -94,7 +94,7 @@ public class PatientAllergyService {
         patientAllergy.setAllergenType(iam.getAllergenTypeCode().getCwe1_Identifier().getValueOrEmpty());
         patientAllergy.setAllergenName(InterchangeValue.buildFromHl7(iam.getAllergenCodeMnemonicDescription().getText().getValueOrEmpty()));
         patientAllergy.setAllergyAdded(HL7Utils.interpretLocalTime(iam.getReportedDateTime()));
-        patientAllergy.setSeverity(iam.getAllergySeverityCode().getCwe1_Identifier().getValueOrEmpty());
+        patientAllergy.setSeverity(iam.getAllergySeverityCode().getCwe1_Identifier().getValue());
 
         // add reactions of which there can be multiple
         for (int i = 0; i < iam.getIam5_AllergyReactionCodeReps(); i++) {
