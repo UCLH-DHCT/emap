@@ -90,69 +90,61 @@ class TestPatientAllergies extends TestHl7MessageStream {
     }
 
     /**
-     * ADT_A60 with two IAM segments should produce two patient allergies.
+     * Given that ADT_A60 message processing has been activated
+     * When an ADT_A60 HL7 message with two IAM segments should produce two patient allergies.
+     * Then a Collection of two PatientAllergy Interchange messages should be created
      * @throws Exception shouldn't happen
      */
     @Test
-    void testMultipleInfectionsParsed() throws Exception {
+    void testMultipleAllergiesParsed() throws Exception {
         List<PatientAllergy> allergies = getAllAllergies("2019_05_multiple_allergies");
         assertEquals(2, allergies.size());
     }
 
-//    /**
-//     * A05 with no ZIF segment for patient infections.
-//     * Should not throw an error, but doesn't return a patient infection message.
-//     * @throws Exception shouldn't happen
-//     */
-//    @Test
-//    void testNoPatientInfectionsInA05() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("no_infections");
-//        assertTrue(infections.isEmpty());
-//    }
-//
-//    /**
-//     * Given that a patient infection doesn't have an added date time
-//     * When the message is processed
-//     * Then the infection should not be added
-//     * <p>
-//     * The hoover should deal with messages with no added datetime
-//     * @throws Exception shouldn't happen
-//     */
-//    @Test
-//    void testNoInfectionAddedTime() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("mumps_no_add_time");
-//        assertTrue(infections.isEmpty());
-//    }
-//
-//    /**
-//     * Given that patient infection added date time is earlier than service start
-//     * When the message is processed
-//     * Then the infection should not be added
-//     */
-//    @Test
-//    void testNoInfectionsBeforeServiceStart() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("earlier_infection");
-//        assertTrue(infections.isEmpty());
-//    }
-//
-//    /**
-//     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
-//     * @param setupFile    test setup processing, used to set the current progress
-//     * @param testedFile   file where the actual output is tested
-//     * @param expectedSize expected number of messages from the output file
-//     * @throws Exception shouldn't happen
-//     */
-//    @ParameterizedTest
-//    @CsvSource({
-//            "2019_05_infection, 2019_05_infection, 1", // same date as existing progress is parsed
-//            "2019_05_infection, 2019_06_infection, 1", // later date as existing progress is parsed
-//            "2019_06_infection, 2019_05_infection, 0",  // earlier date as progress is parsed
-//            "2019_06_infection, 2019_06_infection, 1",  // same date as existing progress is parsed
-//    })
-//    void earlierInfectionsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
-//        getAllInfections(setupFile);
-//
-//        List<PatientInfection> infections = getAllInfections(testedFile);
-//        assertEquals(expectedSize, infections.size());
-//    }
+    /**
+     * Given that ADT_A60 message processing has been activated
+     * When an ADT_A60 message without an IAM segment arrives
+     * Then no error should be raised, but no allergy interchange messages should be created either
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testNoAllergySegmentInA60() throws Exception {
+        List<PatientAllergy> allergies = getAllAllergies("2019_05_allergy_noIAM");
+        assertTrue(allergies.isEmpty());
+    }
+
+    /**
+     * Given that ADT_A60 message processing has been activated
+     * When an ADT_A60 message with a reported time earlier than the service start date arrives
+     * Then the allergy interchange message should not be added
+     */
+    @Test
+    void testNoAllergiesBeforeServiceStart() throws Exception {
+        List<PatientAllergy> allergies = getAllAllergies("earlier_allergy");
+        assertTrue(allergies.isEmpty());
+    }
+
+    /**
+     * Given that allergy message processing has been activated
+     * When multiple messages are processed some falling before and some after service start datetime
+     * Then only those messages are transferred into Interchange messages that have a reported time after the service
+     *    start date
+     * @param setupFile    test setup processing, used to set the current progress
+     * @param testedFile   file where the actual output is tested
+     * @param expectedSize expected number of messages from the output file
+     * @throws Exception shouldn't happen
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "2019_05_allergy, 2019_05_allergy, 1", // same date as existing progress is parsed
+            "2019_05_allergy, 2019_06_allergy, 1", // later date as existing progress is parsed
+            "2019_06_allergy, 2019_05_allergy, 0",  // earlier date as progress is parsed
+            "2019_06_allergy, 2019_06_allergy, 1",  // same date as existing progress is parsed
+    })
+    void earlierInfectionsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
+        getAllAllergies(setupFile);
+
+        List<PatientAllergy> allergies = getAllAllergies(testedFile);
+        assertEquals(expectedSize, allergies.size());
+    }
 }
