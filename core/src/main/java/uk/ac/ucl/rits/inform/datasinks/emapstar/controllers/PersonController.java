@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.DataSources;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
@@ -23,6 +22,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,17 +67,29 @@ public class PersonController {
     @Transactional
     public void mergeMrns(final MergePatient msg, final Mrn survivingMrn, final Instant storedFrom) throws RequiredDataMissingException {
         // get original mrn objects by mrn or nhs number
+        List<Mrn> originalMrns = getMrnsOrCreateOne(
+                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom
+        );
+        mergeMrns(originalMrns, survivingMrn, msg.bestGuessAtValidFrom(), storedFrom);
+    }
+
+    private List<Mrn> getMrnsOrCreateOne(String mrn, String nhsNumber, String sourceSystem, Instant validFrom, Instant storedFrom)
+            throws RequiredDataMissingException {
         List<Mrn> originalMrns = mrnRepo
-                .findAllByMrnOrNhsNumber(msg.getPreviousMrn(), msg.getPreviousNhsNumber());
+                .findAllByMrnOrNhsNumber(mrn, nhsNumber);
         if (originalMrns.isEmpty()) {
             originalMrns = Collections.singletonList(
-                    createNewLiveMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), msg.bestGuessAtValidFrom(), storedFrom)
+                    createNewLiveMrn(mrn, nhsNumber, sourceSystem, validFrom, storedFrom)
             );
         }
+        return originalMrns;
+    }
+
+    private void mergeMrns(Collection<Mrn> originalMrns, Mrn survivingMrn, Instant validFrom, Instant storedFrom) {
         // change all live mrns from original mrn to surviving mrn
         originalMrns.stream()
                 .flatMap(mrn -> mrnToLiveRepo.getAllByLiveMrnIdEquals(mrn).stream())
-                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, msg.bestGuessAtValidFrom(), storedFrom, mrnToLive));
+                .forEach(mrnToLive -> updateMrnToLiveIfMessageIsNotBefore(survivingMrn, validFrom, storedFrom, mrnToLive));
     }
 
     /**
@@ -315,37 +327,40 @@ public class PersonController {
     }
 
     /**
-     * Update the patient identifiers for an MRN. Because new MRN doesn't already exist, this is a modify instead of a merge.
+     * Update the patient identifiers for an MRN if the surviving MRN doesn't exist, otherwise merge the MRNs.
      * <p>
-     * It looks very rare that this is done, neonates and unusual cases where there are only a few ADT messages, no other result types
-     * found so it should be fine even if mid-stream.
+     * With messages out of order and difference sources of information, we have had to allow for non-HL7 specified behaviour in our processing
+     * <ul>
+     *     <li> If the surviving MRN doesn't already exist then we modify the previous MRN (as per HL7 specification) </li>
+     *     <li> If the surviving MRN does exist then we merge the MRNs (this occurs frequently when reading real data) </li>
+     * </ul>
      * @param msg             ChangePatientIdentifiers
      * @param messageDateTime date time of the message
      * @param storedFrom      when the message has been read by emap core
-     * @return MRN with the correct identifiers
-     * @throws IncompatibleDatabaseStateException if an MRN already exists
-     * @throws RequiredDataMissingException       If MRN and NHS number are both null
+     * @throws RequiredDataMissingException If MRN and NHS number are both null
      */
     @Transactional
-    public Mrn updatePatientIdentifiersOrCreateMrn(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
-            throws IncompatibleDatabaseStateException, RequiredDataMissingException {
-        if (mrnExists(msg.getMrn())) {
-            throw new IncompatibleDatabaseStateException(String.format("New MRN can't already exist for a ChangePatientIdentifier message: %s", msg));
+    public void updatePatientIdentifiersOrMerge(ChangePatientIdentifiers msg, Instant messageDateTime, Instant storedFrom)
+            throws RequiredDataMissingException {
+        List<Mrn> survivingMrns = mrnRepo.findAllByMrnOrNhsNumber(msg.getMrn(), msg.getNhsNumber());
+        List<Mrn> previousMrns = getMrnsOrCreateOne(
+                msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom
+        );
+        // simple case, the surviving MRN doesn't exist so just update previous MRN with the new details
+        if (survivingMrns.isEmpty()) {
+            if (msg.getMrn() != null) {
+                previousMrns.forEach(mrn -> mrn.setMrn(msg.getMrn()));
+            }
+            if (msg.getNhsNumber() != null) {
+                previousMrns.forEach(mrn -> mrn.setNhsNumber(msg.getNhsNumber()));
+            }
+            logger.debug("Surviving MRN didn't already exist, so updated the previous MRN with the correct identifiers");
+            return;
         }
-        Mrn mrn = getOrCreateMrn(msg.getPreviousMrn(), msg.getPreviousNhsNumber(), msg.getSourceSystem(), messageDateTime, storedFrom);
+        // surviving Mrn should always have the correct live MRN so use the first one of these
+        Mrn liveMrn = mrnToLiveRepo.getByMrnIdEquals(survivingMrns.get(0)).getLiveMrnId();
+        logger.debug("Merging MRNs as the surviving MRN already exists");
 
-        mrn.setMrn(msg.getMrn());
-        if (msg.getNhsNumber() != null) {
-            mrn.setNhsNumber(msg.getNhsNumber());
-        }
-        return mrn;
-    }
-
-    /**
-     * @param mrn mrn string
-     * @return true if an MRN exists by the mrn string
-     */
-    private boolean mrnExists(String mrn) {
-        return mrnRepo.getByMrnEquals(mrn).isPresent();
+        mergeMrns(previousMrns, liveMrn, messageDateTime, storedFrom);
     }
 }
