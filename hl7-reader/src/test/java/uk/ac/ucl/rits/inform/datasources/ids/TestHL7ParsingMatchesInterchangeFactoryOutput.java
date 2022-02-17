@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
@@ -426,6 +427,16 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 .filter(msg -> msg instanceof PatientInfection)
                 .findFirst().orElseThrow();
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
+        Assertions.assertEquals(expected, messageFromHl7);
+    }
+
+    @Test
+    public void testPatientAllergy() throws Exception {
+        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientAllergies/minimal_allergy.txt")
+                .stream()
+                .filter(msg -> msg instanceof PatientAllergy)
+                .findFirst().orElseThrow();
+        PatientAllergy expected = interchangeFactory.getPatientAllergies("hl7/minimal_allergy.yaml").get(0);
         Assertions.assertEquals(expected, messageFromHl7);
     }
 }
