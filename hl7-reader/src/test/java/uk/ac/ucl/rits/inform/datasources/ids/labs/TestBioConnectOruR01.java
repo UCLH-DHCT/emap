@@ -14,8 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultStatus;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -36,7 +34,7 @@ class TestBioConnectOruR01 {
         assertTrue(msg.getEpicCareOrderNumber().isUnknown());
         assertEquals("40800000", msg.getMrn());
         assertEquals("9876543", msg.getLabSpecimenNumber());
-        assertTrue(msg.getVisitNumber().isEmpty());
+        assertEquals("1039274827", msg.getVisitNumber());
     }
 
     @Test

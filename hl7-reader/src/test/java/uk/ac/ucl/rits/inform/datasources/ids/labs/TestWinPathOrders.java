@@ -173,10 +173,10 @@ class TestWinPathOrders {
         assertEquals("WinPath", order.getSourceSystem());
         assertEquals(batteryCode, order.getTestBatteryLocalCode());
         assertEquals(OrderCodingSystem.WIN_PATH.name(), order.getTestBatteryCodingSystem());
+        assertEquals("1039282726", order.getVisitNumber());
 
         assertTrue(order.getOrderStatus().isEmpty());
         assertTrue(order.getResultStatus().isEmpty());
-        assertTrue(order.getVisitNumber().isEmpty());
         assertTrue(order.getSpecimenType().isUnknown());
         assertTrue(order.getLabDepartment().isEmpty());
     }
@@ -204,8 +204,8 @@ class TestWinPathOrders {
         LabOrderMsg order = labReader.getFirstOrder(FILE_TEMPLATE, "orm_o01_questions");
         assertEquals(3, order.getQuestions().size());
         // separated by ?-
-        assertEquals("Surveillance",  order.getQuestions().get("Why is this test being performed"));
+        assertEquals("Surveillance", order.getQuestions().get("Why is this test being performed"));
         // separated by :-
-        assertEquals("?stroke",  order.getQuestions().get("Clinical Details"));
+        assertEquals("?stroke", order.getQuestions().get("Clinical Details"));
     }
 }
