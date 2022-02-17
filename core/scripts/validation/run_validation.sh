@@ -6,8 +6,8 @@ set -euo pipefail
 # - Truncate star_validation tables including progress
 
 date_suffix=$(date +"%Y-%m-%d_%H-%M-%S")
-mkdir -p ../emap_logs
-log_file_prefix=../emap_logs/rebuild_log_${date_suffix}
+mkdir -p ../validation_logs
+log_file_prefix=../validation_logs/rebuild_log_${date_suffix}
 
 # edit config files in place, keeping a backup named by the timestamp
 configure_time_window() {
