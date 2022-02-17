@@ -1,11 +1,12 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
-import java.time.Instant;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.Instant;
 
 /**
  * Keep track of what message number we have processed up to.
@@ -42,6 +43,7 @@ public class IdsProgress {
     public int getId() {
         return id;
     }
+
     /**
      * @return the last processed message
      */
@@ -75,5 +77,20 @@ public class IdsProgress {
      */
     public void setLastProcessingDatetime(Instant lastProcessingDatetime) {
         this.lastProcessingDatetime = lastProcessingDatetime;
+    }
+
+    /**
+     * Record that we have processed all messages up to the specified message.
+     * @param currentId             the unique ID for the latest IDS message processed
+     * @param messageDatetime       the timestamp of this message
+     * @param processingEnd         the time this message was actually processed
+     * @param idsProgressRepository repository to save the entity
+     */
+    @Transactional
+    void updateAndSave(int currentId, Instant messageDatetime, Instant processingEnd, IdsProgressRepository idsProgressRepository) {
+        lastProcessedIdsUnid = currentId;
+        lastProcessedMessageDatetime = messageDatetime;
+        lastProcessingDatetime = processingEnd;
+        idsProgressRepository.save(this);
     }
 }

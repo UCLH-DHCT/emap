@@ -5,11 +5,14 @@ import ca.uhn.hl7v2.model.v26.segment.EVN;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.field.Infection;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.custom.v26.message.ADT_A05;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
@@ -19,21 +22,38 @@ import java.util.Collection;
 
 @Component
 public class PatientStatusService {
-    public Collection<? extends EmapOperationMessage> buildMessages(String sourceId, ADT_A05 msg) throws HL7Exception {
-        return buildPatientInfections(sourceId, msg);
+    /**
+     * The HL7 feed always sends entire history of patient infections.
+     * This field is used to only parse new patient infections, from the service start date onwards.
+     */
+    @Setter
+    private Instant infectionProgress;
+    private static final Logger logger = LoggerFactory.getLogger(PatientStatusService.class);
+
+    public PatientStatusService(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
+        infectionProgress = serviceStart;
     }
 
-    private Collection<PatientInfection> buildPatientInfections(String sourceId, ADT_A05 msg) throws HL7Exception {
+    /**
+     * Build patient infections from message.
+     * Infections with no added datetime, or infections where the added time time is before the current progress will be skipped
+     * @param sourceId message sourceId
+     * @param msg      hl7 message
+     * @return list of patient infections
+     * @throws HL7Exception
+     */
+    Collection<PatientInfection> buildPatientInfections(String sourceId, ADT_A05 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
         PID pid = msg.getPID();
         PV1 pv1 = msg.getPV1();
         EVN evn = msg.getEVN();
         PatientInfoHl7 patientInfo = new PatientInfoHl7(msh, pid, pv1);
-        ArrayList<PatientInfection> infections = new ArrayList<>();
         int reps = msg.getZIF().getInfectionReps();
+        Collection<PatientInfection> infections = new ArrayList<>(reps);
         for (int i = 0; i < reps; i++) {
             Infection infectionSegment = msg.getZIF().getInfection(i);
-            infections.add(buildPatientInfection(sourceId, evn, patientInfo, infectionSegment));
+            PatientInfection patientInfection = buildPatientInfection(sourceId, evn, patientInfo, infectionSegment);
+            addNewInfectionAndUpdateProgress(patientInfection, infections);
         }
         return infections;
     }
@@ -52,5 +72,15 @@ public class PatientStatusService {
         Instant infectionResolved = HL7Utils.interpretLocalTime(infectionSegment.getInfection3ResolvedDateTime());
         patientInfection.setInfectionResolved(InterchangeValue.buildFromHl7(infectionResolved));
         return patientInfection;
+    }
+
+    private void addNewInfectionAndUpdateProgress(PatientInfection patientInfection, Collection<PatientInfection> infections) {
+        Instant infectionAdded = patientInfection.getInfectionAdded();
+        if (infectionAdded == null || infectionAdded.isBefore(infectionProgress)) {
+            logger.debug("Infection processing skipped as current infection added is {} and progress is {}", infectionAdded, infectionProgress);
+            return;
+        }
+        infections.add(patientInfection);
+        infectionProgress = patientInfection.getInfectionAdded();
     }
 }
