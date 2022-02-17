@@ -31,7 +31,7 @@ of these config files:
 
 ### `emap-hl7processor-config-envs` file
 
-This file is used by hl7source to point to the IDS and rabbitmq server.
+This file is used by hl7source (the hl7 processor's docker container) to point to the IDS and rabbitmq server.
 
 The required envs in this file with example values are found in
 [emap-hl7processor-config-envs.EXAMPLE](emap-hl7processor-config-envs.EXAMPLE)
