@@ -4,5 +4,5 @@ import org.springframework.data.repository.CrudRepository;
 
 /**
  */
-public interface IdsEffectLoggingRepository extends CrudRepository<IdsEffectLogging, Integer> {
+public interface IdsEffectLoggingRepository extends CrudRepository<IdsEffectLogging, Long> {
 }
