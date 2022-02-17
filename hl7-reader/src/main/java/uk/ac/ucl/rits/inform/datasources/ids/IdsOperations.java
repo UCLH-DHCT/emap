@@ -3,6 +3,7 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v26.message.ADT_A60;
 import ca.uhn.hl7v2.model.v26.message.ORM_O01;
 import ca.uhn.hl7v2.model.v26.message.ORR_O02;
 import ca.uhn.hl7v2.model.v26.message.ORU_R01;
@@ -46,6 +47,7 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Operations that can be performed on the IDS.
+ *
  * @author Jeremy Stein & Stef Piatek
  */
 @Component
@@ -59,6 +61,7 @@ public class IdsOperations implements AutoCloseable {
     private final AdtMessageFactory adtMessageFactory;
     private final OrderAndResultService orderAndResultService;
     private final PatientStatusService patientStatusService;
+    private final PatientAllergyService patientAllergyService;
     private final IdsProgressRepository idsProgressRepository;
     private final boolean idsEmptyOnInit;
     private final Integer defaultStartUnid;
@@ -69,6 +72,7 @@ public class IdsOperations implements AutoCloseable {
      * @param adtMessageFactory     builds ADT messages
      * @param orderAndResultService orchestrates processing of messages for orders and results
      * @param patientStatusService  orchestrates processing of messages with patient status
+     * @param patientAllergyService orchestrates processing of messages with patient allergies
      * @param idsProgressRepository interaction with ids progress table (stored in the star database)
      */
     public IdsOperations(
@@ -76,8 +80,10 @@ public class IdsOperations implements AutoCloseable {
             AdtMessageFactory adtMessageFactory,
             OrderAndResultService orderAndResultService,
             PatientStatusService patientStatusService,
+            PatientAllergyService patientAllergyService,
             IdsProgressRepository idsProgressRepository) {
         this.patientStatusService = patientStatusService;
+        this.patientAllergyService = patientAllergyService;
         this.adtMessageFactory = adtMessageFactory;
         this.orderAndResultService = orderAndResultService;
         this.idsProgressRepository = idsProgressRepository;
@@ -99,6 +105,7 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * We are writing to the HL7 queue.
+     *
      * @return the datasource enum for the hl7 queue
      */
     @Bean
@@ -141,6 +148,7 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Find the first message in the IDS that came in at or after a certain
      * timestamp.
+     *
      * @param fromDateTime the timestamp to start from, or null for no boundary
      * @param fromUnid     starting unid for filtering
      * @return the unid of the first message to be persisted at or after that time,
@@ -154,7 +162,8 @@ public class IdsOperations implements AutoCloseable {
         logger.info("Querying IDS for first unid after {}, this can take a while", fromDateTime);
         try (Session idsSession = idsFactory.openSession()) {
             List<IdsMaster> msg = idsSession.createQuery(
-                    "select i from IdsMaster i where i.unid >= :fromUnid and i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
+                            "select i from IdsMaster i where i.unid >= :fromUnid and "
+                                    + "i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
                     .setParameter("fromDatetime", fromDateTime)
                     .setParameter("fromUnid", fromUnid)
                     .setMaxResults(1)
@@ -192,10 +201,11 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Write a message into the IDS. For test IDS instances only!
+     *
      * @param hl7message     the HL7 message text
      * @param id             the IDS unique ID
      * @param patientInfoHl7 the parser to get various HL7 fields out of
-     * @throws HL7Exception if HAPI does
+     * @throws HL7Exception     if HAPI does
      * @throws RuntimeException if IDS is not empty
      */
     private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
@@ -239,6 +249,7 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Entry point for populating a test IDS from a file specified on the command
      * line.
+     *
      * @return The CommandLineRunner
      */
     @Bean
@@ -268,6 +279,7 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Get next entry in the IDS, if it exists.
+     *
      * @param lastProcessedId the last one we have successfully processed
      * @return the first message that comes after lastProcessedId, or null if there isn't one
      * @throws InternalError if something has gone wrong with batching of HL7 messages
@@ -297,6 +309,7 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Return the next HL7 message in the IDS. If there are no more, block until
      * there are.
+     *
      * @param lastProcessedId the latest unique ID that has already been processed
      * @return the next HL7 message record
      */
@@ -324,6 +337,7 @@ public class IdsOperations implements AutoCloseable {
      * from Inform-db (ETL metadata) - process the message and write to Inform-db -
      * write the latest processed ID to reflect the above message. Blocks until
      * there are new messages.
+     *
      * @param publisher the local AMQP handling class
      * @param parser    the HAPI parser to be used
      * @throws AmqpException       if rabbitmq write fails
@@ -372,7 +386,7 @@ public class IdsOperations implements AutoCloseable {
                 }
             } catch (Hl7MessageIgnoredException ignoredException) {
                 logger.warn("Skipping unid {} (class {}) {}", idsMsg.getUnid(), msgFromIds.getClass(), ignoredException.getMessage());
-            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException  e) {
+            } catch (HL7Exception | Hl7InconsistencyException | InterruptedException e) {
                 logger.error("Skipping unid {} (class {})", idsMsg.getUnid(), msgFromIds.getClass(), e);
             }
         } finally {
@@ -384,6 +398,7 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Using the type+trigger event of the HL7 message, create the correct type of
      * interchange message. One HL7 message can give rise to multiple interchange messages.
+     *
      * @param msgFromIds the HL7 message
      * @param idsUnid    the sequential ID number from the IDS (unid)
      * @return list of Emap interchange messages, can be empty if no messages should result
@@ -411,6 +426,8 @@ public class IdsOperations implements AutoCloseable {
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 if ("A05".equals(triggerEvent)) {
                     messages.addAll(patientStatusService.buildPatientInfections(sourceId, (ADT_A05) msgFromIds));
+                } else if ("A60".equals(triggerEvent)) {
+                    messages.addAll(patientAllergyService.buildPatientAllergies(sourceId, (ADT_A60) msgFromIds));
                 }
                 break;
             case "ORM":
@@ -452,6 +469,7 @@ public class IdsOperations implements AutoCloseable {
 
     /**
      * Build an ADT interchange message from HL7 message, if successful, add this to the list of messages.
+     *
      * @param msgFromIds    HL7 message
      * @param sourceId      message source ID
      * @param fromAdtStream if from ADT stream, will throw HL7 exception
