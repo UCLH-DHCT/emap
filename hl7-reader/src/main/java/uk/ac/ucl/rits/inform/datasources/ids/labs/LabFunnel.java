@@ -88,6 +88,16 @@ public final class LabFunnel {
         }
     }
 
+    /**
+     * Build internal messages from hl7 content for lab orders.
+     * @param idsUnid IDS unid.
+     * @param msg Hl7 message.
+     * @param codingSystem The HL7 feet that message is coming from.
+     * @return A collection of lab order messages in internal format.
+     * @throws HL7Exception if hl7 message cannot be processed.
+     * @throws Hl7InconsistencyException if hl7 message is malformed.
+     * @throws Hl7MessageIgnoredException if hl7 message was not processed due to problems in handling.
+     */
     public static Collection<LabOrderMsg> buildMessages(String idsUnid, ORR_O02 msg, OrderCodingSystem codingSystem)
             throws HL7Exception, Hl7InconsistencyException, Hl7MessageIgnoredException {
         switch (codingSystem) {

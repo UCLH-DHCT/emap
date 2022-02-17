@@ -170,10 +170,10 @@ public class IdsOperations implements AutoCloseable {
 
 
     /**
-     * @return the unique ID for the last IDS message we have successfully processed
+     * @return the progress for the last IDS message we have successfully processed
      */
     @Transactional
-    int getLatestProcessedId() {
+    IdsProgress getLatestProcessedId() {
         IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
 
         if (onlyRow == null) {
@@ -186,23 +186,7 @@ public class IdsOperations implements AutoCloseable {
             }
             onlyRow = idsProgressRepository.save(onlyRow);
         }
-        return onlyRow.getLastProcessedIdsUnid();
-    }
-
-    /**
-     * Record that we have processed all messages up to the specified message.
-     * @param lastProcessedIdsUnid the unique ID for the latest IDS message we have
-     *                             processed
-     * @param messageDatetime      the timestamp of this message
-     * @param processingEnd        the time this message was actually processed
-     */
-    @Transactional
-    void setLatestProcessedId(int lastProcessedIdsUnid, Instant messageDatetime, Instant processingEnd) {
-        IdsProgress onlyRow = idsProgressRepository.findOnlyRow();
-        onlyRow.setLastProcessedIdsUnid(lastProcessedIdsUnid);
-        onlyRow.setLastProcessedMessageDatetime(messageDatetime);
-        onlyRow.setLastProcessingDatetime(processingEnd);
-        onlyRow = idsProgressRepository.save(onlyRow);
+        return onlyRow;
     }
 
 
@@ -212,6 +196,7 @@ public class IdsOperations implements AutoCloseable {
      * @param id             the IDS unique ID
      * @param patientInfoHl7 the parser to get various HL7 fields out of
      * @throws HL7Exception if HAPI does
+     * @throws RuntimeException if IDS is not empty
      */
     private void writeToIds(String hl7message, int id, PatientInfoHl7 patientInfoHl7) throws HL7Exception {
         // To avoid the risk of accidentally attempting to write into the real
@@ -284,8 +269,8 @@ public class IdsOperations implements AutoCloseable {
     /**
      * Get next entry in the IDS, if it exists.
      * @param lastProcessedId the last one we have successfully processed
-     * @return the first message that comes after lastProcessedId, or null if there
-     * isn't one
+     * @return the first message that comes after lastProcessedId, or null if there isn't one
+     * @throws InternalError if something has gone wrong with batching of HL7 messages
      */
     public IdsMaster getNextHL7IdsRecord(int lastProcessedId) {
         // consider changing to "get next N messages" for more efficient database
@@ -346,7 +331,8 @@ public class IdsOperations implements AutoCloseable {
      */
     @Transactional
     public void parseAndSendNextHl7(Publisher publisher, PipeParser parser) throws AmqpException, ReachedEndException {
-        int lastProcessedId = getLatestProcessedId();
+        IdsProgress progress = getLatestProcessedId();
+        int lastProcessedId = progress.getLastProcessedIdsUnid();
         logger.debug("parseAndSendNextHl7, lastProcessedId = " + lastProcessedId);
         if (this.endUnid != null && lastProcessedId >= this.endUnid) {
             logger.info("lastProcessedId = {} >= endUnid = {}, exiting", lastProcessedId, this.endUnid);
@@ -391,7 +377,7 @@ public class IdsOperations implements AutoCloseable {
             }
         } finally {
             Instant processingEnd = Instant.now();
-            setLatestProcessedId(idsMsg.getUnid(), messageDatetime, processingEnd);
+            progress.updateAndSave(idsMsg.getUnid(), messageDatetime, processingEnd, idsProgressRepository);
         }
     }
 
@@ -424,7 +410,7 @@ public class IdsOperations implements AutoCloseable {
                 }
                 buildAndAddAdtMessage(msgFromIds, sourceId, true, messages);
                 if ("A05".equals(triggerEvent)) {
-                    messages.addAll(patientStatusService.buildMessages(sourceId, (ADT_A05) msgFromIds));
+                    messages.addAll(patientStatusService.buildPatientInfections(sourceId, (ADT_A05) msgFromIds));
                 }
                 break;
             case "ORM":
@@ -461,7 +447,7 @@ public class IdsOperations implements AutoCloseable {
     }
 
     private void logErrorConstructingFromType(String messageType, String triggerEvent) {
-        logger.error("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
+        logger.warn("Could not construct message from unknown type {}/{}", messageType, triggerEvent);
     }
 
     /**
@@ -476,7 +462,7 @@ public class IdsOperations implements AutoCloseable {
                                        List<EmapOperationMessage> messages) throws HL7Exception {
         try {
             messages.add(adtMessageFactory.getAdtMessage(msgFromIds, sourceId));
-        } catch (Hl7MessageNotImplementedException | HL7Exception e) {
+        } catch (Hl7MessageNotImplementedException | HL7Exception | Hl7MessageIgnoredException e) {
             if (fromAdtStream && e instanceof HL7Exception) {
                 throw (HL7Exception) e;
             } else {
