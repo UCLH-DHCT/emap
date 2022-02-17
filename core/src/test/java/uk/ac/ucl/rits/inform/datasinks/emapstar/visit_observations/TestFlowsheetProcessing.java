@@ -69,9 +69,9 @@ class TestFlowsheetProcessing extends MessageProcessingBase {
         MrnToLive mrnToLive = mrnToLiveRepo.getByMrnIdEquals(mrns.get(0));
         assertNotNull(mrnToLive);
 
-        // 8 flowsheets in input file
+        // 9 flowsheets in input file
         List<VisitObservation> observations = visitObservationRepository.findAllByHospitalVisitIdEncounter(defaultEncounter);
-        assertEquals(8, observations.size());
+        assertEquals(9, observations.size());
     }
 
     /**

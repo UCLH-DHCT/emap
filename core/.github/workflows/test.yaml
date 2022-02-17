@@ -14,21 +14,19 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: Emap-Core
-        # try and checkout the same branch as the PR, otherwise revert to develop
-      - name: Set output variables
-        # gets current branch name
-        id: vars
-        run: echo ::set-output name=branch::${GITHUB_REF#refs/*/} # ${{ steps.vars.outputs.branch }}
+        # try and checkout the same branch as the PR, failing that the base of the PR, failing that develop
       - name: Checkout Inform-DB
         id: checkout-informdb
         run: |
           git clone --branch ${{ github.head_ref }} https://github.com/inform-health-informatics/Inform-DB.git \
+          || git clone --branch ${{ github.base_ref }} https://github.com/inform-health-informatics/Inform-DB.git \
           || git clone --branch develop https://github.com/inform-health-informatics/Inform-DB.git
       - name: Checkout Emap-Interchange
         id: checkout-interchange
         # need to clone using secrets with a github access token as private repo
         run: |
           git clone --branch ${{ github.head_ref }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
+          || git clone --branch ${{ github.base_ref }} https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git \
           || git clone --branch develop https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/inform-health-informatics/Emap-Interchange.git
       - name: Set up JDK 11 # also enables caching
         uses: actions/setup-java@v2

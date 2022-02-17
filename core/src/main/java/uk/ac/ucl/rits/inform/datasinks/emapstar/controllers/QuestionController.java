@@ -37,12 +37,8 @@ public class QuestionController {
     private final RequestAnswerRepository requestAnswerRepo;
     private final RequestAnswerAuditRepository requestAnswerAuditRepo;
 
-    /**
-     * Self-autowire so that @Caching annotation call will be intercepted.
-     * Spring does not intercept internal calls, so using self here means that it will be intercepted for caching.
-     */
     @Resource
-    private QuestionController self;
+    private QuestionCache cache;
 
     /**
      * Initialising the repositories needed to store question information.
@@ -69,7 +65,7 @@ public class QuestionController {
     void processQuestions(Map<String, String> questionsAndAnswers, String parentTable, long parentId, Instant validFrom,
                           Instant storedFrom) {
         for (Map.Entry<String, String> questionAndAnswer : questionsAndAnswers.entrySet()) {
-            Question question = self.getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
+            Question question = cache.getOrCreateQuestion(questionAndAnswer.getKey(), validFrom, storedFrom);
 
             RowState<RequestAnswer, RequestAnswerAudit> answerState = getOrCreateRequestAnswer(question,
                     questionAndAnswer.getValue(), parentTable, parentId, validFrom, storedFrom);
@@ -79,36 +75,6 @@ public class QuestionController {
             }
             answerState.saveEntityOrAuditLogIfRequired(requestAnswerRepo, requestAnswerAuditRepo);
         }
-    }
-
-    /**
-     * Check whether question (based on the entire String) already exists in the respective table. If yes, return the
-     * existing entity; if not, create a new entity based the relevant data.
-     * @param question   Question as such.
-     * @param validFrom  Time when question got changed most recently.
-     * @param storedFrom Time when star started question processing.
-     * @return a specific question as stored in the question repository
-     */
-    @Cacheable(value = "question", key = "{#question}")
-    public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
-        return questionRepo
-                .findByQuestion(question)
-                .orElseGet(() -> createQuestion(question, validFrom, storedFrom));
-    }
-
-    /**
-     * Creates new question from the information provided and wraps it with RowState.
-     * @param questionString Content of the question as opposed to table row in Star.
-     * @param validFrom      When this question is valid from.
-     * @param storedFrom     When EMAP has started processing this entity.
-     * @return a generated Question
-     */
-    public Question createQuestion(String questionString, Instant validFrom,
-                                   Instant storedFrom) {
-        Question question = new Question(questionString, validFrom, storedFrom);
-        logger.debug("Created new {}", question);
-        questionRepo.save(question);
-        return question;
     }
 
     /**
@@ -171,4 +137,48 @@ public class QuestionController {
         answerState.assignIfDifferent(answer, answerState.getEntity().getAnswer(), answerState.getEntity()::setAnswer);
     }
 
+}
+
+
+/**
+ * Helper component, used because Spring cache doesn't intercept self-invoked method calls.
+ */
+@Component
+class QuestionCache {
+    private static final Logger logger = LoggerFactory.getLogger(QuestionCache.class);
+    private final QuestionRepository questionRepo;
+
+    QuestionCache(QuestionRepository questionRepo) {
+        this.questionRepo = questionRepo;
+    }
+
+    /**
+     * Check whether question (based on the entire String) already exists in the respective table. If yes, return the
+     * existing entity; if not, create a new entity based the relevant data.
+     * @param question   Question as such.
+     * @param validFrom  Time when question got changed most recently.
+     * @param storedFrom Time when star started question processing.
+     * @return a specific question as stored in the question repository
+     */
+    @Cacheable(value = "question", key = "{#question}")
+    public Question getOrCreateQuestion(String question, Instant validFrom, Instant storedFrom) {
+        return questionRepo
+                .findByQuestion(question)
+                .orElseGet(() -> createQuestion(question, validFrom, storedFrom));
+    }
+
+    /**
+     * Creates new question from the information provided and wraps it with RowState.
+     * @param questionString Content of the question as opposed to table row in Star.
+     * @param validFrom      When this question is valid from.
+     * @param storedFrom     When EMAP has started processing this entity.
+     * @return a generated Question
+     */
+    private Question createQuestion(String questionString, Instant validFrom,
+                                    Instant storedFrom) {
+        Question question = new Question(questionString, validFrom, storedFrom);
+        logger.debug("Created new {}", question);
+        questionRepo.save(question);
+        return question;
+    }
 }
