@@ -5,19 +5,27 @@
   <groupId>uk.ac.ucl.rits.inform</groupId>
   <artifactId>HL7Processor</artifactId>
   <packaging>jar</packaging>
-  <version>2.3</version>
+  <version>2.4</version>
   <name>HL7Processor</name>
   <url>http://maven.apache.org</url>
+
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.6.3</version>
+  </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
-    <checkstyle.version>8.32</checkstyle.version>
-    <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
-    <emap-interchange.version>2.3</emap-interchange.version>
-    <!-- manually pin log4j version to avoid log4shell exploit -->
-    <log4j2.version>2.17.0</log4j2.version>
+    <checkstyle.version>9.3</checkstyle.version>
+    <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
+    <hapi.version>2.3</hapi.version>
+    <emap-interchange.version>2.4</emap-interchange.version>
+    <spotbugs-maven-plugin.version>4.5.3.0</spotbugs-maven-plugin.version>
+    <go-offline-maven-plugin.version>1.2.8</go-offline-maven-plugin.version>
   </properties>
 
   <profiles>
@@ -28,12 +36,6 @@
       </properties>
     </profile>
   </profiles>
-
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>(2.3.3, 2.4)</version>
-  </parent>
 
   <dependencies>
     <dependency>
@@ -59,10 +61,10 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
       <exclusions>
-          <exclusion>
-              <groupId>org.junit.vintage</groupId>
-              <artifactId>junit-vintage-engine</artifactId>
-          </exclusion>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -80,13 +82,13 @@
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-base</artifactId>
-      <version>2.3</version>
+      <version>${hapi.version}</version>
     </dependency>
 
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-structures-v26</artifactId>
-      <version>2.3</version>
+      <version>${hapi.version}</version>
     </dependency>
 
     <dependency>
@@ -136,7 +138,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>2.10.4</version>
       <scope>test</scope>
     </dependency>
 
@@ -152,16 +153,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>3.1.8</version>
-        <dependencies>
-          <!-- overwrite dependency on spotbugs if you want to specify the
-            version of spotbugs -->
-          <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs</artifactId>
-            <version>3.1.9</version>
-          </dependency>
-        </dependencies>
+        <version>${spotbugs-maven-plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -203,7 +195,7 @@
       <plugin>
         <groupId>de.qaware.maven</groupId>
         <artifactId>go-offline-maven-plugin</artifactId>
-        <version>1.2.8</version>
+        <version>${go-offline-maven-plugin.version}</version>
         <configuration>
           <dynamicDependencies>
             <DynamicDependency>
@@ -223,38 +215,6 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
-          </configuration>
-        </plugin>
-        <!--This plugin's configuration is used to store Eclipse m2e settings
-        only. It has no influence on the Maven build itself. -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>
-                      org.apache.maven.plugins
-                    </groupId>
-                    <artifactId>
-                      maven-checkstyle-plugin
-                    </artifactId>
-                    <versionRange>
-                      [3.0.0,)
-                    </versionRange>
-                    <goals>
-                      <goal>check</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
           </configuration>
         </plugin>
       </plugins>
