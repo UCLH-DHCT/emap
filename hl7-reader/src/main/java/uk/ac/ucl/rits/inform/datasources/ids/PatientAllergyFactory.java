@@ -1,6 +1,7 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.segment.EVN;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Service to parse HL7 allergy message (i.e. messages with type ADT^A60). *
+ * Service to parse HL7 allergy message (i.e. messages with type ADT^A60).
  * @author Anika Cawthorn
  */
 @Component
@@ -95,7 +96,6 @@ public class PatientAllergyFactory {
         // add reactions of which there can be multiple
         for (ST reactionCode : iam.getIam5_AllergyReactionCode()) {
             patientAllergy.getReactions().add(reactionCode.getValueOrEmpty());
-        }
         }
         return patientAllergy;
     }
