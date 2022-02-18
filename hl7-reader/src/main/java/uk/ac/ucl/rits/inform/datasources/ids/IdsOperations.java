@@ -48,7 +48,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Operations that can be performed on the IDS.
  *
- * @author Jeremy Stein & Stef Piatek
+ * @author Jeremy Stein & Stef Piatek & Anika Cawthorn
  */
 @Component
 @EntityScan("uk.ac.ucl.rits.inform.datasources.ids")
@@ -61,7 +61,7 @@ public class IdsOperations implements AutoCloseable {
     private final AdtMessageFactory adtMessageFactory;
     private final OrderAndResultService orderAndResultService;
     private final PatientStatusService patientStatusService;
-    private final PatientAllergyService patientAllergyService;
+    private final PatientAllergyFactory patientAllergyFactory;
     private final IdsProgressRepository idsProgressRepository;
     private final boolean idsEmptyOnInit;
     private final Integer defaultStartUnid;
@@ -72,7 +72,7 @@ public class IdsOperations implements AutoCloseable {
      * @param adtMessageFactory     builds ADT messages
      * @param orderAndResultService orchestrates processing of messages for orders and results
      * @param patientStatusService  orchestrates processing of messages with patient status
-     * @param patientAllergyService orchestrates processing of messages with patient allergies
+     * @param patientAllergyFactory orchestrates processing of messages with patient allergies
      * @param idsProgressRepository interaction with ids progress table (stored in the star database)
      */
     public IdsOperations(
@@ -80,10 +80,10 @@ public class IdsOperations implements AutoCloseable {
             AdtMessageFactory adtMessageFactory,
             OrderAndResultService orderAndResultService,
             PatientStatusService patientStatusService,
-            PatientAllergyService patientAllergyService,
+            PatientAllergyFactory patientAllergyFactory,
             IdsProgressRepository idsProgressRepository) {
         this.patientStatusService = patientStatusService;
-        this.patientAllergyService = patientAllergyService;
+        this.patientAllergyFactory = patientAllergyFactory;
         this.adtMessageFactory = adtMessageFactory;
         this.orderAndResultService = orderAndResultService;
         this.idsProgressRepository = idsProgressRepository;
@@ -162,8 +162,8 @@ public class IdsOperations implements AutoCloseable {
         logger.info("Querying IDS for first unid after {}, this can take a while", fromDateTime);
         try (Session idsSession = idsFactory.openSession()) {
             List<IdsMaster> msg = idsSession.createQuery(
-                            "select i from IdsMaster i where i.unid >= :fromUnid and "
-                                    + "i.persistdatetime >= :fromDatetime order by i.unid", IdsMaster.class)
+                            "select i from IdsMaster i where i.unid >= :fromUnid and i.persistdatetime >= :fromDatetime order by i.unid",
+                            IdsMaster.class)
                     .setParameter("fromDatetime", fromDateTime)
                     .setParameter("fromUnid", fromUnid)
                     .setMaxResults(1)
@@ -427,7 +427,7 @@ public class IdsOperations implements AutoCloseable {
                 if ("A05".equals(triggerEvent)) {
                     messages.addAll(patientStatusService.buildPatientInfections(sourceId, (ADT_A05) msgFromIds));
                 } else if ("A60".equals(triggerEvent)) {
-                    messages.addAll(patientAllergyService.buildPatientAllergies(sourceId, (ADT_A60) msgFromIds));
+                    messages.addAll(patientAllergyFactory.buildPatientAllergies(sourceId, (ADT_A60) msgFromIds));
                 }
                 break;
             case "ORM":
