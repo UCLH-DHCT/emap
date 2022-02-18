@@ -28,7 +28,8 @@ import java.util.Optional;
 /**
  * Parses patient conditions from interchange messages.
  * <p>
- * Currently planned to deal with patient infections and problem lists but should parse any condition that can have a start and end.
+ * Currently planned to deal with patient infections, allergies and problem lists but should parse any condition that
+ * can have a start and end.
  * @author Anika Cawthorn
  * @author Stef Piatek
  */
@@ -49,11 +50,9 @@ public class PatientConditionController {
     /**
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
-     * @param conditionTypeRepo         autowired ConditionTypeRepository
      */
-    public PatientConditionController(
-            PatientConditionRepository patientConditionRepo, PatientConditionAuditRepository patientConditionAuditRepo,
-            ConditionTypeRepository conditionTypeRepo) {
+    public PatientConditionController(PatientConditionRepository patientConditionRepo,
+                                      PatientConditionAuditRepository patientConditionAuditRepo) {
         this.patientConditionRepo = patientConditionRepo;
         this.patientConditionAuditRepo = patientConditionAuditRepo;
     }
@@ -76,7 +75,8 @@ public class PatientConditionController {
         updateConditionTypeNameIfDifferent(msg, conditionType);
         deletePreviousInfectionTypesOrClearCache(msg, storedFrom);
 
-        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn, conditionType, storedFrom);
+        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn,
+                conditionType, storedFrom);
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
             updatePatientCondition(msg, visit, patientCondition);
@@ -257,7 +257,7 @@ class PatientConditionCache {
      */
     @Cacheable(value = "infectionTypes")
     public List<ConditionType> getAllInfectionTypesAndCacheResults() {
-        return conditionTypeRepo.findAllByDataType(PatientConditionController.PatientConditionType.PATIENT_INFECTION.toString());
+        return conditionTypeRepo.findAllByDataType(PatientConditionType.PATIENT_INFECTION.toString());
     }
 
     /**
