@@ -34,7 +34,7 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     private InterchangeValue<String> allergenName = InterchangeValue.unknown();
 
     /**
-     * Time of the update or message carrying this information.
+     * Time of the update for the message carrying this information.
      */
     private Instant updatedDateTime;
 
