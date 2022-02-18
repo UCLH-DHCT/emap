@@ -23,34 +23,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Service to parse HL7 allergy message (i.e. messages with type ADT^A60).
- *
+ * Service to parse HL7 allergy message (i.e. messages with type ADT^A60). *
  * @author Anika Cawthorn
  */
 @Component
-public class PatientAllergyService {
+public class PatientAllergyFactory {
     /**
      * The HL7 feed always sends entire history of patient allergies.
      * This field is used to only parse new patient allergies, from the service start date onwards.
      */
     @Setter
     private Instant allergiesProgress;
-    private static final Logger logger = LoggerFactory.getLogger(PatientAllergyService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PatientAllergyFactory.class);
 
     /**
      * Setting start time and date for service to process messages from.
-     * -- TO DO: check with Stef what the date should be. ---
-     *
      * @param serviceStart when messages should be processed from.
      */
-    public PatientAllergyService(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
+    public PatientAllergyFactory(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
         allergiesProgress = serviceStart;
     }
 
     /**
-     * Build patient allergies from message.
-     * Allergies with no added datetime, or allergies where the added time is before the current progress will be skipped
-     *
+     * Build patient allergies from ADT_A60 HL7 message.
+     * Allergies with no added datetime, or allergies where the added time is before the current progress will be skipped.
      * @param sourceId message sourceId
      * @param msg      hl7 message
      * @return list of patient infections
@@ -103,6 +99,12 @@ public class PatientAllergyService {
         return patientAllergy;
     }
 
+    /**
+     * Adding allergy if it has an added datetime and adjusting the progress time stamp so that only allergies thereafter
+     * will be added to the collection.
+     * @param patientAllergy Interchange message with patient allergy information.
+     * @param allergies Collection of potentially other allergies that this new allergy will be added to.
+     */
     private void addNewAllergyAndUpdateProgress(PatientAllergy patientAllergy, Collection<PatientAllergy> allergies) {
         Instant allergyAdded = patientAllergy.getAllergyAdded();
         if (allergyAdded == null || allergyAdded.isBefore(allergiesProgress)) {

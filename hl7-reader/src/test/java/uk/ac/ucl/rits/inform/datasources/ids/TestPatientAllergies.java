@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
-import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 
 import java.time.Instant;
@@ -34,11 +33,11 @@ class TestPatientAllergies extends TestHl7MessageStream {
     private static final Instant ALLERGY_UPDATE = Instant.parse("2019-05-15T08:40:05Z");
     private static final String EPIC = "EPIC";
     @Autowired
-    PatientAllergyService patientAllergyService;
+    PatientAllergyFactory patientAllergyFactory;
 
     @BeforeEach
     private void resetInfectionProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientAllergyService.setAllergiesProgress(serviceStart);
+        patientAllergyFactory.setAllergiesProgress(serviceStart);
     }
 
 
