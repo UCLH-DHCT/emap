@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -69,5 +70,13 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
+    }
+
+    /**
+     * Adds a list of strings to the reactions.
+     * @param reactions Collection of strings.
+     */
+    public void addAllReactions(Collection<String> reactions) {
+        reactions.addAll(reactions);
     }
 }
