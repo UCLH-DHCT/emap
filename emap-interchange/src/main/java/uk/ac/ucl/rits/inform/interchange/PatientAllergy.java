@@ -74,9 +74,11 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
 
     /**
      * Adds a list of strings to the reactions.
-     * @param reactions Collection of strings.
+     * @param allergyReactions Collection of strings, each representing an allergy reaction.
      */
-    public void addAllReactions(Collection<String> reactions) {
-        reactions.addAll(reactions);
+    public void addAllReactions(Collection<String> allergyReactions) {
+        for (String reaction : allergyReactions) {
+            reactions.add(reaction);
+        }
     }
 }
