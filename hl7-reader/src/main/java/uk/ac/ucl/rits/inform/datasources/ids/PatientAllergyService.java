@@ -97,8 +97,9 @@ public class PatientAllergyService {
         patientAllergy.setSeverity(iam.getAllergySeverityCode().getCwe1_Identifier().getValue());
 
         // add reactions of which there can be multiple
-        for (int i = 0; i < iam.getIam5_AllergyReactionCodeReps(); i++) {
-            patientAllergy.getReactions().add(iam.getIam5_AllergyReactionCode(i).getValueOrEmpty());
+        for (ST reactionCode : iam.getIam5_AllergyReactionCode()) {
+            patientAllergy.getReactions().add(reactionCode.getValueOrEmpty());
+        }
         }
         return patientAllergy;
     }
