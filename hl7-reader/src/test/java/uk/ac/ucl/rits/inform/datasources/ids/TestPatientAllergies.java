@@ -137,8 +137,8 @@ class TestPatientAllergies extends TestHl7MessageStream {
     @ParameterizedTest
     @CsvSource({
             "2019_05_allergy, 2019_05_allergy, 1", // same date as existing progress is parsed
-            "2019_05_allergy, 2019_06_allergy, 1", // later date as existing progress is parsed
-            "2019_06_allergy, 2019_05_allergy, 0",  // earlier date as progress is parsed
+            "2019_05_allergy, 2019_06_allergy, 1", // later date than existing progress is parsed
+            "2019_06_allergy, 2019_05_allergy, 0",  // earlier date than progress is parsed
             "2019_06_allergy, 2019_06_allergy, 1",  // same date as existing progress is parsed
     })
     void earlierInfectionsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
