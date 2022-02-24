@@ -55,7 +55,7 @@ public final class BankManagerLabBuilder extends LabOrderBuilder {
 
         setSourceAndPatientIdentifiers(idsUnid, patientHl7);
         populateObrFields(obr);
-        populateOrderInformation(obr);
+        setOrderTemporalInformation(interpretLocalTime(obr.getObr7_ObservationDateTime()));
         setCustomOrderInformation(obs, obr);
 
         List<LabResultMsg> results = new ArrayList<>(obs.getOBSERVATIONAll().size());
