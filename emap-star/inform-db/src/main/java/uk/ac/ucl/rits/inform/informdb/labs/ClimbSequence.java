@@ -20,7 +20,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * A sequence from MRC-CLIMB.
+ * A viral sequence from the <a href="https://pubmed.ncbi.nlm.nih.gov/34210356/">CLIMB-COVID project</a>.
  * <p>
  * Created for HOCI continuation project in order to store SARS-CoV2 sequences.
  * @author Stef Piatek
