@@ -14,15 +14,15 @@ import java.time.Instant;
 @Component
 public class ClimbSequenceController {
     private final ClimbSequenceRepository climbSequenceRepo;
-    private final ClimbSequenceAuditRepository climbSequenceAudit;
+    private final ClimbSequenceAuditRepository climbSequenceAuditRepo;
 
     /**
      * @param climbSequenceRepo  interact with climb sequence table
-     * @param climbSequenceAudit interact with climb sequence audit table
+     * @param climbSequenceAuditRepo interact with climb sequence audit table
      */
-    ClimbSequenceController(ClimbSequenceRepository climbSequenceRepo, ClimbSequenceAuditRepository climbSequenceAudit) {
+    ClimbSequenceController(ClimbSequenceRepository climbSequenceRepo, ClimbSequenceAuditRepository climbSequenceAuditRepo) {
         this.climbSequenceRepo = climbSequenceRepo;
-        this.climbSequenceAudit = climbSequenceAudit;
+        this.climbSequenceAuditRepo = climbSequenceAuditRepo;
     }
 
     /**
@@ -53,6 +53,6 @@ public class ClimbSequenceController {
         sequenceState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getCogId(), seq.getCogId(), seq::setCogId, validFrom, entityFrom);
 
         // save tables if required
-        sequenceState.saveEntityOrAuditLogIfRequired(climbSequenceRepo, climbSequenceAudit);
+        sequenceState.saveEntityOrAuditLogIfRequired(climbSequenceRepo, climbSequenceAuditRepo);
     }
 }
