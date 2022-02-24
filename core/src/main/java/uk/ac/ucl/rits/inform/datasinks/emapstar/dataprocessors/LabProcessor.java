@@ -65,6 +65,12 @@ public class LabProcessor {
         labController.processLabOrder(mrn, visit, msg, storedFrom);
     }
 
+    /**
+     * Process a MRC CLIMB sequence message.
+     * @param msg        climb sequence
+     * @param storedFrom Time the message started to be processed by star
+     * @throws EmapOperationMessageProcessingException
+     */
     @Transactional
     public void processMessage(final ClimbSequenceMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         LabSample labSample = null;

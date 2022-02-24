@@ -25,6 +25,13 @@ public class ClimbSequenceController {
         this.climbSequenceAudit = climbSequenceAudit;
     }
 
+    /**
+     * Process a climb sequence message.
+     * @param msg        climb sequence data
+     * @param labSample  if present then it is a hospital sequence, will be null for a community sequence
+     * @param validFrom  most recent change to the sequence
+     * @param storedFrom time that star started processing the message
+     */
     public void processSequence(ClimbSequenceMsg msg, LabSample labSample, Instant validFrom, Instant storedFrom) {
         RowState<ClimbSequence, ClimbSequenceAudit> sequenceState = climbSequenceRepo
                 .findByPheIdAndLabSampleId(msg.getPheId(), labSample)

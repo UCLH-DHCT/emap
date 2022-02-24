@@ -14,7 +14,7 @@ public interface ClimbSequenceRepository extends CrudRepository<ClimbSequence, L
     Optional<ClimbSequence> findByPheIdAndLabSampleId(String pheId, LabSample labSample);
 
     /**
-     * For testing only
+     * For testing only.
      * @param pheId PHE ID to search from
      * @return optional climb sequence
      */
