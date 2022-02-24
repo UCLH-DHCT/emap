@@ -39,6 +39,9 @@ public class ClimbSequenceController {
         sequenceState.assignIfCurrentlyNullOrNewerAndDifferent(
                 msg.getFastaHeader(), seq.getFastaHeader(), seq::setFastaHeader, validFrom, entityFrom
         );
+        sequenceState.assignIfCurrentlyNullOrNewerAndDifferent(
+                msg.getSampleCollectionDate(), seq.getCollectionDate(), seq::setCollectionDate, validFrom, entityFrom
+        );
         sequenceState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getSequence(), seq.getSequence(), seq::setSequence, validFrom, entityFrom);
         sequenceState.assignIfCurrentlyNullOrNewerAndDifferent(msg.getCogId(), seq.getCogId(), seq::setCogId, validFrom, entityFrom);
 
