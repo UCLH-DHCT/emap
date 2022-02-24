@@ -60,7 +60,7 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     /**
      * Given that no lab samples exist
      * When a community ClimbSequenceMsg (has no lab sample) is processed
-     * Then A ClimbSequence is created without linking it to a lab sample
+     * Then a ClimbSequence is created without linking it to a lab sample
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -73,7 +73,7 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     /**
      * Given that a lab sample exists with no ClimbSequences
      * When a focal ClimbSequenceMsg is processed that uses the existing lab Sample
-     * Then A ClimbSequence is created for the lab sample
+     * Then a ClimbSequence is created for the lab sample
      * @throws EmapOperationMessageProcessingException shouldn't happen
      */
     @Test
@@ -115,7 +115,7 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
      */
     @Test
     @Sql("/populate_db.sql")
-    void testOldClimbSequenceDoesntUpdates() throws EmapOperationMessageProcessingException {
+    void testOldClimbSequenceDoesntUpdate() throws EmapOperationMessageProcessingException {
         processSingleMessage(focalSequence);
         // process with different sequence and an old time
         Instant originalValidFrom = focalSequence.getSequenceValidFrom();
