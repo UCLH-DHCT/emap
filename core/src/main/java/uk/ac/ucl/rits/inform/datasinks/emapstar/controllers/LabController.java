@@ -82,8 +82,8 @@ public class LabController {
         }
     }
 
-    public LabSample getLabSampleOrThrow(String labSpecimenNumber) throws IncompatibleDatabaseStateException {
-        return labOrderController.getLabSampleOrThrow(labSpecimenNumber);
+    public LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
+        return labOrderController.getLabSampleOrThrow(specimenBarcode);
     }
 }
 
