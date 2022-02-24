@@ -1,55 +1,78 @@
 # Emap-Star
 
-This repository describes the structure of the Emap-Star database (formerly known as Inform-db), using Hibernate to map between Java concepts and the relational model.
-
+This repository describes the structure of the EMAP-Star database.
 
 # Design considerations and conventions
 
 ## Intro
 
-We chose an EAV structure ([Entity–attribute–value](https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model)) for the recording of data, as we'll need to frequently add new attributes without changing the database schema. Eg. We want to record a new type of vital sign in the DB, so we add a new attribute for it rather than a new column in our DB.
+The entire database is modelled using plain Java objects which use Hibernate annotations to map these to the
+relational database. We have chosen a relational structure for ease of use and enabling indexes to improve query speed.
 
-Its main feature of great flexibility in the types of data we can store is arguably also its greatest weakness, in that the design can sprawl into something quite messy, eg. multiple attributes for the same thing, like we had in ICIP. Therefore keeping some control over the addition of new attributes is important.
+## Package structure
 
-The attributes are defined in this repository in vocab.csv and AttributeKeyMap.java. There is some redundancy between these two files, this is checked for contradictions by a unit test in the Emap-Core repository, which arguably should be moved here.
+- We are using a parent maven package (`Emap Star Schema`) with two child-packages: `Inform Annotations` and `Inform-DB`
+  - Inform Annotations defines an annotation preprocessor which allows audit classes to be written during compilation
+  - Inform-DB defines the Hibernate entities and uses the annotation preprocessor
 
 ## Patient identity
 
+- UCLH patients can have two types of identifiers: the medical record number (MRN, AKA hospital number) and the NHS number.
+  These identifiers are tracked in the `mrn` table. 
+- Sets of patient identifiers can be merged (e.g. a patient who has an existing MRN is mistakenly given a new MRN), 
+  the `mrn_to_live` table allows the "live" identifiers for a patient to be tracked. 
 
-## Time travel
+## Temporal validity (time travel)
 
-There are believed to be as many as three kinds of time travel in Emap-Star.
+- EMAP should only update existing data if the information is different and the information is more recent than the current data.
+- There are two types of temporal validity which are tracked in an audit table (e.g. `hospital_visit` has a `hospital_visit_audit` table).
+  - `valid_from` and `valid_until` are used for the "what did the doctor/electronic patient record know" at a specific time
+  - `stored_from` and `stored_until` are used for the "what did Emap know" at a specific time (e.g. time of processing).
+- The majority of non-audit tables extend the `TemporalCore` class and have a `valid_from` and `stored_from` 
+  to ensure that the live data can be updated with more recent data.
+  - This class also requires implementing a copy constructor and creating an audit entity for ease of use within Emap Core. 
 
-## Attribute management
+## Automated documentation
 
-Attribute IDs, once assigned, are never changed or deleted. Only new ones can be added. Attributes can be deprecated if they are no longer to be used. All "short_name"s must be unique.
+- The Java docs for our Hibernate entities have a `\brief ` section.
+  This section is used for automated generation of our end-user documentation. 
+    ```java
+    /**
+    * \brief Unique identifier in EMAP for this department record.
+    *
+    * This is the primary key for the department table.
+    */
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long departmentId;  
+    ```
 
-How to avoid semantic duplicates?
 
-## Properties
+## DB conventions
 
-
-
-## DB naming conventions
-
-Every table has a primary key ID field named after the name of the table with "_id" added to the end.
-
-```
-                         Table "public.patient_property"
-    Column     |           Type           | Collation | Nullable | Default
----------------+--------------------------+-----------+----------+---------
-patient_property_id | bigint          |           | not null |
-...
-```
-
-In Java, these are defined as `Long` types, which default to null, allowing the auto ID generation to do its thing. `long` would default to 0.
-
-```java
-@GeneratedValue(strategy = GenerationType.AUTO)
-private Long                    patientPropertyId;
-```
-
-Foreign key columns...
-
-`valid_from` and `valid_until` are used for the "what did the doctor know" type of time travel.
-`stored_from` and `stored_until` are used for the "when did Emap know it" type of time travel.
+- Every table has a primary key ID field named after the name of the table with "_id" added to the end.
+    
+    ```
+                             Table "star.mrn"
+        Column     |           Type           | Collation | Nullable | Default
+    ---------------+--------------------------+-----------+----------+---------
+    mrn_id         | bigint                   |           | not null |
+    ...
+    ```
+  - In Java, these are defined as `Long` types, which default to null, before auto generation. `long` would default to 0.
+    ```java
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long mrnId;
+    ```
+- Foreign keys use the same name as the primary key
+  ```java
+  @ManyToOne
+  @JoinColumn(name = "mrnId", nullable = false)
+  private Mrn mrnId;
+  ```
+- Timestamps (date and times) are timezone aware (and automated testing enforces this) and named in the form `<something>Datetime`
+- Dates should only have date information and be named in the form `<something>Date`
+  ```java
+  @Column(columnDefinition = "timestamp with time zone")
+  private Instant admissionTime;
+  ```
