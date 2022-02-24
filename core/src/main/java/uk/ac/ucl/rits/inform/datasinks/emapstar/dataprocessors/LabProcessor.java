@@ -69,7 +69,7 @@ public class LabProcessor {
     public void processMessage(final ClimbSequenceMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         LabSample labSample = null;
         if (msg.getLabSpecimenNumber() != null) {
-//            labController.getLabSampleOrThrow(msg.getLabSpecimenNumber());
+            labSample = labController.getLabSampleOrThrow(msg.getLabSpecimenNumber());
         }
         climbSequenceController.processSequence(msg, labSample, msg.getSequenceValidFrom(), storedFrom);
     }
