@@ -17,7 +17,7 @@ public class ClimbSequenceMsg extends EmapOperationMessage implements Serializab
     private Instant sequenceValidFrom;
     private String fastaHeader;
     private String sequence;
-    private String labSpecimenNumber;
+    private String specimenBarcode;
     private String cogId;
     private String pheId;
     private LocalDate sampleCollectionDate;
