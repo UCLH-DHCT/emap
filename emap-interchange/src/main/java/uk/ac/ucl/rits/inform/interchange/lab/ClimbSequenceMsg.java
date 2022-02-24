@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
@@ -19,6 +20,7 @@ public class ClimbSequenceMsg extends EmapOperationMessage implements Serializab
     private String labSpecimenNumber;
     private String cogId;
     private String pheId;
+    private LocalDate sampleCollectionDate;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
