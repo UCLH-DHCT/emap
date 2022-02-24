@@ -12,4 +12,11 @@ import java.util.Optional;
  */
 public interface ClimbSequenceRepository extends CrudRepository<ClimbSequence, Long> {
     Optional<ClimbSequence> findByPheIdAndLabSampleId(String pheId, LabSample labSample);
+
+    /**
+     * For testing only
+     * @param pheId PHE ID to search from
+     * @return optional climb sequence
+     */
+    Optional<ClimbSequence> findByPheId(String pheId);
 }

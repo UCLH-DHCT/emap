@@ -14,7 +14,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -35,11 +34,11 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     ClimbSequenceAuditRepository climbSequenceAuditRepository;
 
     private static String LAB_SAMPLE = "22U113534";
+    private static String FOCAL_PHE_ID = "H2111111268";
+    private static String COMMUNITY_PHE_ID = "H3444411270";
 
-    private ClimbSequence getSingleClimbSequence() {
-        List<ClimbSequence> climbSequences = getAllEntities(climbSequenceRepository);
-        assertEquals(1, climbSequences.size());
-        return climbSequences.get(0);
+    private ClimbSequence getClimbSequence(String pheId) {
+        return climbSequenceRepository.findByPheId(pheId).orElseThrow();
     }
 
 
@@ -68,7 +67,7 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     void testCommunitySequenceCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(communitySequence);
 
-        assertNull(getSingleClimbSequence().getLabSampleId());
+        assertNull(getClimbSequence(COMMUNITY_PHE_ID).getLabSampleId());
     }
 
     /**
@@ -82,7 +81,8 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     void testClimbFocalSequenceCreated() throws EmapOperationMessageProcessingException {
         processSingleMessage(focalSequence);
 
-        assertEquals(LAB_SAMPLE, getSingleClimbSequence().getLabSampleId().getExternalLabNumber());
+        ClimbSequence sequence = getClimbSequence(FOCAL_PHE_ID);
+        assertEquals(LAB_SAMPLE, sequence.getLabSampleId().getExternalLabNumber());
     }
 
     /**
@@ -94,16 +94,15 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testNewClimbSequenceUpdates() throws EmapOperationMessageProcessingException {
+        processSingleMessage(focalSequence);
+        // process with different sequence and a newer time
         Instant originalValidFrom = focalSequence.getSequenceValidFrom();
         String newSequence = "AAAAAACCGGTTAAA";
-
-        processSingleMessage(focalSequence);
-
         focalSequence.setSequenceValidFrom(originalValidFrom.plusSeconds(1));
         focalSequence.setSequence(newSequence);
         processSingleMessage(focalSequence);
 
-        ClimbSequence outputSequence = getSingleClimbSequence();
+        ClimbSequence outputSequence = getClimbSequence(FOCAL_PHE_ID);
         assertTrue(outputSequence.getValidFrom().isAfter(originalValidFrom));
         assertEquals(newSequence, outputSequence.getSequence());
     }
@@ -117,16 +116,15 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
     @Test
     @Sql("/populate_db.sql")
     void testOldClimbSequenceDoesntUpdates() throws EmapOperationMessageProcessingException {
+        processSingleMessage(focalSequence);
+        // process with different sequence and an old time
         Instant originalValidFrom = focalSequence.getSequenceValidFrom();
         String newSequence = "AAAAAACCGGTTAAA";
-
-        processSingleMessage(focalSequence);
-
         focalSequence.setSequenceValidFrom(originalValidFrom.minusSeconds(1));
         focalSequence.setSequence(newSequence);
         processSingleMessage(focalSequence);
 
-        ClimbSequence outputSequence = getSingleClimbSequence();
+        ClimbSequence outputSequence = getClimbSequence(FOCAL_PHE_ID);
         assertEquals(originalValidFrom, outputSequence.getValidFrom());
         assertNotEquals(newSequence, outputSequence.getSequence());
     }
