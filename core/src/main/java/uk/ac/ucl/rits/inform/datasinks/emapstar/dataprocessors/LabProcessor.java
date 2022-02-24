@@ -74,8 +74,8 @@ public class LabProcessor {
     @Transactional
     public void processMessage(final ClimbSequenceMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         LabSample labSample = null;
-        if (msg.getLabSpecimenNumber() != null) {
-            labSample = labController.getLabSampleOrThrow(msg.getLabSpecimenNumber());
+        if (msg.getSpecimenBarcode() != null) {
+            labSample = labController.getLabSampleOrThrow(msg.getSpecimenBarcode());
         }
         climbSequenceController.processSequence(msg, labSample, msg.getSequenceValidFrom(), storedFrom);
     }

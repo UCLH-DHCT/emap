@@ -79,9 +79,9 @@ public class LabOrderController {
     }
 
 
-    LabSample getLabSampleOrThrow(String labSpecimenNumber) throws IncompatibleDatabaseStateException {
-        return labSampleRepo.findByExternalLabNumber(labSpecimenNumber)
-                .orElseThrow(() -> new IncompatibleDatabaseStateException("Lab sample doesn't exist"));
+    LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
+        return labSampleRepo.findByExternalLabNumber(specimenBarcode)
+                .orElseThrow(() -> new IncompatibleDatabaseStateException("Lab sample doesn't exist in star"));
     }
 
 
