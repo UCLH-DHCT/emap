@@ -127,3 +127,8 @@ INSERT INTO public.visit_observation (
             null, null, 'you should delete me', 107006, 'EPIC');
 
 
+INSERT INTO public.lab_sample (
+    lab_sample_id, stored_from, valid_from, collection_method, external_lab_number, receipt_at_lab,
+    sample_collection_time, sample_site, specimen_type, mrn_id)
+    VALUES (109001, '2022-02-02 14:00:00', '2020-01-01 14:04:00', null, '22U113534', '2020-01-01 14:04:00',
+            '2020-01-01 10:04:00', null, 'swab', 1001);
