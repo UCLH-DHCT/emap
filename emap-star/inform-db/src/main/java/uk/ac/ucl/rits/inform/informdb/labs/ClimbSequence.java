@@ -61,7 +61,7 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
     /**
      * \brief FASTA sequence.
      */
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", nullable = false)
     private String sequence;
 
     /**
@@ -72,19 +72,21 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
     /**
      * \brief PHE identifier for the sequence.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String pheId;
 
     /**
-     * /brief Date of sample collection from MRC CLIMB servers
+     * /brief Date of sample collection from MRC CLIMB servers.
      * <p>
      * This can be used for filtering of community samples, where we don't have a timestamp of collection date
      */
+    @Column(nullable = false)
     private LocalDate collectionDate;
 
     /**
      * Create minimal ClimbSequence.
      * @param labSampleId parent LabSample
+     * @param pheId       PHE identifier
      */
     public ClimbSequence(LabSample labSampleId, String pheId) {
         this.labSampleId = labSampleId;
@@ -100,6 +102,7 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
         labSampleId = other.labSampleId;
         cogId = other.cogId;
         pheId = other.pheId;
+        collectionDate = other.collectionDate;
     }
 
 
