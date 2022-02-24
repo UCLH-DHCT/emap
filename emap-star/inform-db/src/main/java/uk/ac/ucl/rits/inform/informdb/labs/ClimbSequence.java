@@ -78,8 +78,9 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
      * Create minimal ClimbSequence.
      * @param labSampleId parent LabSample
      */
-    public ClimbSequence(LabSample labSampleId) {
+    public ClimbSequence(LabSample labSampleId, String pheId) {
         this.labSampleId = labSampleId;
+        this.pheId = pheId;
     }
 
 
@@ -92,6 +93,7 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
         cogId = other.cogId;
         pheId = other.pheId;
     }
+
 
     @Override
     public ClimbSequence copy() {
