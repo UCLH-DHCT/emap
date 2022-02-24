@@ -17,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * A sequence from MRC-CLIMB.
@@ -73,6 +74,13 @@ public class ClimbSequence extends TemporalCore<ClimbSequence, ClimbSequenceAudi
      */
     @Column(nullable = false)
     private String pheId;
+
+    /**
+     * /brief Date of sample collection from MRC CLIMB servers
+     * <p>
+     * This can be used for filtering of community samples, where we don't have a timestamp of collection date
+     */
+    private LocalDate collectionDate;
 
     /**
      * Create minimal ClimbSequence.
