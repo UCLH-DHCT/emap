@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
+import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -81,6 +82,9 @@ public class LabController {
         }
     }
 
+    public LabSample getLabSampleOrThrow(String labSpecimenNumber) throws IncompatibleDatabaseStateException {
+        return labOrderController.getLabSampleOrThrow(labSpecimenNumber);
+    }
 }
 
 /**

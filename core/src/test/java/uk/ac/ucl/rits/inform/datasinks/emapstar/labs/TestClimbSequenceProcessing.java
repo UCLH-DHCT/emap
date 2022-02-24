@@ -101,6 +101,7 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
 
         focalSequence.setSequenceValidFrom(originalValidFrom.plusSeconds(1));
         focalSequence.setSequence(newSequence);
+        processSingleMessage(focalSequence);
 
         ClimbSequence outputSequence = getSingleClimbSequence();
         assertTrue(outputSequence.getValidFrom().isAfter(originalValidFrom));
@@ -123,6 +124,7 @@ class TestClimbSequenceProcessing extends MessageProcessingBase {
 
         focalSequence.setSequenceValidFrom(originalValidFrom.minusSeconds(1));
         focalSequence.setSequence(newSequence);
+        processSingleMessage(focalSequence);
 
         ClimbSequence outputSequence = getSingleClimbSequence();
         assertEquals(originalValidFrom, outputSequence.getValidFrom());
