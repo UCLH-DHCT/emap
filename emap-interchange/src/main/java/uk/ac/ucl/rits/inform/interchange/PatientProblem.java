@@ -63,6 +63,11 @@ public class PatientProblem extends EmapOperationMessage implements Serializable
     private InterchangeValue<String> status = InterchangeValue.unknown();
 
     /**
+     * Effectively message type, i.e. whether to add, update or delete problem list.
+     */
+    private String action;
+
+    /**
      * Notes in relation to problem...
      */
     private InterchangeValue<String> comment = InterchangeValue.unknown();
