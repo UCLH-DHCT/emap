@@ -1,10 +1,17 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Test cases to ensure that processing of patient infection messages is working correctly.
@@ -20,20 +27,26 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
 
-//    private PatientInfection hl7Mumps;
-//    private PatientInfection hooverMumps;
-//    private static String MUMPS_MRN = "8DcEwvqa8Q3";
-//    private static Instant MUMPS_ADD_TIME = Instant.parse("2019-06-02T10:31:05Z");
-//    private static String MUMPS_INFECTION = "Mumps";
-//    private static String PATIENT_INFECTION = "PATIENT_INFECTION";
-//    private static Instant HL7_UPDATE_TIME = Instant.parse("2019-06-07T11:32:00Z");
+    private List<PatientProblem> hooverMessages;
+    private PatientProblem hl7MyelomaInpatient;
+    private PatientProblem hl7MyelomaOutpatient;
 
+    @BeforeEach
+    private void setUp() throws IOException {
+        hooverMessages = messageFactory.getPatientProblems("updated_only.yaml");
+        hl7MyelomaInpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
+        hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
+    }
 
     /**
      * Given that no problem list exists for outpatient
      * When a minimal problem list message arrives
      * Then a new problem list is generated for this patient (not linked to a hospital stay)
      */
+    @Test
+    void testCreateProblemListOutpatient() throws EmapOperationMessageProcessingException {
+        System.out.println(hl7MyelomaInpatient);
+    }
 
     /**
      * Given that no problem list exists for inpatient
