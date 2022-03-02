@@ -145,7 +145,6 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant storedFrom = Instant.now();
         patientStateProcessor.processMessage(msg, storedFrom);
     }
-
     /**
      * @param msg the FlowsheetMetadata message to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed

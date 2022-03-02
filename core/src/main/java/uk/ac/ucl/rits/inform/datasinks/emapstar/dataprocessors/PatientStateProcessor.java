@@ -52,5 +52,4 @@ public class PatientStateProcessor {
         patientConditionController.processMessage(msg, mrn, storedFrom);
     }
 
-
 }
