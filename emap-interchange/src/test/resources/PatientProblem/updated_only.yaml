@@ -15,7 +15,7 @@
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Active"
+    value: "ACTIVE"
   problemAdded: "2019-06-02T10:31:05Z"
   problemResolved:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -25,20 +25,17 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
-  comment:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "IGNORE"
-    value: null
+  action: "UP"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   sourceMessageId: "2"
   updatedDateTime: "2019-06-09T01:00:05Z"
   mrn: "suI83US"
-  problemCode: "A00"
+  problemCode: "Z84.8"
   problemName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "Varicella"
+    value:  "Family history of other specified conditions"
   epicProblemId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -46,12 +43,8 @@
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Deleted"
+    value: "ACTIVE"
   problemAdded: "2019-06-08T02:05:49Z"
-  problemResolved:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "IGNORE"
-    value: null
   problemOnset:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -59,4 +52,5 @@
   comment:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "Proin risus."
+    value: "Investigation ongoing."
+  action: "UP"
