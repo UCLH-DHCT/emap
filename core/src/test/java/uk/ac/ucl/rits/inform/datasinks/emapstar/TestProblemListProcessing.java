@@ -31,27 +31,45 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
     /**
      * Given that no problem list exists for outpatient
-     * When a problem list message arrives
+     * When a minimal problem list message arrives
      * Then a new problem list is generated for this patient (not linked to a hospital stay)
      */
 
     /**
      * Given that no problem list exists for inpatient
-     * When a problem list message arrives
+     * When a minimal problem list message arrives
      * Then a new problem list is generated for this patient and it is linked to a hospital stay
-     * (actually the hospital stay as such might be the problem list as there is no problem typically attached to it)
      */
 
     /**
-     * Given that a problem list exist for patient
-     * When a problem list message arrives that's older but concerning the same patient
+     * Given that a problem list exists for a patient
+     * When a new minimal problem list message arrives that concerns the same patient
+     * Then the message is added as a condition for the patient
+     */
+
+    /**
+     * Given that a problem list exists for patient
+     * When a minimal problem list message arrives that's older but concerning the same patient
      * Then nothing is changed
+     */
+
+    /**
+     * Given that no problem list for a patient exists
+     * When a problem list message list with notes arrives
+     * Then the problem list is added with comments
      */
 
     /**
      * Given that a problem list exist for patient
      * When a problem list message arrive that's newer, concerns the same patient and contains updated fields
      * Then the existing problem list is updated accordingly
-     * (We might not do this if we only expect updates ?)
+     * (e.g. notes are added in for a specific problem)
+     */
+
+    /**
+     * Given that a problem list exist for a patient
+     * When a problem list message for deleting an existing problem arrives
+     * Then this problem list is deleted for the patient
+     * (e.g diagnosis is entered as "working hypothesis" and then deleted as tests come back)
      */
 }
