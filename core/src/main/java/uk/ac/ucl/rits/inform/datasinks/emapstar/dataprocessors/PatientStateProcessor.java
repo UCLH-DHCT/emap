@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.time.Instant;
 
@@ -36,6 +37,25 @@ public class PatientStateProcessor {
         this.patientConditionController = patientConditionController;
         this.personController = personController;
         this.visitController = visitController;
+    }
+
+    /**
+     * Process patient problem message.
+     * @param msg        message
+     * @param storedFrom Time the message started to be processed by star
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    @Transactional
+    public void processMessage(final PatientProblem msg, final Instant storedFrom)
+        throws EmapOperationMessageProcessingException {
+
+        String mrnStr = msg.getMrn();
+        Instant msgUpdatedTime = msg.getUpdatedDateTime();
+
+        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
+                msgUpdatedTime, storedFrom);
+
+        patientConditionController.processMessage(msg, mrn, storedFrom);
     }
 
     /**

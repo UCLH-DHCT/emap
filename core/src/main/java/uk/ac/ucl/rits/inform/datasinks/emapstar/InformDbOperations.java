@@ -157,7 +157,7 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Transactional
     public void processMessage(PatientProblem msg) throws EmapOperationMessageProcessingException {
         Instant storedFrom = Instant.now();
-        patientProblemProcessor.processMessage(msg, storedFrom);
+        patientStateProcessor.processMessage(msg, storedFrom);
     }
 
     /**

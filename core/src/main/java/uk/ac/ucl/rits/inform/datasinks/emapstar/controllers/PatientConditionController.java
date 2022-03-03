@@ -18,6 +18,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import javax.annotation.Resource;
 import java.time.Instant;
@@ -55,6 +56,21 @@ public class PatientConditionController {
         this.patientConditionAuditRepo = patientConditionAuditRepo;
     }
 
+
+    /**
+     * Process patient problem message.
+     * @param msg        message
+     * @param mrn        patient id
+     * @param storedFrom valid from in database
+     * @throws EmapOperationMessageProcessingException if message can't be processed.
+     */
+    @Transactional
+    public void processMessage(final PatientProblem msg, Mrn mrn, final Instant storedFrom)
+        throws EmapOperationMessageProcessingException{
+
+        // TODO
+        NotImplemented
+    }
 
     /**
      * Process patient condition message.
