@@ -32,6 +32,7 @@ import java.util.Optional;
  * Currently planned to deal with patient infections and problem lists but should parse any condition that can have a start and end.
  * @author Anika Cawthorn
  * @author Stef Piatek
+ * @author Tom Young
  */
 @Component
 public class PatientConditionController {
@@ -70,6 +71,18 @@ public class PatientConditionController {
 
         // TODO
         NotImplemented
+
+        // Add common problems to PatientConditionType enum?
+        // find conditionType by epicProblemId in conditionTypeRepo.
+
+        // Override with conditionType using a problemName if present
+
+        // create patientCondition RowState
+
+        // check that the message shouldn't be updated with newer information
+
+        // patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+
     }
 
     /**
