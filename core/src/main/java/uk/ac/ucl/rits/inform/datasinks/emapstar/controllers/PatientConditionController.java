@@ -98,6 +98,7 @@ public class PatientConditionController {
 
     /**
      * Get existing patient condition type (from database or cache) or create a new one.
+     * @param type            Patient condition type
      * @param conditionCode   EPIC code for the condition within the type
      * @param updatedDateTime when the condition information is valid from
      * @param storedFrom      when the condition information had been started to be processed by emap
@@ -327,7 +328,7 @@ class PatientConditionCache {
             PatientConditionController.PatientConditionType type, String conditionCode, Instant updatedDateTime, Instant storedFrom) {
         ConditionType conditionType = new ConditionType(type.toString(), conditionCode, updatedDateTime, storedFrom);
         logger.debug("Created new {}", conditionType);
-        return conditionTypeRepo.save(conditionType);
+        return conditionType;
     }
 
     /**
@@ -358,8 +359,8 @@ class PatientConditionCache {
      */
     @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
     public void updateNameAndClearFromCache(
-            RowState<ConditionType, ConditionTypeAudit> typeState, InterchangeValue<String> name,
-            PatientConditionController.PatientConditionType type,
+            RowState<ConditionType, ConditionTypeAudit> typeState,
+            InterchangeValue<String> name, PatientConditionController.PatientConditionType type,
             String conditionCode, Instant validFrom, Instant storedFrom) {
 
         ConditionType typeEntity = typeState.getEntity();
