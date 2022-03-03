@@ -16,6 +16,7 @@ import java.util.List;
 /**
  * Test cases to ensure that processing of patient infection messages is working correctly.
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 public class TestProblemListProcessing extends MessageProcessingBase {
     @Autowired
@@ -36,6 +37,10 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         hooverMessages = messageFactory.getPatientProblems("updated_only.yaml");
         hl7MyelomaInpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
+    }
+
+    private PatientProblem getPatientProblem(String x) {
+        return patientConditionRepository.findByX(x).orElseThrow();
     }
 
     /**
