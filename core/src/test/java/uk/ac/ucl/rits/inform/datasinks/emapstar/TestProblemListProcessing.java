@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Test cases to ensure that processing of patient infection messages is working correctly.
+ * Test cases to ensure that processing of patient problem messages is working correctly.
  * @author Anika Cawthorn
  * @author Tom Young
  */

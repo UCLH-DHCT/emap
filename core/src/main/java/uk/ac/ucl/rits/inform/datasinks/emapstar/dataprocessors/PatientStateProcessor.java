@@ -28,9 +28,9 @@ public class PatientStateProcessor {
 
     /**
      * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
-     * @param patientConditionController patient state controller
-     * @param personController           person controller
-     * @param visitController            hospital visit controller
+     * @param patientConditionController     patient state controller
+     * @param personController               person controller
+     * @param visitController                hospital visit controller
      */
     public PatientStateProcessor(
             PatientConditionController patientConditionController, PersonController personController, VisitController visitController) {
@@ -55,7 +55,14 @@ public class PatientStateProcessor {
         Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
                 msgUpdatedTime, storedFrom);
 
-        patientConditionController.processMessage(msg, mrn, storedFrom);
+        HospitalVisit visit = null;
+
+        if (msg.getVisitNumber().isSave()){
+            visit = visitController.getOrCreateMinimalHospitalVisit(msg.getVisitNumber().get(), mrn,
+                    msg.getSourceSystem(), msgUpdatedTime, storedFrom);
+        }
+
+        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
     }
 
     /**
