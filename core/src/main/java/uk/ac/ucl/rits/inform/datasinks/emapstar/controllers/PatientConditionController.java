@@ -48,7 +48,7 @@ public class PatientConditionController {
      * PATIENT_INFECTION = infection banner for infection control
      * PROBLEM_LIST = Problem (not an infection)
      */
-    private enum PatientConditionType {
+    enum PatientConditionType {
         PATIENT_INFECTION,
         PROBLEM_LIST
     }
@@ -78,14 +78,16 @@ public class PatientConditionController {
     public void processMessage(final PatientProblem msg, Mrn mrn, final HospitalVisit visit, final Instant storedFrom)
         throws EmapOperationMessageProcessingException{
 
-        ConditionType conditionType = self.getOrCreateConditionType(
+        // TODO: Consider not caching and always updating or a way to use the cache version and update
+        ConditionType conditionType = cache.getOrCreateConditionType(
                 PatientConditionType.PROBLEM_LIST, msg.getProblemCode(), msg.getUpdatedDateTime(), storedFrom);
 
-
-
-        // Override with conditionType using a problemName if present
+        // TODO: Override with conditionType using a problemName if present
 
         // create patientCondition RowState
+        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn,
+                conditionType, storedFrom);
+
 
         // check that the message shouldn't be updated with newer information
 
@@ -203,6 +205,31 @@ public class PatientConditionController {
                 .orElseGet(() -> createMinimalPatientCondition(
                         epicInfectionId, mrn, conditionType, msg.getInfectionAdded(), msg.getUpdatedDateTime(), storedFrom));
     }
+
+
+    /**
+     *
+     * @param msg
+     * @param mrn
+     * @param conditionType
+     * @param storedFrom
+     * @return
+     * @throws RequiredDataMissingException
+     */
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
+            PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
+            throws RequiredDataMissingException {
+
+        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
+                mrn, conditionType, msg.getProblemAdded());
+
+
+        return patientCondition
+                .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
+                .orElseGet(() -> createMinimalPatientCondition(
+                        msg.getProblemCode(), mrn, conditionType, msg.getProblemAdded(), msg.getUpdatedDateTime(), storedFrom));
+    }
+
 
     /**
      * Create minimal patient condition wrapped in RowState.
