@@ -58,6 +58,16 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
      * Severity of reaction patient shows when exposed to allergen...
      */
     private String severity;
+
+    /**
+     * Status of the allergy...
+     */
+    private String status;
+
+    /**
+     * Action in relation to allergy information, e.g. whether add/update/delete...
+     */
+    private String action;
     /**
      * Reaction occurring when patient exposed to allergen...
      */
