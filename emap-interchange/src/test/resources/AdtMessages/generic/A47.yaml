@@ -1,10 +1,10 @@
 "@class": "uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers"
 recordedDateTime: "2012-07-17T14:25:00Z"
 eventReasonCode: "PATIENT_CHANGE_ID"
-previousMrn: "40800000"
+previousMrn: "50100010"
 sourceSystem: "EPIC"
-mrn: "40800001"
-nhsNumber: "9999999999"
+mrn: "51111111"
+nhsNumber: "111222223"
 patientBirthDate:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
