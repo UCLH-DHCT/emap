@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.vist_observations;
+package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.visit_observations;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
@@ -11,7 +11,9 @@ import java.util.Optional;
 
 /**
  * Visit Observation repository.
+ *
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 public interface VisitObservationRepository extends CrudRepository<VisitObservation, Long> {
 
@@ -25,17 +27,25 @@ public interface VisitObservationRepository extends CrudRepository<VisitObservat
             HospitalVisit visit, VisitObservationType type, Instant observationTime);
 
     /**
+     * Retrieve all visit observations referring to one specific observation type.
+     * @param vot Visit observation type of relevance
+     * @return List of visit observations referring to visit observation type of interest.
+     */
+    List<VisitObservation> findAllByVisitObservationTypeId(VisitObservationType vot);
+    /**
      * For testing.
+     *
      * @param visit hospital visit
      * @return list of visit observations
      */
-    List<VisitObservation> findAllByHospitalVisitId(HospitalVisit visit);
-
+    List<VisitObservation> findAllByHospitalVisitIdEncounter(String visit);
     /**
      * For testing.
-     * @param visit           hospital visit
-     * @param idInApplication Id in application for the visit observation type
+     *
+     * @param visit       hospital visit
+     * @param interfaceId Identifier in interface
      * @return optional visit observation
      */
-    Optional<VisitObservation> findByHospitalVisitIdAndVisitObservationTypeIdIdInApplication(HospitalVisit visit, String idInApplication);
+    Optional<VisitObservation> findByHospitalVisitIdEncounterAndVisitObservationTypeIdInterfaceId(
+            String visit, String interfaceId);
 }

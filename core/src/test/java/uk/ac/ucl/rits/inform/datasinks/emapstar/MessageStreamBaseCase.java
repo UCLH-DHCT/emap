@@ -130,7 +130,7 @@ public abstract class MessageStreamBaseCase {
     /**
      * Process all remaining messages in queue.
      *
-     * @throws EmapOperationMessageProcessingException
+     * @throws EmapOperationMessageProcessingException when message cannot be processed
      */
     @Transactional
     public void processRest() throws EmapOperationMessageProcessingException {
@@ -160,7 +160,7 @@ public abstract class MessageStreamBaseCase {
      * Process a single message.
      *
      * @param msg The message to process.
-     * @throws EmapOperationMessageProcessingException
+     * @throws EmapOperationMessageProcessingException when single message cannot be processed
      */
     @Transactional
     protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
@@ -284,10 +284,11 @@ public abstract class MessageStreamBaseCase {
         this.vitalTime.add(vitalTime);
 
         Flowsheet vital = new Flowsheet();
+        vital.setFlowsheetId("448867");
         vital.setSourceSystem("EPIC");
         vital.setMrn(this.mrn);
         vital.setVisitNumber(this.csn);
-        vital.setFlowsheetId("HEART_RATE");
+        vital.setSourceObservationType("flowsheet");
         vital.setNumericValue(InterchangeValue.buildFromHl7(vitalReading));
         vital.setUnit(InterchangeValue.buildFromHl7("/min"));
         vital.setObservationTime(vitalTime);

@@ -133,7 +133,7 @@ public class AdtProcessor {
     @Transactional
     public void changePatientIdentifiers(ChangePatientIdentifiers msg, Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
-        personController.updatePatientIdentifiersOrCreateMrn(msg, messageDateTime, storedFrom);
+        personController.updatePatientIdentifiersOrMerge(msg, messageDateTime, storedFrom);
     }
 
     /**

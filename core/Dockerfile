@@ -1,4 +1,4 @@
-FROM maven:3.6.3-openjdk-11-slim
+FROM maven:3.8.4-openjdk-11-slim
 # Run commands through bash so source is found
 SHELL ["/bin/bash", "-c"]
 # Install zip & unzip for glowroot
@@ -34,7 +34,6 @@ RUN source /app/set_mvn_proxy.sh; mvn install -f /app/Emap-Interchange/pom.xml
 # Set up Emap-Core
 WORKDIR /app/Emap-Core
 COPY Emap-Core/src/ /app/Emap-Core/src/
-# RUN source set_mvn_proxy.sh; mvn -Dspring.profiles.active=test integration-test -Pemapstar
+# Create final jar
 RUN source /app/set_mvn_proxy.sh; mvn install -Dmaven.test.skip=true -Pemapstar -Dstart-class=uk.ac.ucl.rits.inform.datasinks.emapstar.App
-# -Dstart-class=uk.ac.ucl.rits.inform.datasources.ids.AppHl7
 CMD ["java", "-javaagent:./glowroot/glowroot.jar", "-jar", "./target/Emap-Core.jar"]
