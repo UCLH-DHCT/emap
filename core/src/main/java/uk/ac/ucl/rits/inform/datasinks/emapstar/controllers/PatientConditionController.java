@@ -43,8 +43,14 @@ public class PatientConditionController {
     @Resource
     private PatientConditionCache cache;
 
-    enum PatientConditionType {
-        PATIENT_INFECTION
+
+    /**
+     * PATIENT_INFECTION = infection banner for infection control
+     * PROBLEM_LIST = Problem (not an infection)
+     */
+    private enum PatientConditionType {
+        PATIENT_INFECTION,
+        PROBLEM_LIST
     }
 
     /**
@@ -58,22 +64,24 @@ public class PatientConditionController {
     }
 
 
+
+
     /**
      * Process patient problem message.
      * @param msg        message
      * @param mrn        patient id
+     * @param visit      hospital visit can be null
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final PatientProblem msg, Mrn mrn, final Instant storedFrom)
+    public void processMessage(final PatientProblem msg, Mrn mrn, final HospitalVisit visit, final Instant storedFrom)
         throws EmapOperationMessageProcessingException{
 
-        // TODO
-        NotImplemented
+        ConditionType conditionType = self.getOrCreateConditionType(
+                PatientConditionType.PROBLEM_LIST, msg.getProblemCode(), msg.getUpdatedDateTime(), storedFrom);
 
-        // Add common problems to PatientConditionType enum?
-        // find conditionType by epicProblemId in conditionTypeRepo.
+
 
         // Override with conditionType using a problemName if present
 
