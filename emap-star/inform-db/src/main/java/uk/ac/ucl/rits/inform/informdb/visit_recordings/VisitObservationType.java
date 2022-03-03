@@ -23,9 +23,11 @@ import java.time.Instant;
  *
  * In EHR systems these are often coded either with potentially ambiguous short
  * names, or sometimes just numbers. This table maps these system level terms
- * into standardised vocabularies to make their meanings clear.
+ * into standardised vocabularies to make their meanings clear. While we currently use this table for flowsheets only,
+ * we anticipate that we can use this table for smart data elements also.
  * @author Roma Klapaukh
  * @author Stef Piatek
+ * @author Anika Cawthorn
  */
 @Entity
 @Data
@@ -48,23 +50,27 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     private long visitObservationTypeId;
 
     /**
-     * \brief The source system from which we learnt about this visitObservationType.
+     * \brief The ID used in the HL7 messages for referring to this visit observation type.
      *
-     * The hospital system that emap received the data from (e.g. caboodle, clarity, HL7).
+     * This ID in conjunction with the application idInApplication and the sourceObservationType describes the visit observation type uniquely.
      */
-    @Column(nullable = false)
-    private String sourceSystem;
+    private String interfaceId;
 
     /**
      * \brief The data type in the source system.
+     *
+     * E.g. flowsheet or smart data elements
      */
     @Column(nullable = false)
     private String sourceObservationType;
 
     /**
      * \brief The code used by the source system to identify the observation type.
+     *
+     * The code used by the hospital application to identify the observation type. For flowsheets this is the flowsheetRowEpicId retrieved
+     * from caboodle and also referred to as internal ID. This ID in conjunction with the interfaceId uniquely identifies the
+     * observation type.
      */
-    @Column(nullable = false)
     private String idInApplication;
 
     /**
@@ -100,18 +106,24 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     /**
      * \brief Date and time at which this visitObservationType was created in the source system.
      */
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant creationTime;
 
     /**
      * Minimal information constructor.
-     * @param idInApplication       Id from the application
-     * @param sourceSystem          source system
-     * @param sourceObservationType data type in the source system (e.g. flowsheet)
+     * @param idInApplication       Flowsheet row EPIC identifier
+     * @param interfaceId           Interface identifier
+     * @param sourceObservationType Data type in the source system (e.g. flowsheet)
+     * @param validFrom             When information last changed
+     * @param storedFrom            When type of information was first processed in EMAP
      */
-    public VisitObservationType(String idInApplication, String sourceSystem, String sourceObservationType) {
+    public VisitObservationType(String idInApplication, String interfaceId, String sourceObservationType, Instant validFrom,
+                                Instant storedFrom) {
         this.idInApplication = idInApplication;
-        this.sourceSystem = sourceSystem;
+        this.interfaceId = interfaceId;
         this.sourceObservationType = sourceObservationType;
+        setValidFrom(validFrom);
+        setStoredFrom(storedFrom);
     }
 
     /**
@@ -121,9 +133,9 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
     public VisitObservationType(VisitObservationType other) {
         super(other);
         visitObservationTypeId = other.visitObservationTypeId;
-        sourceSystem = other.sourceSystem;
         sourceObservationType = other.sourceObservationType;
         idInApplication = other.idInApplication;
+        interfaceId = other.interfaceId;
         name = other.name;
         displayName = other.displayName;
         description = other.description;

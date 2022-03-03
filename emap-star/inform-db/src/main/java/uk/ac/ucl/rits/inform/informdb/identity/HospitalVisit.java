@@ -136,7 +136,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
      */
     private HospitalVisit(HospitalVisit other) {
         super(other);
-        hospitalVisitId = other.hospitalVisitId;
+        this.hospitalVisitId = other.hospitalVisitId;
         this.encounter = other.encounter;
         this.admissionTime = other.admissionTime;
         this.arrivalMethod = other.arrivalMethod;
@@ -147,7 +147,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
         this.patientClass = other.patientClass;
         this.presentationTime = other.presentationTime;
         this.sourceSystem = other.sourceSystem;
-        this.setEncounter(other.getEncounter());
+        this.visitObservations = other.visitObservations;
     }
 
     @Override
