@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.springframework.lang.Nullable;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
@@ -41,7 +42,7 @@ public class InterchangeMessageFactory {
         String resourcePath = "/AdtMessages/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
 
-        return mapper.readValue(inputStream, new TypeReference<AdtMessage>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
 
@@ -52,7 +53,7 @@ public class InterchangeMessageFactory {
      */
     public ConsultRequest getConsult(final String fileName) throws IOException {
         InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultRequest/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<ConsultRequest>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
@@ -62,7 +63,7 @@ public class InterchangeMessageFactory {
      */
     public ConsultMetadata getConsultMetadata(final String fileName) throws IOException {
         InputStream inputStream = getClass().getResourceAsStream(String.format("/ConsultMetadata/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<ConsultMetadata>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
     /**
      * @param fileName filename within the AdvancedDecisions messages folder
@@ -71,7 +72,7 @@ public class InterchangeMessageFactory {
      */
     public AdvanceDecisionMessage getAdvanceDecision(final String fileName) throws IOException {
         InputStream inputStream = getClass().getResourceAsStream(String.format("/AdvanceDecision/%s", fileName));
-        return mapper.readValue(inputStream, new TypeReference<AdvanceDecisionMessage>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
 
@@ -87,7 +88,7 @@ public class InterchangeMessageFactory {
     public List<LabOrderMsg> getLabOrders(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/LabOrders/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<LabOrderMsg> labOrderMsgs = mapper.readValue(inputStream, new TypeReference<List<LabOrderMsg>>() {});
+        List<LabOrderMsg> labOrderMsgs = mapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (LabOrderMsg order : labOrderMsgs) {
             String sourceMessageId = sourceMessagePrefix + "_" + String.format("%02d", count);
@@ -108,13 +109,13 @@ public class InterchangeMessageFactory {
     public LabOrderMsg getLabOrder(final String filePath) throws IOException {
         String resourcePath = String.format("/LabOrders/%s", filePath);
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     public List<PatientInfection> getPatientInfections(final String fileName) throws IOException {
         String resourcePath = "/PatientInfection/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<List<PatientInfection>>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     public List<PatientProblem> getPatientProblems(final String fileName) throws IOException {
@@ -133,7 +134,7 @@ public class InterchangeMessageFactory {
         List<FlowsheetMetadata> flowsheetMetadata = new ArrayList<>();
         String resourcePath = "/FlowsheetMetadata/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<List<FlowsheetMetadata>>() {});
+        flowsheetMetadata = mapper.readValue(inputStream, new TypeReference<>() {});
         return flowsheetMetadata;
     }
 
@@ -146,7 +147,7 @@ public class InterchangeMessageFactory {
     public LocationMetadata getLocationMetadata(final String fileName) throws IOException {
         String resourcePath = "/LocationMetadata/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        return mapper.readValue(inputStream, new TypeReference<LocationMetadata>() {});
+        return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
     /**
@@ -159,7 +160,7 @@ public class InterchangeMessageFactory {
     public List<Flowsheet> getFlowsheets(final String fileName, final String sourceMessagePrefix) throws IOException {
         String resourcePath = "/Flowsheets/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
-        List<Flowsheet> flowsheets = mapper.readValue(inputStream, new TypeReference<List<Flowsheet>>() {});
+        List<Flowsheet> flowsheets = mapper.readValue(inputStream, new TypeReference<>() {});
         int count = 1;
         for (Flowsheet flowsheet : flowsheets) {
             String sourceMessageId = sourceMessagePrefix + "$" + String.format("%02d", count);
@@ -261,9 +262,22 @@ public class InterchangeMessageFactory {
         String defaultsPath = String.format("/LabOrders/%s", defaultsFile);
         String overridingPath = String.format("/LabOrders/%s", overridingFile);
         InputStream inputStream = getClass().getResourceAsStream(defaultsPath);
-        LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<LabOrderMsg>() {});
+        LabOrderMsg defaults = mapper.readValue(inputStream, new TypeReference<>() {});
         ObjectReader orderReader = mapper.readerForUpdating(defaults);
 
         return orderReader.readValue(getClass().getResourceAsStream(overridingPath));
     }
+
+    /**
+     * Build location metadata expected data from specified file.
+     * @param fileName the file from which to build the data
+     * @return the data as expected Interchange message
+     * @throws IOException if reading failed
+     */
+    public ClimbSequenceMsg getClimbSequenceMsg(final String fileName) throws IOException {
+        String resourcePath = "/ClimbSequenceMsg/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<ClimbSequenceMsg>() {});
+    }
+
 }

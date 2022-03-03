@@ -9,7 +9,12 @@ public interface ObservationType {
     /**
      * @return Id of observation in application.
      */
-    String getId();
+    String getInterfaceId();
+
+    /**
+     * @return Identifier of observation type
+     */
+    String getFlowsheetId();
 
     /**
      * @return Type of observation (e.g. flowsheet)
