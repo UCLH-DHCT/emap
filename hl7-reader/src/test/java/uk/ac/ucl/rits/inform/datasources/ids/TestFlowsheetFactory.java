@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -91,7 +92,7 @@ class TestFlowsheetFactory {
 
     @Test
     void testVitalSignIdentifier() {
-        String result = firstFlowsheet.getFlowsheetId();
+        String result = firstFlowsheet.getInterfaceId();
         assertEquals("5", result);
     }
 
@@ -157,7 +158,7 @@ class TestFlowsheetFactory {
 
     @Test
     void testMissingValue() {
-        assertEquals(8, flowsheets.size());
+        assertEquals(9, flowsheets.size());
     }
 
     @Test
@@ -190,6 +191,24 @@ class TestFlowsheetFactory {
     }
 
     /**
+     * Given that an HL7 message has a coded element (CE) OBX segment
+     * When the message is processed
+     * It should be parsed as text
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testCodedElementDirectlyAsText() throws Exception {
+        String hl7 = HL7Utils.readHl7FromResource("VitalSigns/MixedHL7Message.txt");
+        Message hl7Msg = HL7Utils.parseHl7String(hl7);
+        flowsheets = flowsheetFactory.getMessages("42", hl7Msg);
+
+        InterchangeValue<String> codedElementData = flowsheets.get(8).getStringValue();
+
+        assertTrue(codedElementData.isSave());
+        assertEquals("67", codedElementData.get());
+    }
+
+    /**
      * Given that an hl7 message has OBX segments which are malformed
      * When each specific OBX segment is processed
      * Then an exception should be thrown
@@ -211,9 +230,7 @@ class TestFlowsheetFactory {
                 // result status issues
                 "Empty result status", "Unexpected result status",
                 // no values
-                "String No value", "Numeric no value", "Date no value",
-                // unrecognised type, though at some point will add this in
-                "Country 1 (starting with most recent)"
+                "String No value", "Numeric no value", "Date no value"
         );
     }
 }

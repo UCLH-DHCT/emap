@@ -1,13 +1,11 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Type;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v26.datatype.DT;
 import ca.uhn.hl7v2.model.v26.datatype.NM;
-import ca.uhn.hl7v2.model.v26.datatype.ST;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v26.group.ORU_R01_PATIENT_RESULT;
@@ -76,7 +74,7 @@ public class FlowsheetFactory {
      * @param recordedDateTime Event datetime of the message
      * @param orderObs         ORU R01 order observations from the HL7 message
      * @return Flowsheet entities built from ORU R01 order observations
-     * @throws HL7Exception
+     * @throws HL7Exception when Flowsheet HL7 message could not be parsed
      */
     private List<Flowsheet> buildAllFlowsheets(
             final String idsUnid, final PID pid, final MSH msh, final PV1 pv1,
@@ -130,7 +128,7 @@ public class FlowsheetFactory {
 
         // set information from obx
         String observationId = obx.getObx3_ObservationIdentifier().getCwe1_Identifier().getValueOrEmpty();
-        flowsheet.setFlowsheetId(observationId);
+        flowsheet.setInterfaceId(observationId);
 
         setFlowsheetValueAndValueType(subMessageSourceId, flowsheet, obx);
 
@@ -164,9 +162,10 @@ public class FlowsheetFactory {
      * @param obx                OBX segment
      * @throws Hl7InconsistencyException If the result status is unknown or numeric result can't be parsed
      * @throws DataTypeException         if datetime values cannot be parsed
+     * @throws HL7Exception              If value can't be decoded
      */
     private void setFlowsheetValueAndValueType(String subMessageSourceId, Flowsheet flowsheet, OBX obx)
-            throws Hl7InconsistencyException, DataTypeException {
+            throws Hl7InconsistencyException, HL7Exception {
         String resultStatus = obx.getObx11_ObservationResultStatus().getValueOrEmpty();
 
         if (!ALLOWED_STATUSES.contains(resultStatus)) {
@@ -193,14 +192,6 @@ public class FlowsheetFactory {
                             String.format("Numeric result expected for msg %s, instead '%s' was found", subMessageSourceId, value));
                 }
             }
-        } else if (singularData instanceof ST) {
-            flowsheet.setValueType(ValueType.TEXT);
-            if ("D".equals(resultStatus)) {
-                flowsheet.setStringValue(InterchangeValue.delete());
-            } else {
-                String stringValue = getStringValue(obx);
-                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.strip()));
-            }
         } else if (singularData instanceof DT) {
             flowsheet.setValueType(ValueType.DATE);
             if ("D".equals(resultStatus)) {
@@ -210,7 +201,14 @@ public class FlowsheetFactory {
                 flowsheet.setDateValue(InterchangeValue.buildFromHl7(date));
             }
         } else {
-            throw new Hl7InconsistencyException("Flowsheet value type was not recognised (not NM, ST or DT)");
+            // to match hoover, default to all other types being text
+            flowsheet.setValueType(ValueType.TEXT);
+            if ("D".equals(resultStatus)) {
+                flowsheet.setStringValue(InterchangeValue.delete());
+            } else {
+                String stringValue = getStringValue(obx);
+                flowsheet.setStringValue(InterchangeValue.buildFromHl7(stringValue.strip()));
+            }
         }
     }
 
@@ -228,15 +226,16 @@ public class FlowsheetFactory {
      * Extracts string value from obx. Allows for multiple lines in an OBX (separated by newline characters)
      * @param obx OBX object
      * @return String of all whitespace trimmed lines separated by newlines
+     * @throws HL7Exception If value can't be decoded
      */
-    private String getStringValue(OBX obx) {
+    private String getStringValue(OBX obx) throws HL7Exception {
         // Strings can be made of multiple values
         Varies[] dataVaries = obx.getObx5_ObservationValue();
         StringBuilder valueBuilder = new StringBuilder();
         // Allow for multiple results
         for (Varies resultLine : dataVaries) {
             Type lineData = resultLine.getData();
-            String lineValue = lineData.toString();
+            String lineValue = lineData.encode();
             if (lineValue != null) {
                 if (valueBuilder.length() > 1) {
                     valueBuilder.append("\n");
