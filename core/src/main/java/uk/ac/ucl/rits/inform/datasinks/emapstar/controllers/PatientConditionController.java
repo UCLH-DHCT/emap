@@ -64,8 +64,6 @@ public class PatientConditionController {
     }
 
 
-
-
     /**
      * Process patient problem message.
      * @param msg        message
@@ -208,22 +206,21 @@ public class PatientConditionController {
 
 
     /**
-     *
-     * @param msg
-     * @param mrn
-     * @param conditionType
-     * @param storedFrom
-     * @return
-     * @throws RequiredDataMissingException
+     * Get or create existing patient condition entity.
+     * @param msg           patient infection message
+     * @param mrn           patient identifier
+     * @param conditionType condition type referred to in message
+     * @param storedFrom    time that emap-core started processing the message
+     * @return observation entity wrapped in RowState
      */
     private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
-            PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
-            throws RequiredDataMissingException {
+            PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom){
 
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
                 mrn, conditionType, msg.getProblemAdded());
 
 
+        // TODO: Problem code
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalPatientCondition(
