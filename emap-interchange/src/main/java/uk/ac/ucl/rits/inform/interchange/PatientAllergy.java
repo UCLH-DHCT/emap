@@ -62,7 +62,7 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     /**
      * Status of the allergy...
      */
-    private String status;
+    private InterchangeValue<String> status = InterchangeValue.unknown();
 
     /**
      * Action in relation to allergy information, e.g. whether add/update/delete...
@@ -87,8 +87,6 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
      * @param allergyReactions Collection of strings, each representing an allergy reaction.
      */
     public void addAllReactions(Collection<String> allergyReactions) {
-        for (String reaction : allergyReactions) {
-            reactions.add(reaction);
-        }
+        reactions.addAll(allergyReactions);
     }
 }
