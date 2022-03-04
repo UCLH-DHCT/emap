@@ -21,6 +21,10 @@
   reactions:
     - "Anaphylaxis"
     - "Hives"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
   sourceSystem: "clarity"
   sourceMessageId: "2"
@@ -43,3 +47,7 @@
   severity: "Medium"
   reactions:
     - "Hives"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Active"
