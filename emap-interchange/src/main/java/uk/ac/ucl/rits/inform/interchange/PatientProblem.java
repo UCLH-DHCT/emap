@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Interchange format of a PatientProblem message.
+ * Interchange format of a PatientProblem message. In hospital terminology they are referred to as problem lists.
  * <p>
  * PatientProblems are similar to PatientInfections in that they have a start date from which they have been diagnosed
  * and they can change (be updated or deleted) over time.
@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PatientProblem extends EmapOperationMessage implements Serializable {
+public class PatientProblem extends EmapOperationMessage implements Serializable, PatientConditionMessage{
     private String mrn;
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
     /**
@@ -71,6 +71,7 @@ public class PatientProblem extends EmapOperationMessage implements Serializable
      * Notes in relation to problem...
      */
     private InterchangeValue<String> comment = InterchangeValue.unknown();
+
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
@@ -79,5 +80,35 @@ public class PatientProblem extends EmapOperationMessage implements Serializable
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
+    }
+
+    @Override
+    public String getCode() {
+        return problemCode;
+    }
+
+    @Override
+    public InterchangeValue<String> getName() {
+        return problemName;
+    }
+
+    @Override
+    public InterchangeValue<Long> getEpicId() {
+        return epicProblemId;
+    }
+
+    @Override
+    public Instant getAddedTime() {
+        return problemAdded;
+    }
+
+    @Override
+    public InterchangeValue<Instant> getResolvedTime() {
+        return problemResolved;
+    }
+
+    @Override
+    public InterchangeValue<LocalDate> getOnsetTime() {
+        return problemOnset;
     }
 }
