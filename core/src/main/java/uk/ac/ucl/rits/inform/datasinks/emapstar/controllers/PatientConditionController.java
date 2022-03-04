@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * Parses patient conditions from interchange messages.
  * <p>
- * Currently planned to deal with patient infections and problem lists but should parse any condition that can have a start and end.
+ * Should parse any condition that can have a start and end.
  * @author Anika Cawthorn
  * @author Stef Piatek
  * @author Tom Young
@@ -48,8 +48,9 @@ public class PatientConditionController {
 
 
     /**
-     * PATIENT_INFECTION = infection banner for infection control
-     * PROBLEM_LIST = Problem (not an infection)
+     * Types of patient conditions:
+     *      PATIENT_INFECTION = Infection banner for infection control
+     *      PROBLEM_LIST = Problem (not an infection)
      */
     enum PatientConditionType {
         PATIENT_INFECTION,
@@ -83,23 +84,23 @@ public class PatientConditionController {
                 PatientConditionType.PROBLEM_LIST, msg.getProblemCode(), msg.getUpdatedDateTime(), storedFrom
         );
 
-        // TODO: Override with conditionType using a problemName if present
+        // TODO: Override with conditionType using a problemName if present?
 
-        // create patientCondition RowState
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn,
                 conditionType.getEntity(), storedFrom);
 
-
         // check that the message shouldn't be updated with newer information
+        if (messageShouldBeUpdated(msg, patientCondition)) {
+            updatePatientCondition(msg, visit, patientCondition);
+        }
 
-        // patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
-
+        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
     }
 
     /**
      * Get existing patient condition type (from database or cache) or create a new one.
      * @param type            Patient condition type
-     * @param conditionCode   EPIC code for the condition within the type
+     * @param conditionCode   Code for the condition within the type
      * @param updatedDateTime when the condition information is valid from
      * @param storedFrom      when the condition information had been started to be processed by emap
      * @return ConditionType wrapped in a row state
@@ -162,6 +163,7 @@ public class PatientConditionController {
         }
     }
 
+
     /**
      * Audit and delete all patient conditions that are of the condition types and are valid until the delete until date.
      * @param hl7InfectionTypes patient infection condition types to delete
@@ -178,6 +180,7 @@ public class PatientConditionController {
             patientConditionRepo.delete(hl7Infection);
         }
     }
+
 
     /**
      * Get or create existing patient condition entity.
@@ -227,15 +230,14 @@ public class PatientConditionController {
     private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
             PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
 
+        // TODO: Find by visit too?
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
                 mrn, conditionType, msg.getProblemAdded());
 
-
-        // TODO: Problem code
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalPatientCondition(
-                        msg.getProblemCode(), mrn, conditionType, msg.getProblemAdded(), msg.getUpdatedDateTime(), storedFrom));
+                        mrn, conditionType, msg.getProblemAdded(), msg.getUpdatedDateTime(), storedFrom));
     }
 
 
@@ -256,6 +258,23 @@ public class PatientConditionController {
         return new RowState<>(patientCondition, validFrom, storedFrom, true);
     }
 
+
+    /**
+     * Create minimal patient condition wrapped in RowState.
+     * @param mrn             patient identifier
+     * @param conditionType   condition type
+     * @param conditionAdded  condition added at
+     * @param validFrom       hospital time that the data is true from
+     * @param storedFrom      time that emap-core started processing the message
+     * @return minimal patient condition wrapped in RowState
+     */
+    private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
+            Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
+
+        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionAdded);
+        return new RowState<>(patientCondition, validFrom, storedFrom, true);
+    }
+
     /**
      * Update message if observation has been created, or the message updated time is >= entity validFrom.
      * @param msg           patient infection
@@ -265,6 +284,18 @@ public class PatientConditionController {
     private boolean messageShouldBeUpdated(PatientInfection msg, RowState<PatientCondition, PatientConditionAudit> conditionDate) {
         return conditionDate.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(conditionDate.getEntity().getConditionTypeId().getValidFrom());
     }
+
+
+    /**
+     * Update message if observation has been created, or the message updated time is >= entity validFrom.
+     * @param msg           patient problem
+     * @param conditionDate row state of condition
+     * @return true if message should be updated
+     */
+    private boolean messageShouldBeUpdated(PatientProblem msg, RowState<PatientCondition, PatientConditionAudit> conditionDate) {
+        return conditionDate.isEntityCreated() || !msg.getUpdatedDateTime().isBefore(conditionDate.getEntity().getConditionTypeId().getValidFrom());
+    }
+
 
     /**
      * Update patient condition from patient infection message.
@@ -279,6 +310,26 @@ public class PatientConditionController {
         conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getInfectionResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
         conditionState.assignInterchangeValue(msg.getInfectionOnset(), condition.getOnsetDate(), condition::setOnsetDate);
+    }
+
+    /**
+     * Update patient condition from patient condition message.
+     * @param msg            patient infection message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientCondition(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition, PatientConditionAudit> conditionState) {
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
+        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
+        conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
+        conditionState.assignInterchangeValue(msg.getProblemResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
+        conditionState.assignInterchangeValue(msg.getProblemOnset(), condition.getOnsetDate(), condition::setOnsetDate);
+
+
+        // TODO:
+        //  - Classification
+        //  - Priority
     }
 }
 
