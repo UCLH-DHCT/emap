@@ -84,6 +84,7 @@ public class PatientConditionController {
                 PatientConditionType.PROBLEM_LIST, msg.getProblemCode(), msg.getUpdatedDateTime(), storedFrom
         );
 
+
         // TODO: Override with conditionType using a problemName if present?
 
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn,
@@ -92,6 +93,17 @@ public class PatientConditionController {
         // check that the message shouldn't be updated with newer information
         if (messageShouldBeUpdated(msg, patientCondition)) {
             updatePatientCondition(msg, visit, patientCondition);
+        }
+
+        // Check action of message
+        if (msg.getAction().equals("DE")){
+            Optional<PatientCondition> presentPatientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
+                    mrn, conditionType.getEntity(), msg.getUpdatedDateTime());
+
+            presentPatientCondition.ifPresent(patientConditionRepo::delete);
+
+            // TODO: Update audit
+            return;
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
@@ -214,8 +226,8 @@ public class PatientConditionController {
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(
-                        epicInfectionId, mrn, conditionType, msg.getInfectionAdded(), msg.getUpdatedDateTime(), storedFrom));
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getInfectionAdded(),
+                        msg.getUpdatedDateTime(), storedFrom));
     }
 
 
@@ -238,24 +250,6 @@ public class PatientConditionController {
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalPatientCondition(
                         mrn, conditionType, msg.getProblemAdded(), msg.getUpdatedDateTime(), storedFrom));
-    }
-
-
-    /**
-     * Create minimal patient condition wrapped in RowState.
-     * @param epicConditionId internal epic Id for condition
-     * @param mrn             patient identifier
-     * @param conditionType   condition type
-     * @param conditionAdded  condition added at
-     * @param validFrom       hospital time that the data is true from
-     * @param storedFrom      time that emap-core started processing the message
-     * @return minimal patient condition wrapped in RowState
-     */
-    private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
-            Long epicConditionId, Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
-
-        PatientCondition patientCondition = new PatientCondition(epicConditionId, conditionType, mrn, conditionAdded);
-        return new RowState<>(patientCondition, validFrom, storedFrom, true);
     }
 
 
@@ -306,6 +300,7 @@ public class PatientConditionController {
     private void updatePatientCondition(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition, PatientConditionAudit> conditionState) {
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
+        conditionState.assignInterchangeValue(msg.getEpicInfectionId(), condition.getInternalId(), condition::setInternalId);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getInfectionResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
@@ -326,10 +321,9 @@ public class PatientConditionController {
         conditionState.assignInterchangeValue(msg.getProblemResolved(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
         conditionState.assignInterchangeValue(msg.getProblemOnset(), condition.getOnsetDate(), condition::setOnsetDate);
 
-
         // TODO:
-        //  - Classification
-        //  - Priority
+        //  - Classification ?
+        //  - Priority ?
     }
 }
 
