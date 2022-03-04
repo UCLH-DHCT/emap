@@ -7,11 +7,21 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.io.IOException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  * Test cases to ensure that processing of patient problem messages is working correctly.
@@ -39,9 +49,6 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
     }
 
-    private PatientProblem getPatientProblem(String x) {
-        return patientConditionRepository.findByX(x).orElseThrow();
-    }
 
     /**
      * Given that no problem list exists for outpatient
@@ -50,7 +57,14 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      */
     @Test
     void testCreateProblemListOutpatient() throws EmapOperationMessageProcessingException {
-        System.out.println(hl7MyelomaInpatient);
+
+        processSingleMessage(hl7MyelomaOutpatient);
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+
+        assertEquals(1, entities.size());
+
+        PatientCondition entity = entities.get(0);
+        assertNull(entity.getHospitalVisitId());
     }
 
     /**
