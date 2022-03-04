@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
@@ -40,13 +41,13 @@ public class PatientStateProcessor {
     }
 
     /**
-     * Process patient problem message.
+     * Process patient problem condition message.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final PatientProblem msg, final Instant storedFrom)
+    public void processMessage(final PatientConditionMessage msg, final Instant storedFrom)
         throws EmapOperationMessageProcessingException {
 
         String mrnStr = msg.getMrn();
@@ -60,31 +61,6 @@ public class PatientStateProcessor {
         if (msg.getVisitNumber().isSave()){
             visit = visitController.getOrCreateMinimalHospitalVisit(msg.getVisitNumber().get(), mrn,
                     msg.getSourceSystem(), msgUpdatedTime, storedFrom);
-        }
-
-        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
-    }
-
-    /**
-     * Process patient infection message.
-     * @param msg        message
-     * @param storedFrom Time the message started to be processed by star
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    @Transactional
-    public void processMessage(final PatientInfection msg, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
-        String mrnStr = msg.getMrn();
-        Instant msgUpdatedTime = msg.getUpdatedDateTime();
-
-        // retrieve patient to whom message refers to; if MRN not registered, create new patient
-        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
-                msgUpdatedTime, storedFrom);
-
-        HospitalVisit visit = null;
-        if (msg.getVisitNumber().isSave()) {
-            visit = visitController.getOrCreateMinimalHospitalVisit(
-                    msg.getVisitNumber().get(), mrn, msg.getSourceSystem(), msgUpdatedTime, storedFrom);
         }
 
         patientConditionController.processMessage(msg, mrn, visit, storedFrom);
