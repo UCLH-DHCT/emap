@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PatientInfection extends EmapOperationMessage implements Serializable {
+public class PatientInfection extends EmapOperationMessage implements Serializable, PatientConditionMessage {
     private String mrn;
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
@@ -27,7 +27,7 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
     private String infectionCode;
 
     /**
-     * Human readable infection name.
+     * Human-readable infection name.
      */
     private InterchangeValue<String> infectionName = InterchangeValue.unknown();
 
@@ -74,4 +74,38 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
         processor.processMessage(this);
     }
 
+    @Override
+    public String getCode() {
+        return infectionCode;
+    }
+
+    @Override
+    public InterchangeValue<String> getName() {
+        return infectionName;
+    }
+
+    @Override
+    public InterchangeValue<Long> getEpicId() {
+        return epicInfectionId;
+    }
+
+    @Override
+    public Instant getAddedTime() {
+        return infectionAdded;
+    }
+
+    @Override
+    public InterchangeValue<Instant> getResolvedTime() {
+        return infectionResolved;
+    }
+
+    @Override
+    public InterchangeValue<LocalDate> getOnsetTime() {
+        return infectionOnset;
+    }
+
+    @Override
+    public String getAction() {
+        return "AD";
+    }
 }
