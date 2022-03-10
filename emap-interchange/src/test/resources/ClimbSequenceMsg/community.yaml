@@ -1,0 +1,8 @@
+"@class": "uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg"
+sourceSystem: "CLIMB"
+sequenceValidFrom: "2020-01-02T10:00:00.00Z"
+sampleCollectionDate: "2019-12-24"
+fastaHeader: "Header"
+sequence: "AGCUAAGTUGACGCAGCGT"
+cogId: "LOND-123C33C"
+pheId: "H3444411270"
