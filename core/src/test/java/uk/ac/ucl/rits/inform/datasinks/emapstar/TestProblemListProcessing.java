@@ -19,11 +19,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -112,16 +109,14 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then nothing is changed
      */
     @Test
-    void testProcessingOlderMessage() throws EmapOperationMessageProcessingException, IOException {
+    void testProcessingOlderMessage() throws EmapOperationMessageProcessingException {
 
-        PatientProblem currentMessage = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
-        currentMessage.setComment(InterchangeValue.buildFromHl7("the current message"));
+        hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7("the current message"));
 
-        processSingleMessage(currentMessage);
+        processSingleMessage(hl7MyelomaInpatient);
 
-        PatientProblem message = sampleMessage();
-        message.setComment(InterchangeValue.buildFromHl7("an older problem"));
-        message.setUpdatedDateTime(Instant.now().minus(1, ChronoUnit.SECONDS));
+        hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7("an older problem"));
+        hl7MyelomaInpatient.setUpdatedDateTime(Instant.now().minus(1, ChronoUnit.SECONDS));
 
         List<PatientCondition> entities = getAllEntities(patientConditionRepository);
         assertEquals(1, entities.size());
@@ -134,6 +129,16 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * When a problem list message list with notes arrives
      * Then the problem list is added with comments
      */
+    @Test
+    void testProcessingWithComment() throws EmapOperationMessageProcessingException {
+        hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7("a comment"));
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
+        assertEquals("a comment", condition.getComment());
+    }
+
 
     /**
      * Given that a problem list exist for patient
@@ -141,6 +146,20 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then the existing problem list is updated accordingly
      * (e.g. notes are added in for a specific problem)
      */
+    @Test
+    void testProcessingNewerMessage() throws EmapOperationMessageProcessingException {
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        assertNull(getAllEntities(patientConditionRepository).get(0).getResolutionDateTime());
+
+        hl7MyelomaInpatient.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
+        hl7MyelomaInpatient.setResolvedTime(InterchangeValue.buildFromHl7(Instant.now()));
+        processSingleMessage(hl7MyelomaInpatient);
+
+        assertNotNull(getAllEntities(patientConditionRepository).get(0).getResolutionDateTime());
+    }
+
 
     /**
      * Given that a problem list exist for a patient
@@ -148,17 +167,28 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then this problem list is deleted for the patient
      * (e.g diagnosis is entered as "working hypothesis" and then deleted as tests come back)
      */
+    @Test
+    void testDeletingAProblem() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        hl7MyelomaInpatient.setAction("DE");
+        processSingleMessage(hl7MyelomaInpatient);
+
+        assertEquals(getAllEntities(patientConditionRepository).size(), 0);
+    }
+
 
     // Create a sample messaged with default fields
     PatientProblem sampleMessage(){
 
         PatientProblem message = new PatientProblem();
         message.setProblemAdded(Instant.now());
-        message.setEpicConditionId(InterchangeValue.buildFromHl7(1L));
+        message.setEpicProblemId(InterchangeValue.buildFromHl7(1L));
         message.setSourceSystem(hl7MyelomaInpatient.getSourceSystem());
         message.setMrn("0");
-        message.setConditionCode("XX");
-        message.setConditionName(InterchangeValue.buildFromHl7("YY"));
+        message.setProblemCode("XX");
+        message.setProblemName(InterchangeValue.buildFromHl7("YY"));
 
         message.setUpdatedDateTime(Instant.now());
         message.setProblemResolved(InterchangeValue.buildFromHl7(Instant.now()));
