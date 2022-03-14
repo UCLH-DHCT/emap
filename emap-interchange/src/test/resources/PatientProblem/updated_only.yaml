@@ -7,7 +7,7 @@
   problemName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value:  "Multiple Myelome"
+    value:  "Multiple Myeloma"
   epicProblemId:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
