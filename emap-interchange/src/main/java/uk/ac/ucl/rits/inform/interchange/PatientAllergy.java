@@ -20,7 +20,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PatientAllergy extends EmapOperationMessage implements Serializable {
+public class PatientAllergy extends PatientConditionMessage implements Serializable {
     private String mrn;
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
@@ -72,6 +72,16 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
      * Reaction occurring when patient exposed to allergen...
      */
     private List<String> reactions = new ArrayList<>();
+
+
+    /**
+     * Adds a list of strings to the reactions.
+     * @param allergyReactions Collection of strings, each representing an allergy reaction.
+     */
+    public void addAllReactions(Collection<String> allergyReactions) {
+        reactions.addAll(allergyReactions);
+    }
+
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
@@ -80,13 +90,5 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
         processor.processMessage(this);
-    }
-
-    /**
-     * Adds a list of strings to the reactions.
-     * @param allergyReactions Collection of strings, each representing an allergy reaction.
-     */
-    public void addAllReactions(Collection<String> allergyReactions) {
-        reactions.addAll(allergyReactions);
     }
 }
