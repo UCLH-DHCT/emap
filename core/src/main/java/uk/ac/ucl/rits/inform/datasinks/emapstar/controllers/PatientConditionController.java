@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import javax.annotation.Resource;
@@ -67,7 +68,7 @@ public class PatientConditionController {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    public void processMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         ConditionType conditionType = cache.getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
