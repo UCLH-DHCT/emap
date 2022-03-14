@@ -82,7 +82,7 @@ public class PatientConditionController {
             throws EmapOperationMessageProcessingException {
 
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
-                PatientConditionType.PROBLEM_LIST, msg.getCode(), msg.getUpdatedDateTime(), storedFrom
+                PatientConditionType.PROBLEM_LIST, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
 
 
@@ -137,11 +137,11 @@ public class PatientConditionController {
     public void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         RowState<ConditionType, ConditionTypeAudit> conditionState = getOrCreateConditionType(
-                PatientConditionType.PATIENT_INFECTION, msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom
+                PatientConditionType.PATIENT_INFECTION, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
 
-        cache.updateNameAndClearFromCache(conditionState, msg.getInfectionName(), PatientConditionType.PATIENT_INFECTION,
-                msg.getInfectionCode(), msg.getUpdatedDateTime(), storedFrom);
+        cache.updateNameAndClearFromCache(conditionState, msg.getConditionName(), PatientConditionType.PATIENT_INFECTION,
+                msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
         deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
 
@@ -164,7 +164,7 @@ public class PatientConditionController {
      * @param deleteUntil time to delete messages up until (inclusive)
      */
     private void deletePreviousInfectionOrClearInfectionTypesCache(PatientInfection msg, Instant deleteUntil) {
-        if (msg.getEpicInfectionId().isSave()) {
+        if (msg.getEpicConditionId().isSave()) {
             logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
             List<ConditionType> hl7InfectionTypes = cache.getAllInfectionTypesAndCacheResults();
             auditAndDeletePatientConditionsUntil(hl7InfectionTypes, msg.getUpdatedDateTime(), deleteUntil);
@@ -209,13 +209,13 @@ public class PatientConditionController {
             case "EPIC":
                 epicInfectionId = null;
                 patientCondition = patientConditionRepo
-                        .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType, msg.getInfectionAdded());
+                        .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType, msg.getAddedTime());
                 break;
             case "clarity":
-                if (msg.getEpicInfectionId().isUnknown()) {
+                if (msg.getEpicConditionId().isUnknown()) {
                     throw new RequiredDataMissingException("No patientInfectionId from clarity");
                 }
-                epicInfectionId = msg.getEpicInfectionId().get();
+                epicInfectionId = msg.getEpicConditionId().get();
                 patientCondition = patientConditionRepo.findByConditionTypeIdAndInternalId(conditionType, epicInfectionId);
                 break;
             default:
@@ -225,7 +225,7 @@ public class PatientConditionController {
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
                 .orElseGet(() -> createMinimalPatientCondition(epicInfectionId, mrn, conditionType,
-                        msg.getInfectionAdded(), msg.getUpdatedDateTime(), storedFrom));
+                        msg.getAddedTime(), msg.getUpdatedDateTime(), storedFrom));
     }
 
 
@@ -245,7 +245,7 @@ public class PatientConditionController {
                 mrn, conditionType, msg.getAddedTime());
 
         // TODO: Is this the correct way to do it?
-        Long epicId = msg.getEpicId().get();
+        Long epicId = msg.getEpicConditionId().get();
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
