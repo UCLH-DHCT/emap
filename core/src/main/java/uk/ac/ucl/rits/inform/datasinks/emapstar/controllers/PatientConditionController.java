@@ -58,6 +58,7 @@ public class PatientConditionController {
         PROBLEM_LIST
     }
 
+
     /**
      * @param patientConditionRepo      autowired PatientConditionRepository
      * @param patientConditionAuditRepo autowired PatientConditionAuditRepository
@@ -69,6 +70,22 @@ public class PatientConditionController {
     }
 
 
+    @Transactional
+    public void processMessage(PatientConditionMessage msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException{
+
+        if (msg.getClass() == PatientProblem.class){
+            processProblemMessage(msg, mrn, visit, storedFrom);
+        }
+        else if (msg.getClass() == PatientInfection.class){
+            processInfectionMessage(msg, mrn, visit, storedFrom);
+        }
+        else{
+            // TODO: Throw something?
+        }
+    }
+
+
     /**
      * Process patient problem message.
      * @param msg        message
@@ -77,19 +94,21 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    @Transactional
-    public void processMessage(final PatientProblem msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    private void processProblemMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
+                                       final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
                 PatientConditionType.PROBLEM_LIST, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
+        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_INFECTION,
+                msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
 
         // TODO: Override with conditionType using a problemName if present?
-
-        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(msg, mrn,
+        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientProblem(msg, mrn,
                 conditionType.getEntity(), storedFrom);
+
 
         // check that the message shouldn't be updated with newer information
         if (messageShouldBeUpdated(msg, patientCondition)) {
@@ -133,20 +152,20 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    @Transactional
-    public void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
+    public void processInfectionMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
+                                        final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-        RowState<ConditionType, ConditionTypeAudit> conditionState = getOrCreateConditionType(
+        RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
 
-        cache.updateNameAndClearFromCache(conditionState, msg.getConditionName(), PatientConditionType.PATIENT_INFECTION,
+        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_INFECTION,
                 msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
         deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
 
-        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientCondition(
-                msg, mrn, conditionState.getEntity(), storedFrom
+        RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientInfection(
+                msg, mrn, conditionType.getEntity(), storedFrom
         );
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
@@ -163,7 +182,7 @@ public class PatientConditionController {
      * @param msg         patient infection message
      * @param deleteUntil time to delete messages up until (inclusive)
      */
-    private void deletePreviousInfectionOrClearInfectionTypesCache(PatientInfection msg, Instant deleteUntil) {
+    private void deletePreviousInfectionOrClearInfectionTypesCache(PatientConditionMessage msg, Instant deleteUntil) {
         if (msg.getEpicConditionId().isSave()) {
             logger.debug("Deleting all infections up to {}", msg.getUpdatedDateTime());
             List<ConditionType> hl7InfectionTypes = cache.getAllInfectionTypesAndCacheResults();
@@ -201,8 +220,9 @@ public class PatientConditionController {
      * @return observation entity wrapped in RowState
      * @throws RequiredDataMissingException if no patient infection Id in hoover data or unrecognised source system
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
-            PatientInfection msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) throws RequiredDataMissingException {
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientInfection(
+            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom)
+            throws RequiredDataMissingException {
         Optional<PatientCondition> patientCondition;
         final Long epicInfectionId;
         switch (msg.getSourceSystem()) {
@@ -237,20 +257,28 @@ public class PatientConditionController {
      * @param storedFrom    time that emap-core started processing the message
      * @return observation entity wrapped in RowState
      */
-    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientCondition(
-            PatientProblem msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
+    private RowState<PatientCondition, PatientConditionAudit> getOrCreatePatientProblem(
+            PatientConditionMessage msg, Mrn mrn, ConditionType conditionType, Instant storedFrom) {
+
+        Instant addedTime = msg.getAddedTime();
+        Instant updatedTime = msg.getUpdatedDateTime();
 
         // TODO: Find by visit too?
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
-                mrn, conditionType, msg.getAddedTime());
+                mrn, conditionType, addedTime);
 
         // TODO: Is this the correct way to do it?
-        Long epicId = msg.getEpicConditionId().get();
+        Long epicId = null;
 
+        if (msg.getEpicConditionId().isSave()){
+            epicId = msg.getEpicConditionId().get();
+        }
+
+        Long finalEpicId = epicId; // TODO: why does java want me to do this
         return patientCondition
-                .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(epicId, mrn, conditionType, msg.getAddedTime(),
-                        msg.getUpdatedDateTime(), storedFrom));
+                .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
+                .orElseGet(() -> createMinimalPatientCondition(finalEpicId, mrn, conditionType, addedTime,
+                        updatedTime, storedFrom));
     }
 
 
