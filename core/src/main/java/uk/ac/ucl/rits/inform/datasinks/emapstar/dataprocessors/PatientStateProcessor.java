@@ -48,35 +48,9 @@ public class PatientStateProcessor {
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
     @Transactional
-    public void processMessage(PatientProblem msg, final Instant storedFrom)
+    public void processMessage(PatientConditionMessage msg, final Instant storedFrom)
         throws EmapOperationMessageProcessingException {
 
-        String mrnStr = msg.getMrn();
-        Instant msgUpdatedTime = msg.getUpdatedDateTime();
-        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
-                msgUpdatedTime, storedFrom);
-
-        HospitalVisit visit = null;
-
-        if (msg.getVisitNumber().isSave()){
-            visit = visitController.getOrCreateMinimalHospitalVisit(msg.getVisitNumber().get(), mrn,
-                    msg.getSourceSystem(), msgUpdatedTime, storedFrom);
-        }
-
-        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
-    }
-
-    /**
-     * Process patient infection message.
-     * @param msg        message
-     * @param storedFrom Time the message started to be processed by star
-     * @throws EmapOperationMessageProcessingException if message can't be processed.
-     */
-    @Transactional
-    public void processMessage(PatientInfection msg, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException {
-
-        // TODO: Remove duplicate from above
         String mrnStr = msg.getMrn();
         Instant msgUpdatedTime = msg.getUpdatedDateTime();
         Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
