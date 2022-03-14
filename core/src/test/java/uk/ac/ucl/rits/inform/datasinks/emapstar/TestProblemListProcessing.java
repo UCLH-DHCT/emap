@@ -111,6 +111,23 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * When a minimal problem list message arrives that's older but concerning the same patient
      * Then nothing is changed
      */
+    @Test
+    void testProcessingOlderMessage() throws EmapOperationMessageProcessingException, IOException {
+
+        PatientProblem currentMessage = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
+        currentMessage.setComment(InterchangeValue.buildFromHl7("the current message"));
+
+        processSingleMessage(currentMessage);
+
+        PatientProblem message = sampleMessage();
+        message.setComment(InterchangeValue.buildFromHl7("an older problem"));
+        message.setUpdatedDateTime(Instant.now().minus(1, ChronoUnit.SECONDS));
+
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+        assertEquals(1, entities.size());
+
+        assertEquals("the current message", entities.get(0).getComment());
+    }
 
     /**
      * Given that no problem list for a patient exists
@@ -143,12 +160,9 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         message.setConditionCode("XX");
         message.setConditionName(InterchangeValue.buildFromHl7("YY"));
 
-        Instant aTime = hl7MyelomaInpatient.getUpdatedDateTime().minus(1, ChronoUnit.DAYS);
-        LocalDate aDate = LocalDate.now();
-
-        message.setUpdatedDateTime(aTime);
+        message.setUpdatedDateTime(Instant.now());
         message.setProblemResolved(InterchangeValue.buildFromHl7(Instant.now()));
-        message.setProblemOnset(InterchangeValue.buildFromHl7(aDate));
+        message.setProblemOnset(InterchangeValue.buildFromHl7(LocalDate.now()));
 
         return message;
     }
