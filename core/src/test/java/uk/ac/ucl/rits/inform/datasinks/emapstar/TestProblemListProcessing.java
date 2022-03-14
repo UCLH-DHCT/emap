@@ -7,12 +7,15 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,12 +75,36 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * When a minimal problem list message arrives
      * Then a new problem list is generated for this patient and it is linked to a hospital stay
      */
+    @Test
+    void testCreateProblemListInpatient() throws EmapOperationMessageProcessingException {
+
+        processSingleMessage(hl7MyelomaInpatient);
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+        assertEquals(1, entities.size());
+
+        PatientCondition entity = entities.get(0);
+        assertNotNull(entity.getHospitalVisitId());
+    }
 
     /**
      * Given that a problem list exists for a patient
      * When a new minimal problem list message arrives that concerns the same patient
      * Then the message is added as a condition for the patient
      */
+    @Test
+    void testAddProblemList() throws EmapOperationMessageProcessingException {
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        PatientProblem message = sampleMessage();
+        message.setMrn(hl7MyelomaInpatient.getMrn());
+        processSingleMessage(message);
+
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+        assertEquals(2, entities.size());
+
+        assertEquals(entities.get(0).getMrnId(), entities.get(1).getMrnId());
+    }
 
     /**
      * Given that a problem list exists for patient
@@ -104,4 +131,25 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then this problem list is deleted for the patient
      * (e.g diagnosis is entered as "working hypothesis" and then deleted as tests come back)
      */
+
+    // Create a sample messaged with default fields
+    PatientProblem sampleMessage(){
+
+        PatientProblem message = new PatientProblem();
+        message.setProblemAdded(Instant.now());
+        message.setEpicConditionId(InterchangeValue.buildFromHl7(1L));
+        message.setSourceSystem(hl7MyelomaInpatient.getSourceSystem());
+        message.setMrn("0");
+        message.setConditionCode("XX");
+        message.setConditionName(InterchangeValue.buildFromHl7("YY"));
+
+        Instant aTime = hl7MyelomaInpatient.getUpdatedDateTime().minus(1, ChronoUnit.DAYS);
+        LocalDate aDate = LocalDate.now();
+
+        message.setUpdatedDateTime(aTime);
+        message.setProblemResolved(InterchangeValue.buildFromHl7(Instant.now()));
+        message.setProblemOnset(InterchangeValue.buildFromHl7(aDate));
+
+        return message;
+    }
 }
