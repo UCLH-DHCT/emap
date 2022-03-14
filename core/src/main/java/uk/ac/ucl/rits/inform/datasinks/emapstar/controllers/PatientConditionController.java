@@ -101,29 +101,42 @@ public class PatientConditionController {
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
                 PatientConditionType.PROBLEM_LIST, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
-        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_INFECTION,
+        cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
                 msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
+        // TODO: something like deletePreviousInfectionOrClearInfectionTypesCache ?
 
-        // TODO: Override with conditionType using a problemName if present?
+        updateConditionName(conditionType.getEntity(), msg.getConditionName());
+
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientProblem(msg, mrn,
                 conditionType.getEntity(), storedFrom);
 
-
-        // check that the message shouldn't be updated with newer information
         if (messageShouldBeUpdated(msg, patientCondition)) {
             updatePatientCondition(msg, visit, patientCondition);
         }
+
+        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
 
         if (msg.getAction().equals("DE")){
             patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                     storedFrom));
             logger.debug("Deleting LocationVisit: {}", patientCondition);
             patientConditionRepo.delete(patientCondition.getEntity());
-            return;
         }
+    }
 
-        patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+
+    /**
+     * Update the name of a condition if it is defined
+     *
+     * @param conditionType Specific type of condition with an internal code
+     * @param conditionName Human-readable name of the condition
+     */
+    private void updateConditionName(ConditionType conditionType, InterchangeValue<String> conditionName){
+
+        if (conditionName.isSave()){
+            conditionType.setName(conditionName.get());
+        }
     }
 
     /**
@@ -263,7 +276,6 @@ public class PatientConditionController {
         Instant addedTime = msg.getAddedTime();
         Instant updatedTime = msg.getUpdatedDateTime();
 
-        // TODO: Find by visit too?
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
                 mrn, conditionType, addedTime);
 
@@ -274,7 +286,7 @@ public class PatientConditionController {
             epicId = msg.getEpicConditionId().get();
         }
 
-        Long finalEpicId = epicId; // TODO: why does java want me to do this
+        final Long finalEpicId = epicId;
         return patientCondition
                 .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
                 .orElseGet(() -> createMinimalPatientCondition(finalEpicId, mrn, conditionType, addedTime,

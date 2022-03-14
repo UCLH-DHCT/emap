@@ -21,6 +21,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 
 
 /**
@@ -39,12 +41,15 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     HospitalVisitRepository hospitalVisitRepository;
 
     private List<PatientProblem> hooverMessages;
+    private List<PatientProblem> hooverDeltedMessages;
+
     private PatientProblem hl7MyelomaInpatient;
     private PatientProblem hl7MyelomaOutpatient;
 
     @BeforeEach
     private void setUp() throws IOException {
         hooverMessages = messageFactory.getPatientProblems("updated_only.yaml");
+        hooverDeltedMessages =  messageFactory.getPatientProblems("deleted_only.yaml");
         hl7MyelomaInpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
     }
@@ -178,6 +183,65 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         assertEquals(getAllEntities(patientConditionRepository).size(), 0);
     }
 
+
+    /**
+     * Given that a problem list exists for a patient
+     * When a new problem list arrives with the same code but a different name
+     * Then a new problem is not added and only the problem name is updated
+     */
+    @Test
+    void testProblemNameUpdate() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        hl7MyelomaInpatient.setProblemName(InterchangeValue.buildFromHl7("a new name"));
+        hl7MyelomaInpatient.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+        assertEquals(1, entities.size());
+        assertEquals("a new name", entities.get(0).getConditionTypeId().getName());
+    }
+
+    /**
+     * Given that a problem list does not exist for a patient
+     * When one arrives from clarity
+     * Then the patient does have an associated problem list, with the correct fields
+     */
+    @Test
+    void testClarityProblemListAddition() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(hooverMessages.get(0));
+
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+        assertEquals(1, entities.size());
+
+        PatientCondition entity = entities.get(0);
+        assertEquals("8DcEwvqa8Q3", entity.getMrnId().getMrn());
+        assertEquals("C90.0", entity.getConditionTypeId().getInternalCode());
+        assertEquals("Multiple Myeloma", entity.getConditionTypeId().getName());
+        assertEquals(1, entity.getInternalId());
+        assertEquals(Instant.parse("2019-06-02T10:31:05Z"), entity.getAddedDateTime());
+        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), entity.getResolutionDateTime());
+        assertEquals(LocalDate.parse("2019-03-05"), entity.getOnsetDate());
+    }
+
+    /**
+     * Given that a patient list does not exist for a patient
+     * When one arrives with a delete action
+     * Then nothing should be thrown
+     */
+    @Test
+    void testClarityProblemListDeletion() throws EmapOperationMessageProcessingException {
+
+        PatientProblem message = hooverDeltedMessages.get(0);
+        System.out.println(message);
+
+        processSingleMessage(message);
+
+        assertDoesNotThrow(() -> processSingleMessage(message));
+    }
 
     // Create a sample messaged with default fields
     PatientProblem sampleMessage(){
