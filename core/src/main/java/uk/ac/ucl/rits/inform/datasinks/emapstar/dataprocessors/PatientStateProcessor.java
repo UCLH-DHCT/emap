@@ -42,7 +42,7 @@ public class PatientStateProcessor {
     }
 
     /**
-     * Process patient problem message.
+     * Process patient condition message, which can represent either an infection or problem list of a patient.
      * @param msg        message
      * @param storedFrom Time the message started to be processed by star
      * @throws EmapOperationMessageProcessingException if message can't be processed.
