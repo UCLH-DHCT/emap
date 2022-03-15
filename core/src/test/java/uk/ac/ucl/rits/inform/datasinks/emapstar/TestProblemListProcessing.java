@@ -27,7 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 
 /**
- * Test cases to ensure that processing of patient problem messages is working correctly.
+ * Test cases to ensure that processing of patient problem messages is working correctly. Note that a problem is also
+ * known as a problem list, thus the terms may be used interchangeably.
  * @author Anika Cawthorn
  * @author Tom Young
  */
@@ -293,9 +294,9 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
 
     /**
-     * Given that a patient list does not exist for a patient
+     * Given that a problem list does not exist for a patient
      * When one arrives with a delete action
-     * Then nothing should be thrown
+     * Then an exception should not be thrown and no problem list should be added
      */
     @Test
     void testClarityProblemDeletion() throws EmapOperationMessageProcessingException {
@@ -305,7 +306,9 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(message);
 
         assertDoesNotThrow(() -> processSingleMessage(message));
+        assertEquals(0, getAllEntities(patientConditionRepository).size());
     }
+
 
     /**
      * Given that no problem lists exist
@@ -326,10 +329,11 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         assertEquals(2, problems.size());
     }
 
+
     /**
      * Given that no problem lists exist
      * When two are added and two deleted, with the second two corresponding to the same patient
-     * Then only a single patient condition remains
+     * Then only a single patient problem list remains
      */
     @Test
     void testMultipleClarityProblemDelete() throws EmapOperationMessageProcessingException{
