@@ -296,7 +296,6 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     void testClarityProblemListDeletion() throws EmapOperationMessageProcessingException {
 
         PatientProblem message = hooverDelteMessages.get(0);
-        System.out.println(message);
 
         processSingleMessage(message);
 
