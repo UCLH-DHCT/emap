@@ -12,13 +12,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationReque
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
-import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
-import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
-import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
-import uk.ac.ucl.rits.inform.interchange.LocationMetadata;
-import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.*;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -65,6 +59,17 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         labProcessor.processMessage(labOrderMsg, storedFrom);
     }
 
+    /**
+     * Process a patient allergy message
+     * @param msg the message
+     * @throws EmapOperationMessageProcessingException if message could not be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(PatientAllergy msg) throws EmapOperationMessageProcessingException{
+        Instant storedFrom = Instant.now();
+        patientStateProcessor.processMessage(msg, storedFrom);
+    }
 
     /**
      * @param msg the ADT message to process

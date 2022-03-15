@@ -42,7 +42,7 @@ public class PatientConditionController {
     @Resource
     private PatientConditionCache cache;
 
-    private enum PatientConditionType {
+    enum PatientConditionType {
         PATIENT_INFECTION,
         PATIENT_ALLERGY
     }
@@ -257,7 +257,7 @@ class PatientConditionCache {
      */
     @Cacheable(value = "infectionTypes")
     public List<ConditionType> getAllInfectionTypesAndCacheResults() {
-        return conditionTypeRepo.findAllByDataType(PatientConditionType.PATIENT_INFECTION.toString());
+        return conditionTypeRepo.findAllByDataType(PatientConditionController.PatientConditionType.PATIENT_INFECTION.toString());
     }
 
     /**
