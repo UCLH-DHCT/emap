@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * Parses patient conditions from interchange messages.
  * <p>
- * Should parse any condition that can have a start and end.
+ * Parses any patient condition that can have a start and end, e.g. problem lists, allergies and infections.
  * @author Anika Cawthorn
  * @author Stef Piatek
  * @author Tom Young
