@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -69,7 +70,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * with the correct fields
      */
     @Test
-    void testCreateProblemListOutpatient() throws EmapOperationMessageProcessingException {
+    void testCreateProblemOutpatient() throws EmapOperationMessageProcessingException {
 
         assertEquals(Instant.parse("2019-06-07T11:32:00Z"), hl7MyelomaOutpatient.getUpdatedDateTime());
 
@@ -95,7 +96,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then a new problem list is generated for this patient and it is linked to a hospital stay
      */
     @Test
-    void testCreateProblemListInpatient() throws EmapOperationMessageProcessingException {
+    void testCreateProblemInpatient() throws EmapOperationMessageProcessingException {
 
         processSingleMessage(hl7MyelomaInpatient);
         List<PatientCondition> entities = getAllEntities(patientConditionRepository);
@@ -269,7 +270,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then the patient does have an associated problem list, with the correct fields
      */
     @Test
-    void testClarityProblemListAddition() throws EmapOperationMessageProcessingException{
+    void testClarityProblemAddition() throws EmapOperationMessageProcessingException{
 
         processSingleMessage(hooverMessages.get(0));
 
@@ -293,13 +294,54 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then nothing should be thrown
      */
     @Test
-    void testClarityProblemListDeletion() throws EmapOperationMessageProcessingException {
+    void testClarityProblemDeletion() throws EmapOperationMessageProcessingException {
 
         PatientProblem message = hooverDelteMessages.get(0);
 
         processSingleMessage(message);
 
         assertDoesNotThrow(() -> processSingleMessage(message));
+    }
+
+    /**
+     * Given that no problem lists exist
+     * When two update messages are received that correspond to different patients with the same condition
+     * Then two problem conditions are present
+     */
+    @Test
+    void testMultipleClarityProblemAdd() throws EmapOperationMessageProcessingException{
+
+        assertEquals(2, hooverMessages.size());
+        assertNotEquals(hooverMessages.get(0).getMrn(), hooverMessages.get(1).getMrn());
+
+        for (PatientProblem message : hooverMessages){
+            processSingleMessage(message);
+        }
+
+        List<PatientCondition> problems = getAllEntities(patientConditionRepository);
+        assertEquals(2, problems.size());
+    }
+
+    /**
+     * Given that no problem lists exist
+     * When two are added and two deleted, with the second two corresponding to the same patient
+     * Then only a single patient condition remains
+     */
+    @Test
+    void testMultipleClarityProblemDelete() throws EmapOperationMessageProcessingException{
+
+        assertEquals(2, hooverMessages.size());
+        assertNotEquals(hooverMessages.get(0).getMrn(), hooverMessages.get(1).getMrn());
+        assertEquals(hooverDelteMessages.get(0).getMrn(), hooverDelteMessages.get(1).getMrn());
+
+        for (PatientProblem message : hooverMessages){
+            processSingleMessage(message);
+        }
+        for (PatientProblem message : hooverDelteMessages){
+            processSingleMessage(message);
+        }
+
+        assertEquals(1, getAllEntities(patientConditionRepository).size());
     }
 
 
