@@ -7,9 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientConditionController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
+import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 
 import java.time.Instant;
@@ -22,6 +24,7 @@ import java.time.Instant;
 public class PatientStateProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PatientConditionController patientConditionController;
+    private final PatientAllergyController patientAllergyController;
     private final PersonController personController;
     private final VisitController visitController;
 
@@ -63,5 +66,22 @@ public class PatientStateProcessor {
         patientConditionController.processMessage(msg, mrn, visit, storedFrom);
     }
 
+    /**
+     * Process an allergy message for a patient
+     * @param msg
+     * @param storedFrom
+     */
+    @Transactional
+    public void processMessage(final PatientAllergy msg, final Instant storedFrom)
+            throws EmapOperationMessageProcessingException {
 
+        String mrnStr = msg.getMrn();
+        Instant msgUpdatedTime = msg.getUpdatedDateTime();
+
+        // retrieve patient to whom message refers to; if MRN not registered, create new patient
+        Mrn mrn = personController.getOrCreateOnMrnOnly(mrnStr, null, msg.getSourceSystem(),
+                msgUpdatedTime, storedFrom);
+
+        patientAllergyController.processMessage(msg, mrn, visit, storedFrom);
+    }
 }
