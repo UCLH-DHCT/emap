@@ -105,7 +105,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
     private String status;
 
     /**
-     * \brief Problem List priority.
+     * \brief Problem priority.
      */
     private String priority;
 
