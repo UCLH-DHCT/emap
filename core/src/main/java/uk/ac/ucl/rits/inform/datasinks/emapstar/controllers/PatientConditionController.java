@@ -81,7 +81,9 @@ public class PatientConditionController {
             processInfectionMessage(msg, mrn, visit, storedFrom);
         }
         else{
-            // TODO: Throw something?
+            logger.debug("Failed to process a {} message. Unsupported derived type", msg.getClass());
+            throw new RequiredDataMissingException("Type of the message *"+msg.getClass().toString()+"* could not "+
+                    "be processed");
         }
     }
 
