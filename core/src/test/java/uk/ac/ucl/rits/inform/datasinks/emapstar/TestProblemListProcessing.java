@@ -45,6 +45,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     private List<PatientProblem> hooverDelteMessages;
 
     private PatientProblem hl7MyelomaInpatient;
+    private PatientProblem hl7OtherProblemInpatient;
     private PatientProblem hl7MyelomaOutpatient;
 
     private static final String SAMPLE_COMMENT = "a comment";
@@ -59,6 +60,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         hooverMessages = messageFactory.getPatientProblems("updated_only.yaml");
         hooverDelteMessages =  messageFactory.getPatientProblems("deleted_only.yaml");
         hl7MyelomaInpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
+        hl7OtherProblemInpatient =  messageFactory.getPatientProblems("hl7/minimal_other_problem_inpatient.yaml").get(0);
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
     }
 
@@ -124,15 +126,17 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     void testAddProblemList() throws EmapOperationMessageProcessingException {
 
         processSingleMessage(hl7MyelomaInpatient);
-
-        PatientProblem message = sampleMessage();
-        message.setMrn(hl7MyelomaInpatient.getMrn());
-        processSingleMessage(message);
+        processSingleMessage(hl7OtherProblemInpatient);
 
         List<PatientCondition> entities = getAllEntities(patientConditionRepository);
         assertEquals(2, entities.size());
+        PatientCondition firstProblem = entities.get(0);
+        PatientCondition secondProblem = entities.get(1);
 
-        assertEquals(entities.get(0).getMrnId(), entities.get(1).getMrnId());
+        // Conditions should refer to the same patient, but have different types and problem names
+        assertEquals(firstProblem.getMrnId(), secondProblem.getMrnId());
+        assertNotEquals(firstProblem.getConditionTypeId(), secondProblem.getConditionTypeId());
+        assertNotEquals(firstProblem.getConditionTypeId().getName(), secondProblem.getConditionTypeId().getName());
     }
 
 
@@ -342,24 +346,5 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         }
 
         assertEquals(1, getAllEntities(patientConditionRepository).size());
-    }
-
-
-    // Create a sample messaged with default fields
-    PatientProblem sampleMessage(){
-
-        PatientProblem message = new PatientProblem();
-        message.setProblemAdded(Instant.now());
-        message.setEpicProblemId(InterchangeValue.buildFromHl7(1L));
-        message.setSourceSystem(hl7MyelomaInpatient.getSourceSystem());
-        message.setMrn("0");
-        message.setProblemCode("XX");
-        message.setProblemName(InterchangeValue.buildFromHl7("YY"));
-
-        message.setUpdatedDateTime(Instant.now());
-        message.setProblemResolved(InterchangeValue.buildFromHl7(Instant.now()));
-        message.setProblemOnset(InterchangeValue.buildFromHl7(LocalDate.now()));
-
-        return message;
     }
 }
