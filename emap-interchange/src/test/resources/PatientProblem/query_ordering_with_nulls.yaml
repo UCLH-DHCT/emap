@@ -12,6 +12,10 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "1234"
   status:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
@@ -25,7 +29,3 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
-  visitNumber:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "1234"
