@@ -51,11 +51,12 @@ public class PatientConditionController {
     /**
      * Types of patient conditions:
      *      PATIENT_INFECTION = Infection banner for infection control
-     *      PROBLEM_LIST = Problem (not an infection)
+     *      PROBLEM_LIST = Problem (not an infection or allergy)
+     *      PATIENT_ALLERGY = Allergy to a substance
      */
     enum PatientConditionType {
         PATIENT_INFECTION,
-        PROBLEM_LIST
+        PROBLEM_LIST,
         PATIENT_ALLERGY
     }
 
@@ -76,10 +77,10 @@ public class PatientConditionController {
             throws EmapOperationMessageProcessingException{
 
         if (msg.getClass() == PatientProblem.class){
-            processProblemMessage(msg, mrn, visit, storedFrom);
+            processProblemMessage((PatientProblem)msg, mrn, visit, storedFrom);
         }
         else if (msg.getClass() == PatientInfection.class){
-            processInfectionMessage(msg, mrn, visit, storedFrom);
+            processInfectionMessage((PatientInfection)msg, mrn, visit, storedFrom);
         }
         else{
             logger.debug("Failed to process a {} message. Unsupported derived type", msg.getClass());
@@ -97,7 +98,7 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    private void processProblemMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
+    private void processProblemMessage(final PatientProblem msg, Mrn mrn, HospitalVisit visit,
                                        final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
@@ -168,7 +169,7 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    public void processInfectionMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
+    public void processInfectionMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit,
                                         final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
