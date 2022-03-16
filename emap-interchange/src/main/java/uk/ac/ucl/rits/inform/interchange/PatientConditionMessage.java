@@ -47,10 +47,13 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
     private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
 
     /**
-     * Status of condition.
+     * Status of a condition
      */
     private InterchangeValue<String> status = InterchangeValue.unknown();
 
+    /**
+     * Comment about the condition
+     */
     private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
@@ -72,6 +75,16 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
      * Effectively message type, i.e. whether to add, update or delete problem list.
      */
     private String action = "AD";
+
+    /**
+     * Subtype of a particular condition i.e. condition->infection->null, condition->allergy->drug
+     */
+    private InterchangeValue<String> subType;
+
+    /**
+     * Severity of the condition
+     */
+    private InterchangeValue<String> severity;
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).

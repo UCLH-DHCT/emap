@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -15,63 +13,19 @@ import java.util.List;
 /**
  * Interchange format of a PatientAllergy message.
  * @author Anika Cawthorn
+ * @author Tom Young
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PatientAllergy extends EmapOperationMessage implements Serializable {
-    private String mrn;
-    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
+public class PatientAllergy extends PatientConditionMessage implements Serializable {
 
     /**
-     * Type of allergy, i.e. whether patient is allergic against a drug, particles in the environment, etc.
-     */
-    private String allergenType;
-
-    /**
-     * Human readable allergen name.
-     */
-    private InterchangeValue<String> allergenName = InterchangeValue.unknown();
-
-    /**
-     * Time of the update for the message carrying this information.
-     */
-    private Instant updatedDateTime;
-
-    /**
-     * Unique Id for allergy in EPIC.
-     */
-    private InterchangeValue<Long> epicAllergyId = InterchangeValue.unknown();
-
-    /**
-     * Allergy added at...
-     */
-    private Instant allergyAdded;
-
-    /**
-     * Onset of allergy known at...
-     */
-    private InterchangeValue<LocalDate> allergyOnset = InterchangeValue.unknown();
-
-    /**
-     * Severity of reaction patient shows when exposed to allergen...
-     */
-    private String severity;
-
-    /**
-     * Status of the allergy...
-     */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
-
-    /**
-     * Action in relation to allergy information, e.g. whether add/update/delete...
-     */
-    private String action;
-    /**
-     * Reaction occurring when patient exposed to allergen...
+     * Reaction (aka. symptom) occurring when patient is exposed to allergen...
      */
     private List<String> reactions = new ArrayList<>();
+
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
      * @param processor the processor to call back to
@@ -89,4 +43,9 @@ public class PatientAllergy extends EmapOperationMessage implements Serializable
     public void addAllReactions(Collection<String> allergyReactions) {
         reactions.addAll(allergyReactions);
     }
+
+    /**
+     * Type of allergy, i.e. whether patient is allergic against a drug, particles in the environment, etc.
+     */
+    InterchangeValue<String> getAllergyType(){ return getSubType(); }
 }
