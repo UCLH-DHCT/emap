@@ -37,7 +37,7 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     private long conditionTypeId;
 
     /**
-     * \brief Problem list or patient infection.
+     * \brief Problem list, patient infection or allergy
      */
     @Column(nullable = false)
     private String dataType;
@@ -52,6 +52,16 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
      * \brief Human readable name for this conditionType.
      */
     private String name;
+
+    /**
+     * \brief Subtype of the condition e.g. an allergy to food
+     */
+    private String subType;
+
+    /**
+     * \brief Description of how severe this condition is
+     */
+    private String severity;
 
     /**
      * \brief Mapping code for the observation from the standardised vocabulary system. Not yet implemented.
