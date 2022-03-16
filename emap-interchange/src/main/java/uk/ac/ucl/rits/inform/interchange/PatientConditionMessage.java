@@ -77,7 +77,8 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
     private String action = "AD";
 
     /**
-     * Subtype of a particular condition i.e. condition->infection->null, condition->allergy->drug
+     * Subtype of a particular condition i.e. condition->infection->null, condition->allergy->drug where drug is
+     * the subtype of the problem
      */
     private InterchangeValue<String> subType;
 
