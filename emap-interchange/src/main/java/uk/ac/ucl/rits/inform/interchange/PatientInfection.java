@@ -13,56 +13,8 @@ import java.time.LocalDate;
  * Interchange format of a PatientInterchange message.
  * @author Stef Piatek
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PatientInfection extends EmapOperationMessage implements Serializable {
-    private String mrn;
-    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
-
-    /**
-     * Infection abbreviation.
-     */
-    private String infectionCode;
-
-    /**
-     * Human readable infection name.
-     */
-    private InterchangeValue<String> infectionName = InterchangeValue.unknown();
-
-    /**
-     * Time of the update or message carrying this information.
-     */
-    private Instant updatedDateTime;
-
-    /**
-     * Unique Id for infection in EPIC.
-     * If we can't get this added to the live HL7 interface when we should remove it.
-     */
-    private InterchangeValue<Long> epicInfectionId = InterchangeValue.unknown();
-
-    /**
-     * Status of infection.
-     */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
-
-    private InterchangeValue<String> comment = InterchangeValue.unknown();
-
-    /**
-     * Infection added at...
-     */
-    private Instant infectionAdded;
-
-    /**
-     * Infection resolved at...
-     */
-    private InterchangeValue<Instant> infectionResolved = InterchangeValue.unknown();
-
-    /**
-     * Onset of infection known at...
-     */
-    private InterchangeValue<LocalDate> infectionOnset = InterchangeValue.unknown();
+public class PatientInfection extends PatientConditionMessage implements Serializable {
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
@@ -74,4 +26,22 @@ public class PatientInfection extends EmapOperationMessage implements Serializab
         processor.processMessage(this);
     }
 
+    // Below getters and setters are to maintain backwards compatibility
+    public String getInfectionCode() { return getConditionCode(); }
+    public void setInfectionCode(String infectionCode){ setConditionCode(infectionCode); }
+
+    public InterchangeValue<String> getInfectionName(){ return getConditionName(); }
+    public void setInfectionName(InterchangeValue<String> infectionName){ setConditionName(infectionName);}
+
+    public InterchangeValue<Long> getEpicInfectionId(){ return getEpicConditionId(); }
+    public void setEpicInfectionId(InterchangeValue<Long> epicInfectionId){ setEpicConditionId(epicInfectionId); }
+
+    public InterchangeValue<Instant> getInfectionResolved(){ return getResolvedTime(); }
+    public void setInfectionResolved(InterchangeValue<Instant> resolvedTime){ setResolvedTime(resolvedTime); }
+
+    public Instant getInfectionAdded(){ return getAddedTime(); }
+    public void setInfectionAdded(Instant addedTime){ setAddedTime(addedTime); }
+
+    public InterchangeValue<LocalDate> getInfectionOnset(){ return getOnsetTime(); }
+    public void setInfectionOnset(InterchangeValue<LocalDate> date){setOnsetTime(date);}
 }

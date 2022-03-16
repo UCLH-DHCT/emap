@@ -118,6 +118,12 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
+    public List<PatientProblem> getPatientProblems(final String fileName) throws IOException {
+        String resourcePath = "/PatientProblem/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<>() {});
+    }
+
     public List<PatientAllergy> getPatientAllergies(final String fileName) throws IOException {
         String resourcePath = "/PatientAllergies/" + fileName;
         InputStream inputStream = getClass().getResourceAsStream(resourcePath);
