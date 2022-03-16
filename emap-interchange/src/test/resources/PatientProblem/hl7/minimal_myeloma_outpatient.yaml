@@ -1,0 +1,15 @@
+- "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
+  sourceSystem: "EPIC"
+  updatedDateTime: "2019-06-07T11:32:00Z"
+  mrn: "8DcEwvqa8Q3"
+  problemCode: "C90.0"
+  problemName:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Multiple Myeloma"
+  problemAdded: "2019-06-02T10:31:05Z"
+  action: "AD"
+  status:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "ACTIVE"
