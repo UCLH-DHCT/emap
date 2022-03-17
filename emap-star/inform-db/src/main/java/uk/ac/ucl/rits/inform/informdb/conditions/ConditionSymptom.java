@@ -10,6 +10,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 import javax.persistence.Id;
 import java.time.Instant;
 
@@ -37,6 +39,15 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
     private long conditionSymptomId;
 
     /**
+     * \brief Identifier for the ConditionType associated with this record.
+     *
+     * This is a foreign key that joins the conditionSymptom table to the patientCondition table.
+     */
+    @ManyToOne
+    @JoinColumn(name = "patientConditionId", nullable = false)
+    private PatientCondition patientConditionId;
+
+    /**
      * \brief Human readable name for this conditionSymptom.
      */
     private String name;
@@ -57,13 +68,10 @@ public class ConditionSymptom extends TemporalCore<ConditionSymptom, ConditionSy
      * Minimal information constructor.
      *
      * @param name       Name of the conditionSymptom, how it is referred to in the hospital.
-     * @param validFrom  Timestamp from which information valid from
-     * @param storedFrom Timestamp from which information stored from
      */
-    public ConditionSymptom(String name, Instant validFrom, Instant storedFrom) {
+    public ConditionSymptom(String name, PatientCondition condition) {
         this.name = name;
-        setValidFrom(validFrom);
-        setStoredFrom(storedFrom);
+        this.patientConditionId = condition;
     }
 
     /**
