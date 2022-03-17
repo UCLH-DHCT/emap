@@ -102,7 +102,7 @@ public class PatientConditionController {
         if (msg.getAction().equals("DE")) {
             patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                     storedFrom));
-            logger.debug("Deleting LocationVisit: {}", patientCondition);
+            logger.debug("Deleting PatientCondition: {}", patientCondition);
             patientConditionRepo.delete(patientCondition.getEntity());
         }
     }
