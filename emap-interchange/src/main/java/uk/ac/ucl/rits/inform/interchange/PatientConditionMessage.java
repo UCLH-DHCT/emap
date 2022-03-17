@@ -16,12 +16,12 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public abstract class PatientConditionMessage extends EmapOperationMessage{
+public abstract class PatientConditionMessage extends EmapOperationMessage {
 
     private String mrn;
 
     /**
-     * Number of the hospital visit
+     * Number of the hospital visit.
      */
     private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
 
@@ -31,7 +31,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
     private String conditionCode;
 
     /**
-     * Human-readable condtion name.
+     * Human-readable condition name.
      */
     private InterchangeValue<String> conditionName = InterchangeValue.unknown();
 
@@ -51,6 +51,9 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
      */
     private InterchangeValue<String> status = InterchangeValue.unknown();
 
+    /**
+     * Comment on a condition.
+     */
     private InterchangeValue<String> comment = InterchangeValue.unknown();
 
     /**
@@ -78,6 +81,6 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
-    abstract public void processMessage(EmapOperationMessageProcessor processor)
+    public abstract void processMessage(EmapOperationMessageProcessor processor)
             throws EmapOperationMessageProcessingException;
 }
