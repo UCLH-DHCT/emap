@@ -2,7 +2,6 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v26.message.PPR_PC1;
-import ca.uhn.hl7v2.model.v26.segment.EVN;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
@@ -43,7 +42,7 @@ public class PatientProblemService {
      * @param sourceId message sourceId
      * @param msg      hl7 message
      * @return list of patient problems
-     * @throws HL7Exception
+     * @throws HL7Exception if a parsing problem occurs
      */
     Collection<PatientProblem> buildPatientProblems(String sourceId, PPR_PC1 msg) throws HL7Exception {
         MSH msh = msg.getMSH();
@@ -62,36 +61,39 @@ public class PatientProblemService {
 
     /**
      * Turns a single PRB segment into a problem message interchange message.
+     *
      * @param sourceId       the identifier given to the message in the source system
      * @param patientInfo    information about the patient the problem list belongs to
      * @param problemSegment the PRB segment that is parsed into an interchange message
      * @return a single patient problem
-     * @throws HL7Exception
+     * @throws HL7Exception if a parsing problem occurs
      */
     private PatientProblem buildPatientProblem(String sourceId, PatientInfoHl7 patientInfo, PRB problemSegment) throws HL7Exception {
-        PatientProblem patientInfection = new PatientProblem();
+        PatientProblem patientProblem = new PatientProblem();
         // generic information
-        patientInfection.setSourceMessageId(sourceId);
-        patientInfection.setSourceSystem(patientInfo.getSendingApplication());
-        patientInfection.setMrn(patientInfo.getMrn());
-        patientInfection.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
+        patientProblem.setSourceMessageId(sourceId);
+        patientProblem.setSourceSystem(patientInfo.getSendingApplication());
+        patientProblem.setMrn(patientInfo.getMrn());
         // patient infection information
-        patientInfection.setInfectionCode(infectionSegment.getInfection1Name().getValueOrEmpty());
-        patientInfection.setInfectionAdded(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
-        Instant infectionResolved = HL7Utils.interpretLocalTime(infectionSegment.getInfection3ResolvedDateTime());
-        patientInfection.setInfectionResolved(InterchangeValue.buildFromHl7(infectionResolved));
-        return patientInfection;
+        patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getActionDateTime()));
+        patientProblem.setProblemCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
+        patientProblem.setProblemAdded(HL7Utils.interpretLocalTime(problemSegment.getPrb16_ProblemDateOfOnset()));
+        Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getActualProblemResolutionDateTime());
+        patientProblem.setProblemResolved(InterchangeValue.buildFromHl7(problemResolved));
+        return patientProblem;
     }
 
     /**
-     * Checks whether patient problem information needs to be processed further based
-     * @param patientProblem
-     * @param problems
+     * Checks whether patient problem information needs to be processed further based on the timestamp.
+     *
+     * @param patientProblem Patient problem potentially to be added to problem list (depending on timestamp)
+     * @param problems       List of problems to which additional problem might be added
      */
     private void addNewInfectionAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
         Instant problemAdded = patientProblem.getProblemAdded();
         if (problemAdded == null || problemAdded.isBefore(problemListProgress)) {
-            logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}", infectionAdded, infectionProgress);
+            logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}",
+                    problemAdded, problemListProgress);
             return;
         }
         problems.add(patientProblem);
