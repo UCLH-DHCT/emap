@@ -80,12 +80,12 @@ public abstract class PatientConditionMessage extends EmapOperationMessage{
      * Subtype of a particular condition i.e. condition->infection->null, condition->allergy->drug where drug is
      * the subtype of the problem
      */
-    private InterchangeValue<String> subType;
+    private InterchangeValue<String> subType = InterchangeValue.unknown();
 
     /**
      * Severity of the condition
      */
-    private InterchangeValue<String> severity;
+    private InterchangeValue<String> severity = InterchangeValue.unknown();
 
     /**
      * Call back to the processor so it knows what type this object is (ie. double dispatch).
