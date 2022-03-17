@@ -8,15 +8,12 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientConditionCont
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientSymptomController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptom;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
-import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
-import uk.ac.ucl.rits.inform.interchange.PatientInfection;
-import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.time.Instant;
 import java.util.List;
@@ -69,9 +66,10 @@ public class PatientStateProcessor {
             visit = visitController.getOrCreateMinimalHospitalVisit(msg.getVisitNumber().get(), mrn,
                     msg.getSourceSystem(), msgUpdatedTime, storedFrom);
         }
+        PatientCondition condition = patientConditionController.getOrCreatePatientCondition(msg, mrn, visit, storedFrom);
 
-        List<ConditionSymptom> symptomList = patientSymptomController.getOrCreateSymptoms(msg);
-
-        patientConditionController.processMessage(msg, mrn, visit, symptomList, storedFrom);
+        if (condition != null){
+            patientSymptomController.processMessage(msg, condition, storedFrom);
+        }
     }
 }

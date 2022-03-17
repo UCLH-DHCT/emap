@@ -16,7 +16,6 @@ import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionTypeAudit;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
-import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptom;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
@@ -76,15 +75,15 @@ public class PatientConditionController {
 
 
     @Transactional
-    public void processMessage(PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
-                               List<ConditionSymptom> symptomList, final Instant storedFrom)
+    public PatientCondition getOrCreatePatientCondition(PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
+                                            final Instant storedFrom)
             throws EmapOperationMessageProcessingException{
 
-        if (msg.getClass() == PatientProblem.class || msg.getClass() == PatientAllergy.class){
-            processStandardConditionMessage(msg, mrn, visit, symptomList, storedFrom);
+        if (msg instanceof PatientProblem || msg instanceof PatientAllergy){
+            return getOrCreatePatientStandardCondition(msg, mrn, visit, storedFrom);
         }
-        else if (msg.getClass() == PatientInfection.class){
-            processInfectionMessage((PatientInfection)msg, mrn, visit, storedFrom);
+        else if (msg instanceof PatientInfection){
+            return getOrCreateInfection((PatientInfection)msg, mrn, visit, storedFrom);
         }
         else{
             logger.debug("Failed to process a {} message. Unsupported derived type", msg.getClass());
@@ -102,8 +101,8 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    private void processStandardConditionMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
-                                                 List<ConditionSymptom> symptomList, final Instant storedFrom)
+    private PatientCondition getOrCreatePatientStandardCondition(final PatientConditionMessage msg, Mrn mrn,
+                                                                 HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
@@ -114,13 +113,13 @@ public class PatientConditionController {
 
         // TODO: something like deletePreviousInfectionOrClearInfectionTypesCache ?
 
-        updateConditionNameSubTypeAndSeverity(conditionType.getEntity(), msg);
+        updateConditionNameSubTypeAndSeverity(conditionType, msg);
 
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreateStandardCondition(msg,
                 mrn, conditionType.getEntity(), storedFrom);
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
-            updatePatientCondition(msg, visit, symptomList, patientCondition);
+            updatePatientCondition(msg, visit, patientCondition);
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
@@ -128,8 +127,12 @@ public class PatientConditionController {
         if (msg.getAction().equals("DE")){
             patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                     storedFrom));
-            logger.debug("Deleting LocationVisit: {}", patientCondition);
+            logger.debug("Deleting PatientCondition: {}", patientCondition);
             patientConditionRepo.delete(patientCondition.getEntity());
+            return null;
+        }
+        else{
+            return patientCondition.getEntity();
         }
     }
 
@@ -137,20 +140,16 @@ public class PatientConditionController {
     /**
      * Update the name of a condition if it is defined
      *
-     * @param conditionType Specific type of condition with an internal code
+     * @param conditionTypeState Specific type of condition with an internal code
      * @param msg           Message
      */
-    private void updateConditionNameSubTypeAndSeverity(ConditionType conditionType, PatientConditionMessage msg){
+    private void updateConditionNameSubTypeAndSeverity(RowState<ConditionType, ConditionTypeAudit> conditionTypeState,
+                                                       PatientConditionMessage msg){
 
-        if (msg.getConditionName().isSave()){
-            conditionType.setName(msg.getConditionName().get());
-        }
-        if (msg.getSubType().isSave()){
-            conditionType.setSubType(msg.getSubType().get());
-        }
-        if (msg.getSeverity().isSave()){
-            conditionType.setSeverity(msg.getSeverity().get());
-        }
+        ConditionType conditionType = conditionTypeState.getEntity();
+        conditionTypeState.assignInterchangeValue(msg.getConditionName(), conditionType.getName(), conditionType::setName);
+        conditionTypeState.assignInterchangeValue(msg.getSubType(), conditionType.getSubType(), conditionType::setSubType);
+        conditionTypeState.assignInterchangeValue(msg.getSeverity(), conditionType.getSeverity(), conditionType::setSeverity);
     }
 
     /**
@@ -171,6 +170,7 @@ public class PatientConditionController {
                 });
     }
 
+
     /**
      * Process patient condition message.
      * @param msg        message
@@ -179,7 +179,7 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    public void processInfectionMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit,
+    public PatientCondition getOrCreateInfection(final PatientInfection msg, Mrn mrn, HospitalVisit visit,
                                         final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
@@ -200,6 +200,7 @@ public class PatientConditionController {
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
+        return patientCondition.getEntity();
     }
 
 
@@ -340,11 +341,10 @@ public class PatientConditionController {
      * @param visit          hospital visit
      * @param conditionState patient condition entity to update
      */
-    private void updatePatientCondition(PatientConditionMessage msg, HospitalVisit visit, List<ConditionSymptom> symptomList,
-                                        RowState<PatientCondition, PatientConditionAudit> conditionState,) {
+    private void updatePatientCondition(PatientConditionMessage msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
-        conditionState.assignIfDifferent(symptomList, condition.getSymptoms(), condition::setSymptoms);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getResolvedTime(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
