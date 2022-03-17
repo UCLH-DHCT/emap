@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeAuditRepository;
@@ -49,7 +48,7 @@ public class PatientConditionController {
 
 
     /**
-     * Types of patient conditions:
+     * Types of patient conditions.
      *      PATIENT_INFECTION = Infection banner for infection control
      *      PROBLEM_LIST = Problem (not an infection)
      */
@@ -70,24 +69,6 @@ public class PatientConditionController {
     }
 
 
-    @Transactional
-    public void processMessage(PatientConditionMessage msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
-            throws EmapOperationMessageProcessingException{
-
-        if (msg.getClass() == PatientProblem.class){
-            processProblemMessage(msg, mrn, visit, storedFrom);
-        }
-        else if (msg.getClass() == PatientInfection.class){
-            processInfectionMessage(msg, mrn, visit, storedFrom);
-        }
-        else{
-            logger.debug("Failed to process a {} message. Unsupported derived type", msg.getClass());
-            throw new RequiredDataMissingException("Type of the message *"+msg.getClass().toString()+"* could not "+
-                    "be processed");
-        }
-    }
-
-
     /**
      * Process patient problem message.
      * @param msg        message
@@ -96,8 +77,7 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    private void processProblemMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
-                                       final Instant storedFrom)
+    public void processMessage(final PatientProblem msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
@@ -119,7 +99,7 @@ public class PatientConditionController {
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
 
-        if (msg.getAction().equals("DE")){
+        if (msg.getAction().equals("DE")) {
             patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                     storedFrom));
             logger.debug("Deleting LocationVisit: {}", patientCondition);
@@ -129,14 +109,14 @@ public class PatientConditionController {
 
 
     /**
-     * Update the name of a condition if it is defined
+     * Update the name of a condition if it is defined.
      *
      * @param conditionType Specific type of condition with an internal code
      * @param conditionName Human-readable name of the condition
      */
-    private void updateConditionName(ConditionType conditionType, InterchangeValue<String> conditionName){
+    private void updateConditionName(ConditionType conditionType, InterchangeValue<String> conditionName) {
 
-        if (conditionName.isSave()){
+        if (conditionName.isSave()) {
             conditionType.setName(conditionName.get());
         }
     }
@@ -167,8 +147,7 @@ public class PatientConditionController {
      * @param storedFrom valid from in database
      * @throws EmapOperationMessageProcessingException if message can't be processed.
      */
-    public void processInfectionMessage(final PatientConditionMessage msg, Mrn mrn, HospitalVisit visit,
-                                        final Instant storedFrom)
+    public void processMessage(final PatientInfection msg, Mrn mrn, HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
                 PatientConditionType.PATIENT_INFECTION, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
@@ -284,7 +263,7 @@ public class PatientConditionController {
         // TODO: Is this the correct way to do it?
         Long epicId = null;
 
-        if (msg.getEpicConditionId().isSave()){
+        if (msg.getEpicConditionId().isSave()) {
             epicId = msg.getEpicConditionId().get();
         }
 
@@ -298,6 +277,7 @@ public class PatientConditionController {
 
     /**
      * Create minimal patient condition wrapped in RowState.
+     * @param epicId          ID in EPIC for this condition
      * @param mrn             patient identifier
      * @param conditionType   condition type
      * @param conditionAdded  condition added at
@@ -328,12 +308,15 @@ public class PatientConditionController {
      * @param visit          hospital visit
      * @param conditionState patient condition entity to update
      */
-    private void updatePatientCondition(PatientConditionMessage msg, HospitalVisit visit, RowState<PatientCondition, PatientConditionAudit> conditionState) {
+    private void updatePatientCondition(PatientConditionMessage msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
+
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
         conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
-        conditionState.assignInterchangeValue(msg.getResolvedTime(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
+        conditionState.assignInterchangeValue(
+                msg.getResolvedTime(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
     }
 
