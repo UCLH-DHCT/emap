@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -59,7 +60,9 @@ public class TestProblemLists extends TestHl7MessageStream {
     }
 
     /**
-     * Minimal information from HL7 should be parsed.
+     * Given that no problem list has been assigned to a patient before
+     * When a new HL7 problem list message arrives
+     * Then it is added to the patient and the details of the problem are propagated correctly.
      * @throws Exception shouldn't happen
      */
     @Test
@@ -72,10 +75,13 @@ public class TestProblemLists extends TestHl7MessageStream {
         assertEquals(PROBLEM_CODE, problem.getProblemCode());
         assertEquals(PROBLEM_ADDED, problem.getProblemAdded());
         assertEquals(PROBLEM_UPDATE, problem.getUpdatedDateTime());
+        assertEquals(InterchangeValue.buildFromHl7(null), problem.getProblemResolved());
     }
 
     /**
-     * Patient problem with resolved date is parsed correctly.
+     * Given that a no problem message has been parsed
+     * When a new problem list HL7 message with a resolved status arrives
+     * Then the
      * @throws Exception shouldn't happen
      */
     @Test
@@ -86,51 +92,54 @@ public class TestProblemLists extends TestHl7MessageStream {
         assertEquals(InterchangeValue.buildFromHl7(PROBLEM_UPDATE), problem.getProblemResolved());
     }
 
-//    /**
-//     * A05 with two infections in ZIF segment should produce two patient infections.
-//     * @throws Exception shouldn't happen
-//     */
-//    @Test
-//    void testMultipleInfectionsParsed() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("multiple_infections");
-//        assertEquals(2, infections.size());
-//    }
-//
-//    /**
-//     * A05 with no ZIF segment for patient infections.
-//     * Should not throw an error, but doesn't return a patient infection message.
-//     * @throws Exception shouldn't happen
-//     */
-//    @Test
-//    void testNoPatientInfectionsInA05() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("no_infections");
-//        assertTrue(infections.isEmpty());
-//    }
-//
-//    /**
-//     * Given that a patient infection doesn't have an added date time
-//     * When the message is processed
-//     * Then the infection should not be added
-//     * <p>
-//     * The hoover should deal with messages with no added datetime
-//     * @throws Exception shouldn't happen
-//     */
-//    @Test
-//    void testNoInfectionAddedTime() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("mumps_no_add_time");
-//        assertTrue(infections.isEmpty());
-//    }
-//
-//    /**
-//     * Given that patient infection added date time is earlier than service start
-//     * When the message is processed
-//     * Then the infection should not be added
-//     */
-//    @Test
-//    void testNoInfectionsBeforeServiceStart() throws Exception {
-//        List<PatientInfection> infections = getAllInfections("earlier_infection");
-//        assertTrue(infections.isEmpty());
-//    }
+    /**
+     * Given that no problem lists have been parsed
+     * When a problem list HL7 message with multiple PRB segments arrives
+     * Then all PRB segments are parsed into individual problem interchange messages.
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testMultipleProblemsParsed() throws Exception {
+        List<PatientProblem> problems = getAllProblems("multiple_problem_lists");
+        assertEquals(3, problems.size());
+    }
+
+    /**
+     * Given that no problem lists have been parsed before
+     * When a problem list HL7 message without PRB segments arrives
+     * Then no problem list interchange message is generated
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testNoPatientProblemInPC1() throws Exception {
+        List<PatientProblem> problems = getAllProblems("no_problem_lists");
+        assertTrue(problems.isEmpty());
+    }
+
+    /**
+     * Given that a problem list doesn't have an added date time
+     * When the message is processed
+     * Then the problem list should not be added
+     * <p>
+     * The hoover should deal with messages with no added datetime
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testNoProblemListAddedTime() throws Exception {
+        List<PatientProblem> problems = getAllProblems("no_added_time_prbl");
+        assertTrue(problems.isEmpty());
+    }
+
+    /**
+     * Given that patient problem added date time is earlier than service start
+     * When the message is processed
+     * Then the problem list should not be added
+     */
+    @Test
+    void testNoProblemListsBeforeServiceStart() throws Exception {
+        List<PatientProblem> problems = getAllProblems("earlier_problem_list");
+        assertTrue(problems.isEmpty());
+    }
 //
 //    /**
 //     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
