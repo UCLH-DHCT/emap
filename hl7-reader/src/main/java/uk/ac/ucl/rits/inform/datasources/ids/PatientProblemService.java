@@ -54,7 +54,7 @@ public class PatientProblemService {
         Collection<PatientProblem> problems = new ArrayList<>(reps);
         for (int i = 0; i < reps; i++) {
             PatientProblem patientProblem = buildPatientProblem(sourceId, patientInfo, msg.getPROBLEM(i).getPRB());
-            addNewInfectionAndUpdateProgress(patientProblem, problems);
+            addNewProblemAndUpdateProgress(patientProblem, problems);
         }
         return problems;
     }
@@ -85,11 +85,10 @@ public class PatientProblemService {
 
     /**
      * Checks whether patient problem information needs to be processed further based on the timestamp.
-     *
      * @param patientProblem Patient problem potentially to be added to problem list (depending on timestamp)
      * @param problems       List of problems to which additional problem might be added
      */
-    private void addNewInfectionAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
+    private void addNewProblemAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
         Instant problemAdded = patientProblem.getProblemAdded();
         if (problemAdded == null || problemAdded.isBefore(problemListProgress)) {
             logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}",
