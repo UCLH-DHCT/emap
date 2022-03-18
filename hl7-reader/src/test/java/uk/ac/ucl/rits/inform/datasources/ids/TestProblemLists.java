@@ -139,25 +139,25 @@ public class TestProblemLists extends TestHl7MessageStream {
         List<PatientProblem> problems = getAllProblems("earlier_problem_list");
         assertTrue(problems.isEmpty());
     }
-//
-//    /**
-//     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
-//     * @param setupFile    test setup processing, used to set the current progress
-//     * @param testedFile   file where the actual output is tested
-//     * @param expectedSize expected number of messages from the output file
-//     * @throws Exception shouldn't happen
-//     */
-//    @ParameterizedTest
-//    @CsvSource({
-//            "2019_05_infection, 2019_05_infection, 1", // same date as existing progress is parsed
-//            "2019_05_infection, 2019_06_infection, 1", // later date as existing progress is parsed
-//            "2019_06_infection, 2019_05_infection, 0",  // earlier date as progress is parsed
-//            "2019_06_infection, 2019_06_infection, 1",  // same date as existing progress is parsed
-//    })
-//    void earlierInfectionsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
-//        getAllInfections(setupFile);
-//
-//        List<PatientInfection> infections = getAllInfections(testedFile);
-//        assertEquals(expectedSize, infections.size());
-//    }
+
+    /**
+     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
+     * @param setupFile    test setup processing, used to set the current progress
+     * @param testedFile   file where the actual output is tested
+     * @param expectedSize expected number of messages from the output file
+     * @throws Exception shouldn't happen
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "2019_05_problem_list, 2019_05_problem_list, 1", // same date as existing progress is parsed
+            "2019_05_problem_list, 2019_06_problem_list, 1", // later date as existing progress is parsed
+            "2019_06_problem_list, 2019_05_problem_list, 0",  // earlier date as progress is parsed
+            "2019_06_problem_list, 2019_06_problem_list, 1",  // same date as existing progress is parsed
+    })
+    void earlierProblemsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
+        getAllProblems(setupFile);
+
+        List<PatientProblem> problems = getAllProblems(testedFile);
+        assertEquals(expectedSize, problems.size());
+    }
 }
