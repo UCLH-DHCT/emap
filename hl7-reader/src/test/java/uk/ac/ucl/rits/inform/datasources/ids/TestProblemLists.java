@@ -79,9 +79,9 @@ public class TestProblemLists extends TestHl7MessageStream {
     }
 
     /**
-     * Given that a no problem message has been parsed
-     * When a new problem list HL7 message with a resolved status arrives
-     * Then the
+     * Given that a problem list HL7 message has a resolved status
+     * When the message is processed
+     * Then the resolved time is added to the problem interchange message.
      * @throws Exception shouldn't happen
      */
     @Test
@@ -93,8 +93,8 @@ public class TestProblemLists extends TestHl7MessageStream {
     }
 
     /**
-     * Given that no problem lists have been parsed
-     * When a problem list HL7 message with multiple PRB segments arrives
+     * Given that a problem list HL7 message has multiple PRB segments
+     * When the message is processed
      * Then all PRB segments are parsed into individual problem interchange messages.
      * @throws Exception shouldn't happen
      */
@@ -119,27 +119,26 @@ public class TestProblemLists extends TestHl7MessageStream {
     /**
      * Given that a problem list doesn't have an added date time
      * When the message is processed
-     * Then the problem list should not be added
-     * <p>
+     * Then the problem list should not be added.
      * The hoover should deal with messages with no added datetime
      * @throws Exception shouldn't happen
      */
     @Test
     void testNoProblemListAddedTime() throws Exception {
-        List<PatientProblem> problems = getAllProblems("no_added_time_prbl");
+        List<PatientProblem> problems = getAllProblems("no_added_time_problem_list");
         assertTrue(problems.isEmpty());
     }
 
-    /**
-     * Given that patient problem added date time is earlier than service start
-     * When the message is processed
-     * Then the problem list should not be added
-     */
-    @Test
-    void testNoProblemListsBeforeServiceStart() throws Exception {
-        List<PatientProblem> problems = getAllProblems("earlier_problem_list");
-        assertTrue(problems.isEmpty());
-    }
+//    /**
+//     * Given that patient problem added date time is earlier than service start
+//     * When the message is processed
+//     * Then the problem list should not be added
+//     */
+//    @Test
+//    void testNoProblemListsBeforeServiceStart() throws Exception {
+//        List<PatientProblem> problems = getAllProblems("earlier_problem_list");
+//        assertTrue(problems.isEmpty());
+//    }
 //
 //    /**
 //     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
