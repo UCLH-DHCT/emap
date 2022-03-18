@@ -74,7 +74,7 @@ public class PatientProblemService {
         patientProblem.setSourceMessageId(sourceId);
         patientProblem.setSourceSystem(patientInfo.getSendingApplication());
         patientProblem.setMrn(patientInfo.getMrn());
-        // patient infection information
+        // problem list specific information
         patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getActionDateTime()));
         patientProblem.setProblemCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
         patientProblem.setProblemAdded(HL7Utils.interpretLocalTime(problemSegment.getPrb16_ProblemDateOfOnset()));
