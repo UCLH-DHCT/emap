@@ -77,7 +77,7 @@ public class PatientProblemService {
         // problem list specific information
         patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getActionDateTime()));
         patientProblem.setProblemCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
-        patientProblem.setProblemAdded(HL7Utils.interpretLocalTime(problemSegment.getPrb16_ProblemDateOfOnset()));
+        patientProblem.setProblemAdded(HL7Utils.interpretLocalTime(problemSegment.getPrb7_ProblemEstablishedDateTime()));
         Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getActualProblemResolutionDateTime());
         patientProblem.setProblemResolved(InterchangeValue.buildFromHl7(problemResolved));
         return patientProblem;

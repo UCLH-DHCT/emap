@@ -129,16 +129,16 @@ public class TestProblemLists extends TestHl7MessageStream {
         assertTrue(problems.isEmpty());
     }
 
-//    /**
-//     * Given that patient problem added date time is earlier than service start
-//     * When the message is processed
-//     * Then the problem list should not be added
-//     */
-//    @Test
-//    void testNoProblemListsBeforeServiceStart() throws Exception {
-//        List<PatientProblem> problems = getAllProblems("earlier_problem_list");
-//        assertTrue(problems.isEmpty());
-//    }
+    /**
+     * Given that patient problem added date time is earlier than service start
+     * When the message is processed
+     * Then the problem list should not be added
+     */
+    @Test
+    void testNoProblemListsBeforeServiceStart() throws Exception {
+        List<PatientProblem> problems = getAllProblems("earlier_problem_list");
+        assertTrue(problems.isEmpty());
+    }
 //
 //    /**
 //     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
