@@ -79,8 +79,8 @@ public class TestProblemLists extends TestHl7MessageStream {
      * @throws Exception shouldn't happen
      */
     @Test
-    void testInfectionResolvedTime() throws Exception {
-        List<PatientProblem> problems = getAllProblems("mumps_resolved");
+    void testProblemResolvedTime() throws Exception {
+        List<PatientProblem> problems = getAllProblems("problem_list_resolved");
         assertEquals(1, problems.size());
         PatientProblem problem = problems.get(0);
         assertEquals(InterchangeValue.buildFromHl7(PROBLEM_UPDATE), problem.getProblemResolved());
