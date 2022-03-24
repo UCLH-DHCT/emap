@@ -105,8 +105,18 @@ public class PatientConditionController {
                                                                  HospitalVisit visit, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
 
+        // TODO: Remove this typing
+        PatientConditionType type = null;
+        if (msg instanceof PatientProblem){
+            type = PatientConditionType.PROBLEM_LIST;
+        }
+
+        if (msg instanceof PatientAllergy){
+            type = PatientConditionType.PATIENT_ALLERGY;
+        }
+
         RowState<ConditionType, ConditionTypeAudit> conditionType = getOrCreateConditionType(
-                PatientConditionType.PROBLEM_LIST, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
+                type, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
         cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
                 msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
