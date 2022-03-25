@@ -45,7 +45,6 @@ public class ConditionType extends TemporalCore<ConditionType, ConditionTypeAudi
     /**
      * \brief Code used within source system for this conditionType.
      */
-    @Column(nullable = false)
     private String internalCode;
 
     /**
