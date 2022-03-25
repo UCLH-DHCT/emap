@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionSymptomRepository;
 
 import uk.ac.ucl.rits.inform.informdb.conditions.ConditionSymptom;
+import uk.ac.ucl.rits.inform.informdb.conditions.ConditionType;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
@@ -48,6 +49,8 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
     private static final String CONDITION_TYPE = "PATIENT_ALLERGY";
     private static final String FIRST_MRN = "8DcEwvqa8Q3";
+    private static final String FIRST_ALLERGEN = "TRAMADOL";
+    private static final String FIRST_UPDATED_TIME = "2019-06-08T10:32:05Z";
     private static final String FIRST_ADDED_TIME = "2019-06-08T10:31:05Z";
 
 
@@ -63,6 +66,10 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         return getAllEntities(patientConditionRepository).size() == 1;
     }
 
+    private PatientCondition firstPatientCondition(){
+        return getAllEntities(patientConditionRepository).get(0);
+    }
+
 
     /**
      * Given that no patient conditions exist
@@ -76,14 +83,40 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
         assertTrue(aSingleConditionExists());
         assertEquals(1, getAllEntities(conditionTypeRepository).size());
+        assertEquals(1, getAllMrns().size());
 
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
+        PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
-        assertEquals("TRAMADOL", condition.getConditionTypeId().getName());
-        assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
-        assertEquals("DRUG INGREDI", condition.getConditionTypeId().getSubType());
+
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
         assertEquals(LocalDate.parse("2019-05-07"), condition.getOnsetDate());
+        assertNull(condition.getPriority());
+        assertNull(condition.getComment());
+        assertNull(condition.getResolutionDateTime());
+    }
+
+    /**
+     * Given that no conditionTypes exist
+     * When a minimal message is processed containing an allergy
+     * Then a single conditionType is created
+     */
+    @Test
+    void testConditionTypeCreated() throws EmapOperationMessageProcessingException{
+
+        assertEquals(0, conditionTypeRepository.count());
+        processSingleMessage(hl7Tramadol);
+
+        ConditionType type = conditionTypeRepository.findByDataTypeAndName(
+                CONDITION_TYPE, FIRST_ALLERGEN).orElseThrow();
+
+        assertEquals(FIRST_ALLERGEN, type.getName());
+        assertEquals(CONDITION_TYPE, type.getDataType());
+        assertEquals("DRUG INGREDI", type.getSubType());
+
+        assertEquals(Instant.parse(FIRST_UPDATED_TIME), type.getValidFrom());
+        assertNotNull(type.getValidFrom());
+        assertNull(type.getStandardisedCode());
+        assertNull(type.getStandardisedVocabulary());
     }
 
 
@@ -98,8 +131,9 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         processSingleMessage(hooverUpdatedMessages.get(0));
         assertTrue(aSingleConditionExists());
 
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
+        PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
+        assertEquals(1, condition.getInternalId());
         assertEquals("NUTS", condition.getConditionTypeId().getName());
         assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
         assertEquals("Food", condition.getConditionTypeId().getSubType());
@@ -127,6 +161,9 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         processSingleMessage(hooverUpdatedMessages.get(0));
         processSingleMessage(hooverUpdatedMessages.get(1));
         assertEquals(2, getAllEntities(patientConditionRepository).size());
+
+        // Allergy diagnoses may not be associated with hospital visits
+        assertEquals(0, getAllEntities(hospitalVisitRepository).size());
 
         // Get the second condition and check the data
         PatientCondition condition = getAllEntities(patientConditionRepository).get(1);
@@ -218,6 +255,44 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
         assertEquals(4, getAllEntities(patientConditionRepository).size());
 
+    }
+
+    /**
+     * Given that a patient condition exists
+     * When a newer new message arrives that concerns the same patient
+     * Then the condition is updated with the new information
+     */
+    @Test
+    void testUpdateCommentOnNewHl7Message() throws EmapOperationMessageProcessingException {
+
+        processSingleMessage(hl7Tramadol);
+        assertTrue(aSingleConditionExists());
+        assertNull(getAllEntities(patientConditionRepository).get(0).getComment());
+
+        hl7Tramadol.setComment(InterchangeValue.buildFromHl7("test"));
+        hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).plus(1, ChronoUnit.SECONDS));
+
+        processSingleMessage(hl7Tramadol);
+        assertEquals("test", firstPatientCondition().getComment());
+    }
+
+    /**
+     * Given that a patient condition exists
+     * When an older new message arrives that concerns the same patient
+     * Then the condition is not updated with the new information
+     */
+    @Test
+    void testUpdateCommentOnOldHl7Message() throws EmapOperationMessageProcessingException {
+
+        processSingleMessage(hl7Tramadol);
+        assertTrue(aSingleConditionExists());
+        assertNull(firstPatientCondition().getStatus());
+
+        hl7Tramadol.setStatus(InterchangeValue.buildFromHl7("ACTIVE"));
+        hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).minus(1, ChronoUnit.SECONDS));
+
+        processSingleMessage(hl7Tramadol);
+        assertNull(firstPatientCondition().getStatus());
     }
 
 }
