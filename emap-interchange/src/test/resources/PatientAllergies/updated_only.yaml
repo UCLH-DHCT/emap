@@ -17,7 +17,10 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
-  severity: "High"
+  severity:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "High"
   reactions:
     - "Anaphylaxis"
     - "Hives"
@@ -44,7 +47,10 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "2019-03-05"
-  severity: "Medium"
+  severity:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "Medium"
   reactions:
     - "Hives"
   status:
