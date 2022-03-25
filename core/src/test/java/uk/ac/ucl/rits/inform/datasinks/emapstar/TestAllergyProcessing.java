@@ -56,21 +56,11 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     @Test
     void testCreateProblemOutpatient() throws EmapOperationMessageProcessingException {
 
-        /*
-          sourceSystem: "EPIC"
-          sourceMessageId: "0000000042"
-          updatedDateTime: "2019-06-08T10:32:05Z"
-          mrn: "8DcEwvqa8Q3"
-          allergenType: "DRUG INGREDI"
-          allergenName: "TRAMADOL"
-          allergyAdded: "2019-06-08T10:31:05Z"
-          allergyOnset: "2019-05-07"
-         */
-
         processSingleMessage(hl7Tramadol);
 
         List<PatientCondition> conditions = getAllEntities(patientConditionRepository);
         assertEquals(1, conditions.size());
+        assertEquals(1, getAllEntities(conditionTypeRepository).size());
 
         PatientCondition conditon = conditions.get(0);
         assertEquals("8DcEwvqa8Q3", conditon.getMrnId().getMrn());
