@@ -46,10 +46,25 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     private static final String CONDITION_TYPE = "PATIENT_ALLERGY";
     private static final String FIRST_MRN = "8DcEwvqa8Q3";
     private static final String FIRST_ALLERGEN = "TRAMADOL";
+    private static final String FIRST_ALLERGEN_SUBTYPE = "DRUG INGREDI";
     private static final String FIRST_UPDATED_TIME = "2019-06-08T10:32:05Z";
     private static final String FIRST_ADDED_TIME = "2019-06-08T10:31:05Z";
+    private static final String FIRST_ONSET_DATE = "2019-05-07";
     private static final Integer NUM_TRAMADOL_REACTIONS = 0;
     private static final String ACTIVE = "Active";
+
+    private static final String SECOND_ALLERGEN = "NUTS";
+    private static final String SECOND_ALLERGEN_SUBTYPE = "Food";
+    private static final String SECOND_ONSET_DATE = "2019-05-07";
+    private static final String SECOND_ALLERGY_SEVERITY = "High";
+    private static final String[] SECOND_ALLERGY_REACTIONS = {"Anaphylaxis", "Hives"};
+
+    private static final String THIRD_MRN = "suI83US";
+    private static final String THIRD_ALLERGEN = "SEROTONIN REUPTAKE INHIBITORS (SSRIS)";
+    private static final String THIRD_ALLERGEN_SUBTYPE = "Drug Class";
+    private static final String THIRD_ONSET_DATE = "2019-03-05";
+    private static final String THIRD_SEVERITY = "Medium";
+
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -87,7 +102,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
         assertEquals(NUM_TRAMADOL_REACTIONS, getAllEntities(conditionSymptomRepository).size());
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
-        assertEquals(LocalDate.parse("2019-05-07"), condition.getOnsetDate());
+        assertEquals(LocalDate.parse(FIRST_ONSET_DATE), condition.getOnsetDate());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
     }
 
@@ -107,7 +122,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
         assertEquals(FIRST_ALLERGEN, type.getName());
         assertEquals(CONDITION_TYPE, type.getDataType());
-        assertEquals("DRUG INGREDI", type.getSubType());
+        assertEquals(FIRST_ALLERGEN_SUBTYPE, type.getSubType());
 
         assertEquals(Instant.parse(FIRST_UPDATED_TIME), type.getValidFrom());
         assertNotNull(type.getValidFrom());
@@ -129,12 +144,12 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
         assertEquals(1, condition.getInternalId());
-        assertEquals("NUTS", condition.getConditionTypeId().getName());
+        assertEquals(SECOND_ALLERGEN, condition.getConditionTypeId().getName());
         assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
-        assertEquals("Food", condition.getConditionTypeId().getSubType());
+        assertEquals(SECOND_ALLERGEN_SUBTYPE, condition.getConditionTypeId().getSubType());
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
-        assertEquals(LocalDate.parse("2019-03-05"), condition.getOnsetDate());
-        assertEquals("High", condition.getConditionTypeId().getSeverity());
+        assertEquals(LocalDate.parse(SECOND_ONSET_DATE), condition.getOnsetDate());
+        assertEquals(SECOND_ALLERGY_SEVERITY, condition.getConditionTypeId().getSeverity());
         assertEquals(ACTIVE, condition.getStatus());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
 
@@ -142,8 +157,11 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertEquals(2, reactions.size());
 
         List<String> reactionNames = Arrays.asList(reactions.get(0).getName(), reactions.get(1).getName());
-        assertTrue(reactionNames.contains("Anaphylaxis"));
-        assertTrue(reactionNames.contains("Hives"));
+
+        for (String reactionName : SECOND_ALLERGY_REACTIONS){
+            assertTrue(reactionNames.contains(reactionName));
+
+        }
     }
 
     /**
@@ -179,13 +197,13 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
         // Get the second condition and check the data
         PatientCondition condition = getAllEntities(patientConditionRepository).get(1);
-        assertEquals("suI83US", condition.getMrnId().getMrn());
-        assertEquals("SEROTONIN REUPTAKE INHIBITORS (SSRIS)", condition.getConditionTypeId().getName());
+        assertEquals(THIRD_MRN, condition.getMrnId().getMrn());
+        assertEquals(THIRD_ALLERGEN, condition.getConditionTypeId().getName());
         assertEquals(CONDITION_TYPE, condition.getConditionTypeId().getDataType());
-        assertEquals("Drug Class", condition.getConditionTypeId().getSubType());
-        assertEquals(Instant.parse("2019-06-08T02:05:49Z"), condition.getAddedDateTime());
-        assertEquals(LocalDate.parse("2019-03-05"), condition.getOnsetDate());
-        assertEquals("Medium", condition.getConditionTypeId().getSeverity());
+        assertEquals(THIRD_ALLERGEN_SUBTYPE, condition.getConditionTypeId().getSubType());
+        assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
+        assertEquals(LocalDate.parse(THIRD_ONSET_DATE), condition.getOnsetDate());
+        assertEquals(THIRD_SEVERITY, condition.getConditionTypeId().getSeverity());
         assertEquals(ACTIVE, condition.getStatus());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
 
