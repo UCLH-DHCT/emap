@@ -220,7 +220,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         hl7MyelomaInpatient.setAction("DE");
-        assertEquals("ACTIVE", hl7MyelomaInpatient.getStatus().get());
+        assertEquals("ACTIVE", hl7MyelomaInpatient.getStatus());
         processSingleMessage(hl7MyelomaInpatient);
 
         assertEquals(getAllEntities(patientConditionRepository).size(), 0);
@@ -238,7 +238,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
         PatientProblem deleteMessage = hooverUpdateMessage;
         deleteMessage.setAction("DE");
-        deleteMessage.setStatus(InterchangeValue.buildFromHl7("ACTIVE"));
+        deleteMessage.setStatus("ACTIVE");
         deleteMessage.setUpdatedDateTime(newestUpdatedTime.plus(1, ChronoUnit.SECONDS));
 
         // message needs to refer to the same patient
@@ -381,18 +381,18 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     void testDeleteActionWithDeleteOrResolvedStatus() throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setAction("DE");
-        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7("ACTIVE"));
+        hl7MyelomaInpatient.setStatus("ACTIVE");
         processSingleMessage(hl7MyelomaInpatient);
 
         assertEquals(0, getAllEntities(patientConditionRepository).size());
 
-        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7("Deleted"));
+        hl7MyelomaInpatient.setStatus("Deleted");
         processSingleMessage(hl7MyelomaInpatient);
         assertEquals(1, getAllEntities(patientConditionRepository).size());
 
         patientConditionRepository.deleteAll();
 
-        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7("Resolved"));
+        hl7MyelomaInpatient.setStatus("Resolved");
         processSingleMessage(hl7MyelomaInpatient);
         assertEquals(1, getAllEntities(patientConditionRepository).size());
     }

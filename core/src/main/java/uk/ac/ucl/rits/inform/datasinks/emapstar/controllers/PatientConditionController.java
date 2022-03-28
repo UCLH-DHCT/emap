@@ -99,7 +99,7 @@ public class PatientConditionController {
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
 
-        if (msg.getAction().equals("DE") && msg.satusIsActive()) {
+        if (msg.getAction().equals("DE") && msg.statusIsActive()) {
             patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                     storedFrom));
             logger.debug("Deleting PatientCondition: {}", patientCondition);
@@ -313,8 +313,8 @@ public class PatientConditionController {
 
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
+        conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
-        conditionState.assignInterchangeValue(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(
                 msg.getResolvedTime(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
