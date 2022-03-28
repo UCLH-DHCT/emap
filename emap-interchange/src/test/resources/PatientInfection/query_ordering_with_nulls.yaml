@@ -12,10 +12,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 3
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Resolved"
+  status: "Resolved"
   infectionAdded: null
   infectionResolved:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
@@ -43,10 +40,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 4
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Active"
+  status: "Active"
   infectionAdded: "2019-05-14T08:19:11Z"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "clarity"
@@ -62,10 +56,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 1
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Active"
+  status: "Active"
   infectionAdded: "2019-06-02T10:31:05Z"
   infectionResolved:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
