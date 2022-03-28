@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Interchange format of a PatientProblem message.
@@ -54,7 +55,7 @@ public class PatientProblem extends EmapOperationMessage implements Serializable
     /**
      * Onset of problem known at...
      */
-    private InterchangeValue<Instant> problemOnset = InterchangeValue.unknown();
+    private InterchangeValue<LocalDate> problemOnset = InterchangeValue.unknown();
 
     /**
      * Status of problem...
