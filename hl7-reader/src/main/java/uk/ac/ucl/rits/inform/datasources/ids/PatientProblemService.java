@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -78,7 +79,7 @@ public class PatientProblemService {
         patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getActionDateTime()));
         patientProblem.setProblemCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
         patientProblem.setProblemAdded(HL7Utils.interpretLocalTime(problemSegment.getPrb7_ProblemEstablishedDateTime()));
-        patientProblem.setProblemOnset(InterchangeValue.buildFromHl7(HL7Utils.interpretLocalTime(problemSegment.getPrb16_ProblemDateOfOnset())));
+        patientProblem.setProblemOnset(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemSegment.getPrb16_ProblemDateOfOnset())));
         Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getActualProblemResolutionDateTime());
         patientProblem.setProblemResolved(InterchangeValue.buildFromHl7(problemResolved));
         return patientProblem;
