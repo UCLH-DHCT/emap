@@ -9,7 +9,4 @@
     value: "Multiple Myeloma"
   problemAdded: "2019-06-02T10:31:05Z"
   action: "AD"
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "ACTIVE"
+  status: "ACTIVE"

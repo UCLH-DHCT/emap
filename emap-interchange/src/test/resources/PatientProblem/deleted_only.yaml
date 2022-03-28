@@ -13,10 +13,7 @@
     value: "Multiple Myeloma"
   problemAdded: "2019-06-02T10:31:05Z"
   action: "DE"
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "ACTIVE"
+  status: "ACTIVE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   visitNumber:
@@ -32,7 +29,4 @@
     value: "Multiple Myeloma"
   problemAdded: "2019-06-02T10:31:05Z"
   action: "DE"
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "ACTIVE"
+  status: "ACTIVE"
