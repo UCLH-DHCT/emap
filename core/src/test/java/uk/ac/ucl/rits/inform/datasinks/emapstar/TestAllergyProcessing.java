@@ -123,7 +123,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     /**
      * Given that no patient conditions exist
      * When a patient allergy message arrives containing reactions
-     * Then a patient condition appropriate for the allergy is added and reactions populated in the ConditionSymptom DB
+     * Then a patient condition appropriate for the allergy is added and reactions populated in the ConditionSymptom table
      */
     @Test
     void testAllergyMessageProcessingWithReactions() throws EmapOperationMessageProcessingException{
