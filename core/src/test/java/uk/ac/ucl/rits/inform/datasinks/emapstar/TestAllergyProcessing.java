@@ -3,8 +3,6 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientConditionController;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientSymptomController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.ConditionTypeRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
@@ -16,7 +14,6 @@ import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientAllergy;
-import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -52,7 +49,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     private static final String FIRST_ALLERGEN = "TRAMADOL";
     private static final String FIRST_UPDATED_TIME = "2019-06-08T10:32:05Z";
     private static final String FIRST_ADDED_TIME = "2019-06-08T10:31:05Z";
-
+    private static final String ACTIVE = "Active";
 
     @BeforeEach
     private void setUp() throws IOException {
@@ -60,7 +57,6 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         hooverQueryOrderingMessages =  messageFactory.getPatientAllergies("query_ordering_with_nulls.yaml");
         hl7Tramadol = messageFactory.getPatientAllergies("hl7/minimal_allergy.yaml").get(0);
     }
-
 
     private boolean aSingleConditionExists(){
         return getAllEntities(patientConditionRepository).size() == 1;
@@ -70,6 +66,9 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         return getAllEntities(patientConditionRepository).get(0);
     }
 
+    private boolean hasNoPriorityCommentOrResolutionTime(PatientCondition condition){
+        return condition.getPriority() == null && condition.getComment() == null && condition.getResolutionDateTime() == null;
+    }
 
     /**
      * Given that no patient conditions exist
@@ -90,9 +89,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
         assertEquals(LocalDate.parse("2019-05-07"), condition.getOnsetDate());
-        assertNull(condition.getPriority());
-        assertNull(condition.getComment());
-        assertNull(condition.getResolutionDateTime());
+        assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
     }
 
     /**
@@ -121,7 +118,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
 
     /**
-     * Given that no patient conditions exist
+     * Given that no patient allergy conditions exist
      * When a patient allergy message arrives containing reactions
      * Then a patient condition appropriate for the allergy is added and reactions populated in the ConditionSymptom table
      */
@@ -140,7 +137,8 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
         assertEquals(LocalDate.parse("2019-03-05"), condition.getOnsetDate());
         assertEquals("High", condition.getConditionTypeId().getSeverity());
-        assertEquals("Active", condition.getStatus());
+        assertEquals(ACTIVE, condition.getStatus());
+        assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
 
         List<ConditionSymptom> reactions = getAllEntities(conditionSymptomRepository);
         assertEquals(2, reactions.size());
@@ -151,9 +149,9 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     }
 
     /**
-     * Given that no patient conditions exist
+     * Given that no patient allergy conditions exist
      * When two patient allergy message arrive containing reactions
-     * Then a patient conditions and symptoms are added appropriate for the messages
+     * Then a patient allergy conditions and symptoms are added appropriate for the messages
      */
     @Test
     void testMultipleAllergyMessageProcessingWithReactions() throws EmapOperationMessageProcessingException{
@@ -174,7 +172,8 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertEquals(Instant.parse("2019-06-08T02:05:49Z"), condition.getAddedDateTime());
         assertEquals(LocalDate.parse("2019-03-05"), condition.getOnsetDate());
         assertEquals("Medium", condition.getConditionTypeId().getSeverity());
-        assertEquals("Active", condition.getStatus());
+        assertEquals(ACTIVE, condition.getStatus());
+        assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
 
         // Hives should only be added once to the symptom repository
         List<ConditionSymptom> reactions = getAllEntities(conditionSymptomRepository);
@@ -188,97 +187,30 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertTrue(reactionNames.contains("Hives"));
     }
 
-
-    // TODO: What is this testing?!
-    @Test
-    void testX() throws EmapOperationMessageProcessingException{
-
-        /*
-        - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
-          sourceSystem: "clarity"
-          sourceMessageId: "3"
-          updatedDateTime: "2019-05-10T09:40:25Z"
-          mrn: "Bq6PQt5xSa"
-          allergenType: "DRUG INGREDI"
-          allergenName: "TRAMADOL"
-          epicAllergyId: 3
-          allergyAdded: "2019-05-10T09:40:25Z"
-          allergyOnset: "2019-05-07"
-          severity: "High"
-          status: "Active"
-        - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
-          sourceSystem: "clarity"
-          sourceMessageId: "4"
-          updatedDateTime: "2019-05-14T08:19:11Z"
-          mrn: "xo9dzpR0Zx7J"
-          visitNumber: "100000013"
-          allergenType: "DRUG INGREDI"
-          allergenName: "CO-TRIMOXAZOLE (TRIMETHOPRIM AND SULFAMETHOXAZOLE)"
-          epicAllergyId: 4
-          allergyAdded: "2019-05-14T08:19:11Z"
-          severity: "Low"
-          status: "Deleted"
-        - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
-          sourceSystem: "clarity"
-          sourceMessageId: "1"
-          updatedDateTime: "2019-06-09T01:00:05Z"
-          mrn: "8DcEwvqa8Q3"
-          allergenType: "Food"
-          allergenName: "NUTS"
-          epicAllergyId: 1
-          allergyAdded: "2019-06-08T10:31:05Z"
-          allergyOnset: "2019-03-05"
-          severity: "High"
-          reactions:
-            - "Anaphylaxis"
-            - "Hives"
-          status: "Active"
-        - "@class": "uk.ac.ucl.rits.inform.interchange.PatientAllergy"
-          sourceSystem: "clarity"
-          sourceMessageId: "2"
-          updatedDateTime: "2019-06-09T01:00:05Z"
-          mrn: "suI83US"
-          allergenType: "Drug Class"
-          allergenName: "SEROTONIN REUPTAKE INHIBITORS (SSRIS)"
-          epicAllergyId:  2
-          allergyAdded: "2019-06-08T02:05:49Z"
-          allergyOnset: "2019-03-05"
-          severity: "Medium"
-          reactions:
-            - "Hives"
-          status: "Active"
-                 */
-
-        for (PatientAllergy msg: hooverQueryOrderingMessages){
-            processSingleMessage(msg);
-        }
-
-        assertEquals(4, getAllEntities(patientConditionRepository).size());
-
-    }
-
     /**
-     * Given that a patient condition exists
-     * When a newer new message arrives that concerns the same patient
+     * Given that a patient allergy condition exists
+     * When a newer allergy message arrives that concerns the same patient
      * Then the condition is updated with the new information
      */
     @Test
     void testUpdateCommentOnNewHl7Message() throws EmapOperationMessageProcessingException {
 
+        String testComment = "test";
+
         processSingleMessage(hl7Tramadol);
         assertTrue(aSingleConditionExists());
         assertNull(getAllEntities(patientConditionRepository).get(0).getComment());
 
-        hl7Tramadol.setComment(InterchangeValue.buildFromHl7("test"));
+        hl7Tramadol.setComment(InterchangeValue.buildFromHl7(testComment));
         hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).plus(1, ChronoUnit.SECONDS));
 
         processSingleMessage(hl7Tramadol);
-        assertEquals("test", firstPatientCondition().getComment());
+        assertEquals(testComment, firstPatientCondition().getComment());
     }
 
     /**
-     * Given that a patient condition exists
-     * When an older new message arrives that concerns the same patient
+     * Given that a patient allergy condition exists
+     * When an older allergy message arrives that concerns the same patient
      * Then the condition is not updated with the new information
      */
     @Test
@@ -288,7 +220,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertTrue(aSingleConditionExists());
         assertNull(firstPatientCondition().getStatus());
 
-        hl7Tramadol.setStatus(InterchangeValue.buildFromHl7("ACTIVE"));
+        hl7Tramadol.setStatus(InterchangeValue.buildFromHl7(ACTIVE));
         hl7Tramadol.setUpdatedDateTime(Instant.parse(FIRST_UPDATED_TIME).minus(1, ChronoUnit.SECONDS));
 
         processSingleMessage(hl7Tramadol);
