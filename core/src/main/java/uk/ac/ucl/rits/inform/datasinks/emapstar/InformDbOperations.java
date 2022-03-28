@@ -1,6 +1,5 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Component;
@@ -193,7 +192,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     @Override
     @Transactional
     public void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException {
-        throw new NotImplementedException();
+        Instant storedFrom = Instant.now();
+        labProcessor.processMessage(msg, storedFrom);
     }
 
 
