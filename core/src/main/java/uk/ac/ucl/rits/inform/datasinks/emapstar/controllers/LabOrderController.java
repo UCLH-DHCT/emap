@@ -46,12 +46,12 @@ public class LabOrderController {
 
 
     /**
-     * @param labBatteryRepo repository for LabBattery
-     * @param labSampleRepo repository for LabSample
+     * @param labBatteryRepo     repository for LabBattery
+     * @param labSampleRepo      repository for LabSample
      * @param labSampleAuditRepo repository for LabSampleAudit
-     * @param labOrderRepo repository for LabOrder
-     * @param labResultRepo repository for LabResult
-     * @param labOrderAuditRepo repository for LabOrderAudit
+     * @param labOrderRepo       repository for LabOrder
+     * @param labResultRepo      repository for LabResult
+     * @param labOrderAuditRepo  repository for LabOrderAudit
      * @param questionController controller for Question tables
      */
     public LabOrderController(
@@ -76,6 +76,12 @@ public class LabOrderController {
                 .append("CoPath does not use test batteries, all orders are filed under this battery code. ")
                 .append("The lab test definition lab department can be used to distinguish types of requested tests").toString());
         labBatteryRepo.save(coPathBattery);
+    }
+
+
+    LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
+        return labSampleRepo.findByExternalLabNumber(specimenBarcode)
+                .orElseThrow(() -> new IncompatibleDatabaseStateException("Lab sample doesn't exist in star"));
     }
 
 
@@ -278,4 +284,5 @@ public class LabOrderController {
         logger.debug("Deleting LabOrder {}", labOrder);
         labOrderRepo.delete(labOrder);
     }
+
 }
