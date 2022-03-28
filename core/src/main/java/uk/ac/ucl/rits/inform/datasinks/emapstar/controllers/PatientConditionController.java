@@ -99,7 +99,7 @@ public class PatientConditionController {
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
 
-        if (msg.getAction().equals("DE")) {
+        if (msg.getAction().equals("DE") && msg.satusIsActive()) {
             patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                     storedFrom));
             logger.debug("Deleting PatientCondition: {}", patientCondition);
