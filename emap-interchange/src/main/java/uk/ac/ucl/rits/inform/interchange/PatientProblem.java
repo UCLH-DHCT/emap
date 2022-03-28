@@ -18,6 +18,7 @@ import java.time.LocalDate;
 public class PatientProblem extends PatientConditionMessage implements Serializable {
 
     /**
+
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
      * @param processor the processor to call back to
      * @throws EmapOperationMessageProcessingException if message cannot be processed
