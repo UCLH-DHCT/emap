@@ -8,6 +8,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PatientConditionRepository;
 import uk.ac.ucl.rits.inform.informdb.conditions.PatientCondition;
+import uk.ac.ucl.rits.inform.informdb.conditions.PatientConditionAudit;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -219,6 +220,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         hl7MyelomaInpatient.setAction("DE");
+        assertEquals("ACTIVE", hl7MyelomaInpatient.getStatus().get());
         processSingleMessage(hl7MyelomaInpatient);
 
         assertEquals(getAllEntities(patientConditionRepository).size(), 0);
@@ -232,16 +234,25 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         PatientProblem addMessage = hooverUpdateMessage;
         processSingleMessage(addMessage);
 
+        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
+
         PatientProblem deleteMessage = hooverUpdateMessage;
         deleteMessage.setAction("DE");
+        deleteMessage.setStatus(InterchangeValue.buildFromHl7("ACTIVE"));
         deleteMessage.setUpdatedDateTime(newestUpdatedTime.plus(1, ChronoUnit.SECONDS));
 
+        // message needs to refer to the same patient
         assertEquals(addMessage.getMrn(), deleteMessage.getMrn());
         assertEquals(addMessage.getAddedTime(), deleteMessage.getAddedTime());
 
         processSingleMessage(deleteMessage);
 
         assertEquals(0, getAllEntities(patientConditionRepository).size());
+
+        // should have an audit log of the condition that was deleted
+        // TODO: Should there be two entries in the audit log?
+        PatientConditionAudit audit = getAllEntities(patientConditionAuditRepository).get(1);
+        assertEquals(hooverUpdateMessage.getAddedTime(), audit.getAddedDateTime());
     }
 
 
@@ -330,4 +341,59 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         // TODO: Assert something else
     }
 
+
+    /**
+     * Given that no problem lists exist
+     * When one arrives that has either an AD or UP action associated
+     * Then the same state is reached
+     */
+    @Test
+    void testSameStateObtainedForUpAndAdActions() throws EmapOperationMessageProcessingException {
+
+        hl7MyelomaInpatient.setAction("UP");
+        processSingleMessage(hl7MyelomaInpatient);
+
+        PatientCondition conditionFromUp = getAllEntities(patientConditionRepository).get(0);
+
+        patientConditionRepository.deleteAll();
+        conditionTypeRepository.deleteAll();
+
+        hl7MyelomaInpatient.setAction("AD");
+        processSingleMessage(hl7MyelomaInpatient);
+
+        PatientCondition conditionFromAd = getAllEntities(patientConditionRepository).get(0);
+
+        assertEquals(conditionFromAd.getInternalId(), conditionFromUp.getInternalId());
+        assertEquals(conditionFromAd.getAddedDateTime(), conditionFromUp.getAddedDateTime());
+        assertEquals(conditionFromAd.getResolutionDateTime(), conditionFromUp.getResolutionDateTime());
+        assertEquals(conditionFromAd.getStatus(), conditionFromUp.getStatus());
+        assertEquals(conditionFromAd.getComment(), conditionFromUp.getComment());
+        assertEquals(conditionFromAd.getPriority(), conditionFromUp.getPriority());
+    }
+
+
+    /**
+     * Given that no problem lists exist
+     * When one arrives that has a delete action but a 'Delete' or 'Resolved' status
+     * Then a condition should be added into the table
+     */
+    @Test
+    void testDeleteActionWithDeleteOrResolvedStatus() throws EmapOperationMessageProcessingException {
+
+        hl7MyelomaInpatient.setAction("DE");
+        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7("ACTIVE"));
+        processSingleMessage(hl7MyelomaInpatient);
+
+        assertEquals(0, getAllEntities(patientConditionRepository).size());
+
+        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7("Deleted"));
+        processSingleMessage(hl7MyelomaInpatient);
+        assertEquals(1, getAllEntities(patientConditionRepository).size());
+
+        patientConditionRepository.deleteAll();
+
+        hl7MyelomaInpatient.setStatus(InterchangeValue.buildFromHl7("Resolved"));
+        processSingleMessage(hl7MyelomaInpatient);
+        assertEquals(1, getAllEntities(patientConditionRepository).size());
+    }
 }
