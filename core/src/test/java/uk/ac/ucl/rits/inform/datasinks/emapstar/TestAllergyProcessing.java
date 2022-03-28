@@ -40,8 +40,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     @Autowired
     ConditionSymptomRepository conditionSymptomRepository;
 
-    private List<PatientAllergy> hooverQueryOrderingMessages;
-    private List<PatientAllergy> hooverUpdatedMessages;
+    private List<PatientAllergy> hooverMessages;
     private PatientAllergy hl7Tramadol;
 
     private static final String CONDITION_TYPE = "PATIENT_ALLERGY";
@@ -49,12 +48,12 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     private static final String FIRST_ALLERGEN = "TRAMADOL";
     private static final String FIRST_UPDATED_TIME = "2019-06-08T10:32:05Z";
     private static final String FIRST_ADDED_TIME = "2019-06-08T10:31:05Z";
+    private static final Integer NUM_TRAMADOL_REACTIONS = 0;
     private static final String ACTIVE = "Active";
 
     @BeforeEach
     private void setUp() throws IOException {
-        hooverUpdatedMessages = messageFactory.getPatientAllergies("updated_only.yaml");
-        hooverQueryOrderingMessages =  messageFactory.getPatientAllergies("query_ordering_with_nulls.yaml");
+        hooverMessages = messageFactory.getPatientAllergies("updated_only.yaml");
         hl7Tramadol = messageFactory.getPatientAllergies("hl7/minimal_allergy.yaml").get(0);
     }
 
@@ -86,7 +85,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
         PatientCondition condition = firstPatientCondition();
         assertEquals(FIRST_MRN, condition.getMrnId().getMrn());
-
+        assertEquals(NUM_TRAMADOL_REACTIONS, getAllEntities(conditionSymptomRepository).size());
         assertEquals(Instant.parse(FIRST_ADDED_TIME), condition.getAddedDateTime());
         assertEquals(LocalDate.parse("2019-05-07"), condition.getOnsetDate());
         assertTrue(hasNoPriorityCommentOrResolutionTime(condition));
@@ -116,7 +115,6 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertNull(type.getStandardisedVocabulary());
     }
 
-
     /**
      * Given that no patient allergy conditions exist
      * When a patient allergy message arrives containing reactions
@@ -125,7 +123,7 @@ public class TestAllergyProcessing extends MessageProcessingBase {
     @Test
     void testAllergyMessageProcessingWithReactions() throws EmapOperationMessageProcessingException{
 
-        processSingleMessage(hooverUpdatedMessages.get(0));
+        processSingleMessage(hooverMessages.get(0));
         assertTrue(aSingleConditionExists());
 
         PatientCondition condition = firstPatientCondition();
@@ -150,14 +148,30 @@ public class TestAllergyProcessing extends MessageProcessingBase {
 
     /**
      * Given that no patient allergy conditions exist
+     * When the same allergy message is processed twice
+     * Then a single copy of the condition and reactions are present
+     */
+    @Test
+    void testMultipleProcessingSameMessage() throws EmapOperationMessageProcessingException {
+
+        processSingleMessage(hooverMessages.get(0));
+        processSingleMessage(hooverMessages.get(0));
+
+        assertTrue(aSingleConditionExists());
+        assertEquals(1, getAllEntities(conditionTypeRepository).size());
+        assertEquals(2, getAllEntities(conditionSymptomRepository).size());
+    }
+
+    /**
+     * Given that no patient allergy conditions exist
      * When two patient allergy message arrive containing reactions
      * Then a patient allergy conditions and symptoms are added appropriate for the messages
      */
     @Test
     void testMultipleAllergyMessageProcessingWithReactions() throws EmapOperationMessageProcessingException{
 
-        processSingleMessage(hooverUpdatedMessages.get(0));
-        processSingleMessage(hooverUpdatedMessages.get(1));
+        processSingleMessage(hooverMessages.get(0));
+        processSingleMessage(hooverMessages.get(1));
         assertEquals(2, getAllEntities(patientConditionRepository).size());
 
         // Allergy diagnoses may not be associated with hospital visits
@@ -227,4 +241,25 @@ public class TestAllergyProcessing extends MessageProcessingBase {
         assertNull(firstPatientCondition().getStatus());
     }
 
+    /**
+     * Given that a patient allergy condition exists
+     * When a new allergy message arrives that concerns the same patient and adds a new reaction
+     * Then the reaction is added to the list of associated reactions
+     */
+    @Test
+    void testUpdateReactionListHl7Message() throws EmapOperationMessageProcessingException{
+
+        processSingleMessage(hl7Tramadol);
+
+        String reactionName = "X";
+        hl7Tramadol.setReactions(List.of(new String[]{reactionName}));
+        processSingleMessage(hl7Tramadol);
+
+        assertEquals(NUM_TRAMADOL_REACTIONS+1, getAllEntities(conditionSymptomRepository).size());
+        assertEquals(reactionName, getAllEntities(conditionSymptomRepository).get(0).getName());
+
+        hl7Tramadol.setReactions(List.of(new String[]{"Y"}));
+        processSingleMessage(hl7Tramadol);
+        assertEquals(NUM_TRAMADOL_REACTIONS+2, getAllEntities(conditionSymptomRepository).size());
+    }
 }
