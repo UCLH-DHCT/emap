@@ -49,7 +49,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     /**
      * Status of condition.
      */
-    private InterchangeValue<String> status = InterchangeValue.unknown();
+    private String status;
 
     /**
      * Comment on a condition.
@@ -83,4 +83,8 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
      */
     public abstract void processMessage(EmapOperationMessageProcessor processor)
             throws EmapOperationMessageProcessingException;
+
+    public boolean statusIsActive(){
+        return status.equals("ACTIVE");
+    }
 }

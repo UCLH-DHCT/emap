@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Interchange format of a PatientProblem message. In hospital terminology they are referred to as problem lists.
