@@ -88,7 +88,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "NotesParser/empty_first_answer.txt",
         "NotesParser/repeat_question.txt",
         "NotesParser/oru_r01_comment.txt",
-        "AdvanceDecision/minimal_w_questions.txt",       // No yaml
+        //"AdvanceDecision/minimal_w_questions.txt",     // TODO: Probably new_with_questions.yaml, but doesn't match
         "AdvanceDecision/multiple_requests.txt",         // No yaml
         "ConsultRequest/multiple_requests.txt",          // No yaml
         "VitalSigns/MixedHL7Message.txt",                // TODO: No vital signs?
@@ -102,11 +102,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "PatientInfection/earlier_infection.txt",        // No yaml
         "PatientInfection/no_infections.txt",            // No yaml
         "PatientInfection/mumps_resolved.txt",           // No yaml
-        "LabOrders/bio_connect/normal_flag.txt",
+        "LabOrders/bio_connect/normal_flag.txt",         // No yaml
         "LabOrders/winpath/oru_ro1_numeric.txt",         // No yaml...
         "LabOrders/winpath/isolate_no_growth.txt",
         "LabOrders/winpath/not_allowed_order_control_id.txt",
-        "LabOrders/winpath/incremental_orders/05_oru_r01.txt",
+        "LabOrders/winpath/incremental_orders/05_oru_r01.txt",   // TODO: Probably, incremental_order_defaults.yaml
         "LabOrders/winpath/isolate_quantity.txt",
         "LabOrders/winpath/mistmatch_epic_order_id.txt",
         "LabOrders/winpath/orm_o01_sc.txt",
@@ -375,9 +375,15 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     void checkAdvanceDecisionMatchesInterchange(String fileName) throws Exception {
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
-                filename("AdvanceDecision/"+fileName+".txt"));
-        AdvanceDecisionMessage expected = interchangeFactory.getAdvanceDecision(String.format("%s.yaml", fileName));
+        checkAdvanceDecisionMatchesInterchange("AdvanceDecision/"+fileName+".txt",
+                String.format("%s.yaml", fileName));
+    }
+
+    void checkAdvanceDecisionMatchesInterchange(String txtFileName, String yamlFileName) throws Exception{
+
+         List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
+                filename(txtFileName));
+        AdvanceDecisionMessage expected = interchangeFactory.getAdvanceDecision(yamlFileName);
         assertEquals(1, messagesFromHl7Message.size());
         assertEquals(expected, messagesFromHl7Message.get(0));
     }
@@ -395,6 +401,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     void testMinimalAdvanceDecision() throws Exception {
         checkAdvanceDecisionMatchesInterchange("minimal");
+    }
+
+    @Test
+    void testMinimalWithQuestionsAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("AdvanceDecision/minimal_w_questions.txt", "new_with_questions.yaml");
     }
 
     @Test
