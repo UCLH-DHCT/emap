@@ -3,6 +3,8 @@ package uk.ac.ucl.rits.inform.datasources.ids;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.test.context.ActiveProfiles;
 
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
@@ -17,24 +19,104 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+class MessageFile{
+
+    Integer accessCount;
+    Path filePath;
+
+    MessageFile(Path filePath){
+        this.filePath = filePath;
+        this.accessCount = 0;
+    }
+
+    public boolean hasBeenAccessed(){
+        return this.accessCount > 0;
+    }
+
+    public void incrementAccessCount(){
+        this.accessCount += 1;
+    }
+
+    public boolean filenameInPath(String filename){
+        return this.filePath.endsWith(filename);
+    }
+}
+
+
 /**
- *
+ * Test that the HL7 output format matches that of the corresponding yaml files
  */
 @ActiveProfiles("test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
 public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7MessageStream {
     InterchangeMessageFactory interchangeFactory = new InterchangeMessageFactory();
 
+    private final List<MessageFile> messageFiles;
+
+    /**
+     * Constructor for the test class. Populates all the message files
+     * @throws IOException If a path cannot be accessed
+     */
+    TestHL7ParsingMatchesInterchangeFactoryOutput() throws IOException {
+
+        this.messageFiles = new ArrayList<>();
+
+        for (Path path: listFiles(Paths.get("src/test/resources/"))){
+            this.messageFiles.add(new MessageFile(path));
+        }
+    }
+
+    /**
+     * List all the files in the current and child directories
+     * @param path  Directory to search from
+     * @return List of paths
+     * @throws IOException If the walk fails
+     */
+    private static List<Path> listFiles(Path path) throws IOException {
+
+        List<Path> result;
+        try (Stream<Path> walk = Files.walk(path)) {
+            result = walk.filter(Files::isRegularFile)
+                    .collect(Collectors.toList());
+        }
+        return result;
+    }
+
+    /**
+     * Process a filename ensuring that it exists in the resource directory and so in the messageFiles, while
+     * incrementing the access count
+     * @param filename Name of the file
+     * @return The filename back
+     */
+    private String filename(String filename) throws IOException{
+
+        for (MessageFile file : messageFiles){
+            if (file.filenameInPath(filename)){
+                file.incrementAccessCount();
+                return filename;
+            }
+        }
+
+        throw new IOException("Failed to find "+filename+" in the list of message files");
+    }
+
     private void testAdtMessage(String adtFileStem) throws Exception {
         log.info("Testing ADT message with stem '{}'", adtFileStem);
-        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage("Adt/" + adtFileStem + ".txt");
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessage(filename("Adt/" + adtFileStem + ".txt"));
         AdtMessage expectedAdtMessage = interchangeFactory.getAdtMessage(adtFileStem + ".yaml");
         Assertions.assertEquals(1, messagesFromHl7Message.size());
         Assertions.assertEquals(expectedAdtMessage, messagesFromHl7Message.get(0));
@@ -428,4 +510,18 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
         Assertions.assertEquals(expected, messageFromHl7);
     }
+
+    @AfterAll
+    void checkAllFilesHaveBeenAccessed() throws Exception{
+
+        if (messageFiles.stream().allMatch(MessageFile::hasBeenAccessed)) {
+            return;
+        }
+
+        messageFiles.stream()
+                .filter(m -> (!m.hasBeenAccessed()))
+                .forEach(m -> System.out.println(m.filePath));
+        throw new Exception("Not all the files have been accessed");
+    }
+
 }
