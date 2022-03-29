@@ -88,9 +88,9 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "NotesParser/empty_first_answer.txt",
         "NotesParser/repeat_question.txt",
         "NotesParser/oru_r01_comment.txt",
-        //"AdvanceDecision/minimal_w_questions.txt",     // TODO: Probably new_with_questions.yaml, but doesn't match
+        "ConsultRequest/multiple_requests.txt",         // No yaml
         "AdvanceDecision/multiple_requests.txt",         // No yaml
-        "ConsultRequest/multiple_requests.txt",          // No yaml
+        "AdvanceDecision/minimal_w_questions.txt",       // No yaml
         "VitalSigns/MixedHL7Message.txt",                // TODO: No vital signs?
         "VitalSigns/MultiOBR.txt",
         "VitalSigns/datetime_parsing.txt",
@@ -405,7 +405,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     void testMinimalWithQuestionsAdvanceDecision() throws Exception {
-        checkAdvanceDecisionMatchesInterchange("AdvanceDecision/minimal_w_questions.txt", "new_with_questions.yaml");
+        checkAdvanceDecisionMatchesInterchange("new_with_questions");
     }
 
     @Test
