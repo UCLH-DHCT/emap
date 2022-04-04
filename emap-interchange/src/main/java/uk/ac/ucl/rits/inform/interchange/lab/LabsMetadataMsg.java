@@ -20,9 +20,9 @@ public class LabsMetadataMsg extends EmapOperationMessage {
     private String description;
 
     /**
-     * Is this a test or a battery of tests?
+     * Is this, for example, a test or a battery of tests?
      */
-    private boolean isBattery;
+    private LabsMetadataType labsMetadataType;
 
     /**
      * Some temporal information will be needed...
