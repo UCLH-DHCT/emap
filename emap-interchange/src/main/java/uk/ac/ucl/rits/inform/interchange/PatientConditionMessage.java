@@ -72,7 +72,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private InterchangeValue<LocalDate> onsetTime = InterchangeValue.unknown();
 
     /**
-     * Effectively message type, i.e. whether to add, update or delete problem list.
+     * Effectively message type, i.e. whether to add, update or delete the condition.
      */
     private String action = "AD";
 
