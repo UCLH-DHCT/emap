@@ -30,9 +30,9 @@ public class PatientStateProcessor {
 
     /**
      * Patient state controller to identify whether state needs to be updated; person controller to identify patient.
-     * @param patientConditionController     patient state controller
-     * @param personController               person controller
-     * @param visitController                hospital visit controller
+     * @param patientConditionController patient state controller
+     * @param personController           person controller
+     * @param visitController            hospital visit controller
      */
     public PatientStateProcessor(
             PatientConditionController patientConditionController, PersonController personController, VisitController visitController) {

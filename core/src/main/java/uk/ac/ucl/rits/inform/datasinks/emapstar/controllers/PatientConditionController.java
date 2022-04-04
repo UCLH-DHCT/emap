@@ -70,7 +70,8 @@ public class PatientConditionController {
 
 
     /**
-     * Process patient problem message.
+     * Process patient problem message, which includes a single problem (subtype of condition) and an associated
+     * status and optional severity
      * @param msg        message
      * @param mrn        patient id
      * @param visit      hospital visit can be null
@@ -85,8 +86,6 @@ public class PatientConditionController {
         );
         cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
                 msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-
-        // TODO: something like deletePreviousInfectionOrClearInfectionTypesCache ?
 
         updateConditionName(conditionType.getEntity(), msg.getConditionName());
 
@@ -110,7 +109,6 @@ public class PatientConditionController {
 
     /**
      * Update the name of a condition if it is defined.
-     *
      * @param conditionType Specific type of condition with an internal code
      * @param conditionName Human-readable name of the condition
      */
@@ -260,7 +258,6 @@ public class PatientConditionController {
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
                 mrn, conditionType, addedTime);
 
-        // TODO: Is this the correct way to do it?
         Long epicId = null;
 
         if (msg.getEpicConditionId().isSave()) {
@@ -277,12 +274,12 @@ public class PatientConditionController {
 
     /**
      * Create minimal patient condition wrapped in RowState.
-     * @param epicId          ID in EPIC for this condition
-     * @param mrn             patient identifier
-     * @param conditionType   condition type
-     * @param conditionAdded  condition added at
-     * @param validFrom       hospital time that the data is true from
-     * @param storedFrom      time that emap-core started processing the message
+     * @param epicId         ID in EPIC for this condition
+     * @param mrn            patient identifier
+     * @param conditionType  condition type
+     * @param conditionAdded condition added at
+     * @param validFrom      hospital time that the data is true from
+     * @param storedFrom     time that emap-core started processing the message
      * @return minimal patient condition wrapped in RowState
      */
     private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
