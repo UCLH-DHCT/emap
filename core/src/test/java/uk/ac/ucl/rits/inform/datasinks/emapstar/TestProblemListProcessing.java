@@ -43,28 +43,30 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @Autowired
     HospitalVisitRepository hospitalVisitRepository;
 
-    private List<PatientProblem> hooverDelteMessages;
+    private List<PatientProblem> hooverDeleteMessages;
+    private List<PatientProblem> hooverAddThenDeleteMessages;
 
     private PatientProblem hooverUpdateMessage;
-    private PatientProblem hooverQueryOrderingMessage;
     private PatientProblem hl7MyelomaInpatient;
     private PatientProblem hl7OtherProblemInpatient;
     private PatientProblem hl7MyelomaOutpatient;
 
     private static final String SAMPLE_COMMENT = "a comment";
-    private static final String UPDATED_PROBLEM_NAME = "new problem";
     private static final String MYELOMA_PROBLEM_NAME = "Multiple Myeloma";
     private static final String MYELOMA_PROBLEM_CODE = "C90.0";
     private static final String BACKACHE_PROBLEM_CODE = "M54.9";
     private static final String BACKACHE_PROBLEM_NAME = "Backache";
+    private static final String MYELOMA_ADDED_TIME = "2019-06-02T10:31:05Z";
     private static final String PATIENT_MRN = "8DcEwvqa8Q3";
+    private static final String MYELOMA_RESOLVED_TIME = "2019-06-08T14:22:01Z";
+    private static final String MYELOMA_ONSET_DATE = "2019-03-05";
 
 
     @BeforeEach
     private void setUp() throws IOException {
         hooverUpdateMessage = messageFactory.getPatientProblems("updated_only.yaml").get(0);
-        hooverDelteMessages =  messageFactory.getPatientProblems("deleted_only.yaml");
-        hooverQueryOrderingMessage = messageFactory.getPatientProblems("query_ordering_with_nulls.yaml").get(0);
+        hooverAddThenDeleteMessages = messageFactory.getPatientProblems("add_then_delete.yaml");
+        hooverDeleteMessages =  messageFactory.getPatientProblems("deleted_only.yaml");
         hl7MyelomaInpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
         hl7OtherProblemInpatient =  messageFactory.getPatientProblems("hl7/minimal_other_problem_inpatient.yaml").get(0);
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
@@ -116,7 +118,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         // assertEquals(11144333L, entity.getHospitalVisitId().getHospitalVisitId());
 
         assertEquals(PATIENT_MRN, entity.getMrnId().getMrn());
-        assertEquals(Instant.parse("2019-06-02T10:31:05Z"), entity.getAddedDateTime());
+        assertEquals(Instant.parse(MYELOMA_ADDED_TIME), entity.getAddedDateTime());
         assertEquals("ACTIVE", entity.getStatus());
         assertEquals(MYELOMA_PROBLEM_NAME, entity.getConditionTypeId().getName());
         assertEquals(MYELOMA_PROBLEM_CODE, entity.getConditionTypeId().getInternalCode());
@@ -225,34 +227,25 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
         assertEquals(getAllEntities(patientConditionRepository).size(), 0);
     }
+
+
+    /**
+     * Given that a problem list exist for a patient
+     * When a problem list message for deleting an existing problem arrives with an active status
+     * Then this problem list is deleted for the patient and an audit taken
+     */
     @Test
     void testDeletingAProblemClarity() throws EmapOperationMessageProcessingException{
 
-        Instant newestUpdatedTime = hooverUpdateMessage.getUpdatedDateTime();
-
-        // Adding then deleting a problem for the same patient should leave the condition repository empty
-        PatientProblem addMessage = hooverUpdateMessage;
-        processSingleMessage(addMessage);
-
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
-
-        PatientProblem deleteMessage = hooverUpdateMessage;
-        deleteMessage.setAction("DE");
-        deleteMessage.setStatus("ACTIVE");
-        deleteMessage.setUpdatedDateTime(newestUpdatedTime.plus(1, ChronoUnit.SECONDS));
-
-        // message needs to refer to the same patient
-        assertEquals(addMessage.getMrn(), deleteMessage.getMrn());
-        assertEquals(addMessage.getAddedTime(), deleteMessage.getAddedTime());
-
-        processSingleMessage(deleteMessage);
+        for (PatientProblem message : hooverAddThenDeleteMessages){
+            processSingleMessage(message);
+        }
 
         assertEquals(0, getAllEntities(patientConditionRepository).size());
 
         // should have an audit log of the condition that was deleted
-        // TODO: Should there be two entries in the audit log?
-        PatientConditionAudit audit = getAllEntities(patientConditionAuditRepository).get(1);
-        assertEquals(hooverUpdateMessage.getAddedTime(), audit.getAddedDateTime());
+        PatientConditionAudit audit = getAllEntities(patientConditionAuditRepository).get(0);
+        assertEquals(hooverAddThenDeleteMessages.get(0).getAddedTime(), audit.getAddedDateTime());
     }
 
 
@@ -262,18 +255,16 @@ public class TestProblemListProcessing extends MessageProcessingBase {
      * Then a new problem is not added and only the problem name is updated
      */
     @Test
-    void testProblemNameUpdate() throws EmapOperationMessageProcessingException{
+    void testProblemNameUpdate() throws EmapOperationMessageProcessingException, IOException {
 
         processSingleMessage(hl7MyelomaInpatient);
 
-        hl7MyelomaInpatient.setProblemName(InterchangeValue.buildFromHl7(UPDATED_PROBLEM_NAME));
-        hl7MyelomaInpatient.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
-
-        processSingleMessage(hl7MyelomaInpatient);
+        PatientProblem msg = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(1);
+        processSingleMessage(msg);
 
         List<PatientCondition> entities = getAllEntities(patientConditionRepository);
         assertEquals(1, entities.size());
-        assertEquals(UPDATED_PROBLEM_NAME, entities.get(0).getConditionTypeId().getName());
+        assertEquals(msg.getProblemName().get(), entities.get(0).getConditionTypeId().getName());
     }
 
 
@@ -290,14 +281,14 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         List<PatientCondition> entities = getAllEntities(patientConditionRepository);
         assertEquals(1, entities.size());
 
-        PatientCondition entity = entities.get(0);
-        assertEquals(PATIENT_MRN, entity.getMrnId().getMrn());
-        assertEquals(BACKACHE_PROBLEM_CODE, entity.getConditionTypeId().getInternalCode());
-        assertEquals(BACKACHE_PROBLEM_NAME, entity.getConditionTypeId().getName());
-        assertEquals(1, entity.getInternalId());
-        assertEquals(Instant.parse("2019-06-02T10:31:05Z"), entity.getAddedDateTime());
-        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), entity.getResolutionDateTime());
-        assertEquals(LocalDate.parse("2019-03-05"), entity.getOnsetDate());
+        PatientCondition condition = entities.get(0);
+        assertEquals(PATIENT_MRN, condition.getMrnId().getMrn());
+        assertEquals(BACKACHE_PROBLEM_CODE, condition.getConditionTypeId().getInternalCode());
+        assertEquals(BACKACHE_PROBLEM_NAME, condition.getConditionTypeId().getName());
+        assertEquals(1, condition.getInternalId());
+        assertEquals(Instant.parse(MYELOMA_ADDED_TIME), condition.getAddedDateTime());
+        assertEquals(Instant.parse(MYELOMA_RESOLVED_TIME), condition.getResolutionDateTime());
+        assertEquals(LocalDate.parse(MYELOMA_ONSET_DATE), condition.getOnsetDate());
     }
 
 
@@ -309,36 +300,12 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @Test
     void testClarityProblemDeletion() throws EmapOperationMessageProcessingException {
 
-        PatientProblem message = hooverDelteMessages.get(0);
+        PatientProblem message = hooverDeleteMessages.get(0);
 
         processSingleMessage(message);
 
         assertDoesNotThrow(() -> processSingleMessage(message));
         assertEquals(0, getAllEntities(patientConditionRepository).size());
-    }
-
-
-    /**
-     * Given ??
-     * When ??
-     * Then ??
-     */
-    @Test
-    void testQueryOrderingMessageProblem() throws EmapOperationMessageProcessingException{
-
-        processSingleMessage(hooverQueryOrderingMessage);
-        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
-
-        assertEquals(PATIENT_MRN, condition.getMrnId().getMrn());
-        assertEquals(BACKACHE_PROBLEM_NAME, condition.getConditionTypeId().getName());
-        assertEquals(BACKACHE_PROBLEM_CODE, condition.getConditionTypeId().getInternalCode());
-        assertEquals(1, condition.getInternalId());
-        assertEquals("1234", condition.getHospitalVisitId().getEncounter());
-        assertEquals("Resolved", condition.getStatus());
-        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), condition.getResolutionDateTime());
-        assertEquals(LocalDate.parse("2019-03-05"), condition.getOnsetDate());
-
-        // TODO: Assert something else
     }
 
 
