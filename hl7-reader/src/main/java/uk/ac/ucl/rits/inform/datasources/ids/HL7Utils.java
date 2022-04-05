@@ -12,6 +12,7 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Hl7InputStreamMessageIterator;
 import ca.uhn.hl7v2.validation.ValidationContext;
 import ca.uhn.hl7v2.validation.impl.ValidationContextFactory;
+import lombok.Getter;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.CustomModelWithDefaultVersion;
 
 import java.io.BufferedInputStream;
@@ -24,12 +25,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.Iterator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utilities for interpreting HL7 messages.
@@ -39,11 +44,6 @@ import java.util.TimeZone;
 public final class HL7Utils {
 
     private static final String LONDON_TIMEZONE = "Europe/London";
-
-    /**
-     * Can't instantiate a util class.
-     */
-    private HL7Utils() {}
 
     /**
      * Our messages don't specify time zone, we are assuming all datetimes are in are local time.
@@ -62,7 +62,6 @@ public final class HL7Utils {
 
         return valueAsCal.toInstant();
     }
-
 
     /**
      * Process date value from HL7.
@@ -157,5 +156,100 @@ public final class HL7Utils {
         Hl7InputStreamMessageIterator hl7iter = new Hl7InputStreamMessageIterator(is, context);
         hl7iter.setIgnoreComments(true);
         return hl7iter;
+    }
+
+    public FileStoreWithMonitoredAccess createMonitoredFileStore(String folderPath) throws IOException {
+        return new FileStoreWithMonitoredAccess(folderPath);
+    }
+
+    public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile>{
+
+        private final List<MonitoredFile> files;
+
+        /**
+         * A repository of file paths that have a particular extension, each of which has an access-count
+         * @param folderPath Path of the folder below which files are searched for. e.g. src/test/resources/
+         */
+        FileStoreWithMonitoredAccess(String folderPath) throws IOException {
+
+            this.files = listFiles(Paths.get(folderPath)).stream()
+                    .map(MonitoredFile::new)
+                    .collect(Collectors.toList());
+        }
+
+        /**
+         * List all the files in the current and child directories
+         * @param path  Directory to search from
+         * @return List of paths
+         * @throws IOException If the walk fails
+         */
+        private List<Path> listFiles(Path path) throws IOException {
+
+            List<Path> result;
+            try (Stream<Path> walk = Files.walk(path)) {
+                result = walk
+                        .filter(Files::isRegularFile)
+                        .collect(Collectors.toList());
+            }
+            return result;
+        }
+
+        /**
+         * Access a filename within the store and increment the access count
+         * @param fileName Name of the file
+         * @return fileName
+         * @throws IOException If the file is not in the store
+         */
+        public String incrementCount(String fileName) throws IOException {
+
+            for (MonitoredFile file : files){
+                if (file.fileNameInPath(fileName)){
+                    file.incrementAccessCount();
+                    return fileName;
+                }
+            }
+
+            throw new IOException("Failed to find "+fileName+" in the list of message files");
+        }
+
+        @Override
+        public Iterator<MonitoredFile> iterator() {
+            return files.iterator();
+        }
+
+        public Stream<MonitoredFile> stream(){
+            return files.stream();
+        }
+    }
+
+    /**
+     * A file for which the access count ins monitored
+     */
+    @Getter
+    public static class MonitoredFile{
+
+        Integer accessCount;
+        Path filePath;
+
+        MonitoredFile(Path filePath){
+            this.filePath = filePath;
+            this.accessCount = 0;
+        }
+
+        public boolean hasBeenAccessed(){
+            return this.accessCount > 0;
+        }
+
+        public void incrementAccessCount(){
+            this.accessCount += 1;
+        }
+
+        public boolean fileNameInPath(String filename){
+            return this.filePath.endsWith(filename);
+        }
+
+        public boolean fileNameEndsWith(String ext){
+            return filePath.toString().endsWith(ext);
+        }
     }
 }
