@@ -10,7 +10,7 @@ import java.time.LocalDate;
 /**
  * Interchange format of a PatientProblem message. In hospital terminology they are referred to as problem lists.
  * <p>
- * PatientProblems are similar to PatientProblems in that they have a start date from which they have been diagnosed
+ * PatientProblems are similar to PatientInfections in that they have a start date from which they have been diagnosed
  * and they can change (be updated or deleted) over time.
  * @author Anika Cawthorn
  */
