@@ -1,6 +1,5 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientInfection"
   sourceSystem: "EPIC"
-  sourceMessageId: "0000000042"
   updatedDateTime: "2020-02-11T10:00:52Z"
   mrn: "40800000"
   infectionCode: "?COVID-19"
