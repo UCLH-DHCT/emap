@@ -63,12 +63,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "VitalSigns/MixedHL7Message.txt",                // TODO: No vital signs?
         "VitalSigns/MultiOBR.txt",
         "VitalSigns/datetime_parsing.txt",
-        "PatientInfection/mumps_no_add_time.txt",        // No yaml
+        "PatientInfection/mumps_no_add_time.txt",        // Message discarded
         "PatientInfection/2019_06_infection.txt",        // No yaml
         "PatientInfection/2019_05_infection.txt",        // No yaml
         "PatientInfection/earlier_infection.txt",        // No yaml
         "PatientInfection/no_infections.txt",            // No yaml
-        "PatientInfection/mumps_resolved.txt",           // No yaml
         "LabOrders/bio_connect/normal_flag.txt",         // No yaml
         "LabOrders/winpath/oru_ro1_numeric.txt",         // No yaml...
         "LabOrders/winpath/isolate_no_growth.txt",
@@ -590,6 +589,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    public void testResolvedPatientInfection() throws Exception {
+        checkPatientInfectionMatchesInterchange("PatientInfection/mumps_resolved.txt", "hl7/mumps_resolved.yaml");
+    }
+
+    @Test
     public void testMultiplePatientInfection() throws Exception {
         checkPatientInfectionMatchesInterchange("PatientInfection/multiple_infections.txt",
                 "hl7/multiple_infections.yaml");
@@ -604,8 +608,8 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     void checkAllFilesHaveBeenAccessed() throws Exception{
 
         if (messageFileStore.stream()
-                .filter(p -> (p.fileNameEndsWith(".txt")))
-                .filter(p -> Arrays.stream(EXCLUDED_MESSAGE_FILES).noneMatch(p::fileNameEndsWith))
+                .filter(f -> (f.fileNameEndsWith(".txt")))
+                .filter(f -> Arrays.stream(EXCLUDED_MESSAGE_FILES).noneMatch(f::fileNameEndsWith))
                 .allMatch(HL7Utils.MonitoredFile::hasBeenAccessed)) {
             return;
         }
