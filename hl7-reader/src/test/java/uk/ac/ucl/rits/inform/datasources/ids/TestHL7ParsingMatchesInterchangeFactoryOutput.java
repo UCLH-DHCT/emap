@@ -59,8 +59,6 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "NotesParser/empty_first_answer.txt",
         "NotesParser/repeat_question.txt",
         "NotesParser/oru_r01_comment.txt",
-        "ConsultRequest/multiple_requests.txt",          // No yaml
-        "AdvanceDecision/multiple_requests.txt",         // No yaml
         "AdvanceDecision/minimal_w_questions.txt",       // No yaml
         "VitalSigns/MixedHL7Message.txt",                // TODO: No vital signs?
         "VitalSigns/MultiOBR.txt",
@@ -299,6 +297,19 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         checkConsultMatchesInterchange("notes");
     }
 
+    @Test
+    void testMultipleConsult() throws Exception{
+
+        // TODO
+        /*
+        List<? extends EmapOperationMessage> messagesFromHl7Message = processSingleMessageAndRemoveAdt(
+                messageFileStore.incrementCount("ConsultRequest/multiple_requests.txt"));
+        ConsultRequest expected = interchangeFactory.getConsult("multiple_requests.yaml");
+        assertEquals(1, messagesFromHl7Message.size());
+        assertEquals(expected, messagesFromHl7Message.get(0));
+         */
+    }
+
     void checkAdvanceDecisionMatchesInterchange(String fileName) throws Exception {
         checkAdvanceDecisionMatchesInterchange("AdvanceDecision/"+fileName+".txt",
                 String.format("%s.yaml", fileName));
@@ -331,6 +342,17 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     @Test
     void testMinimalWithQuestionsAdvanceDecision() throws Exception {
         checkAdvanceDecisionMatchesInterchange("new_with_questions");
+    }
+
+    @Test
+    void testMinimalWithMultipleQuestionsAdvanceDecision() throws Exception {
+        checkAdvanceDecisionMatchesInterchange("minimal_w_questions");
+    }
+
+    @Test
+    void testMultipleAdvanceDecision() throws Exception {
+
+        // processSingleMessage("AdvanceDecision/multiple_requests.txt");
     }
 
     @Test
