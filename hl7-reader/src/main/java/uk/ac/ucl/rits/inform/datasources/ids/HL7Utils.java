@@ -162,13 +162,14 @@ public final class HL7Utils {
         return new FileStoreWithMonitoredAccess(folderPath);
     }
 
-    public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile>{
+    public static class FileStoreWithMonitoredAccess implements Iterable<MonitoredFile> {
 
         private final List<MonitoredFile> files;
 
         /**
-         * A repository of file paths that have a particular extension, each of which has an access-count
+         * A repository of file paths that have a particular extension, each of which has an access-count.
          * @param folderPath Path of the folder below which files are searched for. e.g. src/test/resources/
+         * @throws IOException If the folder path does not exist in the file system
          */
         FileStoreWithMonitoredAccess(String folderPath) throws IOException {
 
@@ -178,7 +179,7 @@ public final class HL7Utils {
         }
 
         /**
-         * List all the files in the current and child directories
+         * List all the files in the current and child directories.
          * @param path  Directory to search from
          * @return List of paths
          * @throws IOException If the walk fails
@@ -195,21 +196,21 @@ public final class HL7Utils {
         }
 
         /**
-         * Access a filename within the store and increment the access count
+         * Access a filename within the store and increment the access count.
          * @param fileName Name of the file
          * @return fileName
          * @throws IOException If the file is not in the store
          */
         public String incrementCount(String fileName) throws IOException {
 
-            for (MonitoredFile file : files){
-                if (file.fileNameInPath(fileName)){
+            for (MonitoredFile file : files) {
+                if (file.fileNameInPath(fileName)) {
                     file.incrementAccessCount();
                     return fileName;
                 }
             }
 
-            throw new IOException("Failed to find "+fileName+" in the list of message files");
+            throw new IOException("Failed to find " + fileName + " in the list of message files");
         }
 
         @Override
@@ -217,38 +218,38 @@ public final class HL7Utils {
             return files.iterator();
         }
 
-        public Stream<MonitoredFile> stream(){
+        public Stream<MonitoredFile> stream() {
             return files.stream();
         }
     }
 
     /**
-     * A file for which the access count ins monitored
+     * A file for which the access count is monitored.
      */
     @Getter
-    public static class MonitoredFile{
+    public static class MonitoredFile {
 
-        Integer accessCount;
-        Path filePath;
+        private Integer accessCount;
+        private final Path filePath;
 
-        MonitoredFile(Path filePath){
+        MonitoredFile(Path filePath) {
             this.filePath = filePath;
             this.accessCount = 0;
         }
 
-        public boolean hasBeenAccessed(){
+        public boolean hasBeenAccessed() {
             return this.accessCount > 0;
         }
 
-        public void incrementAccessCount(){
+        public void incrementAccessCount() {
             this.accessCount += 1;
         }
 
-        public boolean fileNameInPath(String filename){
+        public boolean fileNameInPath(String filename) {
             return this.filePath.endsWith(filename);
         }
 
-        public boolean fileNameEndsWith(String ext){
+        public boolean fileNameEndsWith(String ext) {
             return filePath.toString().endsWith(ext);
         }
     }
