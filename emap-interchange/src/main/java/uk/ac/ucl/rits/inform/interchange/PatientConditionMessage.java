@@ -84,7 +84,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     public abstract void processMessage(EmapOperationMessageProcessor processor)
             throws EmapOperationMessageProcessingException;
 
-    public boolean statusIsActive(){
+    public boolean statusIsActive() {
         return status.equals("ACTIVE");
     }
 }
