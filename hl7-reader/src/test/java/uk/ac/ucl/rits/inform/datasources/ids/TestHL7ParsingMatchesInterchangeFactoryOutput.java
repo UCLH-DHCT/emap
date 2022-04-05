@@ -65,9 +65,7 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         "VitalSigns/MixedHL7Message.txt",                // TODO: No vital signs?
         "VitalSigns/MultiOBR.txt",
         "VitalSigns/datetime_parsing.txt",
-        "PatientInfection/multiple_infections.txt",      // No yaml
         "PatientInfection/mumps_no_add_time.txt",        // No yaml
-        "PatientInfection/a05.txt",                      // No yaml
         "PatientInfection/2019_06_infection.txt",        // No yaml
         "PatientInfection/2019_05_infection.txt",        // No yaml
         "PatientInfection/earlier_infection.txt",        // No yaml
@@ -552,14 +550,27 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
         Assertions.assertEquals(expectedAdt, messageFromHl7);
     }
 
-    @Test
-    public void testPatientInfection() throws Exception {
-        EmapOperationMessage messageFromHl7 = processSingleMessage("PatientInfection/a05.txt")
+    public void checkPatientInfectionMatchesInterchange(String txtFileName, String yamlFileName) throws Exception {
+        List<EmapOperationMessage> messagesFromHl7 = processSingleMessage(messageFileStore.incrementCount(txtFileName))
                 .stream()
-                .filter(msg -> msg instanceof PatientInfection)
-                .findFirst().orElseThrow();
-        PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
-        Assertions.assertEquals(expected, messageFromHl7);
+                .filter(msg -> msg instanceof PatientInfection).collect(Collectors.toList());
+
+        List<PatientInfection> expectedMessages = interchangeFactory.getPatientInfections(yamlFileName);
+
+        for (int i = 0; i < Math.max(messagesFromHl7.size(), expectedMessages.size()); i++){
+            Assertions.assertEquals(expectedMessages.get(i), messagesFromHl7.get(i));
+        }
+    }
+
+    @Test
+    public void testMinimalPatientInfection() throws Exception {
+        checkPatientInfectionMatchesInterchange("PatientInfection/a05.txt", "hl7/minimal_mumps.yaml");
+    }
+
+    @Test
+    public void testMultiplePatientInfection() throws Exception {
+        checkPatientInfectionMatchesInterchange("PatientInfection/multiple_infections.txt",
+                "hl7/multiple_infections.yaml");
     }
 
     /**
