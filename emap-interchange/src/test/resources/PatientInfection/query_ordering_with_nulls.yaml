@@ -84,10 +84,7 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: 2
-  status:
-    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
-    status: "SAVE"
-    value: "Deleted"
+  status: "Deleted"
   infectionAdded: "2019-06-08T02:05:49Z"
   infectionResolved:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
