@@ -70,7 +70,7 @@ public class PatientConditionController {
 
 
     /**
-     * Process patient problem message, which includes a single problem (subtype of condition) and an associated
+     * Process patient problem message, which includes a single problem (subtype of condition) and an associated.
      * status and optional severity
      * @param msg        message
      * @param mrn        patient id
