@@ -47,6 +47,8 @@ These setup instructions are aimed at developing in IntelliJ IDEA, but hopefully
 
       ![reload](img/reload_maven.png)
     
+    - You may also need to run `Generate Sources and Update Folders For All Projects` 
+
 # How to deploy a live version
 
 How to deploy an instance of Emap on the ULCH GAE, to be run on real patient data. 
@@ -158,6 +160,7 @@ RABBITMQ_ADMIN_PORT=15972
 FAKEUDS_PORT=5433
 ```
 
+> **_NOTE:_** All of: `Emap-Core`, `Emap-Interchange`, `Inform-DB`, `DatabaseFiller`, `emap-hl7-processor` and `hoover` need to be cloned. 
 
 ### Example
 
