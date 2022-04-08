@@ -1,5 +1,4 @@
 import os
-import sys
 import argparse
 
 from emap_setup.code_setup.read_config import ReadConfig
@@ -43,8 +42,13 @@ def define_arguments():
     )
     group = parser.add_argument_group()
     group.add_argument('setup',
+                       default=None,
                        help='Initialise/update repository directories',
                        nargs='?')
+    group.add_argument('-f', '--filename',
+                       help='Path to the .yaml file containing the global '
+                            'configuration',
+                       default='global-configuration.yaml')
     group1 = group.add_mutually_exclusive_group()
     group1.add_argument('-i', '--init',
                         help='clone repositories and create config dir',
@@ -57,6 +61,7 @@ def define_arguments():
     # place holder for second group relating to docker
     group2 = parser.add_argument_group()
     group2.add_argument('docker',
+                        default=None,
                         help='something',
                         nargs='?')
     group3 = group2.add_mutually_exclusive_group()
@@ -71,27 +76,28 @@ def define_arguments():
     return parser
 
 
-def main(args):
+def main():
     parser = define_arguments()
     args = parser.parse_args()
 
-    # set up main variables
-    main_dir = os.getcwd()
-    filename = os.path.join(main_dir, '..', 'emap-setup',
-                            'global-configuration.yaml')
-    if os.path.exists(filename):
-        config_file = ReadConfig(filename)
+    if os.path.exists(args.filename):
+        config_file = ReadConfig(args.filename)
     else:
-        print(f'configuration file {filename} not found')
+        print(f'Configuration file *{args.filename}* not found')
         exit(1)
     print(args.init)
 
+    print(args)
+
     if args.setup:
-        create_or_update_repositories(main_dir, config_file, args.init)
-        create_or_update_config_dir(main_dir, config_file)
+        create_or_update_repositories(os.getcwd(), config_file, args.init)
+        create_or_update_config_dir(os.getcwd(), config_file)
+
+    if args.docker:
+        raise NotImplementedError
 
     print("All done")
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

@@ -35,11 +35,10 @@ config:
       branch:  develop
     Emap-Interchange:
       branch:  develop
-    InformDB:
+    Inform-DB:
       branch:  develop
-#    hl7-vitals:
-#      branch:  vitalsigns
-#      repo_name: Emap-Core
+    DatabaseFiller:
+      branch: develop
 
   # Configuration data for the rabbitmq instance used by Spring in the pipeline
 
