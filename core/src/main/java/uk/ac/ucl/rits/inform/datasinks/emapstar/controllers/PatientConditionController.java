@@ -66,7 +66,6 @@ public class PatientConditionController {
         this.patientConditionAuditRepo = patientConditionAuditRepo;
     }
 
-
     /**
      * Process patient problem message, which includes a single problem (subtype of condition) and an associated.
      * status and optional severity
@@ -83,11 +82,7 @@ public class PatientConditionController {
                 PatientConditionType.PROBLEM_LIST, msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom
         );
         cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
-                msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
-
-        if (msg.getUpdatedDateTime().isAfter(conditionType.getEntity().getValidFrom())) {
-            updateConditionName(conditionType.getEntity(), msg.getConditionName());
-        }
+                msg.getConditionCode(), msg.getUpdatedDateTime());
 
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientProblem(msg, mrn,
                 conditionType.getEntity(), storedFrom);
@@ -115,18 +110,6 @@ public class PatientConditionController {
                 storedFrom));
         logger.debug("Deleting PatientCondition: {}", patientCondition);
         patientConditionRepo.delete(patientCondition.getEntity());
-    }
-
-    /**
-     * Update the name of a condition if it is defined.
-     * @param conditionType Specific type of condition with an internal code
-     * @param conditionName Human-readable name of the condition
-     */
-    private void updateConditionName(ConditionType conditionType, InterchangeValue<String> conditionName) {
-
-        if (conditionName.isSave()) {
-            conditionType.setName(conditionName.get());
-        }
     }
 
     /**
@@ -162,7 +145,7 @@ public class PatientConditionController {
         );
 
         cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PATIENT_INFECTION,
-                msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
+                msg.getConditionCode(), msg.getUpdatedDateTime());
 
         deletePreviousInfectionOrClearInfectionTypesCache(msg, storedFrom);
 
@@ -357,7 +340,7 @@ class PatientConditionCache {
      * @param conditionCode   EPIC code for the condition within the type
      * @param updatedDateTime when the condition information is valid from
      * @param storedFrom      when the condition information had been started to be processed by emap
-     * @return persisted ConditionType
+     * @return new ConditionType
      */
     @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
     public ConditionType createNewType(
@@ -391,18 +374,19 @@ class PatientConditionCache {
      * @param type          used as the key for the cache
      * @param conditionCode used as the key for the cache
      * @param validFrom     when the condition information is valid from
-     * @param storedFrom    when the condition information had been started to be processed by emap
      */
     @CacheEvict(value = "conditionType", key = "{#type, #conditionCode}")
     public void updateNameAndClearFromCache(
             RowState<ConditionType, ConditionTypeAudit> typeState,
             InterchangeValue<String> name, PatientConditionController.PatientConditionType type,
-            String conditionCode, Instant validFrom, Instant storedFrom) {
+            String conditionCode, Instant validFrom) {
 
         ConditionType typeEntity = typeState.getEntity();
-        typeState.assignIfCurrentlyNullOrNewerAndDifferent(name, typeEntity.getName(), typeEntity::setName, validFrom, storedFrom);
-        typeState.saveEntityOrAuditLogIfRequired(conditionTypeRepo, conditionTypeAuditRepo);
 
+        typeState.assignIfCurrentlyNullOrNewerAndDifferent(name, typeEntity.getName(), typeEntity::setName, validFrom,
+                typeEntity.getValidFrom());
+
+        typeState.saveEntityOrAuditLogIfRequired(conditionTypeRepo, conditionTypeAuditRepo);
     }
 
 }
