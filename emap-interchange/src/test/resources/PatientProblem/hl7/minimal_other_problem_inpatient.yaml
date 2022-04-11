@@ -6,11 +6,11 @@
     value: "11144333"
   updatedDateTime: "2019-06-07T11:33:00Z"
   mrn: "8DcEwvqa8Q3"
-  problemCode: "Z84.8"
-  problemName:
+  conditionCode: "Z84.8"
+  conditionName:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Family history of other specified conditions"
-  problemAdded: "2019-06-02T10:32:05Z"
+  addedTime: "2019-06-02T10:32:05Z"
   action: "AD"
   status: "ACTIVE"
