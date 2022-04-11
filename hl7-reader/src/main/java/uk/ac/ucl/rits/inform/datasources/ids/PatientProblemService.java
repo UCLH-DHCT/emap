@@ -76,11 +76,11 @@ public class PatientProblemService {
         patientProblem.setMrn(patientInfo.getMrn());
         // problem list specific information
         patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getActionDateTime()));
-        patientProblem.setProblemCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
-        patientProblem.setProblemAdded(HL7Utils.interpretLocalTime(problemSegment.getPrb7_ProblemEstablishedDateTime()));
-        patientProblem.setProblemOnset(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemSegment.getPrb16_ProblemDateOfOnset())));
+        patientProblem.setConditionCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
+        patientProblem.setAddedTime(HL7Utils.interpretLocalTime(problemSegment.getPrb7_ProblemEstablishedDateTime()));
+        patientProblem.setOnsetTime(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemSegment.getPrb16_ProblemDateOfOnset())));
         Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getActualProblemResolutionDateTime());
-        patientProblem.setProblemResolved(InterchangeValue.buildFromHl7(problemResolved));
+        patientProblem.setResolvedTime(InterchangeValue.buildFromHl7(problemResolved));
         return patientProblem;
     }
 
@@ -90,13 +90,13 @@ public class PatientProblemService {
      * @param problems       List of problems to which additional problem might be added
      */
     private void addNewProblemAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
-        Instant problemAdded = patientProblem.getProblemAdded();
+        Instant problemAdded = patientProblem.getAddedTime();
         if (problemAdded == null || problemAdded.isBefore(problemListProgress)) {
             logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}",
                     problemAdded, problemListProgress);
             return;
         }
         problems.add(patientProblem);
-        problemListProgress = patientProblem.getProblemAdded();
+        problemListProgress = patientProblem.getAddedTime();
     }
 }

@@ -72,10 +72,10 @@ public class TestProblemLists extends TestHl7MessageStream {
         PatientProblem problem = problems.get(0);
         assertEquals(MRN, problem.getMrn());
         assertEquals(EPIC, problem.getSourceSystem());
-        assertEquals(PROBLEM_CODE, problem.getProblemCode());
-        assertEquals(PROBLEM_ADDED, problem.getProblemAdded());
+        assertEquals(PROBLEM_CODE, problem.getConditionCode());
+        assertEquals(PROBLEM_ADDED, problem.getAddedTime());
         assertEquals(PROBLEM_UPDATE, problem.getUpdatedDateTime());
-        assertEquals(InterchangeValue.buildFromHl7(null), problem.getProblemResolved());
+        assertEquals(InterchangeValue.buildFromHl7(null), problem.getResolvedTime());
     }
 
     /**
@@ -89,7 +89,7 @@ public class TestProblemLists extends TestHl7MessageStream {
         List<PatientProblem> problems = getAllProblems("problem_list_resolved");
         assertEquals(1, problems.size());
         PatientProblem problem = problems.get(0);
-        assertEquals(InterchangeValue.buildFromHl7(PROBLEM_UPDATE), problem.getProblemResolved());
+        assertEquals(InterchangeValue.buildFromHl7(PROBLEM_UPDATE), problem.getResolvedTime());
     }
 
     /**

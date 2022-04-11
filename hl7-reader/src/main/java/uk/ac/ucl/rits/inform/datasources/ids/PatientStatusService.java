@@ -67,20 +67,20 @@ public class PatientStatusService {
         patientInfection.setMrn(patientInfo.getMrn());
         patientInfection.setUpdatedDateTime(HL7Utils.interpretLocalTime(evn.getEvn2_RecordedDateTime()));
         // patient infection information
-        patientInfection.setInfectionCode(infectionSegment.getInfection1Name().getValueOrEmpty());
-        patientInfection.setInfectionAdded(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
+        patientInfection.setConditionCode(infectionSegment.getInfection1Name().getValueOrEmpty());
+        patientInfection.setAddedTime(HL7Utils.interpretLocalTime(infectionSegment.getInfection2AddedDateTime()));
         Instant infectionResolved = HL7Utils.interpretLocalTime(infectionSegment.getInfection3ResolvedDateTime());
-        patientInfection.setInfectionResolved(InterchangeValue.buildFromHl7(infectionResolved));
+        patientInfection.setResolvedTime(InterchangeValue.buildFromHl7(infectionResolved));
         return patientInfection;
     }
 
     private void addNewInfectionAndUpdateProgress(PatientInfection patientInfection, Collection<PatientInfection> infections) {
-        Instant infectionAdded = patientInfection.getInfectionAdded();
+        Instant infectionAdded = patientInfection.getAddedTime();
         if (infectionAdded == null || infectionAdded.isBefore(infectionProgress)) {
             logger.debug("Infection processing skipped as current infection added is {} and progress is {}", infectionAdded, infectionProgress);
             return;
         }
         infections.add(patientInfection);
-        infectionProgress = patientInfection.getInfectionAdded();
+        infectionProgress = patientInfection.getAddedTime();
     }
 }
