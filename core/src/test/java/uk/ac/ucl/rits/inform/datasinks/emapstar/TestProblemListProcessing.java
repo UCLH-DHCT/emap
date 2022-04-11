@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -114,14 +115,6 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
         PatientCondition entity = entities.get(0);
         assertNotNull(entity.getHospitalVisitId());
-
-        // assertEquals(11144333L, entity.getHospitalVisitId().getHospitalVisitId());
-
-        assertEquals(PATIENT_MRN, entity.getMrnId().getMrn());
-        assertEquals(Instant.parse(MYELOMA_ADDED_TIME), entity.getAddedDateTime());
-        assertEquals("ACTIVE", entity.getStatus());
-        assertEquals(MYELOMA_PROBLEM_NAME, entity.getConditionTypeId().getName());
-        assertEquals(MYELOMA_PROBLEM_CODE, entity.getConditionTypeId().getInternalCode());
     }
 
 
@@ -201,12 +194,15 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         assertNull(getAllEntities(patientConditionRepository).get(0).getResolutionDateTime());
+        assertEquals(0, getAllEntities(patientConditionAuditRepository).size());
+
 
         hl7MyelomaInpatient.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.SECONDS));
         hl7MyelomaInpatient.setResolvedTime(InterchangeValue.buildFromHl7(Instant.now()));
         processSingleMessage(hl7MyelomaInpatient);
 
         assertNotNull(getAllEntities(patientConditionRepository).get(0).getResolutionDateTime());
+        assertEquals(1, getAllEntities(patientConditionAuditRepository).size());
     }
 
 
@@ -226,6 +222,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         assertEquals(getAllEntities(patientConditionRepository).size(), 0);
+        assertEquals(1, getAllEntities(patientConditionAuditRepository).size());
     }
 
 
@@ -260,11 +257,35 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientProblem msg = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(1);
+        assertTrue(msg.getUpdatedDateTime().isAfter(hl7MyelomaInpatient.getUpdatedDateTime()));
         processSingleMessage(msg);
 
         List<PatientCondition> entities = getAllEntities(patientConditionRepository);
         assertEquals(1, entities.size());
-        assertEquals(msg.getProblemName().get(), entities.get(0).getConditionTypeId().getName());
+
+        PatientCondition condition = entities.get(0);
+        assertEquals(msg.getProblemName().get(), condition.getConditionTypeId().getName());
+        assertEquals(msg.getUpdatedDateTime(), condition.getValidFrom());
+    }
+
+
+    /**
+     * Given that a problem list exists for a patient
+     * When a new problem list arrives with the same code but a different name
+     * Then a new problem is not added and only the problem name is updated
+     */
+    @Test
+    void testProblemNameNoUpdateOlderMessage() throws EmapOperationMessageProcessingException, IOException {
+
+        processSingleMessage(hl7MyelomaInpatient);
+
+        PatientProblem msg = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(1);
+        msg.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().minus(1, ChronoUnit.MINUTES));
+        processSingleMessage(msg);
+
+        List<PatientCondition> entities = getAllEntities(patientConditionRepository);
+        assertEquals(1, entities.size());
+        assertEquals(hl7MyelomaInpatient.getProblemName().get(), entities.get(0).getConditionTypeId().getName());
     }
 
 
@@ -300,12 +321,20 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @Test
     void testClarityProblemDeletion() throws EmapOperationMessageProcessingException {
 
-        PatientProblem message = hooverDeleteMessages.get(0);
-
-        processSingleMessage(message);
-
-        assertDoesNotThrow(() -> processSingleMessage(message));
+        processSingleMessage(hooverDeleteMessages.get(0));
         assertEquals(0, getAllEntities(patientConditionRepository).size());
+    }
+
+
+    PatientCondition conditionMyelomaInpatientwithSatus(String status) throws EmapOperationMessageProcessingException {
+
+        hl7MyelomaInpatient.setAction(status);
+        processSingleMessage(hl7MyelomaInpatient);
+
+        PatientCondition condition = getAllEntities(patientConditionRepository).get(0);
+        patientConditionRepository.deleteAll();
+        conditionTypeRepository.deleteAll();
+        return condition;
     }
 
 
@@ -317,18 +346,8 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @Test
     void testSameStateObtainedForUpAndAdActions() throws EmapOperationMessageProcessingException {
 
-        hl7MyelomaInpatient.setAction("UP");
-        processSingleMessage(hl7MyelomaInpatient);
-
-        PatientCondition conditionFromUp = getAllEntities(patientConditionRepository).get(0);
-
-        patientConditionRepository.deleteAll();
-        conditionTypeRepository.deleteAll();
-
-        hl7MyelomaInpatient.setAction("AD");
-        processSingleMessage(hl7MyelomaInpatient);
-
-        PatientCondition conditionFromAd = getAllEntities(patientConditionRepository).get(0);
+        PatientCondition conditionFromUp = conditionMyelomaInpatientwithSatus("UP");
+        PatientCondition conditionFromAd = conditionMyelomaInpatientwithSatus("AD");
 
         assertEquals(conditionFromAd.getInternalId(), conditionFromUp.getInternalId());
         assertEquals(conditionFromAd.getAddedDateTime(), conditionFromUp.getAddedDateTime());
