@@ -46,7 +46,6 @@ public class PatientConditionController {
     @Resource
     private PatientConditionCache cache;
 
-
     /**
      * Types of patient conditions.
      *      PATIENT_INFECTION = Infection banner for infection control
@@ -56,7 +55,6 @@ public class PatientConditionController {
         PATIENT_INFECTION,
         PROBLEM_LIST
     }
-
 
     /**
      * @param patientConditionRepo      autowired PatientConditionRepository
@@ -87,7 +85,9 @@ public class PatientConditionController {
         cache.updateNameAndClearFromCache(conditionType, msg.getConditionName(), PatientConditionType.PROBLEM_LIST,
                 msg.getConditionCode(), msg.getUpdatedDateTime(), storedFrom);
 
-        updateConditionName(conditionType.getEntity(), msg.getConditionName());
+        if (msg.getUpdatedDateTime().isAfter(conditionType.getEntity().getValidFrom())) {
+            updateConditionName(conditionType.getEntity(), msg.getConditionName());
+        }
 
         RowState<PatientCondition, PatientConditionAudit> patientCondition = getOrCreatePatientProblem(msg, mrn,
                 conditionType.getEntity(), storedFrom);
@@ -99,13 +99,17 @@ public class PatientConditionController {
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
 
         if (msg.getAction().equals("DE") && msg.statusIsActive()) {
-            patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
-                    storedFrom));
-            logger.debug("Deleting PatientCondition: {}", patientCondition);
-            patientConditionRepo.delete(patientCondition.getEntity());
+            deleteConditionAndAudit(patientCondition, msg, storedFrom);
         }
     }
 
+    private void deleteConditionAndAudit(RowState<PatientCondition, PatientConditionAudit> patientCondition,
+                                         PatientProblem msg, final Instant storedFrom){
+        patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
+                storedFrom));
+        logger.debug("Deleting PatientCondition: {}", patientCondition);
+        patientConditionRepo.delete(patientCondition.getEntity());
+    }
 
     /**
      * Update the name of a condition if it is defined.
@@ -167,7 +171,6 @@ public class PatientConditionController {
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
     }
 
-
     /**
      * We can't trust patient infections from HL7 as no ID, so delete these if the infection ID is known.
      * If processing HL7 then clear the cache of infection types so that new types will be updated if added from hl7.
@@ -201,7 +204,6 @@ public class PatientConditionController {
             patientConditionRepo.delete(hl7Infection);
         }
     }
-
 
     /**
      * Get or create existing patient condition entity.
@@ -240,7 +242,6 @@ public class PatientConditionController {
                         msg.getAddedTime(), msg.getUpdatedDateTime(), storedFrom));
     }
 
-
     /**
      * Get or create existing patient condition entity.
      * @param msg           patient infection message
@@ -270,7 +271,6 @@ public class PatientConditionController {
                 .orElseGet(() -> createMinimalPatientCondition(finalEpicId, mrn, conditionType, addedTime,
                         updatedTime, storedFrom));
     }
-
 
     /**
      * Create minimal patient condition wrapped in RowState.
@@ -309,6 +309,7 @@ public class PatientConditionController {
             PatientConditionAudit> conditionState) {
 
         PatientCondition condition = conditionState.getEntity();
+        conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);

@@ -53,7 +53,8 @@ public class PatientStateProcessor {
             throws EmapOperationMessageProcessingException {
 
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
-        patientConditionController.processMessage(msg, mrn, getOrCreateHospitalVisit(msg, mrn, storedFrom), storedFrom);
+        HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
+        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
     }
 
 
@@ -68,7 +69,8 @@ public class PatientStateProcessor {
             throws EmapOperationMessageProcessingException {
 
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
-        patientConditionController.processMessage(msg, mrn, getOrCreateHospitalVisit(msg, mrn, storedFrom), storedFrom);
+        HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
+        patientConditionController.processMessage(msg, mrn, visit, storedFrom);
     }
 
 
