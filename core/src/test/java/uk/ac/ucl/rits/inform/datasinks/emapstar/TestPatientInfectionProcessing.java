@@ -72,15 +72,15 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         LocalDate olderOnsetDate = LocalDate.parse("2019-01-01");
 
         PatientInfection olderMessage = new PatientInfection();
-        olderMessage.setInfectionAdded(hooverMumps.getInfectionAdded());
-        olderMessage.setEpicInfectionId(InterchangeValue.buildFromHl7(1L));
+        olderMessage.setAddedTime(hooverMumps.getAddedTime());
+        olderMessage.setEpicConditionId(InterchangeValue.buildFromHl7(1L));
         olderMessage.setSourceSystem(hooverMumps.getSourceSystem());
         olderMessage.setMrn(MUMPS_MRN);
-        olderMessage.setInfectionCode(MUMPS_INFECTION);
-        olderMessage.setInfectionName(InterchangeValue.buildFromHl7(MUMPS_INFECTION));
+        olderMessage.setConditionCode(MUMPS_INFECTION);
+        olderMessage.setConditionName(InterchangeValue.buildFromHl7(MUMPS_INFECTION));
         olderMessage.setUpdatedDateTime(HL7_UPDATE_TIME.minus(20, ChronoUnit.DAYS));
-        olderMessage.setInfectionResolved(InterchangeValue.buildFromHl7(olderResolvedTime));
-        olderMessage.setInfectionOnset(InterchangeValue.buildFromHl7(olderOnsetDate));
+        olderMessage.setResolvedTime(InterchangeValue.buildFromHl7(olderResolvedTime));
+        olderMessage.setOnsetTime(InterchangeValue.buildFromHl7(olderOnsetDate));
         processSingleMessage(olderMessage);
     }
 
@@ -169,7 +169,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Test
     void testPatientInfectionWithResolveTime() throws EmapOperationMessageProcessingException {
         Instant resolveTime = MUMPS_ADD_TIME.plus(21, ChronoUnit.DAYS);
-        hl7Mumps.setInfectionResolved(InterchangeValue.buildFromHl7(resolveTime));
+        hl7Mumps.setResolvedTime(InterchangeValue.buildFromHl7(resolveTime));
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
@@ -230,7 +230,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
      */
     @Test
     void testMissingInternalIdFromHooverThrows() {
-        hooverMumps.setEpicInfectionId(InterchangeValue.unknown());
+        hooverMumps.setEpicConditionId(InterchangeValue.unknown());
         assertThrows(RequiredDataMissingException.class, () -> processSingleMessage(hooverMumps));
     }
 
@@ -290,8 +290,8 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     @Test
     void testUnrelatedHl7InfectionDeletedAndAudited() throws EmapOperationMessageProcessingException {
         String anotherInfection = "COVID";
-        hl7Mumps.setInfectionCode(anotherInfection);
-        hl7Mumps.setInfectionName(InterchangeValue.buildFromHl7(anotherInfection));
+        hl7Mumps.setConditionCode(anotherInfection);
+        hl7Mumps.setConditionName(InterchangeValue.buildFromHl7(anotherInfection));
         processSingleMessage(hl7Mumps);
         PatientCondition hl7Infection = patientConditionRepository
                 .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
@@ -353,7 +353,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
      */
     @Test
     void testInfectionWithNoAddedDateTimeIsParsed() throws EmapOperationMessageProcessingException {
-        hl7Mumps.setInfectionAdded(null);
+        hl7Mumps.setAddedTime(null);
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository

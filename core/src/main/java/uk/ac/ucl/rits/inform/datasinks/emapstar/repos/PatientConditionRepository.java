@@ -46,5 +46,7 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
             String mrn, String internalCode, Instant addedDateTime
     );
 
+    Optional<PatientCondition> findByMrnIdMrn(String mrn);
+
     Optional<PatientCondition> findByConditionTypeIdAndInternalId(ConditionType conditionType, Long internalId);
 }
