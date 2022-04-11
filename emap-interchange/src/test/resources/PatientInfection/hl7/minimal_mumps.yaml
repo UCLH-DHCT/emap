@@ -2,5 +2,5 @@
   sourceSystem: "EPIC"
   updatedDateTime: "2019-06-07T11:32:00Z"
   mrn: "8DcEwvqa8Q3"
-  infectionCode: "Mumps"
-  infectionAdded: "2019-06-02T10:31:05Z"
+  conditionCode: "Mumps"
+  addedTime: "2019-06-02T10:31:05Z"
