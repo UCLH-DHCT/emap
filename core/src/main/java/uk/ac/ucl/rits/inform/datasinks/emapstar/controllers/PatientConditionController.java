@@ -103,8 +103,14 @@ public class PatientConditionController {
         }
     }
 
+    /**
+     * Delete a condition from the repository and save the change in the audit log.
+     * @param patientCondition Patient condition
+     * @param msg              Message
+     * @param storedFrom       Valid from in database
+     */
     private void deleteConditionAndAudit(RowState<PatientCondition, PatientConditionAudit> patientCondition,
-                                         PatientProblem msg, final Instant storedFrom){
+                                         PatientProblem msg, final Instant storedFrom) {
         patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
                 storedFrom));
         logger.debug("Deleting PatientCondition: {}", patientCondition);
@@ -238,8 +244,8 @@ public class PatientConditionController {
 
         return patientCondition
                 .map(obs -> new RowState<>(obs, msg.getUpdatedDateTime(), storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(epicInfectionId, mrn, conditionType,
-                        msg.getAddedTime(), msg.getUpdatedDateTime(), storedFrom));
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, msg.getAddedTime(),
+                        msg.getUpdatedDateTime(), storedFrom));
     }
 
     /**
@@ -259,22 +265,13 @@ public class PatientConditionController {
         Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
                 mrn, conditionType, addedTime);
 
-        Long epicId = null;
-
-        if (msg.getEpicConditionId().isSave()) {
-            epicId = msg.getEpicConditionId().get();
-        }
-
-        final Long finalEpicId = epicId;
         return patientCondition
                 .map(obs -> new RowState<>(obs, updatedTime, storedFrom, false))
-                .orElseGet(() -> createMinimalPatientCondition(finalEpicId, mrn, conditionType, addedTime,
-                        updatedTime, storedFrom));
+                .orElseGet(() -> createMinimalPatientCondition(mrn, conditionType, addedTime, updatedTime, storedFrom));
     }
 
     /**
      * Create minimal patient condition wrapped in RowState.
-     * @param epicId         ID in EPIC for this condition
      * @param mrn            patient identifier
      * @param conditionType  condition type
      * @param conditionAdded condition added at
@@ -283,9 +280,9 @@ public class PatientConditionController {
      * @return minimal patient condition wrapped in RowState
      */
     private RowState<PatientCondition, PatientConditionAudit> createMinimalPatientCondition(
-            Long epicId, Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
+            Mrn mrn, ConditionType conditionType, Instant conditionAdded, Instant validFrom, Instant storedFrom) {
 
-        PatientCondition patientCondition = new PatientCondition(epicId, conditionType, mrn, conditionAdded);
+        PatientCondition patientCondition = new PatientCondition(conditionType, mrn, conditionAdded);
         return new RowState<>(patientCondition, validFrom, storedFrom, true);
     }
 
@@ -309,6 +306,7 @@ public class PatientConditionController {
             PatientConditionAudit> conditionState) {
 
         PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(msg.getEpicConditionId(), condition.getInternalId(), condition::setInternalId);
         conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
