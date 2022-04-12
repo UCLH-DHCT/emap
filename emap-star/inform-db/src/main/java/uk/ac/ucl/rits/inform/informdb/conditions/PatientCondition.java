@@ -36,7 +36,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Unique identifier in EMAP for this patientCondition record.
-     *
+     * <p>
      * This is the primary key for the patientCondition table.
      */
     @Id
@@ -45,7 +45,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Identifier for the ConditionType associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the patientCondition table to the ConditionType table.
      */
     @ManyToOne
@@ -59,7 +59,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Identifier for the Mrn associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the patientCondition table to the Mrn table.
      */
     @ManyToOne
@@ -68,7 +68,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Identifier for the HospitalVisit associated with this record.
-     *
+     * <p>
      * This is a foreign key that joins the patientCondition table to the HospitalVisit table.
      */
     @ManyToOne
@@ -99,15 +99,20 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
 
     /**
      * \brief Status of patientCondition.
-     *
+     * <p>
      * Is this active, resolved, expired etc.
      */
     private String status;
 
     /**
-     * \brief Problem priority.
+     * \brief condition priority.
      */
     private String priority;
+
+    /**
+     * \brief Is this condition deleted.
+     */
+    private Boolean isDeleted = false;
 
     /**
      * \brief Comments added by clinician.
@@ -147,6 +152,7 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
         status = other.status;
         priority = other.priority;
         comment = other.comment;
+        isDeleted = other.isDeleted;
     }
 
     @Override
@@ -159,4 +165,3 @@ public class PatientCondition extends TemporalCore<PatientCondition, PatientCond
         return new PatientConditionAudit(this, validUntil, storedUntil);
     }
 }
-
