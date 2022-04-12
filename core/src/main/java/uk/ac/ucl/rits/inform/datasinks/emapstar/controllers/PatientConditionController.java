@@ -22,6 +22,8 @@ import uk.ac.ucl.rits.inform.interchange.PatientConditionMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
+import uk.ac.ucl.rits.inform.interchange.ConditionAction;
+import uk.ac.ucl.rits.inform.interchange.ConditionStatus;
 
 import javax.annotation.Resource;
 import java.time.Instant;
@@ -93,7 +95,7 @@ public class PatientConditionController {
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
 
-        if (msg.getAction().equals("DE") && msg.statusIsActive()) {
+        if (msg.getAction().equals(ConditionAction.DE) && msg.getStatus().equals(ConditionStatus.ACTIVE)) {
             deleteConditionAndAudit(patientCondition, msg, storedFrom);
         }
     }
@@ -154,7 +156,7 @@ public class PatientConditionController {
         );
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
-            updatePatientCondition(msg, visit, patientCondition);
+            updatePatientInfection(msg, visit, patientCondition);
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
@@ -280,8 +282,8 @@ public class PatientConditionController {
     }
 
     /**
-     * Update patient condition from patient infection message.
-     * @param msg            patient infection message
+     * Update patient condition from patient condition message.
+     * @param msg            patient condition message
      * @param visit          hospital visit
      * @param conditionState patient condition entity to update
      */
@@ -292,11 +294,25 @@ public class PatientConditionController {
         conditionState.assignInterchangeValue(msg.getEpicConditionId(), condition.getInternalId(), condition::setInternalId);
         conditionState.assignIfDifferent(msg.getUpdatedDateTime(), condition.getValidFrom(), condition::setValidFrom);
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
-        conditionState.assignIfDifferent(msg.getStatus(), condition.getStatus(), condition::setStatus);
-        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
+        conditionState.assignIfDifferent(msg.getStatusString(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(
                 msg.getResolvedTime(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
+    }
+
+    /**
+     * Update specific patient infection attributes from patient infection message.
+     * @param msg            patient infection message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientInfection(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState){
+
+        updatePatientCondition(msg, visit, conditionState);
+
+        PatientCondition condition = conditionState.getEntity();
+        conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
     }
 
 }
