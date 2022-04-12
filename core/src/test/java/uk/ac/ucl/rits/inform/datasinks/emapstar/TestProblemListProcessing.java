@@ -25,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +50,14 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
     private List<PatientProblem> hooverDeleteMessages;
     private List<PatientProblem> hooverAddThenDeleteMessages;
+    private List<PatientProblem> hooverMyelomaDeleteThenAdd;
 
     private PatientProblem hl7MyelomaInpatient;
     private PatientProblem hl7OtherProblemInpatient;
     private PatientProblem hl7MyelomaOutpatient;
     private PatientProblem hl7MyelomaAdd;
-    private PatientProblem clarityMyelomaAdd;
+    private PatientProblem hooverMyelomaAdd;
+
 
     private static final String MYELOMA_PROBLEM_NAME = "Multiple Myeloma";
     private static final String MYELOMA_PROBLEM_CODE = "C90.0";
@@ -70,7 +73,8 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         hl7OtherProblemInpatient =  messageFactory.getPatientProblems("hl7/minimal_other_problem_inpatient.yaml").get(0);
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
         hl7MyelomaAdd = messageFactory.getPatientProblems("hl7/myeloma_add.yaml").get(0);
-        clarityMyelomaAdd = messageFactory.getPatientProblems("clarity_add.yaml").get(0);
+        hooverMyelomaAdd = messageFactory.getPatientProblems("clarity_add.yaml").get(0);
+        hooverMyelomaDeleteThenAdd = messageFactory.getPatientProblems("delete_then_add.yaml");
     }
 
     /**
@@ -97,7 +101,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @ValueSource(strings = {"EPIC", "clarity"})
     void testProblemAddition(String input) throws EmapOperationMessageProcessingException{
 
-        for (PatientProblem msg : new PatientProblem[]{hl7MyelomaAdd, clarityMyelomaAdd}){
+        for (PatientProblem msg : new PatientProblem[]{hl7MyelomaAdd, hooverMyelomaAdd}){
             if (msg.getSourceSystem().equals(input)){
                 processSingleMessage(msg);
             }
@@ -197,6 +201,10 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         assertEquals(1, getAllEntities(patientConditionAuditRepository).size());
     }
 
+    boolean patientConditionIsDeleted(){
+        return patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow().getIsDeleted();
+    }
+
     /**
      * Given that a problem list exist for a patient
      * When a problem list message for deleting an existing problem arrives with an active status
@@ -209,7 +217,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
             processSingleMessage(message);
         }
 
-        assertEquals(0, getAllEntities(patientConditionRepository).size());
+        assertTrue(patientConditionIsDeleted());
 
         // should have an audit log of the condition that was deleted
         PatientConditionAudit audit = getAllEntities(patientConditionAuditRepository).get(0);
@@ -262,7 +270,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     void testClarityProblemDeletion() throws EmapOperationMessageProcessingException {
 
         processSingleMessage(hooverDeleteMessages.get(0));
-        assertEquals(0, getAllEntities(patientConditionRepository).size());
+        assertTrue(patientConditionIsDeleted());
     }
 
     PatientCondition conditionMyelomaInpatientWithAction(ConditionAction action) throws EmapOperationMessageProcessingException {
@@ -297,27 +305,35 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
     /**
      * Given that no problem lists exist
-     * When one arrives that has a delete action but a 'Delete' or 'Resolved' status
-     * Then a condition should be added into the table
+     * When one arrives that has a delete action but a 'Deleted' or 'Resolved' status
+     * Then a condition should not be deleted
      */
-    @Test
-    void testDeleteActionWithDeleteOrResolvedStatus() throws EmapOperationMessageProcessingException {
+    @ParameterizedTest
+    @ValueSource(strings = {"DELETED", "RESOLVED"})
+    void testDeleteActionWithDeleteOrResolvedStatus(String input) throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setAction(ConditionAction.DE);
-        hl7MyelomaInpatient.setStatus(ConditionStatus.ACTIVE);
+        hl7MyelomaInpatient.setStatus(ConditionStatus.valueOf(input));
+
         processSingleMessage(hl7MyelomaInpatient);
 
-        assertEquals(0, getAllEntities(patientConditionRepository).size());
-
-        hl7MyelomaInpatient.setStatus(ConditionStatus.DELETED);
-        processSingleMessage(hl7MyelomaInpatient);
-
-        assertTrue(patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).isPresent());
-
-        patientConditionRepository.deleteAll();
-
-        hl7MyelomaInpatient.setStatus(ConditionStatus.RESOLVED);
-        processSingleMessage(hl7MyelomaInpatient);
-        assertTrue(patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).isPresent());
+        assertFalse(patientConditionIsDeleted());
     }
+
+    /**
+     * Given that no problem lists exist for a patient
+     * When two arrive out of order such that a delete message comes before an add message
+     * Then no active conditions exist for the patient
+     */
+    @Test
+    void testDeleteThenAdd() throws EmapOperationMessageProcessingException {
+
+        for (PatientProblem msg : hooverMyelomaDeleteThenAdd){
+            processSingleMessage(msg);
+        }
+
+        PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
+        assertTrue(condition.getIsDeleted());
+    }
+
 }

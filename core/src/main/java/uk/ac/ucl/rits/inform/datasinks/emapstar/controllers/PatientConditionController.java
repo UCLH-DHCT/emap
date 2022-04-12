@@ -90,28 +90,10 @@ public class PatientConditionController {
                 conditionType.getEntity(), storedFrom);
 
         if (messageShouldBeUpdated(msg, patientCondition)) {
-            updatePatientCondition(msg, visit, patientCondition);
+            updatePatientProblem(msg, visit, patientCondition);
         }
 
         patientCondition.saveEntityOrAuditLogIfRequired(patientConditionRepo, patientConditionAuditRepo);
-
-        if (msg.getAction().equals(ConditionAction.DE) && msg.getStatus().equals(ConditionStatus.ACTIVE)) {
-            deleteConditionAndAudit(patientCondition, msg, storedFrom);
-        }
-    }
-
-    /**
-     * Delete a condition from the repository and save the change in the audit log.
-     * @param patientCondition Patient condition
-     * @param msg              Message
-     * @param storedFrom       Valid from in database
-     */
-    private void deleteConditionAndAudit(RowState<PatientCondition, PatientConditionAudit> patientCondition,
-                                         PatientProblem msg, final Instant storedFrom) {
-        patientConditionAuditRepo.save(patientCondition.getEntity().createAuditEntity(msg.getUpdatedDateTime(),
-                storedFrom));
-        logger.debug("Deleting PatientCondition: {}", patientCondition);
-        patientConditionRepo.delete(patientCondition.getEntity());
     }
 
     /**
@@ -313,6 +295,24 @@ public class PatientConditionController {
 
         PatientCondition condition = conditionState.getEntity();
         conditionState.assignInterchangeValue(msg.getComment(), condition.getComment(), condition::setComment);
+    }
+
+    /**
+     * Update specific patient problem attributes from patient problem message.
+     * @param msg            patient infection message
+     * @param visit          hospital visit
+     * @param conditionState patient condition entity to update
+     */
+    private void updatePatientProblem(PatientProblem msg, HospitalVisit visit, RowState<PatientCondition,
+            PatientConditionAudit> conditionState) {
+
+        updatePatientCondition(msg, visit, conditionState);
+
+        PatientCondition condition = conditionState.getEntity();
+
+        if (msg.getAction().equals(ConditionAction.DE) && msg.getStatus().equals(ConditionStatus.ACTIVE)) {
+            conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
+        }
     }
 
 }
