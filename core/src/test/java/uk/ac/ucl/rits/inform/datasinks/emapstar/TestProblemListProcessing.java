@@ -145,16 +145,17 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     void testProcessingOlderMessage() throws EmapOperationMessageProcessingException {
 
         hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7("the current problem"));
-
         processSingleMessage(hl7MyelomaInpatient);
 
-        Instant older_time = hl7MyelomaInpatient.getUpdatedDateTime().minus(1, ChronoUnit.SECONDS);
-        hl7MyelomaInpatient.setUpdatedDateTime(older_time);
+        Instant originalTime = hl7MyelomaInpatient.getUpdatedDateTime();
+        Instant olderTime = originalTime.minus(1, ChronoUnit.SECONDS);
+        hl7MyelomaInpatient.setUpdatedDateTime(olderTime);
         hl7MyelomaInpatient.setComment(InterchangeValue.buildFromHl7("an older problem"));
 
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).get();
+        assertEquals(originalTime, condition.getValidFrom());
         assertEquals("the current problem", condition.getComment());
     }
 
