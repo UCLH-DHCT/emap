@@ -6,7 +6,16 @@ package uk.ac.ucl.rits.inform.interchange;
  */
 public enum ConditionAction {
 
+    /**
+     * Add.
+     */
     AD,
+    /**
+     * Update.
+     */
     UP,
+    /**
+     * Delete.
+     */
     DE
 }

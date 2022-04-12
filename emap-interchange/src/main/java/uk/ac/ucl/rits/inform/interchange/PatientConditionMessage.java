@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public abstract class PatientConditionMessage extends EmapOperationMessage{
+public abstract class PatientConditionMessage extends EmapOperationMessage {
 
     private String mrn;
 

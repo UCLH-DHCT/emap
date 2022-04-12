@@ -7,8 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
 
 /**
  * Interchange format of a PatientProblem message. In hospital terminology they are referred to as problem lists.
@@ -38,7 +36,7 @@ public class PatientProblem extends PatientConditionMessage implements Serializa
         processor.processMessage(this);
     }
 
-    public String getStatusString(){
+    public String getStatusString() {
         return this.status.toString();
     }
 }
