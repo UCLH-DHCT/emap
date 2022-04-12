@@ -22,68 +22,12 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public class PatientProblem extends EmapOperationMessage implements Serializable, PatientConditionMessage {
-
-    /**
-     * Unique identifier of the patient in the hospital.
-     */
-    private String mrn;
-
-    /**
-     * Number of the hospital visit.
-     */
-    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
-
-    /**
-     * Problem abbreviation.
-     */
-    private String conditionCode;
-
-    /**
-     * Human-readable condition name.
-     */
-    private InterchangeValue<String> conditionName = InterchangeValue.unknown();
-
-    /**
-     * Time of the update or message carrying this information.
-     */
-    private Instant updatedDateTime;
-
-    /**
-     * Unique Id for a condition in EPIC.
-     * If we can't get this added to the live HL7 interface when we should remove it.
-     */
-    private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
+public class PatientProblem extends PatientConditionMessage implements Serializable {
 
     /**
      * Status of problem.
      */
-    private String status;
-
-    /**
-     * Comment on a problem.
-     */
-    private InterchangeValue<String> comment = InterchangeValue.unknown();
-
-    /**
-     * Problem added at...
-     */
-    private Instant addedTime;
-
-    /**
-     * Problem resolved at...
-     */
-    private InterchangeValue<Instant> resolvedTime = InterchangeValue.unknown();
-
-    /**
-     * Onset of problem known at...
-     */
-    private InterchangeValue<LocalDate> onsetTime = InterchangeValue.unknown();
-
-    /**
-     * Effectively message type, i.e. whether to add, update or delete the condition.
-     */
-    private String action = "AD";
+    private ConditionStatus status;
 
     /**
      * Call back to the processor, so it knows what type this object is (i.e. double dispatch).
@@ -94,8 +38,7 @@ public class PatientProblem extends EmapOperationMessage implements Serializable
         processor.processMessage(this);
     }
 
-    public boolean statusIsActive() {
-        return getStatus().equals("ACTIVE");
+    public String getStatusString(){
+        return this.status.toString();
     }
-
 }

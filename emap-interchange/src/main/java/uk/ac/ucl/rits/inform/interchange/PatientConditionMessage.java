@@ -1,5 +1,10 @@
 package uk.ac.ucl.rits.inform.interchange;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -7,19 +12,59 @@ import java.time.LocalDate;
  * Interface defining a patient condition message, either a 'problem' (aka. problem list) or an infection
  * @author Tom Young
  */
-public interface PatientConditionMessage {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
+public abstract class PatientConditionMessage extends EmapOperationMessage{
 
-    String getSourceSystem();
-    String getMrn();
-    String getConditionCode();
-    Instant getUpdatedDateTime();
-    String getAction();
-    String getStatus();
-    Instant getAddedTime();
-    InterchangeValue<String> getVisitNumber();
-    InterchangeValue<String> getComment();
-    InterchangeValue<Long> getEpicConditionId();
-    InterchangeValue<String> getConditionName();
-    InterchangeValue<Instant> getResolvedTime();
-    InterchangeValue<LocalDate> getOnsetTime();
+    private String mrn;
+
+    /**
+     * Number of the hospital visit.
+     */
+    private InterchangeValue<String> visitNumber = InterchangeValue.unknown();
+
+    /**
+     * Infection or problem abbreviation.
+     */
+    private String conditionCode;
+
+    /**
+     * Human-readable condition name.
+     */
+    private InterchangeValue<String> conditionName = InterchangeValue.unknown();
+
+    /**
+     * Time of the update or message carrying this information.
+     */
+    private Instant updatedDateTime;
+
+    /**
+     * Unique Id for a condition in EPIC.
+     * If we can't get this added to the live HL7 interface when we should remove it.
+     */
+    private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
+
+    /**
+     * Condition added at...
+     */
+    private Instant addedTime;
+
+    /**
+     * Condition resolved at...
+     */
+    private InterchangeValue<Instant> resolvedTime = InterchangeValue.unknown();
+
+    /**
+     * Onset of condition known at...
+     */
+    private InterchangeValue<LocalDate> onsetTime = InterchangeValue.unknown();
+
+    /**
+     * Effectively message type, i.e. whether to add, update or delete the condition.
+     */
+    private ConditionAction action = ConditionAction.AD;
+
+    public abstract String getStatusString();
 }
