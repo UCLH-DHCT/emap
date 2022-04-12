@@ -307,7 +307,7 @@ public class PatientConditionController {
      * @param conditionState patient condition entity to update
      */
     private void updatePatientInfection(PatientInfection msg, HospitalVisit visit, RowState<PatientCondition,
-            PatientConditionAudit> conditionState){
+            PatientConditionAudit> conditionState) {
 
         updatePatientCondition(msg, visit, conditionState);
 
