@@ -1,5 +1,5 @@
 from pytest import fixture
-from emap_setup.code_setup.read_config import ReadConfig
+from emap_setup.setup.read_config import ConfigFile
 
 # Tests the ReadConfig class that reads the global configuration file
 
@@ -7,19 +7,19 @@ from emap_setup.code_setup.read_config import ReadConfig
 @fixture(scope="module")
 def config_file():
     filename = './data/test-global-configuration.yaml'
-    config_file = ReadConfig(filename)
+    config_file = ConfigFile(filename)
     return config_file
 
 
-def test_get_git_dir(config_file: ReadConfig):
+def test_get_git_dir(config_file: ConfigFile):
     """
     Test the get_git_dir function
     :param config_file: ReadConfig class for test configuration
     """
-    assert config_file.get_git_dir() == 'https://github.com/test'
+    assert config_file.git_dir == 'https://github.com/test'
 
 
-def test_get_data_for(config_file: ReadConfig):
+def test_get_data_for(config_file: ConfigFile):
     """
     Test data for an entry we know exists
     :param config_file: ReadConfig class for test configuration
@@ -28,7 +28,7 @@ def test_get_data_for(config_file: ReadConfig):
     assert cab
 
 
-def test_get_data_for_nonexistent(config_file: ReadConfig):
+def test_get_data_for_nonexistent(config_file: ConfigFile):
     """
     Test data for an entry we know does not exist
     :param config_file: ReadConfig class for test configuration
@@ -37,20 +37,21 @@ def test_get_data_for_nonexistent(config_file: ReadConfig):
     assert not mydict
 
 
-def test_get_repo_info(config_file: ReadConfig):
+def test_get_repo_info(config_file: ConfigFile):
     """
     Test data from the repositories section
     :param config_file: ReadConfig class for test configuration
     """
-    myrepo = config_file.get_repo_info()
-    assert myrepo
-    assert len(myrepo) == 2
-    assert _check_repo_info(myrepo, 'InformDB')
-    assert myrepo['InformDB']['name'] == 'InformDB'
-    assert myrepo['InformDB']['branch'] == 'develop'
-    assert _check_repo_info(myrepo, 'hl7-vitals')
-    assert myrepo['hl7-vitals']['name'] == 'Emap-Core'
-    assert myrepo['hl7-vitals']['branch'] == 'vitalsigns'
+    repo_info = config_file.repo_info
+
+    assert repo_info
+    assert len(repo_info) == 2
+    assert _check_repo_info(repo_info, 'InformDB')
+    assert repo_info['InformDB']['name'] == 'InformDB'
+    assert repo_info['InformDB']['branch'] == 'develop'
+    assert _check_repo_info(repo_info, 'hl7-vitals')
+    assert repo_info['hl7-vitals']['name'] == 'Emap-Core'
+    assert repo_info['hl7-vitals']['branch'] == 'vitalsigns'
 
 
 def _check_repo_info(myrepo: dict, myname: str) -> bool:

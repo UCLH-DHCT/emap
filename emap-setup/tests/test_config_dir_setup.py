@@ -2,8 +2,8 @@ from pytest import fixture
 import os
 import shutil
 from filecmp import dircmp
-from emap_setup.code_setup.read_config import ReadConfig
-from emap_setup.code_setup.config_dir_setup import ConfigDirSetup
+from emap_setup.setup.read_config import ConfigFile
+from emap_setup.setup.config_dir_setup import _ConfigDirSetup
 
 # Tests the ConfigDirSetup class that creates the config dir
 
@@ -14,20 +14,20 @@ def dir_setup():
     returns: Instance of ConfigDirSetup to use in tests
     """
     filename = './data/test-global-configuration.yaml'
-    config_file = ReadConfig(filename)
-    dir_setup = ConfigDirSetup(os.path.join(os.getcwd(), 'data'), config_file)
+    config_file = ConfigFile(filename)
+    dir_setup = _ConfigDirSetup(os.path.join(os.getcwd(), 'data'), config_file)
     if os.path.isdir('./data/config'):
         _clean_up()
     return dir_setup
 
 
-def test_create_config_dir(dir_setup : ConfigDirSetup):
+def test_create_config_dir(dir_setup : _ConfigDirSetup):
     """
     tests that the config directory is created
     :param dir_setup:
     """
     assert not os.path.isdir('./data/config')
-    dir_setup.create_or_update_config_dir()
+    dir_setup.create_or_update()
     assert os.path.isdir('./data/config')
 
 

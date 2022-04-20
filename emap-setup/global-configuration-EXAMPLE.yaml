@@ -38,7 +38,7 @@ config:
     Inform-DB:
       branch:  develop
     DatabaseFiller:
-      branch: develop
+      branch: development
 
   # Configuration data for the rabbitmq instance used by Spring in the pipeline
 
@@ -94,3 +94,9 @@ config:
     UDS_SCHEMA: caboodle_extract
     UDS_USERNAME: caboodle_vitals
     UDS_PASSWORD: inform
+
+# These are the configurations for glowroo (a Java application performance
+# management system).
+  glowroot:
+    GLOWROOT_USERNAME: glowrootuser
+    GLOWROOT_PASSWORD: glowrootpw
