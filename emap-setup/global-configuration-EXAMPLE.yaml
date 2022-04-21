@@ -93,8 +93,9 @@ config:
     UDS_USERNAME: caboodle_vitals
     UDS_PASSWORD: inform
 
-# These are the configurations for glowroo (a Java application performance
+# These are the configurations for glowroot (a Java application performance
 # management system).
   glowroot:
     GLOWROOT_USERNAME: glowrootuser
     GLOWROOT_PASSWORD: glowrootpw
+    GLOWROOT_ADMIN_PORT: 4000
