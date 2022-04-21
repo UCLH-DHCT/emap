@@ -1,23 +1,29 @@
 # emap-setup
 
-Code to allow users to run a single script that will
-1. clone repos
-2. set up configuration
-3. run pipeline (Coming soon)
-4. update code (Coming soon)
-5. any other ideas
+Code to initialise, update and run EMAP. Includes ability to:
+1. Clone repos
+2. Set up configuration
+3. Run pipeline
+4. Update code (Coming soon)
 
 ## Usage
 1. Create your working directory 
 2. Clone emap-setup into that directory
-3. Copy global-configurations-EXAMPLE.yaml as global-configurations.yaml and adjust for your own requirements
+3. Copy global-configuration-EXAMPLE.yaml as global-configuration.yaml and adjust for your own requirements
 
-For initial setup run ./emap-setup/emap-setup.py -init
+For example,
 
+```bash
+git clone https://github.com/inform-health-informatics/emap-setup.git &&\
+cd emap-setup &&\
+cp global-configuration-EXAMPLE.yaml global-configuration.yaml &&\
+python emap_runner.py setup --init
+```
 
 ### Command line options
- - -init  clones the required repositories and sets up and populates  the config directory 
- 
+```bash
+python emap_runner.py --help
+```
  
 ## Notes
 1. NEED a docker container to allow this to run on gae
