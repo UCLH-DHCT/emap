@@ -43,6 +43,10 @@ class ConfigFile:
         self.config['caboodle']['CABOODLE_DATE_UNTIL'] = finish
 
     @property
+    def emap_project_name(self) -> str:
+        return self.config['EMAP_PROJECT_NAME']
+
+    @property
     def repo_info(self) -> dict:
         """
         Return a list of dictionary items with repository name and branch

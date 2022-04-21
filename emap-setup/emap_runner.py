@@ -1,9 +1,13 @@
 import os
 import argparse
 
-from emap_setup.setup.read_config import ConfigFile
+
+from emap_setup.read_config import ConfigFile
 from emap_setup.setup.config_dir_setup import create_or_update_config_dir
 from emap_setup.setup.repo_setup import RepoSetup
+from emap_setup.docker.docker_runner import DockerRunner
+
+main_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -20,6 +24,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(help='sub-command help',
                                        dest='subcommand')
+
     setup_parser = subparsers.add_parser(
         'setup',
         help='Initialise/update repository directories'
@@ -49,31 +54,29 @@ def create_parser() -> argparse.ArgumentParser:
         'docker',
         help='Run the docker instance'
     )
+    docker_parser.add_argument(
+        'docker_compose_args',
+        help='Subcommands to pass to docker-compose. E,g, up, ps, down',
+        nargs='+'
+    )
+    docker_parser.add_argument(
+        '-fake', '--fake-epic',
+        help='Include services for fake clarity and caboodle servers',
+        default=False,
+        action='store_true'
+    )
 
-    docker_type_group = docker_parser.add_mutually_exclusive_group()
-    docker_type_group.add_argument('-r', '--run',
-                                   help='run ',
-                                   default=False,
-                                   action='store_true')
-    docker_type_group.add_argument('-u', '--up',
-                                   help='up',
-                                   default=False,
-                                   action='store_true')
     return parser
 
 
-def setup(args: argparse.Namespace) -> None:
+def setup(args:        argparse.Namespace,
+          config_file: ConfigFile
+          ) -> None:
     """Run the setup"""
 
-    if not os.path.exists(args.filename):
-        exit(f'Configuration file *{args.filename}* not found. Exiting')
-
-    config_file = ConfigFile(filename=args.filename)
-
-    repo_setup = RepoSetup(main_dir=os.getcwd(),
+    repo_setup = RepoSetup(main_dir=main_dir,
                            git_dir=config_file.git_dir,
                            repos=config_file.repo_info)
-
     if args.init:
         repo_setup.clone()
 
@@ -86,14 +89,30 @@ def setup(args: argparse.Namespace) -> None:
     else:
         exit('Please run --help for options')
 
-    create_or_update_config_dir(main_dir=os.getcwd(), config_file=config_file)
+    create_or_update_config_dir(main_dir=main_dir, config_file=config_file)
 
     return None
 
 
-def docker(args: argparse.Namespace) -> None:
+def docker(args:        argparse.Namespace,
+           config_file: ConfigFile) -> None:
     """Run a docker instance"""
 
+    runner = DockerRunner(main_dir=main_dir,
+                          use_fake_epic=args.fake_epic,
+                          config=config_file.config)
+
+    runner.inject_ports()
+    paths = runner.docker_compose_paths
+
+    if not all(os.path.exists(path) for path in paths):
+        _paths_str = "\n".join(paths)
+        exit(f'Cannot run docker-compose {args.docker_compose_args}. '
+             f'At least one path did not exist:\n {_paths_str} ')
+
+    os.system('docker-compose -f '+' -f '.join(paths)
+              + f' -p {config_file.emap_project_name} '
+              + ' '.join(args.docker_compose_args))
 
     return None
 
@@ -102,11 +121,19 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    if args.subcommand == 'setup':
-        setup(args)
+    if not os.path.exists(args.filename):
+        exit(f'Configuration file *{args.filename}* not found. Exiting')
 
-    if args.subcommand == 'docker':
-        raise NotImplementedError
+    config_file = ConfigFile(filename=args.filename)
+
+    if args.subcommand == 'setup':
+        setup(args, config_file)
+
+    elif args.subcommand == 'docker':
+        docker(args, config_file)
+
+    else:
+        exit('Run --help for options')
 
     print("All done")
 

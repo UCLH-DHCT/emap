@@ -37,8 +37,6 @@ config:
       branch:  develop
     Inform-DB:
       branch:  develop
-    DatabaseFiller:
-      branch: development
 
   # Configuration data for the rabbitmq instance used by Spring in the pipeline
 
