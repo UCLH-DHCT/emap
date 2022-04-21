@@ -95,4 +95,4 @@ class ConfigFile:
               and dataname in self.config[outer_element][element]):
             return self.config[outer_element][element][dataname]
 
-        raise ValueError(f'Failed to find {dataname} in config')
+        raise KeyError(f'Failed to find {dataname} in config')

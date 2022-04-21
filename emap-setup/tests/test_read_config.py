@@ -1,5 +1,6 @@
+import pytest
 from pytest import fixture
-from emap_setup.setup.read_config import ConfigFile
+from emap_setup.read_config import ConfigFile
 
 # Tests the ReadConfig class that reads the global configuration file
 
@@ -33,8 +34,9 @@ def test_get_data_for_nonexistent(config_file: ConfigFile):
     Test data for an entry we know does not exist
     :param config_file: ReadConfig class for test configuration
     """
-    mydict = config_file.get_data_for('mydict', 'element')
-    assert not mydict
+
+    with pytest.raises(KeyError):
+        _ = config_file.get_data_for('mydict', 'element')
 
 
 def test_get_repo_info(config_file: ConfigFile):

@@ -2,7 +2,7 @@ from pytest import fixture
 import os
 import shutil
 from filecmp import dircmp
-from emap_setup.setup.read_config import ConfigFile
+from emap_setup.read_config import ConfigFile
 from emap_setup.setup.config_dir_setup import _ConfigDirSetup
 
 # Tests the ConfigDirSetup class that creates the config dir
@@ -37,8 +37,14 @@ def test_files_written():
     """
     dir1 = './data/config_test'  # example test files
     dir2 = './data/config'  # files written by create_or_update_config_dir() function
-    different = dircmp(dir1, dir2).diff_files
-    assert len(different) == 0
+
+    for filename in os.listdir(dir1):
+        path1 = os.path.join(dir1, filename)
+        path2 = os.path.join(dir2, filename)
+
+        assert os.path.exists(path2)
+        assert open(path1, 'r').readlines() == open(path2, 'r').readlines()
+
     _clean_up()
 
 

@@ -3,7 +3,7 @@ import shutil
 import fnmatch
 from datetime import datetime
 
-from emap_setup.setup.read_config import ConfigFile
+from emap_setup.read_config import ConfigFile
 
 
 def create_or_update_config_dir(main_dir:    str,
@@ -130,7 +130,7 @@ class _ConfigDirSetup:
                     data = datestr[0:20] + datestr[21:23] + 'Z'
                 newline = f'{code[0]}={data}\n'
 
-            except ValueError:
+            except KeyError:
                 newline = line
 
             new_contents = new_contents + newline
