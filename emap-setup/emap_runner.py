@@ -3,6 +3,7 @@ import argparse
 
 
 from emap_setup.read_config import ConfigFile
+from emap_setup.parser import Parser
 from emap_setup.setup.config_dir_setup import create_or_update_config_dir
 from emap_setup.setup.repo_setup import RepoSetup
 from emap_setup.docker.docker_runner import DockerRunner
@@ -10,10 +11,10 @@ from emap_setup.docker.docker_runner import DockerRunner
 main_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description='Setup, update and run an instance of EMAP'
-    )
+def create_parser() -> Parser:
+    """Create a custom argument parser"""
+
+    parser = Parser(description='Setup, update and run an instance of EMAP')
 
     parser.add_argument(
         '-f', '--filename',
