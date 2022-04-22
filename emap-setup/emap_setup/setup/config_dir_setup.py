@@ -110,7 +110,7 @@ class _ConfigDirSetup:
         """
         # get name of the name-config-envs file
         file = os.path.split(filename)
-        element_name_from_file = file[1].split('-config')[0]
+        element_name_from_file = file[1].split('-config')
 
         contents = _get_current_file_contents(filename)
         new_contents = ''
