@@ -2,6 +2,8 @@ import os
 import subprocess
 from typing import List
 
+from emap_setup.utils import File
+
 
 class DockerRunner:
     """Orchestration for multiple services using docker"""
@@ -80,30 +82,5 @@ class DockerRunner:
             exit(f'{e}\n\n'
                  f'Failed to password protect glowroot. Check that the docker '
                  f'containers have enough available RAM')
-
-        return None
-
-
-class File:
-
-    def __init__(self, filename):
-
-        self.filename = filename
-        self.lines = open(filename, 'r').readlines()
-
-    def replace(self, old: str, new: str) -> None:
-        """Replace a string with another that may or may not exist"""
-
-        for i, line in enumerate(self.lines):
-            if str(old) in line:
-                self.lines[i] = line.replace(str(old), str(new))
-
-        return None
-
-    def write(self) -> None:
-        """Write the file lines to a new version of the file"""
-
-        with open(self.filename, 'w') as file:
-            file.write(''.join(self.lines))
 
         return None

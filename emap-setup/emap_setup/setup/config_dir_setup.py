@@ -1,8 +1,9 @@
 import os
-import shutil
 import fnmatch
 from datetime import datetime
+from typing import Optional, List
 
+from emap_setup.utils import File
 from emap_setup.read_config import ConfigFile
 
 
@@ -21,6 +22,42 @@ def create_or_update_config_dir(main_dir:    str,
     config_dir_setup.create_or_update()
 
     return None
+
+
+class NewLine(str):
+    """A new line in a file"""
+
+
+class CommentLine(str):
+    """Line in a file that is a comment"""
+
+
+class EnvironmentFile(File):
+
+    def __init__(self, example_filename: str):
+        super().__init__(example_filename)
+
+        if '.EX' not in example_filename:
+            exit(f'Cannot create an environment file. {example_filename} '
+                 f'did not have a .EX containing extension')
+
+        with open(example_filename, 'r') as file:
+            self.lines = file.readlines()
+
+        self.filename = example_filename.split('.EX')[0]
+
+    @property
+    def unchanged_lines(self) -> List[str]:
+        """List of unchanged lines in a file"""
+        return [str(l) for l in self.lines
+                if not (isinstance(l, NewLine) or isinstance(l, CommentLine))]
+
+    def write(self, directory: Optional[str] = None) -> None:
+
+        if directory is not None:
+            self.filename = os.path.join(directory, os.path.basename(self.filename))
+
+        return super().write()
 
 
 class _ConfigDirSetup:
@@ -52,24 +89,32 @@ class _ConfigDirSetup:
         """
         if not os.path.isdir(self.config_dir):
             os.mkdir(self.config_dir)
-        list_of_dirs = os.listdir(self.main_dir)
-        for this_dir in filter(lambda n: n != 'config', list_of_dirs):
+
+        for dir_name in self._non_config_dirs:
 
             # get list f -envs.EXAMPLE files
             list_of_envs_files = []
-            this_dir_full = os.path.join(self.main_dir, this_dir)
-            if os.path.isdir(this_dir_full):
-                list_of_envs_files = self._get_envs_examples(this_dir_full)
+            path = os.path.join(self.main_dir, dir_name)
+            if os.path.isdir(path):
+                list_of_envs_files = self._get_envs_examples(path)
 
             # create a copy of each file in config dir without .EXAMPLE ext
-            for env_file in list_of_envs_files:
-                original = os.path.join(self.main_dir, this_dir, env_file)
-                new_env_filename = env_file.split('.EX')
-                target = os.path.join(self.config_dir, new_env_filename[0])
-                shutil.copyfile(original, target)
-                # populate the envs files from global-configuration.yaml
+            for env_filename in list_of_envs_files:
+
+                file = EnvironmentFile(os.path.join(path, env_filename))
+
                 for config_type in self.standard_config_types:
-                    self._substitute_info(target, config_type)
+                    self._substitute_info(file, config_type)
+
+                file.write(directory=self.config_dir)
+
+                for line in file.unchanged_lines:
+                    print(f'WARNING: {line.strip()[:29]:30s} was not updated '
+                          f'from {self.config_file.filename}')
+
+    @property
+    def _non_config_dirs(self) -> list:
+        return list(filter(lambda n: n != 'config', os.listdir(self.main_dir)))
 
     @staticmethod
     def _get_envs_examples(this_dir: str) -> list:
@@ -86,7 +131,10 @@ class _ConfigDirSetup:
                 list_of_envs_files.append(entry)
         return list_of_envs_files
 
-    def _substitute_info(self, filename, config_type) -> None:
+    def _substitute_info(self,
+                         file:        EnvironmentFile,
+                         config_type: str
+                         ) -> None:
         """
         Here we are looping through the standard entries in the configuration
         We check that the name of the envs file matches one of these
@@ -108,24 +156,20 @@ class _ConfigDirSetup:
         :param config_type:
         :return:
         """
+
         # get name of the name-config-envs file
-        file = os.path.split(filename)
-        element_name_from_file = file[1].split('-config')
+        fieldname = os.path.basename(file.filename).split('-config')[0]
 
-        contents = _get_current_file_contents(filename)
-        new_contents = ''
+        if config_type != 'informdb' and fieldname != config_type:
+            fieldname = config_type
 
-        for line in contents:
+        for i, line in enumerate(file.lines):
+
             if line.startswith('#'):
-                new_contents += line
+                file.lines[i] = CommentLine(line)
                 continue
 
             key = line.split('=')[0]
-            fieldname = element_name_from_file[0]
-            # unless we are looking up informdb fieldname and config_type
-            # should match
-            if config_type != 'informdb' and fieldname != config_type:
-                fieldname = config_type
 
             try:
                 data = self.config_file.get_data_for(dataname=key,
@@ -135,28 +179,9 @@ class _ConfigDirSetup:
                 if isinstance(data, datetime):
                     datestr = data.strftime('%Y-%m-%dT%H:%M:%S.%zZ')
                     data = datestr[0:20] + datestr[21:23] + 'Z'
-                newline = f'{key}={data}\n'
+                file.lines[i] = NewLine(f'{key}={data}\n')
 
             except KeyError:
-                print(f'WARNING: Failed to find data for {key} in '
-                      f'{self.config_file.filename} under {fieldname}')
-                newline = line
-
-            new_contents = new_contents + newline
-
-        with open(filename, 'w') as file:
-            file.write(new_contents)
+                continue
 
         return None
-
-
-def _get_current_file_contents(filename: str) -> []:
-    """
-    Get the current contents of file as a list of strings
-    :param filename: name of the file to read
-    :return: list of contents by line
-    """
-    with open(filename, 'r') as file:
-        contents = file.readlines()
-
-    return contents

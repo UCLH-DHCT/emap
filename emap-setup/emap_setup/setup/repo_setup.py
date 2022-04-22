@@ -69,7 +69,7 @@ class RepoSetup:
         for repo in self.repos:
             if self._branches_match(repo):
                 try:
-                    print(f'Updating {repo:20s} with repo '
+                    print(f'Updating {repo:30s} with repo '
                           f'{self.repos[repo]["name"]:20s} and branch '
                           f'{self.repos[repo]["branch"]}')
 

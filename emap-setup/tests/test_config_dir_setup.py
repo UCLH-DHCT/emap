@@ -21,7 +21,7 @@ def dir_setup():
     return dir_setup
 
 
-def test_create_config_dir(dir_setup : _ConfigDirSetup):
+def test_create_config_dir(dir_setup: _ConfigDirSetup):
     """
     tests that the config directory is created
     :param dir_setup:
@@ -31,12 +31,14 @@ def test_create_config_dir(dir_setup : _ConfigDirSetup):
     assert os.path.isdir('./data/config')
 
 
-def test_files_written():
+def test_files_written(dir_setup: _ConfigDirSetup):
     """
     Test the files written for config were as expected
     """
     dir1 = './data/config_test'  # example test files
     dir2 = './data/config'  # files written by create_or_update_config_dir() function
+
+    dir_setup.create_or_update()
 
     for filename in os.listdir(dir1):
         path1 = os.path.join(dir1, filename)
