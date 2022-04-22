@@ -1,6 +1,8 @@
 import os
 import shutil
 
+from tqdm import tqdm
+
 from git import Repo
 from git import GitCommandError
 from git import InvalidGitRepositoryError
@@ -8,12 +10,15 @@ from git import InvalidGitRepositoryError
 from git import RemoteProgress
 
 
-class _ProgressPrinter(RemoteProgress):
+class _CloneProgressBar(RemoteProgress):
+    def __init__(self):
+        super().__init__()
+        self.pbar = tqdm()
 
     def update(self, op_code, cur_count, max_count=None, message=''):
-        print(op_code, cur_count, max_count,
-              f'{round(100*cur_count / (max_count or 100.0), 1)} %',
-              message)
+        self.pbar.total = max_count
+        self.pbar.n = cur_count
+        self.pbar.refresh()
 
 
 class RepoSetup:
@@ -54,7 +59,7 @@ class RepoSetup:
             try:
                 Repo.clone_from(this_git_path, this_path,
                                 branch=this_repo['branch'],
-                                progress=_ProgressPrinter())
+                                progress=_CloneProgressBar())
                 self.current_repos[repo] = self.repos[repo].copy()
             except GitCommandError as e:
                 exit(f'Necessary repos could not be cloned due to:\n'
@@ -69,7 +74,7 @@ class RepoSetup:
                           f'{self.repos[repo]["branch"]}')
 
                     this_repo = Repo(os.path.join(self.main_dir, repo))
-                    this_repo.remotes[0].pull(progress=_ProgressPrinter())
+                    this_repo.remotes[0].pull()
                 except GitCommandError as e:
                     exit(f'Cannot update due to {e}')
             else:

@@ -11,6 +11,7 @@ class ConfigFile:
         Read the file and create sets representing different data
         :param filename:
         """
+        self.filename = filename
         self.config_options = None
         with open(filename) as f:
             config_options = yaml.load(f, Loader=yaml.FullLoader)

@@ -27,6 +27,6 @@ class Parser(ArgumentParser):
         idx = next(i+1 for i, arg in enumerate(args) if arg == 'docker')
 
         namespace = super().parse_args(args[:idx] + ['X'])
-        namespace.docker_compose_args = args[idx+1:]
+        namespace.docker_compose_args = args[idx:]
 
         return namespace

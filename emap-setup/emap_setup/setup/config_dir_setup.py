@@ -15,8 +15,12 @@ def create_or_update_config_dir(main_dir:    str,
     :param main_dir: Directory to work in
     :param config_file: Name of the configuration file
     """
+    print('Updating config/ directory')
+
     config_dir_setup = _ConfigDirSetup(main_dir, config_file)
     config_dir_setup.create_or_update()
+
+    return None
 
 
 class _ConfigDirSetup:
@@ -106,7 +110,7 @@ class _ConfigDirSetup:
         """
         # get name of the name-config-envs file
         file = os.path.split(filename)
-        element_name_from_file = file[1].split('-config')
+        element_name_from_file = file[1].split('-config')[0]
 
         contents = _get_current_file_contents(filename)
         new_contents = ''
@@ -116,7 +120,7 @@ class _ConfigDirSetup:
                 new_contents += line
                 continue
 
-            code = line.split('=')
+            key = line.split('=')[0]
             fieldname = element_name_from_file[0]
             # unless we are looking up informdb fieldname and config_type
             # should match
@@ -124,13 +128,18 @@ class _ConfigDirSetup:
                 fieldname = config_type
 
             try:
-                data = self.config_file.get_data_for(code[0], fieldname, config_type)
+                data = self.config_file.get_data_for(dataname=key,
+                                                     element=fieldname,
+                                                     outer_element=config_type)
+
                 if isinstance(data, datetime):
                     datestr = data.strftime('%Y-%m-%dT%H:%M:%S.%zZ')
                     data = datestr[0:20] + datestr[21:23] + 'Z'
-                newline = f'{code[0]}={data}\n'
+                newline = f'{key}={data}\n'
 
             except KeyError:
+                print(f'WARNING: Failed to find data for {key} in '
+                      f'{self.config_file.filename} under {fieldname}')
                 newline = line
 
             new_contents = new_contents + newline

@@ -78,6 +78,7 @@ def setup(args:        argparse.Namespace,
     repo_setup = RepoSetup(main_dir=main_dir,
                            git_dir=config_file.git_dir,
                            repos=config_file.repo_info)
+
     if args.init:
         repo_setup.clone()
 
@@ -103,17 +104,11 @@ def docker(args:        argparse.Namespace,
                           use_fake_epic=args.fake_epic,
                           config=config_file.config)
 
+    if 'up' in args.docker_compose_args:
+        runner.setup_glowroot_password()
+
     runner.inject_ports()
-    paths = runner.docker_compose_paths
-
-    if not all(os.path.exists(path) for path in paths):
-        _paths_str = "\n".join(paths)
-        exit(f'Cannot run docker-compose {args.docker_compose_args}. '
-             f'At least one path did not exist:\n {_paths_str} ')
-
-    os.system('docker-compose -f '+' -f '.join(paths)
-              + f' -p {config_file.emap_project_name} '
-              + ' '.join(args.docker_compose_args))
+    runner.run(*args.docker_compose_args)
 
     return None
 

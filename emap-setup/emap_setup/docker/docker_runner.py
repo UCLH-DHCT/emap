@@ -1,17 +1,39 @@
 import os
+import subprocess
 from typing import List
 
 
 class DockerRunner:
+    """Orchestration for multiple services using docker"""
 
     def __init__(self,
                  main_dir:      str,
-                 config:        'ConfigFile',
+                 config:        dict,
                  use_fake_epic: bool):
+        """Initialise a docker runner with docker-compose.yml files relative
+        to the main directory given a specific configuration"""
 
         self.main_dir = main_dir
         self.config = config
         self.use_fake_epic = use_fake_epic
+
+    def run(self, *docker_compose_args: str) -> None:
+        """Run docker compose"""
+
+        paths = self.docker_compose_paths
+
+        if not all(os.path.exists(path) for path in paths):
+            _paths_str = "\n".join(paths)
+            exit(f'Cannot run docker-compose {docker_compose_args}. '
+                 f'At least one path did not exist:\n {_paths_str} ')
+
+        subprocess.run('docker-compose -f ' + ' -f '.join(paths)
+                       + f' -p {self.config["EMAP_PROJECT_NAME"]} '
+                       + ' '.join(docker_compose_args),
+                       shell=True,
+                       check=True)
+
+        return None
 
     @property
     def docker_compose_paths(self) -> List[str]:
@@ -42,6 +64,23 @@ class DockerRunner:
         file.replace('${GLOWROOT_ADMIN_PORT}', self.config['glowroot']['GLOWROOT_ADMIN_PORT'])
 
         file.write()
+        return None
+
+    def setup_glowroot_password(self) -> None:
+        """Run the required command to password protect glowroot"""
+
+        username = self.config['glowroot']['GLOWROOT_USERNAME']
+        password = self.config['glowroot']['GLOWROOT_PASSWORD']
+
+        try:
+            self.run('run glowroot-central java -jar "glowroot-central.jar" '
+                     f'setup-admin-user {username} {password}')
+
+        except subprocess.CalledProcessError as e:
+            exit(f'{e}\n\n'
+                 f'Failed to password protect glowroot. Check that the docker '
+                 f'containers have enough available RAM')
+
         return None
 
 
