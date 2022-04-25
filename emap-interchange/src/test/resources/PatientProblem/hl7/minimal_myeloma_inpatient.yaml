@@ -3,7 +3,7 @@
   visitNumber:
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
-    value: "11144333"
+    value: "123412341234"
   updatedDateTime: "2019-06-07T11:32:00Z"
   mrn: "8DcEwvqa8Q3"
   conditionCode: "C90.0"
@@ -11,6 +11,6 @@
     "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
     status: "SAVE"
     value: "Multiple Myeloma"
-  addedTime: "2019-06-02T10:31:05Z"
+  addedTime: "2019-06-01T23:00:00Z"
   action: "AD"
   status: "ACTIVE"

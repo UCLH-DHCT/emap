@@ -4,25 +4,37 @@ package uk.ac.ucl.rits.inform.interchange;
  * Status of a patient condition (e.g. problem or infection)
  */
 public enum ConditionStatus {
-
     /**
      * Active.
      */
-    ACTIVE,
+    ACTIVE("ACTIVE"),
     /**
      * Save.
      */
-    SAVE,
+    SAVE("SAVE"),
     /**
      * Resolved.
      */
-    RESOLVED,
+    RESOLVED("RESOLVED"),
     /**
      * Deleted.
      */
-    DELETED,
+    DELETED("DELETED"),
     /**
      * Ignore.
      */
-    IGNORE
+    IGNORE("IGNORE");
+    // are all of these statuses used?
+
+    private final String value;
+
+    ConditionStatus(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+
 }
