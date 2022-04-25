@@ -31,4 +31,6 @@ public interface LabResultRepository extends CrudRepository<LabResult, Long> {
      */
     List<LabResult> findAllByLabOrderIdInternalLabNumber(String labNumber);
 
+    List<LabResult> findByLabOrderId(LabOrder labOrder);
+
 }

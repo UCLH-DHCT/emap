@@ -1,11 +1,13 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs;
 
 import org.springframework.data.repository.CrudRepository;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,5 +33,8 @@ public interface LabOrderRepository extends CrudRepository<LabOrder, Long> {
      * @return optional lab order
      */
     Optional<LabOrder> findByLabBatteryIdBatteryCodeAndLabSampleId(String battery, LabSample labSample);
+
+
+    List<LabOrder> findByHospitalVisitId(HospitalVisit hospitalVisit);
 
 }
