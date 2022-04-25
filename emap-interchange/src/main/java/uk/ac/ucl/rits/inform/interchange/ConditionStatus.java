@@ -19,7 +19,7 @@ public enum ConditionStatus {
     /**
      * Deleted.
      */
-    DELETED("DELETED"),
+    DELETED("Deleted"),
     /**
      * Ignore.
      */
