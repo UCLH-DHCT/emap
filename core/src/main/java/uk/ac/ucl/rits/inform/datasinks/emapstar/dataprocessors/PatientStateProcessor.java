@@ -51,7 +51,7 @@ public class PatientStateProcessor {
     @Transactional
     public void processMessage(PatientProblem msg, final Instant storedFrom)
             throws EmapOperationMessageProcessingException {
-
+        logger.trace("Processing {}", msg);
         Mrn mrn = getOrCreateMrn(msg, storedFrom);
         HospitalVisit visit = getOrCreateHospitalVisit(msg, mrn, storedFrom);
         patientConditionController.processMessage(msg, mrn, visit, storedFrom);
