@@ -1,9 +1,8 @@
 import os
 import fnmatch
 from datetime import datetime
-from typing import Optional, List
 
-from emap_setup.utils import File
+from emap_setup.utils import EnvironmentFile, NewLine, CommentLine
 from emap_setup.read_config import ConfigFile
 
 
@@ -22,42 +21,6 @@ def create_or_update_config_dir(main_dir:    str,
     config_dir_setup.create_or_update()
 
     return None
-
-
-class NewLine(str):
-    """A new line in a file"""
-
-
-class CommentLine(str):
-    """Line in a file that is a comment"""
-
-
-class EnvironmentFile(File):
-
-    def __init__(self, example_filename: str):
-        super().__init__(example_filename)
-
-        if '.EX' not in example_filename:
-            exit(f'Cannot create an environment file. {example_filename} '
-                 f'did not have a .EX containing extension')
-
-        with open(example_filename, 'r') as file:
-            self.lines = file.readlines()
-
-        self.filename = example_filename.split('.EX')[0]
-
-    @property
-    def unchanged_lines(self) -> List[str]:
-        """List of unchanged lines in a file"""
-        return [str(l) for l in self.lines
-                if not (isinstance(l, NewLine) or isinstance(l, CommentLine))]
-
-    def write(self, directory: Optional[str] = None) -> None:
-
-        if directory is not None:
-            self.filename = os.path.join(directory, os.path.basename(self.filename))
-
-        return super().write()
 
 
 class _ConfigDirSetup:

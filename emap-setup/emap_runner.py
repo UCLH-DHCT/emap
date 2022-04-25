@@ -7,8 +7,8 @@ from emap_setup.parser import Parser
 from emap_setup.setup.config_dir_setup import create_or_update_config_dir
 from emap_setup.setup.repo_setup import RepoSetup
 from emap_setup.docker.docker_runner import DockerRunner
-
-main_dir = os.path.dirname(os.path.abspath(__file__))
+from emap_setup.utils import TimeWindow
+from emap_setup.validation.validation_runner import ValidationRunner
 
 
 def create_parser() -> Parser:
@@ -67,50 +67,104 @@ def create_parser() -> Parser:
         action='store_true'
     )
 
+    validation_parser = subparsers.add_parser(
+        'validation',
+        help='Run validation of the full pipeline'
+    )
+
+    validation_type = validation_parser.add_mutually_exclusive_group()
+    validation_type.add_argument(
+        '-r', '--run',
+        help='Run the validation',
+        default=False,
+        action='store_true'
+    )
+
+    validation_parser.add_argument(
+        'start_date',
+        type=str,
+        help='Date at which to start parsing messages. e.g. 7 days ago',
+        default='7 days ago'
+    )
+    validation_parser.add_argument(
+        'end_date',
+        type=str,
+        help='Date at which to start parsing messages. e.g. today',
+        default='today'
+    )
+
     return parser
 
 
-def setup(args:        argparse.Namespace,
-          config_file: ConfigFile
-          ) -> None:
-    """Run the setup"""
+class EMAPRunner:
 
-    repo_setup = RepoSetup(main_dir=main_dir,
-                           git_dir=config_file.git_dir,
-                           repos=config_file.repo_info)
+    def __init__(self,
+                 args:        argparse.Namespace,
+                 config_file: ConfigFile):
 
-    if args.init:
-        repo_setup.clone()
+        self.args = args
+        self.config_file = config_file
+        self.main_dir = os.path.dirname(os.path.abspath(__file__))
 
-    elif args.update:
-        repo_setup.update()
+    def setup(self) -> None:
+        """Run the setup"""
 
-    elif args.clean:
-        repo_setup.clean()
+        repo_setup = RepoSetup(main_dir=self.main_dir,
+                               git_dir=self.config_file.git_dir,
+                               repos=self.config_file.repo_info)
 
-    else:
-        exit('Please run --help for options')
+        if self.args.init:
+            repo_setup.clone()
 
-    create_or_update_config_dir(main_dir=main_dir, config_file=config_file)
+        elif self.args.update:
+            repo_setup.update()
 
-    return None
+        elif self.args.clean:
+            repo_setup.clean()
 
+        else:
+            exit('Please run --help for options')
 
-def docker(args:        argparse.Namespace,
-           config_file: ConfigFile) -> None:
-    """Run a docker instance"""
+        create_or_update_config_dir(main_dir=self.main_dir,
+                                    config_file=self.config_file)
+        return None
 
-    runner = DockerRunner(main_dir=main_dir,
-                          use_fake_epic=args.fake_epic,
-                          config=config_file.config)
+    def docker(self) -> None:
+        """Run a docker instance"""
 
-    if 'up' in args.docker_compose_args:
-        runner.setup_glowroot_password()
+        runner = DockerRunner(main_dir=self.main_dir,
+                              use_fake_epic=self.args.fake_epic,
+                              config=self.config_file.config)
 
-    runner.inject_ports()
-    runner.run(*args.docker_compose_args)
+        if 'up' in self.args.docker_compose_args:
+            runner.setup_glowroot_password()
 
-    return None
+        runner.inject_ports()
+        runner.run(*self.args.docker_compose_args)
+
+        return None
+
+    def validation(self) -> None:
+        """Run a validation run of EMAP"""
+
+        runner = ValidationRunner(
+            docker_runner=DockerRunner(main_dir=self.main_dir,
+                                       config=self.config_file.config),
+            time_window=TimeWindow(start_date=self.args.start_date,
+                                   end_date=self.args.end_date)
+        )
+
+        if self.args.run:
+            runner.run()
+
+        else:
+            exit('Please run --help for options')
+
+        return None
+
+    def run(self, function_name) -> None:
+        """Call a method of this runner instance defined by its name"""
+        return getattr(self, function_name)()
 
 
 def main():
@@ -120,18 +174,16 @@ def main():
     if not os.path.exists(args.filename):
         exit(f'Configuration file *{args.filename}* not found. Exiting')
 
-    config_file = ConfigFile(filename=args.filename)
+    runner = EMAPRunner(args=args,
+                        config_file=ConfigFile(args.filename))
 
-    if args.subcommand == 'setup':
-        setup(args, config_file)
+    try:
+        runner.run(args.subcommand)
 
-    elif args.subcommand == 'docker':
-        docker(args, config_file)
+    except AttributeError:
+        exit('No recognised command found. Run --help for options')
 
-    else:
-        exit('Run --help for options')
-
-    print("All done")
+    return print("All done")
 
 
 if __name__ == '__main__':

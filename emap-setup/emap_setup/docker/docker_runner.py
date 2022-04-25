@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import List
+from typing import List, Optional
 
 from emap_setup.utils import File
 
@@ -11,7 +11,7 @@ class DockerRunner:
     def __init__(self,
                  main_dir:      str,
                  config:        dict,
-                 use_fake_epic: bool):
+                 use_fake_epic: bool = False):
         """Initialise a docker runner with docker-compose.yml files relative
         to the main directory given a specific configuration"""
 
@@ -19,7 +19,10 @@ class DockerRunner:
         self.config = config
         self.use_fake_epic = use_fake_epic
 
-    def run(self, *docker_compose_args: str) -> None:
+    def run(self,
+            *docker_compose_args: str,
+            output_filename:      Optional[str] = None
+            ) -> None:
         """Run docker compose"""
 
         paths = self.docker_compose_paths
@@ -29,13 +32,18 @@ class DockerRunner:
             exit(f'Cannot run docker-compose {docker_compose_args}. '
                  f'At least one path did not exist:\n {_paths_str} ')
 
-        subprocess.run('docker-compose -f ' + ' -f '.join(paths)
-                       + f' -p {self.config["EMAP_PROJECT_NAME"]} '
-                       + ' '.join(docker_compose_args),
+        subprocess.run(self.base_docker_command + ' '.join(docker_compose_args),
                        shell=True,
-                       check=True)
-
+                       check=True,
+                       stdout=None if output_filename is None
+                              else open(output_filename, 'w'))
         return None
+
+    @property
+    def base_docker_command(self) -> str:
+        return ('docker-compose -f '
+                + ' -f '.join(self.docker_compose_paths)
+                + f' -p {self.config["EMAP_PROJECT_NAME"]} ')
 
     @property
     def docker_compose_paths(self) -> List[str]:
