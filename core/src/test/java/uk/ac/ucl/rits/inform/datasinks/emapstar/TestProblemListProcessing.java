@@ -224,6 +224,15 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         assertEquals(hooverAddThenDeleteMessages.get(0).getAddedTime(), audit.getAddedDateTime());
     }
 
+    PatientProblem messageWithNewNameAndUpdatedTimeChanged(Instant time) throws IOException {
+
+        PatientProblem msg =  messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
+        msg.setConditionName(InterchangeValue.buildFromHl7("Myeloma"));
+        msg.setUpdatedDateTime(time);
+
+        return msg;
+    }
+
     /**
      * Given that a problem list exists for a patient
      * When a new problem list arrives with the same code but a different name
@@ -234,8 +243,9 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
         processSingleMessage(hl7MyelomaInpatient);
 
-        PatientProblem msg = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(1);
-        assertTrue(msg.getUpdatedDateTime().isAfter(hl7MyelomaInpatient.getUpdatedDateTime()));
+        Instant newTime = hl7MyelomaInpatient.getUpdatedDateTime().plus(1, ChronoUnit.MINUTES);
+        PatientProblem msg = messageWithNewNameAndUpdatedTimeChanged(newTime);
+
         processSingleMessage(msg);
 
         PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
@@ -253,8 +263,9 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
         processSingleMessage(hl7MyelomaInpatient);
 
-        PatientProblem msg = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(1);
-        msg.setUpdatedDateTime(hl7MyelomaInpatient.getUpdatedDateTime().minus(1, ChronoUnit.MINUTES));
+        Instant newTime = hl7MyelomaInpatient.getUpdatedDateTime().minus(1, ChronoUnit.MINUTES);
+        PatientProblem msg = messageWithNewNameAndUpdatedTimeChanged(newTime);
+
         processSingleMessage(msg);
 
         PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
