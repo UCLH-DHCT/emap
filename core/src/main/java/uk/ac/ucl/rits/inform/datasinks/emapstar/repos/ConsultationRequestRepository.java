@@ -2,7 +2,9 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ucl.rits.inform.informdb.consults.ConsultationRequest;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,4 +18,6 @@ public interface ConsultationRequestRepository extends CrudRepository<Consultati
      * @return possible ConsultationRequest
      */
     Optional<ConsultationRequest> findByInternalId(Long internalId);
+
+    List<ConsultationRequest> findByHospitalVisitId(HospitalVisit hospitalVisit);
 }
