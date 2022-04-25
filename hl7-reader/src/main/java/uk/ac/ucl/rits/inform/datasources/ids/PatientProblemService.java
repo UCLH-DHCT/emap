@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.interchange.ConditionAction;
 import uk.ac.ucl.rits.inform.interchange.ConditionStatus;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
@@ -77,6 +78,7 @@ public class PatientProblemService {
         patientProblem.setVisitNumber(InterchangeValue.buildFromHl7(patientInfo.getVisitNumber()));
 
         // problem list specific information
+        patientProblem.setAction(ConditionAction.findByHl7Value(problemSegment.getPrb1_ActionCode().getValueOrEmpty()));
         patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getPrb2_ActionDateTime()));
         CWE conditionType = problemSegment.getPrb3_ProblemID();
         patientProblem.setConditionCode(conditionType.getCwe1_Identifier().getValueOrEmpty());
