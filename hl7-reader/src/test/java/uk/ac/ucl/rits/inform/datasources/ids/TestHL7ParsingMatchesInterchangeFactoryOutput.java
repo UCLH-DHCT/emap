@@ -4,13 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientInfection;
+import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
@@ -427,5 +427,21 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
                 .findFirst().orElseThrow();
         PatientInfection expected = interchangeFactory.getPatientInfections("hl7/minimal_mumps.yaml").get(0);
         Assertions.assertEquals(expected, messageFromHl7);
+    }
+
+    @Test
+    public void testPatientProblem() throws Exception {
+        String[] fileNames = {"minimal_myeloma_inpatient"};
+        for (String fileName:   fileNames) {
+            String hl7FileName = String.format("ProblemList/end_to_end/%s.txt", fileName);
+            EmapOperationMessage messageFromHl7 = processSingleMessage(hl7FileName).stream()
+                    .filter(msg -> msg instanceof PatientProblem)
+                    .findFirst().orElseThrow();
+
+            String interchangeFileName = String.format("hl7/%s.yaml", fileName);
+            PatientProblem expected = interchangeFactory.getPatientProblems(interchangeFileName).stream().findFirst().orElseThrow();
+            assertEquals(expected, messageFromHl7);
+        }
+
     }
 }

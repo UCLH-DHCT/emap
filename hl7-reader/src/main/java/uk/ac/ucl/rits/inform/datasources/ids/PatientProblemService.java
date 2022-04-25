@@ -1,18 +1,20 @@
 package uk.ac.ucl.rits.inform.datasources.ids;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.v26.datatype.CWE;
+import ca.uhn.hl7v2.model.v26.datatype.DTM;
 import ca.uhn.hl7v2.model.v26.message.PPR_PC1;
 import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
-import ca.uhn.hl7v2.model.v26.segment.PV1;
 import ca.uhn.hl7v2.model.v26.segment.PRB;
-
+import ca.uhn.hl7v2.model.v26.segment.PV1;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
+import uk.ac.ucl.rits.inform.interchange.ConditionStatus;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.PatientProblem;
 
@@ -38,7 +40,6 @@ public class PatientProblemService {
      * Build patient problems from message. Problems with no added datetime, or problems where the added time is before
      * the current progress will be skipped. As a problem message can have multiple PRB segments, these are individually
      * processed.
-     *
      * @param sourceId message sourceId
      * @param msg      hl7 message
      * @return list of patient problems
@@ -61,7 +62,6 @@ public class PatientProblemService {
 
     /**
      * Turns a single PRB segment into a problem message interchange message.
-     *
      * @param sourceId       the identifier given to the message in the source system
      * @param patientInfo    information about the patient the problem list belongs to
      * @param problemSegment the PRB segment that is parsed into an interchange message
@@ -74,13 +74,23 @@ public class PatientProblemService {
         patientProblem.setSourceMessageId(sourceId);
         patientProblem.setSourceSystem(patientInfo.getSendingApplication());
         patientProblem.setMrn(patientInfo.getMrn());
+        patientProblem.setVisitNumber(InterchangeValue.buildFromHl7(patientInfo.getVisitNumber()));
+
         // problem list specific information
-        patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getActionDateTime()));
-        patientProblem.setConditionCode(problemSegment.getPrb3_ProblemID().getCwe1_Identifier().getValueOrEmpty());
+        patientProblem.setUpdatedDateTime(HL7Utils.interpretLocalTime(problemSegment.getPrb2_ActionDateTime()));
+        CWE conditionType = problemSegment.getPrb3_ProblemID();
+        patientProblem.setConditionCode(conditionType.getCwe1_Identifier().getValueOrEmpty());
+        patientProblem.setConditionName(InterchangeValue.buildFromHl7(conditionType.getCwe2_Text().getValueOrEmpty()));
         patientProblem.setAddedTime(HL7Utils.interpretLocalTime(problemSegment.getPrb7_ProblemEstablishedDateTime()));
-        patientProblem.setOnsetTime(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemSegment.getPrb16_ProblemDateOfOnset())));
-        Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getActualProblemResolutionDateTime());
+        Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getPrb9_ActualProblemResolutionDateTime());
         patientProblem.setResolvedTime(InterchangeValue.buildFromHl7(problemResolved));
+        String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
+        patientProblem.setStatus(ConditionStatus.valueOf(problemStatus));
+        DTM problemOnset = problemSegment.getPrb16_ProblemDateOfOnset();
+        if (problemOnset.getValue() != null) {
+            patientProblem.setOnsetTime(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemOnset)));
+        }
+
         return patientProblem;
     }
 
