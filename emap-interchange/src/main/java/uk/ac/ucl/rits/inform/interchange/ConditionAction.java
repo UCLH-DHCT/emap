@@ -9,13 +9,36 @@ public enum ConditionAction {
     /**
      * Add.
      */
-    AD,
+    ADD("AD"),
     /**
      * Update.
      */
-    UP,
+    // How much do we care about the difference, we could do this just a save and delete?
+    // If so, we could use the result status and have a method on that to build from condition action
+    UPDATE("UP"),
     /**
      * Delete.
      */
-    DE
+    DELETE("DE");
+
+    private final String hl7Value;
+
+    ConditionAction(String hl7Value) {
+        this.hl7Value = hl7Value;
+    }
+
+    /**
+     * Find ConditionAction by name.
+     * @param hl7Value status name from hl7
+     * @return ConditionAction
+     * @throws IllegalArgumentException if an unknown name is encountered
+     */
+    public static ConditionAction findByHl7Value(String hl7Value) {
+        for (ConditionAction conditionAction : values()) {
+            if (conditionAction.hl7Value.equals(hl7Value)) {
+                return conditionAction;
+            }
+        }
+        throw new IllegalArgumentException(String.format("ConditionAction '%s' is not a known type", hl7Value));
+    }
 }

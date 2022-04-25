@@ -13,7 +13,7 @@
     status: "SAVE"
     value: 1
   status: "ACTIVE"
-  action: "DE"
+  action: "DELETE"
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "clarity"
   sourceMessageId: "1"
@@ -29,4 +29,4 @@
     status: "SAVE"
     value: 1
   status: "ACTIVE"
-  action: "AD"
+  action: "ADD"
