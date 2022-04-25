@@ -64,7 +64,7 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     /**
      * Effectively message type, i.e. whether to add, update or delete the condition.
      */
-    private ConditionAction action = ConditionAction.AD;
+    private ConditionAction action = ConditionAction.ADD;
 
     public abstract String getStatusString();
 }
