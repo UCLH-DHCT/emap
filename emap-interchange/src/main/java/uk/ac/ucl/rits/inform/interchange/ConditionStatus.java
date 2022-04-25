@@ -15,7 +15,7 @@ public enum ConditionStatus {
     /**
      * Resolved.
      */
-    RESOLVED("RESOLVED"),
+    RESOLVED("Resolved"),
     /**
      * Deleted.
      */
@@ -26,15 +26,24 @@ public enum ConditionStatus {
     IGNORE("IGNORE");
     // are all of these statuses used?
 
-    private final String value;
+    private final String name;
 
-    ConditionStatus(String value) {
-        this.value = value;
+    ConditionStatus(String name) {
+        this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return value;
+    /**
+     * Find ConditionStatus by name.
+     * @param name status name from hl7
+     * @return ConditionStatus
+     * @throws IllegalArgumentException if an unknown name is encountered
+     */
+    public static ConditionStatus findByHl7Value(String name) {
+        for (ConditionStatus status : values()) {
+            if (status.name.equals(name)) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException(String.format("ConditionStatus '%s' is not a known type", name));
     }
-
 }
