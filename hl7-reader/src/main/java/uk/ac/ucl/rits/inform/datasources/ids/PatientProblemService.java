@@ -90,13 +90,13 @@ public class PatientProblemService {
      * @param problems       List of problems to which additional problem might be added
      */
     private void addNewProblemAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
-        Instant problemAdded = patientProblem.getAddedTime();
-        if (problemAdded == null || problemAdded.isBefore(problemListProgress)) {
+        Instant problemUpdated = patientProblem.getUpdatedDateTime();
+        if (problemUpdated == null || problemUpdated.isBefore(problemListProgress)) {
             logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}",
-                    problemAdded, problemListProgress);
+                    problemUpdated, problemListProgress);
             return;
         }
         problems.add(patientProblem);
-        problemListProgress = patientProblem.getAddedTime();
+        problemListProgress = patientProblem.getUpdatedDateTime();
     }
 }
