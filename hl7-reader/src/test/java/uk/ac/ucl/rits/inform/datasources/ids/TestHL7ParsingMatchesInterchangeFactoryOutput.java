@@ -431,8 +431,9 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
 
     @Test
     public void testPatientProblem() throws Exception {
-        String[] fileNames = {"minimal_myeloma_inpatient"};
-        for (String fileName:   fileNames) {
+        String[] fileNames = {"minimal_myeloma_outpatient", "minimal_myeloma_inpatient", "minimal_myeloma_inpatient_delete"};
+        for (String fileName : fileNames) {
+            log.info("Testing file {}", fileName);
             String hl7FileName = String.format("ProblemList/end_to_end/%s.txt", fileName);
             EmapOperationMessage messageFromHl7 = processSingleMessage(hl7FileName).stream()
                     .filter(msg -> msg instanceof PatientProblem)
