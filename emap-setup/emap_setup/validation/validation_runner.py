@@ -1,4 +1,5 @@
 import os
+import tempfile
 from os.path import join
 from subprocess import Popen
 from datetime import date
@@ -13,6 +14,9 @@ class ValidationRunner:
                  docker_runner: 'DockerRunner',
                  time_window:   'TimeWindow'):
         """Validation runner that will be run over a time window"""
+
+        self.start_time = None
+        self.timeout = 36000 # Seconds
 
         self.docker = docker_runner
         self.time_window = time_window
@@ -92,20 +96,56 @@ class ValidationRunner:
 
         self.docker.run('ps')
 
-    def _wait_for_queue_to_empty(self, timeout_secs=36000) -> None:
+    def _wait_for_queue_to_empty(self) -> None:
         """
         Wait for the rabbitmq queue to be empty
         If it's still going after 10 hours something's gone very wrong and we
         should give up
         """
-        start_time = time()
+        self.start_time = time()
 
-        while time() - start_time < timeout_secs:
+        while self._has_populated_queues:
 
-            raise NotImplementedError
+            sleep(120)
 
-        self._save_logs_and_stop()
-        exit('Waiting for queue timed out')
+            if self._exceeded_timeout:
+                self._save_logs_and_stop()
+                exit('Waiting for queue timed out')
+
+        # exits too keenly from databaseExtracts queue, adding in a wait period
+        sleep(600)
+
+        return None
+
+    @property
+    def _exceeded_timeout(self) -> bool:
+        return self._elapsed_time > self.timeout
+
+    @property
+    def _elapsed_time(self) -> float:
+        """Seconds elapsed since the runner started"""
+        return time() - self.start_time
+
+    @property
+    def _has_populated_queues(self) -> bool:
+        """Are there queues that are still populated?
+
+        Check the number of messages remaining in the rabbitmmq queue and parse
+        an output like:
+
+            name    messages
+            hl7Queue        0
+            databaseExtracts        0
+        """
+        output_lines = []
+
+        self.docker.run('exec rabbitmq rabbitmqctl -q list_queues',
+                        output_lines=output_lines)
+
+        def n_messages(_line):
+            return int(_line.split()[1])
+
+        return all(n_messages(line) == 0 for line in output_lines[1:])
 
     def _save_logs_and_stop(self) -> None:
         """Save the logs of the required docker containers"""

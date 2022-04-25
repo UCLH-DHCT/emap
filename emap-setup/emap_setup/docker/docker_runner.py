@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import List, Optional
+from typing import List, Optional, IO
 
 from emap_setup.utils import File
 
@@ -21,7 +21,8 @@ class DockerRunner:
 
     def run(self,
             *docker_compose_args: str,
-            output_filename:      Optional[str] = None
+            output_filename:      Optional[str] = None,
+            output_lines:         Optional[list] = None
             ) -> None:
         """Run docker compose"""
 
@@ -32,11 +33,19 @@ class DockerRunner:
             exit(f'Cannot run docker-compose {docker_compose_args}. '
                  f'At least one path did not exist:\n {_paths_str} ')
 
+        if output_lines is not None:
+            output_filename = 'tmp.txt'
+
         subprocess.run(self.base_docker_command + ' '.join(docker_compose_args),
                        shell=True,
                        check=True,
                        stdout=None if output_filename is None
                               else open(output_filename, 'w'))
+
+        if output_lines is not None:
+            output_lines.extend(open(output_filename, 'r').readlines())
+            os.remove(output_filename)
+
         return None
 
     @property
