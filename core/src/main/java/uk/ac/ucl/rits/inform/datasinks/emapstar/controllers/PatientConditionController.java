@@ -351,7 +351,7 @@ class PatientConditionCache {
     }
 
     /**
-     * Create a new condition type and clear the cache for this key.
+     * Create and save a new condition type clear the cache for this key.
      * @param type            Condition Type
      * @param conditionCode   EPIC code for the condition within the type
      * @param updatedDateTime when the condition information is valid from
@@ -362,6 +362,7 @@ class PatientConditionCache {
     public ConditionType createNewType(
             PatientConditionController.PatientConditionType type, String conditionCode, Instant updatedDateTime, Instant storedFrom) {
         ConditionType conditionType = new ConditionType(type.toString(), conditionCode, updatedDateTime, storedFrom);
+        conditionTypeRepo.save(conditionType);
         logger.debug("Created new {}", conditionType);
         return conditionType;
     }
