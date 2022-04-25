@@ -447,7 +447,9 @@ public class IdsOperations implements AutoCloseable {
                 break;
             case "PPR":
                 if ("PC1".equals(triggerEvent) || "PC2".equals(triggerEvent) || "PC3".equals(triggerEvent)) {
+                    logger.trace("Parsing Problem list");
                     messages.addAll(patientProblemService.buildPatientProblems(sourceId, (PPR_PC1) msgFromIds));
+                    logger.trace("After parsing problem list {}", messages);
                 } else {
                     logErrorConstructingFromType(messageType, triggerEvent);
                 }
