@@ -310,7 +310,7 @@ public class PatientConditionController {
 
         PatientCondition condition = conditionState.getEntity();
 
-        if (msg.getAction().equals(ConditionAction.DE) && msg.getStatus().equals(ConditionStatus.ACTIVE)) {
+        if (msg.getAction().equals(ConditionAction.DELETE) && msg.getStatus().equals(ConditionStatus.ACTIVE)) {
             conditionState.assignIfDifferent(true, condition.getIsDeleted(), condition::setIsDeleted);
         }
     }

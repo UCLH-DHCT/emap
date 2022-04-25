@@ -303,8 +303,8 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @Test
     void testSameStateObtainedForUpAndAdActions() throws EmapOperationMessageProcessingException {
 
-        PatientCondition conditionFromUp = conditionMyelomaInpatientWithAction(ConditionAction.UP);
-        PatientCondition conditionFromAd = conditionMyelomaInpatientWithAction(ConditionAction.AD);
+        PatientCondition conditionFromUp = conditionMyelomaInpatientWithAction(ConditionAction.UPDATE);
+        PatientCondition conditionFromAd = conditionMyelomaInpatientWithAction(ConditionAction.ADD);
 
         assertEquals(conditionFromAd.getInternalId(), conditionFromUp.getInternalId());
         assertEquals(conditionFromAd.getAddedDateTime(), conditionFromUp.getAddedDateTime());
@@ -323,7 +323,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
     @ValueSource(strings = {"DELETED", "RESOLVED"})
     void testDeleteActionWithDeleteOrResolvedStatus(String input) throws EmapOperationMessageProcessingException {
 
-        hl7MyelomaInpatient.setAction(ConditionAction.DE);
+        hl7MyelomaInpatient.setAction(ConditionAction.DELETE);
         hl7MyelomaInpatient.setStatus(ConditionStatus.valueOf(input));
 
         processSingleMessage(hl7MyelomaInpatient);
