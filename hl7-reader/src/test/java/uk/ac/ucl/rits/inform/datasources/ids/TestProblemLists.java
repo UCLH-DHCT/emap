@@ -158,6 +158,8 @@ public class TestProblemLists extends TestHl7MessageStream {
         getAllProblems(setupFile);
 
         List<PatientProblem> problems = getAllProblems(testedFile);
+        // From a quick look at the feed I don't think that the entire history of problem lists are added,
+        // so I think we should remove this functionality and parse every message? Or maybe I've mistaken something
         assertEquals(expectedSize, problems.size());
     }
 }
