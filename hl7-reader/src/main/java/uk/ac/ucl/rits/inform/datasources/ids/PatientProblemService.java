@@ -87,7 +87,7 @@ public class PatientProblemService {
         Instant problemResolved = HL7Utils.interpretLocalTime(problemSegment.getPrb9_ActualProblemResolutionDateTime());
         patientProblem.setResolvedTime(InterchangeValue.buildFromHl7(problemResolved));
         String problemStatus = problemSegment.getPrb13_ProblemConfirmationStatus().getCwe1_Identifier().getValueOrEmpty();
-        patientProblem.setStatus(ConditionStatus.valueOf(problemStatus));
+        patientProblem.setStatus(ConditionStatus.findByHl7Value(problemStatus));
         DTM problemOnset = problemSegment.getPrb16_ProblemDateOfOnset();
         if (problemOnset.getValue() != null) {
             patientProblem.setOnsetTime(InterchangeValue.buildFromHl7(HL7Utils.interpretDate(problemOnset)));
@@ -102,13 +102,13 @@ public class PatientProblemService {
      * @param problems       List of problems to which additional problem might be added
      */
     private void addNewProblemAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
-        Instant problemUpdated = patientProblem.getUpdatedDateTime();
-        if (problemUpdated == null || problemUpdated.isBefore(problemListProgress)) {
+        Instant problemAdded = patientProblem.getAddedTime();
+        if (problemAdded == null || problemAdded.isBefore(problemListProgress)) {
             logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}",
-                    problemUpdated, problemListProgress);
+                    problemAdded, problemListProgress);
             return;
         }
         problems.add(patientProblem);
-        problemListProgress = patientProblem.getUpdatedDateTime();
+        problemListProgress = patientProblem.getAddedTime();
     }
 }
