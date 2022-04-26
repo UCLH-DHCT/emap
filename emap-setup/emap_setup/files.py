@@ -1,6 +1,8 @@
 import os
 from typing import Optional, List
 
+from emap_setup.utils import EMAPRunnerException
+
 
 class NewLine(str):
     """A new line in a file"""
@@ -43,8 +45,9 @@ class EnvironmentFile(File):
         super().__init__(example_filename)
 
         if '.EXAMPLE' not in example_filename:
-            exit(f'Cannot create an environment file. {example_filename} '
-                 f'did not have a .EX containing extension')
+            raise EMAPRunnerException(
+                f'Cannot create an environment file. {example_filename} '
+                f'did not have a .EXAMPLE containing extension')
 
         with open(example_filename, 'r') as file:
             self.lines = file.readlines()

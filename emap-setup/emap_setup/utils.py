@@ -1,6 +1,10 @@
 from datetime import date
 
 
+class EMAPRunnerException(Exception):
+    """Base exception for any error in EMAP setup"""
+
+
 class TimeWindow:
 
     def __init__(self,
@@ -28,8 +32,9 @@ class TimeWindow:
 
         try:
             return date.fromisoformat(string)
-        except ValueError:
-            raise NotImplementedError(f'Failed to parse {string}')
+        except ValueError as e:
+            raise EMAPRunnerException(f'Failed to parse {string} as a date '
+                                      f'because:\n{e}') from e
 
     @property
     def start_stamp(self) -> str:

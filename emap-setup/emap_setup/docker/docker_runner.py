@@ -1,8 +1,13 @@
 import os
 from subprocess import Popen, PIPE, CalledProcessError
-from typing import List, Optional
+from typing import List, Optional, IO
 
 from emap_setup.files import File
+from emap_setup.utils import EMAPRunnerException
+
+
+class DockerRunnerException(EMAPRunnerException):
+    """Exception for something breaking within docker"""
 
 
 class DockerRunner:
@@ -37,31 +42,30 @@ class DockerRunner:
 
         if not all(os.path.exists(path) for path in paths):
             _paths_str = "\n".join(paths)
-            exit(f'Cannot run docker-compose {docker_compose_args}. '
-                 f'At least one path did not exist:\n {_paths_str} ')
+            raise DockerRunnerException(
+                f'Cannot run docker-compose {docker_compose_args}. '
+                f'At least one path did not exist:\n {_paths_str} ')
 
         cmd = self.base_docker_compose_command.split()
         for arg in docker_compose_args:
-            cmd += arg.split()
+            cmd += [x.strip('"') for x in arg.split()]
 
         print(f'Running:\n {" ".join(cmd)}\n')
 
         with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
 
             if output_filename is not None:
-                with open(output_filename, 'w') as file:
-                    for line in p.stdout:
-                        print(line, file=file)
+                _write_to_file(p.stdout, output_filename)
+
+            elif output_lines is not None:
+                _append_to_list(p.stdout, output_lines)
 
             else:
-                for line in p.stdout:
-                    if output_lines is not None:
-                        output_lines.extend(line.decode())
-                    else:
-                        print(line, end='')
+                _print(p.stdout)
 
-            if p.returncode not in (0, None):
-                raise RuntimeError(f'Process failed with {p.returncode}')
+        if p.returncode not in (0, None):
+            raise DockerRunnerException(f'Process failed with error code: '
+                                        f'{p.returncode}')
 
         return None
 
@@ -113,8 +117,37 @@ class DockerRunner:
                      f'setup-admin-user {username} {password}')
 
         except CalledProcessError as e:
-            exit(f'{e}\n\n'
-                 f'Failed to password protect glowroot. Check that the docker '
-                 f'containers have enough available RAM')
+            raise DockerRunnerException(
+                f'{e}\n\n'
+                f'Failed to password protect glowroot. Check that the docker '
+                f'containers have enough available RAM') from e
 
         return None
+
+
+def _write_to_file(stdout: IO, filename: str) -> None:
+    """Write standard output to a file"""
+
+    with open(filename, 'w') as file:
+        for line in stdout:
+            print(line, file=file)
+
+    return None
+
+
+def _append_to_list(stdout: IO, _list: list) -> None:
+    """Append standard output to a list"""
+
+    for line in stdout:
+        _list.append(line.decode())
+
+    return None
+
+
+def _print(stdout: IO) -> None:
+    """Print standard output"""
+
+    for line in stdout:
+        print(line, end='')
+
+    return None

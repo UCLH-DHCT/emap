@@ -183,7 +183,7 @@ def main():
     except AttributeError:
         exit('No recognised command found. Run --help for options')
 
-    return print("All done")
+    return None
 
 
 if __name__ == '__main__':

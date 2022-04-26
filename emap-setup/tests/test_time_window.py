@@ -1,5 +1,8 @@
 from datetime import date
-from emap_setup.utils import TimeWindow
+
+import pytest
+
+from emap_setup.utils import TimeWindow, EMAPRunnerException
 
 
 def test_both_today():
@@ -22,3 +25,9 @@ def test_iso_format():
     window = TimeWindow('2019-12-04', '2019-12-08')
 
     assert (window.end.toordinal() - window.start.toordinal()) == 4
+
+
+def test_invalid_time_format():
+
+    with pytest.raises(EMAPRunnerException):
+        _ = TimeWindow('something_invalid', 'today')

@@ -1,11 +1,15 @@
 import os
-import tempfile
 from os.path import join
 from subprocess import Popen
-from datetime import date
+from datetime import date, timedelta
 from time import time, sleep
 
 from emap_setup.files import EnvironmentFile
+from emap_setup.utils import EMAPRunnerException
+
+
+class ValidationRunnerException(EMAPRunnerException):
+    """Exception for when a validation issue occurs"""
 
 
 class ValidationRunner:
@@ -16,7 +20,7 @@ class ValidationRunner:
         """Validation runner that will be run over a time window"""
 
         self.start_time = None
-        self.timeout = 36000 # Seconds
+        self.timeout = timedelta(hours=10)
 
         self.docker = docker_runner
         self.time_window = time_window
@@ -106,14 +110,14 @@ class ValidationRunner:
 
         while self._has_populated_queues:
 
-            sleep(120)
+            sleep(secs=120)
 
             if self._exceeded_timeout:
                 self._save_logs_and_stop()
-                exit('Waiting for queue timed out')
+                raise ValidationRunnerException('Waiting for queue timed out')
 
         # exits too keenly from databaseExtracts queue, adding in a wait period
-        sleep(600)
+        sleep(secs=600)
 
         return None
 
@@ -122,9 +126,9 @@ class ValidationRunner:
         return self._elapsed_time > self.timeout
 
     @property
-    def _elapsed_time(self) -> float:
+    def _elapsed_time(self) -> timedelta:
         """Seconds elapsed since the runner started"""
-        return time() - self.start_time
+        return timedelta(microseconds=time() - self.start_time)
 
     @property
     def _has_populated_queues(self) -> bool:
@@ -171,14 +175,14 @@ class TemporaryEnvironmentState:
         :param: dir_path: Path to the directory containing XXX-config-envs file
         """
 
-        self.files = {join(dir_path, f): open(join(dir_path, f), 'r').readlines()
-                      for f in os.listdir(dir_path)}
+        self._files = {join(dir_path, f): open(join(dir_path, f), 'r').readlines()
+                       for f in os.listdir(dir_path)}
 
     def __enter__(self):
-        return self.files
+        return self._files
 
     def __exit__(self, *args, **kwargs):
 
-        for file_path, file_lines in self.files.items():
+        for file_path, file_lines in self._files.items():
             with open(file_path, 'w') as file:
                 file.write(''.join(file_lines))

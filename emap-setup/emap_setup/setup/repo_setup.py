@@ -1,16 +1,16 @@
 import os
+import git
 import shutil
 
 from tqdm import tqdm
-
-from git import Repo
-from git import GitCommandError
-from git import InvalidGitRepositoryError
-
-from git import RemoteProgress
+from emap_setup.utils import EMAPRunnerException
 
 
-class _CloneProgressBar(RemoteProgress):
+class RepoOperationException(EMAPRunnerException):
+    """Exception for when a repo cannot be e.g. cloned or updated"""
+
+
+class _CloneProgressBar(git.RemoteProgress):
     def __init__(self):
         super().__init__()
         self.pbar = tqdm()
@@ -54,16 +54,16 @@ class RepoSetup:
                   f'to {this_path}')
 
             if os.path.exists(this_repo['name']):
-                exit(f"Cannot clone {this_repo}, as it already existed")
-
+                raise RepoOperationException(f"Cannot clone {this_repo}. "
+                                             f"It already existed")
             try:
-                Repo.clone_from(this_git_path, this_path,
-                                branch=this_repo['branch'],
-                                progress=_CloneProgressBar())
+                git.Repo.clone_from(this_git_path, this_path,
+                                    branch=this_repo['branch'],
+                                    progress=_CloneProgressBar())
                 self.current_repos[repo] = self.repos[repo].copy()
-            except GitCommandError as e:
-                exit(f'Necessary repos could not be cloned due to:\n'
-                     f'{e}')
+            except git.GitCommandError as e:
+                raise RepoOperationException(f'Necessary repos could not be '
+                                             f'cloned due to:\n{e}') from e
 
     def update(self) -> None:
         for repo in self.repos:
@@ -73,20 +73,22 @@ class RepoSetup:
                           f'{self.repos[repo]["name"]:20s} and branch '
                           f'{self.repos[repo]["branch"]}')
 
-                    this_repo = Repo(os.path.join(self.main_dir, repo))
+                    this_repo = git.Repo(os.path.join(self.main_dir, repo))
                     this_repo.remotes[0].pull()
-                except GitCommandError as e:
-                    exit(f'Cannot update due to {e}')
+                except git.GitCommandError as e:
+                    raise RepoOperationException(f'Cannot update '
+                                                 f'due to {e}') from e
             else:
                 try:
                     print(f'Checking out repo {repo}, branch '
                           f'{self.repos[repo]["name"]} into '
                           f'{self.repos[repo]["branch"]}')
 
-                    this_repo = Repo(os.path.join(self.main_dir, repo))
+                    this_repo = git.Repo(os.path.join(self.main_dir, repo))
                     this_repo.git.checkout(self.repos[repo]['branch'])
-                except GitCommandError as e:
-                    exit(f'Cannot checkout branch due to {e}')
+                except git.GitCommandError as e:
+                    raise RepoOperationException(f'Cannot checkout branch '
+                                                 f'due to {e}') from e
 
     def clean(self) -> None:
         """Remove the repositories"""
@@ -126,7 +128,7 @@ class RepoSetup:
         list_of_dirs = os.listdir(self.main_dir)
         for this_dir in list_of_dirs:
             try:
-                this_repo = Repo(os.path.join(self.main_dir, this_dir))
+                this_repo = git.Repo(os.path.join(self.main_dir, this_dir))
                 remote_url = this_repo.remotes[0].config_reader.get("url")
                 repo_name = os.path.splitext(os.path.basename(remote_url))[0]
                 repo_info = {
@@ -134,6 +136,7 @@ class RepoSetup:
                     'branch': this_repo.active_branch.name
                 }
                 repos[this_dir] = repo_info
-            except InvalidGitRepositoryError:
+            except git.InvalidGitRepositoryError:
                 continue
+
         return repos
