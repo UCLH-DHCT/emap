@@ -14,12 +14,19 @@ class CommentLine(str):
 
 class File:
 
-    def __init__(self, filename):
+    def __init__(self,
+                 filename:    str,
+                 allow_empty: bool = False):
 
         self.filename = filename
 
-        with open(filename, 'r') as file:
-            self.lines = file.readlines()
+        try:
+            with open(filename, 'r') as file:
+                self.lines = file.readlines()
+
+        except IOError as e:
+            if not allow_empty:
+                raise e
 
     def replace(self, old: str, new: str) -> None:
         """Replace a string with another that may or may not exist"""
@@ -41,18 +48,23 @@ class File:
 
 class EnvironmentFile(File):
 
-    def __init__(self, example_filename: str):
-        super().__init__(example_filename)
+    def __init__(self, filename: str):
+        super().__init__(filename, allow_empty=True)
+
+    @classmethod
+    def from_example_file(cls, example_filename: str) -> 'EnvironmentFile':
 
         if '.EXAMPLE' not in example_filename:
             raise EMAPRunnerException(
                 f'Cannot create an environment file. {example_filename} '
                 f'did not have a .EXAMPLE containing extension')
 
-        with open(example_filename, 'r') as file:
-            self.lines = file.readlines()
+        file = EnvironmentFile(example_filename.split('.EXAMPLE')[0])
 
-        self.filename = example_filename.split('.EX')[0]
+        with open(example_filename, 'r') as example_file:
+            file.lines = example_file.readlines()
+
+        return file
 
     @property
     def unchanged_lines(self) -> List[str]:

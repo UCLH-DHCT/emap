@@ -71,15 +71,6 @@ def create_parser() -> Parser:
         'validation',
         help='Run validation of the full pipeline'
     )
-
-    validation_type = validation_parser.add_mutually_exclusive_group()
-    validation_type.add_argument(
-        '-r', '--run',
-        help='Run the validation',
-        default=False,
-        action='store_true'
-    )
-
     validation_parser.add_argument(
         'start_date',
         type=str,
@@ -154,11 +145,7 @@ class EMAPRunner:
                                    end_date=self.args.end_date)
         )
 
-        if self.args.run:
-            runner.run()
-
-        else:
-            exit('Please run --help for options')
+        runner.run()
 
         return None
 

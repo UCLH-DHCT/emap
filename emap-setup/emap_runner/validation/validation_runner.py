@@ -51,7 +51,9 @@ class ValidationRunner:
             if name.startswith('.') or not name.endswith('config-envs'):
                 continue
 
-            self._set_time_window_in_env_file(EnvironmentFile(name))
+            self._set_time_window_in_env_file(
+                EnvironmentFile(os.path.join(self.env_dir_path, name))
+            )
 
         return None
 

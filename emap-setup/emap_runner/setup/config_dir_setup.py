@@ -57,14 +57,16 @@ class _ConfigDirSetup:
 
             # get list f -envs.EXAMPLE files
             list_of_envs_files = []
-            path = os.path.join(self.main_dir, dir_name)
-            if os.path.isdir(path):
-                list_of_envs_files = self._get_envs_examples(path)
+            dir_path = os.path.join(self.main_dir, dir_name)
+            if os.path.isdir(dir_path):
+                list_of_envs_files = self._get_envs_examples(dir_path)
 
             # create a copy of each file in config dir without .EXAMPLE ext
             for env_filename in list_of_envs_files:
 
-                file = EnvironmentFile(os.path.join(path, env_filename))
+                file = EnvironmentFile.from_example_file(
+                    os.path.join(dir_path, env_filename)
+                )
 
                 for config_type in self.standard_config_types:
                     self._substitute_info(file, config_type)
