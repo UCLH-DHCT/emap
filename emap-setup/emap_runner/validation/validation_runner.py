@@ -70,6 +70,7 @@ class ValidationRunner:
 
     def _run_emap(self) -> None:
 
+        self.docker.inject_ports()
         self.docker.run("down")
         self.docker.setup_glowroot_password()
         self.docker.run("up -d glowroot-central")
