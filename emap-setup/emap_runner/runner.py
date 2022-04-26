@@ -72,15 +72,15 @@ def create_parser() -> Parser:
         help='Run validation of the full pipeline'
     )
     validation_parser.add_argument(
-        'start_date',
+        '-s', '--start_date',
         type=str,
-        help='Date at which to start parsing messages. e.g. 7 days ago',
+        help='Date at which to start parsing messages. Default: 7 days ago',
         default='7 days ago'
     )
     validation_parser.add_argument(
-        'end_date',
+        '-e', '--end_date',
         type=str,
-        help='Date at which to start parsing messages. e.g. today',
+        help='Date at which to start parsing messages. Default: today',
         default='today'
     )
 
