@@ -86,7 +86,7 @@ class ValidationRunner:
         after the datasources!
         """
         _ = Popen(['sleep', '180;']
-                  + self.docker.base_docker_command.split()
+                  + self.docker.base_docker_compose_command.split()
                   + ['up', '-d', 'emapstar'])
 
         self.docker.run('up --exit-code-from hl7source hl7source',

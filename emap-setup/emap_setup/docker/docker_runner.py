@@ -1,6 +1,6 @@
 import os
-import subprocess
-from typing import List, Optional, IO
+from subprocess import Popen, PIPE, CalledProcessError
+from typing import List, Optional
 
 from emap_setup.utils import File
 
@@ -24,7 +24,14 @@ class DockerRunner:
             output_filename:      Optional[str] = None,
             output_lines:         Optional[list] = None
             ) -> None:
-        """Run docker compose"""
+        """
+        Run docker compose
+
+        :param docker_compose_args: Arguments to pass to the full docker
+                                    compose call e.g. ps
+        :param output_filename: Name of the file to write the stdout to
+        :param output_lines: List to append the stdout to
+        """
 
         paths = self.docker_compose_paths
 
@@ -33,23 +40,33 @@ class DockerRunner:
             exit(f'Cannot run docker-compose {docker_compose_args}. '
                  f'At least one path did not exist:\n {_paths_str} ')
 
-        if output_lines is not None:
-            output_filename = 'tmp.txt'
+        cmd = self.base_docker_compose_command.split()
+        for arg in docker_compose_args:
+            cmd += arg.split()
 
-        subprocess.run(self.base_docker_command + ' '.join(docker_compose_args),
-                       shell=True,
-                       check=True,
-                       stdout=None if output_filename is None
-                              else open(output_filename, 'w'))
+        print(f'Running:\n {" ".join(cmd)}\n')
 
-        if output_lines is not None:
-            output_lines.extend(open(output_filename, 'r').readlines())
-            os.remove(output_filename)
+        with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
+
+            if output_filename is not None:
+                with open(output_filename, 'w') as file:
+                    for line in p.stdout:
+                        print(line, file=file)
+
+            else:
+                for line in p.stdout:
+                    if output_lines is not None:
+                        output_lines.extend(line.decode())
+                    else:
+                        print(line, end='')
+
+            if p.returncode not in (0, None):
+                raise RuntimeError(f'Process failed with {p.returncode}')
 
         return None
 
     @property
-    def base_docker_command(self) -> str:
+    def base_docker_compose_command(self) -> str:
         return ('docker-compose -f '
                 + ' -f '.join(self.docker_compose_paths)
                 + f' -p {self.config["EMAP_PROJECT_NAME"]} ')
@@ -95,7 +112,7 @@ class DockerRunner:
             self.run('run glowroot-central java -jar "glowroot-central.jar" '
                      f'setup-admin-user {username} {password}')
 
-        except subprocess.CalledProcessError as e:
+        except CalledProcessError as e:
             exit(f'{e}\n\n'
                  f'Failed to password protect glowroot. Check that the docker '
                  f'containers have enough available RAM')
