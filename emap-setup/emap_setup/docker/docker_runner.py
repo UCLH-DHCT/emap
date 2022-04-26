@@ -2,7 +2,7 @@ import os
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import List, Optional
 
-from emap_setup.utils import File
+from emap_setup.files import File
 
 
 class DockerRunner:

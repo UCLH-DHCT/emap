@@ -5,7 +5,7 @@ from subprocess import Popen
 from datetime import date
 from time import time, sleep
 
-from emap_setup.utils import EnvironmentFile
+from emap_setup.files import EnvironmentFile
 
 
 class ValidationRunner:

@@ -2,7 +2,7 @@ import os
 import fnmatch
 from datetime import datetime
 
-from emap_setup.utils import EnvironmentFile, NewLine, CommentLine
+from emap_setup.files import EnvironmentFile, NewLine, CommentLine
 from emap_setup.read_config import ConfigFile
 
 
