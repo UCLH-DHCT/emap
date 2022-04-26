@@ -10,5 +10,6 @@ def arg_parser():
     arg_parser = create_parser()
     return arg_parser
 
+
 # TODO: what should be tested here?
 # (I don't think its worth testing argparse functionality)

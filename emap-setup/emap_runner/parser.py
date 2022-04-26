@@ -4,7 +4,6 @@ from typing import Optional, Sequence
 
 
 class Parser(ArgumentParser):
-
     def parse_args(self, args: Optional[Sequence[str]] = None) -> Namespace:
         """
         Parse the arguments.
@@ -21,12 +20,12 @@ class Parser(ArgumentParser):
         if args is None:
             args = sys.argv[1:]
 
-        if 'docker' not in args:
+        if "docker" not in args:
             return super().parse_args(args)
 
-        idx = next(i+1 for i, arg in enumerate(args) if arg == 'docker')
+        idx = next(i + 1 for i, arg in enumerate(args) if arg == "docker")
 
-        namespace = super().parse_args(args[:idx] + ['X'])
+        namespace = super().parse_args(args[:idx] + ["X"])
         namespace.docker_compose_args = args[idx:]
 
         return namespace

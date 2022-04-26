@@ -6,10 +6,7 @@ class EMAPRunnerException(Exception):
 
 
 class TimeWindow:
-
-    def __init__(self,
-                 start_date:    str,
-                 end_date:      str):
+    def __init__(self, start_date: str, end_date: str):
         """Time window defined by a string"""
 
         self.start = self._parse_date_string(start_date)
@@ -23,23 +20,24 @@ class TimeWindow:
         """
         today = date.today()
 
-        if string == 'today':
+        if string == "today":
             return today
 
-        if string.endswith(' days ago'):
-            n = today.toordinal() - int(string.split(' days ago')[0])
+        if string.endswith(" days ago"):
+            n = today.toordinal() - int(string.split(" days ago")[0])
             return date.fromordinal(n)
 
         try:
             return date.fromisoformat(string)
         except ValueError as e:
-            raise EMAPRunnerException(f'Failed to parse {string} as a date '
-                                      f'because:\n{e}') from e
+            raise EMAPRunnerException(
+                f"Failed to parse {string} as a date " f"because:\n{e}"
+            ) from e
 
     @property
     def start_stamp(self) -> str:
-        return f'{self.start}T00:00:00.00Z'
+        return f"{self.start}T00:00:00.00Z"
 
     @property
     def end_stamp(self) -> str:
-        return f'{self.end}T00:00:00.00Z'
+        return f"{self.end}T00:00:00.00Z"
