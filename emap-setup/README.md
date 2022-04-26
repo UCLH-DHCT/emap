@@ -4,7 +4,7 @@ Code to initialise, update and run EMAP. Includes ability to:
 1. Clone repos
 2. Set up configuration
 3. Run pipeline
-4. Update code (Coming soon)
+4. Update code (`git pull`)
 
 ## Usage
 1. Create your working directory 
