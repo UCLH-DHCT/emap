@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 
-from emap_setup.validation.validation_runner import TemporaryEnvironmentState
+from emap_runner.validation.validation_runner import TemporaryEnvironmentState
 
 
 def test_tmp_env_state_caches_env():

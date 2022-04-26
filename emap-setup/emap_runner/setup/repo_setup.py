@@ -3,7 +3,7 @@ import git
 import shutil
 
 from tqdm import tqdm
-from emap_setup.utils import EMAPRunnerException
+from emap_runner.utils import EMAPRunnerException
 
 
 class RepoOperationException(EMAPRunnerException):

@@ -2,13 +2,13 @@ import os
 import argparse
 
 
-from emap_setup.read_config import ConfigFile
-from emap_setup.parser import Parser
-from emap_setup.setup.config_dir_setup import create_or_update_config_dir
-from emap_setup.setup.repo_setup import RepoSetup
-from emap_setup.docker.docker_runner import DockerRunner
-from emap_setup.utils import TimeWindow
-from emap_setup.validation.validation_runner import ValidationRunner
+from emap_runner.read_config import ConfigFile
+from emap_runner.parser import Parser
+from emap_runner.setup.config_dir_setup import create_or_update_config_dir
+from emap_runner.setup.repo_setup import RepoSetup
+from emap_runner.docker.docker_runner import DockerRunner
+from emap_runner.utils import TimeWindow
+from emap_runner.validation.validation_runner import ValidationRunner
 
 
 def create_parser() -> Parser:
@@ -104,7 +104,7 @@ class EMAPRunner:
 
         self.args = args
         self.config_file = config_file
-        self.main_dir = os.path.dirname(os.path.abspath(__file__))
+        self.main_dir = os.getcwd()
 
     def setup(self) -> None:
         """Run the setup"""

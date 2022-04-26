@@ -1,9 +1,9 @@
 from pytest import fixture
 import os
 import shutil
-from filecmp import dircmp
-from emap_setup.read_config import ConfigFile
-from emap_setup.setup.config_dir_setup import _ConfigDirSetup
+
+from emap_runner.read_config import ConfigFile
+from emap_runner.setup.config_dir_setup import _ConfigDirSetup
 
 # Tests the ConfigDirSetup class that creates the config dir
 

@@ -17,12 +17,12 @@ For example,
 git clone https://github.com/inform-health-informatics/emap-setup.git &&\
 cd emap-setup &&\
 cp global-configuration-EXAMPLE.yaml global-configuration.yaml &&\
-python emap_runner.py setup --init
+pip install .
 ```
 
 ### Command line options
 ```bash
-python emap_runner.py --help
+emap --help
 ```
  
 ## Notes

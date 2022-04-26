@@ -4,8 +4,8 @@ from subprocess import Popen
 from datetime import date, timedelta
 from time import time, sleep
 
-from emap_setup.files import EnvironmentFile
-from emap_setup.utils import EMAPRunnerException
+from emap_runner.files import EnvironmentFile
+from emap_runner.utils import EMAPRunnerException
 
 
 class ValidationRunnerException(EMAPRunnerException):

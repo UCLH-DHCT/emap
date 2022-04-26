@@ -1,6 +1,7 @@
 import pytest
+
 from pytest import fixture
-from emap_setup.read_config import ConfigFile
+from emap_runner.read_config import ConfigFile
 
 # Tests the ReadConfig class that reads the global configuration file
 

@@ -2,8 +2,8 @@ import os
 import fnmatch
 from datetime import datetime
 
-from emap_setup.files import EnvironmentFile, NewLine, CommentLine
-from emap_setup.read_config import ConfigFile
+from emap_runner.files import EnvironmentFile, NewLine, CommentLine
+from emap_runner.read_config import ConfigFile
 
 
 def create_or_update_config_dir(main_dir:    str,

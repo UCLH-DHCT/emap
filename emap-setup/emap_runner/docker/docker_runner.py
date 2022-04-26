@@ -2,8 +2,8 @@ import os
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import List, Optional, IO
 
-from emap_setup.files import File
-from emap_setup.utils import EMAPRunnerException
+from emap_runner.files import File
+from emap_runner.utils import EMAPRunnerException
 
 
 class DockerRunnerException(EMAPRunnerException):

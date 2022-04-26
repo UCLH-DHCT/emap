@@ -1,5 +1,5 @@
 from pytest import fixture
-from emap_runner import create_parser
+from emap_runner.runner import create_parser
 
 
 @fixture(scope="module")

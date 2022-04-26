@@ -1,7 +1,7 @@
 import os
 from typing import Optional, List
 
-from emap_setup.utils import EMAPRunnerException
+from emap_runner.utils import EMAPRunnerException
 
 
 class NewLine(str):

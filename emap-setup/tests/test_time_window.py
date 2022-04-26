@@ -1,8 +1,7 @@
-from datetime import date
-
 import pytest
 
-from emap_setup.utils import TimeWindow, EMAPRunnerException
+from datetime import date
+from emap_runner.utils import TimeWindow, EMAPRunnerException
 
 
 def test_both_today():
