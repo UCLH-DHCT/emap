@@ -15,14 +15,12 @@ class DockerRunner:
 
     def __init__(self,
                  main_dir:      str,
-                 config:        dict,
-                 use_fake_epic: bool = False):
+                 config:        dict):
         """Initialise a docker runner with docker-compose.yml files relative
         to the main directory given a specific configuration"""
 
         self.main_dir = main_dir
         self.config = config
-        self.use_fake_epic = use_fake_epic
 
     def run(self,
             *docker_compose_args: str,
@@ -83,11 +81,6 @@ class DockerRunner:
         paths = [self.core_docker_compose_path,
                  join(self.main_dir, 'emap-hl7-processor', 'docker-compose.yml'),
                  join(self.main_dir, 'hoover', 'docker-compose.yml')]
-
-        if self.use_fake_epic:
-            paths.append(
-                join(self.main_dir, 'hoover', 'docker-compose.fake_services.yml')
-            )
 
         return paths
 

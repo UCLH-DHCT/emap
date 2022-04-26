@@ -60,12 +60,6 @@ def create_parser() -> Parser:
         help='Subcommands to pass to docker-compose. E,g, up, ps, down',
         nargs='+'
     )
-    docker_parser.add_argument(
-        '-fake', '--fake-epic',
-        help='Include services for fake clarity and caboodle servers',
-        default=False,
-        action='store_true'
-    )
 
     validation_parser = subparsers.add_parser(
         'validation',
@@ -124,7 +118,6 @@ class EMAPRunner:
         """Run a docker instance"""
 
         runner = DockerRunner(main_dir=self.main_dir,
-                              use_fake_epic=self.args.fake_epic,
                               config=self.config_file.config)
 
         if 'up' in self.args.docker_compose_args:
