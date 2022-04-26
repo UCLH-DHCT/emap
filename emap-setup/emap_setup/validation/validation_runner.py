@@ -24,7 +24,7 @@ class ValidationRunner:
     def run(self) -> None:
         """Run a validation run"""
 
-        with TemporaryEnvironmentSate(self.env_dir_path):
+        with TemporaryEnvironmentState(self.env_dir_path):
             self._set_time_window_in_envs()
             self._run_emap()
             self._wait_for_queue_to_empty()
@@ -161,7 +161,7 @@ class ValidationRunner:
         return None
 
 
-class TemporaryEnvironmentSate:
+class TemporaryEnvironmentState:
 
     def __init__(self, dir_path):
         """
