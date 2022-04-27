@@ -2,7 +2,7 @@ import os
 import argparse
 
 
-from emap_runner.read_config import ConfigFile
+from emap_runner.global_config import GlobalConfiguration
 from emap_runner.parser import Parser
 from emap_runner.setup.config_dir_setup import create_or_update_config_dir
 from emap_runner.setup.repo_setup import RepoSetup
@@ -82,20 +82,16 @@ def create_parser() -> Parser:
 
 
 class EMAPRunner:
-    def __init__(self, args: argparse.Namespace, config_file: ConfigFile):
+    def __init__(self, args: argparse.Namespace, config: GlobalConfiguration):
 
         self.args = args
-        self.config_file = config_file
+        self.config = config
         self.main_dir = os.getcwd()
 
     def setup(self) -> None:
         """Run the setup"""
 
-        repo_setup = RepoSetup(
-            main_dir=self.main_dir,
-            git_dir=self.config_file.git_dir,
-            repos=self.config_file.repo_info,
-        )
+        repos = self.config.repositories
 
         if self.args.init:
             repo_setup.clone()
@@ -109,15 +105,13 @@ class EMAPRunner:
         else:
             exit("Please run --help for options")
 
-        create_or_update_config_dir(
-            main_dir=self.main_dir, config_file=self.config_file
-        )
+        create_or_update_config_dir(main_dir=self.main_dir, config_file=self.config)
         return None
 
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=self.main_dir, config=self.config_file.config)
+        runner = DockerRunner(main_dir=self.main_dir, config=self.config.config)
 
         if "up" in self.args.docker_compose_args:
             runner.setup_glowroot_password()
@@ -132,7 +126,7 @@ class EMAPRunner:
 
         runner = ValidationRunner(
             docker_runner=DockerRunner(
-                main_dir=self.main_dir, config=self.config_file.config
+                main_dir=self.main_dir, config=self.config.config
             ),
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
@@ -155,7 +149,7 @@ def main():
     if not os.path.exists(args.filename):
         exit(f"Configuration file *{args.filename}* not found. Exiting")
 
-    runner = EMAPRunner(args=args, config_file=ConfigFile(args.filename))
+    runner = EMAPRunner(args=args, config=ConfigFile(args.filename))
 
     try:
         runner.run(args.subcommand)

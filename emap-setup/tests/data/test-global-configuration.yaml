@@ -1,69 +1,61 @@
 
-config:
 
-  main_git_dir:
-    https://github.com/test
+main_git_dir:
+  https://github.com/test
 
-  EMAP_PROJECT_NAME:
-    my_project_name
+EMAP_PROJECT_NAME:
+  my_project_name
 
-  repositories:
-    InformDB:
-      branch:  develop
-    hl7-vitals:
-      branch:  vitalsigns
-      repo_name: Emap-Core
+repositories:
+  InformDB:
+    branch:  develop
+  hl7-vitals:
+    branch:  vitalsigns
+    repo_name: Emap-Core
+  hoover:
 
-  # Configuration data for the rabbitmq instance used by Spring in the pipeline
+# Configuration data for the rabbitmq instance used by Spring in the pipeline
 
-  rabbitmq:
-    SPRING_RABBITMQ_HOST: rabbitmq
-    SPRING_RABBITMQ_PORT: 5672
-    SPRING_RABBITMQ_USERNAME: my_name
-    SPRING_RABBITMQ_PASSWORD: my_pw
-    RABBITMQ_DEFAULT_USER : my_name
-    RABBITMQ_DEFAULT_PASS: my_pw
+rabbitmq:
+  SPRING_RABBITMQ_HOST: rabbitmq
+  SPRING_RABBITMQ_PORT: 5672
+  SPRING_RABBITMQ_USERNAME: my_name
+  SPRING_RABBITMQ_PASSWORD: my_pw
+  RABBITMQ_DEFAULT_USER : my_name
+  RABBITMQ_DEFAULT_PASS: my_pw
 
-  # Configuration used by global configuration
-  
-  global:
-    RABBITMQ_PORT: 5678
-    RABBITMQ_ADMIN_PORT: 5679
-  
-  # Configuration for the IDS
-  ids:
-    IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
-    IDS_SCHEMA: schemaname
-    IDS_USERNAME: someuserids
-    IDS_PASSWORD: redactedids
+# Configuration used by global configuration
 
-  # These dates are used to set the start and end dates between which data should be collected
-  dates:
-    start: 2020-06-04T00:00:00.00Z
-    end:
+global:
+  RABBITMQ_PORT: 5678
+  RABBITMQ_ADMIN_PORT: 5679
 
-  informdb:
-    common:
-      INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
-    Emap-Core:
-      INFORMDB_SCHEMA: inform_schema
-      INFORMDB_USERNAME: someuser
-      INFORMDB_PASSWORD: redacted
-    OMOP-ETL:
-      INFORMDB_SCHEMA: inform_schema
-      INFORMDB_USERNAME: someuser_omop
-      INFORMDB_PASSWORD: redacted_omop
-      INFORMDB_DDL_AUTO: update
-      INFORM_INIT_MODE: always
-    hl7-vitals:
-      INFORMDB_SCHEMA: inform_schema_for_branch
-      INFORMDB_USERNAME: someuseraaa
-      INFORMDB_PASSWORD: redactedaaa
+# Configuration for the IDS
+ids:
+  IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+  IDS_SCHEMA: schemaname
+  IDS_USERNAME: someuserids
+  IDS_PASSWORD: redactedids
 
-# These are the configurations for the caboodle.
+# These dates are used to set the start and end dates between which data should be collected
+dates:
+  start: 2020-06-04T00:00:00.00Z
+  end:
 
-  caboodle:
-    CABOODLE_JDBC_URL: jdbc:sqlserver://caboodle_db
-    CABOODLE_USERNAME: cab_user
-    CABOODLE_PASSWORD: cab_password
-
+informdb:
+  common:
+    INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+  Emap-Core:
+    INFORMDB_SCHEMA: inform_schema
+    INFORMDB_USERNAME: someuser
+    INFORMDB_PASSWORD: redacted
+  OMOP-ETL:
+    INFORMDB_SCHEMA: inform_schema
+    INFORMDB_USERNAME: someuser_omop
+    INFORMDB_PASSWORD: redacted_omop
+    INFORMDB_DDL_AUTO: update
+    INFORM_INIT_MODE: always
+  hl7-vitals:
+    INFORMDB_SCHEMA: inform_schema_for_branch
+    INFORMDB_USERNAME: someuseraaa
+    INFORMDB_PASSWORD: redactedaaa
