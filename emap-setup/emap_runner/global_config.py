@@ -130,7 +130,7 @@ class GlobalConfiguration(dict):
             "dates",
             "global",
             "glowroot",
-            "common"
+            "common",
         )
 
         for section in possible_sections:
@@ -156,8 +156,10 @@ class GlobalConfiguration(dict):
 
             # Format as e.g. 2020-06-04T00:00:00.00Z
             d, t = date.date(), date.time()
-            return (f'{d.year}-{d.month:02d}-{d.day:02d}T'
-                    f'{t.hour:02d}:{t.minute:02d}:{t.second:02d}.00Z')
+            return (
+                f"{d.year}-{d.month:02d}-{d.day:02d}T"
+                f"{t.hour:02d}:{t.minute:02d}:{t.second:02d}.00Z"
+            )
 
         self["ids"]["IDS_CFG_DEFAULT_START_DATETIME"] = _date_or_empty_string("start")
         self["ids"]["IDS_CFG_END_DATETIME"] = _date_or_empty_string("end")

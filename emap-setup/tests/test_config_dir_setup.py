@@ -6,7 +6,7 @@ from emap_runner.global_config import GlobalConfiguration
 # Tests the ConfigDirSetup class that creates the config dir
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir_path = os.path.join(this_dir, 'data')
+data_dir_path = os.path.join(this_dir, "data")
 
 
 def dir_setup() -> None:
@@ -30,7 +30,7 @@ def test_files_written():
     os.chdir(data_dir_path)
 
     dir_setup()
-    assert os.path.isdir('config')
+    assert os.path.isdir("config")
 
     dir1 = os.path.join(data_dir_path, "config_test")  # example test files
     dir2 = "config"  # files written by create_or_update_config_dir() function
