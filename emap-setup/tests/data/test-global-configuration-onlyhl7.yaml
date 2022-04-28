@@ -1,0 +1,40 @@
+
+main_git_dir:
+  https://github.com/test
+
+EMAP_PROJECT_NAME:
+  my_project_name
+
+repositories:
+  Emap-Core:
+    branch:  vitalsigns
+
+rabbitmq:
+  SPRING_RABBITMQ_HOST: rabbitmq
+  SPRING_RABBITMQ_PORT: 5672
+  SPRING_RABBITMQ_USERNAME: my_name
+  SPRING_RABBITMQ_PASSWORD: my_pw
+  RABBITMQ_DEFAULT_USER : my_name
+  RABBITMQ_DEFAULT_PASS: my_pw
+
+global:
+  RABBITMQ_PORT: 5678
+  RABBITMQ_ADMIN_PORT: 5679
+
+ids:
+  IDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+  IDS_SCHEMA: schemaname
+  IDS_USERNAME: someuserids
+  IDS_PASSWORD: redactedids
+
+dates:
+  start: 2020-06-04T00:00:00.00Z
+  end:
+
+common:
+  INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+
+Emap-Core:
+  INFORMDB_SCHEMA: inform_schema
+  INFORMDB_USERNAME: someuser
+  INFORMDB_PASSWORD: redacted

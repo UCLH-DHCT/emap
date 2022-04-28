@@ -42,6 +42,12 @@ class File:
 
         return None
 
+    def set_comment_line_at(self, line: str, idx: int) -> None:
+        self.lines[idx] = CommentLine(line)
+
+    def set_new_line_at(self, line: str, idx: int) -> None:
+        self.lines[idx] = NewLine(line)
+
 
 class EnvironmentFile(File):
     def __init__(self, filename: str):
@@ -87,3 +93,11 @@ class EnvironmentFile(File):
             self.filename = os.path.join(directory, os.path.basename(self.filename))
 
         return super().write()
+
+    @property
+    def basename(self) -> str:
+        """
+        Base name of this environment file .e.g
+            /some/dir/rabbitmq-config-envs -> rabbitmq
+        """
+        return os.path.basename(self.filename).replace("-config-envs", "")

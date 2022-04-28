@@ -2,12 +2,10 @@ import os
 import argparse
 
 
-from emap_runner.read_config import ConfigFile
 from emap_runner.parser import Parser
-from emap_runner.setup.config_dir_setup import create_or_update_config_dir
-from emap_runner.setup.repo_setup import RepoSetup
-from emap_runner.docker.docker_runner import DockerRunner
 from emap_runner.utils import TimeWindow
+from emap_runner.global_config import GlobalConfiguration
+from emap_runner.docker.docker_runner import DockerRunner
 from emap_runner.validation.validation_runner import ValidationRunner
 
 
@@ -52,6 +50,13 @@ def create_parser() -> Parser:
         default=False,
         action="store_true",
     )
+    setup_type_group.add_argument(
+        "-g",
+        "--only_update_config_from_global",
+        help="Only update the configuration",
+        default=False,
+        action="store_true",
+    )
 
     docker_parser = subparsers.add_parser("docker", help="Run the docker instance")
     docker_parser.add_argument(
@@ -82,42 +87,38 @@ def create_parser() -> Parser:
 
 
 class EMAPRunner:
-    def __init__(self, args: argparse.Namespace, config_file: ConfigFile):
+    def __init__(self, args: argparse.Namespace, config: GlobalConfiguration):
 
         self.args = args
-        self.config_file = config_file
-        self.main_dir = os.getcwd()
+        self.config = config
 
     def setup(self) -> None:
         """Run the setup"""
 
-        repo_setup = RepoSetup(
-            main_dir=self.main_dir,
-            git_dir=self.config_file.git_dir,
-            repos=self.config_file.repo_info,
-        )
+        repos = self.config.extract_repositories()
 
         if self.args.init:
-            repo_setup.clone()
+            repos.clone()
 
         elif self.args.update:
-            repo_setup.update()
+            repos.update()
 
         elif self.args.clean:
-            repo_setup.clean()
+            return repos.clean()
+
+        elif self.args.only_update_config_from_global:
+            pass
 
         else:
             exit("Please run --help for options")
 
-        create_or_update_config_dir(
-            main_dir=self.main_dir, config_file=self.config_file
-        )
+        self.config.create_or_update_config_dir_from(repos)
         return None
 
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=self.main_dir, config=self.config_file.config)
+        runner = DockerRunner(main_dir=os.getcwd(), config=self.config)
 
         if "up" in self.args.docker_compose_args:
             runner.setup_glowroot_password()
@@ -131,9 +132,7 @@ class EMAPRunner:
         """Run a validation run of EMAP"""
 
         runner = ValidationRunner(
-            docker_runner=DockerRunner(
-                main_dir=self.main_dir, config=self.config_file.config
-            ),
+            docker_runner=DockerRunner(main_dir=os.getcwd(), config=self.config),
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
@@ -153,9 +152,9 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(args.filename):
-        exit(f"Configuration file *{args.filename}* not found. Exiting")
+        exit(f"Configuration file {args.filename} not found. Exiting")
 
-    runner = EMAPRunner(args=args, config_file=ConfigFile(args.filename))
+    runner = EMAPRunner(args=args, config=GlobalConfiguration(args.filename))
 
     try:
         runner.run(args.subcommand)

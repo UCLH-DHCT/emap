@@ -1,44 +1,39 @@
-from pytest import fixture
 import os
 import shutil
 
-from emap_runner.read_config import ConfigFile
-from emap_runner.setup.config_dir_setup import _ConfigDirSetup
+from emap_runner.global_config import GlobalConfiguration
 
 # Tests the ConfigDirSetup class that creates the config dir
 
-
-@fixture(scope="module")
-def dir_setup():
-    """
-    returns: Instance of ConfigDirSetup to use in tests
-    """
-    filename = "./data/test-global-configuration.yaml"
-    config_file = ConfigFile(filename)
-    dir_setup = _ConfigDirSetup(os.path.join(os.getcwd(), "data"), config_file)
-    if os.path.isdir("./data/config"):
-        _clean_up()
-    return dir_setup
+this_dir = os.path.dirname(os.path.abspath(__file__))
+data_dir_path = os.path.join(this_dir, 'data')
 
 
-def test_create_config_dir(dir_setup: _ConfigDirSetup):
-    """
-    tests that the config directory is created
-    :param dir_setup:
-    """
-    assert not os.path.isdir("./data/config")
-    dir_setup.create_or_update()
-    assert os.path.isdir("./data/config")
+def dir_setup() -> None:
+    """Set up the configuration directory"""
+
+    global_config_path = os.path.join(
+        this_dir, "data", "test-global-configuration-onlyhl7.yaml"
+    )
+    config = GlobalConfiguration(global_config_path)
+    repos = config.extract_repositories()
+
+    config.create_or_update_config_dir_from(repos)
+
+    return None
 
 
-def test_files_written(dir_setup: _ConfigDirSetup):
-    """
-    Test the files written for config were as expected
-    """
-    dir1 = "./data/config_test"  # example test files
-    dir2 = "./data/config"  # files written by create_or_update_config_dir() function
+def test_files_written():
+    """Test the files written for config were as expected"""
 
-    dir_setup.create_or_update()
+    cwd = os.getcwd()
+    os.chdir(data_dir_path)
+
+    dir_setup()
+    assert os.path.isdir('config')
+
+    dir1 = os.path.join(data_dir_path, "config_test")  # example test files
+    dir2 = "config"  # files written by create_or_update_config_dir() function
 
     for filename in os.listdir(dir1):
         path1 = os.path.join(dir1, filename)
@@ -48,7 +43,8 @@ def test_files_written(dir_setup: _ConfigDirSetup):
         assert open(path1, "r").readlines() == open(path2, "r").readlines()
 
     _clean_up()
+    os.chdir(cwd)
 
 
 def _clean_up():
-    shutil.rmtree("./data/config")
+    shutil.rmtree("config")
