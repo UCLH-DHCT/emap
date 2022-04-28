@@ -6,6 +6,7 @@ from emap_runner.validation.validation_runner import TemporaryEnvironmentState
 
 
 def test_tmp_env_state_caches_env():
+    """Ensure that a environment temporary state doesn't persist"""
 
     dir_path = tempfile.mkdtemp()
 

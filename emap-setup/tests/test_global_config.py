@@ -28,9 +28,18 @@ def test_set_global_config(config: GlobalConfiguration):
 
 def test_repositories_from_global_config(config: GlobalConfiguration):
 
-    repos = config.repositories
+    repos = config.extract_repositories()
 
     assert len(repos) > 0
     repo = repos[0]
     assert hasattr(repo, "name")
     assert hasattr(repo, "branch")
+
+
+def test_get_data_for(config: GlobalConfiguration):
+    """
+    Test data for an entry we know exists
+    """
+
+    assert config.get_first('RABBITMQ_PORT', 'global') is not None
+    assert config.get_first('RABBITMQ_PORT', 'Emap-Core') is not None
