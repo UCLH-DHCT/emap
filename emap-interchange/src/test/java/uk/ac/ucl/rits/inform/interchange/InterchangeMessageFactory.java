@@ -10,7 +10,7 @@ import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
-import uk.ac.ucl.rits.inform.interchange.lab.LabsMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -145,7 +145,7 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
-    public List<LabsMetadataMsg> getLabsMetadataMsgs(final String fileName) throws IOException {
+    public List<LabMetadataMsg> getLabsMetadataMsgs(final String fileName) throws IOException {
         InputStream resourceAsStream = getClass().getResourceAsStream("/LabsMetadata/" + fileName);
         return mapper.readValue(resourceAsStream, new TypeReference<>() {});
     }
