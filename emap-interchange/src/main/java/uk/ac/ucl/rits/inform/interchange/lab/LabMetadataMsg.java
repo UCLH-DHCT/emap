@@ -8,7 +8,6 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-// XXX RENAME
 public class LabMetadataMsg extends EmapOperationMessage {
     /**
      * Short code for a test or a battery.
