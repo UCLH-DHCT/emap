@@ -145,7 +145,7 @@ public class InterchangeMessageFactory {
         return mapper.readValue(inputStream, new TypeReference<>() {});
     }
 
-    public List<LabMetadataMsg> getLabsMetadataMsgs(final String fileName) throws IOException {
+    public List<LabMetadataMsg> getLabMetadataMsgs(final String fileName) throws IOException {
         InputStream resourceAsStream = getClass().getResourceAsStream("/LabsMetadata/" + fileName);
         return mapper.readValue(resourceAsStream, new TypeReference<>() {});
     }

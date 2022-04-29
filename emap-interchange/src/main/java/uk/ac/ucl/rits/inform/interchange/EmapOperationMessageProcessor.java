@@ -111,7 +111,7 @@ public interface EmapOperationMessageProcessor {
     void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException;
 
     /**
-     * @param msg the LabsMetadataMsg to process
+     * @param msg the LabMetadataMsg to process
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException;
