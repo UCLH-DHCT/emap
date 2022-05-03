@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseS
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -18,11 +19,13 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import javax.annotation.Resource;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * Main class that interacts with labs tables, either directly or through sub controllers.
@@ -65,6 +68,9 @@ public class LabController {
             throw new RequiredDataMissingException("LabOrder has no StatusChangeTime in message");
         }
         Instant validFrom = msg.getStatusChangeTime();
+
+        // refactor this into the lab metadata message?
+
         LabBattery battery = labOrderController.getOrCreateLabBattery(
                 msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
         if (msg.getEpicCareOrderNumber().isDelete()) {
@@ -85,6 +91,32 @@ public class LabController {
     public LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
         return labOrderController.getLabSampleOrThrow(specimenBarcode);
     }
+
+    /**
+     * Flesh out lab battery or lab test metadata, but not battery element.
+     * @param labMetadataMsg lab metadata message
+     * @param storedFrom stored from timestamp
+     */
+    public void writeLabMetadata(LabMetadataMsg labMetadataMsg, Instant storedFrom) {
+        switch (labMetadataMsg.getLabsMetadataType()) {
+            case LABS_METADATA_BATTERY:
+                // The code AND the coding system are used to lookup here
+                LabBattery battery = labOrderController.getOrCreateLabBattery(
+                        labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString(), labMetadataMsg.getValidFrom(), storedFrom);
+                battery.setBatteryName(labMetadataMsg.getName());
+                break;
+            case LABS_METADATA_TEST:
+                LabTestDefinition labTestDefinition = cache.getOrCreateLabTestDefinition(
+                        labMetadataMsg.getCodingSystem().toString(),
+                        null, // TODO
+                        labMetadataMsg.getShortCode(),
+                        labMetadataMsg.getValidFrom(),
+                        storedFrom);
+                labTestDefinition.setName(labMetadataMsg.getName());
+                break;
+        }
+    }
+
 }
 
 /**
@@ -95,15 +127,19 @@ class LabCache {
     private static final Logger logger = LoggerFactory.getLogger(LabCache.class);
     private final LabTestDefinitionRepository labTestDefinitionRepo;
     private final LabBatteryElementRepository labBatteryElementRepo;
+    private final LabBatteryRepository labBatteryRepo;
 
 
     /**
      * @param labTestDefinitionRepo repository for LabTestDefinition
      * @param labBatteryElementRepo repository for LabBatterElement
      */
-    LabCache(LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo) {
+    LabCache(LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo,
+             LabBatteryRepository labBatteryRepo
+             ) {
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labBatteryElementRepo = labBatteryElementRepo;
+        this.labBatteryRepo = labBatteryRepo;
     }
 
 
@@ -138,6 +174,7 @@ class LabCache {
      */
     @Cacheable(value = "labBatteryElement", key = "{ #testDefinition.labTestDefinitionId , #battery.labBatteryId }")
     public void createLabBatteryElementIfNotExists(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
+        // XXX: should update as well!!
         labBatteryElementRepo
                 .findByLabBatteryIdAndLabTestDefinitionId(battery, testDefinition)
                 .orElseGet(() -> {
@@ -146,4 +183,5 @@ class LabCache {
                     return labBatteryElementRepo.save(batteryElement);
                 });
     }
+
 }

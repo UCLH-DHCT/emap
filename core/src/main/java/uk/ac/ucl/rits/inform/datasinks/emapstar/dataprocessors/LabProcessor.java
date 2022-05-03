@@ -15,6 +15,7 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 
 import java.time.Instant;
 
@@ -78,5 +79,10 @@ public class LabProcessor {
             labSample = labController.getLabSampleOrThrow(msg.getSpecimenBarcode());
         }
         climbSequenceController.processSequence(msg, labSample, msg.getSequenceValidFrom(), storedFrom);
+    }
+
+    @Transactional
+    public void processMessage(final LabMetadataMsg labMetadataMsg, final Instant storedFrom) {
+        labController.writeLabMetadata(labMetadataMsg, storedFrom);
     }
 }
