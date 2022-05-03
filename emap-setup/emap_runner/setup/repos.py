@@ -1,10 +1,11 @@
-import shutil
-
 import git
 import os
+import shutil
 
 from tqdm import tqdm
 from typing import Optional, List
+
+from emap_runner.log import logger
 from emap_runner.files import EnvironmentFile
 from emap_runner.utils import EMAPRunnerException
 
@@ -49,7 +50,7 @@ class Repository:
                 f"Cannot clone {self.name} as it " f"already existed"
             )
 
-        print(f"Cloning {self.name:20s} on branch {self.branch:15s}")
+        logger.info(f"Cloning {self.name:20s} on branch {self.branch:15s}")
         try:
             git.Repo.clone_from(
                 url=self.ssh_git_url if ssh else self.https_git_url,
@@ -65,7 +66,7 @@ class Repository:
 
     def update(self) -> None:
         """Update a repo on a specific branch"""
-        print(f"Checking out {self}")
+        logger.info(f"Checking out {self}")
 
         try:
 
@@ -85,7 +86,7 @@ class Repository:
             shutil.rmtree(self.path)
 
         else:
-            print(f"WARNING: Failed to remove {self.name:30s} as it did not exist")
+            logger.warn(f"Failed to remove {self.name:30s} as it did not exist")
 
         return None
 

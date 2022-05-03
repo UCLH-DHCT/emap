@@ -4,6 +4,7 @@ from os.path import join
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import List, Optional, IO
 
+from emap_runner.log import logger
 from emap_runner.files import File
 from emap_runner.utils import EMAPRunnerException
 
@@ -50,7 +51,7 @@ class DockerRunner:
         for arg in docker_compose_args:
             cmd += [x.strip('"') for x in arg.split()]
 
-        print(f'Running:\n {" ".join(cmd)}\n')
+        logger.info(f'Running:\n {" ".join(cmd)}\n')
 
         with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
 

@@ -1,6 +1,7 @@
 import os
 import yaml
 
+from emap_runner.log import logger
 from emap_runner.setup.repos import Repository, Repositories
 
 
@@ -79,10 +80,10 @@ class GlobalConfiguration(dict):
         """
 
         if not os.path.exists(repositories.config_dir_path):
-            print("Creating config/")
+            logger.info("Creating config/")
             os.mkdir(repositories.config_dir_path)
         else:
-            print("Updating config directory")
+            logger.info("Updating config directory")
 
         for env_file in repositories.environment_files:
 
@@ -91,10 +92,9 @@ class GlobalConfiguration(dict):
             env_file.write(directory=repositories.config_dir_path)
 
             for line in env_file.unchanged_lines:
-                print(
-                    f"WARNING: {line.strip()[:29]:30s} in "
-                    f"{env_file.basename[:10]:11s} was not updated from "
-                    f"{self.filename}"
+                logger.warn(
+                    f"{line.strip()[:29]:30s} in {env_file.basename[:10]:11s} "
+                    f"was not updated from {self.filename}"
                 )
 
         return None
