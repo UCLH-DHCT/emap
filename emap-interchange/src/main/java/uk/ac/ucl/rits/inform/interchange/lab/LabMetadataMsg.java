@@ -6,6 +6,8 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessor;
 
+import java.time.Instant;
+
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class LabMetadataMsg extends EmapOperationMessage {
@@ -25,9 +27,9 @@ public class LabMetadataMsg extends EmapOperationMessage {
     private LabsMetadataType labsMetadataType;
 
     /**
-     * Some temporal information will be needed...
+     * When did this mapping start existing, to the best of our knowledge?
      */
-
+    private Instant validFrom;
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
