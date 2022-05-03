@@ -1,7 +1,7 @@
 import os
-import shutil
 
 from emap_runner.global_config import GlobalConfiguration
+from .utils import work_in_tmp_directory
 
 # Tests the ConfigDirSetup class that creates the config dir
 
@@ -23,11 +23,9 @@ def dir_setup() -> None:
     return None
 
 
+@work_in_tmp_directory(to_copy=[data_dir_path])
 def test_files_written():
     """Test the files written for config were as expected"""
-
-    cwd = os.getcwd()
-    os.chdir(data_dir_path)
 
     dir_setup()
     assert os.path.isdir("config")
@@ -41,10 +39,3 @@ def test_files_written():
 
         assert os.path.exists(path2)
         assert open(path1, "r").readlines() == open(path2, "r").readlines()
-
-    _clean_up()
-    os.chdir(cwd)
-
-
-def _clean_up():
-    shutil.rmtree("config")

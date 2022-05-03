@@ -30,9 +30,7 @@ class TimeWindow:
         try:
             return date.fromisoformat(string)
         except ValueError as e:
-            raise EMAPRunnerException(
-                f"Failed to parse {string} as a date"
-            ) from e
+            raise EMAPRunnerException(f"Failed to parse {string} as a date") from e
 
     @property
     def start_stamp(self) -> str:
