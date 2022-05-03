@@ -1,5 +1,4 @@
 import os
-from os.path import join
 from subprocess import Popen
 from datetime import date, timedelta
 from time import time, sleep
@@ -39,7 +38,20 @@ class ValidationRunner:
 
     @property
     def log_file_prefix(self) -> str:
-        return f"rebuild_log_{date.today()}"
+        """Common prefix used for all log files"""
+        return os.path.join(self.logs_directory, f"rebuild_log_{date.today()}")
+
+    @property
+    def logs_directory(self) -> str:
+        return os.path.join(self.docker.main_dir, "validation_logs")
+
+    def _create_logs_directory(self) -> None:
+        """Create a directory just for logging"""
+
+        if not os.path.exists(self.logs_directory):
+            os.mkdir(self.logs_directory)
+
+        return None
 
     def _set_time_window_in_envs(self) -> None:
         """Set the time window in all the required files"""
@@ -114,7 +126,10 @@ class ValidationRunner:
 
             if self._exceeded_timeout:
                 self._save_logs_and_stop()
-                raise ValidationRunnerException("Waiting for queue timed out")
+                raise ValidationRunnerException(
+                    f"Waiting for queue timed out. Elapsed time "
+                    f"({self._elapsed_time}) > timeout ({self.timeout})"
+                )
 
         # exits too keenly from databaseExtracts queue, adding in a wait period
         sleep(secs=600)
@@ -176,10 +191,11 @@ class TemporaryEnvironmentState:
         :param: dir_path: Path to the directory containing XXX-config-envs file
         """
 
-        self._files = {
-            join(dir_path, f): open(join(dir_path, f), "r").readlines()
-            for f in os.listdir(dir_path)
-        }
+        self._files = {}
+
+        for filename in os.listdir(dir_path):
+            file_path = os.path.join(dir_path, filename)
+            self._files[file_path] = open(file_path, "r").readlines()
 
     def __enter__(self):
         return self._files

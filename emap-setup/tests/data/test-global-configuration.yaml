@@ -10,7 +10,7 @@ repositories:
   InformDB:
     branch:  develop
   hl7-vitals:
-    branch:  vitalsigns
+    branch:  main
     repo_name: Emap-Core
   hoover:
 

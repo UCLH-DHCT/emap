@@ -59,9 +59,7 @@ class Repository:
             )
 
         except git.GitCommandError as e:
-            raise RepoOperationException(
-                f"Necessary repos could not be " f"cloned due to:\n{e}"
-            ) from e
+            raise RepoOperationException("Repos could not be cloned") from e
 
         return None
 
@@ -76,9 +74,7 @@ class Repository:
             repo.remotes[0].pull()
 
         except git.GitCommandError as e:
-            raise RepoOperationException(
-                f"Cannot checkout branch " f"due to {e}"
-            ) from e
+            raise RepoOperationException("Cannot checkout branch") from e
 
         return None
 
@@ -142,14 +138,15 @@ class Repository:
         """
         Convert either a https link into a base url i.e. strip the https prefix
         """
+        https = "https://"
 
-        if "https" in string:
-            return string.split("https://")[1]
+        if https in string:
+            return string.split(https)[1]
 
         else:
             raise ValueError(
                 f"Failed to parse {string} as a git URL. "
-                f"Expecting it to start with https"
+                f"Expecting it to start with {https}"
             )
 
     def __str__(self):

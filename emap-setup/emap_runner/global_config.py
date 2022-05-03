@@ -7,6 +7,19 @@ from emap_runner.setup.repos import Repository, Repositories
 class GlobalConfiguration(dict):
     """A configuration constructed from an existing .yaml file"""
 
+    # Non-exhaustive list of expected sections in the global configuration
+    possible_sections = (
+        "rabbitmq",
+        "ids",
+        "uds",
+        "informdb",
+        "omop",
+        "dates",
+        "global",
+        "glowroot",
+        "common",
+    )
+
     def __init__(self, filename: str):
         super().__init__()
 
@@ -121,19 +134,7 @@ class GlobalConfiguration(dict):
             """
             return self.get(section, key)
 
-        possible_sections = (
-            "rabbitmq",
-            "ids",
-            "uds",
-            "informdb",
-            "omop",
-            "dates",
-            "global",
-            "glowroot",
-            "common",
-        )
-
-        for section in possible_sections:
+        for section in self.possible_sections:
 
             if section in self:
                 if key in self[section]:

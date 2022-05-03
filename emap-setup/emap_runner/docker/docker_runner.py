@@ -1,4 +1,6 @@
 import os
+
+from os.path import join
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import List, Optional, IO
 
@@ -79,7 +81,6 @@ class DockerRunner:
     @property
     def docker_compose_paths(self) -> List[str]:
         """Paths of all the required docker-compose yamls"""
-        from os.path import join
 
         paths = [
             self.core_docker_compose_path,

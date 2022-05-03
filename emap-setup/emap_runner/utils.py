@@ -31,7 +31,7 @@ class TimeWindow:
             return date.fromisoformat(string)
         except ValueError as e:
             raise EMAPRunnerException(
-                f"Failed to parse {string} as a date " f"because:\n{e}"
+                f"Failed to parse {string} as a date"
             ) from e
 
     @property

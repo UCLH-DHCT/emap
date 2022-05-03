@@ -7,7 +7,7 @@ EMAP_PROJECT_NAME:
 
 repositories:
   Emap-Core:
-    branch:  vitalsigns
+    branch:  main
 
 rabbitmq:
   SPRING_RABBITMQ_HOST: rabbitmq
