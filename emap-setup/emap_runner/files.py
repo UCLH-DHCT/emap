@@ -14,6 +14,7 @@ class CommentLine(str):
 
 class File:
     def __init__(self, filename: Path, allow_empty: bool = False):
+        """Construct a file that may, or may not be empty"""
 
         self.path = filename
 

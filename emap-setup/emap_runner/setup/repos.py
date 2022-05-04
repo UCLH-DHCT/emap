@@ -15,6 +15,8 @@ class RepoOperationException(EMAPRunnerException):
 
 
 class _CloneProgressBar(git.RemoteProgress):
+    """Progress bar suitable for monitoring the progress of a git operation"""
+
     def __init__(self):
         super().__init__()
         self.pbar = tqdm()
@@ -28,8 +30,9 @@ class _CloneProgressBar(git.RemoteProgress):
 class Repository:
     def __init__(self, name: str, main_git_url: str, branch: Optional[str] = None):
         """
+        Git repository
 
-        :param name:
+        :param name: Name of the repository relative to the main git organisation
         :param main_git_url: Main git url for the whole project
         :param branch: Specific git branch e.g. master
         """

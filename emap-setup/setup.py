@@ -9,5 +9,5 @@ setup(
     url="https://github.com/inform-health-informatics/emap-setup",
     entry_points={"console_scripts": ["emap = emap_runner.runner:main"]},
     description="Setup, updating and docker orchestration of EMAP",
-    platforms=["linux", "macos"],
+    platforms=["linux", "macos", "windows"],
 )

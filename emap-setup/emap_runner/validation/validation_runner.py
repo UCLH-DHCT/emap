@@ -23,7 +23,8 @@ class ValidationRunner:
         self.time_window = time_window
 
     def run(self) -> None:
-        """Run a validation run"""
+        """Run a validation run pipeline by constructing services and waiting
+        until all message queues are empty"""
 
         with TemporaryEnvironmentState(self.env_dir_path):
             self._set_time_window_in_envs()
@@ -82,6 +83,7 @@ class ValidationRunner:
         return None
 
     def _run_emap(self) -> None:
+        """Run the services that constitute EMAP"""
 
         self.docker.inject_ports()
         self.docker.run("down")

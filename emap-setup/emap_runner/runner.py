@@ -166,4 +166,11 @@ def main():
 
 
 if __name__ == "__main__":
+    """Invoke with e.g.
+
+        python runner.py setup -i
+
+    to initialise EMAP by cloning all the required repositories and setting
+    files with specific environment variables from the global configuration yaml
+    """
     main()

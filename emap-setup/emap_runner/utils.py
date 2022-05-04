@@ -7,7 +7,7 @@ class EMAPRunnerException(Exception):
 
 class TimeWindow:
     def __init__(self, start_date: str, end_date: str):
-        """Time window defined by a string"""
+        """Time window constructed from strings of the start and end dates"""
 
         self.start = self._parse_date_string(start_date)
         self.end = self._parse_date_string(end_date)

@@ -22,6 +22,7 @@ class GlobalConfiguration(dict):
     )
 
     def __init__(self, filepath: Path):
+        """Construct a global configuration dictionary from a file"""
         super().__init__()
 
         with open(filepath, "r") as f:
