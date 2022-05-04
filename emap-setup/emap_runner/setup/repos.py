@@ -86,7 +86,7 @@ class Repository:
             shutil.rmtree(self.path)
 
         else:
-            logger.warn(f"Failed to remove {self.name:30s} as it did not exist")
+            logger.warning(f"Failed to remove {self.name:30s} as it did not exist")
 
         return None
 

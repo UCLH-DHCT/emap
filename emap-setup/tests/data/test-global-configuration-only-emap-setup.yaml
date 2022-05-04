@@ -1,0 +1,10 @@
+
+main_git_dir:
+  https://github.com/inform-health-informatics
+
+EMAP_PROJECT_NAME:
+  only_emap_setup
+
+repositories:
+  emap-setup:
+    branch:  main

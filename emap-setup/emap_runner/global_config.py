@@ -92,7 +92,7 @@ class GlobalConfiguration(dict):
             env_file.write(directory=repositories.config_dir_path)
 
             for line in env_file.unchanged_lines:
-                logger.warn(
+                logger.warning(
                     f"{line.strip()[:29]:30s} in {env_file.basename[:10]:11s} "
                     f"was not updated from {self.filename}"
                 )
@@ -151,6 +151,10 @@ class GlobalConfiguration(dict):
         def _date_or_empty_string(x):
             """Date time formatted for Java or an empty string"""
 
+            if "dates" not in self:
+                logger.warning(f"Failed to find any dates in {self}")
+                return " "
+
             date = self["dates"][x]
             if date is None:
                 return " "
@@ -161,6 +165,10 @@ class GlobalConfiguration(dict):
                 f"{d.year}-{d.month:02d}-{d.day:02d}T"
                 f"{t.hour:02d}:{t.minute:02d}:{t.second:02d}.00Z"
             )
+
+        if "ids" not in self:
+            logger.warning(f"Failed to find idx in {self}")
+            return
 
         self["ids"]["IDS_CFG_DEFAULT_START_DATETIME"] = _date_or_empty_string("start")
         self["ids"]["IDS_CFG_END_DATETIME"] = _date_or_empty_string("end")

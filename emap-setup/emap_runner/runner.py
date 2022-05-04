@@ -142,9 +142,9 @@ class EMAPRunner:
 
         return None
 
-    def run(self, function_name) -> None:
+    def run(self, method_name: str) -> None:
         """Call a method of this runner instance defined by its name"""
-        return getattr(self, function_name)()
+        return getattr(self, method_name)()
 
 
 def main():
