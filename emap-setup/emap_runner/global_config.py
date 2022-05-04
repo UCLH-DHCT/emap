@@ -30,10 +30,12 @@ class GlobalConfiguration(dict):
         self.filename = filename
         self._update_dates()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, _):
         raise ValueError(f"Cannot set {key}. Global configuration is immutable")
 
-    def extract_repositories(self, default_branch_name: str = "master") -> Repositories:
+    def extract_repositories(
+        self, default_branch_name: str = "develop"
+    ) -> Repositories:
         """Extract repository instances for all those present in the config"""
 
         repos = Repositories()

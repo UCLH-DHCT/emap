@@ -23,9 +23,13 @@ class TimeWindow:
         if string == "today":
             return today
 
-        if string.endswith(" days ago"):
-            n = today.toordinal() - int(string.split(" days ago")[0])
-            return date.fromordinal(n)
+        if string.endswith(" days ago"):  # e.g. 7 days ago
+            string_n = string.split(" days ago")[0]
+
+            if string_n == "":
+                raise EMAPRunnerException(f"Invalid date string: {string}")
+
+            return date.fromordinal(today.toordinal() - int(string_n))
 
         try:
             return date.fromisoformat(string)

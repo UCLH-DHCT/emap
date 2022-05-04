@@ -17,13 +17,41 @@ For example,
 git clone https://github.com/inform-health-informatics/emap-setup.git &&\
 cd emap-setup &&\
 cp global-configuration-EXAMPLE.yaml global-configuration.yaml &&\
-pip install .
+pip install . -r requirements.txt 
 ```
 
-### Command line options
+you may want to create and activate a virtual environment first with e.g.
+
+```bash
+conda create python=3.9 -n emap --yes &&\
+conda activate emap
+```
+
+***
+## Command line options
+
+To see the top level options
 ```bash
 emap --help
 ```
- 
+
+and for the setup subcommands
+```bash
+emap setup --help
+```
+
+### Examples
+
+Clone all the repositories:
+```bash
+emap setup --init
+```
+
+Run a docker command:
+```bash
+emap docker ps
+```
+
+
 ## Notes
 1. NEED a docker container to allow this to run on gae
