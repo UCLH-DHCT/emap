@@ -7,7 +7,7 @@ from .utils import work_in_tmp_directory
 
 data_dir_path = join(dirname(abspath(__file__)), "data")
 
-config_filepath = join(data_dir_path, "test-global-configuration-only-emap-setup.yaml")
+config_filepath = join(data_dir_path, "test-global-configuration-only-docs.yaml")
 
 
 @work_in_tmp_directory(to_copy=None)
@@ -20,11 +20,11 @@ def test_clone_then_clean_repos():
     runner.run("setup")
 
     # Ensure that the cloned directory exists
-    assert exists("emap-setup")
+    assert exists("emap_documentation")
     assert exists("config")
 
     # and can be cleaned
     runner = EMAPRunner(args=parser.parse_args(["setup", "-c"]), config=config)
     runner.run("setup")
 
-    assert not exists("emap-setup")
+    assert not exists("emap_documentation")

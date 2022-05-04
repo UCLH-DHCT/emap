@@ -6,5 +6,5 @@ EMAP_PROJECT_NAME:
   only_emap_setup
 
 repositories:
-  emap-setup:
+  emap_documentation:
     branch:  main
