@@ -4,7 +4,7 @@ statusChangeTime: "2013-07-25T12:59:00Z"
 labSpecimenNumber: "9876543"
 resultStatus: "F"
 mrn: "40800000"
-visitNumber: ""
+visitNumber: "1039274827"
 orderDateTime:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
