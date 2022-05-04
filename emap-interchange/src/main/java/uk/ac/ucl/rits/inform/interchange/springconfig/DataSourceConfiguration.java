@@ -44,35 +44,32 @@ public class DataSourceConfiguration {
 
     @Autowired
     private EmapDataSource emapDataSource;
-    @Autowired
-    private RabbitProperties props;
-
-    @Autowired
-    private ConnectionFactory connectionFactory;
 
     private @Value("${rabbitmq.queue.length:100000}")
     int queueLength;
 
     /**
+     * @param props RabbitMQ configuration properties
      * @return connectionFactory with publisherConfirms set to true
      */
     @Bean
     @Profile("default")
-    public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(this.props.getHost(), this.props.getPort());
-        connectionFactory.setUsername(this.props.getUsername());
-        connectionFactory.setPassword(this.props.getPassword());
+    public ConnectionFactory connectionFactory(@Autowired RabbitProperties props) {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(props.getHost(), props.getPort());
+        connectionFactory.setUsername(props.getUsername());
+        connectionFactory.setPassword(props.getPassword());
         connectionFactory.setPublisherConfirms(true);
         return connectionFactory;
     }
 
     /**
      * @param messageConverter the message converter
+     * @param connectionFactory the AMQP connection factory
      * @return our rabbit template
      */
     @Bean
     @Profile("default")
-    public RabbitTemplate rabbitTemp(MessageConverter messageConverter) {
+    public RabbitTemplate rabbitTemp(@Autowired MessageConverter messageConverter, @Autowired ConnectionFactory connectionFactory) {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         String queueName = getEmapDataSource().getQueueName();
         Map<String, Object> args = new HashMap<>();
