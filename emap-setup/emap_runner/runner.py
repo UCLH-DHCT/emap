@@ -1,6 +1,6 @@
-import os
 import argparse
 
+from pathlib import Path
 
 from emap_runner.parser import Parser
 from emap_runner.utils import TimeWindow
@@ -118,7 +118,7 @@ class EMAPRunner:
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=os.getcwd(), config=self.config)
+        runner = DockerRunner(main_dir=Path.getcwd(), config=self.config)
 
         if "up" in self.args.docker_compose_args:
             runner.setup_glowroot_password()
@@ -132,7 +132,7 @@ class EMAPRunner:
         """Run a validation run of EMAP"""
 
         runner = ValidationRunner(
-            docker_runner=DockerRunner(main_dir=os.getcwd(), config=self.config),
+            docker_runner=DockerRunner(main_dir=Path.cwd(), config=self.config),
             time_window=TimeWindow(
                 start_date=self.args.start_date, end_date=self.args.end_date
             ),
@@ -151,7 +151,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    if not os.path.exists(args.filename):
+    if not Path(args.filename).exists():
         exit(f"Configuration file {args.filename} not found. Exiting")
 
     runner = EMAPRunner(args=args, config=GlobalConfiguration(args.filename))

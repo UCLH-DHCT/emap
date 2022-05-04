@@ -1,7 +1,7 @@
 import git
-import os
 import shutil
 
+from pathlib import Path
 from tqdm import tqdm
 from typing import Optional, List
 
@@ -82,7 +82,7 @@ class Repository:
     def clean(self) -> None:
         """Clean this repository from the directory by removing it"""
 
-        if os.path.exists(self.path):
+        if self.local_version_exists:
             shutil.rmtree(self.path)
 
         else:
@@ -92,12 +92,12 @@ class Repository:
 
     @property
     def local_version_exists(self) -> bool:
-        return os.path.exists(self.path)
+        return self.path.exists()
 
     @property
-    def path(self) -> str:
+    def path(self) -> Path:
         """Path to this repository"""
-        return os.path.join(os.getcwd(), self.name)
+        return Path(Path.cwd(), self.name)
 
     @property
     def https_git_url(self) -> str:
@@ -117,7 +117,7 @@ class Repository:
     def environment_files(self) -> List[EnvironmentFile]:
         """Create an environment file from the example in this repository"""
 
-        if not os.path.exists(self.path):
+        if not self.path.exists():
             raise RepoOperationException(
                 "Cannot obtain a set of environment "
                 f"files as {self.name} did not exist"
@@ -125,11 +125,11 @@ class Repository:
 
         files = []
 
-        for item in os.listdir(self.path):
+        for item in self.path.iterdir():
 
-            path = os.path.join(self.path, item)
+            path = Path(self.path, item)
 
-            if os.path.isfile(path) and path.endswith("-envs.EXAMPLE"):
+            if path.is_file() and str(path).endswith("-envs.EXAMPLE"):
                 files.append(EnvironmentFile.from_example_file(path))
 
         return files
@@ -177,6 +177,6 @@ class Repositories(list):
         return None
 
     @property
-    def config_dir_path(self) -> str:
+    def config_dir_path(self) -> Path:
         """Path of the configuration directory adjacent to all these repos"""
-        return os.path.join(os.getcwd(), "config")
+        return Path(Path.cwd(), "config")

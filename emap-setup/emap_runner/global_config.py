@@ -1,6 +1,6 @@
-import os
 import yaml
 
+from pathlib import Path
 from emap_runner.log import logger
 from emap_runner.setup.repos import Repository, Repositories
 
@@ -21,13 +21,13 @@ class GlobalConfiguration(dict):
         "common",
     )
 
-    def __init__(self, filename: str):
+    def __init__(self, filepath: Path):
         super().__init__()
 
-        with open(filename, "r") as f:
+        with open(filepath, "r") as f:
             self.update(yaml.load(f, Loader=yaml.FullLoader))
 
-        self.filename = filename
+        self.filename = filepath
         self._update_dates()
 
     def __setitem__(self, key, _):
@@ -81,9 +81,9 @@ class GlobalConfiguration(dict):
         configuration
         """
 
-        if not os.path.exists(repositories.config_dir_path):
+        if not repositories.config_dir_path.exists():
             logger.info("Creating config/")
-            os.mkdir(repositories.config_dir_path)
+            Path.mkdir(repositories.config_dir_path)
         else:
             logger.info("Updating config directory")
 

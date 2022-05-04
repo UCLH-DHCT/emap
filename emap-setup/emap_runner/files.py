@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from typing import Optional, List
 
 from emap_runner.utils import EMAPRunnerException
@@ -13,9 +13,9 @@ class CommentLine(str):
 
 
 class File:
-    def __init__(self, filename: str, allow_empty: bool = False):
+    def __init__(self, filename: Path, allow_empty: bool = False):
 
-        self.filename = filename
+        self.path = filename
 
         try:
             with open(filename, "r") as file:
@@ -37,7 +37,7 @@ class File:
     def write(self) -> None:
         """Write the file lines to a new version of the file"""
 
-        with open(self.filename, "w") as file:
+        with open(self.path, "w") as file:
             file.write("".join(self.lines))
 
         return None
@@ -50,19 +50,19 @@ class File:
 
 
 class EnvironmentFile(File):
-    def __init__(self, filename: str):
+    def __init__(self, filename: Path):
         super().__init__(filename, allow_empty=True)
 
     @classmethod
-    def from_example_file(cls, example_filename: str) -> "EnvironmentFile":
+    def from_example_file(cls, example_filename: Path) -> "EnvironmentFile":
 
-        if ".EXAMPLE" not in example_filename:
+        if ".EXAMPLE" not in str(example_filename):
             raise EMAPRunnerException(
                 f"Cannot create an environment file. {example_filename} "
                 f"did not have a .EXAMPLE containing extension"
             )
 
-        file = EnvironmentFile(example_filename.split(".EXAMPLE")[0])
+        file = EnvironmentFile(example_filename.with_suffix(""))
 
         with open(example_filename, "r") as example_file:
             file.lines = example_file.readlines()
@@ -87,10 +87,10 @@ class EnvironmentFile(File):
 
         return None
 
-    def write(self, directory: Optional[str] = None) -> None:
+    def write(self, directory: Optional[Path] = None) -> None:
 
         if directory is not None:
-            self.filename = os.path.join(directory, os.path.basename(self.filename))
+            self.path = Path(directory, self.path.name)
 
         return super().write()
 
@@ -100,4 +100,4 @@ class EnvironmentFile(File):
         Base name of this environment file .e.g
             /some/dir/rabbitmq-config-envs -> rabbitmq
         """
-        return os.path.basename(self.filename).replace("-config-envs", "")
+        return str(self.path.name).replace("-config-envs", "")

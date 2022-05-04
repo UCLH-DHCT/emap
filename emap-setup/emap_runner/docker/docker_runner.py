@@ -1,6 +1,4 @@
-import os
-
-from os.path import join
+from pathlib import Path
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import List, Optional, IO
 
@@ -16,7 +14,7 @@ class DockerRunnerException(EMAPRunnerException):
 class DockerRunner:
     """Orchestration for multiple services using docker"""
 
-    def __init__(self, main_dir: str, config: dict):
+    def __init__(self, main_dir: Path, config: dict):
         """Initialise a docker runner with docker-compose.yml files relative
         to the main directory given a specific configuration"""
 
@@ -40,8 +38,8 @@ class DockerRunner:
 
         paths = self.docker_compose_paths
 
-        if not all(os.path.exists(path) for path in paths):
-            _paths_str = "\n".join(paths)
+        if not all(path.exists() for path in paths):
+            _paths_str = "\n".join(str(p) for p in paths)
             raise DockerRunnerException(
                 f"Cannot run docker-compose {docker_compose_args}. "
                 f"At least one path did not exist:\n {_paths_str} "
@@ -75,25 +73,25 @@ class DockerRunner:
     def base_docker_compose_command(self) -> str:
         return (
             "docker-compose -f "
-            + " -f ".join(self.docker_compose_paths)
+            + " -f ".join(str(p) for p in self.docker_compose_paths)
             + f' -p {self.config["EMAP_PROJECT_NAME"]} '
         )
 
     @property
-    def docker_compose_paths(self) -> List[str]:
+    def docker_compose_paths(self) -> List[Path]:
         """Paths of all the required docker-compose yamls"""
 
         paths = [
             self.core_docker_compose_path,
-            join(self.main_dir, "emap-hl7-processor", "docker-compose.yml"),
-            join(self.main_dir, "hoover", "docker-compose.yml"),
+            Path(self.main_dir, "emap-hl7-processor", "docker-compose.yml"),
+            Path(self.main_dir, "hoover", "docker-compose.yml"),
         ]
 
         return paths
 
     @property
-    def core_docker_compose_path(self) -> str:
-        return os.path.join(self.main_dir, "Emap-Core", "docker-compose.yml")
+    def core_docker_compose_path(self) -> Path:
+        return Path(self.main_dir, "Emap-Core", "docker-compose.yml")
 
     def inject_ports(self) -> None:
         """Inject the required ports into the docker-compose yamls"""

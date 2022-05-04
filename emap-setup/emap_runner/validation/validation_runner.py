@@ -1,7 +1,8 @@
-import os
 from subprocess import Popen
 from datetime import date, timedelta
 from time import time, sleep
+from typing import Union
+from pathlib import Path
 
 from emap_runner.files import EnvironmentFile
 from emap_runner.utils import EMAPRunnerException
@@ -33,35 +34,35 @@ class ValidationRunner:
         return None
 
     @property
-    def env_dir_path(self) -> str:
-        return os.path.join(self.docker.main_dir, "config")
+    def env_dir_path(self) -> Path:
+        return Path(self.docker.main_dir, "config")
 
     @property
-    def log_file_prefix(self) -> str:
+    def log_file_prefix(self) -> Path:
         """Common prefix used for all log files"""
-        return os.path.join(self.logs_directory, f"rebuild_log_{date.today()}")
+        return Path(self.logs_directory, f"rebuild_log_{date.today()}")
 
     @property
-    def logs_directory(self) -> str:
-        return os.path.join(self.docker.main_dir, "validation_logs")
+    def logs_directory(self) -> Path:
+        return Path(self.docker.main_dir, "validation_logs")
 
     def _create_logs_directory(self) -> None:
         """Create a directory just for logging"""
 
-        if not os.path.exists(self.logs_directory):
-            os.mkdir(self.logs_directory)
+        if not self.logs_directory.exists():
+            self.logs_directory.mkdir()
 
         return None
 
     def _set_time_window_in_envs(self) -> None:
         """Set the time window in all the required files"""
 
-        for name in os.listdir(self.env_dir_path):
-            if name.startswith(".") or not name.endswith("config-envs"):
+        for item in self.env_dir_path.iterdir():
+            if str(item).startswith(".") or not str(item).endswith("config-envs"):
                 continue
 
             self._set_time_window_in_env_file(
-                EnvironmentFile(os.path.join(self.env_dir_path, name))
+                EnvironmentFile(Path(self.env_dir_path, item))
             )
 
         return None
@@ -183,7 +184,7 @@ class ValidationRunner:
 
 
 class TemporaryEnvironmentState:
-    def __init__(self, dir_path):
+    def __init__(self, dir_path: Union[Path, str]):
         """
         Context manager for a temporary environment state for which all env
         files are initially cached then re-written
@@ -193,8 +194,8 @@ class TemporaryEnvironmentState:
 
         self._files = {}
 
-        for filename in os.listdir(dir_path):
-            file_path = os.path.join(dir_path, filename)
+        for filename in Path(dir_path).iterdir():
+            file_path = Path(dir_path, filename)
             self._files[file_path] = open(file_path, "r").readlines()
 
     def __enter__(self):
