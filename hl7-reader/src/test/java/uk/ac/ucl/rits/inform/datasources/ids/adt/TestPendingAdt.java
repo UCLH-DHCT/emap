@@ -26,7 +26,7 @@ class TestPendingAdt extends TestHl7MessageStream {
     @Test
     void testPendingTransferSpecificFields() {
         assertEquals(PendingType.TRANSFER, pendingTransfer.getPendingEventType());
-        assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), pendingTransfer.getPendingTransferLocation());
+        assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), pendingTransfer.getPendingLocation());
     }
 
 }

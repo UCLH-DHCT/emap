@@ -37,6 +37,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.ImpliedAdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PatientClass;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingEvent;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PreviousIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.RegisterPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
@@ -245,6 +247,11 @@ public class AdtMessageFactory {
                 setCancellationDate(evn, cancelDischargePatient);
                 msg = cancelDischargePatient;
                 break;
+            case "A15":
+                PendingTransfer pendingTransfer = new PendingTransfer();
+                setPendingLocation(pv1Wrap, pendingTransfer);
+                msg = pendingTransfer;
+                break;
             case "A17":
                 msg = buildSwapLocations(hl7Msg, pv1Wrap);
                 break;
@@ -431,5 +438,10 @@ public class AdtMessageFactory {
      */
     private void setCancellationDate(final EVN evn, AdtCancellation adtCancellation) throws DataTypeException {
         adtCancellation.setCancelledDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
+    }
+
+    private void setPendingLocation(PV1Wrap pv1Wrap, PendingEvent pendingEvent) {
+        String pendingLocation = pv1Wrap.getPendingLocation();
+        pendingEvent.setPendingLocation(InterchangeValue.buildFromHl7(pendingLocation));
     }
 }
