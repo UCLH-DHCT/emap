@@ -137,6 +137,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
+    void testCancelPendingTransferA26() throws Exception {
+        testAdtMessage("pending/A26");
+    }
+
+    @Test
     public void testGenericAdtA29() throws Exception {
         testAdtMessage("generic/A29");
     }
