@@ -66,6 +66,10 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
      */
     private String standardisedVocabulary;
 
+    /**
+     * \brief Human readable name of the lab test.
+     */
+    private String name;
 
     public LabTestDefinition() {}
 
@@ -89,6 +93,7 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
         this.testLabCode = other.testLabCode;
         this.testStandardCode = other.testStandardCode;
         this.standardisedVocabulary = other.standardisedVocabulary;
+        this.name = other.name;
     }
 
     @Override
