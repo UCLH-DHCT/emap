@@ -13,6 +13,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.PendingType;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -34,6 +35,19 @@ class TestPendingAdt extends TestHl7MessageStream {
 
         assertEquals(PendingType.TRANSFER, msg.getPendingEventType());
         assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), msg.getPendingLocation());
+    }
+
+    /**
+     * Given a pending transfer message with no pending location
+     * When processed into an interchange message
+     * The pending location should be unknown
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testPendingLocationUnknown() throws Exception {
+        PendingEvent msg = (PendingEvent) processSingleAdtMessage("Adt/pending/a15_null_pending_location.txt");
+
+        assertTrue(msg.getPendingLocation().isUnknown());
     }
 
     /**
