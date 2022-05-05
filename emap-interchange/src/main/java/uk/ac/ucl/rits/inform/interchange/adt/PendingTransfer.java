@@ -12,7 +12,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 @ToString(callSuper = true)
 public class PendingTransfer extends AdtMessage implements PendingEvent {
     private PendingType pendingEventType = PendingType.TRANSFER;
-    private InterchangeValue<String> pendingTransferLocation = InterchangeValue.unknown();
+    private InterchangeValue<String> pendingLocation = InterchangeValue.unknown();
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
