@@ -25,7 +25,6 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import javax.annotation.Resource;
 import java.time.Instant;
-import java.util.Optional;
 
 /**
  * Main class that interacts with labs tables, either directly or through sub controllers.
@@ -114,6 +113,9 @@ public class LabController {
                         storedFrom);
                 labTestDefinition.setName(labMetadataMsg.getName());
                 break;
+            default:
+                logger.error("Unrecognised lab metadata message type: {}", labMetadataMsg.getLabsMetadataType());
+                break;
         }
     }
 
@@ -132,11 +134,11 @@ class LabCache {
 
     /**
      * @param labTestDefinitionRepo repository for LabTestDefinition
-     * @param labBatteryElementRepo repository for LabBatterElement
+     * @param labBatteryElementRepo repository for LabBatteryElement
+     * @param labBatteryRepo repository for LabBattery
      */
     LabCache(LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo,
-             LabBatteryRepository labBatteryRepo
-             ) {
+             LabBatteryRepository labBatteryRepo) {
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labBatteryElementRepo = labBatteryElementRepo;
         this.labBatteryRepo = labBatteryRepo;
