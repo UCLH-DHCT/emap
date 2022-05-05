@@ -4,7 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PatientLocationController;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PendingAdtController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
@@ -12,10 +13,12 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
+import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 
 import java.time.Instant;
@@ -30,18 +33,22 @@ public class AdtProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PersonController personController;
     private final VisitController visitController;
-    private final LocationController locationController;
+    private final PatientLocationController patientLocationController;
+    private final PendingAdtController pendingAdtController;
 
     /**
      * Implicitly wired spring beans.
-     * @param personController   person interactions.
-     * @param visitController    encounter interactions.
-     * @param locationController location interactions.
+     * @param personController     person interactions.
+     * @param visitController      encounter interactions.
+     * @param patientLocationController   location interactions.
+     * @param pendingAdtController pending ADT interactions.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController) {
+    public AdtProcessor(PersonController personController, VisitController visitController,
+                        PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
         this.personController = personController;
         this.visitController = visitController;
-        this.locationController = locationController;
+        this.patientLocationController = patientLocationController;
+        this.pendingAdtController = pendingAdtController;
     }
 
 
@@ -160,5 +167,21 @@ public class AdtProcessor {
 
         // swap locations
         patientLocationController.swapLocations(visitA, visitB, msg, storedFrom);
+    }
+
+    @Transactional
+    public void processPendingAdt(PendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        Mrn mrn = processPersonLevel(msg, storedFrom, validFrom);
+        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+        pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
+    }
+
+    @Transactional
+    public void processPendingAdt(CancelPendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
+        Instant validFrom = msg.bestGuessAtValidFrom();
+        Mrn mrn = processPersonLevel(msg, storedFrom, validFrom);
+        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+        pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
     }
 }
