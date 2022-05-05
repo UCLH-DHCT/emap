@@ -29,6 +29,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.AdtCancellation;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelAdmitPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelDischargePatient;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelTransferPatient;
 import uk.ac.ucl.rits.inform.interchange.adt.ChangePatientIdentifiers;
 import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
@@ -233,18 +234,18 @@ public class AdtMessageFactory {
                 break;
             case "A11":
                 CancelAdmitPatient cancelAdmitPatient = new CancelAdmitPatient();
-                setCancellationDate(evn, cancelAdmitPatient);
+                setCancellationDatetime(evn, cancelAdmitPatient);
                 msg = cancelAdmitPatient;
                 break;
             case "A12":
                 CancelTransferPatient cancelTransferPatient = new CancelTransferPatient();
-                setCancellationDate(evn, cancelTransferPatient);
+                setCancellationDatetime(evn, cancelTransferPatient);
                 cancelTransferPatient.setCancelledLocation(pv1Wrap.getPreviousLocation());
                 msg = cancelTransferPatient;
                 break;
             case "A13":
                 CancelDischargePatient cancelDischargePatient = new CancelDischargePatient();
-                setCancellationDate(evn, cancelDischargePatient);
+                setCancellationDatetime(evn, cancelDischargePatient);
                 msg = cancelDischargePatient;
                 break;
             case "A15":
@@ -254,6 +255,12 @@ public class AdtMessageFactory {
                 break;
             case "A17":
                 msg = buildSwapLocations(hl7Msg, pv1Wrap);
+                break;
+            case "A26":
+                CancelPendingTransfer cancelPendingTransfer = new CancelPendingTransfer();
+                setPendingLocation(pv1Wrap, cancelPendingTransfer);
+                setCancellationDatetime(evn, cancelPendingTransfer);
+                msg = cancelPendingTransfer;
                 break;
             case "A29":
                 msg = new DeletePersonInformation();
@@ -436,7 +443,7 @@ public class AdtMessageFactory {
      * @param adtCancellation adt cancellation message
      * @throws DataTypeException if the datetime can't be interpreted as local time
      */
-    private void setCancellationDate(final EVN evn, AdtCancellation adtCancellation) throws DataTypeException {
+    private void setCancellationDatetime(final EVN evn, AdtCancellation adtCancellation) throws DataTypeException {
         adtCancellation.setCancelledDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
     }
 
