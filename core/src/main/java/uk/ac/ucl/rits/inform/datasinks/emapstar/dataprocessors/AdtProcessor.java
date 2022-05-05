@@ -56,7 +56,7 @@ public class AdtProcessor {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
         Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
         HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
-        locationController.processVisitLocation(visit, msg, storedFrom);
+        patientLocationController.processVisitLocation(visit, msg, storedFrom);
     }
 
     /**
@@ -105,7 +105,7 @@ public class AdtProcessor {
             logger.warn("No existing visits for DeletePersonMessage message: {}", msg);
             return;
         }
-        locationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
+        patientLocationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
         visitController.deleteVisits(olderVisits, messageDateTime, storedFrom);
     }
 
@@ -159,6 +159,6 @@ public class AdtProcessor {
                 msg.getOtherVisitNumber(), mrnB, msg.getSourceSystem(), messageDateTime, storedFrom);
 
         // swap locations
-        locationController.swapLocations(visitA, visitB, msg, storedFrom);
+        patientLocationController.swapLocations(visitA, visitB, msg, storedFrom);
     }
 }
