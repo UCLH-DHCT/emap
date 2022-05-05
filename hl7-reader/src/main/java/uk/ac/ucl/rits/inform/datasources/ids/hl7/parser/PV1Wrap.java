@@ -38,37 +38,44 @@ public interface PV1Wrap {
     }
 
     /**
-     * @return PV1-3.1 Current Ward Code e.g. T06
+     * @param location HAPI location object
+     * @return Ward Code from patient location e.g. T06
      */
-    default String getCurrentWardCode() {
-        return getPV1().getAssignedPatientLocation().getPl1_PointOfCare().getValue();
+    default String getWardCode(PL location) {
+        return location.getPl1_PointOfCare().getValue();
     }
 
     /**
-     * @return PV1-3.2 Current Room Code e.g. T06A
+     * @param location HAPI location object
+     * @return Room Code e.g. T06A
      */
-    default String getCurrentRoomCode() {
-        return getPV1().getAssignedPatientLocation().getPl2_Room().getValue();
+    default String getRoomCode(PL location) {
+        return location.getPl2_Room().getValue();
     }
 
     /**
-     * @return PV1-3.3 Current Bed e.g. T06-32
+     * @param location HAPI location object
+     * @return Bed e.g. T06-32
      */
-    default String getCurrentBed() {
-        return getPV1().getAssignedPatientLocation().getPl3_Bed().getValue();
+    default String getBed(PL location) {
+        return location.getPl3_Bed().getValue();
+    }
+
+    private String createLocationString(PL currentLocation) {
+        String joinedLocations = String.join("^", getWardCode(currentLocation), getRoomCode(currentLocation), getBed(currentLocation));
+        return (!"null^null^null".equals(joinedLocations)) ? joinedLocations : null;
     }
 
     /**
      * PV1-3: Get all the location components concatenated together.
-     * We may need to canonicalise these to remove duplicate info.
      * @return the location string
      */
     default String getFullLocationString() {
         if (!pv1SegmentExists()) {
             return null;
         }
-        String joinedLocations = String.join("^", getCurrentWardCode(), getCurrentRoomCode(), getCurrentBed());
-        return (getCurrentWardCode() != null || getCurrentRoomCode() != null || getCurrentBed() != null) ? joinedLocations : null;
+        PL currentLocation = getPV1().getAssignedPatientLocation();
+        return createLocationString(currentLocation);
     }
 
     /**
@@ -76,12 +83,8 @@ public interface PV1Wrap {
      * @return the previous location string
      */
     default String getPreviousLocation() {
-        PL location = getPV1().getPriorPatientLocation();
-        String joinedLocations = String.join("^",
-                location.getPl1_PointOfCare().getValue(), location.getPl2_Room().getValue(), location.getPl3_Bed().getValue());
-        boolean locationExists = (location.getPl1_PointOfCare().getValue() != null || location.getPl2_Room().getValue() != null
-                || location.getPl3_Bed().getValue() != null);
-        return locationExists ? joinedLocations : null;
+        PL previousLocation = getPV1().getPriorPatientLocation();
+        return createLocationString(previousLocation);
     }
 
     /**
@@ -160,6 +163,14 @@ public interface PV1Wrap {
      */
     default String getDischargeLocation() {
         return getPV1().getPv137_DischargedToLocation().getDld1_DischargeToLocation().getCwe1_Identifier().getValueOrEmpty();
+    }
+
+    /**
+     * @return concatenated pending location string
+     */
+    default String getPendingLocation() {
+        PL pendingLocation = getPV1().getPv142_PendingLocation();
+        return createLocationString(pendingLocation);
     }
 
     /**
