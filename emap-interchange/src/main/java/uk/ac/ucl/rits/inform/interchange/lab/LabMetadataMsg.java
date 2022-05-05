@@ -27,9 +27,9 @@ public class LabMetadataMsg extends EmapOperationMessage {
     private OrderCodingSystem codingSystem;
 
     /**
-     * Human readable description.
+     * Human readable name.
      */
-    private String description;
+    private String name;
 
     /**
      * Is this, for example, a test or a battery of tests?
