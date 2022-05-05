@@ -68,8 +68,6 @@ public class LabController {
         }
         Instant validFrom = msg.getStatusChangeTime();
 
-        // refactor this into the lab metadata message?
-
         LabBattery battery = labOrderController.getOrCreateLabBattery(
                 msg.getTestBatteryLocalCode(), msg.getTestBatteryCodingSystem(), validFrom, storedFrom);
         if (msg.getEpicCareOrderNumber().isDelete()) {
@@ -176,7 +174,6 @@ class LabCache {
      */
     @Cacheable(value = "labBatteryElement", key = "{ #testDefinition.labTestDefinitionId , #battery.labBatteryId }")
     public void createLabBatteryElementIfNotExists(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
-        // XXX: should update as well!!
         labBatteryElementRepo
                 .findByLabBatteryIdAndLabTestDefinitionId(battery, testDefinition)
                 .orElseGet(() -> {

@@ -28,12 +28,11 @@ public class TestLabMetadata extends MessageProcessingBase {
     LabTestDefinitionRepository labTestDefinitionRepository;
 
     /*
-     I don't think we get information about *which* tests are in which batteries from Clarity.
-     Are we left to infer this from the test results we get?
+     We don't get information about *which* tests are in which batteries from Clarity.
+     We can only infer this from the test results we get.
      So Lab Metadata is going to be about fleshing out the battery and test data we do have,
      but the ordering of Metadata vs Orders may vary, so important to use getOrCreate idiom always,
      and update fields (with auditing?) when finished.
-     (What is in these tables presently? Have a look when DSD is fixed.)
      */
 
     @Test
