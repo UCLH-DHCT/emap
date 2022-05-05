@@ -14,10 +14,10 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestLabMetadata extends MessageProcessingBase {
     @Autowired
@@ -38,9 +38,7 @@ public class TestLabMetadata extends MessageProcessingBase {
 
     @Test
     public void testImpliedMetadata() throws IOException, EmapOperationMessageProcessingException {
-        List<LabOrderMsg> messages = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
-        LabOrderMsg fourResults = messages.get(0);
-        processSingleMessage(fourResults);
+        processLabOrderMessage();
         assertEquals(2, labBatteryRepository.count());
         assertEquals(4, labBatteryElementRepository.count());
         assertEquals(4, labTestDefinitionRepository.count());
@@ -56,9 +54,48 @@ public class TestLabMetadata extends MessageProcessingBase {
         assertEquals(4, labBatteryElementRepository.count());
 
         assertEquals(4 + 5, labTestDefinitionRepository.count());
-        LabTestDefinition aml = labTestDefinitionRepository.findByTestLabCode("AML").get();
-//        aml.getTestStandardCode();
-        LabBattery battery = labBatteryRepository.findByBatteryCodeAndLabProvider("GYNAE", "WIN_PATH").get();
-        assertEquals("Gynaecological Smear", battery.getDescription());
+
+        LabTestDefinition amlTest = labTestDefinitionRepository.findByTestLabCode("AML").get();
+        assertEquals("WINPATH AMOXICILLIN", amlTest.getName());
+
+        LabBattery gynaeBattery = labBatteryRepository.findByBatteryCodeAndLabProvider("GYNAE", "WIN_PATH").get();
+        assertEquals("Gynaecological Smear", gynaeBattery.getBatteryName());
     }
+
+    @Test
+    public void testUpdatedTestMetadata() throws IOException, EmapOperationMessageProcessingException {
+        processLabOrderMessage();
+
+        // We've inferred the existence of a test called "ALP" already, but we don't have much metadata yet
+        LabTestDefinition amlTestBefore = labTestDefinitionRepository.findByTestLabCode("ALP").get();
+        assertNull(amlTestBefore.getName());
+
+        processMultipleMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_test.yaml"));
+
+        // verify name has now been filled in
+        LabTestDefinition amlTestAfter = labTestDefinitionRepository.findByTestLabCode("ALP").get();
+        assertEquals("Alkaline phosphatase", amlTestAfter.getName());
+    }
+
+    @Test
+    public void testUpdatedBatteryMetadata() throws IOException, EmapOperationMessageProcessingException {
+        processLabOrderMessage();
+
+        // We've inferred the existence of a battery called "BON" already, but we don't have much metadata yet
+        LabBattery bonTestBefore = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").get();
+        assertNull(bonTestBefore.getBatteryName());
+
+        processMultipleMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_battery.yaml"));
+
+        // verify name has now been filled in
+        LabBattery bonTestAfter = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").get();
+        assertEquals("Bone Profile", bonTestAfter.getBatteryName());
+    }
+
+    private void processLabOrderMessage() throws IOException, EmapOperationMessageProcessingException {
+        List<LabOrderMsg> messages = messageFactory.getLabOrders("winpath/ORU_R01.yaml", "0000040");
+        LabOrderMsg fourResults = messages.get(0);
+        processSingleMessage(fourResults);
+    }
+
 }
