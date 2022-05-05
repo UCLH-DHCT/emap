@@ -16,6 +16,7 @@ import uk.ac.ucl.rits.inform.interchange.EmapOperationMessage;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 
 import java.time.Instant;
 import java.util.List;
@@ -49,6 +50,13 @@ public abstract class MessageProcessingBase {
     @Transactional
     protected void processSingleMessage(EmapOperationMessage msg) throws EmapOperationMessageProcessingException {
         msg.processMessage(dbOps);
+    }
+
+    @Transactional
+    protected void processMultipleMessages(List<? extends EmapOperationMessage> msgs) throws EmapOperationMessageProcessingException {
+        for (EmapOperationMessage m : msgs) {
+            m.processMessage(dbOps);
+        }
     }
 
     protected List<Mrn> getAllMrns() {

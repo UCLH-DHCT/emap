@@ -107,7 +107,7 @@ public class LabController {
             case LABS_METADATA_TEST:
                 LabTestDefinition labTestDefinition = cache.getOrCreateLabTestDefinition(
                         labMetadataMsg.getCodingSystem().toString(),
-                        null, // TODO
+                        labMetadataMsg.getLabDepartment(),
                         labMetadataMsg.getShortCode(),
                         labMetadataMsg.getValidFrom(),
                         storedFrom);
