@@ -69,7 +69,7 @@ public class TestLabMetadata extends MessageProcessingBase {
         LabTestDefinition amlTestBefore = labTestDefinitionRepository.findByTestLabCode("ALP").get();
         assertNull(amlTestBefore.getName());
 
-        processMultipleMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_test.yaml"));
+        processMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_test.yaml"));
 
         // verify name has now been filled in
         LabTestDefinition amlTestAfter = labTestDefinitionRepository.findByTestLabCode("ALP").get();
@@ -84,7 +84,7 @@ public class TestLabMetadata extends MessageProcessingBase {
         LabBattery bonTestBefore = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").get();
         assertNull(bonTestBefore.getBatteryName());
 
-        processMultipleMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_battery.yaml"));
+        processMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_battery.yaml"));
 
         // verify name has now been filled in
         LabBattery bonTestAfter = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").get();

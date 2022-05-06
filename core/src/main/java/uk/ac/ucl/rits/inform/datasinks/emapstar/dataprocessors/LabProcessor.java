@@ -82,7 +82,7 @@ public class LabProcessor {
     }
 
     @Transactional
-    public void processMessage(final LabMetadataMsg labMetadataMsg, final Instant storedFrom) {
-        labController.writeLabMetadata(labMetadataMsg, storedFrom);
+    public void processMessage(final LabMetadataMsg labMetadataMsg, final Instant storedFrom) throws RequiredDataMissingException {
+        labController.processLabMetadata(labMetadataMsg, storedFrom);
     }
 }

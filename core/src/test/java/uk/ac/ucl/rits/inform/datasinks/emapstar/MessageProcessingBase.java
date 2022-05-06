@@ -53,7 +53,7 @@ public abstract class MessageProcessingBase {
     }
 
     @Transactional
-    protected void processMultipleMessages(List<? extends EmapOperationMessage> msgs) throws EmapOperationMessageProcessingException {
+    protected void processMessages(List<? extends EmapOperationMessage> msgs) throws EmapOperationMessageProcessingException {
         for (EmapOperationMessage m : msgs) {
             m.processMessage(dbOps);
         }
