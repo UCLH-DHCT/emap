@@ -2,6 +2,8 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.adt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.MessageProcessingBase;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.CoreDemographicRepository;
@@ -9,6 +11,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.HospitalVisitRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.PlannedMovement;
+import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingType;
 
@@ -30,7 +33,7 @@ class TestPendingAdt extends MessageProcessingBase {
 
     // end to end messages
     private PendingTransfer pendingTransfer;
-    private PendingTransfer cancelPendingTransfer;
+    private CancelPendingTransfer cancelPendingTransfer;
 
     private static final String VISIT_NUMBER = "123412341234";
     private static final String LOCATION_STRING = "1020100166^SDEC BY02^11 SDEC";
@@ -46,7 +49,7 @@ class TestPendingAdt extends MessageProcessingBase {
     @BeforeEach
     void setup() throws IOException {
         pendingTransfer = messageFactory.getAdtMessage("pending/A15.yaml");
-        cancelPendingTransfer = messageFactory.getAdtMessage("pending/A25.yaml");
+        cancelPendingTransfer = messageFactory.getAdtMessage("pending/A26.yaml");
     }
 
     /**
@@ -67,7 +70,7 @@ class TestPendingAdt extends MessageProcessingBase {
     /**
      * Given no planned movements in the database
      * When a pending transfer is processed
-     * Then
+     * Then a new PlannedMovement should be created
      * @throws Exception shouldn't happen
      */
     @Test
@@ -80,5 +83,36 @@ class TestPendingAdt extends MessageProcessingBase {
         assertNull(plannedMovement.getCancelledDatetime());
     }
 
+    /**
+     * Given no planned movements in the database
+     * When a pending cancel is processed
+     * Then a new PlannedMovement should be created with an unknown event datetime
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testOnlyCancelPendingCreatesPlannedMovement() throws Exception {
+        dbOps.processMessage(cancelPendingTransfer);
+
+        PlannedMovement plannedMovement = getPlannedMovementOrThrow(VISIT_NUMBER, LOCATION_STRING);
+        assertEquals(CANCEL_TIME, plannedMovement.getCancelledDatetime());
+        assertEquals(PendingType.TRANSFER.toString(), plannedMovement.getEventType());
+        assertNull(plannedMovement.getEventDatetime());
+    }
+
+    /**
+     * Given no planned movements in the database
+     * When a pending transfer then a pending cancel message is processed
+     * Then the planned movement should have the correct event datetime and cancellation time
+     * @throws Exception shouldn't happen
+     */
+    @Test
+    void testRequestThenCancelInOrder() throws Exception {
+        dbOps.processMessage(pendingTransfer);
+        dbOps.processMessage(cancelPendingTransfer);
+
+        PlannedMovement plannedMovement = getPlannedMovementOrThrow(VISIT_NUMBER, LOCATION_STRING);
+        assertEquals(EVENT_TIME, plannedMovement.getEventDatetime());
+        assertEquals(CANCEL_TIME, plannedMovement.getCancelledDatetime());
+    }
 }
 
