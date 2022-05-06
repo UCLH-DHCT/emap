@@ -6,10 +6,10 @@ IDS_PASSWORD=redactedids
 IDS_CFG_DEFAULT_START_DATETIME=2020-06-04T00:00:00.00Z
 IDS_CFG_END_DATETIME= 
 # note, separate progress schema than emap core
-INFORMDB_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/ids
-INFORMDB_SCHEMA=inform_schema_for_branch
-INFORMDB_USERNAME=someuseraaa
-INFORMDB_PASSWORD=redactedaaa
+UDS_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/ids
+UDS_SCHEMA=inform_schema
+UDS_USERNAME=someuser
+UDS_PASSWORD=redacted
 SPRING_RABBITMQ_HOST=rabbitmq
 SPRING_RABBITMQ_PORT=5672
 SPRING_RABBITMQ_USERNAME=my_name
