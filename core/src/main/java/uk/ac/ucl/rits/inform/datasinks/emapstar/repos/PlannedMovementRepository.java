@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.repos;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.concurrent.Functorator;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.Location;
 import uk.ac.ucl.rits.inform.informdb.movement.PlannedMovement;
@@ -15,7 +16,7 @@ import java.util.Optional;
  */
 public interface PlannedMovementRepository extends CrudRepository<PlannedMovement, Long> {
     /**
-     * Try and find a matching planned movement from a pending adt message (and not from a cancel pending adt message).
+     * Try and find a matching planned movement from a pending adt request message.
      * <p>
      * Always find by the event type, planned location and hospital visit Id, then:
      * - For in order messages: find the most recent message by the eventDatetime
@@ -32,9 +33,10 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
             + "      or (eventDatetime is null and cancelledDatetime >= :eventDatetime))"
             + "order by eventDatetime, cancelledDatetime"
     )
-    Optional<PlannedMovement> findFirstFromPlannedMovement(
+    Optional<PlannedMovement> findFirstThatMatches(
             String eventType, HospitalVisit hospitalVisitId, Location plannedLocation, Instant eventDatetime
     );
+
 
     /**
      * For testing.
