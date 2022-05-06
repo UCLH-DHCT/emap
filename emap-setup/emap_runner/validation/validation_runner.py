@@ -91,19 +91,6 @@ class ValidationRunner:
         self.docker.run("up -d glowroot-central")
         self.docker.run("ps")
 
-        """
-        If this is run after the data sources, it would deadlock if the 
-        hl7source generates more messages than can fit in the queue, but
-        currently emapstar doesn't like being started up unless the queues 
-        exist, or start existing very quickly. So, start it up just a little
-        after the datasources!
-        """
-        _ = Popen(
-            ["sleep", "180;"]
-            + self.docker.base_docker_compose_command.split()
-            + ["up", "-d", "emapstar"]
-        )
-
         self.docker.run(
             "up --exit-code-from hl7source hl7source",
             output_filename=f"{self.log_file_prefix}_hl7source.txt",
@@ -114,6 +101,18 @@ class ValidationRunner:
         )
 
         self.docker.run("ps")
+
+        """
+        If this is run after the data sources, it would deadlock if the 
+        hl7source generates more messages than can fit in the queue, but
+        currently emapstar doesn't like being started up unless the queues 
+        exist, or start existing very quickly. So, start it up just a little
+        after the datasources!
+        """
+        sleep(secs=180)
+        _ = Popen(
+            self.docker.base_docker_compose_command.split() + ["up", "-d", "emapstar"]
+        )
 
     def _wait_for_queue_to_empty(self) -> None:
         """

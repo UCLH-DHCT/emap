@@ -13,7 +13,6 @@ class GlobalConfiguration(dict):
         "rabbitmq",
         "ids",
         "uds",
-        "informdb",
         "omop",
         "dates",
         "global",

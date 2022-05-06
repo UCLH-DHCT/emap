@@ -51,7 +51,3 @@ Run a docker command:
 ```bash
 emap docker ps
 ```
-
-
-## Notes
-1. NEED a docker container to allow this to run on gae

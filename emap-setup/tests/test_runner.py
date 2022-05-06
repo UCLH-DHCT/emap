@@ -1,20 +1,20 @@
-import sys
+from os.path import dirname, abspath, exists
+from pathlib import Path
 
-from os.path import dirname, abspath, join, exists
 from emap_runner.runner import create_parser, EMAPRunner
 from emap_runner.global_config import GlobalConfiguration
 from .utils import work_in_tmp_directory
 
-data_dir_path = join(dirname(abspath(__file__)), "data")
-
-config_filepath = join(data_dir_path, "test-global-configuration-only-docs.yaml")
+config_path = Path(
+    dirname(abspath(__file__)), "data", "test-global-configuration-only-docs.yaml"
+)
 
 
 @work_in_tmp_directory(to_copy=None)
 def test_clone_then_clean_repos():
 
     parser = create_parser()
-    config = GlobalConfiguration(config_filepath)
+    config = GlobalConfiguration(config_path)
 
     runner = EMAPRunner(args=parser.parse_args(["setup", "-i"]), config=config)
     runner.run("setup")

@@ -1,7 +1,7 @@
 
 
 main_git_dir:
-  https://github.com/test
+  https://github.com/inform-health-informatics
 
 EMAP_PROJECT_NAME:
   my_project_name
@@ -44,18 +44,18 @@ dates:
 
 informdb:
   common:
-    INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
+    UDS_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
   Emap-Core:
-    INFORMDB_SCHEMA: inform_schema
-    INFORMDB_USERNAME: someuser
-    INFORMDB_PASSWORD: redacted
+    UDS_SCHEMA: inform_schema
+    UDS_USERNAME: someuser
+    UDS_PASSWORD: redacted
   OMOP-ETL:
-    INFORMDB_SCHEMA: inform_schema
-    INFORMDB_USERNAME: someuser_omop
-    INFORMDB_PASSWORD: redacted_omop
-    INFORMDB_DDL_AUTO: update
+    UDS_SCHEMA: inform_schema
+    UDS_USERNAME: someuser_omop
+    UDS_PASSWORD: redacted_omop
+    UDS_DDL_AUTO: update
     INFORM_INIT_MODE: always
   hl7-vitals:
-    INFORMDB_SCHEMA: inform_schema_for_branch
-    INFORMDB_USERNAME: someuseraaa
-    INFORMDB_PASSWORD: redactedaaa
+    UDS_SCHEMA: inform_schema_for_branch
+    UDS_USERNAME: someuseraaa
+    UDS_PASSWORD: redactedaaa

@@ -62,16 +62,6 @@ dates:
   start: 2020-06-04T00:00:00.00Z
   end:
 
-# Configuration for the database
-informdb:
-  common:
-    INFORMDB_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/ids
-  Emap-Core:
-    INFORMDB_SCHEMA: inform_schema
-    INFORMDB_USERNAME: someuser
-    INFORMDB_PASSWORD: redacted
-
-
 # Configurations for the UDS.
 uds:
   UDS_JDBC_URL: jdbc:postgresql://uds_db:5432/uds

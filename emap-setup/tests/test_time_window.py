@@ -5,6 +5,7 @@ from emap_runner.utils import TimeWindow, EMAPRunnerException
 
 
 def test_both_today():
+    """Ensure that today is a supported string in defining a time window"""
 
     window = TimeWindow("today", "today")
 
@@ -13,6 +14,7 @@ def test_both_today():
 
 
 def test_today_and_n_days_ago():
+    """Ensure that N days ago is a valid date"""
 
     window = TimeWindow("4 days ago", "today")
 
@@ -20,6 +22,7 @@ def test_today_and_n_days_ago():
 
 
 def test_iso_format():
+    """Ensure that a date can be specified directly in YYYY-MM-DD format"""
 
     window = TimeWindow("2019-12-04", "2019-12-08")
 
@@ -27,6 +30,7 @@ def test_iso_format():
 
 
 def test_invalid_time_format():
+    """Ensure that an invalid time format raises an exception"""
 
     with pytest.raises(EMAPRunnerException):
         _ = TimeWindow("something_invalid", "today")
