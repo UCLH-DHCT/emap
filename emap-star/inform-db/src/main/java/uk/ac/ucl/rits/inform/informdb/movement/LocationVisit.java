@@ -149,8 +149,8 @@ public class LocationVisit extends TemporalCore<LocationVisit, LocationVisitAudi
     }
 
     @Override
-    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedFrom) {
-        return new LocationVisitAudit(this, validUntil, storedFrom);
+    public LocationVisitAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+        return new LocationVisitAudit(this, validUntil, storedUntil);
     }
 
 }
