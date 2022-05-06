@@ -38,10 +38,10 @@ public class AdtProcessor {
 
     /**
      * Implicitly wired spring beans.
-     * @param personController     person interactions.
-     * @param visitController      encounter interactions.
-     * @param patientLocationController   location interactions.
-     * @param pendingAdtController pending ADT interactions.
+     * @param personController          person interactions.
+     * @param visitController           encounter interactions.
+     * @param patientLocationController location interactions.
+     * @param pendingAdtController      pending ADT interactions.
      */
     public AdtProcessor(PersonController personController, VisitController visitController,
                         PatientLocationController patientLocationController, PendingAdtController pendingAdtController) {
@@ -169,6 +169,14 @@ public class AdtProcessor {
         patientLocationController.swapLocations(visitA, visitB, msg, storedFrom);
     }
 
+    /**
+     * Process a pending ADT message.
+     * <p>
+     * Adds in all patient level information and a HospitalVisit so that a PlannedMovement can be created.
+     * @param msg        pending adt message
+     * @param storedFrom time that emap core started processing the message
+     * @throws RequiredDataMissingException if the visit number is missing
+     */
     @Transactional
     public void processPendingAdt(PendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
         Instant validFrom = msg.bestGuessAtValidFrom();
@@ -177,6 +185,14 @@ public class AdtProcessor {
         pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
     }
 
+    /**
+     * Process a cancellation of pending ADT message.
+     * <p>
+     * Adds in all patient level information and a HospitalVisit so that a PlannedMovement can be created.
+     * @param msg        pending adt message
+     * @param storedFrom time that emap core started processing the message
+     * @throws RequiredDataMissingException if the visit number is missing
+     */
     @Transactional
     public void processPendingAdt(CancelPendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
         Instant validFrom = msg.bestGuessAtValidFrom();
