@@ -93,8 +93,9 @@ public class LabController {
      * Flesh out lab battery or lab test metadata, but not battery element.
      * @param labMetadataMsg lab metadata message
      * @param storedFrom stored from timestamp
+     * @throws RequiredDataMissingException if message type is not recognised
      */
-    public void writeLabMetadata(LabMetadataMsg labMetadataMsg, Instant storedFrom) {
+    public void processLabMetadata(LabMetadataMsg labMetadataMsg, Instant storedFrom) throws RequiredDataMissingException {
         switch (labMetadataMsg.getLabsMetadataType()) {
             case LABS_METADATA_BATTERY:
                 // The code AND the coding system are used to lookup here
@@ -112,8 +113,8 @@ public class LabController {
                 labTestDefinition.setName(labMetadataMsg.getName());
                 break;
             default:
-                logger.error("Unrecognised lab metadata message type: {}", labMetadataMsg.getLabsMetadataType());
-                break;
+                throw new RequiredDataMissingException(
+                        String.format("Unrecognised lab metadata message type: %s", labMetadataMsg.getLabsMetadataType()));
         }
     }
 
