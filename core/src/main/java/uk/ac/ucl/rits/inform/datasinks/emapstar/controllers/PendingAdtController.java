@@ -1,5 +1,7 @@
 package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementAuditRepository;
@@ -12,6 +14,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Carries out the business logic part of pending ADT messages.
@@ -22,6 +26,7 @@ import java.time.Instant;
  */
 @Component
 public class PendingAdtController {
+    private final Logger logger = LoggerFactory.getLogger(PendingAdtController.class);
     private LocationController locationController;
     private PlannedMovementRepository plannedMovementRepo;
     private PlannedMovementAuditRepository plannedMovementAuditRepo;
@@ -53,28 +58,32 @@ public class PendingAdtController {
             plannedLocation = locationController.getOrCreateLocation(msg.getPendingLocation().get());
         }
 
-        var plannedState = getOrCreateFromRequestMessage(
+        var plannedState = getOrCreate(
                 visit, plannedLocation, msg.getPendingEventType().toString(), msg.getEventOccurredDateTime(), validFrom, storedFrom
         );
         PlannedMovement plannedMovement = plannedState.getEntity();
         // If we receive a cancelled message before the original request then add it in
-        if (!plannedState.isEntityCreated() && plannedMovement.getEventDatetime() == null) {
+        if (plannedMovement.getEventDatetime() == null) {
             plannedState.assignIfDifferent(msg.getEventOccurredDateTime(), plannedMovement.getEventDatetime(), plannedMovement::setEventDatetime);
         }
 
         plannedState.saveEntityOrAuditLogIfRequired(plannedMovementRepo, plannedMovementAuditRepo);
     }
 
-    private RowState<PlannedMovement, PlannedMovementAudit> getOrCreateFromRequestMessage(
-            HospitalVisit visit, Location plannedLocation, String pendingEventType, Instant eventOccurredDateTime,
+    private RowState<PlannedMovement, PlannedMovementAudit> getOrCreate(
+            HospitalVisit visit, Location plannedLocation, String pendingEventType, Instant eventDateTime,
             Instant validFrom, Instant storedFrom) {
-        return plannedMovementRepo.findFirstThatMatches(pendingEventType, visit, plannedLocation, eventOccurredDateTime)
+        logger.debug("Getting or creating PendingMovement");
+        return findFirstMovement(visit, plannedLocation, pendingEventType, eventDateTime)
                 .map(pm -> new RowState<>(pm, validFrom, storedFrom, false))
                 .orElseGet(() -> {
-                    PlannedMovement pm = new PlannedMovement(visit, plannedLocation, pendingEventType);
-                    pm.setEventDatetime(eventOccurredDateTime);
-                    return new RowState<>(pm, validFrom, storedFrom, true);
+                    return new RowState<>(new PlannedMovement(visit, plannedLocation, pendingEventType), validFrom, storedFrom, true);
                 });
+    }
+
+    private Optional<PlannedMovement> findFirstMovement(HospitalVisit visit, Location plannedLocation, String pendingType, Instant eventDateTime) {
+        List<PlannedMovement> movements = plannedMovementRepo.findMatchingMovements(pendingType, visit, plannedLocation, eventDateTime);
+        return movements.stream().findFirst();
     }
 
     public void processMsg(HospitalVisit visit, CancelPendingTransfer msg, Instant validFrom, Instant storedFrom) {
@@ -83,12 +92,12 @@ public class PendingAdtController {
             plannedLocation = locationController.getOrCreateLocation(msg.getPendingLocation().get());
         }
 
-        var plannedState = getOrCreateFromCancellationMessage(
+        var plannedState = getOrCreate(
                 visit, plannedLocation, msg.getPendingEventType().toString(), msg.getCancelledDateTime(), validFrom, storedFrom
         );
         PlannedMovement plannedMovement = plannedState.getEntity();
         // If we receive a cancelled message before the original request then add it in
-        if (!plannedState.isEntityCreated() && plannedMovement.getCancelledDatetime() == null) {
+        if (plannedMovement.getCancelledDatetime() == null) {
             plannedState.assignIfDifferent(msg.getCancelledDateTime(), plannedMovement.getCancelledDatetime(), plannedMovement::setCancelledDatetime);
         }
 
@@ -96,15 +105,4 @@ public class PendingAdtController {
     }
 
 
-    private RowState<PlannedMovement, PlannedMovementAudit> getOrCreateFromCancellationMessage(
-            HospitalVisit visit, Location plannedLocation, String pendingEventType, Instant cancellationDatetime,
-            Instant validFrom, Instant storedFrom) {
-        return plannedMovementRepo.findFirstThatMatches(pendingEventType, visit, plannedLocation, cancellationDatetime)
-                .map(pm -> new RowState<>(pm, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                    PlannedMovement pm = new PlannedMovement(visit, plannedLocation, pendingEventType);
-                    pm.setCancelledDatetime(cancellationDatetime);
-                    return new RowState<>(pm, validFrom, storedFrom, true);
-                });
-    }
 }
