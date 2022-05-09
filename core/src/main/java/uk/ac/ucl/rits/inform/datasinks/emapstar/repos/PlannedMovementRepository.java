@@ -32,7 +32,7 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
             + "and ((eventDatetime = :eventDatetime) "
             + "      or (cancelledDatetime >= :eventDatetime and eventDatetime is null) "
             + "     )"
-            + "order by eventDatetime "
+            + "order by eventDatetime, cancelledDatetime "
     )
     List<PlannedMovement> findMatchingMovementsFromRequest(
             String eventType, HospitalVisit hospitalVisitId, Location plannedLocation, Instant eventDatetime

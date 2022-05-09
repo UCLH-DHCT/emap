@@ -56,6 +56,8 @@ public class PendingAdtController {
 
     /**
      * Process pending ADT request.
+     * <p>
+     * If multiple cancelled ADTs with no known event time, the earliest cancellation will be updated with this request event time.
      * @param visit      associated visit
      * @param msg        pending adt
      * @param validFrom  time in the hospital when the message was created
@@ -109,6 +111,8 @@ public class PendingAdtController {
 
     /**
      * Process pending ADT cancellation.
+     * <p>
+     * If multiple pending ADT events exist that aren't cancelled, will cancel the earliest one that occurs before the cancellation time.
      * @param visit      associated visit
      * @param msg        pending adt cancellation msg
      * @param validFrom  time in the hospital when the message was created
