@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.interchange.adt;
 
 /**
  * Type of pending transfer, to allow for a single table to track history of all pending changes.
+ * @author Stef Piatek
  */
 public enum PendingType {
     /**
