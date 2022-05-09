@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 /**
  * General utilities for operations on InformDB that may be useful in tests.
  */
-public class DBBaseTest {
+public class DBTestUtils {
 
     /**
      * Find all classes that contain fields that will end up in the DB.

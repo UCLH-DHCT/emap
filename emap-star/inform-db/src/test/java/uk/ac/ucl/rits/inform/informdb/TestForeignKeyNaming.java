@@ -15,21 +15,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Ensure that all entities use the convention that a foreign key to another entity is <entityClass>Id.
  * @author Tom Young
  */
-class TestForeignKeyNaming extends DBBaseTest{
+class TestForeignKeyNaming {
 
     boolean isAForeignKey(Field f) {
         return Arrays.stream(f.getDeclaredAnnotations()).anyMatch(a -> a.annotationType().equals(JoinColumn.class));
     }
 
     void assertHasIdSuffix(Field f) {
-        assertTrue(f.toString().endsWith("Id"));
+        String fieldName = f.toString();
+        assertTrue(fieldName.length() > 2
+                && fieldName.charAt(0) == fieldName.toLowerCase().charAt(0)
+                && fieldName.endsWith("Id"));
     }
 
     /**
      * Ensure that every foreign key has the correct naming convention.
      */
     @ParameterizedTest
-    @MethodSource("findAllEntities")
+    @MethodSource("uk.ac.ucl.rits.inform.informdb.DBTestUtils#findAllEntities")
     void testForeignKeyNaming(Class<?> entityClass) {
         Arrays.stream(entityClass.getDeclaredFields())
                 .filter(this::isAForeignKey)
