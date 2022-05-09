@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -23,10 +24,14 @@ import java.time.Instant;
  * @author Stef Piatek
  */
 @Entity
-@Table
 @Data
 @NoArgsConstructor
 @ToString(callSuper = true)
+@Table(indexes = {
+        @Index(name = "pm_location", columnList = "locationId"),
+        @Index(name = "pm_hospital_visit", columnList = "hospitalVisitId"),
+        @Index(name = "pm_event_type", columnList = "eventType"),
+})
 @AuditTable
 public class PlannedMovement extends TemporalCore<PlannedMovement, PlannedMovementAudit> {
     /**
