@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestPendingAdt extends MessageProcessingBase {
     private final Logger logger = LoggerFactory.getLogger(TestPendingAdt.class);
@@ -129,6 +130,14 @@ class TestPendingAdt extends MessageProcessingBase {
     }
 
 
+    /**
+     * Given that pairs of request and cancellation messages
+     * When they are processed in different orders
+     * Then only the right amount of requests should be created and they all should be cancelled
+     * @param pendingMessages pending messages
+     * @param expectedCount   expected number of requests after processing
+     * @throws Exception shouldn't happen
+     */
     @ParameterizedTest
     @ArgumentsSource(TestMessageStreamProvider.class)
     void testDuplicateRequestInOrder(Iterable<? extends AdtMessage> pendingMessages, Integer expectedCount) throws Exception {
@@ -144,58 +153,57 @@ class TestPendingAdt extends MessageProcessingBase {
         List<PlannedMovement> plannedMovements = plannedMovementRepository
                 .findAllByHospitalVisitIdEncounterAndLocationIdLocationString(VISIT_NUMBER, LOCATION_STRING);
         assertEquals(expectedCount, plannedMovements.size());
-//        for (PlannedMovement pm : plannedMovements) {
-//            logger.trace("Testing planned movement has values set correctly");
-//            assertNotNull(pm.getCancelledDatetime(), "Cancelled datetime shouldn't be null");
-//        }
+        for (PlannedMovement pm : plannedMovements) {
+            logger.trace("Testing planned movement has values set correctly");
+            assertNotNull(pm.getCancelledDatetime(), "Cancelled datetime shouldn't be null");
+            assertNotNull(pm.getEventDatetime(), "Event datetime shouldn't be null");
+            assertTrue(pm.getCancelled());
+        }
     }
 
 }
 
 
+/**
+ * Create a stream of messages (matched pairs of requests and cancelled in plausible orders) with expected number of final planned movements.
+ */
 class TestMessageStreamProvider implements ArgumentsProvider {
     private final InterchangeMessageFactory messageFactory = new InterchangeMessageFactory();
 
-    private void changeEventTime(PendingTransfer pendingTransfer, long hourChange) {
-        Instant laterTime = pendingTransfer.getEventOccurredDateTime().plus(hourChange, ChronoUnit.HOURS);
+    private void addAnHour(PendingTransfer pendingTransfer) {
+        Instant laterTime = pendingTransfer.getEventOccurredDateTime().plus(1, ChronoUnit.HOURS);
         pendingTransfer.setEventOccurredDateTime(laterTime);
     }
 
-    private void changeCancelTime(CancelPendingTransfer cancelPending, long hourChange) {
-        Instant laterTime = cancelPending.getCancelledDateTime().plus(hourChange, ChronoUnit.HOURS);
+    private void addAnHour(CancelPendingTransfer cancelPending) {
+        Instant laterTime = cancelPending.getCancelledDateTime().plus(1, ChronoUnit.HOURS);
         cancelPending.setEventOccurredDateTime(laterTime);
         cancelPending.setCancelledDateTime(laterTime);
     }
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws IOException {
-        PendingTransfer pendingTransferEarlier = messageFactory.getAdtMessage("pending/A15.yaml");
-        changeEventTime(pendingTransferEarlier, -1);
         PendingTransfer pendingTransfer = messageFactory.getAdtMessage("pending/A15.yaml");
         PendingTransfer pendingTransferLater = messageFactory.getAdtMessage("pending/A15.yaml");
-        changeEventTime(pendingTransferLater, 1);
+        addAnHour(pendingTransferLater);
 
-        CancelPendingTransfer cancelPendingEarlier = messageFactory.getAdtMessage("pending/A26.yaml");
-        changeCancelTime(cancelPendingEarlier, -1);
         CancelPendingTransfer cancelPending = messageFactory.getAdtMessage("pending/A26.yaml");
         CancelPendingTransfer cancelPendingLater = messageFactory.getAdtMessage("pending/A26.yaml");
-        changeCancelTime(cancelPendingLater, 1);
+        addAnHour(cancelPendingLater);
 
         return Stream.of(
                 // simple case of create and cancel, should have single entity
                 Arguments.of(List.of(pendingTransfer, cancelPending), 1),
+                // cancel received before pending
+                Arguments.of(List.of(cancelPending, pendingTransfer), 1),
                 // request created and cancelled twice, in order
                 Arguments.of(List.of(pendingTransfer, cancelPending, pendingTransferLater, cancelPendingLater), 2),
-                // request created and cancelled twice, last pending out of order
+                // request created and cancelled twice, last pending request out of order
                 Arguments.of(List.of(pendingTransfer, cancelPending, cancelPendingLater, pendingTransferLater), 2),
                 // request created and cancelled twice, cancels all received before the pending
                 Arguments.of(List.of(cancelPending, cancelPendingLater, pendingTransfer, pendingTransferLater), 2),
-                // request created twice, will only output once as we're not sure if it's an update
-                Arguments.of(List.of(pendingTransfer, pendingTransferLater), 1),
-                // request created twice, cancelled twice, second will only have cancel datetime set
+                // request created twice, cancelled twice
                 Arguments.of(List.of(pendingTransfer, pendingTransferLater, cancelPending, cancelPendingLater), 2)
         );
     }
-
-    ;
 }

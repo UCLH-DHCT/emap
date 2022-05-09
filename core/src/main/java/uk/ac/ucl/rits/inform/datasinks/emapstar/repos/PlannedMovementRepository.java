@@ -19,7 +19,30 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
      * Try and find a matching planned movement from a pending adt request message.
      * <p>
      * Always find by the event type, planned location and hospital visit Id, then:
-     * - For in order messages: find the most recent message by the eventDatetime which hasn't been cancelled
+     * - For in order messages: message which has the same event date time
+     * - For cancel message arriving before the original pending adt: find message which has a null eventDatetime and a cancel after current datetime
+     * @param eventType       type of the planned movement
+     * @param hospitalVisitId hospital visit associated with the movement
+     * @param plannedLocation planned location for the movement
+     * @param eventDatetime   the datetime that event was created
+     * @return planned movement entities
+     */
+    @Query("from PlannedMovement "
+            + "where eventType = :eventType and hospitalVisitId = :hospitalVisitId and locationId = :plannedLocation "
+            + "and ((eventDatetime = :eventDatetime) "
+            + "      or (cancelledDatetime >= :eventDatetime and eventDatetime is null) "
+            + "     )"
+            + "order by eventDatetime "
+    )
+    List<PlannedMovement> findMatchingMovementsFromRequest(
+            String eventType, HospitalVisit hospitalVisitId, Location plannedLocation, Instant eventDatetime
+    );
+
+    /**
+     * Try and find a matching planned movement from a pending adt cancellation message.
+     * <p>
+     * Always find by the event type, planned location and hospital visit Id, then:
+     * - For in order messages: message which has an earlier event date time and hasn't been cancelled, with the earliest event date time first
      * - For cancel message arriving before the original pending adt: find message which has a null eventDatetime and a cancel after current datetime
      * @param eventType       type of the planned movement
      * @param hospitalVisitId hospital visit associated with the movement
@@ -32,9 +55,9 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
             + "and ((eventDatetime <= :eventDatetime and cancelledDatetime is null) "
             + "      or (cancelledDatetime >= :eventDatetime and eventDatetime is null) "
             + "     )"
-            + "order by eventDatetime, cancelledDatetime "
+            + "order by cancelledDatetime, eventDatetime "
     )
-    List<PlannedMovement> findMatchingMovements(
+    List<PlannedMovement> findMatchingMovementsFromCancel(
             String eventType, HospitalVisit hospitalVisitId, Location plannedLocation, Instant eventDatetime
     );
 
