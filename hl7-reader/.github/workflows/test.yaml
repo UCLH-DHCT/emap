@@ -28,10 +28,10 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           cache: 'maven'
-      - name: Build emap-hl7-processor
+      - name: Build Emap-Interchange
         run: mvn clean install # run tests so that test classes can be used in current testing
         working-directory: Emap-Interchange
-      - name: Build and test
+      - name: Test
         run: mvn test
         working-directory: emap-hl7-processor
         env:
