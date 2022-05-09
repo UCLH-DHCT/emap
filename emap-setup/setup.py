@@ -1,10 +1,10 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(
     name="emap_runner",
     version="0.0.1",
-    packages=["emap_runner"],
+    packages=find_packages("."),
     author="Sarah Keating, Tom Young",
     url="https://github.com/inform-health-informatics/emap-setup",
     entry_points={"console_scripts": ["emap = emap_runner.runner:main"]},
