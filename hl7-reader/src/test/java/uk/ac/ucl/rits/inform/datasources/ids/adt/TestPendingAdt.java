@@ -1,13 +1,11 @@
 package uk.ac.ucl.rits.inform.datasources.ids.adt;
 
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.ac.ucl.rits.inform.datasources.ids.TestHl7MessageStream;
 import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingEvent;
-import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingType;
 
 import java.time.Instant;
@@ -38,7 +36,7 @@ class TestPendingAdt extends TestHl7MessageStream {
     }
 
     /**
-     * Given a pending transfer message with no pending location
+     * Given a pending transfer message with no pending location given
      * When processed into an interchange message
      * The pending location should be unknown
      * @throws Exception shouldn't happen
