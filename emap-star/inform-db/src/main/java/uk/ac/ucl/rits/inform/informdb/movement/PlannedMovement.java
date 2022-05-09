@@ -65,15 +65,20 @@ public class PlannedMovement extends TemporalCore<PlannedMovement, PlannedMoveme
     private Instant eventDatetime;
 
     /**
+     * /brief Has the planned movement been cancelled (either by a user or because a different movement has occurred).
+     */
+    private Boolean cancelled;
+
+    /**
      * /brief The date and time that the planned movement was cancelled.
      */
     private Instant cancelledDatetime;
 
     /**
      * Minimal constructor.
-     * @param hospitalVisitId   associated hospital visit
-     * @param locationId        planned location, may be null
-     * @param eventType         type of movement event
+     * @param hospitalVisitId associated hospital visit
+     * @param locationId      planned location, may be null
+     * @param eventType       type of movement event
      */
     public PlannedMovement(HospitalVisit hospitalVisitId, Location locationId, String eventType) {
         this.hospitalVisitId = hospitalVisitId;
@@ -92,6 +97,7 @@ public class PlannedMovement extends TemporalCore<PlannedMovement, PlannedMoveme
         locationId = other.locationId;
         eventType = other.eventType;
         eventDatetime = other.eventDatetime;
+        cancelled = other.cancelled;
         cancelledDatetime = other.cancelledDatetime;
     }
 
