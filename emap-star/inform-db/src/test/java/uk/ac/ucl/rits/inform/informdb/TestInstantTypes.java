@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Ensure Instant types are annotated correctly.
  */
-class TestInstantTypes extends DBBaseTest {
+class TestInstantTypes {
 
     private void fieldIsTimestampWithTimeZone(Field field) {
         List<String> columnDefinition = Arrays.stream(field.getAnnotationsByType(Column.class))
@@ -30,7 +30,7 @@ class TestInstantTypes extends DBBaseTest {
      * Ensure every Instant field is of a timezone aware type.
      */
     @ParameterizedTest
-    @MethodSource("findAllEntities")
+    @MethodSource("uk.ac.ucl.rits.inform.informdb.DBTestUtils#findAllEntities")
     void testEntityInstantFields(Class<?> entityClass) {
 
         Arrays.stream(entityClass.getDeclaredFields())
