@@ -87,6 +87,7 @@ For now: use your own username+password to clone/fetch/etc from github. Jeremy p
 [credential "https://github.com"]
     username = jeremyestein
 ```
+
 You will also need to create a github token as password access from git CLI is now deprecated.
 You will probably want to configure the credential helper to store the token access token 
 (this will store the connection information in plain text in your home directory)
