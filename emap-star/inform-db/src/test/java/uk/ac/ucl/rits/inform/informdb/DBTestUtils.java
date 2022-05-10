@@ -27,4 +27,15 @@ public class DBTestUtils {
         return entities.stream().sorted(Comparator.comparing(Class::getName));
     }
 
+    /**
+     * Lower case the first character of a string
+     */
+    public static String lowerCaseFirstCharacter(String string){
+
+        if (string.length() == 0) {
+            throw new RuntimeException("Cannot convert the first character of a string with length 0");
+        }
+        return string.substring(0, 1).toLowerCase() + string.substring(1);
+    }
+
 }
