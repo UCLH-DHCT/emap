@@ -38,7 +38,7 @@ class TestForeignKeyNaming {
             return;
         }
 
-        assertEquals(className+"Id", fieldName);
+        assertEquals(className + "Id", fieldName);
     }
 
     /**
