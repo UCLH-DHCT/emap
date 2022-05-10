@@ -8,7 +8,9 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import javax.persistence.JoinColumn;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import static uk.ac.ucl.rits.inform.informdb.DBTestUtils.lowerCaseFirstCharacter;
 
 
 /**
@@ -21,11 +23,22 @@ class TestForeignKeyNaming {
         return Arrays.stream(f.getDeclaredAnnotations()).anyMatch(a -> a.annotationType().equals(JoinColumn.class));
     }
 
-    void assertHasIdSuffix(Field f) {
-        String fieldName = f.toString();
-        assertTrue(fieldName.length() > 2
-                && fieldName.charAt(0) == fieldName.toLowerCase().charAt(0)
-                && fieldName.endsWith("Id"));
+    /**
+     * Assert that a field has the name entityClassId where EntityClass is the simple class name.
+     * For example: A ConditionType should have a conditionTypeId name.
+     * @param field  Class field
+     */
+    void assertHasIdSuffix(Field field) {
+
+        String className = lowerCaseFirstCharacter(field.getType().getSimpleName());
+        String fieldName = field.getName();
+
+        if (fieldName.equals("liveMrnId")){
+            // allow this specific exception to the rule
+            return;
+        }
+
+        assertEquals(className+"Id", fieldName);
     }
 
     /**
