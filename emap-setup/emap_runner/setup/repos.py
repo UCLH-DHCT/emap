@@ -163,7 +163,13 @@ class Repository:
     def _branch_or_fallback_branch(self, branch, fallback_branch):
         """Branch that exists on remote, either that specified or a fallback"""
 
-        data = git.Git().execute([f"git ls-remote -h {self.https_git_url}"], shell=True)
+        try:
+            data = git.Git().execute([f"git ls-remote -h {self.https_git_url}"], shell=True)
+
+        except git.GitCommandError as e:
+            logger.error(f"{e}\nFailed to check remotes. Assuming branch exists")
+            return branch
+
         remote_branches = [x.split(r"/")[-1] for x in data.split("\n")]
 
         if any(b == branch for b in remote_branches):
