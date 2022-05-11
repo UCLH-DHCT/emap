@@ -118,7 +118,7 @@ class EMAPRunner:
     def docker(self) -> None:
         """Run a docker instance"""
 
-        runner = DockerRunner(main_dir=Path.getcwd(), config=self.config)
+        runner = DockerRunner(main_dir=Path.cwd(), config=self.config)
 
         if "up" in self.args.docker_compose_args:
             runner.setup_glowroot_password()
