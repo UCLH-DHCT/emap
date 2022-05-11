@@ -83,9 +83,10 @@ public class RoomState extends AuditCore<RoomState> {
         super(other);
         setValidFrom(other.getValidFrom());
         setStoredFrom(other.getValidUntil());
-        roomId = other.roomId;
-        status = other.status;
-        isReady = other.isReady;
+        this.roomId = other.roomId;
+        this.status = other.status;
+        this.isReady = other.isReady;
+        this.csn = other.csn;
     }
 
     @Override
