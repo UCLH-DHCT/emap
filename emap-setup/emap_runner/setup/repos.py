@@ -164,7 +164,9 @@ class Repository:
         """Branch that exists on remote, either that specified or a fallback"""
 
         try:
-            data = git.Git().execute([f"git ls-remote -h {self.https_git_url}"], shell=True)
+            data = git.Git().execute(
+                [f"git ls-remote -h {self.https_git_url}"], shell=True
+            )
 
         except git.GitCommandError as e:
             logger.error(f"{e}\nFailed to check remotes. Assuming branch exists")
