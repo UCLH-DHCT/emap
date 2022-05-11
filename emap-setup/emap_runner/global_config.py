@@ -1,5 +1,6 @@
 import yaml
 
+from typing import Optional
 from pathlib import Path
 from emap_runner.log import logger
 from emap_runner.setup.repos import Repository, Repositories
@@ -33,10 +34,19 @@ class GlobalConfiguration(dict):
     def __setitem__(self, key, _):
         raise ValueError(f"Cannot set {key}. Global configuration is immutable")
 
-    def extract_repositories(
-        self, default_branch_name: str = "develop"
-    ) -> Repositories:
-        """Extract repository instances for all those present in the config"""
+    def extract_repositories(self,
+                             branch_name: Optional[str] = None,
+                             default_branch_name: str = "develop"
+                             ) -> Repositories:
+        """Extract repository instances for all those present in the config
+
+        :param branch_name: Name of the branch for all repositories, if None
+                            then use the branch defined in the global
+                            configuration file
+
+        :param default_branch_name: Name of the default branch on each
+                                    repository. Used as a default fallback
+        """
 
         repos = Repositories()
 
@@ -45,10 +55,14 @@ class GlobalConfiguration(dict):
             if data is None:
                 data = {"repo_name": name}
 
+            if branch_name is not None:
+                data["branch"] = branch_name
+
             repo = Repository(
                 name=data.get("repo_name", name),
                 main_git_url=self["main_git_dir"],
                 branch=data.get("branch", default_branch_name),
+                fallback_branch=default_branch_name,
             )
 
             repos.append(repo)

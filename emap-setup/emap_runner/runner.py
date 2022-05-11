@@ -7,6 +7,7 @@ from emap_runner.utils import TimeWindow
 from emap_runner.global_config import GlobalConfiguration
 from emap_runner.docker.docker_runner import DockerRunner
 from emap_runner.validation.validation_runner import ValidationRunner
+from emap_runner.utils import EMAPRunnerException
 
 
 def create_parser() -> Parser:
@@ -58,6 +59,16 @@ def create_parser() -> Parser:
         action="store_true",
     )
 
+    setup_parser.add_argument(
+        "-b",
+        "--branch",
+        help="Name of the branch to clone/update to. Overrides those defined "
+             "in the global configuration. Falls back to develop if the branch "
+             "does not exist",
+        default=None,
+        type=str
+    )
+
     docker_parser = subparsers.add_parser("docker", help="Run the docker instance")
     docker_parser.add_argument(
         "docker_compose_args",
@@ -95,7 +106,7 @@ class EMAPRunner:
     def setup(self) -> None:
         """Run the setup"""
 
-        repos = self.config.extract_repositories()
+        repos = self.config.extract_repositories(branch_name=self.args.branch)
 
         if self.args.init:
             repos.clean()
@@ -145,7 +156,12 @@ class EMAPRunner:
 
     def run(self, method_name: str) -> None:
         """Call a method of this runner instance defined by its name"""
-        return getattr(self, method_name)()
+
+        if hasattr(self, method_name):
+            return getattr(self, method_name)()
+
+        raise EMAPRunnerException(f"Failed to run {method_name} as it did not "
+                                  f"exist as a method. Maybe run --help?")
 
 
 def main():
@@ -156,12 +172,7 @@ def main():
         exit(f"Configuration file {args.filename} not found. Exiting")
 
     runner = EMAPRunner(args=args, config=GlobalConfiguration(args.filename))
-
-    try:
-        runner.run(args.subcommand)
-
-    except AttributeError:
-        exit("No recognised command found. Run --help for options")
+    runner.run(args.subcommand)
 
     return None
 
