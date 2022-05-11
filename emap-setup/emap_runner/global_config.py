@@ -34,10 +34,9 @@ class GlobalConfiguration(dict):
     def __setitem__(self, key, _):
         raise ValueError(f"Cannot set {key}. Global configuration is immutable")
 
-    def extract_repositories(self,
-                             branch_name: Optional[str] = None,
-                             default_branch_name: str = "develop"
-                             ) -> Repositories:
+    def extract_repositories(
+        self, branch_name: Optional[str] = None, default_branch_name: str = "develop"
+    ) -> Repositories:
         """Extract repository instances for all those present in the config
 
         :param branch_name: Name of the branch for all repositories, if None

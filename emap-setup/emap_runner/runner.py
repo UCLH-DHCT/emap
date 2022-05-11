@@ -63,10 +63,10 @@ def create_parser() -> Parser:
         "-b",
         "--branch",
         help="Name of the branch to clone/update to. Overrides those defined "
-             "in the global configuration. Falls back to develop if the branch "
-             "does not exist",
+        "in the global configuration. Falls back to develop if the branch "
+        "does not exist",
         default=None,
-        type=str
+        type=str,
     )
 
     docker_parser = subparsers.add_parser("docker", help="Run the docker instance")
@@ -160,8 +160,10 @@ class EMAPRunner:
         if hasattr(self, method_name):
             return getattr(self, method_name)()
 
-        raise EMAPRunnerException(f"Failed to run {method_name} as it did not "
-                                  f"exist as a method. Maybe run --help?")
+        raise EMAPRunnerException(
+            f"Failed to run {method_name} as it did not "
+            f"exist as a method. Maybe run --help?"
+        )
 
 
 def main():

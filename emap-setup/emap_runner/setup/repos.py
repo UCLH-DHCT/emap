@@ -28,11 +28,13 @@ class _CloneProgressBar(git.RemoteProgress):
 
 
 class Repository:
-    def __init__(self, name: str,
-                 main_git_url: str,
-                 branch: Optional[str] = None,
-                 fallback_branch: Optional[str] = None
-                 ):
+    def __init__(
+        self,
+        name: str,
+        main_git_url: str,
+        branch: Optional[str] = None,
+        fallback_branch: Optional[str] = None,
+    ):
         """
         Git repository
 
@@ -162,7 +164,7 @@ class Repository:
         """Branch that exists on remote, either that specified or a fallback"""
 
         data = git.Git().execute([f"git ls-remote -h {self.https_git_url}"], shell=True)
-        remote_branches = [x.split(r'/')[-1] for x in data.split('\n')]
+        remote_branches = [x.split(r"/")[-1] for x in data.split("\n")]
 
         if any(b == branch for b in remote_branches):
             return branch
@@ -171,8 +173,9 @@ class Repository:
             logger.warning(f"Falling back to {fallback_branch} for {self.name}")
             return fallback_branch
 
-        raise RepoOperationException(f"Failed to find either {branch} or "
-                                     f"{fallback_branch} on remote")
+        raise RepoOperationException(
+            f"Failed to find either {branch} or " f"{fallback_branch} on remote"
+        )
 
     def __str__(self):
         return f"Repository({self.name}, branch={self.branch})"
