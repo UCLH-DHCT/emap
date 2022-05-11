@@ -20,22 +20,37 @@ cp global-configuration-EXAMPLE.yaml global-configuration.yaml &&\
 pip install . -r requirements.txt 
 ```
 
-you may want to create and activate a virtual environment first with e.g.
+you may want to create and activate a virtual environment first with:
+
+<details><summary>Conda</summary>
 
 ```bash
 conda create python=3.9 -n emap --yes &&\
 conda activate emap
 ```
 
+</details>
+<details><summary>venv</summary>
+
+```bash
+mkdir -p ~/.local/venvs/emap &&\
+python -m venv ~/.local/venvs/emap &&\
+source ~/.local/venvs/emap/bin/activate
+```
+
+</details>
+ 
+
+
 ***
 ## Command line options
 
-To see the top level options
+To see the top level options:
 ```bash
 emap --help
 ```
 
-and for the setup subcommands
+and for the setup subcommands e.g.:
 ```bash
 emap setup --help
 ```
@@ -47,7 +62,7 @@ Clone all the repositories:
 emap setup --init
 ```
 
-Run a docker command:
+Run a docker `ps` command:
 ```bash
 emap docker ps
 ```
