@@ -28,18 +28,25 @@ class _CloneProgressBar(git.RemoteProgress):
 
 
 class Repository:
-    def __init__(self, name: str, main_git_url: str, branch: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        main_git_url: str,
+        branch: Optional[str] = None,
+        fallback_branch: Optional[str] = None,
+    ):
         """
         Git repository
 
         :param name: Name of the repository relative to the main git organisation
         :param main_git_url: Main git url for the whole project
         :param branch: Specific git branch e.g. master
+        :param fallback_branch: git branch to use if branch does not exist
         """
 
         self.name = name
-        self.branch = branch
         self._base_git_url = self._base_url_from_https(main_git_url)
+        self.branch = self._branch_or_fallback_branch(branch, fallback_branch)
 
     def clone(self, ssh: bool = False) -> None:
         """
@@ -152,6 +159,31 @@ class Repository:
                 f"Failed to parse {string} as a git URL. "
                 f"Expecting it to start with {https}"
             )
+
+    def _branch_or_fallback_branch(self, branch, fallback_branch):
+        """Branch that exists on remote, either that specified or a fallback"""
+
+        try:
+            data = git.Git().execute(
+                [f"git ls-remote -h {self.https_git_url}"], shell=True
+            )
+
+        except git.GitCommandError as e:
+            logger.error(f"{e}\nFailed to check remotes. Assuming branch exists")
+            return branch
+
+        remote_branches = [x.split(r"/")[-1] for x in data.split("\n")]
+
+        if any(b == branch for b in remote_branches):
+            return branch
+
+        elif any(b == fallback_branch for b in remote_branches):
+            logger.warning(f"Falling back to {fallback_branch} for {self.name}")
+            return fallback_branch
+
+        raise RepoOperationException(
+            f"Failed to find either {branch} or " f"{fallback_branch} on remote"
+        )
 
     def __str__(self):
         return f"Repository({self.name}, branch={self.branch})"
