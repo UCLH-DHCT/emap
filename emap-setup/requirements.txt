@@ -1,5 +1,5 @@
-pytest==7.1.2
-PyYAML==6.0
-gitpython==3.1.27
-black==22.3.0
-tqdm==4.64.0
+pytest
+PyYAML
+gitpython
+black
+tqdm
