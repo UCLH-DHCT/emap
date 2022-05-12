@@ -16,8 +16,8 @@ For example,
 ```bash
 git clone https://github.com/inform-health-informatics/emap-setup.git &&\
 cd emap-setup &&\
-cp global-configuration-EXAMPLE.yaml global-configuration.yaml &&\
-pip install . -r requirements.txt 
+pip install . -r requirements.txt  &&\
+cp global-configuration-EXAMPLE.yaml ../global-configuration.yaml
 ```
 
 you may want to create and activate a virtual environment first with:
@@ -40,6 +40,8 @@ source ~/.local/venvs/emap/bin/activate
 
 </details>
  
+> **_NOTE:_**  Python 3 is installed as `python3` on GAE01 and the corresponding
+> pip `pip3`
 
 
 ***
