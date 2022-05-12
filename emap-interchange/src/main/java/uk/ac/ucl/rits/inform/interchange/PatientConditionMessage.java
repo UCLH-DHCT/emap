@@ -41,10 +41,9 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     private Instant updatedDateTime;
 
     /**
-     * Unique Id for a condition in EPIC.
-     * If we can't get this added to the live HL7 interface when we should remove it.
+     * Unique Id for a condition, e.g. problem list id in clarity.
      */
-    private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
+    private InterchangeValue<Long> conditionId = InterchangeValue.unknown();
 
     /**
      * Condition added at...
