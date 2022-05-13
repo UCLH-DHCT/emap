@@ -2,6 +2,7 @@ package uk.ac.ucl.rits.inform.informdb;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +41,71 @@ public class TestCopyConstructor {
     );
 
     private Integer index = 0;
+
+    /**
+     * Given a class, when a copy constructor is present, then it should copy the correct fields.
+     */
+    @TestFactory
+    Stream<DynamicTest> testsForClassesHavingCorrectCopyConstructor(){
+
+        AtomicReference<Stream<DynamicTest>> tests = new AtomicReference<>(Stream.empty());
+
+        findAllEntities()
+                .filter(this::hasCopyConstructor)
+                .filter(this::isNotCoreClass)
+                .forEach(entity -> tests.set(Stream.concat(tests.get(), testsForCorrectlyCopiedFields(entity))));
+
+        return tests.get();
+    }
+
+    /**
+     * Stream of tests on all fields being identical when copied, for a class which has a copy constructor.
+     * @param entity Class entity
+     */
+    Stream<DynamicTest> testsForCorrectlyCopiedFields(Class<?> entity){
+
+        Stream.Builder<DynamicTest> testStreamBuilder = Stream.builder();
+
+        Object instance = newInstance(entity.getName());
+        Object instanceCopy = copyOf(entity, instance);
+
+        for (Method getMethod: getterMethodsOf(entity)){
+
+            String testName = entity.getName() + ": " + getMethod.getName();
+            DynamicTest test = DynamicTest.dynamicTest(testName,
+                    () -> assertEquals(getMethod.invoke(instance), getMethod.invoke(instanceCopy)));
+
+            testStreamBuilder.add(test);
+        }
+
+        return testStreamBuilder.build();
+    }
+
+    /**
+     * List of all the getter methods of a class. Primary keys must be copied for classes annotated with AuditTable but
+     * not otherwise. For example, for a RoomState class entity then the roomStateId can be different, so filter
+     * these out.
+     * @param entity Class entity
+     */
+    List<Method> getterMethodsOf(Class<?> entity){
+
+        boolean isAuditTable = Arrays.stream(entity.getDeclaredAnnotations())
+                .anyMatch(a -> a.annotationType().equals(AuditTable.class));
+        String primaryKeyGetter = "get" + entity.getSimpleName() + "Id";
+
+        return Arrays.stream(entity.getMethods())
+                .filter(m -> m.getName().startsWith("get"))
+                .filter(m -> isAuditTable || !m.getName().equals(primaryKeyGetter))
+                .collect(Collectors.toList());
+    }
+
+    boolean hasCopyConstructor(Class<?> entity) {
+        return Arrays.stream(entity.getDeclaredConstructors()).anyMatch(c -> isCopyConstructorOf(c, entity));
+    }
+
+    boolean isNotCoreClass(Class<?> entity){
+        return !entity.getName().endsWith("Core");
+    }
 
     /**
      * Increment the internal counter as to cycle through the string and integer types. This allows different string
@@ -193,67 +259,5 @@ public class TestCopyConstructor {
             e.printStackTrace();
             throw new RuntimeException("Failed to call copy method");
         }
-    }
-
-    /**
-     * List of all the getter methods of a class which aren't the primary key. For example, for a ConditionType class
-     * entity then the conditionTypeId can be different, so filter these out.
-     * @param entity Class entity
-     */
-    List<Method> getterMethodsOf(Class<?> entity){
-
-        String primaryKeyGetter = "get" + entity.getSimpleName() + "Id";
-
-        return Arrays.stream(entity.getMethods())
-                .filter(m -> m.getName().startsWith("get"))
-                .filter(m -> !m.getName().equals(primaryKeyGetter))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Stream of tests on all fields being identical when copied, for a class which has a copy constructor.
-     * @param entity Class entity
-     */
-    Stream<DynamicTest> testsForCorrectlyCopiedFields(Class<?> entity){
-
-        Stream.Builder<DynamicTest> testStreamBuilder = Stream.builder();
-
-        Object instance = newInstance(entity.getName());
-        Object instanceCopy = copyOf(entity, instance);
-
-        for (Method getMethod: getterMethodsOf(entity)){
-
-            String testName = entity.getName() + ": " + getMethod.getName();
-            DynamicTest test = DynamicTest.dynamicTest(testName,
-                    () -> assertEquals(getMethod.invoke(instance), getMethod.invoke(instanceCopy)));
-
-            testStreamBuilder.add(test);
-        }
-
-        return testStreamBuilder.build();
-    }
-
-    boolean hasCopyConstructor(Class<?> entity) {
-        return Arrays.stream(entity.getDeclaredConstructors()).anyMatch(c -> isCopyConstructorOf(c, entity));
-    }
-
-    boolean isNotCoreClass(Class<?> entity){
-        return !entity.getName().endsWith("Core");
-    }
-
-    /**
-     * Given a class, when a copy constructor is present, then it should copy the correct fields.
-     */
-    @TestFactory
-    Stream<DynamicTest> testsForClassesHavingCorrectCopyConstructor(){
-
-        AtomicReference<Stream<DynamicTest>> tests = new AtomicReference<>(Stream.empty());
-
-        findAllEntities()
-                .filter(this::hasCopyConstructor)
-                .filter(this::isNotCoreClass)
-                .forEach(entity -> tests.set(Stream.concat(tests.get(), testsForCorrectlyCopiedFields(entity))));
-
-        return tests.get();
     }
 }
