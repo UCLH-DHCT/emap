@@ -256,8 +256,7 @@ public class TestCopyConstructor {
         try {
             return copyMethod.invoke(instance);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to call copy method");
+            throw new RuntimeException("Failed to call copy method", e);
         }
     }
 }
