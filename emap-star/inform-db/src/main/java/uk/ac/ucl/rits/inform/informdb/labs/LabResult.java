@@ -147,7 +147,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
     private LabResult(LabResult other) {
         super(other);
-
+        this.labResultId = other.labResultId;
         this.labOrderId = other.labOrderId;
         this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedTime = other.resultLastModifiedTime;
