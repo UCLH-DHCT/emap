@@ -214,7 +214,6 @@ public class TestCopyConstructor {
      * Stream of tests on all fields being identical when copied, for a class which has a copy constructor.
      * @param entity Class entity
      */
-    @TestFactory
     Stream<DynamicTest> testsForCorrectlyCopiedFields(Class<?> entity){
 
         Stream.Builder<DynamicTest> testStreamBuilder = Stream.builder();
