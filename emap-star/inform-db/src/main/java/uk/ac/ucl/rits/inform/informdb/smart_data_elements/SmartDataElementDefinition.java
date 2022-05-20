@@ -35,9 +35,26 @@ public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDef
     private String smartDataElementIdString;
 
     /**
+     * \brief Name of the concept
+     * .
+     */
+    private String smartDataElementConceptName;
+
+    /**
+     * \brief Abbreviated concept name
+     * .
+     */
+    private String smartDataElementConceptAbbrevName;
+
+    /**
      * \brief String description of a Smart Data Element, where available
      */
     private String smartDataElementDescription;
+
+    /**
+     * \brief String description of a Smart Data Element, where available
+     */
+    private SmartDataElementType smartDataElementType;
 
     /**
      * \brief Categorical string value of the "type" of SDE this is. Ie. is it related to an order, an encounter, a note, etc.
