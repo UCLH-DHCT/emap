@@ -3,8 +3,12 @@ package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.Check;
 import uk.ac.ucl.rits.inform.informdb.TemporalCore;
 import uk.ac.ucl.rits.inform.informdb.annotation.AuditTable;
+import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
+import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
+import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,6 +26,10 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
+@Check(constraints =
+        " hospital_visit_id is not null " +
+                " OR lab_order_id is not null " +
+                " OR mrn_id is not null ")
 public class SmartForm extends TemporalCore<SmartForm, SmartFormAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,6 +41,28 @@ public class SmartForm extends TemporalCore<SmartForm, SmartFormAudit> {
     @ManyToOne
     @JoinColumn(name = "smartFormDefinitionId")
     private SmartFormDefinition smartFormDefinitionId;
+
+    /**
+     * \brief The Mrn this SmartForm relates to, or null if it doesn't relate to one.
+     */
+    @ManyToOne
+    @JoinColumn(name = "mrnId")
+    private Mrn mrnId;
+
+    /**
+     * \brief The hospital visit this SmartForm relates to, or null if it doesn't relate to one.
+     */
+    @ManyToOne
+    @JoinColumn(name = "hospitalVisitId")
+    private HospitalVisit hospitalVisitId;
+
+    /**
+     * \brief The lab order this SmartForm relates to, or null if it doesn't relate to one.
+     * I'm not currently sure if SmartForms can be attached to Lab Orders.
+     */
+    @ManyToOne
+    @JoinColumn(name = "labOrderId")
+    private LabOrder labOrderId;
 
     private Instant formFilingDateTime;
 
