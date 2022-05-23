@@ -68,6 +68,6 @@ public abstract class PatientConditionMessage extends EmapOperationMessage {
     /**
      * Identifier for condition as provided in HL7 messages.
      */
-    private Long epicConditionId;
+    private InterchangeValue<Long> epicConditionId = InterchangeValue.unknown();
     public abstract String getStatusString();
 }
