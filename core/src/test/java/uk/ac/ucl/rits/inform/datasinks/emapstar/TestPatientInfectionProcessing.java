@@ -306,7 +306,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         // should have an audit log of the previous infection id
         PatientConditionAudit audit = patientConditionAuditRepository.findByPatientConditionId(hl7Infection.getPatientConditionId()).orElseThrow();
-        assertEquals(MUMPS_ADD_TIME, audit.getAddedDateTime());
+        assertEquals(MUMPS_ADD_TIME, audit.getAddedDatetime());
     }
 
     /**

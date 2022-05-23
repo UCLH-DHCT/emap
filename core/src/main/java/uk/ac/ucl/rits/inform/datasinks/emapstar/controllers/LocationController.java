@@ -648,8 +648,8 @@ public class LocationController {
 
     private LocationVisitAudit buildCancelledAudit(HospitalVisit visit, Location locationId, Instant cancellationTime, Instant storedFrom) {
         LocationVisitAudit cancelled = new LocationVisitAudit();
-        cancelled.setAdmissionTime(cancellationTime);
-        cancelled.setDischargeTime(cancellationTime);
+        cancelled.setAdmissionDatetime(cancellationTime);
+        cancelled.setDischargeDatetime(cancellationTime);
         cancelled.setValidFrom(cancellationTime);
         cancelled.setValidUntil(cancellationTime);
         cancelled.setStoredFrom(storedFrom);
@@ -726,7 +726,7 @@ public class LocationController {
 
         Instant previousDischargeTime = locationVisitAuditRepo
                 .findPreviousLocationVisitAuditForDischarge(incorrectVisit.getLocationVisitId(), cancellationTime)
-                .map(LocationVisitAudit::getDischargeTime)
+                .map(LocationVisitAudit::getDischargeDatetime)
                 .orElse(null);
         // find previous state of the location visit discharge
         logger.debug("CancelDischarge, no locations after discharge for visit so rolling back discharge time to {}", previousDischargeTime);

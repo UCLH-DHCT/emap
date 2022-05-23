@@ -105,7 +105,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(audit.getDischargeTime());
+        assertNull(audit.getDischargeDatetime());
     }
 
     /**
@@ -128,7 +128,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(audit.getDischargeTime());
+        assertNull(audit.getDischargeDatetime());
     }
 
     /**
@@ -154,7 +154,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // single audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(audit.getDischargeTime());
+        assertNull(audit.getDischargeDatetime());
     }
 
     /**
