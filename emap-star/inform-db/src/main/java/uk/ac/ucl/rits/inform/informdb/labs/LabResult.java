@@ -28,7 +28,7 @@ import java.time.Instant;
 @Data
 @Table(indexes = {@Index(name = "lr_lab_order_id", columnList = "labOrderId"),
         @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId"),
-        @Index(name = "lr_result_last_modified_time", columnList = "resultLastModifiedTime")})
+        @Index(name = "lr_result_last_modified_datetime", columnList = "resultLastModifiedDatetime")})
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
