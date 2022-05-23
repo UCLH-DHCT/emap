@@ -35,6 +35,7 @@ public class TestProblemLists extends TestHl7MessageStream {
     private static final Instant PROBLEM_ADDED = Instant.parse("2020-03-02T00:00:00Z");
     private static final Instant PROBLEM_UPDATE = Instant.parse("2020-03-02T21:01:22Z");
     private static final String EPIC = "EPIC";
+    private static final Long EPIC_ID = 1333555L;
     @Autowired
     PatientProblemService patientProblemService;
 
@@ -76,6 +77,7 @@ public class TestProblemLists extends TestHl7MessageStream {
         assertEquals(PROBLEM_ADDED, problem.getAddedTime());
         assertEquals(PROBLEM_UPDATE, problem.getUpdatedDateTime());
         assertEquals(InterchangeValue.buildFromHl7(null), problem.getResolvedTime());
+        assertEquals(EPIC_ID, problem.getEpicConditionId());
     }
 
     /**
