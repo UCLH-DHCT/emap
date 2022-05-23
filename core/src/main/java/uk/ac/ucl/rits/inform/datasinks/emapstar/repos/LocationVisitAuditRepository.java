@@ -61,17 +61,17 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
         Set<Instant> cancelledDischarges = new HashSet<>();
         cancelledDischarges.add(cancellationTime);
         for (LocationVisitAudit audit : audits) {
-            if (audit.getDischargeTime() == null || audit.getAdmissionTime() == null) {
+            if (audit.getDischargeDatetime() == null || audit.getAdmissionDatetime() == null) {
                 continue;
             }
-            if (audit.getDischargeTime().equals(audit.getAdmissionTime()) && !audit.getInferredAdmission()) {
-                cancelledDischarges.add(audit.getDischargeTime());
+            if (audit.getDischargeDatetime().equals(audit.getAdmissionDatetime()) && !audit.getInferredAdmission()) {
+                cancelledDischarges.add(audit.getDischargeDatetime());
             }
         }
 
         LocationVisitAudit previousDischarge = null;
         for (LocationVisitAudit audit : audits) {
-            if (cancelledDischarges.contains(audit.getDischargeTime())) {
+            if (cancelledDischarges.contains(audit.getDischargeDatetime())) {
                 // skip cancelled discharges
                 continue;
             }
