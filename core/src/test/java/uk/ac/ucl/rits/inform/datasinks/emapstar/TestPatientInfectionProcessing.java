@@ -62,7 +62,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     }
 
     private void assertHooverMumpsTimes(PatientCondition infection) {
-        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), infection.getResolutionDateTime());
+        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), infection.getResolutionDatetime());
         assertEquals(LocalDate.parse("2019-03-05"), infection.getOnsetDate());
     }
 
@@ -159,7 +159,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
 
         assertEquals(HL7_UPDATE_TIME, infection.getValidFrom());
         assertNotNull(infection.getValidFrom());
-        assertNull(infection.getResolutionDateTime());
+        assertNull(infection.getResolutionDatetime());
     }
 
     /**
@@ -175,7 +175,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         PatientCondition infection = patientConditionRepository
                 .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
-        assertEquals(resolveTime, infection.getResolutionDateTime());
+        assertEquals(resolveTime, infection.getResolutionDatetime());
     }
 
     /**
@@ -360,6 +360,6 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
                 .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, null)
                 .orElseThrow();
 
-        assertNull(infection.getAddedDateTime());
+        assertNull(infection.getAddedDatetime());
     }
 }
