@@ -53,18 +53,22 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
     /**
      * @param visit         hospital visit
      * @param locationId    location Id
-     * @param AdmissionDatetime AdmissionDatetime
+     * @param admissionDatetime admission Datetime
      * @return LocationVisit wrapped in optional
      */
-    Optional<LocationVisit> findByHospitalVisitIdAndLocationIdAndAdmissionDatetime(HospitalVisit visit, Location locationId, Instant AdmissionDatetime);
+    Optional<LocationVisit> findByHospitalVisitIdAndLocationIdAndAdmissionDatetime(HospitalVisit visit,
+                                                                                   Location locationId,
+                                                                                   Instant admissionDatetime);
 
     /**
      * @param visit         hospital visit
      * @param locationId    location Id
-     * @param dischargeDatetime AdmissionDatetime
+     * @param dischargeDatetime admission Datetime
      * @return LocationVisit wrapped in optional
      */
-    Optional<LocationVisit> findByHospitalVisitIdAndLocationIdAndDischargeDatetime(HospitalVisit visit, Location locationId, Instant dischargeDatetime);
+    Optional<LocationVisit> findByHospitalVisitIdAndLocationIdAndDischargeDatetime(HospitalVisit visit,
+                                                                                   Location locationId,
+                                                                                   Instant dischargeDatetime);
 
     /**
      * For testing: find by location string.
@@ -92,8 +96,8 @@ public interface LocationVisitRepository extends CrudRepository<LocationVisit, L
     /**
      * For testing: find location visit by the hospitalVisitId's encounter and admission time.
      * @param encounter     encounter
-     * @param AdmissionDatetime AdmissionDatetime
+     * @param admissionDatetime admission Datetime
      * @return LocationVisit wrapped in optional
      */
-    Optional<LocationVisit> findByHospitalVisitIdEncounterAndAdmissionDatetime(String encounter, Instant AdmissionDatetime);
+    Optional<LocationVisit> findByHospitalVisitIdEncounterAndAdmissionDatetime(String encounter, Instant admissionDatetime);
 }
