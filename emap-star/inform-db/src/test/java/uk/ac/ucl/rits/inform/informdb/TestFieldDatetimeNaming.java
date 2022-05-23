@@ -25,7 +25,8 @@ public class TestFieldDatetimeNaming {
     boolean isNotExcluded(Field field){
 
         String fieldName = field.getName();
-        List<String> exclusions = Arrays.asList("validUntil", "validFrom", "storedFrom", "storedUntil");
+        List<String> exclusions = Arrays.asList("validUntil", "validFrom", "storedFrom", "storedUntil",
+                "datetimeOfBirth", "datetimeOfDeath");
 
         return !exclusions.contains(fieldName);
     }
