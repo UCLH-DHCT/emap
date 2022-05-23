@@ -35,13 +35,13 @@ public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDef
     private String smartDataElementIdString;
 
     /**
-     * \brief Smart Data Element name
+     * \brief Smart Data Element name (ie. the "Question")
      * HLX .2
      */
     private String smartDataElementConceptName;
 
     /**
-     * \brief Smart Data Element abbreviated name
+     * \brief Smart Data Element abbreviated name (ie. the "Question")
      * HLX 50
      */
     private String smartDataElementConceptAbbrevName;
@@ -52,7 +52,8 @@ public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDef
     private String smartDataElementDescription;
 
     /**
-     * \brief String description of a Smart Data Element, where available
+     * \brief Type of SDE (String, number, etc)
+     * HLX 60
      */
     private SmartDataElementType smartDataElementType;
 
