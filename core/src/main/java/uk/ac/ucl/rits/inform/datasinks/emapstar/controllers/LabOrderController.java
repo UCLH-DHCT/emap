@@ -162,7 +162,8 @@ public class LabOrderController {
         state.assignIfCurrentlyNullOrNewerAndDifferent(
                 msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite, validFrom, labSample.getValidFrom());
         state.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getSampleReceivedTime(), labSample.getReceiptAtLabDatetime(), labSample::setReceiptAtLabDatetime, validFrom, labSample.getValidFrom());
+                msg.getSampleReceivedTime(), labSample.getReceiptAtLabDatetime(), labSample::setReceiptAtLabDatetime,
+                validFrom, labSample.getValidFrom());
         // Allow for change of sample labSample time, but don't expect this to happen
         if (state.isEntityCreated() || validFrom.isAfter(labSample.getValidFrom())) {
             if (collectionTimeExistsAndWillChange(msg, labSample)) {
