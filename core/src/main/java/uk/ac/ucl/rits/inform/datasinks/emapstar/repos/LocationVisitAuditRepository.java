@@ -33,20 +33,20 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
      */
     default Boolean messageLocationIsCancelled(HospitalVisit hospitalVisit, Location location, Instant messageTime, boolean dischargeCancelled) {
         if (dischargeCancelled) {
-            return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
+            return existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredDischargeIsFalse(
                     hospitalVisit.getHospitalVisitId(), location, messageTime, messageTime);
         }
-        return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredAdmissionIsFalse(
+        return existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredAdmissionIsFalse(
                 hospitalVisit.getHospitalVisitId(), location, messageTime, messageTime);
     }
 
-    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredAdmissionIsFalse(
+    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredAdmissionIsFalse(
             Long hospitalVisit, Location location, Instant admission, Instant discharge);
 
-    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
+    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredDischargeIsFalse(
             Long hospitalVisit, Location location, Instant admission, Instant discharge);
 
-    Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
+    Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetime(
             Long hospitalVisitId, Location location, Instant admissionTime, Instant dischargeTime);
 
     /**

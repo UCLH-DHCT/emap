@@ -99,7 +99,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // current location visit is different
         LocationVisit currentVisit = locationVisitRepository
-                .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
+                .findByDischargeDatetimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
                 .orElseThrow(NullPointerException::new);
         assertNotEquals(originalLocation, currentVisit.getLocationId().getLocationString());
 
@@ -417,14 +417,14 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         HospitalVisit visitA = hospitalVisitRepository.findByEncounter(visitNumberA).orElseThrow();
         HospitalVisit visitB = hospitalVisitRepository.findByEncounter(visitNumberB).orElseThrow();
 
-        LocationVisit originalLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
-        LocationVisit originalLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
+        LocationVisit originalLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitA).orElseThrow();
+        LocationVisit originalLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitB).orElseThrow();
 
 
         dbOps.processMessage(msg);
 
-        LocationVisit swappedLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
-        LocationVisit swappedLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
+        LocationVisit swappedLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitA).orElseThrow();
+        LocationVisit swappedLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitB).orElseThrow();
 
         assertEquals(originalLocationVisitB.getLocationId(), swappedLocationVisitA.getLocationId());
         assertEquals(originalLocationVisitA.getLocationId(), swappedLocationVisitB.getLocationId());
