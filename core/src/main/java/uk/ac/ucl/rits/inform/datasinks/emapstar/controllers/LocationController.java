@@ -193,7 +193,7 @@ public class LocationController {
         Long indexCurrentOrPrevious = null;
         for (LocationVisit location : visitLocations) {
             indexCurrentOrPrevious = incrementNullable(indexCurrentOrPrevious);
-            if (!admissionTime.isBefore(location.getAdmissionTime())) {
+            if (!admissionTime.isBefore(location.getAdmissionDatetime())) {
                 logger.trace("Reached a visit which is before the current admission time");
                 break;
             }
@@ -228,7 +228,7 @@ public class LocationController {
         if (location.getLocationId().equals(currentLocationId) && location.getInferredAdmission()) {
             Long precedingLocationIndex = currentIndex + 1;
             if (indexInRange(visitLocations, precedingLocationIndex)) {
-                Instant precedingVisitAdmission = visitLocations.get(precedingLocationIndex.intValue()).getAdmissionTime();
+                Instant precedingVisitAdmission = visitLocations.get(precedingLocationIndex.intValue()).getAdmissionDatetime();
                 logger.debug("Current message is after the preceding location's admission time, will use it as the current visit");
                 if (admissionTime.isAfter(precedingVisitAdmission)) {
                     isCurrentVisit = true;
@@ -296,7 +296,7 @@ public class LocationController {
      * @return true if only one visit exists and it hasn't been discharged
      */
     private boolean isDuplicateAdmit(Collection<LocationVisit> visitLocations, LocationVisit currentOrPrevious) {
-        return visitLocations.size() == 1 && currentOrPrevious.getDischargeTime() == null;
+        return visitLocations.size() == 1 && currentOrPrevious.getDischargeDatetime() == null;
     }
 
     /**
@@ -309,7 +309,7 @@ public class LocationController {
                                               Instant validFrom, RowState<LocationVisit, LocationVisitAudit> currentLocation) {
         if (nextLocation != null) {
             logger.debug("Next location exists in star, discharging the current visit");
-            Instant dischargeTime = nextLocation.getEntity().getAdmissionTime();
+            Instant dischargeTime = nextLocation.getEntity().getAdmissionDatetime();
             setInferredDischargeAndTime(true, dischargeTime, currentLocation);
         }
         if (currentLocation.getEntity().getInferredAdmission()) {
@@ -385,12 +385,12 @@ public class LocationController {
     }
 
     private boolean zeroLengthVisitWouldBeCreated(AdtMessage msg, LocationVisit existingLocation, Instant validFrom) {
-        return validFrom.equals(existingLocation.getAdmissionTime())
+        return validFrom.equals(existingLocation.getAdmissionDatetime())
                 && existingLocation.getLocationId().getLocationString().equals(msg.getFullLocationString().get());
     }
 
     private boolean openLocationOrInferredDischarge(LocationVisit existingLocation) {
-        return existingLocation.getDischargeTime() == null || existingLocation.getInferredDischarge();
+        return existingLocation.getDischargeDatetime() == null || existingLocation.getInferredDischarge();
     }
 
     /**
@@ -497,7 +497,7 @@ public class LocationController {
                 existingPreviousSecondsBack += 1;
             }
         }
-        if (existingPreviousLocation != null && existingPreviousLocation.getDischargeTime() == null) {
+        if (existingPreviousLocation != null && existingPreviousLocation.getDischargeDatetime() == null) {
             logger.debug("Current location wasn't found and previous location exists so inferring previous visits discharge time");
             RowState<LocationVisit, LocationVisitAudit> existingPreviousLocationState = new RowState<>(
                     existingPreviousLocation, dischargeTime, storedFrom, false);
@@ -547,8 +547,8 @@ public class LocationController {
      */
     private Optional<LocationVisit> getPreviousLocationVisit(Collection<LocationVisit> visitLocations, Instant messageTime) {
         return visitLocations.stream()
-                .filter(loc -> !loc.getAdmissionTime().isAfter(messageTime))
-                .max(Comparator.comparing(LocationVisit::getAdmissionTime));
+                .filter(loc -> !loc.getAdmissionDatetime().isAfter(messageTime))
+                .max(Comparator.comparing(LocationVisit::getAdmissionDatetime));
     }
 
     /**
@@ -560,14 +560,14 @@ public class LocationController {
     private void setInferredDischargeAndTime(Boolean isInferred, Instant
             dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
         LocationVisit existingLocation = locationState.getEntity();
-        locationState.assignIfDifferent(dischargeTime, existingLocation.getDischargeTime(), existingLocation::setDischargeTime);
+        locationState.assignIfDifferent(dischargeTime, existingLocation.getDischargeDatetime(), existingLocation::setDischargeDatetime);
         locationState.assignIfDifferent(isInferred, existingLocation.getInferredDischarge(), existingLocation::setInferredDischarge);
     }
 
     private void setInferredAdmissionAndTime(Boolean isInferred, Instant
             dischargeTime, RowState<LocationVisit, LocationVisitAudit> locationState) {
         LocationVisit existingLocation = locationState.getEntity();
-        locationState.assignIfDifferent(dischargeTime, existingLocation.getAdmissionTime(), existingLocation::setAdmissionTime);
+        locationState.assignIfDifferent(dischargeTime, existingLocation.getAdmissionDatetime(), existingLocation::setAdmissionDatetime);
         locationState.assignIfDifferent(isInferred, existingLocation.getInferredAdmission(), existingLocation::setInferredAdmission);
     }
 
@@ -599,7 +599,7 @@ public class LocationController {
                 List<LocationVisit> existingLocations = locationVisitRepo.findAllByHospitalVisitId(visit);
                 if (existingLocations.size() == 1 && locationId.equals(existingLocations.get(0).getLocationId())) {
                     logger.debug("Cancellation time missing from message, but only one matching location for cancellation so cancelling that");
-                    cancellationTime = existingLocations.get(0).getAdmissionTime();
+                    cancellationTime = existingLocations.get(0).getAdmissionDatetime();
                 } else {
                     throw e;
                 }
@@ -693,14 +693,14 @@ public class LocationController {
         if (!indexInRange(visitLocations, previousIndex)) {
             return;
         }
-        Instant previousDischargeTime = retiringLocation.getDischargeTime();
+        Instant previousDischargeTime = retiringLocation.getDischargeDatetime();
         LocationVisit previousLocation = visitLocations.get(previousIndex.intValue());
         RowState<LocationVisit, LocationVisitAudit> nextLocationState = indexAndNextLocation.getRight();
         if (nextLocationState != null) {
             LocationVisit nextLocation = nextLocationState.getEntity();
             if (nextLocation.getLocationId().equals(previousLocation.getLocationId())) {
                 logger.debug("Previous location and next location match - deleting next location and updating discharge of previous");
-                previousDischargeTime = nextLocation.getDischargeTime();
+                previousDischargeTime = nextLocation.getDischargeDatetime();
                 deleteLocationVisit(cancellationTime, storedFrom, nextLocation);
             }
         }
@@ -785,7 +785,7 @@ public class LocationController {
         Instant inferredAdmitTime = dischargeTime.minus(1, ChronoUnit.SECONDS);
         LocationVisit inferredLocation = new LocationVisit(inferredAdmitTime, validFrom, storedFrom, location, visit);
         inferredLocation.setInferredAdmission(true);
-        inferredLocation.setDischargeTime(dischargeTime);
+        inferredLocation.setDischargeDatetime(dischargeTime);
         logger.debug("Inferred previous LocationVisit: {}", inferredLocation);
         return new RowState<>(inferredLocation, validFrom, storedFrom, true);
     }
