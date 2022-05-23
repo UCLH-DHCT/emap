@@ -37,11 +37,6 @@ public class LabMetadataMsg extends EmapOperationMessage {
     private LabsMetadataType labsMetadataType;
 
     /**
-     * Department code.
-     */
-    private String labDepartment;
-
-    /**
      * When did this mapping start existing, to the best of our knowledge?
      */
     private Instant validFrom;
