@@ -71,7 +71,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
      * This may be prior to their admission.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant presentationTime;
+    private Instant presentationDatetime;
 
     /**
      * \brief Date and time at which this hospitalVisit formally began.
@@ -79,7 +79,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
      * at which the patient was formally admitted.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant admissionTime;
+    private Instant admissionDatetime;
 
     /**
      * \brief Date and time at which this hospitalVisit formally ended.
@@ -87,7 +87,7 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
      * at which the patient was discharged.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant dischargeTime;
+    private Instant dischargeDatetime;
 
     /**
      * \brief The patient class. E.g. Inpatient or Outpaitent.
@@ -138,14 +138,14 @@ public class HospitalVisit extends TemporalCore<HospitalVisit, HospitalVisitAudi
         super(other);
         this.hospitalVisitId = other.hospitalVisitId;
         this.encounter = other.encounter;
-        this.admissionTime = other.admissionTime;
+        this.admissionDatetime = other.admissionDatetime;
         this.arrivalMethod = other.arrivalMethod;
         this.dischargeDestination = other.dischargeDestination;
         this.dischargeDisposition = other.dischargeDisposition;
-        this.dischargeTime = other.dischargeTime;
+        this.dischargeDatetime = other.dischargeDatetime;
         this.mrnId = other.mrnId;
         this.patientClass = other.patientClass;
-        this.presentationTime = other.presentationTime;
+        this.presentationDatetime = other.presentationDatetime;
         this.sourceSystem = other.sourceSystem;
         this.visitObservations = other.visitObservations;
     }
