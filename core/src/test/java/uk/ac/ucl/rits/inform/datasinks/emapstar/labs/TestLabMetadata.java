@@ -36,7 +36,7 @@ public class TestLabMetadata extends MessageProcessingBase {
      */
 
     @Test
-    public void testImpliedMetadata() throws IOException, EmapOperationMessageProcessingException {
+    public void testImpliedMetadata() throws Exception {
         processLabOrderMessage();
         assertEquals(2, labBatteryRepository.count());
         assertEquals(4, labBatteryElementRepository.count());
@@ -54,40 +54,40 @@ public class TestLabMetadata extends MessageProcessingBase {
 
         assertEquals(4 + 5, labTestDefinitionRepository.count());
 
-        LabTestDefinition amlTest = labTestDefinitionRepository.findByTestLabCode("AML").get();
+        LabTestDefinition amlTest = labTestDefinitionRepository.findByTestLabCode("AML").orElseThrow();
         assertEquals("WINPATH AMOXICILLIN", amlTest.getName());
 
-        LabBattery gynaeBattery = labBatteryRepository.findByBatteryCodeAndLabProvider("GYNAE", "WIN_PATH").get();
+        LabBattery gynaeBattery = labBatteryRepository.findByBatteryCodeAndLabProvider("GYNAE", "WIN_PATH").orElseThrow();
         assertEquals("Gynaecological Smear", gynaeBattery.getBatteryName());
     }
 
     @Test
-    public void testUpdatedTestMetadata() throws IOException, EmapOperationMessageProcessingException {
+    public void testUpdatedTestMetadata() throws Exception {
         processLabOrderMessage();
 
         // We've inferred the existence of a test called "ALP" already, but we don't have much metadata yet
-        LabTestDefinition amlTestBefore = labTestDefinitionRepository.findByTestLabCode("ALP").get();
+        LabTestDefinition amlTestBefore = labTestDefinitionRepository.findByTestLabCode("ALP").orElseThrow();
         assertNull(amlTestBefore.getName());
 
         processMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_test.yaml"));
 
         // verify name has now been filled in
-        LabTestDefinition amlTestAfter = labTestDefinitionRepository.findByTestLabCode("ALP").get();
+        LabTestDefinition amlTestAfter = labTestDefinitionRepository.findByTestLabCode("ALP").orElseThrow();
         assertEquals("Alkaline phosphatase", amlTestAfter.getName());
     }
 
     @Test
-    public void testUpdatedBatteryMetadata() throws IOException, EmapOperationMessageProcessingException {
+    public void testUpdatedBatteryMetadata() throws Exception {
         processLabOrderMessage();
 
         // We've inferred the existence of a battery called "BON" already, but we don't have much metadata yet
-        LabBattery bonTestBefore = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").get();
+        LabBattery bonTestBefore = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").orElseThrow();
         assertNull(bonTestBefore.getBatteryName());
 
         processMessages(messageFactory.getLabMetadataMsgs("labs_metadata_update_existing_battery.yaml"));
 
         // verify name has now been filled in
-        LabBattery bonTestAfter = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").get();
+        LabBattery bonTestAfter = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").orElseThrow();
         assertEquals("Bone Profile", bonTestAfter.getBatteryName());
     }
 
