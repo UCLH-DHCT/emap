@@ -148,7 +148,7 @@ public class PatientConditionController {
             case "EPIC":
                 epicInfectionId = null;
                 patientCondition = patientConditionRepo
-                        .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType, msg.getInfectionAdded());
+                        .findByMrnIdAndConditionTypeIdAndAddedDatetime(mrn, conditionType, msg.getInfectionAdded());
                 break;
             case "clarity":
                 if (msg.getEpicInfectionId().isUnknown()) {

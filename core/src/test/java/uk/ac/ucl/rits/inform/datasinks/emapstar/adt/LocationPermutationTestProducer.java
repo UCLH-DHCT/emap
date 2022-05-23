@@ -64,7 +64,7 @@ class LocationPermutationTestProducer extends OrderPermutationBase {
         List<LocationVisit> visits = StreamSupport.stream(locationVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
         List<LocationVisitAudit> audits = StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
         logger.info("Checking visit {}", messageInformation);
-        LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
+        LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionDatetime(defaultEncounter, admissionTime)
                 .orElseThrow(() -> new NoSuchElementException(messageInformation));
         assertEquals(dischargeTime, location.getDischargeDatetime(), String.format("Discharge time incorrect for %s", messageInformation));
         assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));

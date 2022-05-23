@@ -153,7 +153,7 @@ public class LocationController {
             return;
         }
 
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionDatetimeDesc(visit);
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, currentLocationId, validFrom, storedFrom);
         Long indexCurrentOrPrevious = indexAndNextLocation.getLeft();
@@ -436,7 +436,7 @@ public class LocationController {
             throw new RequiredDataMissingException("No discharge time found for discharge message");
         }
 
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionDatetimeDesc(visit);
 
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, currentLocationId, dischargeTime, storedFrom);
@@ -606,7 +606,7 @@ public class LocationController {
             }
 
             Optional<LocationVisit> retiringVisit = locationVisitRepo
-                    .findByHospitalVisitIdAndLocationIdAndAdmissionTime(visit, locationId, cancellationTime);
+                    .findByHospitalVisitIdAndLocationIdAndAdmissionDatetime(visit, locationId, cancellationTime);
             if (retiringVisit.isPresent()) {
                 deleteLocationVisit(cancellationTime, storedFrom, retiringVisit.get());
             } else {
@@ -615,7 +615,7 @@ public class LocationController {
         } else if (msg instanceof CancelDischargePatient) {
             Instant cancellationTime = getCancellationTime((AdtCancellation) msg);
             Optional<LocationVisit> retiringVisit = locationVisitRepo
-                    .findByHospitalVisitIdAndLocationIdAndDischargeTime(visit, locationId, cancellationTime);
+                    .findByHospitalVisitIdAndLocationIdAndDischargeDatetime(visit, locationId, cancellationTime);
             if (retiringVisit.isPresent()) {
                 rollbackDischargeToPreviousValue(visit, storedFrom, locationId, validFrom, cancellationTime, retiringVisit.get());
             } else {
@@ -634,7 +634,7 @@ public class LocationController {
             HospitalVisit visit, Location locationId,
             boolean inferredAdmit, boolean inferredDischarge, Instant cancellationTime, Instant storedFrom) {
         LocationVisitAudit cancelled = locationVisitAuditRepo
-                .findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
+                .findByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetime(
                         visit.getHospitalVisitId(), locationId, cancellationTime, cancellationTime)
                 .orElseGet(() -> buildCancelledAudit(visit, locationId, cancellationTime, storedFrom));
         cancelled.setStoredUntil(storedFrom);
@@ -662,7 +662,7 @@ public class LocationController {
 
     private void processCancelTransfer(
             HospitalVisit visit, Instant storedFrom, CancelTransferPatient cancelTransferPatient) throws RequiredDataMissingException {
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionDatetimeDesc(visit);
         Instant cancellationTime = getCancellationTime(cancelTransferPatient);
         Location cancelledLocationId = cache.getOrCreateLocation(cancelTransferPatient.getCancelledLocation());
 
@@ -713,7 +713,7 @@ public class LocationController {
 
     private void rollbackDischargeToPreviousValue(
             HospitalVisit visit, Instant storedFrom, Location locationId, Instant validFrom, Instant cancellationTime, LocationVisit incorrectVisit) {
-        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionTimeDesc(visit);
+        List<LocationVisit> visitLocations = locationVisitRepo.findAllByHospitalVisitIdOrderByAdmissionDatetimeDesc(visit);
         Pair<Long, RowState<LocationVisit, LocationVisitAudit>> indexAndNextLocation = getIndexOfCurrentAndNextLocationVisit(
                 visitLocations, locationId, validFrom, storedFrom);
         RowState<LocationVisit, LocationVisitAudit> nextLocation = indexAndNextLocation.getRight();
@@ -759,7 +759,7 @@ public class LocationController {
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateOpenLocation(
             HospitalVisit visit, Location location, Instant validFrom, Instant storedFrom) {
         logger.debug("Get or create open location for visit {}", visit);
-        return locationVisitRepo.findByHospitalVisitIdAndDischargeTimeIsNull(visit)
+        return locationVisitRepo.findByHospitalVisitIdAndDischargeDatetimeIsNull(visit)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> createOpenLocation(visit, location, validFrom, storedFrom));
     }
@@ -793,7 +793,7 @@ public class LocationController {
     private RowState<LocationVisit, LocationVisitAudit> getOrCreateOpenLocationByLocation(
             HospitalVisit visit, Location location, Instant validFrom, Instant storedFrom) {
         logger.debug("Ger or create open location ({}) for visit {}", location, visit);
-        return locationVisitRepo.findByHospitalVisitIdAndLocationIdAndDischargeTimeIsNull(visit, location)
+        return locationVisitRepo.findByHospitalVisitIdAndLocationIdAndDischargeDatetimeIsNull(visit, location)
                 .map(loc -> new RowState<>(loc, validFrom, storedFrom, false))
                 .orElseGet(() -> {
                     LocationVisit locationVisit = new LocationVisit(validFrom, storedFrom, location, visit);
