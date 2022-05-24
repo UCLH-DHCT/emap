@@ -76,12 +76,10 @@ public class LabTestDefinition extends TemporalCore<LabTestDefinition, LabTestDe
     /**
      * Create minimal LabTestDefinition.
      * @param labProvider lab provider that has defined the lab code
-     * @param labDepartment department for the lab
      * @param testLabCode lab code
      */
-    public LabTestDefinition(String labProvider, String labDepartment, String testLabCode) {
+    public LabTestDefinition(String labProvider, String testLabCode) {
         this.labProvider = labProvider;
-        this.labDepartment = labDepartment;
         this.testLabCode = testLabCode;
     }
 
