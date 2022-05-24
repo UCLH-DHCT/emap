@@ -47,12 +47,11 @@ public class TestLabMetadata extends MessageProcessingBase {
             processSingleMessage(m);
         }
 
-        assertEquals(2 + 5, labBatteryRepository.count());
+        assertEquals(2 + 6, labBatteryRepository.count());
 
         // unchanged
         assertEquals(4, labBatteryElementRepository.count());
-
-        assertEquals(4 + 5, labTestDefinitionRepository.count());
+        assertEquals(4 + 6, labTestDefinitionRepository.count());
 
         LabTestDefinition amlTest = labTestDefinitionRepository.findByTestLabCode("AML").orElseThrow();
         assertEquals("WINPATH AMOXICILLIN", amlTest.getName());
