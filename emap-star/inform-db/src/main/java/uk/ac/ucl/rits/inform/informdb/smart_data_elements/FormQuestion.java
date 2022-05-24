@@ -13,23 +13,25 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * Stores metadata for a smart data element (SDE).
+ * Represents the Question in a form (basically the metadata for a form answer).
+ * It may not literally be a question, eg. "Limb", you can think of that as a prompt.
  */
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDefinition, SmartDataElementDefinitionAudit> {
+public class FormQuestion extends TemporalCore<FormQuestion, FormQuestionAudit> {
     /**
-     * \brief Unique identifier in EMAP for this Smart Data Element description record.
+     * \brief Unique identifier in EMAP.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long smartDataElementDefinitionId;
+    private Long formQuestionId;
 
     /**
      * \brief String identifier from Epic for a Smart Data Element.
+     * Depending on the source of this question, it may not have such an identifier. But for an SDE it will.
      * HLV 40.
      */
     private String smartDataElementIdString;
@@ -38,24 +40,24 @@ public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDef
      * \brief Smart Data Element name (ie. the "Question")
      * HLX .2
      */
-    private String smartDataElementConceptName;
+    private String formQuestionConceptName;
 
     /**
      * \brief Smart Data Element abbreviated name (ie. the "Question")
      * HLX 50
      */
-    private String smartDataElementConceptAbbrevName;
+    private String formQuestionConceptAbbrevName;
 
     /**
-     * \brief String description of a Smart Data Element, where available
+     * \brief String description of a question, where available
      */
-    private String smartDataElementDescription;
+    private String formQuestionDescription;
 
     /**
-     * \brief Type of SDE (String, number, etc)
+     * \brief Type of answer expected (String, number, etc)
      * HLX 60
      */
-    private SmartDataElementType smartDataElementType;
+    private String formQuestionType;
 
     /**
      * \brief Categorical string value of the "type" of SDE this is. Ie. is it related to an order, an encounter, a note, etc.
@@ -65,7 +67,7 @@ public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDef
     private String smartDataElementContext;
 
     @Override
-    public SmartDataElementDefinition copy() {
+    public FormQuestion copy() {
         return null;
     }
 
@@ -75,7 +77,7 @@ public class SmartDataElementDefinition extends TemporalCore<SmartDataElementDef
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public SmartDataElementDefinitionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+    public FormQuestionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return null;
     }
 }

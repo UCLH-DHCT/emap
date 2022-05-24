@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,7 +20,7 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * A filled out SmartForm. Basically a grouping of rows of SmartDataElement.
+ * A filled out Form. Eg. an Epic SmartForm. Basically a grouping of rows of FormAnswer.
  */
 @Entity
 @Data
@@ -30,17 +31,17 @@ import java.time.Instant;
         " hospital_visit_id is not null " +
                 " OR lab_order_id is not null " +
                 " OR mrn_id is not null ")
-public class SmartForm extends TemporalCore<SmartForm, SmartFormAudit> {
+public class Form extends TemporalCore<Form, FormAudit> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long smartFormId;
+    private Long formId;
 
     /**
      * \brief The form definition of this form instance.
      */
     @ManyToOne
-    @JoinColumn(name = "smartFormDefinitionId")
-    private SmartFormDefinition smartFormDefinitionId;
+    @JoinColumn(name = "formDefinitionId")
+    private FormDefinition formDefinitionId;
 
     /**
      * \brief The Mrn this SmartForm relates to, or null if it doesn't relate to one.
@@ -64,12 +65,13 @@ public class SmartForm extends TemporalCore<SmartForm, SmartFormAudit> {
     @JoinColumn(name = "labOrderId")
     private LabOrder labOrderId;
 
+    @Column(columnDefinition = "timestamp with time zone")
     private Instant formFilingDateTime;
 
     private String formFilingUserId;
 
     @Override
-    public SmartForm copy() {
+    public Form copy() {
         return null;
     }
 
@@ -79,7 +81,7 @@ public class SmartForm extends TemporalCore<SmartForm, SmartFormAudit> {
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public SmartFormAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+    public FormAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return null;
     }
 }
