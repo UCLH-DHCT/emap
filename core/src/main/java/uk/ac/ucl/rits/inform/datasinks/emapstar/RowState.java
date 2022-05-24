@@ -178,6 +178,8 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
 
     /**
      * Save entity if it is created, or auditlog if the entity has been updated, setting stored from and valid from if either conditions are true.
+     * <p>
+     * Entity needs to be manually saved in order to persist an entity from cache where it is either returned or an exception is thrown.
      * @param entityRepo entity repository
      * @param auditRepo  audit repository
      */
@@ -189,6 +191,7 @@ public class RowState<T extends TemporalCore<T, A>, A extends AuditCore> {
         } else if (entityUpdated) {
             entity.setStoredFrom(storedFrom);
             entity.setValidFrom(messageDateTime);
+            entityRepo.save(entity);
             A auditEntity = originalEntity.createAuditEntity(messageDateTime, storedFrom);
             auditRepo.save(auditEntity);
             logger.debug("New AuditEntity being saved: {}", auditEntity);
