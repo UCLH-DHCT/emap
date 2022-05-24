@@ -2,15 +2,17 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
@@ -19,12 +21,15 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
+import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinitionAudit;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 
 import javax.annotation.Resource;
 import java.time.Instant;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * Main class that interacts with labs tables, either directly or through sub controllers.
@@ -36,17 +41,17 @@ public class LabController {
     @Resource
     private LabCache cache;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(LabController.class);
 
     private final LabOrderController labOrderController;
     private final LabResultController labResultController;
+
 
     /**
      * @param labOrderController  controller for LabOrder tables
      * @param labResultController controller for LabResult tables
      */
-    public LabController(
-            LabOrderController labOrderController, LabResultController labResultController) {
+    public LabController(LabOrderController labOrderController, LabResultController labResultController) {
         this.labOrderController = labOrderController;
         this.labResultController = labResultController;
     }
@@ -78,12 +83,57 @@ public class LabController {
         LabOrder labOrder = labOrderController.processSampleAndOrderInformation(mrn, visit, battery, msg, validFrom, storedFrom);
         for (LabResultMsg result : msg.getLabResultMsgs()) {
             logger.trace("** Starting to process lab result {} from {}", result.getTestItemLocalCode(), msg.getTestBatteryCodingSystem());
-            LabTestDefinition testDefinition = cache.getOrCreateLabTestDefinition(
-                    msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode(), storedFrom, validFrom);
+
+            LabTestDefinition testDefinition = updateOrCreateTestDefinitionWithLabDepartment(
+                    msg.getTestBatteryCodingSystem(), msg.getLabDepartment(), result.getTestItemLocalCode(), validFrom, storedFrom);
             cache.createLabBatteryElementIfNotExists(testDefinition, battery, storedFrom, validFrom);
             labResultController.processResult(testDefinition, labOrder, result, validFrom, storedFrom);
         }
     }
+
+
+    /**
+     * Lab results contain the specific reference to lab department so add this in if we don't already have it.
+     * @param codingSystem  coding system, or interface that is sending the lab result
+     * @param labDepartment department issuing the result
+     * @param testCode      code for the test
+     * @param validFrom     time in the hospital that the message was generated
+     * @param storedFrom    time that star started processing the message
+     * @return lab test definition
+     */
+    private LabTestDefinition updateOrCreateTestDefinitionWithLabDepartment(
+            String codingSystem, String labDepartment, String testCode, Instant validFrom, Instant storedFrom) {
+        RowState<LabTestDefinition, LabTestDefinitionAudit> definitionState = getOrCreateLabTestDefinition(
+                codingSystem, testCode, validFrom, storedFrom
+        );
+        LabTestDefinition testDefinition = definitionState.getEntity();
+
+        if (definitionState.isEntityCreated() || !Objects.equals(testDefinition.getLabDepartment(), labDepartment)) {
+            definitionState.assignIfDifferent(labDepartment, testDefinition.getLabDepartment(), testDefinition::setLabDepartment);
+            cache.clearItemFromTestDefinitionCache(codingSystem, testCode);
+        }
+
+        cache.saveEntityIfRequired(definitionState);
+
+        return testDefinition;
+    }
+
+    private RowState<LabTestDefinition, LabTestDefinitionAudit> getOrCreateLabTestDefinition(
+            String labProvider, String testLabCode, Instant validFrom, Instant storedFrom) {
+        try {
+            LabTestDefinition testDefinition = cache.findExistingLabTestDefinition(labProvider, testLabCode);
+            return new RowState<>(testDefinition, validFrom, storedFrom, false);
+        } catch (NoSuchElementException e) {
+            // doesn't exist in database or cache, so create a new one
+            // shouldn't cache the row state, just the entity so having to do this using exception handling
+            LabTestDefinition testDefinition = new LabTestDefinition(labProvider, testLabCode);
+            testDefinition.setValidFrom(validFrom);
+            testDefinition.setStoredFrom(storedFrom);
+            logger.trace("Creating new Lab Test Definition {}", testDefinition);
+            return new RowState<>(testDefinition, validFrom, storedFrom, true);
+        }
+    }
+
 
     public LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
         return labOrderController.getLabSampleOrThrow(specimenBarcode);
@@ -92,7 +142,7 @@ public class LabController {
     /**
      * Flesh out lab battery or lab test metadata, but not battery element.
      * @param labMetadataMsg lab metadata message
-     * @param storedFrom stored from timestamp
+     * @param storedFrom     stored from timestamp
      * @throws RequiredDataMissingException if message type is not recognised
      */
     public void processLabMetadata(LabMetadataMsg labMetadataMsg, Instant storedFrom) throws RequiredDataMissingException {
@@ -104,13 +154,7 @@ public class LabController {
                 battery.setBatteryName(labMetadataMsg.getName());
                 break;
             case LABS_METADATA_TEST:
-                LabTestDefinition labTestDefinition = cache.getOrCreateLabTestDefinition(
-                        labMetadataMsg.getCodingSystem().toString(),
-                        labMetadataMsg.getLabDepartment(),
-                        labMetadataMsg.getShortCode(),
-                        labMetadataMsg.getValidFrom(),
-                        storedFrom);
-                labTestDefinition.setName(labMetadataMsg.getName());
+                updateOrCreateTestDefinitionWithName(labMetadataMsg, labMetadataMsg.getValidFrom(), storedFrom);
                 break;
             default:
                 throw new RequiredDataMissingException(
@@ -118,6 +162,24 @@ public class LabController {
         }
     }
 
+    /**
+     * Lab results metadata have a test name that doesn't exist in the hl7 feed.
+     * @param msg        Lab metadata message that should update the current data
+     * @param validFrom  time in the hospital that the message was generated
+     * @param storedFrom time that star started processing the message
+     */
+    private void updateOrCreateTestDefinitionWithName(LabMetadataMsg msg, Instant validFrom, Instant storedFrom) {
+        RowState<LabTestDefinition, LabTestDefinitionAudit> definitionState = getOrCreateLabTestDefinition(
+                msg.getCodingSystem().toString(), msg.getShortCode(), validFrom, storedFrom
+        );
+        LabTestDefinition testDefinition = definitionState.getEntity();
+
+        if (testDefinition.getName() == null || testDefinition.getValidFrom().isBefore(validFrom)) {
+            definitionState.assignIfDifferent(msg.getName(), testDefinition.getName(), testDefinition::setName);
+            cache.clearItemFromTestDefinitionCache(msg.getCodingSystem().toString(), msg.getShortCode());
+        }
+        cache.saveEntityIfRequired(definitionState);
+    }
 }
 
 /**
@@ -127,44 +189,39 @@ public class LabController {
 class LabCache {
     private static final Logger logger = LoggerFactory.getLogger(LabCache.class);
     private final LabTestDefinitionRepository labTestDefinitionRepo;
+    private final LabTestDefinitionAuditRepository labTestDefinitionAuditRepo;
     private final LabBatteryElementRepository labBatteryElementRepo;
-    private final LabBatteryRepository labBatteryRepo;
 
 
     /**
-     * @param labTestDefinitionRepo repository for LabTestDefinition
-     * @param labBatteryElementRepo repository for LabBatteryElement
-     * @param labBatteryRepo repository for LabBattery
+     * @param labTestDefinitionRepo      repository for LabTestDefinition
+     * @param labTestDefinitionAuditRepo to audit changes to lab test definitions
+     * @param labBatteryElementRepo      repository for LabBatteryElement
      */
-    LabCache(LabTestDefinitionRepository labTestDefinitionRepo, LabBatteryElementRepository labBatteryElementRepo,
-             LabBatteryRepository labBatteryRepo) {
+    LabCache(LabTestDefinitionRepository labTestDefinitionRepo,
+             LabTestDefinitionAuditRepository labTestDefinitionAuditRepo,
+             LabBatteryElementRepository labBatteryElementRepo) {
         this.labTestDefinitionRepo = labTestDefinitionRepo;
+        this.labTestDefinitionAuditRepo = labTestDefinitionAuditRepo;
         this.labBatteryElementRepo = labBatteryElementRepo;
-        this.labBatteryRepo = labBatteryRepo;
     }
 
 
     /**
-     * @param testLabCode   local result item code
-     * @param labProvider   battery coding system
-     * @param labDepartment lab department
-     * @param validFrom     most recent change to results
-     * @param storedFrom    time that star started processing the message
+     * @param testLabCode local result item code
+     * @param labProvider battery coding system
      * @return LabTestDefinition entity
+     * @throws NoSuchElementException if the test definition doesn't exist
      */
-    @Cacheable(value = "labTestDefinition", key = "{ #labProvider , #labDepartment, #testLabCode }")
-    public LabTestDefinition getOrCreateLabTestDefinition(
-            String labProvider, String labDepartment, String testLabCode, Instant validFrom, Instant storedFrom) {
+    @Cacheable(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
+    public LabTestDefinition findExistingLabTestDefinition(String labProvider, String testLabCode) {
         logger.trace("** Querying Lab test definition {} from labProvider {}", testLabCode, labProvider);
-        return labTestDefinitionRepo
-                .findByLabProviderAndLabDepartmentAndTestLabCode(labProvider, labDepartment, testLabCode)
-                .orElseGet(() -> {
-                    LabTestDefinition testDefinition = new LabTestDefinition(labProvider, labDepartment, testLabCode);
-                    testDefinition.setValidFrom(validFrom);
-                    testDefinition.setStoredFrom(storedFrom);
-                    logger.trace("Creating new Lab Test Definition {}", testDefinition);
-                    return labTestDefinitionRepo.save(testDefinition);
-                });
+        return labTestDefinitionRepo.findByLabProviderAndTestLabCode(labProvider, testLabCode).orElseThrow();
+    }
+
+    @CacheEvict(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
+    public void clearItemFromTestDefinitionCache(String labProvider, String testLabCode) {
+        logger.trace("** Clearing cache for Lab test definition {} from labProvider {}", testLabCode, labProvider);
     }
 
     /**
@@ -184,4 +241,13 @@ class LabCache {
                 });
     }
 
+    /**
+     * Saving entity within the cache as we're using it for accessing repositories.
+     * <p>
+     * Saves us having the lab test definition repo in multiple classes, so single point where you expect to interact with the tables.
+     * @param definitionState that may have been created or updated, so will need to be persisted accordingly
+     */
+    void saveEntityIfRequired(RowState<LabTestDefinition, LabTestDefinitionAudit> definitionState) {
+        definitionState.saveEntityOrAuditLogIfRequired(labTestDefinitionRepo, labTestDefinitionAuditRepo);
+    }
 }
