@@ -13,34 +13,34 @@ import javax.persistence.Id;
 import java.time.Instant;
 
 /**
- * SmartForm metadata.
+ * Form metadata.
  */
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class SmartFormDefinition extends TemporalCore<SmartFormDefinition, SmartFormDefinitionAudit> {
+public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionAudit> {
     /**
      * \brief Unique identifier in EMAP for this SmartForm description record.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long smartFormDefinitionId;
+    private Long formDefinitionId;
 
     /**
-     * \brief The epic string ID of the SmartForm.
-     * HLV ?? (Eg. "SmartForm1222")
+     * \brief A string ID for this form.
+     * HLV ?? (Eg. if a SmartForm: "SmartForm1222")
      */
-    private String epicSmartFormId;
+    private String formId;
 
     /**
-     * \brief Text description of the SmartForm.
+     * \brief Text description of the form.
      */
     private String description;
 
     @Override
-    public SmartFormDefinition copy() {
+    public FormDefinition copy() {
         return null;
     }
 
@@ -50,7 +50,7 @@ public class SmartFormDefinition extends TemporalCore<SmartFormDefinition, Smart
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public SmartFormDefinitionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+    public FormDefinitionAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return null;
     }
 }

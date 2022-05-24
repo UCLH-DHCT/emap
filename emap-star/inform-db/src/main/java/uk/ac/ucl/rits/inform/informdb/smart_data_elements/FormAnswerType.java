@@ -1,10 +1,10 @@
 package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
 
 /**
- * Possible types for an SDE, as defined in Clarity ZC_DATA_TYPE.
+ * Possible types for a form answer (eg SDE), as defined in Clarity ZC_DATA_TYPE.
  * Does this enum belong here or in Interchange?
  */
-public enum SmartDataElementType {
+public enum FormAnswerType {
     STRING("String"),
     NUMBER("Number"),
     DATE("Date"),
@@ -20,7 +20,7 @@ public enum SmartDataElementType {
 
     private String name;
 
-    SmartDataElementType(String name) {
+    FormAnswerType(String name) {
         this.name = name;
     }
 }

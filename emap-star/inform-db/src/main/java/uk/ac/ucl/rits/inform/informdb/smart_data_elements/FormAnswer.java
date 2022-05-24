@@ -16,41 +16,42 @@ import javax.persistence.ManyToOne;
 import java.time.Instant;
 
 /**
- * Stores the value assigned to a particular instance of a Form.
+ * Stores the value assigned to a particular instance of an answered form question.
+ * Eg. the value of a Form.
  */
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
-public class SmartDataElement extends TemporalCore<SmartDataElement, SmartDataElementAudit> {
+public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     /**
      * \brief Unique identifier in EMAP for this instance of a Form.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long smartDataElementId;
+    private Long formAnswerId;
 
     @ManyToOne
-    @JoinColumn(name = "smartDataElementDefinitionId")
-    private SmartDataElementDefinition smartDataElementDefinitionId;
+    @JoinColumn(name = "formQuestionId")
+    private FormQuestion formQuestionId;
 
     @ManyToOne
     @JoinColumn(name = "smartFormId")
-    private SmartForm smartFormId;
+    private Form formId;
 
     /**
      * \brief Current value of the form - may be a multi-line string concatenated together.
      * .
      */
     @Column(columnDefinition = "text")
-    private String smartDataElementValue;
+    private String formAnswerValue;
 
     // "context" field is currently in the metadata table, it may have to be moved here though.
 
 
     @Override
-    public SmartDataElement copy() {
+    public FormAnswer copy() {
         return null;
     }
 
@@ -60,7 +61,7 @@ public class SmartDataElement extends TemporalCore<SmartDataElement, SmartDataEl
      * @return A new audit entity with the current state of the object.
      */
     @Override
-    public SmartDataElementAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
+    public FormAnswerAudit createAuditEntity(Instant validUntil, Instant storedUntil) {
         return null;
     }
 }
