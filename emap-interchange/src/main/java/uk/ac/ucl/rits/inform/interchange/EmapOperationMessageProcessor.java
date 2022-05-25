@@ -10,6 +10,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -122,4 +124,16 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(LabMetadataMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the Form msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(FormMsg msg) throws EmapOperationMessageProcessingException;
+
+    /**
+     * @param msg the FormMetadataMsg msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    void processMessage(FormMetadataMsg msg) throws EmapOperationMessageProcessingException;
 }

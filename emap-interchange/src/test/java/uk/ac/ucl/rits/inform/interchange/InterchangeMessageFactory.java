@@ -10,6 +10,8 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabIsolateMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabResultMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormAnswerMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -266,6 +268,30 @@ public class InterchangeMessageFactory {
         ObjectReader orderReader = mapper.readerForUpdating(defaults);
 
         return orderReader.readValue(getClass().getResourceAsStream(overridingPath));
+    }
+
+    public FormMsg getFormMsgTemp() {
+        FormMsg formMsg = new FormMsg();
+        formMsg.setSourceSystemFormId("SmartForm1234");
+        formMsg.setFormFilingDatetime(Instant.parse("2022-04-01T11:59:00Z"));
+        formMsg.setMrn("examplemrn");
+        formMsg.setVisitNumber("examplevisit");
+        FormAnswerMsg sde1 = new FormAnswerMsg();
+        sde1.setEpicElementId("UCLH#123");
+        sde1.setElementValue("Right arm");
+        formMsg.getFormAnswerMsgs().add(sde1);
+
+        FormAnswerMsg sde2 = new FormAnswerMsg();
+        sde2.setEpicElementId("UCLH#345");
+        sde2.setElementValue("");
+        formMsg.getFormAnswerMsgs().add(sde2);
+        return formMsg;
+    }
+
+    public FormMsg getFormMsg(final String fileName) throws IOException {
+        String resourcePath = "/Form/" + fileName;
+        InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+        return mapper.readValue(inputStream, new TypeReference<FormMsg>() {});
     }
 
 }
