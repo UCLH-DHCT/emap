@@ -11,6 +11,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.ConsultationReque
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FlowsheetProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.LabProcessor;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.PatientStateProcessor;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.dataprocessors.FormAnswerProcessor;
 import uk.ac.ucl.rits.inform.interchange.AdvanceDecisionMessage;
 import uk.ac.ucl.rits.inform.interchange.ConsultMetadata;
 import uk.ac.ucl.rits.inform.interchange.ConsultRequest;
@@ -28,6 +29,8 @@ import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMetadataMsg;
+import uk.ac.ucl.rits.inform.interchange.form.FormMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
 
@@ -53,6 +56,8 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
     private LocationController locationController;
     @Autowired
     private AdvanceDecisionProcessor advanceDecisionProcessor;
+    @Autowired
+    private FormAnswerProcessor formAnswerProcessor;
 
     /**
      * Process a lab order message.
@@ -218,4 +223,24 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant storedFrom = Instant.now();
         labProcessor.processMessage(msg, storedFrom);
     }
+
+    @Override
+    @Transactional
+    public void processMessage(FormMsg msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        formAnswerProcessor.processSmartFormMessage(msg, storedFrom);
+    }
+
+    /**
+     * @param msg the FormMetadataMsg msg to process
+     * @throws EmapOperationMessageProcessingException if message cannot be processed
+     */
+    @Override
+    @Transactional
+    public void processMessage(FormMetadataMsg msg) throws EmapOperationMessageProcessingException {
+        Instant storedFrom = Instant.now();
+        formAnswerProcessor.processMetadataMessage(msg, storedFrom);
+    }
+
+
 }
