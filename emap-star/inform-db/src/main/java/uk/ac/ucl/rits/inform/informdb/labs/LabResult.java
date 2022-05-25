@@ -28,7 +28,7 @@ import java.time.Instant;
 @Data
 @Table(indexes = {@Index(name = "lr_lab_order_id", columnList = "labOrderId"),
         @Index(name = "lr_lab_test_definition_id", columnList = "labTestDefinitionId"),
-        @Index(name = "lr_result_last_modified_time", columnList = "resultLastModifiedTime")})
+        @Index(name = "lr_result_last_modified_datetime", columnList = "resultLastModifiedDatetime")})
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AuditTable
@@ -65,7 +65,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
      * \brief Date and time at which the labResult was last modified.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant resultLastModifiedTime;
+    private Instant resultLastModifiedDatetime;
 
     /**
      * \brief Lab system flag for value outside of normal range.
@@ -136,12 +136,12 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
      * Create minimal LabResult.
      * @param labOrderId             parent LabOrder
      * @param labTestDefinitionId    LabTestDefinition of result
-     * @param resultLastModifiedTime most recent update time of result
+     * @param resultLastModifiedDatetime most recent update time of result
      */
-    public LabResult(LabOrder labOrderId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedTime) {
+    public LabResult(LabOrder labOrderId, LabTestDefinition labTestDefinitionId, Instant resultLastModifiedDatetime) {
         this.labOrderId = labOrderId;
         this.labTestDefinitionId = labTestDefinitionId;
-        this.resultLastModifiedTime = resultLastModifiedTime;
+        this.resultLastModifiedDatetime = resultLastModifiedDatetime;
     }
 
 
@@ -151,7 +151,7 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
         this.labResultId = other.labResultId;
         this.labOrderId = other.labOrderId;
         this.labTestDefinitionId = other.labTestDefinitionId;
-        this.resultLastModifiedTime = other.resultLastModifiedTime;
+        this.resultLastModifiedDatetime = other.resultLastModifiedDatetime;
         this.abnormalFlag = other.abnormalFlag;
         this.valueAsText = other.valueAsText;
         this.valueAsReal = other.valueAsReal;
