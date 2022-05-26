@@ -1,3 +1,5 @@
+# note that this domain needs to be adjusted on the GAE!
 DOMAIN=localhost
 GLOWROOT_USERNAME=
 GLOWROOT_PASSWORD=
+GLOWROOT_ADMIN_PORT=5787
