@@ -28,7 +28,7 @@ public class TestCopyConstructor {
 
     private static final List<String> STRINGS = Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K");
     private static final List<Integer> INTEGERS = Arrays.asList(0,  1,   2,   3,   4,   5,   6,   7,   8,   9,   10);
-    private static final List<String> BASE_ClASS_NAMES = Arrays.asList(
+    private static final List<String> BASE_CLASS_NAMES = Arrays.asList(
             "java.lang.Boolean",
             "java.time.Instant",
             "java.lang.Double",
@@ -200,7 +200,7 @@ public class TestCopyConstructor {
 
         incrementIndex();
 
-        if (BASE_ClASS_NAMES.contains(className)){
+        if (BASE_CLASS_NAMES.contains(className)){
             return newBaseInstance(className);
         }
 
