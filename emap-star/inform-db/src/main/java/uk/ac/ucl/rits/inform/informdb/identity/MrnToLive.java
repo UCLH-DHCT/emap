@@ -69,8 +69,7 @@ public class MrnToLive extends TemporalCore<MrnToLive, MrnToLiveAudit> {
 
     private MrnToLive(MrnToLive other) {
         super(other);
-        setMrnId(other.getMrnId());
-        setLiveMrnId(other.getLiveMrnId());
+        this.mrnToLiveId = other.mrnToLiveId;
         this.mrnId = other.mrnId;
         this.liveMrnId = other.liveMrnId;
     }
