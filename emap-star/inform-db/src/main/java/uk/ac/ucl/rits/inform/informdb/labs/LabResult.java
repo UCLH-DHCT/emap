@@ -147,17 +147,20 @@ public class LabResult extends TemporalCore<LabResult, LabResultAudit> {
 
     private LabResult(LabResult other) {
         super(other);
-
         this.labResultId = other.labResultId;
         this.labOrderId = other.labOrderId;
         this.labTestDefinitionId = other.labTestDefinitionId;
         this.resultLastModifiedDatetime = other.resultLastModifiedDatetime;
         this.abnormalFlag = other.abnormalFlag;
+        this.mimeType = other.mimeType;
         this.valueAsText = other.valueAsText;
         this.valueAsReal = other.valueAsReal;
+        this.valueAsBytes = other.valueAsBytes;
         this.resultOperator = other.resultOperator;
         this.rangeHigh = other.rangeHigh;
         this.rangeLow = other.rangeLow;
+        this.resultStatus = other.resultStatus;
+        this.units = other.units;
         this.comment = other.comment;
     }
 

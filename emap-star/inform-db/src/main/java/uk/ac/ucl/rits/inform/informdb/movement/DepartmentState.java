@@ -67,7 +67,7 @@ public class DepartmentState extends AuditCore<DepartmentState> {
     private DepartmentState(DepartmentState other) {
         super(other);
         setValidFrom(other.getValidFrom());
-        setStoredFrom(other.getValidUntil());
+        setStoredFrom(other.getStoredFrom());
         departmentId = other.departmentId;
         status = other.status;
     }

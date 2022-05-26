@@ -105,6 +105,7 @@ public class ConsultationRequest extends TemporalCore<ConsultationRequest, Consu
      */
     public ConsultationRequest(ConsultationRequest other) {
         super(other);
+        this.consultationRequestId = other.consultationRequestId;
         this.consultationTypeId = other.consultationTypeId;
         this.hospitalVisitId = other.hospitalVisitId;
         this.internalId = other.internalId;
