@@ -11,12 +11,15 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.RowState;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.IncompatibleDatabaseStateException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.MessageCancelledException;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryElementRepository;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabBatteryRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionAuditRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.labs.LabTestDefinitionRepository;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
+import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
@@ -149,9 +152,7 @@ public class LabController {
         switch (labMetadataMsg.getLabsMetadataType()) {
             case LABS_METADATA_BATTERY:
                 // The code AND the coding system are used to lookup here
-                LabBattery battery = labOrderController.getOrCreateLabBattery(
-                        labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString(), labMetadataMsg.getValidFrom(), storedFrom);
-                battery.setBatteryName(labMetadataMsg.getName());
+                updateOrCreateLabBatteryMetadata(labMetadataMsg, storedFrom);
                 break;
             case LABS_METADATA_TEST:
                 updateOrCreateTestDefinitionWithName(labMetadataMsg, labMetadataMsg.getValidFrom(), storedFrom);
@@ -160,6 +161,15 @@ public class LabController {
                 throw new RequiredDataMissingException(
                         String.format("Unrecognised lab metadata message type: %s", labMetadataMsg.getLabsMetadataType()));
         }
+    }
+
+    private void updateOrCreateLabBatteryMetadata(LabMetadataMsg labMetadataMsg, Instant storedFrom) {
+        Instant validFrom = labMetadataMsg.getValidFrom();
+        LabBattery battery = labOrderController.getOrCreateLabBattery(
+                labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString(), validFrom, storedFrom);
+        RowState<LabBattery, LabBatteryAudit> labBatteryRowState = new RowState<>(battery, validFrom, storedFrom, false);
+        labBatteryRowState.assignIfDifferent(labMetadataMsg.getName(), battery.getBatteryName(), battery::setBatteryName);
+        cache.saveBatteryEntityIfRequired(labBatteryRowState);
     }
 
     /**
@@ -191,19 +201,27 @@ class LabCache {
     private final LabTestDefinitionRepository labTestDefinitionRepo;
     private final LabTestDefinitionAuditRepository labTestDefinitionAuditRepo;
     private final LabBatteryElementRepository labBatteryElementRepo;
+    private final LabBatteryRepository labBatteryRepository;
+    private final LabBatteryAuditRepository labBatteryAuditRepository;
 
 
     /**
      * @param labTestDefinitionRepo      repository for LabTestDefinition
      * @param labTestDefinitionAuditRepo to audit changes to lab test definitions
      * @param labBatteryElementRepo      repository for LabBatteryElement
+     * @param labBatteryRepository       repository for LabBattery
+     * @param labBatteryAuditRepository  repository for LabBatteryAudit
      */
     LabCache(LabTestDefinitionRepository labTestDefinitionRepo,
              LabTestDefinitionAuditRepository labTestDefinitionAuditRepo,
-             LabBatteryElementRepository labBatteryElementRepo) {
+             LabBatteryElementRepository labBatteryElementRepo,
+             LabBatteryRepository labBatteryRepository,
+             LabBatteryAuditRepository labBatteryAuditRepository) {
         this.labTestDefinitionRepo = labTestDefinitionRepo;
         this.labTestDefinitionAuditRepo = labTestDefinitionAuditRepo;
         this.labBatteryElementRepo = labBatteryElementRepo;
+        this.labBatteryRepository = labBatteryRepository;
+        this.labBatteryAuditRepository = labBatteryAuditRepository;
     }
 
 
@@ -249,5 +267,12 @@ class LabCache {
      */
     void saveEntityIfRequired(RowState<LabTestDefinition, LabTestDefinitionAudit> definitionState) {
         definitionState.saveEntityOrAuditLogIfRequired(labTestDefinitionRepo, labTestDefinitionAuditRepo);
+    }
+
+    @CacheEvict(value = "labBattery",
+            key = "{ #definitionState.getEntity().getBatteryCode(), #definitionState.getEntity().getLabProvider() }")
+    public void saveBatteryEntityIfRequired(RowState<LabBattery, LabBatteryAudit> definitionState) {
+        logger.warn("JES: battery put, should cache evict");
+        definitionState.saveEntityOrAuditLogIfRequired(labBatteryRepository, labBatteryAuditRepository);
     }
 }

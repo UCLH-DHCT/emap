@@ -84,7 +84,6 @@ public class LabOrderController {
                 .orElseThrow(() -> new IncompatibleDatabaseStateException("Lab sample doesn't exist in star"));
     }
 
-
     /**
      * @param batteryCode  battery code
      * @param codingSystem coding system that battery is defined by
