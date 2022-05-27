@@ -17,10 +17,12 @@ import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestLabMetadata extends MessageProcessingBase {
@@ -81,6 +83,8 @@ public class TestLabMetadata extends MessageProcessingBase {
 
         // verify name has now been filled in
         LabTestDefinition amlTestAfter = labTestDefinitionRepository.findByTestLabCode("ALP").orElseThrow();
+        Instant changeDatetime = Instant.parse("2019-09-13T16:00:00Z");
+        assertEquals(changeDatetime, amlTestAfter.getValidFrom());
         assertEquals("Alkaline phosphatase", amlTestAfter.getName());
         ArrayList<LabTestDefinitionAudit> allAuditRows = new ArrayList<>();
         labTestDefinitionAuditRepository.findAll().iterator().forEachRemaining(allAuditRows::add);
@@ -88,6 +92,8 @@ public class TestLabMetadata extends MessageProcessingBase {
         assertEquals(1, allAuditRows.size());
         LabTestDefinitionAudit labTestDefinitionAudit = allAuditRows.get(0);
         assertEquals(deletedLabTestDefinitionId, labTestDefinitionAudit.getLabTestDefinitionId());
+        assertNotNull(labTestDefinitionAudit.getStoredUntil());
+        assertEquals(changeDatetime, labTestDefinitionAudit.getValidUntil());
     }
 
     @Test
@@ -103,12 +109,16 @@ public class TestLabMetadata extends MessageProcessingBase {
 
         // verify name has now been filled in
         LabBattery bonTestAfter = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").orElseThrow();
+        Instant changeDatetime = Instant.parse("2019-04-05T09:23:16Z");
+        assertEquals(changeDatetime, bonTestAfter.getValidFrom());
         assertEquals("Bone Profile", bonTestAfter.getBatteryName());
         ArrayList<LabBatteryAudit> allAuditRows = new ArrayList<>();
         labBatteryAuditRepository.findAll().iterator().forEachRemaining(allAuditRows::add);
         assertEquals(1, allAuditRows.size());
         LabBatteryAudit labBatteryAudit = allAuditRows.get(0);
         assertEquals(deletedlabBatteryId, labBatteryAudit.getLabBatteryId());
+        assertNotNull(labBatteryAudit.getStoredUntil());
+        assertEquals(changeDatetime, labBatteryAudit.getValidUntil());
     }
 
     private void processLabOrderMessage() throws IOException, EmapOperationMessageProcessingException {
