@@ -52,6 +52,9 @@ public class TestLabMetadata extends MessageProcessingBase {
         assertEquals(4, labBatteryElementRepository.count());
         assertEquals(4, labTestDefinitionRepository.count());
 
+        assertEquals(0, labBatteryAuditRepository.count());
+        assertEquals(0, labTestDefinitionAuditRepository.count());
+
         List<LabMetadataMsg> labMetadataMsgs = messageFactory.getLabMetadataMsgs("labs_metadata.yaml");
         for (var m : labMetadataMsgs) {
             processSingleMessage(m);
@@ -73,6 +76,8 @@ public class TestLabMetadata extends MessageProcessingBase {
     @Test
     public void testUpdatedTestMetadata() throws Exception {
         processLabOrderMessage();
+        assertEquals(0, labBatteryAuditRepository.count());
+        assertEquals(0, labTestDefinitionAuditRepository.count());
 
         // We've inferred the existence of a test called "ALP" already, but we don't have much metadata yet
         LabTestDefinition amlTestBefore = labTestDefinitionRepository.findByTestLabCode("ALP").orElseThrow();
@@ -99,6 +104,8 @@ public class TestLabMetadata extends MessageProcessingBase {
     @Test
     public void testUpdatedBatteryMetadata() throws Exception {
         processLabOrderMessage();
+        assertEquals(0, labBatteryAuditRepository.count());
+        assertEquals(0, labTestDefinitionAuditRepository.count());
 
         // We've inferred the existence of a battery called "BON" already, but we don't have much metadata yet
         LabBattery bonTestBefore = labBatteryRepository.findByBatteryCodeAndLabProvider("BON", "WIN_PATH").orElseThrow();
