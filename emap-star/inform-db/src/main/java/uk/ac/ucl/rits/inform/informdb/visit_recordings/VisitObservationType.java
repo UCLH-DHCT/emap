@@ -107,7 +107,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
      * \brief Date and time at which this visitObservationType was created in the source system.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant creationTime;
+    private Instant creationDatetime;
 
     /**
      * Minimal information constructor.
@@ -142,7 +142,7 @@ public class VisitObservationType extends TemporalCore<VisitObservationType, Vis
         standardisedCode = other.standardisedCode;
         standardisedVocabulary = other.standardisedVocabulary;
         primaryDataType = other.primaryDataType;
-        creationTime = other.creationTime;
+        creationDatetime = other.creationDatetime;
     }
 
     @Override

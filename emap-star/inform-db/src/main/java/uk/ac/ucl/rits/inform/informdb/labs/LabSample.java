@@ -60,7 +60,7 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
      * where there test was being performed.
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant receiptAtLab;
+    private Instant receiptAtLabDatetime;
 
     /**
      * \brief Date and time at which this labSample was take from the patient.
@@ -68,7 +68,7 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
      * (e.g. time of phlebotomy).
      */
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant sampleCollectionTime;
+    private Instant sampleCollectionDatetime;
 
     /**
      * \brief Type of specimen.
@@ -113,8 +113,8 @@ public class LabSample extends TemporalCore<LabSample, LabSampleAudit> {
         this.mrnId = other.mrnId;
         this.labSampleId = other.labSampleId;
         this.externalLabNumber = other.externalLabNumber;
-        this.receiptAtLab = other.receiptAtLab;
-        this.sampleCollectionTime = other.sampleCollectionTime;
+        this.receiptAtLabDatetime = other.receiptAtLabDatetime;
+        this.sampleCollectionDatetime = other.sampleCollectionDatetime;
         this.specimenType = other.specimenType;
         this.sampleSite = other.sampleSite;
         this.collectionMethod = other.collectionMethod;
