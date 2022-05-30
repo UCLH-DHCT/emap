@@ -44,8 +44,8 @@ INSERT INTO public.core_demographic (
          '1972-06-14 13:00:00', '2010-05-05 00:00:00', 'Terry', 'T5 1TT', 'AGBTESTD', null, 1002, 'M');
 
 INSERT INTO public.hospital_visit (
-    hospital_visit_id, stored_from, valid_from, admission_time, arrival_method, discharge_destination, discharge_disposition,
-    discharge_time, encounter, patient_class, presentation_time, source_system, mrn_id
+    hospital_visit_id, stored_from, valid_from, admission_datetime, arrival_method, discharge_destination, discharge_disposition,
+    discharge_datetime, encounter, patient_class, presentation_datetime, source_system, mrn_id
     ) VALUES
         (4001, '2012-09-17 13:25:00', '2010-09-14 15:27:00', null, 'Public trans', null, null,
          null, '123412341234', 'INPATIENT', '2012-09-17 13:25:00', 'EPIC', 1001),
@@ -96,8 +96,8 @@ INSERT INTO public.location (location_id, location_string, department_id, room_i
 
 
 INSERT INTO public.location_visit (
-    location_visit_id, stored_from, valid_from, admission_time, inferred_admission, inferred_discharge,
-    discharge_time, hospital_visit_id, location_id) VALUES
+    location_visit_id, stored_from, valid_from, admission_datetime, inferred_admission, inferred_discharge,
+    discharge_datetime, hospital_visit_id, location_id) VALUES
     (106001, '2012-09-10 13:25:00', '2010-09-14 15:27:00', '2010-09-10 12:00:00', false, false,
      '2010-09-14 15:27:00', 4001, 105004),
     (106002, '2012-09-17 13:27:00', '2010-09-14 15:27:00', '2010-09-14 15:27:00', false, false,
@@ -128,7 +128,7 @@ INSERT INTO public.visit_observation (
 
 
 INSERT INTO public.lab_sample (
-    lab_sample_id, stored_from, valid_from, collection_method, external_lab_number, receipt_at_lab,
-    sample_collection_time, sample_site, specimen_type, mrn_id)
+    lab_sample_id, stored_from, valid_from, collection_method, external_lab_number, receipt_at_lab_datetime,
+    sample_collection_datetime, sample_site, specimen_type, mrn_id)
     VALUES (109001, '2022-02-02 14:00:00', '2020-01-01 14:04:00', null, '22U113534', '2020-01-01 14:04:00',
             '2020-01-01 10:04:00', null, 'swab', 1001);
