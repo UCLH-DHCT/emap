@@ -89,7 +89,8 @@ public class VisitObservationController {
             typeState.assignIfCurrentlyNullOrNewerAndDifferent(
                     msg.getValueType(), observationType.getPrimaryDataType(), observationType::setPrimaryDataType, messageValidFrom, entityValidFrom);
             typeState.assignIfCurrentlyNullOrNewerAndDifferent(
-                    msg.getCreationInstant(), observationType.getCreationTime(), observationType::setCreationTime, messageValidFrom, entityValidFrom);
+                    msg.getCreationInstant(), observationType.getCreationDatetime(), observationType::setCreationDatetime,
+                    messageValidFrom, entityValidFrom);
 
             typeState.saveEntityOrAuditLogIfRequired(visitObservationTypeRepo, visitObservationTypeAuditRepo);
         }
