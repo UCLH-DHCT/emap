@@ -59,7 +59,7 @@ class LabResultController {
         RowState<LabResult, LabResultAudit> labResultState = updateOrCreateLabResult(labOrder, testDefinition, resultMsg, validFrom, storedFrom);
         // If lab isolate, update or create them
         LabIsolateMsg isolateMsg = resultMsg.getLabIsolate();
-        if (isolateMsg != null && !validFrom.isBefore(labResultState.getEntity().getResultLastModifiedTime())) {
+        if (isolateMsg != null && !validFrom.isBefore(labResultState.getEntity().getResultLastModifiedDatetime())) {
             LabIsolate isolate = updateOrCreateIsolateAndUpdateLabResult(labResultState, isolateMsg, validFrom, storedFrom);
             for (LabResultMsg sensResult : isolateMsg.getSensitivities()) {
                 updateOrCreateSensitivity(isolate, sensResult, validFrom, storedFrom);
@@ -91,7 +91,7 @@ class LabResultController {
                 .map(r -> new RowState<>(r, result.getResultTime(), storedFrom, false))
                 .orElseGet(() -> createLabResult(labOrder, testDefinition, result.getResultTime(), validFrom, storedFrom));
 
-        if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedTime())) {
+        if (!resultState.isEntityCreated() && result.getResultTime().isBefore(resultState.getEntity().getResultLastModifiedDatetime())) {
             logger.trace("LabResult database is more recent than LabResult message, not updating information");
             return resultState;
         }
@@ -136,7 +136,7 @@ class LabResultController {
         }
 
         if (resultState.isEntityUpdated()) {
-            labResult.setResultLastModifiedTime(resultMsg.getResultTime());
+            labResult.setResultLastModifiedDatetime(resultMsg.getResultTime());
         }
     }
 
@@ -170,7 +170,7 @@ class LabResultController {
         // if change in isolate state we should update the time of the result
         // because the result is a link, and this has changed
         if (isolateState.isEntityUpdated()) {
-            labResultState.assignIfDifferent(validFrom, labResult.getResultLastModifiedTime(), labResult::setResultLastModifiedTime);
+            labResultState.assignIfDifferent(validFrom, labResult.getResultLastModifiedDatetime(), labResult::setResultLastModifiedDatetime);
         }
 
         isolateState.saveEntityOrAuditLogIfRequired(labIsolateRepo, labIsolateAuditRepo);

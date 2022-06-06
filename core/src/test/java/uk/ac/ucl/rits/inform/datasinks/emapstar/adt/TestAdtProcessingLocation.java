@@ -95,17 +95,17 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // original location visit is discharged
         LocationVisit dischargedVisit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNotNull(dischargedVisit.getDischargeTime());
+        assertNotNull(dischargedVisit.getDischargeDatetime());
 
         // current location visit is different
         LocationVisit currentVisit = locationVisitRepository
-                .findByDischargeTimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
+                .findByDischargeDatetimeIsNullAndHospitalVisitIdHospitalVisitId(defaultHospitalVisitId)
                 .orElseThrow(NullPointerException::new);
         assertNotEquals(originalLocation, currentVisit.getLocationId().getLocationString());
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(audit.getDischargeTime());
+        assertNull(audit.getDischargeDatetime());
     }
 
     /**
@@ -124,11 +124,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         List<LocationVisit> dischargedVisits = locationVisitRepository
                 .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
         assertEquals(1, dischargedVisits.size());
-        dischargedVisits.forEach(visit -> assertNotNull(visit.getDischargeTime()));
+        dischargedVisits.forEach(visit -> assertNotNull(visit.getDischargeDatetime()));
 
         // audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(audit.getDischargeTime());
+        assertNull(audit.getDischargeDatetime());
     }
 
     /**
@@ -150,11 +150,11 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         List<LocationVisit> dischargedVisits = locationVisitRepository
                 .findAllByLocationIdLocationStringAndHospitalVisitIdEncounter(originalLocation, defaultEncounter);
         assertEquals(1, dischargedVisits.size());
-        dischargedVisits.forEach(visit -> assertNotNull(visit.getDischargeTime()));
+        dischargedVisits.forEach(visit -> assertNotNull(visit.getDischargeDatetime()));
 
         // single audit row for location when it had no discharge time
         LocationVisitAudit audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(audit.getDischargeTime());
+        assertNull(audit.getDischargeDatetime());
     }
 
     /**
@@ -171,7 +171,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // current db location visit has not been discharged
         LocationVisit visit = locationVisitRepository.findByLocationIdLocationString(originalLocation).orElseThrow(NullPointerException::new);
-        assertNull(visit.getDischargeTime());
+        assertNull(visit.getDischargeDatetime());
 
         // audit row for location when it had no discharge time
         Optional<LocationVisitAudit> audit = locationVisitAuditRepository.findByLocationIdLocationString(originalLocation);
@@ -325,7 +325,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // correct location is reopened
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
-        assertNull(reopenedVisit.getDischargeTime());
+        assertNull(reopenedVisit.getDischargeDatetime());
     }
 
     /**
@@ -357,7 +357,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // correct location is reopened
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
-        assertNull(reopenedVisit.getDischargeTime());
+        assertNull(reopenedVisit.getDischargeDatetime());
     }
 
     /**
@@ -389,7 +389,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
 
         // correct location is reopened and there are no duplicate results
         LocationVisit reopenedVisit = locationVisitRepository.findByLocationIdLocationString(correctLocation).orElseThrow();
-        assertNull(reopenedVisit.getDischargeTime());
+        assertNull(reopenedVisit.getDischargeDatetime());
 
         // processing a further message should not come into an error of more than one open location
         dbOps.processMessage(updatePatientInfo);
@@ -417,14 +417,14 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
         HospitalVisit visitA = hospitalVisitRepository.findByEncounter(visitNumberA).orElseThrow();
         HospitalVisit visitB = hospitalVisitRepository.findByEncounter(visitNumberB).orElseThrow();
 
-        LocationVisit originalLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
-        LocationVisit originalLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
+        LocationVisit originalLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitA).orElseThrow();
+        LocationVisit originalLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitB).orElseThrow();
 
 
         dbOps.processMessage(msg);
 
-        LocationVisit swappedLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitA).orElseThrow();
-        LocationVisit swappedLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeTimeIsNull(visitB).orElseThrow();
+        LocationVisit swappedLocationVisitA = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitA).orElseThrow();
+        LocationVisit swappedLocationVisitB = locationVisitRepository.findByHospitalVisitIdAndDischargeDatetimeIsNull(visitB).orElseThrow();
 
         assertEquals(originalLocationVisitB.getLocationId(), swappedLocationVisitA.getLocationId());
         assertEquals(originalLocationVisitA.getLocationId(), swappedLocationVisitB.getLocationId());
