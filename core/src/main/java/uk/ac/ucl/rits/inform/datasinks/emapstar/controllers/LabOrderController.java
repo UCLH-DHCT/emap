@@ -46,12 +46,12 @@ public class LabOrderController {
 
 
     /**
-     * @param labBatteryRepo repository for LabBattery
-     * @param labSampleRepo repository for LabSample
+     * @param labBatteryRepo     repository for LabBattery
+     * @param labSampleRepo      repository for LabSample
      * @param labSampleAuditRepo repository for LabSampleAudit
-     * @param labOrderRepo repository for LabOrder
-     * @param labResultRepo repository for LabResult
-     * @param labOrderAuditRepo repository for LabOrderAudit
+     * @param labOrderRepo       repository for LabOrder
+     * @param labResultRepo      repository for LabResult
+     * @param labOrderAuditRepo  repository for LabOrderAudit
      * @param questionController controller for Question tables
      */
     public LabOrderController(
@@ -76,6 +76,12 @@ public class LabOrderController {
                 .append("CoPath does not use test batteries, all orders are filed under this battery code. ")
                 .append("The lab test definition lab department can be used to distinguish types of requested tests").toString());
         labBatteryRepo.save(coPathBattery);
+    }
+
+
+    LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
+        return labSampleRepo.findByExternalLabNumber(specimenBarcode)
+                .orElseThrow(() -> new IncompatibleDatabaseStateException("Lab sample doesn't exist in star"));
     }
 
 
@@ -156,13 +162,14 @@ public class LabOrderController {
         state.assignIfCurrentlyNullOrNewerAndDifferent(
                 msg.getSampleSite(), labSample.getSampleSite(), labSample::setSampleSite, validFrom, labSample.getValidFrom());
         state.assignIfCurrentlyNullOrNewerAndDifferent(
-                msg.getSampleReceivedTime(), labSample.getReceiptAtLab(), labSample::setReceiptAtLab, validFrom, labSample.getValidFrom());
+                msg.getSampleReceivedTime(), labSample.getReceiptAtLabDatetime(), labSample::setReceiptAtLabDatetime,
+                validFrom, labSample.getValidFrom());
         // Allow for change of sample labSample time, but don't expect this to happen
         if (state.isEntityCreated() || validFrom.isAfter(labSample.getValidFrom())) {
             if (collectionTimeExistsAndWillChange(msg, labSample)) {
                 logger.warn("Not expecting Sample Collection time to change");
             }
-            state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionTime(), labSample::setSampleCollectionTime);
+            state.assignIfDifferent(msg.getCollectionDateTime(), labSample.getSampleCollectionDatetime(), labSample::setSampleCollectionDatetime);
             state.assignInterchangeValue(msg.getCollectionMethod(), labSample.getCollectionMethod(), labSample::setCollectionMethod);
         }
 
@@ -171,7 +178,7 @@ public class LabOrderController {
     }
 
     private boolean collectionTimeExistsAndWillChange(LabOrderMsg msg, LabSample labSample) {
-        return labSample.getSampleCollectionTime() != null && !labSample.getSampleCollectionTime().equals(msg.getCollectionDateTime());
+        return labSample.getSampleCollectionDatetime() != null && !labSample.getSampleCollectionDatetime().equals(msg.getCollectionDateTime());
     }
 
     private RowState<LabSample, LabSampleAudit> createLabSample(Mrn mrn, String externalLabNumber, Instant validFrom, Instant storedFrom) {
@@ -278,4 +285,5 @@ public class LabOrderController {
         logger.debug("Deleting LabOrder {}", labOrder);
         labOrderRepo.delete(labOrder);
     }
+
 }
