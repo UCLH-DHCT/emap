@@ -93,7 +93,7 @@ public class PatientLocationController {
             processMoveMessage(visit, msg, storedFrom, locationEntity, validFrom);
         } else if (msg instanceof DischargePatient) {
             processDischargeMessage(visit, (DischargePatient) msg, storedFrom, locationEntity);
-        } else if ((msg instanceof AdtCancellation)) {
+        } else if (msg instanceof AdtCancellation) {
             processCancellationMessage(visit, msg, storedFrom, locationEntity, validFrom);
         }
     }
