@@ -1,7 +1,7 @@
 # Emap Core
 
-This services takes messages from a queue and compares this data to the current data in the EMAP database.
-Generally if a message has newer information that is different, then the message will update the database data,
+This service takes messages from a queue and compares this data to the current data in the EMAP database.
+Generally, if a message has newer information that is different, then the message will update the database data,
 otherwise the message will have no effect. This is important because the HL7 messages can be received out of order.
 
 ## Local setup instructions using IntelliJ IDEA
@@ -10,6 +10,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
 1. <details>
     <summary>Create a parent directory</summary>
+   
     Create a directory where all the repositories, including this one, will be cloned
     e.g.
    
@@ -20,6 +21,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
 2. <details>
     <summary>Clone repositories</summary>
+   
     Emap-Core depends on both [Inform-DB](https://github.com/inform-health-informatics/Inform-DB) and [Emap-Interchange](https://github.com/inform-health-informatics/Emap-Interchange).
 
     ```bash
@@ -32,11 +34,13 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
 3. <details>
     <summary>Open project in IntelliJ IDEA</summary>
+   
     <b>File > New > New Project From existing sources</b> and select the parent directory (e.g. `~/projects/EMAP`). If prompted, choose "Create project from existing sources"
 </details>
 
 4. <details>
     <summary>Add Maven projects</summary>
+   
     In the project pane on the top left of the IDE, switch to "Project Files" mode, right-click `Emap-Core/pom.xml` and select <b>Add as Maven project</b>.
     Do the same with `Emap-Interchange/pom.xml` and `Inform-DB/pom.xml` - not to be confused with `Inform-DB/inform-db/pom.xml`! 
     If you add something by mistake, "Unlink Maven projects" in the Maven pane is the opposite of "Add..."
@@ -44,6 +48,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
 5. <details>
     <summary>Allow annotation processing</summary>
+   
     Go to <b>File > Settings > and searching for `processor`</b>
     - Check `enable annotation preprocessing`
     - Change the production sources directory to `classes`
@@ -53,17 +58,20 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
 6. <details>
     <summary>Reload Maven projects</summary>
+   
     In the `Maven` pane (which should now have appeared on the top right of the IDE),
     click the `Reimport all maven projects` or `Reload`
 </details>
 
 7. <details>
     <summary>Add lombok and checkstyle plugins</summary>
+   
     Go to <b>File > Settings > search for plugins</b>
 </details>
 
 8. <details>
     <summary>Setup checkstyle</summary>
+   
     To allow checkstyle to be run from the bottom panel of the IDE go to <b>File > settings > search for checkstyle</b>
     - Set the version of checkstyle to the latest version
     - Click on the `+` to add a new checkstyle configuration
@@ -160,6 +168,7 @@ manages cloning multiple repositories and using configuration files.
 
 3. <details>
     <summary>Install <b>emap-setup</b></summary>
+   
     Install the `emap` script by cloning the repository
 
     ```bash
@@ -179,6 +188,7 @@ manages cloning multiple repositories and using configuration files.
 
 4. <details>
     <summary>Modify configuration</summary>
+   
     Modify `global-configuration.yaml` with any passwords, usernames and URLs that need to be changed for a live version.
     these will propagate into the individual `xxx-congic-envs` configuration file, which in turn is used 
     by the`application.properties`.
