@@ -33,20 +33,20 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
      */
     default Boolean messageLocationIsCancelled(HospitalVisit hospitalVisit, Location location, Instant messageTime, boolean dischargeCancelled) {
         if (dischargeCancelled) {
-            return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
+            return existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredDischargeIsFalse(
                     hospitalVisit.getHospitalVisitId(), location, messageTime, messageTime);
         }
-        return existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredAdmissionIsFalse(
+        return existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredAdmissionIsFalse(
                 hospitalVisit.getHospitalVisitId(), location, messageTime, messageTime);
     }
 
-    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredAdmissionIsFalse(
+    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredAdmissionIsFalse(
             Long hospitalVisit, Location location, Instant admission, Instant discharge);
 
-    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTimeAndInferredDischargeIsFalse(
+    Boolean existsByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetimeAndInferredDischargeIsFalse(
             Long hospitalVisit, Location location, Instant admission, Instant discharge);
 
-    Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionTimeAndDischargeTime(
+    Optional<LocationVisitAudit> findByHospitalVisitIdAndLocationIdAndAdmissionDatetimeAndDischargeDatetime(
             Long hospitalVisitId, Location location, Instant admissionTime, Instant dischargeTime);
 
     /**
@@ -61,17 +61,17 @@ public interface LocationVisitAuditRepository extends CrudRepository<LocationVis
         Set<Instant> cancelledDischarges = new HashSet<>();
         cancelledDischarges.add(cancellationTime);
         for (LocationVisitAudit audit : audits) {
-            if (audit.getDischargeTime() == null || audit.getAdmissionTime() == null) {
+            if (audit.getDischargeDatetime() == null || audit.getAdmissionDatetime() == null) {
                 continue;
             }
-            if (audit.getDischargeTime().equals(audit.getAdmissionTime()) && !audit.getInferredAdmission()) {
-                cancelledDischarges.add(audit.getDischargeTime());
+            if (audit.getDischargeDatetime().equals(audit.getAdmissionDatetime()) && !audit.getInferredAdmission()) {
+                cancelledDischarges.add(audit.getDischargeDatetime());
             }
         }
 
         LocationVisitAudit previousDischarge = null;
         for (LocationVisitAudit audit : audits) {
-            if (cancelledDischarges.contains(audit.getDischargeTime())) {
+            if (cancelledDischarges.contains(audit.getDischargeDatetime())) {
                 // skip cancelled discharges
                 continue;
             }

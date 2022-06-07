@@ -198,7 +198,7 @@ public class ConsultationRequestController {
         requestState.assignIfDifferent(msg.isClosedDueToDischarge(), request.getClosedDueToDischarge(), request::setClosedDueToDischarge);
         // only update status change time if the entity has been created or updated
         if (requestState.isEntityCreated() || requestState.isEntityUpdated()) {
-            requestState.assignIfDifferent(msg.getStatusChangeDatetime(), request.getStatusChangeTime(), request::setStatusChangeTime);
+            requestState.assignIfDifferent(msg.getStatusChangeDatetime(), request.getStatusChangeDatetime(), request::setStatusChangeDatetime);
         }
     }
 }
