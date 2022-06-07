@@ -125,7 +125,7 @@ public class PendingAdtController {
             plannedLocation = locationController.getOrCreateLocation(msg.getPendingLocation().get());
         }
 
-        var plannedState = getOrCreate(
+        RowState<PlannedMovement, PlannedMovementAudit> plannedState = getOrCreate(
                 allFromCancel, visit, plannedLocation, msg.getPendingEventType().toString(), msg.getCancelledDateTime(), validFrom, storedFrom
         );
         PlannedMovement plannedMovement = plannedState.getEntity();
