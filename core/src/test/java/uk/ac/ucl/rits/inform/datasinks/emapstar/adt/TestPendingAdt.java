@@ -210,7 +210,9 @@ class TestMessageStreamProvider implements ArgumentsProvider {
                 // request created twice, cancelled twice
                 Arguments.of(List.of(pendingTransfer, pendingTransferLater, cancelPending, cancelPendingLater), 2),
                 // null location added then cancelled
-                Arguments.of(List.of(transferNoLocation, cancelNoLocation), 1)
-                );
+                Arguments.of(List.of(transferNoLocation, cancelNoLocation), 1),
+                // mix of null location and cancellations
+                Arguments.of(List.of(transferNoLocation, pendingTransfer, pendingTransferLater, cancelNoLocation, cancelPending, cancelPendingLater), 3)
+        );
     }
 }
