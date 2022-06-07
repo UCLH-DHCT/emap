@@ -18,11 +18,11 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
      * Get patient condition, should be unique.
      * @param mrn           MRN entity
      * @param conditionType type of condition
-     * @param addedDateTime added date time
+     * @param addedDatetime added date time
      * @return possible patient condition
      */
-    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDateTime(
-            Mrn mrn, ConditionType conditionType, Instant addedDateTime
+    Optional<PatientCondition> findByMrnIdAndConditionTypeIdAndAddedDatetime(
+            Mrn mrn, ConditionType conditionType, Instant addedDatetime
     );
 
     /**
@@ -39,11 +39,11 @@ public interface PatientConditionRepository extends CrudRepository<PatientCondit
      * For testing, shortcut without requiring entities to be passed.
      * @param mrn           mrn sting
      * @param internalCode  EPIC code of the condition
-     * @param addedDateTime added date time
+     * @param addedDatetime added date time
      * @return possible patient condition
      */
-    Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(
-            String mrn, String internalCode, Instant addedDateTime
+    Optional<PatientCondition> findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(
+            String mrn, String internalCode, Instant addedDatetime
     );
 
     Optional<PatientCondition> findByConditionTypeIdAndInternalId(ConditionType conditionType, Long internalId);
