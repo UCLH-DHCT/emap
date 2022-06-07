@@ -28,7 +28,8 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
      * @return planned movement entities
      */
     @Query("from PlannedMovement "
-            + "where eventType = :eventType and hospitalVisitId = :hospitalVisitId and locationId = :plannedLocation "
+            + "where eventType = :eventType and hospitalVisitId = :hospitalVisitId "
+            + "and (locationId = :plannedLocation or (:plannedLocation is null and locationId is null)) "
             + "and ((eventDatetime = :eventDatetime) "
             + "      or (cancelledDatetime >= :eventDatetime and eventDatetime is null) "
             + "     )"
@@ -51,7 +52,8 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
      * @return planned movement entities
      */
     @Query("from PlannedMovement "
-            + "where eventType = :eventType and hospitalVisitId = :hospitalVisitId and locationId = :plannedLocation "
+            + "where eventType = :eventType and hospitalVisitId = :hospitalVisitId "
+            + "and (locationId = :plannedLocation or (:plannedLocation is null and locationId is null)) "
             + "and ((eventDatetime <= :eventDatetime and cancelledDatetime is null) "
             + "      or (cancelledDatetime >= :eventDatetime and eventDatetime is null) "
             + "     )"
