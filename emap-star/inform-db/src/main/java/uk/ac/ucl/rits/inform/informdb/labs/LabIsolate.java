@@ -94,6 +94,7 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
 
     private LabIsolate(LabIsolate other) {
         super(other);
+
         this.labIsolateId = other.labIsolateId;
         this.labResultId = other.labResultId;
         this.labInternalId = other.labInternalId;
@@ -101,7 +102,7 @@ public class LabIsolate extends TemporalCore<LabIsolate, LabIsolateAudit> {
         this.isolateName = other.isolateName;
         this.cultureType = other.cultureType;
         this.quantity = other.quantity;
-        this.clinicalInformation = clinicalInformation;
+        this.clinicalInformation = other.clinicalInformation;
     }
 
 
