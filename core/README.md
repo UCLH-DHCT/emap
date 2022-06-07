@@ -180,10 +180,14 @@ manages cloning multiple repositories and using configuration files.
 4. <details>
     <summary>Modify configuration</summary>
     Modify `global-configuration.yaml` with any passwords, usernames and URLs that need to be changed for a live version.
+    these will propagate into the individual `xxx-congic-envs` configuration file, which in turn is used 
+    by the`application.properties`.
     
     - For example, make sure `UDS_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
     - If you're running on your own machine, you can set EMAP_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
-    
+    - If you're on the GAE the RabbitMQ password should be strong to help prevent a user/malware outside the GAE from accessing the queue.
+
+
 </details>
 
 5. <details>
@@ -245,23 +249,7 @@ manages cloning multiple repositories and using configuration files.
 </details>
 
 
-### Dependencies and configuration
-
-Each service has its own configuration file, which is used by the service's `application.properties` file.
-
-The required envs in this file with example values are found in [emap-core-config-envs.EXAMPLE](emap-core-config-envs.EXAMPLE)
-
-#### `rabbit-envs` file
-
-This sets the username+password on the rabbitmq server. If you're on the GAE this should be a strong password to help prevent a user/malware outside the GAE from accessing the queue.
-
-[rabbitmq-config-envs.EXAMPLE](rabbitmq-config-envs.EXAMPLE)
-
-#### `global-config-envs` file
-
-This is used for specifying which port on the host your rabbitmq queue, fakeuds port should bind to, and for specifying the project name (`-p` option to docker-compose) to keep the Emap instances on the same docker host separate. Example found here:
-
-[global-config-envs.EXAMPLE](global-config-envs.EXAMPLE)
+## Miscellaneous
 
 Ports which are allocated per project are listed on the [GAE port log](https://liveuclac.sharepoint.com/sites/RITS-EMAP/_layouts/OneNote.aspx?id=%2Fsites%2FRITS-EMAP%2FSiteAssets%2FInform%20-%20Emap%20Notebook&wd=target%28_Collaboration%20Space%2FOrganisation%20Notes.one%7C3BDBA82E-CB01-45FF-B073-479542EA6D7E%2FGAE%20Port%20Log%7C1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF%2F%29),
 [onenote](https://liveuclac.sharepoint.com/sites/RITS-EMAP/SiteAssets/Inform%20-%20Emap%20Notebook/_Collaboration%20Space/Organisation%20Notes.one#GAE%20Port%20Log&section-id={3BDBA82E-CB01-45FF-B073-479542EA6D7E}&page-id={1C87DFDC-7FCF-4B63-BC51-2BA497BA8DBF}&end). 
