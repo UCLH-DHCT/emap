@@ -17,6 +17,7 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.MrnRepository;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.PlannedMovementRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.PlannedMovement;
 import uk.ac.ucl.rits.inform.interchange.InterchangeMessageFactory;
+import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 import uk.ac.ucl.rits.inform.interchange.adt.CancelPendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestPendingAdt extends MessageProcessingBase {
-    private final Logger logger = LoggerFactory.getLogger(TestPendingAdt.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestPendingAdt.class);
     @Autowired
     private MrnRepository mrnRepository;
     @Autowired
@@ -150,8 +151,7 @@ class TestPendingAdt extends MessageProcessingBase {
                 throw new InvalidClassException("Unrecognised class of message");
             }
         }
-        List<PlannedMovement> plannedMovements = plannedMovementRepository
-                .findAllByHospitalVisitIdEncounterAndLocationIdLocationString(VISIT_NUMBER, LOCATION_STRING);
+        List<PlannedMovement> plannedMovements = plannedMovementRepository.findAllByHospitalVisitIdEncounter(VISIT_NUMBER);
         assertEquals(expectedCount, plannedMovements.size());
         for (PlannedMovement pm : plannedMovements) {
             logger.trace("Testing planned movement has values set correctly");
@@ -186,10 +186,15 @@ class TestMessageStreamProvider implements ArgumentsProvider {
         PendingTransfer pendingTransfer = messageFactory.getAdtMessage("pending/A15.yaml");
         PendingTransfer pendingTransferLater = messageFactory.getAdtMessage("pending/A15.yaml");
         addAnHour(pendingTransferLater);
+        PendingTransfer transferNoLocation = messageFactory.getAdtMessage("pending/A15.yaml");
+        transferNoLocation.setPendingLocation(InterchangeValue.unknown());
+
 
         CancelPendingTransfer cancelPending = messageFactory.getAdtMessage("pending/A26.yaml");
         CancelPendingTransfer cancelPendingLater = messageFactory.getAdtMessage("pending/A26.yaml");
         addAnHour(cancelPendingLater);
+        PendingTransfer cancelNoLocation = messageFactory.getAdtMessage("pending/A15.yaml");
+        cancelNoLocation.setPendingLocation(InterchangeValue.unknown());
 
         return Stream.of(
                 // simple case of create and cancel, should have single entity
@@ -203,7 +208,9 @@ class TestMessageStreamProvider implements ArgumentsProvider {
                 // request created and cancelled twice, cancels all received before the pending
                 Arguments.of(List.of(cancelPending, cancelPendingLater, pendingTransfer, pendingTransferLater), 2),
                 // request created twice, cancelled twice
-                Arguments.of(List.of(pendingTransfer, pendingTransferLater, cancelPending, cancelPendingLater), 2)
-        );
+                Arguments.of(List.of(pendingTransfer, pendingTransferLater, cancelPending, cancelPendingLater), 2),
+                // null location added then cancelled
+                Arguments.of(List.of(transferNoLocation, cancelNoLocation), 1)
+                );
     }
 }

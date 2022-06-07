@@ -72,9 +72,8 @@ public interface PlannedMovementRepository extends CrudRepository<PlannedMovemen
 
     /**
      * For testing.
-     * @param encounter      encounter string
-     * @param locationString location string
+     * @param encounter encounter string
      * @return list of planned movements
      */
-    List<PlannedMovement> findAllByHospitalVisitIdEncounterAndLocationIdLocationString(String encounter, String locationString);
+    List<PlannedMovement> findAllByHospitalVisitIdEncounter(String encounter);
 }
