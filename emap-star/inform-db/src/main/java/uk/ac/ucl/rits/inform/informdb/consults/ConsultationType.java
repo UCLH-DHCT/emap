@@ -66,6 +66,7 @@ public class ConsultationType extends TemporalCore<ConsultationType, Consultatio
      */
     public ConsultationType(ConsultationType other) {
         super(other);
+        this.consultationTypeId = other.consultationTypeId;
         this.code = other.code;
         this.name = other.name;
     }
