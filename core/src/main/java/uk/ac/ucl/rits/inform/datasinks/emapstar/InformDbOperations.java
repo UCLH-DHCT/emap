@@ -218,8 +218,4 @@ public class InformDbOperations implements EmapOperationMessageProcessor {
         Instant storedFrom = Instant.now();
         labProcessor.processMessage(msg, storedFrom);
     }
-
-
-
-
 }
