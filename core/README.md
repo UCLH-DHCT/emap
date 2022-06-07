@@ -23,6 +23,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
     <summary>Clone repositories</summary>
    
     Emap-Core depends on both [Inform-DB](https://github.com/inform-health-informatics/Inform-DB) and [Emap-Interchange](https://github.com/inform-health-informatics/Emap-Interchange).
+    Clone each of them with e.g.
 
     ```bash
     cd ~/projects/EMAP
@@ -43,7 +44,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
    
     In the project pane on the top left of the IDE, switch to "Project Files" mode, right-click `Emap-Core/pom.xml` and select <b>Add as Maven project</b>.
     Do the same with `Emap-Interchange/pom.xml` and `Inform-DB/pom.xml` - not to be confused with `Inform-DB/inform-db/pom.xml`! 
-    If you add something by mistake, "Unlink Maven projects" in the Maven pane is the opposite of "Add..."
+    If you add something by mistake use "Unlink Maven projects" in the Maven pane, which is the opposite of "Add..."
 </details>
 
 5. <details>
@@ -51,7 +52,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
    
     Go to <b>File > Settings > and searching for `processor`</b>
     - Check `enable annotation preprocessing`
-    - Change the production sources directory to `classes`
+    - Change the production sources directory to `classes` as below
    
     ![preprocessor](img/annotation_processor.png)
 </details>
@@ -60,13 +61,13 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
     <summary>Reload Maven projects</summary>
    
     In the `Maven` pane (which should now have appeared on the top right of the IDE),
-    click the `Reimport all maven projects` or `Reload`
+    click **Reimport all maven projects** or **Reload**
 </details>
 
 7. <details>
     <summary>Add lombok and checkstyle plugins</summary>
    
-    Go to <b>File > Settings > search for plugins</b>
+    Go to <b>File > Settings > search for plugins</b>, search lombok and checkstyle and install them
 </details>
 
 8. <details>
@@ -85,7 +86,7 @@ These setup instructions are aimed at developing in [IntelliJ IDEA](https://www.
 
 ## Running tests
 
-Emap-Core and the other repositories come with unit tests in `<repo-name>/src/test/java`.  Run all the tests by
+Emap-Core and the other repositories include unit tests in `<repo-name>/src/test/java`.  Run all the tests by
 
 1. <details>
     <summary>Creating a configuration</summary>
@@ -102,7 +103,7 @@ Emap-Core and the other repositories come with unit tests in `<repo-name>/src/te
 </details>
 
 2. <details>
-    <summary>Compile and running</summary>
+    <summary>Compiling and running</summary>
     
     Go to <b>Run > Run</b>, which should create a window in the bottom pane
     ![tests pass](img/test_pass.png)
@@ -122,7 +123,7 @@ Tests can also be run individually by clicking the play button on a class within
 ## Deploying a live version
 
 How to deploy an instance of Emap on the ULCH GAE, to be run on real patient data. [emap-setup](https://github.com/inform-health-informatics/emap-setup)
-manages cloning multiple repositories and using configuration files.
+manages the multiple repositories and configuration files.
 
 
 1. <details>
@@ -135,13 +136,13 @@ manages cloning multiple repositories and using configuration files.
     mkdir /gae/emap-live
     chgrp -R docker /gae/emap-live
     chmod -R g+rws /gae/emap-live
-    setfacl -R -m d:g::rwX  /gae/emap-live
+    setfacl -R -m d:g::rwX /gae/emap-live
     ```
     
-    to create, modify the group, change ownership (`s` ensures the group ownership is inherited (but not the permissions))
+    to create, modify the group, change ownership (`s` ensures the group ownership but not the permissions are inherited)
     and inherit permissions.
     
-    It should now look like e.g.:
+    It should now look like e.g.
     
     ```bash
     $ ls -la /gae/emap-live
@@ -156,14 +157,14 @@ manages cloning multiple repositories and using configuration files.
     <summary>Set the git configuration</summary>
 
     Create a [personal access token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) 
-    for the next step and allow your username and access token to be saved with:
+    for the next step and allow your username and access token to be saved with
 
     ```shell
     git config --global credential.helper store
     ```
 
-    **Note**: this will store the connection information in plain text in your home directory. We use https because 
-    outgoing ssh is blocked from the GAE.
+    **Note**: this will allow storage of the connection information in plain text in your home directory. We use https 
+    because outgoing ssh is blocked from the GAE.
 </details>
 
 3. <details>
@@ -174,7 +175,7 @@ manages cloning multiple repositories and using configuration files.
     ```bash
     git clone https://github.com/inform-health-informatics/emap-setup.git
     ```
-    this will prompt your for your GitHub username and the personal access token generated in (2.). Then install with
+    this will prompt your for your GitHub username and the personal access token (generated in 2.). Then install with
 
     ```bash
     cd emap-setup
@@ -190,14 +191,13 @@ manages cloning multiple repositories and using configuration files.
     <summary>Modify configuration</summary>
    
     Modify `global-configuration.yaml` with any passwords, usernames and URLs that need to be changed for a live version.
-    these will propagate into the individual `xxx-congic-envs` configuration file, which in turn is used 
+    these will propagate into the individual `xxx-congic-envs` configuration files, which in turn are used 
     by the`application.properties`.
     
     - For example, make sure `UDS_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
-    - If you're running on your own machine, you can set EMAP_PROJECT_NAME to whatever you like. If running on the gae I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
+    - If you're running locally, you can set `EMAP_PROJECT_NAME` to whatever you like. If running on the GAE I suggest something like `yourname_dev` or `emaplive` depending on which instance you are manipulating.
     - If you're on the GAE the RabbitMQ password should be strong to help prevent a user/malware outside the GAE from accessing the queue.
-
-
+    
 </details>
 
 5. <details>
@@ -205,7 +205,7 @@ manages cloning multiple repositories and using configuration files.
 
     Repositories must be checked out to the correct branches. "Correct" will depend on what you're trying to do.
     Conventionally a live instance would all be deployed from master, but during the development phase `develop`
-    or a feature branch is more likely to be the correct.
+    or a feature branch is more likely to be the correct. Clone all the master branches with:
 
     ```bash
     emap setup --init --branch master
