@@ -61,9 +61,13 @@ public class AdtProcessor {
     @Transactional
     public void processMessage(final AdtMessage msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
         Instant messageDateTime = msg.bestGuessAtValidFrom();
-        Mrn mrn = processPersonLevel(msg, storedFrom, messageDateTime);
-        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+        HospitalVisit visit = processPersonAndVisit(msg, storedFrom, messageDateTime);
         patientLocationController.processVisitLocation(visit, msg, storedFrom);
+    }
+
+    private HospitalVisit processPersonAndVisit(AdtMessage msg, Instant storedFrom, Instant validFrom) throws RequiredDataMissingException {
+        Mrn mrn = processPersonLevel(msg, storedFrom, validFrom);
+        return visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
     }
 
     /**
@@ -180,8 +184,7 @@ public class AdtProcessor {
     @Transactional
     public void processPendingAdt(PendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
         Instant validFrom = msg.bestGuessAtValidFrom();
-        Mrn mrn = processPersonLevel(msg, storedFrom, validFrom);
-        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+        HospitalVisit visit = processPersonAndVisit(msg, storedFrom, validFrom);
         pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
     }
 
@@ -196,8 +199,7 @@ public class AdtProcessor {
     @Transactional
     public void processPendingAdt(CancelPendingTransfer msg, Instant storedFrom) throws RequiredDataMissingException {
         Instant validFrom = msg.bestGuessAtValidFrom();
-        Mrn mrn = processPersonLevel(msg, storedFrom, validFrom);
-        HospitalVisit visit = visitController.updateOrCreateHospitalVisit(msg, storedFrom, mrn);
+        HospitalVisit visit = processPersonAndVisit(msg, storedFrom, validFrom);
         pendingAdtController.processMsg(visit, msg, validFrom, storedFrom);
     }
 }
