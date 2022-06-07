@@ -87,23 +87,18 @@ public class LocationController {
     @Transactional
     @CacheEvict(value = "location", key = "{#msg.hl7String}")
     public void processMessage(LocationMetadata msg, Instant storedFrom) throws IncompatibleDatabaseStateException {
-        try {
-            Location location = getOrCreateLocation(msg.getHl7String());
-            Department department = updateOrCreateDepartmentAndState(msg, storedFrom);
+        Location location = getOrCreateLocation(msg.getHl7String());
+        Department department = updateOrCreateDepartmentAndState(msg, storedFrom);
 
-            Room room = null;
-            if (msg.getRoomCsn() != null) {
-                room = updateOrCreateRoomAndState(department, msg, storedFrom);
-            }
-            Bed bed = null;
-            if (msg.getBedCsn() != null) {
-                bed = bedController.processBedStateAndFacility(room, msg, storedFrom);
-            }
-            addLocationForeignKeys(location, department, room, bed);
-        } catch (NullPointerException e) {
-            logger.error("NullPointer", e);
-            throw e;
+        Room room = null;
+        if (msg.getRoomCsn() != null) {
+            room = updateOrCreateRoomAndState(department, msg, storedFrom);
         }
+        Bed bed = null;
+        if (msg.getBedCsn() != null) {
+            bed = bedController.processBedStateAndFacility(room, msg, storedFrom);
+        }
+        addLocationForeignKeys(location, department, room, bed);
     }
 
     /**
