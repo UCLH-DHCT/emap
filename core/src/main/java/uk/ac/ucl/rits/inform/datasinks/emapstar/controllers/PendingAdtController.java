@@ -33,7 +33,6 @@ public class PendingAdtController {
 
     /**
      * Using a FindMovement interface so that we can reuse the same get or create method, using a different repository method.
-     * Is this being too clever for my own good, and is it understandable?
      */
     private final FindMovement allFromRequest;
     private final FindMovement allFromCancel;
@@ -57,7 +56,11 @@ public class PendingAdtController {
     /**
      * Process pending ADT request.
      * <p>
-     * If multiple cancelled ADTs with no known event time, the earliest cancellation will be updated with this request event time.
+     * The Hl7 feed will eventually be changed so that we have an identifier per pending transfer, until then we guarantee the order of cancellations.
+     * If we get messages out of order and have several cancellation messages before we receive any requests,
+     * then the first request message for the location and encounter will add the eventDatetime to the earliest cancellation.
+     * Subsequent requests will add the eventDatetime to the earliest cancellation with no eventDatetime, or create a new request if none exist
+     * after the pending request eventDatetime.
      * @param visit      associated visit
      * @param msg        pending adt
      * @param validFrom  time in the hospital when the message was created
