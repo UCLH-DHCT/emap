@@ -98,9 +98,7 @@ public class PendingAdtController {
         logger.debug("Getting or creating PendingMovement");
         return findFirstMovement(visit, plannedLocation, pendingEventType, eventDateTime, findMovement)
                 .map(pm -> new RowState<>(pm, validFrom, storedFrom, false))
-                .orElseGet(() -> {
-                    return new RowState<>(new PlannedMovement(visit, plannedLocation, pendingEventType), validFrom, storedFrom, true);
-                });
+                .orElseGet(() -> new RowState<>(new PlannedMovement(visit, plannedLocation, pendingEventType), validFrom, storedFrom, true));
     }
 
     private Optional<PlannedMovement> findFirstMovement(

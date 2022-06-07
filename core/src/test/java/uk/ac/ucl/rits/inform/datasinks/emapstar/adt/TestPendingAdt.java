@@ -193,7 +193,7 @@ class TestMessageStreamProvider implements ArgumentsProvider {
         CancelPendingTransfer cancelPending = messageFactory.getAdtMessage("pending/A26.yaml");
         CancelPendingTransfer cancelPendingLater = messageFactory.getAdtMessage("pending/A26.yaml");
         addAnHour(cancelPendingLater);
-        PendingTransfer cancelNoLocation = messageFactory.getAdtMessage("pending/A15.yaml");
+        CancelPendingTransfer cancelNoLocation = messageFactory.getAdtMessage("pending/A26.yaml");
         cancelNoLocation.setPendingLocation(InterchangeValue.unknown());
 
         return Stream.of(
