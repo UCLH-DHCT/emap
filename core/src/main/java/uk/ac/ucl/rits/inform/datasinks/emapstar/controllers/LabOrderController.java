@@ -26,6 +26,7 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -95,6 +96,21 @@ public class LabOrderController {
                     return labBatteryRepo.save(labBattery);
                 });
     }
+
+    /**
+     * For Lab metadata, should know if an entity is created or already exists.
+     * <p>
+     * Throwing exception to determine if an entity already exists.
+     * @param batteryCode  battery code
+     * @param codingSystem coding system that battery is defined by
+     * @return LabBattery from cache or database
+     * @throws NoSuchElementException if entity not in database
+     */
+    @Cacheable(value = "labBattery", key = "{ #batteryCode, #codingSystem }")
+    public LabBattery findLabBatteryOrThrow(String batteryCode, String codingSystem) {
+        return labBatteryRepo.findByBatteryCodeAndLabProvider(batteryCode, codingSystem).orElseThrow();
+    }
+
 
     /**
      * Process lab number and lab labSample information, (including questions) returning the lab number.
