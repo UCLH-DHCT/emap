@@ -22,7 +22,6 @@ import uk.ac.ucl.rits.inform.informdb.labs.LabBattery;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryAudit;
 import uk.ac.ucl.rits.inform.informdb.labs.LabBatteryElement;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinition;
 import uk.ac.ucl.rits.inform.informdb.labs.LabTestDefinitionAudit;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
@@ -135,11 +134,6 @@ public class LabController {
             logger.trace("Creating new Lab Test Definition {}", testDefinition);
             return new RowState<>(testDefinition, validFrom, storedFrom, true);
         }
-    }
-
-
-    public LabSample getLabSampleOrThrow(String specimenBarcode) throws IncompatibleDatabaseStateException {
-        return labOrderController.getLabSampleOrThrow(specimenBarcode);
     }
 
     /**
