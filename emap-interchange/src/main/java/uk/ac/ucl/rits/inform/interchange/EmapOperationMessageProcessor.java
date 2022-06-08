@@ -6,7 +6,7 @@ import uk.ac.ucl.rits.inform.interchange.adt.DeletePersonInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
-import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
+import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
@@ -103,12 +103,6 @@ public interface EmapOperationMessageProcessor {
      * @throws EmapOperationMessageProcessingException if message cannot be processed
      */
     void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException;
-
-    /**
-     * @param msg the ClimbSequence msg to process
-     * @throws EmapOperationMessageProcessingException if message cannot be processed
-     */
-    void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException;
 
     /**
      * @param msg the LabMetadataMsg to process
