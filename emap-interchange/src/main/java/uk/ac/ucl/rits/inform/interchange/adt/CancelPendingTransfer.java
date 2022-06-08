@@ -20,7 +20,7 @@ import java.time.Instant;
 @ToString(callSuper = true)
 public class CancelPendingTransfer extends AdtMessage implements PendingEvent, AdtCancellation {
     private PendingType pendingEventType = PendingType.TRANSFER;
-    private InterchangeValue<String> pendingLocation = InterchangeValue.unknown();
+    private InterchangeValue<String> pendingDestination = InterchangeValue.unknown();
     private Instant cancelledDateTime;
 
 

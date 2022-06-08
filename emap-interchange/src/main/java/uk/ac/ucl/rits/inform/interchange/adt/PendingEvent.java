@@ -15,10 +15,10 @@ public interface PendingEvent {
     /**
      * @return Pending transfer location if known
      */
-    InterchangeValue<String> getPendingLocation();
+    InterchangeValue<String> getPendingDestination();
 
     /**
      * @param location Concatenated location string
      */
-    void setPendingLocation(InterchangeValue<String> location);
+    void setPendingDestination(InterchangeValue<String> location);
 }

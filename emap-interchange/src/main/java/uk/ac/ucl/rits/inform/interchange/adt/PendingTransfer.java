@@ -18,7 +18,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
 @ToString(callSuper = true)
 public class PendingTransfer extends AdtMessage implements PendingEvent {
     private PendingType pendingEventType = PendingType.TRANSFER;
-    private InterchangeValue<String> pendingLocation = InterchangeValue.unknown();
+    private InterchangeValue<String> pendingDestination = InterchangeValue.unknown();
 
     @Override
     public void processMessage(EmapOperationMessageProcessor processor) throws EmapOperationMessageProcessingException {
