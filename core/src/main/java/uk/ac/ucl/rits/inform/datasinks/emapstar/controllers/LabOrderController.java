@@ -26,7 +26,6 @@ import uk.ac.ucl.rits.inform.interchange.OrderCodingSystem;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 
 import java.time.Instant;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -104,7 +103,7 @@ public class LabOrderController {
      * @param batteryCode  battery code
      * @param codingSystem coding system that battery is defined by
      * @return LabBattery from cache or database
-     * @throws NoSuchElementException if entity not in database
+     * @throws java.util.NoSuchElementException if entity not in database
      */
     @Cacheable(value = "labBattery", key = "{ #batteryCode, #codingSystem }")
     public LabBattery findLabBatteryOrThrow(String batteryCode, String codingSystem) {
