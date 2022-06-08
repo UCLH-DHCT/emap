@@ -237,7 +237,7 @@ class LabCache {
 
     @CachePut(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
     public void clearItemFromTestDefinitionCache(String labProvider, String testLabCode) {
-        logger.trace("** Clearing cache for Lab test definition {} from labProvider {}", testLabCode, labProvider);
+        logger.trace("** Overwriting cache value for Lab test definition '{}' from labProvider '{}'", testLabCode, labProvider);
     }
 
     /**
