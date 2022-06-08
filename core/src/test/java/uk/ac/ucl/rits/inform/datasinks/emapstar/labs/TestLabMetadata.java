@@ -37,13 +37,6 @@ public class TestLabMetadata extends MessageProcessingBase {
     @Autowired
     LabTestDefinitionAuditRepository labTestDefinitionAuditRepository;
 
-    /*
-     We don't get information about *which* tests are in which batteries from Clarity.
-     We can only infer this from the test results we get.
-     So Lab Metadata is going to be about fleshing out the battery and test data we do have,
-     but the ordering of Metadata vs Orders may vary, so important to use getOrCreate idiom always,
-     and update fields (with auditing?) when finished.
-     */
 
     @Test
     public void testImpliedMetadata() throws Exception {

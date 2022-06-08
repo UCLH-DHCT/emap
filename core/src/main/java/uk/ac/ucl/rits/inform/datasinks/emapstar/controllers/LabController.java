@@ -144,6 +144,10 @@ public class LabController {
 
     /**
      * Flesh out lab battery or lab test metadata, but not battery element.
+     * <p>
+     * We don't get information about *which* tests are in which batteries from Clarity.
+     * We can only infer this from the test results we get.
+     * So Lab Metadata is going to be about fleshing out the battery and test data we do have,
      * @param labMetadataMsg lab metadata message
      * @param storedFrom     stored from timestamp
      * @throws RequiredDataMissingException if message type is not recognised
