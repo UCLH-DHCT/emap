@@ -4,16 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.ClimbSequenceController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LabController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.exceptions.RequiredDataMissingException;
 import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
-import uk.ac.ucl.rits.inform.informdb.labs.LabSample;
 import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
-import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabMetadataMsg;
 
@@ -29,20 +26,17 @@ public class LabProcessor {
     private final PersonController personController;
     private final VisitController visitController;
     private final LabController labController;
-    private final ClimbSequenceController climbSequenceController;
 
     /**
-     * @param personController        controller for person tables
-     * @param visitController         controller for visit tables
-     * @param labController           controller for lab tables
-     * @param climbSequenceController controls interactions with climb sequence tables
+     * @param personController controller for person tables
+     * @param visitController  controller for visit tables
+     * @param labController    controller for lab tables
      */
     public LabProcessor(PersonController personController, VisitController visitController,
-                        LabController labController, ClimbSequenceController climbSequenceController) {
+                        LabController labController) {
         this.personController = personController;
         this.visitController = visitController;
         this.labController = labController;
-        this.climbSequenceController = climbSequenceController;
     }
 
     /**
@@ -64,21 +58,6 @@ public class LabProcessor {
             logger.debug("No visit for LabOrder, skipping creating an encounter");
         }
         labController.processLabOrder(mrn, visit, msg, storedFrom);
-    }
-
-    /**
-     * Process a MRC CLIMB sequence message.
-     * @param msg        climb sequence
-     * @param storedFrom Time the message started to be processed by star
-     * @throws EmapOperationMessageProcessingException
-     */
-    @Transactional
-    public void processMessage(final ClimbSequenceMsg msg, final Instant storedFrom) throws EmapOperationMessageProcessingException {
-        LabSample labSample = null;
-        if (msg.getSpecimenBarcode() != null) {
-            labSample = labController.getLabSampleOrThrow(msg.getSpecimenBarcode());
-        }
-        climbSequenceController.processSequence(msg, labSample, msg.getSequenceValidFrom(), storedFrom);
     }
 
     @Transactional
