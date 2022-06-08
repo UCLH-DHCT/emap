@@ -2,7 +2,7 @@ package uk.ac.ucl.rits.inform.datasinks.emapstar.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -235,7 +235,7 @@ class LabCache {
         return labTestDefinitionRepo.findByLabProviderAndTestLabCode(labProvider, testLabCode).orElseThrow();
     }
 
-    @CacheEvict(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
+    @CachePut(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
     public void clearItemFromTestDefinitionCache(String labProvider, String testLabCode) {
         logger.trace("** Clearing cache for Lab test definition {} from labProvider {}", testLabCode, labProvider);
     }
@@ -245,10 +245,12 @@ class LabCache {
      * @param battery        lab battery entity
      * @param validFrom      most recent change to results
      * @param storedFrom     time that star started processing the message
+     * @return Lab Battery element for cache
      */
     @Cacheable(value = "labBatteryElement", key = "{ #testDefinition.labTestDefinitionId , #battery.labBatteryId }")
-    public void createLabBatteryElementIfNotExists(LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
-        labBatteryElementRepo
+    public LabBatteryElement createLabBatteryElementIfNotExists(
+            LabTestDefinition testDefinition, LabBattery battery, Instant validFrom, Instant storedFrom) {
+        return labBatteryElementRepo
                 .findByLabBatteryIdAndLabTestDefinitionId(battery, testDefinition)
                 .orElseGet(() -> {
                     LabBatteryElement batteryElement = new LabBatteryElement(testDefinition, battery, validFrom, storedFrom);
@@ -267,10 +269,12 @@ class LabCache {
         definitionState.saveEntityOrAuditLogIfRequired(labTestDefinitionRepo, labTestDefinitionAuditRepo);
     }
 
-    @CacheEvict(value = "labBattery",
+    @CachePut(value = "labBattery",
             key = "{ #definitionState.getEntity().getBatteryCode(), #definitionState.getEntity().getLabProvider() }")
-    public void saveBatteryEntityIfRequired(RowState<LabBattery, LabBatteryAudit> definitionState) {
-        logger.warn("JES: battery put, should cache evict");
+    public LabBattery saveBatteryEntityIfRequired(RowState<LabBattery, LabBatteryAudit> definitionState) {
+        logger.trace("** Overwriting cache value for battery '{}' for lab provider '{}'",
+                definitionState.getEntity().getBatteryCode(), definitionState.getEntity().getLabProvider());
         definitionState.saveEntityOrAuditLogIfRequired(labBatteryRepository, labBatteryAuditRepository);
+        return definitionState.getEntity();
     }
 }
