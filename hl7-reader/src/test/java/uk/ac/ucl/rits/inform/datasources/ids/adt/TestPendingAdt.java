@@ -43,7 +43,7 @@ class TestPendingAdt extends TestHl7MessageStream {
      */
     @Test
     void testPendingLocationUnknown() throws Exception {
-        PendingEvent msg = (PendingEvent) processSingleAdtMessage("Adt/pending/a15_null_pending_location.txt");
+        PendingEvent msg = (PendingEvent) processSingleAdtMessage("Adt/pending/A15_null_pending_location.txt");
 
         assertTrue(msg.getPendingDestination().isUnknown());
     }
