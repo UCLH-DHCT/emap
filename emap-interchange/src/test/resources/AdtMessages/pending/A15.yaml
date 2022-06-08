@@ -10,7 +10,7 @@ fullLocationString:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "ED^COVID MAJORS 16^16-COVID MAJORS"
-pendingLocation:
+pendingDestination:
   "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
   status: "SAVE"
   value: "1020100166^SDEC BY02^11 SDEC"
