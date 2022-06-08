@@ -68,8 +68,8 @@ public class PendingAdtController {
      */
     public void processMsg(HospitalVisit visit, PendingTransfer msg, Instant validFrom, Instant storedFrom) {
         Location plannedLocation = null;
-        if (msg.getPendingLocation().isSave()) {
-            plannedLocation = locationController.getOrCreateLocation(msg.getPendingLocation().get());
+        if (msg.getPendingDestination().isSave()) {
+            plannedLocation = locationController.getOrCreateLocation(msg.getPendingDestination().get());
         }
 
         RowState<PlannedMovement, PlannedMovementAudit> plannedState = getOrCreate(
@@ -121,8 +121,8 @@ public class PendingAdtController {
      */
     public void processMsg(HospitalVisit visit, CancelPendingTransfer msg, Instant validFrom, Instant storedFrom) {
         Location plannedLocation = null;
-        if (msg.getPendingLocation().isSave()) {
-            plannedLocation = locationController.getOrCreateLocation(msg.getPendingLocation().get());
+        if (msg.getPendingDestination().isSave()) {
+            plannedLocation = locationController.getOrCreateLocation(msg.getPendingDestination().get());
         }
 
         RowState<PlannedMovement, PlannedMovementAudit> plannedState = getOrCreate(
