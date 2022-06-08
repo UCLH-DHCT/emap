@@ -21,7 +21,9 @@ import java.time.Instant;
 /**
  * \brief Tracks the final history for each planned movement within the hospital.
  * <p>
- * Each
+ * Currently we don't get the id for a PND event from EPIC, which means that we try to match an update to an existing pending transfer
+ * or a cancellation of one, but this only works if the location doesn't change during an update.
+ * There is an open Sherlock to get a primary key added, which will allow us to always update the correct transfer.
  * @author Stef Piatek
  */
 @Entity
