@@ -112,10 +112,8 @@ public class LabController {
 
         if (definitionState.isEntityCreated() || !Objects.equals(testDefinition.getLabDepartment(), labDepartment)) {
             definitionState.assignIfDifferent(labDepartment, testDefinition.getLabDepartment(), testDefinition::setLabDepartment);
-            cache.clearItemFromTestDefinitionCache(codingSystem, testCode);
+            cache.updateLabTestDefinitionCache(definitionState);
         }
-
-        cache.saveEntityIfRequired(definitionState);
 
         return testDefinition;
     }
@@ -166,8 +164,12 @@ public class LabController {
         LabBattery battery = labOrderController.getOrCreateLabBattery(
                 labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString(), validFrom, storedFrom);
         RowState<LabBattery, LabBatteryAudit> labBatteryRowState = new RowState<>(battery, validFrom, storedFrom, false);
-        labBatteryRowState.assignIfDifferent(labMetadataMsg.getName(), battery.getBatteryName(), battery::setBatteryName);
-        cache.saveBatteryEntityIfRequired(labBatteryRowState);
+
+        if (labBatteryRowState.isEntityCreated() || battery.getBatteryName() == null || battery.getValidFrom().isBefore(validFrom)) {
+            labBatteryRowState.assignIfDifferent(labMetadataMsg.getName(), battery.getBatteryName(), battery::setBatteryName);
+            cache.saveEntityAndUpdateCache(labBatteryRowState);
+
+        }
     }
 
     /**
@@ -182,11 +184,10 @@ public class LabController {
         );
         LabTestDefinition testDefinition = definitionState.getEntity();
 
-        if (testDefinition.getName() == null || testDefinition.getValidFrom().isBefore(validFrom)) {
+        if (definitionState.isEntityCreated() || testDefinition.getName() == null || testDefinition.getValidFrom().isBefore(validFrom)) {
             definitionState.assignIfDifferent(msg.getName(), testDefinition.getName(), testDefinition::setName);
-            cache.clearItemFromTestDefinitionCache(msg.getCodingSystem().toString(), msg.getShortCode());
+            cache.updateLabTestDefinitionCache(definitionState);
         }
-        cache.saveEntityIfRequired(definitionState);
     }
 }
 
@@ -231,13 +232,22 @@ class LabCache {
      */
     @Cacheable(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
     public LabTestDefinition findExistingLabTestDefinition(String labProvider, String testLabCode) {
-        logger.trace("** Querying Lab test definition {} from labProvider {}", testLabCode, labProvider);
+        logger.trace("** Querying Lab test definition '{}' from labProvider '{}'", testLabCode, labProvider);
         return labTestDefinitionRepo.findByLabProviderAndTestLabCode(labProvider, testLabCode).orElseThrow();
     }
 
-    @CachePut(value = "labTestDefinition", key = "{ #labProvider , #testLabCode }")
-    public void clearItemFromTestDefinitionCache(String labProvider, String testLabCode) {
-        logger.trace("** Overwriting cache value for Lab test definition '{}' from labProvider '{}'", testLabCode, labProvider);
+    /**
+     * Save entity if require and update cache with the LabTestDefinition entity.
+     * @param definitionState to save and then cache
+     * @return testDefinition for the cache.
+     */
+    @CachePut(value = "labTestDefinition", key = "{ #definitionState.entity.labProvider , #definitionState.entity.testLabCode }")
+    public LabTestDefinition updateLabTestDefinitionCache(RowState<LabTestDefinition, LabTestDefinitionAudit> definitionState) {
+        LabTestDefinition testDefinition = definitionState.getEntity();
+        logger.trace("** Overwriting cache value for Lab test definition '{}' from labProvider '{}'",
+                testDefinition.getTestLabCode(), testDefinition.getLabProvider());
+        definitionState.saveEntityOrAuditLogIfRequired(labTestDefinitionRepo, labTestDefinitionAuditRepo);
+        return testDefinition;
     }
 
     /**
@@ -260,18 +270,13 @@ class LabCache {
     }
 
     /**
-     * Saving entity within the cache as we're using it for accessing repositories.
-     * <p>
-     * Saves us having the lab test definition repo in multiple classes, so single point where you expect to interact with the tables.
-     * @param definitionState that may have been created or updated, so will need to be persisted accordingly
+     * Save and overwrite cache for LabBattery.
+     * @param definitionState to update and then cache the LabBattery
+     * @return LabBatter for the cache
      */
-    void saveEntityIfRequired(RowState<LabTestDefinition, LabTestDefinitionAudit> definitionState) {
-        definitionState.saveEntityOrAuditLogIfRequired(labTestDefinitionRepo, labTestDefinitionAuditRepo);
-    }
-
     @CachePut(value = "labBattery",
             key = "{ #definitionState.getEntity().getBatteryCode(), #definitionState.getEntity().getLabProvider() }")
-    public LabBattery saveBatteryEntityIfRequired(RowState<LabBattery, LabBatteryAudit> definitionState) {
+    public LabBattery saveEntityAndUpdateCache(RowState<LabBattery, LabBatteryAudit> definitionState) {
         logger.trace("** Overwriting cache value for battery '{}' for lab provider '{}'",
                 definitionState.getEntity().getBatteryCode(), definitionState.getEntity().getLabProvider());
         definitionState.saveEntityOrAuditLogIfRequired(labBatteryRepository, labBatteryAuditRepository);
