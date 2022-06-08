@@ -8,7 +8,7 @@ import uk.ac.ucl.rits.inform.interchange.InterchangeValue;
  */
 public interface PendingEvent {
     /**
-     * @return Type of pending event.
+     * @return Type of pending event
      */
     PendingType getPendingEventType();
 
@@ -18,7 +18,7 @@ public interface PendingEvent {
     InterchangeValue<String> getPendingLocation();
 
     /**
-     * @param location concatenated location string
+     * @param location Concatenated location string
      */
     void setPendingLocation(InterchangeValue<String> location);
 }
