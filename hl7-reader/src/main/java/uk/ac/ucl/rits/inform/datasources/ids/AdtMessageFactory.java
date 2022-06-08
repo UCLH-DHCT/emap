@@ -250,7 +250,7 @@ public class AdtMessageFactory {
                 break;
             case "A15":
                 PendingTransfer pendingTransfer = new PendingTransfer();
-                setPendingLocation(pv1Wrap, pendingTransfer);
+                setPendingDestination(pv1Wrap, pendingTransfer);
                 msg = pendingTransfer;
                 break;
             case "A17":
@@ -258,7 +258,7 @@ public class AdtMessageFactory {
                 break;
             case "A26":
                 CancelPendingTransfer cancelPendingTransfer = new CancelPendingTransfer();
-                setPendingLocation(pv1Wrap, cancelPendingTransfer);
+                setPendingDestination(pv1Wrap, cancelPendingTransfer);
                 setCancellationDatetime(evn, cancelPendingTransfer);
                 msg = cancelPendingTransfer;
                 break;
@@ -447,8 +447,8 @@ public class AdtMessageFactory {
         adtCancellation.setCancelledDateTime(HL7Utils.interpretLocalTime(evn.getEvn6_EventOccurred()));
     }
 
-    private void setPendingLocation(PV1Wrap pv1Wrap, PendingEvent pendingEvent) {
+    private void setPendingDestination(PV1Wrap pv1Wrap, PendingEvent pendingEvent) {
         String pendingLocation = pv1Wrap.getPendingLocation();
-        pendingEvent.setPendingLocation(InterchangeValue.buildFromHl7(pendingLocation));
+        pendingEvent.setPendingDestination(InterchangeValue.buildFromHl7(pendingLocation));
     }
 }

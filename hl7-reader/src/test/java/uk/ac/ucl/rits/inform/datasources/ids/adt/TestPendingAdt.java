@@ -32,7 +32,7 @@ class TestPendingAdt extends TestHl7MessageStream {
         PendingEvent msg = (PendingEvent) processSingleAdtMessage("Adt/pending/A15.txt");
 
         assertEquals(PendingType.TRANSFER, msg.getPendingEventType());
-        assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), msg.getPendingLocation());
+        assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), msg.getPendingDestination());
     }
 
     /**
@@ -45,7 +45,7 @@ class TestPendingAdt extends TestHl7MessageStream {
     void testPendingLocationUnknown() throws Exception {
         PendingEvent msg = (PendingEvent) processSingleAdtMessage("Adt/pending/a15_null_pending_location.txt");
 
-        assertTrue(msg.getPendingLocation().isUnknown());
+        assertTrue(msg.getPendingDestination().isUnknown());
     }
 
     /**
@@ -59,7 +59,7 @@ class TestPendingAdt extends TestHl7MessageStream {
         CancelPendingTransfer msg = (CancelPendingTransfer) processSingleAdtMessage("Adt/pending/A26.txt");
 
         assertEquals(PendingType.TRANSFER, msg.getPendingEventType());
-        assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), msg.getPendingLocation());
+        assertEquals(InterchangeValue.buildFromHl7("1020100166^SDEC BY02^11 SDEC"), msg.getPendingDestination());
         assertEquals(Instant.parse("2022-04-21T23:37:58Z"), msg.getCancelledDateTime());
     }
 
