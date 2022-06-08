@@ -161,14 +161,19 @@ public class LabController {
 
     private void updateOrCreateLabBatteryMetadata(LabMetadataMsg labMetadataMsg, Instant storedFrom) {
         Instant validFrom = labMetadataMsg.getValidFrom();
-        LabBattery battery = labOrderController.getOrCreateLabBattery(
-                labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString(), validFrom, storedFrom);
-        RowState<LabBattery, LabBatteryAudit> labBatteryRowState = new RowState<>(battery, validFrom, storedFrom, false);
+        RowState<LabBattery, LabBatteryAudit> labBatteryRowState;
+        LabBattery battery;
+        try {
+            battery = labOrderController.findLabBatteryOrThrow(labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString());
+            labBatteryRowState = new RowState<>(battery, validFrom, storedFrom, false);
+        } catch (NoSuchElementException e) {
+            battery = new LabBattery(labMetadataMsg.getShortCode(), labMetadataMsg.getCodingSystem().toString(), validFrom, storedFrom);
+            labBatteryRowState = new RowState<>(battery, validFrom, storedFrom, true);
+        }
 
         if (labBatteryRowState.isEntityCreated() || battery.getBatteryName() == null || battery.getValidFrom().isBefore(validFrom)) {
             labBatteryRowState.assignIfDifferent(labMetadataMsg.getName(), battery.getBatteryName(), battery::setBatteryName);
             cache.saveEntityAndUpdateCache(labBatteryRowState);
-
         }
     }
 
