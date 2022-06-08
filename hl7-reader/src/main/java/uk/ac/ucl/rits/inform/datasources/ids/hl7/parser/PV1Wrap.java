@@ -63,7 +63,7 @@ public interface PV1Wrap {
 
     private String createLocationString(PL currentLocation) {
         String joinedLocations = String.join("^", getWardCode(currentLocation), getRoomCode(currentLocation), getBed(currentLocation));
-        return (!"null^null^null".equals(joinedLocations)) ? joinedLocations : null;
+        return ("null^null^null".equals(joinedLocations)) ? null : joinedLocations;
     }
 
     /**
