@@ -187,14 +187,14 @@ class TestMessageStreamProvider implements ArgumentsProvider {
         PendingTransfer pendingTransferLater = messageFactory.getAdtMessage("pending/A15.yaml");
         addAnHour(pendingTransferLater);
         PendingTransfer transferNoLocation = messageFactory.getAdtMessage("pending/A15.yaml");
-        transferNoLocation.setPendingLocation(InterchangeValue.unknown());
+        transferNoLocation.setPendingDestination(InterchangeValue.unknown());
 
 
         CancelPendingTransfer cancelPending = messageFactory.getAdtMessage("pending/A26.yaml");
         CancelPendingTransfer cancelPendingLater = messageFactory.getAdtMessage("pending/A26.yaml");
         addAnHour(cancelPendingLater);
         CancelPendingTransfer cancelNoLocation = messageFactory.getAdtMessage("pending/A26.yaml");
-        cancelNoLocation.setPendingLocation(InterchangeValue.unknown());
+        cancelNoLocation.setPendingDestination(InterchangeValue.unknown());
 
         return Stream.of(
                 // simple case of create and cancel, should have single entity
