@@ -75,6 +75,7 @@ public class LabBattery extends TemporalCore<LabBattery, LabBatteryAudit> {
 
     private LabBattery(LabBattery other) {
         super(other);
+        this.labBatteryId = other.labBatteryId;
         this.batteryCode = other.batteryCode;
         this.batteryName = other.batteryName;
         this.description = other.description;
