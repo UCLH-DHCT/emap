@@ -90,8 +90,8 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     private void checkWinPathIncrementalOrders() {
         LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
         assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), labSample.getReceiptAtLab()); // from 02 SC
+        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionDatetime()); // from 01 NW
+        assertEquals(Instant.parse("2013-07-28T08:45:00Z"), labSample.getReceiptAtLabDatetime()); // from 02 SC
 
         LabOrder originalOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("MG", labSample).orElseThrow();
         assertEquals(Instant.parse("2013-07-28T07:08:06Z"), originalOrder.getOrderDatetime()); // from 01 NW
@@ -135,8 +135,8 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     private void checkWinPathCancelOrders() {
         LabSample labSample = labSampleRepository.findByExternalLabNumber("13U444444").orElseThrow();
         assertEquals("BLD", labSample.getSpecimenType()); // from 01 NW
-        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
-        assertNull(labSample.getReceiptAtLab()); // not in messages
+        assertEquals(Instant.parse("2013-07-28T07:27:00Z"), labSample.getSampleCollectionDatetime()); // from 01 NW
+        assertNull(labSample.getReceiptAtLabDatetime()); // not in messages
 
         Optional<LabOrder> cancelledOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("FBC", labSample);
         assertTrue(cancelledOrder.isEmpty());
@@ -177,8 +177,8 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     private void checkCoPathIncrementalOrders() {
         LabSample labSample = labSampleRepository.findByExternalLabNumber("UR20-4444").orElseThrow();
         assertNull(labSample.getSpecimenType());
-        assertEquals(Instant.parse("2020-05-22T11:07:00Z"), labSample.getSampleCollectionTime()); // from 01 SN
-        assertNull(labSample.getReceiptAtLab());
+        assertEquals(Instant.parse("2020-05-22T11:07:00Z"), labSample.getSampleCollectionDatetime()); // from 01 SN
+        assertNull(labSample.getReceiptAtLabDatetime());
         assertEquals("Stained slides x 6 Ref: 20/12322 from Barts Health", labSample.getCollectionMethod()); // from 01 SN
 
         LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("CO_PATH", labSample).orElseThrow();
@@ -214,8 +214,8 @@ class TestLabsProcessingUnorderedMessages extends MessageStreamBaseCase {
     private void checkCoPathCancelOrders() {
         LabSample labSample = labSampleRepository.findByExternalLabNumber("UH20-4444").orElseThrow();
         assertEquals("BM", labSample.getSpecimenType()); // from 01 NW
-        assertEquals(Instant.parse("2020-11-09T15:05:00Z"), labSample.getSampleCollectionTime()); // from 01 NW
-        assertEquals(Instant.parse("2020-11-11T12:53:00Z"), labSample.getReceiptAtLab()); // 04 ORM SC
+        assertEquals(Instant.parse("2020-11-09T15:05:00Z"), labSample.getSampleCollectionDatetime()); // from 01 NW
+        assertEquals(Instant.parse("2020-11-11T12:53:00Z"), labSample.getReceiptAtLabDatetime()); // 04 ORM SC
 
         LabOrder labOrder = labOrderRepository.findByLabBatteryIdBatteryCodeAndLabSampleId("CO_PATH", labSample).orElseThrow();
         if (labOrder.getOrderDatetime() != null) {

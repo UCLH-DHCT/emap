@@ -10,7 +10,6 @@ import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitAuditReposito
 import uk.ac.ucl.rits.inform.datasinks.emapstar.repos.LocationVisitRepository;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisit;
 import uk.ac.ucl.rits.inform.informdb.movement.LocationVisitAudit;
-import uk.ac.ucl.rits.inform.interchange.EmapOperationMessageProcessingException;
 import uk.ac.ucl.rits.inform.interchange.adt.AdtMessage;
 
 import java.io.IOException;
@@ -65,9 +64,9 @@ class LocationPermutationTestProducer extends OrderPermutationBase {
         List<LocationVisit> visits = StreamSupport.stream(locationVisitRepository.findAll().spliterator(), false).collect(Collectors.toList());
         List<LocationVisitAudit> audits = StreamSupport.stream(locationVisitAuditRepository.findAll().spliterator(), false).collect(Collectors.toList());
         logger.info("Checking visit {}", messageInformation);
-        LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionTime(defaultEncounter, admissionTime)
+        LocationVisit location = locationVisitRepository.findByHospitalVisitIdEncounterAndAdmissionDatetime(defaultEncounter, admissionTime)
                 .orElseThrow(() -> new NoSuchElementException(messageInformation));
-        assertEquals(dischargeTime, location.getDischargeTime(), String.format("Discharge time incorrect for %s", messageInformation));
+        assertEquals(dischargeTime, location.getDischargeDatetime(), String.format("Discharge time incorrect for %s", messageInformation));
         assertEquals(locationString, location.getLocationId().getLocationString(), String.format("Location incorrect for %s", messageInformation));
     }
 

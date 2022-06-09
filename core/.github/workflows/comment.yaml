@@ -2,7 +2,7 @@ name: PR checklist comment
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened]
 
 jobs:
   comment:
@@ -13,7 +13,7 @@ jobs:
         with:
           repository: inform-health-informatics/internal_emap_docs
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-          ref: develop
+          ref: main
       - id: get-pr-checklist
         name: Get PR checklist
         uses: chuhlomin/render-template@v1.2

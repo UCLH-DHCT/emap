@@ -87,6 +87,7 @@ For now: use your own username+password to clone/fetch/etc from github. Jeremy p
 [credential "https://github.com"]
     username = jeremyestein
 ```
+
 You will also need to create a github token as password access from git CLI is now deprecated.
 You will probably want to configure the credential helper to store the token access token 
 (this will store the connection information in plain text in your home directory)
@@ -105,7 +106,7 @@ Repositories must be checked out to the correct branches. "Correct" will depend 
 
 ## config
 
-Supply the required config files in the `Emap-Core` directory (see below in readme for details). Make sure `INFORMDB_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
+Supply the required config files in the `Emap-Core` directory (see below in readme for details). Make sure `UDS_SCHEMA` is set to what it needs to be, in this example I'm using `live`. If you're writing to the UDS, use the `uds_write` user (password in lastpass).
 
 ## docker config
 
