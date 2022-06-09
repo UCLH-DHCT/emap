@@ -35,6 +35,6 @@ public interface LabOrderRepository extends CrudRepository<LabOrder, Long> {
     Optional<LabOrder> findByLabBatteryIdBatteryCodeAndLabSampleId(String battery, LabSample labSample);
 
 
-    List<LabOrder> findByHospitalVisitId(HospitalVisit hospitalVisit);
+    List<LabOrder> findAllByHospitalVisitId(HospitalVisit hospitalVisit);
 
 }

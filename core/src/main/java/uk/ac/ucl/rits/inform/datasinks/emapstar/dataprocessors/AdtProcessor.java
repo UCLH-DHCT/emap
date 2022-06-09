@@ -96,6 +96,9 @@ public class AdtProcessor {
 
     /**
      * Delete all information for a person that is older than the message.
+     * <p>
+     * This is being processed <a href="https://www.hl7.org/documentcenter/public/wg/conf/Msgadt.pdf">as per page 137 </a>.
+     * Keeping the MRN as this may be used by another person.
      * @param msg        DeletePersonInformation
      * @param storedFrom time that emap-core started processing the message.
      * @throws RequiredDataMissingException If MRN and NHS number are both null
@@ -111,9 +114,7 @@ public class AdtProcessor {
             return;
         }
         locationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
-        // shouldn't we be deleting the MRN too?
-        // why only deleting visits that are older? why not just all associated with the person?
-        deletionController.deleteVisits(olderVisits, messageDateTime, storedFrom);
+        deletionController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
     }
 
     /**
