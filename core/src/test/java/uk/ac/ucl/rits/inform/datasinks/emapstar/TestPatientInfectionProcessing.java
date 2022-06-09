@@ -62,7 +62,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     }
 
     private void assertHooverMumpsTimes(PatientCondition infection) {
-        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), infection.getResolutionDateTime());
+        assertEquals(Instant.parse("2019-06-08T14:22:01Z"), infection.getResolutionDatetime());
         assertEquals(LocalDate.parse("2019-03-05"), infection.getOnsetDate());
     }
 
@@ -154,12 +154,12 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(HL7_UPDATE_TIME, infection.getValidFrom());
         assertNotNull(infection.getValidFrom());
-        assertNull(infection.getResolutionDateTime());
+        assertNull(infection.getResolutionDatetime());
     }
 
     /**
@@ -173,9 +173,9 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
-        assertEquals(resolveTime, infection.getResolutionDateTime());
+        assertEquals(resolveTime, infection.getResolutionDatetime());
     }
 
     /**
@@ -187,7 +187,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -205,7 +205,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertEquals(comment, infection.getComment());
@@ -220,7 +220,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
     void testInternalIdAddedFromHoover() throws EmapOperationMessageProcessingException {
         processSingleMessage(hooverMumps);
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertEquals(1, infection.getInternalId());
     }
@@ -244,7 +244,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
         assertHooverMumpsTimes(infection);
     }
@@ -261,7 +261,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         // original minimal message has comment, resolution datetime, onset date and comment as unknown
         processSingleMessage(hl7Mumps);
         PatientCondition hl7Infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         String comment = "great comment";
@@ -269,7 +269,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         // id shouldn't be the same as the hl7 infection because that should be deleted
@@ -294,19 +294,19 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         hl7Mumps.setConditionName(InterchangeValue.buildFromHl7(anotherInfection));
         processSingleMessage(hl7Mumps);
         PatientCondition hl7Infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         processSingleMessage(hooverMumps);
 
         // should be deleted
         Optional<PatientCondition> deletedInfection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME);
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, anotherInfection, MUMPS_ADD_TIME);
         assertTrue(deletedInfection.isEmpty());
 
         // should have an audit log of the previous infection id
         PatientConditionAudit audit = patientConditionAuditRepository.findByPatientConditionId(hl7Infection.getPatientConditionId()).orElseThrow();
-        assertEquals(MUMPS_ADD_TIME, audit.getAddedDateTime());
+        assertEquals(MUMPS_ADD_TIME, audit.getAddedDatetime());
     }
 
     /**
@@ -322,7 +322,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processOlderDateTimeMessage();
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -341,7 +341,7 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hooverMumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, MUMPS_ADD_TIME)
                 .orElseThrow();
 
         assertHooverMumpsTimes(infection);
@@ -357,9 +357,9 @@ public class TestPatientInfectionProcessing extends MessageProcessingBase {
         processSingleMessage(hl7Mumps);
 
         PatientCondition infection = patientConditionRepository
-                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDateTime(MUMPS_MRN, MUMPS_INFECTION, null)
+                .findByMrnIdMrnAndConditionTypeIdInternalCodeAndAddedDatetime(MUMPS_MRN, MUMPS_INFECTION, null)
                 .orElseThrow();
 
-        assertNull(infection.getAddedDateTime());
+        assertNull(infection.getAddedDatetime());
     }
 }

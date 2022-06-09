@@ -112,7 +112,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         assertEquals(PATIENT_MRN, condition.getMrnId().getMrn());
         assertEquals(MYELOMA_PROBLEM_CODE, condition.getConditionTypeId().getInternalCode());
         assertEquals(MYELOMA_PROBLEM_NAME, condition.getConditionTypeId().getName());
-        assertEquals(Instant.parse(MYELOMA_ADDED_TIME), condition.getAddedDateTime());
+        assertEquals(Instant.parse(MYELOMA_ADDED_TIME), condition.getAddedDatetime());
         assertEquals(LocalDate.parse(MYELOMA_ONSET_DATE), condition.getOnsetDate());
     }
 
@@ -188,7 +188,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
-        assertNull(condition.getResolutionDateTime());
+        assertNull(condition.getResolutionDatetime());
 
         assertEquals(0, getAllEntities(patientConditionAuditRepository).size());
 
@@ -197,7 +197,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaInpatient);
 
         PatientCondition resolvedCondition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
-        assertNotNull(resolvedCondition.getResolutionDateTime());
+        assertNotNull(resolvedCondition.getResolutionDatetime());
         assertEquals(1, getAllEntities(patientConditionAuditRepository).size());
     }
 
@@ -221,7 +221,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
         // should have an audit log of the condition that was deleted
         PatientConditionAudit audit = getAllEntities(patientConditionAuditRepository).get(0);
-        assertEquals(hooverAddThenDeleteMessages.get(0).getAddedTime(), audit.getAddedDateTime());
+        assertEquals(hooverAddThenDeleteMessages.get(0).getAddedTime(), audit.getAddedDatetime());
     }
 
     PatientProblem messageWithNewNameAndUpdatedTimeChanged(Instant time) throws IOException {
@@ -307,8 +307,8 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         PatientCondition conditionFromAd = conditionMyelomaInpatientWithAction(ConditionAction.ADD);
 
         assertEquals(conditionFromAd.getInternalId(), conditionFromUp.getInternalId());
-        assertEquals(conditionFromAd.getAddedDateTime(), conditionFromUp.getAddedDateTime());
-        assertEquals(conditionFromAd.getResolutionDateTime(), conditionFromUp.getResolutionDateTime());
+        assertEquals(conditionFromAd.getAddedDatetime(), conditionFromUp.getAddedDatetime());
+        assertEquals(conditionFromAd.getResolutionDatetime(), conditionFromUp.getResolutionDatetime());
         assertEquals(conditionFromAd.getStatus(), conditionFromUp.getStatus());
         assertEquals(conditionFromAd.getComment(), conditionFromUp.getComment());
         assertEquals(conditionFromAd.getPriority(), conditionFromUp.getPriority());
