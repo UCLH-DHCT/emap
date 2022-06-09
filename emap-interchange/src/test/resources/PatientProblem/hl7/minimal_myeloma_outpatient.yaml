@@ -1,6 +1,14 @@
 - "@class": "uk.ac.ucl.rits.inform.interchange.PatientProblem"
   sourceSystem: "EPIC"
   updatedDateTime: "2019-06-02T09:31:05Z"
+  epicConditionId:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: 1333555
+  visitNumber:
+    "@class": "uk.ac.ucl.rits.inform.interchange.InterchangeValue"
+    status: "SAVE"
+    value: "123412341234"
   mrn: "8DcEwvqa8Q3"
   conditionCode: "C90.0"
   conditionName:
