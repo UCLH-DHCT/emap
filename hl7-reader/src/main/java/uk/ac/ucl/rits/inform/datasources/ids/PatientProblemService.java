@@ -75,7 +75,7 @@ public class PatientProblemService {
         patientProblem.setSourceMessageId(sourceId);
         patientProblem.setSourceSystem(patientInfo.getSendingApplication());
         patientProblem.setMrn(patientInfo.getMrn());
-        patientProblem.setVisitNumber(InterchangeValue.buildFromHl7(patientInfo.getVisitNumber()));
+        patientProblem.setVisitNumber(InterchangeValue.buildFromHl7(patientInfo.getVisitNumberFromPv1orPID()));
 
         // problem list specific information
         patientProblem.setAction(ConditionAction.findByHl7Value(problemSegment.getPrb1_ActionCode().getValueOrEmpty()));
