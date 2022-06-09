@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.DeletionController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.LocationController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.PersonController;
 import uk.ac.ucl.rits.inform.datasinks.emapstar.controllers.VisitController;
@@ -31,17 +32,21 @@ public class AdtProcessor {
     private final PersonController personController;
     private final VisitController visitController;
     private final LocationController locationController;
+    private final DeletionController deletionController;
 
     /**
      * Implicitly wired spring beans.
      * @param personController   person interactions.
      * @param visitController    encounter interactions.
      * @param locationController location interactions.
+     * @param deletionController cascading deletions.
      */
-    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController) {
+    public AdtProcessor(PersonController personController, VisitController visitController, LocationController locationController,
+                        DeletionController deletionController) {
         this.personController = personController;
         this.visitController = visitController;
         this.locationController = locationController;
+        this.deletionController = deletionController;
     }
 
 
@@ -91,6 +96,9 @@ public class AdtProcessor {
 
     /**
      * Delete all information for a person that is older than the message.
+     * <p>
+     * This is being processed <a href="https://www.hl7.org/documentcenter/public/wg/conf/Msgadt.pdf">as per page 137 </a>.
+     * Keeping the MRN as this may be used by another person.
      * @param msg        DeletePersonInformation
      * @param storedFrom time that emap-core started processing the message.
      * @throws RequiredDataMissingException If MRN and NHS number are both null
@@ -106,7 +114,7 @@ public class AdtProcessor {
             return;
         }
         locationController.deleteLocationVisits(olderVisits, messageDateTime, storedFrom);
-        visitController.deleteVisits(olderVisits, messageDateTime, storedFrom);
+        deletionController.deleteVisitsAndDependentEntities(olderVisits, messageDateTime, storedFrom);
     }
 
     /**
