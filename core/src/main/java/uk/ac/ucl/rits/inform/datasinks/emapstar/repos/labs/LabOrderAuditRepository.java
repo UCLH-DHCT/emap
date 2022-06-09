@@ -25,6 +25,9 @@ public interface LabOrderAuditRepository extends CrudRepository<LabOrderAudit, L
             + "AND (a.orderDatetime = :orderDateTime or a.internalLabNumber = :epicOrder) ")
     List<Long> findAllIds(Long labBatteryId, Long labSampleId, Instant orderDateTime, String epicOrder);
 
+
+    List<LabOrderAudit> findAllByHospitalVisitIdIn(Iterable<Long> hospitalVisitIds);
+
     /**
      * Assuming an entity was created, it was previously deleted if it has an audit log.
      * @param labBatteryId          lab battery id

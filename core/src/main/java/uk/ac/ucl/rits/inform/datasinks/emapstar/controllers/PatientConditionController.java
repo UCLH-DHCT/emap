@@ -196,7 +196,7 @@ public class PatientConditionController {
             case "EPIC":
                 epicInfectionId = null;
                 patientCondition = patientConditionRepo
-                        .findByMrnIdAndConditionTypeIdAndAddedDateTime(mrn, conditionType, msg.getAddedTime());
+                        .findByMrnIdAndConditionTypeIdAndAddedDatetime(mrn, conditionType, msg.getAddedTime());
                 break;
             case "clarity":
                 if (msg.getEpicConditionId().isUnknown()) {
@@ -229,7 +229,7 @@ public class PatientConditionController {
         Instant addedTime = msg.getAddedTime();
         Instant updatedTime = msg.getUpdatedDateTime();
 
-        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDateTime(
+        Optional<PatientCondition> patientCondition = patientConditionRepo.findByMrnIdAndConditionTypeIdAndAddedDatetime(
                 mrn, conditionType, addedTime);
 
         return patientCondition
@@ -278,7 +278,7 @@ public class PatientConditionController {
         conditionState.assignIfDifferent(visit, condition.getHospitalVisitId(), condition::setHospitalVisitId);
         conditionState.assignIfDifferent(msg.getStatusString(), condition.getStatus(), condition::setStatus);
         conditionState.assignInterchangeValue(
-                msg.getResolvedTime(), condition.getResolutionDateTime(), condition::setResolutionDateTime);
+                msg.getResolvedTime(), condition.getResolutionDatetime(), condition::setResolutionDatetime);
         conditionState.assignInterchangeValue(msg.getOnsetTime(), condition.getOnsetDate(), condition::setOnsetDate);
     }
 

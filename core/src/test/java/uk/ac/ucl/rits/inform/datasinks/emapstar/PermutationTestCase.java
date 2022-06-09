@@ -240,9 +240,9 @@ public class PermutationTestCase extends MessageStreamBaseCase {
     private void testRegister() {
         HospitalVisit visit = this.hospitalVisitRepository.findByEncounter(this.csn).get();
 
-        assertEquals(this.presentationTime.get(), visit.getPresentationTime());
+        assertEquals(this.presentationTime.get(), visit.getPresentationDatetime());
         assertEquals(super.getPatientClass().get().toString(), visit.getPatientClass());
-        assertEquals(this.dischargeTime, visit.getDischargeTime());
+        assertEquals(this.dischargeTime, visit.getDischargeDatetime());
     }
 
     /**
@@ -278,16 +278,16 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         }
 
 
-        locationVisits.sort((o1, o2) -> o1.getAdmissionTime().isBefore(o2.getAdmissionTime()) ? 1 : -1);
+        locationVisits.sort((o1, o2) -> o1.getAdmissionDatetime().isBefore(o2.getAdmissionDatetime()) ? 1 : -1);
 
         LocationVisit current = locationVisits.get(0);
         assertEquals(current.getLocationId().getLocationString(), this.currentLocation().get());
-        assertEquals(thisLocationStartTime, current.getAdmissionTime());
+        assertEquals(thisLocationStartTime, current.getAdmissionDatetime());
 
         // Check the discharge of the previous visit
         if (locationVisits.size() > 1) {
             LocationVisit previous = locationVisits.get(1);
-            assertEquals(previous.getDischargeTime(), current.getAdmissionTime());
+            assertEquals(previous.getDischargeDatetime(), current.getAdmissionDatetime());
         }
     }
 
@@ -301,13 +301,13 @@ public class PermutationTestCase extends MessageStreamBaseCase {
         HospitalVisit visit = this.hospitalVisitRepository.findByEncounter(this.csn).get();
 
         if (!this.presentationTime.isUnknown()) {
-            assertEquals(this.presentationTime.get(), visit.getPresentationTime());
+            assertEquals(this.presentationTime.get(), visit.getPresentationDatetime());
         }
         if (!this.admissionTime.isUnknown()) {
-            assertEquals(this.admissionTime.get(), visit.getAdmissionTime());
+            assertEquals(this.admissionTime.get(), visit.getAdmissionDatetime());
         }
         assertEquals(super.getPatientClass().get().toString(), visit.getPatientClass());
-        assertEquals(this.dischargeTime, visit.getDischargeTime());
+        assertEquals(this.dischargeTime, visit.getDischargeDatetime());
     }
 
     /**
@@ -367,11 +367,11 @@ public class PermutationTestCase extends MessageStreamBaseCase {
             return;
         }
 
-        locationVisits.sort((o1, o2) -> o1.getAdmissionTime().isBefore(o2.getAdmissionTime()) ? 1 : -1);
+        locationVisits.sort((o1, o2) -> o1.getAdmissionDatetime().isBefore(o2.getAdmissionDatetime()) ? 1 : -1);
 
         LocationVisit current = locationVisits.get(0);
         assertEquals(current.getLocationId().getLocationString(), this.currentLocation().get());
-        assertNull(current.getDischargeTime());
+        assertNull(current.getDischargeDatetime());
 
     }
 }
