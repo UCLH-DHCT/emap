@@ -140,7 +140,7 @@ public class TestConsultProcessing extends MessageProcessingBase {
         assertNotNull(cRequest.getValidFrom());
         assertNotNull(cRequest.getStoredFrom());
         assertEquals(FRAILTY_REQ_TIME, cRequest.getScheduledDatetime());
-        assertEquals(FRAILTY_STAT_CHANGE_TIME, cRequest.getStatusChangeTime());
+        assertEquals(FRAILTY_STAT_CHANGE_TIME, cRequest.getStatusChangeDatetime());
     }
 
     /**

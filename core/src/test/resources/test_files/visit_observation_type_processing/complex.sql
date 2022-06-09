@@ -4,8 +4,8 @@ VALUES (1001, '40800000', '9999999999', 'EPIC', '2010-09-01 11:04:04');
 
 -- Add hospital visit
 INSERT INTO public.hospital_visit (
-    hospital_visit_id, stored_from, valid_from, admission_time, arrival_method, discharge_destination, discharge_disposition,
-    discharge_time, encounter, patient_class, presentation_time, source_system, mrn_id)
+    hospital_visit_id, stored_from, valid_from, admission_datetime, arrival_method, discharge_destination, discharge_disposition,
+    discharge_datetime, encounter, patient_class, presentation_datetime, source_system, mrn_id)
 VALUES (2001, '2012-09-17 13:25:00', '2010-09-14 15:27:00', null, 'Public trans', null, null,
        null, '123412341234', 'INPATIENT', '2012-09-17 13:25:00', 'EPIC', 1001);
 
