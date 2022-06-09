@@ -67,20 +67,20 @@ public class TestProblemListProcessing extends MessageProcessingBase {
 
     @BeforeEach
     private void setUp() throws IOException {
-        hooverAddThenDeleteMessages = messageFactory.getPatientProblems("add_then_delete.yaml");
-        hooverDeleteMessages =  messageFactory.getPatientProblems("deleted_only.yaml");
+        hooverAddThenDeleteMessages = messageFactory.getPatientProblems("clarity/add_then_delete.yaml");
+        hooverDeleteMessages =  messageFactory.getPatientProblems("clarity/deleted_only.yaml");
         hl7MyelomaInpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_inpatient.yaml").get(0);
         hl7OtherProblemInpatient =  messageFactory.getPatientProblems("hl7/minimal_other_problem_inpatient.yaml").get(0);
         hl7MyelomaOutpatient = messageFactory.getPatientProblems("hl7/minimal_myeloma_outpatient.yaml").get(0);
         hl7MyelomaAdd = messageFactory.getPatientProblems("hl7/myeloma_add.yaml").get(0);
         hooverMyelomaAdd = messageFactory.getPatientProblems("clarity_add.yaml").get(0);
-        hooverMyelomaDeleteThenAdd = messageFactory.getPatientProblems("delete_then_add.yaml");
+        hooverMyelomaDeleteThenAdd = messageFactory.getPatientProblems("clarity/delete_then_add.yaml");
     }
 
     /**
      * Given that no problem list exists for outpatient
      * When a minimal problem list message arrives
-     * Then a new problem list is generated for this patient (not linked to a hospital stay)
+     * Then a new problem list is generated for this patient (which has an encounter)
      * with the correct fields
      */
     @Test
@@ -89,7 +89,7 @@ public class TestProblemListProcessing extends MessageProcessingBase {
         processSingleMessage(hl7MyelomaOutpatient);
         PatientCondition condition = patientConditionRepository.findByMrnIdMrn(PATIENT_MRN).orElseThrow();
 
-        assertNull(condition.getHospitalVisitId());
+        assertNotNull(condition.getHospitalVisitId());
     }
 
     /**
