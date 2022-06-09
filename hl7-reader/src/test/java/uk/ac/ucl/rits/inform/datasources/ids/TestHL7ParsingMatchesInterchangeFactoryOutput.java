@@ -430,8 +430,11 @@ public class TestHL7ParsingMatchesInterchangeFactoryOutput extends TestHl7Messag
     }
 
     @Test
-    public void testPatientProblem() throws Exception {
-        String[] fileNames = {"minimal_myeloma_outpatient", "minimal_myeloma_inpatient", "minimal_myeloma_inpatient_delete"};
+    void testPatientProblem() throws Exception {
+        String[] fileNames = {
+                "minimal_myeloma_outpatient", "minimal_myeloma_inpatient", "minimal_myeloma_inpatient_delete",
+                "myeloma_add", "minimal_other_problem_inpatient"
+        };
         for (String fileName : fileNames) {
             log.info("Testing file {}", fileName);
             String hl7FileName = String.format("ProblemList/end_to_end/%s.txt", fileName);
