@@ -11,5 +11,5 @@ import java.util.List;
  */
 public interface LabResultAuditRepository extends CrudRepository<LabResultAudit, Long> {
 
-    List<LabResultAudit> findByLabOrderIdIn(Iterable<Long> labOrderIds);
+    List<LabResultAudit> findAllByLabOrderIdIn(Iterable<Long> labOrderIds);
 }

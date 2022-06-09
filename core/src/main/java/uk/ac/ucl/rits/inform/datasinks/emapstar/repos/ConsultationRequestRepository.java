@@ -19,5 +19,5 @@ public interface ConsultationRequestRepository extends CrudRepository<Consultati
      */
     Optional<ConsultationRequest> findByInternalId(Long internalId);
 
-    List<ConsultationRequest> findByHospitalVisitId(HospitalVisit hospitalVisit);
+    List<ConsultationRequest> findAllByHospitalVisitId(HospitalVisit hospitalVisit);
 }

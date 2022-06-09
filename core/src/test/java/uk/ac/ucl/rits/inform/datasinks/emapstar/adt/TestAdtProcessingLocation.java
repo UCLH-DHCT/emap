@@ -229,7 +229,7 @@ class TestAdtProcessingLocation extends MessageProcessingBase {
             // shouldn't exist in live table
             assertEquals(Optional.empty(), labOrderRepository.findById(loa.getLabOrderId()));
 
-            List<LabResultAudit> labResultAudits = labResultAuditRepo.findByLabOrderIdIn(List.of(loa.getLabOrderId()));
+            List<LabResultAudit> labResultAudits = labResultAuditRepo.findAllByLabOrderIdIn(List.of(loa.getLabOrderId()));
             assertFalse(labResultAudits.isEmpty());
             for (var lra : labResultAudits) {
                 assertEquals(Optional.empty(), labResultRepo.findById(lra.getLabResultId()));
