@@ -8,7 +8,6 @@ import uk.ac.ucl.rits.inform.interchange.adt.MergePatient;
 import uk.ac.ucl.rits.inform.interchange.adt.MoveVisitInformation;
 import uk.ac.ucl.rits.inform.interchange.adt.PendingTransfer;
 import uk.ac.ucl.rits.inform.interchange.adt.SwapLocations;
-import uk.ac.ucl.rits.inform.interchange.lab.ClimbSequenceMsg;
 import uk.ac.ucl.rits.inform.interchange.lab.LabOrderMsg;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.Flowsheet;
 import uk.ac.ucl.rits.inform.interchange.visit_observations.FlowsheetMetadata;
@@ -117,9 +116,4 @@ public interface EmapOperationMessageProcessor {
      */
     void processMessage(AdvanceDecisionMessage msg) throws EmapOperationMessageProcessingException;
 
-    /**
-     * @param msg the ClimbSequence msg to process
-     * @throws EmapOperationMessageProcessingException if message cannot be processed
-     */
-    void processMessage(ClimbSequenceMsg msg) throws EmapOperationMessageProcessingException;
 }
