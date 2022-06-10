@@ -8,10 +8,9 @@ import ca.uhn.hl7v2.model.v26.segment.MSH;
 import ca.uhn.hl7v2.model.v26.segment.PID;
 import ca.uhn.hl7v2.model.v26.segment.PRB;
 import ca.uhn.hl7v2.model.v26.segment.PV1;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.ac.ucl.rits.inform.datasources.ids.hl7.parser.PatientInfoHl7;
 import uk.ac.ucl.rits.inform.interchange.ConditionAction;
@@ -24,23 +23,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Component
+@NoArgsConstructor
 public class PatientProblemService {
-    /**
-     * The HL7 feed always sends entire histories of patient problems.
-     * This field is used to only parse new patient problems, from the service start date onwards.
-     */
-    @Setter
-    private Instant problemListProgress;
     private static final Logger logger = LoggerFactory.getLogger(PatientProblemService.class);
 
-    public PatientProblemService(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        problemListProgress = serviceStart;
-    }
-
     /**
-     * Build patient problems from message. Problems with no added datetime, or problems where the added time is before
-     * the current progress will be skipped. As a problem message can have multiple PRB segments, these are individually
-     * processed.
+     * Build patient problems from message.
+     * As a problem message can have multiple PRB segments, these are individually processed.
      * @param sourceId message sourceId
      * @param msg      hl7 message
      * @return list of patient problems
@@ -56,7 +45,7 @@ public class PatientProblemService {
         Collection<PatientProblem> problems = new ArrayList<>(reps);
         for (int i = 0; i < reps; i++) {
             PatientProblem patientProblem = buildPatientProblem(sourceId, patientInfo, msg.getPROBLEM(i).getPRB());
-            addNewProblemAndUpdateProgress(patientProblem, problems);
+            problems.add(patientProblem);
         }
         return problems;
     }
@@ -96,21 +85,5 @@ public class PatientProblemService {
         }
 
         return patientProblem;
-    }
-
-    /**
-     * Checks whether patient problem information needs to be processed further based on the timestamp.
-     * @param patientProblem Patient problem potentially to be added to problem list (depending on timestamp)
-     * @param problems       List of problems to which additional problem might be added
-     */
-    private void addNewProblemAndUpdateProgress(PatientProblem patientProblem, Collection<PatientProblem> problems) {
-        Instant problemAdded = patientProblem.getAddedTime();
-        if (problemAdded == null || problemAdded.isBefore(problemListProgress)) {
-            logger.debug("Problem list processing skipped as current problem list added time is {} and progress is {}",
-                    problemAdded, problemListProgress);
-            return;
-        }
-        problems.add(patientProblem);
-        problemListProgress = patientProblem.getAddedTime();
     }
 }

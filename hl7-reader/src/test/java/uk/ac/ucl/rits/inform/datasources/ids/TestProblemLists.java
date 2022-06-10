@@ -39,11 +39,6 @@ public class TestProblemLists extends TestHl7MessageStream {
     @Autowired
     PatientProblemService patientProblemService;
 
-    @BeforeEach
-    private void resetProblemProgress(@Value("${ids.cfg.default-start-datetime}") Instant serviceStart) {
-        patientProblemService.setProblemListProgress(serviceStart);
-    }
-
     List<PatientProblem> getAllProblems(String fileName) throws Exception {
         List<? extends EmapOperationMessage> msgs = null;
         try {
@@ -116,52 +111,5 @@ public class TestProblemLists extends TestHl7MessageStream {
     void testNoPatientProblemInPC1() throws Exception {
         List<PatientProblem> problems = getAllProblems("no_problem_lists");
         assertTrue(problems.isEmpty());
-    }
-
-    /**
-     * Given that a problem list doesn't have an added date time
-     * When the message is processed
-     * Then the problem list should not be added.
-     * The hoover should deal with messages with no added datetime
-     * @throws Exception shouldn't happen
-     */
-    @Test
-    void testNoProblemListAddedTime() throws Exception {
-        List<PatientProblem> problems = getAllProblems("no_added_time_problem_list");
-        assertTrue(problems.isEmpty());
-    }
-
-    /**
-     * Given that patient problem added date time is earlier than service start
-     * When the message is processed
-     * Then the problem list should not be added
-     */
-    @Test
-    void testNoProblemListsBeforeServiceStart() throws Exception {
-        List<PatientProblem> problems = getAllProblems("earlier_problem_list");
-        assertTrue(problems.isEmpty());
-    }
-
-    /**
-     * Ensure that only patient infections are not processed if they have an earlier added datetime than the current progress.
-     * @param setupFile    test setup processing, used to set the current progress
-     * @param testedFile   file where the actual output is tested
-     * @param expectedSize expected number of messages from the output file
-     * @throws Exception shouldn't happen
-     */
-    @ParameterizedTest
-    @CsvSource({
-            "2019_05_problem_list, 2019_05_problem_list, 1", // same date as existing progress is parsed
-            "2019_05_problem_list, 2019_06_problem_list, 1", // later date as existing progress is parsed
-            "2019_06_problem_list, 2019_05_problem_list, 0",  // earlier date as progress is parsed
-            "2019_06_problem_list, 2019_06_problem_list, 1",  // same date as existing progress is parsed
-    })
-    void earlierProblemsSkipped(String setupFile, String testedFile, Long expectedSize) throws Exception {
-        getAllProblems(setupFile);
-
-        List<PatientProblem> problems = getAllProblems(testedFile);
-        // From a quick look at the feed I don't think that the entire history of problem lists are added,
-        // so I think we should remove this functionality and parse every message? Or maybe I've mistaken something
-        assertEquals(expectedSize, problems.size());
     }
 }
