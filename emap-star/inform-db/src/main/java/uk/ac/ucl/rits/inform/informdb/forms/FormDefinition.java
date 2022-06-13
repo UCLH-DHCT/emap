@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
+package uk.ac.ucl.rits.inform.informdb.forms;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,10 +29,10 @@ public class FormDefinition extends TemporalCore<FormDefinition, FormDefinitionA
     private Long formDefinitionId;
 
     /**
-     * \brief A string ID for this form.
-     * HLV ?? (Eg. if a SmartForm: "SmartForm1222")
+     * \brief A string name for this form, as used by the source system.
+     * HLV ?? (Eg. if a SmartForm, SmartForm ID = "SmartForm1222")
      */
-    private String formId;
+    private String formName;
 
     /**
      * \brief Text description of the form.

@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
+package uk.ac.ucl.rits.inform.informdb.forms;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,7 +37,7 @@ public class FormAnswer extends TemporalCore<FormAnswer, FormAnswerAudit> {
     private FormQuestion formQuestionId;
 
     @ManyToOne
-    @JoinColumn(name = "smartFormId")
+    @JoinColumn(name = "formId")
     private Form formId;
 
     /**

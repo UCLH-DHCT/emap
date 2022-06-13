@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
+package uk.ac.ucl.rits.inform.informdb.forms;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
