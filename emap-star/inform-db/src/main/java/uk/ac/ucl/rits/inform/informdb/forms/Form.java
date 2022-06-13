@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
+package uk.ac.ucl.rits.inform.informdb.forms;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +10,7 @@ import uk.ac.ucl.rits.inform.informdb.identity.HospitalVisit;
 import uk.ac.ucl.rits.inform.informdb.identity.Mrn;
 import uk.ac.ucl.rits.inform.informdb.labs.LabOrder;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,7 +18,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A filled out Form. Basically a grouping of rows of FormAnswer.
@@ -69,6 +73,15 @@ public class Form extends TemporalCore<Form, FormAudit> {
     private Instant formFilingDateTime;
 
     private String formFilingUserId;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "formId", cascade = CascadeType.ALL)
+    private List<FormAnswer> formAnswers = new ArrayList<>();
+
+    public void addFormAnswer(FormAnswer formAnswer) {
+        formAnswers.add(formAnswer);
+        formAnswer.setFormId(this);
+    }
 
     @Override
     public Form copy() {

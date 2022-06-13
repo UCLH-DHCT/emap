@@ -1,4 +1,4 @@
-package uk.ac.ucl.rits.inform.informdb.smart_data_elements;
+package uk.ac.ucl.rits.inform.informdb.forms;
 
 /**
  * Possible types for a form answer (eg SDE), as defined in Clarity ZC_DATA_TYPE.
