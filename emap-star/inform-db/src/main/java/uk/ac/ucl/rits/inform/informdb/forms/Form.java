@@ -70,7 +70,7 @@ public class Form extends TemporalCore<Form, FormAudit> {
     private LabOrder labOrderId;
 
     @Column(columnDefinition = "timestamp with time zone")
-    private Instant formFilingDateTime;
+    private Instant formFilingDatetime;
 
     private String formFilingUserId;
 
